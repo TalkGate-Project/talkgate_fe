@@ -1,26 +1,220 @@
 @import "tailwindcss";
 
 :root {
+  /* Light theme semantic variables */
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --border: #e5e5e5;
+  --primary: #3b82f6;  /* blue-400 */
+  --success: #34d399;  /* green-400 */
+  --warning: #f59e0b;  /* amber-400 */
+  --danger: #ef4444;   /* red-400 */
 }
 
 @theme inline {
+  /* Breakpoints (min-width) */
+  --breakpoint-mobile: 390px;  /* 390 */
+  --breakpoint-tablet: 768px;  /* 768 */
+  --breakpoint-desktop: 1280px;/* 1280 */
+  --breakpoint-desktop-full: 1920px; /* 1920 */
+
+  /* Map to Tailwind aliases (sm/md/lg/xl). Tailwind v4 reads these tokens. */
+  --breakpoint-sm: var(--breakpoint-mobile);
+  --breakpoint-md: var(--breakpoint-tablet);
+  --breakpoint-lg: var(--breakpoint-desktop);
+  --breakpoint-xl: var(--breakpoint-desktop-full);
+  /* Palette: Grayscale 50-900 */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+
+  /* Palette: Greens */
+  --color-green-100: #d1fae5;
+  --color-green-200: #a7f3d0;
+  --color-green-300: #6ee7b7;
+  --color-green-400: #34d399;
+  --color-green-500: #059669;
+  --color-green-600: #047857;
+
+  /* Palette: Blues */
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #60a5fa;
+  --color-blue-400: #3b82f6;
+  --color-blue-500: #2563eb;
+  --color-blue-600: #1d4ed8;
+
+  /* Palette: Ambers (yellow/orange) */
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fbbf24;
+  --color-amber-400: #f59e0b;
+  --color-amber-500: #d97706;
+  --color-amber-600: #92400e;
+
+  /* Palette: Reds */
+  --color-red-100: #fee2e2;
+  --color-red-200: #fca5a5;
+  --color-red-300: #f87171;
+  --color-red-400: #ef4444;
+  --color-red-500: #dc2626;
+  --color-red-600: #b91c1c;
+
+  /* Semantic tokens (map to CSS variables for easy theming) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  /* Typography (font families are stacks; next/font variables come first) */
+  --font-sans: var(--font-inter), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Semantic text sizes + line-heights (use text-*, leading-*) */
+  --text-h1: 42px;         /* Pretendard 700 */
+  --leading-h1: 58px;
+  --text-h2: 32px;         /* Pretendard 700 */
+  --leading-h2: 40px;
+  --text-h3: 24px;         /* Pretendard 700 */
+  --leading-h3: 36px;
+  --text-h3-medium: 24px;  /* Pretendard 500 */
+  --leading-h3-medium: 36px;
+
+  --text-title-1: 20px;    /* Pretendard 500 */
+  --leading-title-1: 24px;
+  --text-title-2: 18px;    /* Pretendard 700 */
+  --leading-title-2: 22px;
+  --text-title-3: 18px;    /* Pretendard 600 */
+  --leading-title-3: 22px;
+  --text-title-4: 16px;    /* Pretendard 600 */
+  --leading-title-4: 20px;
+
+  --text-body-1: 16px;     /* Pretendard 400 */
+  --leading-body-1: 20px;
+  --text-body-2: 14px;     /* Inter 500 */
+  --leading-body-2: 22px;
+  --text-body-3: 14px;     /* Inter 400 */
+  --leading-body-3: 22px;
+  --text-caption-1: 12px;  /* Pretendard 500 */
+  --leading-caption-1: 20px;
+  --text-caption-2: 12px;  /* Pretendard 400 */
+  --leading-caption-2: 20px;
+
+  /* Radii (usable via rounded-sm|md|lg|xl) */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Card radius per spec */
+  --radius-card: 30px;
+
+  /* Shadows (tokens for elevation) */
+  --shadow-elevation-1: 0 1px 2px rgba(0,0,0,0.06), 0 1px 1px rgba(0,0,0,0.04);
+  --shadow-elevation-2: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-elevation-3: 0 8px 24px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-card-soft: 0 2px 10px rgba(0,0,0,0.06);
+
+  /* Surfaces */
+  --color-surface-10: #f8f8f8; /* Light/Light-10 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark theme semantic variables */
+    --background: #0a0a0a;           /* gray-950 */
+    --foreground: #ededed;           /* gray-100 */
+    --card: #111111;                 /* near gray-900 */
+    --muted: #1a1a1a;                /* gray-900 */
+    --muted-foreground: #a3a3a3;     /* gray-400 */
+    --border: #262626;               /* gray-800 */
+    --primary: #60a5fa;              /* blue-300 */
+    --success: #22c55e;              /* green-500 */
+    --warning: #fbbf24;              /* amber-300 */
+    --danger: #f87171;               /* red-300 */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
+
+/* Semantic typography utilities (single class to avoid text-[px]) */
+@utility typo-h1 {
+  @apply text-h1 leading-h1 font-bold;
+  font-family: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui;
+}
+
+@utility typo-h2 {
+  @apply text-h2 leading-h2 font-bold;
+  font-family: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui;
+}
+
+@utility typo-h3 {
+  @apply text-h3 leading-h3 font-bold;
+  font-family: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui;
+}
+
+@utility typo-h3-medium {
+  @apply text-h3-medium leading-h3-medium font-medium;
+  font-family: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui;
+}
+
+@utility typo-title-1 { @apply text-title-1 leading-title-1 font-medium; }
+@utility typo-title-2 { @apply text-title-2 leading-title-2 font-bold; }
+@utility typo-title-3 { @apply text-title-3 leading-title-3 font-semibold; }
+@utility typo-title-4 { @apply text-title-4 leading-title-4 font-semibold; }
+
+@utility typo-body-1 {
+  @apply text-body-1 leading-body-1 font-normal;
+}
+
+@utility typo-body-2 {
+  @apply text-body-2 leading-body-2 font-medium;
+  font-family: var(--font-inter), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui;
+}
+
+@utility typo-body-3 {
+  @apply text-body-3 leading-body-3 font-normal;
+  font-family: var(--font-inter), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui;
+}
+
+@utility typo-caption-1 { @apply text-caption-1 leading-caption-1 font-medium; }
+@utility typo-caption-2 { @apply text-caption-2 leading-caption-2 font-normal; }
+
+/* Section labels used in docs (Roboto Mono 700 20/32, muted) */
+@utility typo-label {
+  font-family: var(--font-roboto-mono), ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 32px;
+  color: rgb(0 0 0 / 35%);
+}
+
+/* Elevation helpers */
+@utility elevation-1 { @apply shadow-elevation-1; }
+@utility elevation-2 { @apply shadow-elevation-2; }
+@utility elevation-3 { @apply shadow-elevation-3; }
+
+/* Surfaces and shape */
+@utility surface { @apply bg-card text-foreground; }
+@utility surface-muted { background-color: var(--color-surface-10); }
+@utility rounded-card { border-radius: var(--radius-card); }
