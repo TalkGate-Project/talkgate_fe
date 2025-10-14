@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Roboto_Mono } from "next/font/google";
+import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
+import Header from "../components/Header";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({
@@ -12,6 +13,13 @@ const inter = Inter({
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -27,8 +35,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
-        {children}
+      <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
+        <Header />
+        <div className="pt-[54px]">{children}</div>
       </body>
     </html>
   );

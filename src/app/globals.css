@@ -21,11 +21,11 @@
   --breakpoint-desktop: 1280px;/* 1280 */
   --breakpoint-desktop-full: 1920px; /* 1920 */
 
-  /* Map to Tailwind aliases (sm/md/lg/xl). Tailwind v4 reads these tokens. */
-  --breakpoint-sm: var(--breakpoint-mobile);
-  --breakpoint-md: var(--breakpoint-tablet);
-  --breakpoint-lg: var(--breakpoint-desktop);
-  --breakpoint-xl: var(--breakpoint-desktop-full);
+  /* Map to Tailwind aliases (sm/md/lg/xl). Use concrete values (media queries don't support var()). */
+  --breakpoint-sm: 390px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1920px;
   /* Palette: Grayscale 50-900 */
   --color-gray-50: #fafafa;
   --color-gray-100: #f5f5f5;
@@ -152,7 +152,7 @@
 }
 
 body {
-  background: var(--background);
+  background: var(--color-surface-10);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
