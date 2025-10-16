@@ -1,6 +1,11 @@
 import { apiClient } from "@/lib/apiClient";
 
-export type CustomerNoteCategory = unknown; // refine later
+export type CustomerNoteCategory = {
+  id: number;
+  name: string;
+  color?: string; // e.g., hex for pills
+  active?: boolean;
+};
 
 export const CustomerNoteCategoriesService = {
   list() {
