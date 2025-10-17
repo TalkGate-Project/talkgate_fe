@@ -1,41 +1,80 @@
 import { apiClient } from "@/lib/apiClient";
+import { setTokens, clearTokens } from "@/lib/token";
 
 // DTOs can be refined later per actual contract
 export type LoginInput = { email: string; password: string };
 export type LoginOutput = unknown;
-export type OAuthInput = { code: string };
+export type SocialLoginInput = { code: string; callbackUrl: string };
 export type SignupInput = { email: string; password: string; name: string };
 export type SignupOutput = unknown;
 export type Me = unknown;
 
 export const AuthService = {
   // Social login
-  loginGoogle(input: OAuthInput) {
-    return apiClient.post<LoginOutput>("/v1/auth/google", input);
+  loginGoogle(input: SocialLoginInput) {
+    return apiClient.post<LoginOutput>("/v1/auth/google", input).then((res) => {
+      // Expecting { result, data: { accessToken, refreshToken, user } }
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
-  loginKakao(input: OAuthInput) {
-    return apiClient.post<LoginOutput>("/v1/auth/kakao", input);
+  loginKakao(input: SocialLoginInput) {
+    return apiClient.post<LoginOutput>("/v1/auth/kakao", input).then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
-  loginNaver(input: OAuthInput) {
-    return apiClient.post<LoginOutput>("/v1/auth/naver", input);
+  loginNaver(input: SocialLoginInput) {
+    return apiClient.post<LoginOutput>("/v1/auth/naver", input).then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
 
   // Email/password
   login(input: LoginInput) {
-    return apiClient.post<LoginOutput>("/v1/auth/login", input);
+    return apiClient.post<LoginOutput>("/v1/auth/login", input).then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
   signup(input: SignupInput) {
     return apiClient.post<SignupOutput>("/v1/auth/signup", input);
   },
 
   refresh() {
-    return apiClient.post<unknown>("/v1/auth/refresh");
+    // In case the client-side interceptor isn't used directly
+    return apiClient.post<unknown>("/v1/auth/refresh").then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
   termsAccept() {
     return apiClient.post<unknown>("/v1/auth/terms");
   },
   verifyEmail(input: { token: string }) {
-    return apiClient.post<unknown>("/v1/auth/verify-email", input);
+    return apiClient.post<unknown>("/v1/auth/verify-email", input).then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      return res;
+    });
   },
 
   me() {

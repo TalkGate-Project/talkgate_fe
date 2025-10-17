@@ -17,7 +17,18 @@ npm i
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 NEXT_PUBLIC_API_TIMEOUT_MS=10000
+
+# OAuth Client IDs (작업 후 키를 채워 넣으세요)
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_KAKAO_REST_API_KEY=
+NEXT_PUBLIC_NAVER_CLIENT_ID=
 ```
+
+각 소셜 제공자 콘솔에 아래 Redirect URI를 등록하세요:
+
+- Google: `https://YOUR_HOST/auth/callback/google`
+- Kakao: `https://YOUR_HOST/auth/callback/kakao`
+- Naver: `https://YOUR_HOST/auth/callback/naver`
 
 3) 개발 서버:
 

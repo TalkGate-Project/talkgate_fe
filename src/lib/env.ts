@@ -4,6 +4,9 @@
 export type AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: string;
   NEXT_PUBLIC_API_TIMEOUT_MS: number; // integer milliseconds
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
+  NEXT_PUBLIC_KAKAO_REST_API_KEY?: string; // Kakao calls it REST API Key
+  NEXT_PUBLIC_NAVER_CLIENT_ID?: string;
 };
 
 function readString(key: keyof AppEnv, fallback?: string): string {
@@ -11,6 +14,12 @@ function readString(key: keyof AppEnv, fallback?: string): string {
   if (value === undefined || value === "") {
     throw new Error(`Missing environment variable: ${String(key)}`);
   }
+  return value;
+}
+
+function readOptionalString(key: keyof AppEnv): string | undefined {
+  const value = process.env[key as string];
+  if (value === undefined || value === "") return undefined;
   return value;
 }
 
@@ -30,6 +39,9 @@ export const env: AppEnv = {
     process.env.NODE_ENV === "production" ? "https://api.talkgate.im" : "https://api-dev.talkgate.im"
   ),
   NEXT_PUBLIC_API_TIMEOUT_MS: readNumber("NEXT_PUBLIC_API_TIMEOUT_MS", 10000),
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: readOptionalString("NEXT_PUBLIC_GOOGLE_CLIENT_ID"),
+  NEXT_PUBLIC_KAKAO_REST_API_KEY: readOptionalString("NEXT_PUBLIC_KAKAO_REST_API_KEY"),
+  NEXT_PUBLIC_NAVER_CLIENT_ID: readOptionalString("NEXT_PUBLIC_NAVER_CLIENT_ID"),
 };
 
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/auth";
+import { buildOAuthAuthorizeUrl } from "@/lib/oauth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -93,7 +94,7 @@ export default function LoginPage() {
               const email = String(data.get("email") || "");
               const password = String(data.get("password") || "");
               AuthService.login({ email, password })
-                .then(() => router.replace("/dashboard"))
+                .then(() => router.replace("/projects"))
                 .catch(() => alert("로그인에 실패했습니다."));
             }}
           >
@@ -104,12 +105,35 @@ export default function LoginPage() {
             <button type="submit" className="mt-4 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
           </form>
 
-          {/* Social buttons (redirect placeholders) */}
+          {/* Social buttons */}
           <div className="mt-4 text-center text-white/90">또는</div>
           <div className="mt-3 flex items-center justify-center gap-4">
-            <button aria-label="kakao" className="w-11 h-11 rounded-full" style={{ background: "#FEE500" }} onClick={() => (window.location.href = "/v1/auth/kakao")} />
-            <button aria-label="naver" className="w-11 h-11 rounded-full" style={{ background: "#03C75A" }} onClick={() => (window.location.href = "/v1/auth/naver")} />
-            <button aria-label="google" className="w-11 h-11 rounded-full bg-[#353535]" onClick={() => (window.location.href = "/v1/auth/google")} />
+            <button
+              aria-label="kakao"
+              className="w-11 h-11 rounded-full"
+              style={{ background: "#FEE500" }}
+              onClick={() => {
+                const url = buildOAuthAuthorizeUrl("kakao");
+                window.location.href = url;
+              }}
+            />
+            <button
+              aria-label="naver"
+              className="w-11 h-11 rounded-full"
+              style={{ background: "#03C75A" }}
+              onClick={() => {
+                const url = buildOAuthAuthorizeUrl("naver");
+                window.location.href = url;
+              }}
+            />
+            <button
+              aria-label="google"
+              className="w-11 h-11 rounded-full bg-[#353535]"
+              onClick={() => {
+                const url = buildOAuthAuthorizeUrl("google");
+                window.location.href = url;
+              }}
+            />
           </div>
         </div>
       </div>

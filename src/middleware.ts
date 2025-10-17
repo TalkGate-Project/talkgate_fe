@@ -6,14 +6,16 @@ import { NextResponse } from "next/server";
 // of a session cookie name if backend sets one (e.g., "session" or similar).
 // If unknown, allow through; the page itself will redirect on 401.
 
-const PUBLIC_PATHS = ["/login", "/_next", "/public", "/favicon.ico"];
+const PUBLIC_PATHS = ["/login", "/_next", "/public", "/favicon.ico", "/auth/callback/"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
-  // Skip OAuth callback paths to avoid loop
-  if (pathname.startsWith("/v1/auth/")) return NextResponse.next();
+  // Allow backend auth endpoints and our OAuth callback page
+  if (pathname.startsWith("/v1/auth/") || pathname.startsWith("/auth/callback/")) {
+    return NextResponse.next();
+  }
 
   // If not logged in, redirect to /login (best-effort based on absence of any cookies)
   const hasAnyCookie = req.cookies.getAll().length > 0;
