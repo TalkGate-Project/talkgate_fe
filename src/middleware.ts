@@ -17,9 +17,9 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // If not logged in, redirect to /login (best-effort based on absence of any cookies)
-  const hasAnyCookie = req.cookies.getAll().length > 0;
-  if (!hasAnyCookie && pathname !== "/login") {
+  // If not logged in, redirect to /login (check our auth cookies only)
+  const hasAuthCookie = Boolean(req.cookies.get("tg_access_token") || req.cookies.get("tg_refresh_token"));
+  if (!hasAuthCookie && pathname !== "/login") {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

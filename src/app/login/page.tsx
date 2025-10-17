@@ -39,7 +39,7 @@ export default function LoginPage() {
     >
       {/* Left half: brand logo + subtitle */}
       <div className="absolute left-0 top-0 h-screen w-[58vw] hidden lg:flex items-center pointer-events-none select-none">
-        <div className="pl-[10vw] text-white">
+        <div className="pl-[10vw] text-white flex flex-col items-center">
           <svg width="403" height="96" viewBox="0 0 403 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M241.3 16.8643V71.5657C241.3 82.1281 230.484 96 219.465 96H200.661V83.2439L201.308 82.686C201.485 82.6733 201.637 83.0284 201.739 83.0284H227.251L227.897 82.3817V30.4826L227.251 29.8359H195.906V59.6719H222.927L223.574 60.3186V72.4279L222.927 73.0746H207.356C179.65 73.0746 172.308 29.7091 198.074 18.817C199.329 18.2845 203.21 16.8516 204.325 16.8516H241.3V16.8643Z" fill="#FFFFFF"/>
             <path d="M100.324 37.1903C100.425 35.0728 100.489 32.6889 98.8276 31.1293C98.5994 30.9137 96.7861 29.8486 96.6593 29.8486H66.1767V16.877H96.6593C104.61 16.877 113.739 27.9973 113.739 35.6814V72.4406C113.739 73.5311 111.191 72.6562 110.519 72.6308C98.7135 72.3138 84.7401 73.7847 73.3155 72.6435C59.1393 71.236 53.3572 51.6582 63.349 41.92C65.2003 40.1194 70.3611 37.1776 72.8844 37.1776H100.349L100.324 37.1903ZM100.324 50.1619H72.859C68.5859 50.1619 69.2452 59.6085 72.9351 59.6085C75.3316 59.6085 77.7154 59.6592 79.7696 59.6592C83.954 59.6592 88.1764 59.6592 92.3481 59.6592C94.9095 59.6592 98.0161 59.469 100.324 59.469V50.1746V50.1619Z" fill="#FFFFFF"/>
@@ -50,7 +50,7 @@ export default function LoginPage() {
             <path d="M318.267 4.755V16.8644H340.318V29.836H318.267V59.672H339.671L340.318 60.3186V72.428C338.999 73.8608 336.983 72.6816 335.36 72.6309C327.701 72.39 323.2 73.1888 316.403 68.6747C311.078 65.137 304.865 56.502 304.865 49.9464V4.755H318.267Z" fill="#FFFFFF"/>
             <path d="M132.328 0V72.428L131.681 72.9859C131.504 72.9986 131.352 72.6435 131.25 72.6435H118.925V0H132.328Z" fill="#FFFFFF"/>
           </svg>
-          <div className="mt-4 text-white text-[32px] leading-[38px] font-medium">거래소 텔레마케팅 관리</div>
+          <div className="mt-4 text-white text-[32px] leading-[38px] font-medium">“Your Gateway to Smarter Sales”</div>
         </div>
       </div>
       {/* Right-side transparent container with card as background */}
