@@ -7,10 +7,21 @@ import { CustomersListQuery, CustomerListItem } from "@/types/customers";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { AssetsService } from "@/services/assets";
 import FilterModal from "@/components/FilterModal";
+import { getSelectedProjectId } from "@/lib/project";
+import { useRouter } from "next/navigation";
 
 export default function CustomersPage() {
-  // In a real app, projectId comes from session/profile; temporary default for wiring
-  const [projectId] = useState<string>("demo-project");
+  const router = useRouter();
+  const [projectId, setProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = getSelectedProjectId();
+    if (!id) {
+      router.replace("/projects");
+      return;
+    }
+    setProjectId(id);
+  }, [router]);
 
   const [filters, setFilters] = useState<{ name?: string; contact1?: string }>({});
   const [page, setPage] = useState<number>(1);
@@ -19,12 +30,12 @@ export default function CustomersPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isFilterOpen, setFilterOpen] = useState(false);
 
-  const query: CustomersListQuery = useMemo(
-    () => ({ projectId, page, limit, name: filters.name, contact1: filters.contact1 }),
+  const query: CustomersListQuery | null = useMemo(
+    () => (projectId ? { projectId, page, limit, name: filters.name, contact1: filters.contact1 } : null),
     [projectId, page, limit, filters]
   );
 
-  const { data, loading, error, refetch } = useCustomersList(query);
+  const { data, loading, error, refetch } = useCustomersList(query as any);
 
   useEffect(() => {
     // refetch happens automatically through deps, this ensures consistency when projectId changes
@@ -42,6 +53,8 @@ export default function CustomersPage() {
       setSelectedIds((prev) => [...prev, ...add]);
     }
   };
+
+  if (!projectId) return null;
 
   return (
     <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">

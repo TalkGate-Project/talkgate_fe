@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
+import { setSelectedProjectId } from "@/lib/project";
 
 export default function ProjectsPage() {
     const router = useRouter();
@@ -65,7 +66,10 @@ export default function ProjectsPage() {
                             <div className="mt-6 flex justify-end">
                                 <button
                                     className="h-[40px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
-                                    onClick={() => router.push("/dashboard")}
+                                    onClick={() => {
+                                        setSelectedProjectId(p.id);
+                                        router.push("/dashboard");
+                                    }}
                                 >
                                     선택
                                 </button>

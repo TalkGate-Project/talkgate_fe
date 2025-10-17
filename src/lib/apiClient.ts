@@ -1,5 +1,6 @@
 import { env } from "./env";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token";
+import { getSelectedProjectId } from "./project";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -77,6 +78,12 @@ export class ApiClient {
     const token = getAccessToken();
     if (token && !headers["Authorization"]) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // Inject selected project header when present (frontend-selected context)
+    const projectId = getSelectedProjectId();
+    if (projectId && !headers["x-project-id"]) {
+      headers["x-project-id"] = projectId;
     }
 
     let body: BodyInit | undefined;
