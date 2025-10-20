@@ -69,12 +69,12 @@ export default function CustomersPage() {
 
   // Sync local UI states with applied URL on mount/URL change
   useEffect(() => {
-    if (applied) {
-      setPage(applied.page || 1);
-      setLimit(applied.limit || 10);
-      // Initialize draft only when URL changes to keep chips and inputs in sync
-      setFilters((prev) => ({
-        ...prev,
+    // Keep page/limit in sync with URL only
+    setPage(applied.page || 1);
+    setLimit(applied.limit || 10);
+    // Only update draft filters when URL truly changes values; avoid infinite loops
+    setFilters((prev) => {
+      const next = {
         name: applied.name,
         contact1: applied.contact1,
         teamId: applied.teamId,
@@ -88,10 +88,12 @@ export default function CustomersPage() {
         applicationDateTo: applied.applicationDateTo,
         assignedAtFrom: applied.assignedAtFrom,
         assignedAtTo: applied.assignedAtTo,
-      }));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applied.page, applied.limit, applied.name, applied.contact1, applied.teamId, applied.memberId, applied.applicationRoute, applied.mediaCompany, applied.site, JSON.stringify(applied.categoryIds), applied.noteContent, applied.applicationDateFrom, applied.applicationDateTo, applied.assignedAtFrom, applied.assignedAtTo]);
+      } as any;
+      const prevStr = JSON.stringify(prev);
+      const nextStr = JSON.stringify(next);
+      return prevStr === nextStr ? prev : next;
+    });
+  }, [applied]);
 
   const query: CustomersListQuery | null = useMemo(
     () => (projectId ? { projectId, page: applied.page || 1, limit: applied.limit || 10, name: applied.name, contact1: applied.contact1, teamId: applied.teamId, memberId: applied.memberId, applicationRoute: applied.applicationRoute, mediaCompany: applied.mediaCompany, site: applied.site, categoryIds: applied.categoryIds, noteContent: applied.noteContent, applicationDateFrom: applied.applicationDateFrom, applicationDateTo: applied.applicationDateTo, assignedAtFrom: applied.assignedAtFrom, assignedAtTo: applied.assignedAtTo } : null),

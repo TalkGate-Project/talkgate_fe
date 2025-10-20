@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "react-datepicker";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
@@ -38,6 +38,9 @@ type FilterModalProps = {
 export default function FilterModal({ open, onClose, onApply, defaults, teamOptions = [], memberOptions = [], routeOptions = [], mediaOptions = [], siteOptions = [], categoryOptions = [] }: FilterModalProps) {
     const [form, setForm] = useState<FilterValues>(defaults || {});
     useEffect(() => { if (open) setForm(defaults || {}); }, [open, defaults]);
+    const handleCategoryIds = useCallback((ids: number[]) => {
+        setForm((f) => ({ ...f, categoryIds: ids }));
+    }, []);
     useEffect(() => {
         function onEsc(e: KeyboardEvent) {
             if (!open) return;
@@ -76,7 +79,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                             <LabeledSelect label="신청경로" options={routeOptions} placeholder="전체" value={form.applicationRoute || ""} onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))} freeText />
                             <LabeledSelect label="매체사" options={mediaOptions} placeholder="전체" value={form.mediaCompany || ""} onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))} freeText />
 
-                            <CategorySelector defaultIds={form.categoryIds} onChangeIds={(ids) => setForm((f) => ({ ...f, categoryIds: ids }))} />
+                            <CategorySelector defaultIds={form.categoryIds} onChangeIds={handleCategoryIds} />
                             <LabeledSelect label="사이트" options={siteOptions} placeholder="전체" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
 
                             {/* 상담 내용 */}
@@ -154,6 +157,12 @@ function Pill({ label, onRemove }: { label: string; onRemove: () => void }) {
     );
 }
 
+function arraysEqual(a: number[], b: number[]) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+}
+
 function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; onChangeIds?: (ids: number[]) => void }) {
     const [options, setOptions] = useState<CustomerNoteCategory[]>([]);
     const [selected, setSelected] = useState<number[]>(defaultIds || []);
@@ -182,8 +191,26 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
         return () => document.removeEventListener("mousedown", onDocClick);
     }, [open]);
 
+    // Sync from parent defaults if actually changed to avoid loops
+    const lastDefaultsRef = useRef<string>("[]");
+    useEffect(() => {
+        const ids = (defaultIds || []).slice();
+        const norm = JSON.stringify(ids);
+        if (lastDefaultsRef.current !== norm) {
+            lastDefaultsRef.current = norm;
+            setSelected((prev) => (arraysEqual(prev, ids) ? prev : ids));
+        }
+    }, [defaultIds]);
+    // Notify parent after selection changes (post-render) to avoid parent update during child render
+    const lastNotifiedRef = useRef<string>(JSON.stringify(selected));
+    useEffect(() => {
+        const norm = JSON.stringify(selected);
+        if (lastNotifiedRef.current !== norm) {
+            lastNotifiedRef.current = norm;
+            onChangeIds && onChangeIds(selected);
+        }
+    }, [selected, onChangeIds]);
     const summaryLabel = selected.length > 0 ? `${selected.length}개 선택됨` : "전체";
-    useEffect(() => { onChangeIds && onChangeIds(selected); }, [selected, onChangeIds]);
 
     return (
         <div ref={wrapRef} className="relative">
@@ -216,7 +243,9 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                     {selected.map((id) => {
                         const c = options.find((o) => o.id === id);
                         if (!c) return null;
-                        return <Pill key={id} label={c.name} onRemove={() => setSelected((prev) => prev.filter((x) => x !== id))} />;
+                        return <Pill key={id} label={c.name} onRemove={() => {
+                            setSelected((prev) => prev.filter((x) => x !== id));
+                        }} />;
                     })}
                 </div>
             )}
@@ -232,7 +261,9 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                         const checked = selected.includes(c.id);
                         return (
                             <label key={c.id} className="w-full h-12 px-4 flex items-center gap-3 text-left hover:bg-[#F7F7F7]">
-                                <Checkbox checked={checked} onChange={(next) => setSelected((prev) => (next ? [...prev, c.id] : prev.filter((x) => x !== c.id)))} ariaLabel={c.name} />
+                                <Checkbox checked={checked} onChange={(next) => {
+                                    setSelected((prev) => (next ? [...prev, c.id] : prev.filter((x) => x !== c.id)));
+                                }} ariaLabel={c.name} />
                                 <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000]">{c.name}</span>
                             </label>
                         );
