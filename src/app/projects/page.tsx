@@ -68,7 +68,7 @@ export default function ProjectsPage() {
                                     className="h-[40px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
                                     onClick={() => {
                                         setSelectedProjectId(p.id);
-                                        router.push("/dashboard");
+                                        router.push(`/projects/${p.id}/dashboard`);
                                     }}
                                 >
                                     선택

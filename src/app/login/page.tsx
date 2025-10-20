@@ -70,7 +70,7 @@ export default function LoginPage() {
       >
         {/* Logo + form column. Top -> logo at 337px from top of screen */}
         <div
-          className="mx-auto flex flex-col items-center pt-[280px] w-[340px]"
+          className="mx-auto flex flex-col items-center pt-[330px] w-[340px]"
           aria-label="login-form-area"
         >
           {/* Wordmark logo */}
@@ -95,7 +95,18 @@ export default function LoginPage() {
               const password = String(data.get("password") || "");
               AuthService.login({ email, password })
                 .then(() => router.replace("/projects"))
-                .catch(() => alert("로그인에 실패했습니다."));
+                .catch((err: any) => {
+                  const status = err?.status;
+                  const code = err?.data?.code;
+                  const msg = String(err?.data?.message || "").toUpperCase();
+                  if (status === 401 && code === "UNAUTHORIZED") {
+                    alert("잘못된 비밀번호/아이디입니다");
+                  } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
+                    alert("잘못된 비밀번호/아이디입니다");
+                  } else {
+                    alert("로그인에 실패했습니다.");
+                  }
+                });
             }}
           >
             <label className="block text-[#CECECE] text-[12px] mb-1">이메일</label>
@@ -116,7 +127,9 @@ export default function LoginPage() {
                 const url = buildOAuthAuthorizeUrl("kakao");
                 window.location.href = url;
               }}
-            />
+            >
+              <Image src="/kakao.png" alt="kakao" width={24} height={24} />
+            </button>
             <button
               aria-label="naver"
               className="w-11 h-11 rounded-full"
@@ -125,7 +138,9 @@ export default function LoginPage() {
                 const url = buildOAuthAuthorizeUrl("naver");
                 window.location.href = url;
               }}
-            />
+            >
+              <Image src="/naver.png" alt="naver" width={24} height={24} />
+            </button>
             <button
               aria-label="google"
               className="w-11 h-11 rounded-full bg-[#353535]"
@@ -133,7 +148,9 @@ export default function LoginPage() {
                 const url = buildOAuthAuthorizeUrl("google");
                 window.location.href = url;
               }}
-            />
+            >
+              <Image src="/google.png" alt="google" width={24} height={24} />
+            </button>
           </div>
         </div>
       </div>

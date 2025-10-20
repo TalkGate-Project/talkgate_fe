@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { clearTokens } from "@/lib/token";
+import { clearSelectedProjectId } from "@/lib/project";
+import { useEffect, useRef, useState } from "react";
+import { useMe } from "@/hooks/useMe";
 
 const NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -15,6 +19,19 @@ const NAV_ITEMS: { label: string; href: string }[] = [
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const { user } = useMe();
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50">
@@ -66,11 +83,40 @@ export default function Header() {
             <span className="absolute -top-0.5 -right-0.5 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
           </div>
 
-          {/* Avatar */}
-          <div className="w-8 h-8 rounded-full bg-[#808080] grid place-items-center">
-            <span className="text-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
-              김
-            </span>
+          {/* Avatar + dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              className="w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span className="text-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
+                {user?.name ? user.name.charAt(0) : "김"}
+              </span>
+            </button>
+            {open && (
+              <div className="absolute right-0 mt-2 w-44 bg-white rounded-[8px] shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-1 z-50">
+                <button
+                  className="w-full text-left px-3 py-2 text-[14px] text-[#111827] hover:bg-[#F3F4F6]"
+                  onClick={() => {
+                    clearTokens();
+                    clearSelectedProjectId();
+                    setOpen(false);
+                    router.replace("/login");
+                  }}
+                >
+                  로그아웃
+                </button>
+                <button
+                  className="w-full text-left px-3 py-2 text-[14px] text-[#111827] hover:bg-[#F3F4F6]"
+                  onClick={() => {
+                    setOpen(false);
+                    router.push("/projects");
+                  }}
+                >
+                  프로젝트 선택
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
