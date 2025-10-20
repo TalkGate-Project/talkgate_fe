@@ -186,7 +186,7 @@ export type AssignCustomersFilterConditions = {
 };
 
 export type AssignCustomersInput = {
-  memberTeamId: number;
+  memberId: number; // target member to assign to
   assignmentType: "ids" | "filters";
   customerIds?: number[];
   filterConditions?: AssignCustomersFilterConditions;

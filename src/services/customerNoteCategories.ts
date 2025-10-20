@@ -7,9 +7,14 @@ export type CustomerNoteCategory = {
   active?: boolean;
 };
 
+export type CustomerNoteCategoriesListResponse = {
+  result: true;
+  data: CustomerNoteCategory[];
+};
+
 export const CustomerNoteCategoriesService = {
   list() {
-    return apiClient.get<CustomerNoteCategory[]>("/v1/customer-note-categories");
+    return apiClient.get<CustomerNoteCategoriesListResponse>("/v1/customer-note-categories");
   },
   create(payload: Record<string, unknown>) {
     return apiClient.post<CustomerNoteCategory>("/v1/customer-note-categories", payload);
