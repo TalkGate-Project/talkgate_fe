@@ -51,16 +51,16 @@ export default function ProjectsPage() {
                         <div key={p.id} className="rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white p-6 border border-transparent hover:border-[#00E272] transition-colors duration-200">
                             <div className="flex items-center justify-between">
                                 <div className="text-[18px] font-semibold text-[#000]">{p.name}</div>
-                                <span className="text-[12px] text-[#808080]">멤버 12명</span>
+                                <span className="text-[12px] text-[#808080]">멤버 {p.memberCount ?? 0}명</span>
                             </div>
                             <div className="grid grid-cols-2 gap-6 mt-5">
                                 <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5">
                                     <div className="text-[16px] font-semibold text-[#252525]">나에게 할당된 고객</div>
-                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.myCustomers ?? 0}건</div>
+                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.assignedCustomerCount ?? 0}건</div>
                                 </div>
                                 <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5">
                                     <div className="text-[16px] font-semibold text-[#252525]">오늘 예약 일정</div>
-                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.todaySchedules ?? 0}건</div>
+                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.todayScheduleCount ?? 0}건</div>
                                 </div>
                             </div>
                             <div className="mt-6 flex justify-end">
