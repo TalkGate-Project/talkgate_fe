@@ -6,7 +6,15 @@ import { NextResponse } from "next/server";
 // of a session cookie name if backend sets one (e.g., "session" or similar).
 // If unknown, allow through; the page itself will redirect on 401.
 
-const PUBLIC_PATHS = ["/login", "/_next", "/public", "/favicon.ico", "/auth/callback/"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/forgot-password", // allow password reset without auth
+  "/signup", // allow signup without auth
+  "/_next",
+  "/public",
+  "/favicon.ico",
+  "/auth/callback/",
+];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

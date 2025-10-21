@@ -1,37 +1,25 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/services/auth";
-import { buildOAuthAuthorizeUrl } from "@/lib/oauth";
-import Checkbox from "@/components/Checkbox";
-import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
+import { ForgotPasswordService } from "@/services/forgotPassword";
 
-export default function LoginPage() {
+type Step = "email" | "verify" | "reset" | "done";
+
+export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
-  const [autoLogin, setAutoLogin] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [invalid, setInvalid] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    // If user is already authenticated, redirect to dashboard
-    AuthService.me()
-      .then(() => {
-        if (mounted) router.replace("/dashboard");
-      })
-      .catch(() => {
-        if (mounted) setChecking(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [router]);
-
-  if (checking) return null;
+    window.scrollTo(0, 0);
+  }, [step]);
 
   return (
     <main
@@ -43,7 +31,7 @@ export default function LoginPage() {
         backgroundPosition: "center",
       }}
     >
-      {/* Left half: brand logo + subtitle */}
+      {/* 좌측 브랜드 영역 (로그인과 동일 레이아웃 유지) */}
       <div className="absolute left-0 top-0 h-screen w-[58vw] hidden lg:flex items-center pointer-events-none select-none">
         <div className="pl-[10vw] text-white flex flex-col items-center">
           <svg width="403" height="96" viewBox="0 0 403 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -59,7 +47,8 @@ export default function LoginPage() {
           <div className="mt-4 text-white text-[32px] leading-[38px] font-medium">“Your Gateway to Smarter Sales”</div>
         </div>
       </div>
-      {/* Right-side transparent container with card as background */}
+
+      {/* 우측 카드 영역 */}
       <div
         className="
           absolute top-0 h-screen flex justify-center w-[594px]
@@ -74,12 +63,8 @@ export default function LoginPage() {
           backgroundSize: "594px auto",
         }}
       >
-        {/* Logo + form column. Top -> logo at 337px from top of screen */}
-        <div
-          className="mx-auto flex flex-col items-center pt-[330px] w-[340px]"
-          aria-label="login-form-area"
-        >
-          {/* Wordmark logo */}
+        <div className="mx-auto flex flex-col items-center pt-[330px] w-[340px]" aria-label="forgot-password-area">
+          {/* 워드마크 로고 (로그인 페이지와 동일) */}
           <svg width="203" height="48" viewBox="0 0 203 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M121.672 8.43212V35.7828C121.672 41.064 116.218 48 110.662 48H101.18V41.622L101.507 41.343C101.596 41.3367 101.673 41.5142 101.724 41.5142H114.588L114.914 41.1908V15.2413L114.588 14.9179H98.7828V29.8359H112.408L112.734 30.1593V36.2139L112.408 36.5373H104.556C90.5861 36.5373 86.8841 14.8545 99.8761 9.40848C100.509 9.1422 102.466 8.42578 103.028 8.42578H121.672V8.43212Z" fill="#FDFDFD"/>
             <path d="M50.5871 18.5952C50.6383 17.5364 50.6702 16.3445 49.8326 15.5647C49.7176 15.4569 48.8033 14.9243 48.7393 14.9243H33.3689V8.43854H48.7393C52.7482 8.43854 57.3516 13.9987 57.3516 17.8407V36.2204C57.3516 36.7656 56.0665 36.3281 55.7276 36.3155C49.7751 36.157 42.7292 36.8924 36.9685 36.3218C29.8204 35.6181 26.9048 25.8291 31.9431 20.96C32.8765 20.0597 35.4788 18.5889 36.7511 18.5889H50.5999L50.5871 18.5952ZM50.5871 25.081H36.7383C34.5837 25.081 34.9161 29.8043 36.7767 29.8043C37.9851 29.8043 39.1871 29.8297 40.2229 29.8297C42.3328 29.8297 44.4619 29.8297 46.5655 29.8297C47.857 29.8297 49.4235 29.7346 50.5871 29.7346V25.0873V25.081Z" fill="#FDFDFD"/>
@@ -91,133 +76,134 @@ export default function LoginPage() {
             <path d="M66.7247 0V36.214L66.3986 36.493C66.3091 36.4993 66.2324 36.3218 66.1812 36.3218H59.9666V0H66.7247Z" fill="#FDFDFD"/>
           </svg>
 
-          <h1 className="sr-only">로그인</h1>
-          <form
-            className="mt-6 w-full space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setInvalid(false);
-              setRememberMePreference(autoLogin);
-              AuthService.login({ email, password })
-                .then(() => router.replace("/projects"))
-                .catch((err: any) => {
-                  const status = err?.status;
-                  const code = err?.data?.code;
-                  const msg = String(err?.data?.message || "").toUpperCase();
-                  if (status === 401 && code === "UNAUTHORIZED") {
-                    setInvalid(true);
-                  } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
-                    setInvalid(true);
-                  } else {
-                    alert("로그인에 실패했습니다.");
-                  }
-                });
-            }}
-          >
-            <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>이메일</label>
-            <input
-              name="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (invalid) setInvalid(false);
-              }}
-              placeholder={invalid ? "이메일을 다시 입력하세요" : "이메일을 입력하세요"}
-              className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
-              autoComplete="username"
-            />
-            <label className={`block text-[12px] mt-3 mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>비밀번호</label>
-            <input
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (invalid) setInvalid(false);
-              }}
-              placeholder={invalid ? "비밀번호를 다시 입력하세요" : "비밀번호를 입력하세요"}
-              className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
-              autoComplete="current-password"
-            />
+          <h1 className="sr-only">비밀번호 찾기</h1>
 
-            {/* Options row */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2 text-[13px] text-[#BFBFBF]">
-                <Checkbox
-                  ariaLabel="자동 로그인 저장"
-                  checked={autoLogin}
-                  onChange={(next) => {
-                    setAutoLogin(next);
-                    setRememberMePreference(next);
-                  }}
-                  size={18}
+          {step === "email" && (
+            <form
+              className="mt-8 w-full space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setInvalid(false);
+                ForgotPasswordService.requestResetEmail({ email })
+                  .then(() => setStep("verify"))
+                  .catch(() => setInvalid(true));
+              }}
+            >
+              <div className="text-[#BFBFBF] text-[12px] mb-1">비밀번호를 찾고자 하는 이메일을 입력해주세요.</div>
+              <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>이메일</label>
+              <input
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={invalid ? "이메일을 다시 입력하세요" : "이메일을 입력하세요"}
+                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
+                autoComplete="email"
+              />
+              <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">다음</button>
+            </form>
+          )}
+
+          {step === "verify" && (
+            <form
+              className="mt-8 w-full space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setInvalid(false);
+                ForgotPasswordService.verifyIdentity({ email, name, phone, code })
+                  .then(() => setStep("reset"))
+                  .catch(() => setInvalid(true));
+              }}
+            >
+              <div className="text-[#BFBFBF] text-[12px] mb-1">등록된 핸드폰 번호로 인증번호를 요청하세요.</div>
+              <label className="block text-[#CECECE] text-[12px] mb-1">이름</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="이름을 입력하세요"
+                className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
+              />
+              <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">핸드폰 번호</label>
+              <div className="flex gap-2">
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                  placeholder="핸드폰 번호를 입력하세요"
+                  className="flex-1 h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
                 />
-                <span>자동 로그인 저장</span>
+                <button type="button" className="px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]">번호전송</button>
               </div>
-              <button
-                type="button"
-                className="text-[12px] text-[#BFBFBF] underline-offset-2 hover:underline"
-                onClick={() => router.push("/forgot-password")}
-              >
-                비밀번호 찾기
+              <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">인증번호</label>
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="인증번호를 입력하세요"
+                className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
+              />
+              <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">다음</button>
+            </form>
+          )}
+
+          {step === "reset" && (
+            <form
+              className="mt-8 w-full space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setInvalid(false);
+                if (!password || password !== passwordConfirm) {
+                  setInvalid(true);
+                  return;
+                }
+                ForgotPasswordService.setNewPassword({ email, password, passwordConfirm })
+                  .then(() => setStep("done"))
+                  .catch(() => setInvalid(true));
+              }}
+            >
+              <div className="text-[#BFBFBF] text-[12px] mb-1">새로운 비밀번호를 입력하세요.</div>
+              <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>새 비밀번호</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="새 비밀번호"
+                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A]" : "border-[#555555]"}`}
+                autoComplete="new-password"
+              />
+              <label className={`block text-[12px] mt-3 mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>새 비밀번호 확인</label>
+              <input
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                placeholder="새 비밀번호 확인"
+                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A]" : "border-[#555555]"}`}
+                autoComplete="new-password"
+              />
+              <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">완료</button>
+              <div className="mt-3 text-[12px] text-[#9CA3AF]">영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.</div>
+            </form>
+          )}
+
+          {step === "done" && (
+            <div className="mt-8 w-full text-center text-white">
+              비밀번호가 성공적으로 변경되었습니다.
+              <div className="mt-4">
+                <button
+                  className="px-4 h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
+                  onClick={() => router.replace("/login")}
+                >
+                  로그인 하러가기
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step !== "done" && (
+            <div className="mt-6 text-[13px] text-[#BFBFBF]">
+              비밀번호를 찾으셨나요?{' '}
+              <button type="button" className="underline underline-offset-2 hover:text-white" onClick={() => router.push("/login")}>
+                로그인 화면으로
               </button>
             </div>
-
-            <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
-          </form>
-
-          {/* Social buttons */}
-          <div className="mt-5 w-full flex items-center gap-3 text-white/90">
-            <div className="h-px flex-1 bg-white/20" />
-            <div className="text-center text-[13px]">또는</div>
-            <div className="h-px flex-1 bg-white/20" />
-          </div>
-          <div className="mt-3 flex items-center justify-center gap-4">
-            <button
-              aria-label="kakao"
-              className="w-11 h-11 rounded-full"
-              style={{ background: "#FEE500" }}
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("kakao");
-                window.location.href = url;
-              }}
-            >
-              <img src="/kakao.png" alt="" width={24} height={24} />
-            </button>
-            <button
-              aria-label="naver"
-              className="w-11 h-11 rounded-full"
-              style={{ background: "#03C75A" }}
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("naver");
-                window.location.href = url;
-              }}
-            >
-              <img src="/naver.png" alt="" width={24} height={24} />
-            </button>
-            <button
-              aria-label="google"
-              className="w-11 h-11 rounded-full bg-[#353535]"
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("google");
-                window.location.href = url;
-              }}
-            >
-              <img src="/google.png" alt="" width={24} height={24} />
-            </button>
-          </div>
-
-          {/* Signup link */}
-          <div className="mt-6 text-[13px] text-[#BFBFBF]">
-            계정이 없으신가요?{' '}
-            <button
-              type="button"
-              className="underline underline-offset-2 hover:text-white"
-              onClick={() => router.push("/signup")}
-            >
-              회원가입
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </main>
