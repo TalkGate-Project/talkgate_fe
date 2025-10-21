@@ -1,4 +1,5 @@
 // Mocked signup flow service to be replaced with real API calls later.
+import { apiClient } from "@/lib/apiClient";
 
 export type CheckEmailInput = { email: string };
 export type CheckEmailOutput = { available: true };
@@ -16,8 +17,22 @@ export type RegisterOutput = { success: true };
 
 export const SignupService = {
   checkEmailAvailable(input: CheckEmailInput): Promise<CheckEmailOutput> {
-    // Replace with: return apiClient.get(`/v1/auth/signup/check-email?email=${encodeURIComponent(input.email)}`).then(r => r.data)
-    return Promise.resolve({ available: true });
+    return apiClient
+      .post<any>("/v1/auth/check-email-duplicate", { email: input.email })
+      .then((res) => {
+        const dup = Boolean((res?.data as any)?.data?.isDuplicate);
+        return { available: !dup } as CheckEmailOutput;
+      });
+  },
+
+  sendEmailCode(email: string): Promise<{ success: true }> {
+    // Replace with: return apiClient.post('/v1/auth/signup/send-email-code', { email }).then(r=>r.data)
+    return Promise.resolve({ success: true });
+  },
+
+  verifyEmailCode(email: string, code: string): Promise<{ success: boolean }> {
+    // Replace with: return apiClient.post('/v1/auth/signup/verify-email-code', { email, code }).then(r=>r.data)
+    return Promise.resolve({ success: code === '000000' ? false : true });
   },
 
   register(input: RegisterInput): Promise<RegisterOutput> {

@@ -6,7 +6,7 @@ import { SignupService } from "@/services/signup";
 import Checkbox from "@/components/Checkbox";
 import { AuthService } from "@/services/auth";
 
-type Step = "account" | "profile" | "done";
+type Step = "account" | "verify" | "profile" | "done";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,6 +25,21 @@ export default function SignupPage() {
   const emailValid = useMemo(() => /.+@.+\..+/.test(email), [email]);
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordMatch = useMemo(() => password === passwordConfirm && password.length > 0, [password, passwordConfirm]);
+  const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
+  const passwordHasLower = useMemo(() => /[a-z]/.test(password), [password]);
+  const passwordHasDigit = useMemo(() => /\d/.test(password), [password]);
+  const passwordHasSpecial = useMemo(() => /[^A-Za-z0-9]/.test(password), [password]);
+  const passwordStrong = passwordValid && passwordHasUpper && passwordHasLower && passwordHasDigit && passwordHasSpecial;
+  const [pwdTouched, setPwdTouched] = useState(false);
+  const missingRules = useMemo(() => {
+    const arr: string[] = [];
+    if (!passwordValid) arr.push("8자 이상");
+    if (!passwordHasUpper) arr.push("대문자 포함");
+    if (!passwordHasLower) arr.push("소문자 포함");
+    if (!passwordHasDigit) arr.push("숫자 포함");
+    if (!passwordHasSpecial) arr.push("특수문자 포함");
+    return arr;
+  }, [passwordValid, passwordHasUpper, passwordHasLower, passwordHasDigit, passwordHasSpecial]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -93,11 +108,12 @@ export default function SignupPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setInvalid(false);
-                if (!emailValid || !passwordValid || !passwordMatch || !emailChecked) {
+                if (!emailValid || !passwordStrong || !passwordMatch || !emailChecked) {
                   setInvalid(true);
                   return;
                 }
-                setStep("profile");
+                // 이메일 코드 발송 단계로 이동
+                SignupService.sendEmailCode(email).then(() => setStep("verify"));
               }}
             >
               <div className="text-[#BFBFBF] text-[12px] mb-1">회원가입을 진행해주세요.</div>
@@ -137,6 +153,7 @@ export default function SignupPage() {
                 placeholder="영문/숫자/특수문자 포함 8자 이상"
                 className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${(invalid && !passwordValid) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
                 autoComplete="new-password"
+                onBlur={() => setPwdTouched(true)}
               />
               <label className={`block text-[12px] mt-3 mb-1 ${invalid && !passwordMatch ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>비밀번호 확인</label>
               <input
@@ -147,13 +164,41 @@ export default function SignupPage() {
                 className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${(invalid && !passwordMatch) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
                 autoComplete="new-password"
               />
+              {(pwdTouched || invalid) && !passwordStrong && (
+                <div className="mt-2 text-[12px] text-[#FF5A5A]">
+                  비밀번호가 규칙에 맞지 않습니다: {missingRules.join(", ")}
+                </div>
+              )}
               <button
                 type="submit"
                 className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50"
-                disabled={!emailChecked || !emailValid || !passwordValid || !passwordMatch}
+                disabled={!emailChecked || !emailValid || !passwordStrong || !passwordMatch}
               >
-                다음
+                다음(이메일 인증)
               </button>
+            </form>
+          )}
+
+          {step === "verify" && (
+            <form
+              className="mt-8 w-full space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setInvalid(false);
+                // 더미 검증: 000000 실패
+                SignupService.verifyEmailCode(email, code).then((res) => {
+                  if (res.success) setStep("profile");
+                  else setInvalid(true);
+                });
+              }}
+            >
+              <div className="text-[#BFBFBF] text-[12px] mb-1">이메일로 전송된 6자리 인증코드를 입력하세요.</div>
+              <input value={code} onChange={(e)=>setCode(e.target.value)} placeholder="인증코드(6자리)" className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? 'border-[#FF5A5A]' : 'border-[#555555]'}`} />
+              {invalid && <div className="text-[#FF5A5A] text-[12px]">인증코드가 올바르지 않습니다.</div>}
+              <div className="flex gap-2">
+                <button type="button" className="h-[40px] px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]" onClick={()=>SignupService.sendEmailCode(email)}>재전송</button>
+                <button type="submit" className="flex-1 h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">다음</button>
+              </div>
             </form>
           )}
 
@@ -183,14 +228,14 @@ export default function SignupPage() {
               }}
             >
               <div className="text-[#BFBFBF] text-[12px] mb-1">회원가입을 진행해주세요.</div>
-              <label className="block text-[#CECECE] text-[12px] mb-1">이름</label>
+              <label className="block text-[#CECECE] text-[12px] mb-1">이름 <span className="text-[#808080]">(선택)</span></label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="이름을 입력하세요"
                 className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
               />
-              <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">핸드폰 번호</label>
+              <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">핸드폰 번호 <span className="text-[#808080]">(선택)</span></label>
               <div className="flex gap-2">
                 <input
                   value={phone}
@@ -198,7 +243,7 @@ export default function SignupPage() {
                   placeholder="핸드폰 번호를 입력하세요"
                   className="flex-1 h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
                 />
-                <button type="button" className="px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]">번호전송</button>
+                <button type="button" className="px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]" onClick={()=>setPhone("")}>건너뛰기</button>
               </div>
               <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">인증번호</label>
               <input
@@ -207,6 +252,7 @@ export default function SignupPage() {
                 placeholder="인증번호를 입력하세요"
                 className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
               />
+              <div className="text-[12px] text-[#808080]">이름/핸드폰은 선택 입력이며, 필요 시 건너뛰기 가능합니다.</div>
               {/* 동의 영역: 모두 동의 → 하위 항목 두 개(들여쓰기) */}
               <div className="mt-2">
                 <div className="flex items-center gap-2 text-[13px] text-[#BFBFBF]">

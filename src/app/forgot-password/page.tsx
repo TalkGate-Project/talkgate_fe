@@ -16,6 +16,22 @@ export default function ForgotPasswordPage() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [invalid, setInvalid] = useState(false);
+  const passwordValid = useMemo(() => password.length >= 8, [password]);
+  const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
+  const passwordHasLower = useMemo(() => /[a-z]/.test(password), [password]);
+  const passwordHasDigit = useMemo(() => /\d/.test(password), [password]);
+  const passwordHasSpecial = useMemo(() => /[^A-Za-z0-9]/.test(password), [password]);
+  const passwordStrong = passwordValid && passwordHasUpper && passwordHasLower && passwordHasDigit && passwordHasSpecial;
+  const [pwdTouched, setPwdTouched] = useState(false);
+  const missingRules = useMemo(() => {
+    const arr: string[] = [];
+    if (!passwordValid) arr.push("8자 이상");
+    if (!passwordHasUpper) arr.push("대문자 포함");
+    if (!passwordHasLower) arr.push("소문자 포함");
+    if (!passwordHasDigit) arr.push("숫자 포함");
+    if (!passwordHasSpecial) arr.push("특수문자 포함");
+    return arr;
+  }, [passwordValid, passwordHasUpper, passwordHasLower, passwordHasDigit, passwordHasSpecial]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -149,7 +165,7 @@ export default function ForgotPasswordPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setInvalid(false);
-                if (!password || password !== passwordConfirm) {
+                if (!passwordStrong || password !== passwordConfirm) {
                   setInvalid(true);
                   return;
                 }
@@ -167,7 +183,11 @@ export default function ForgotPasswordPage() {
                 placeholder="새 비밀번호"
                 className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A]" : "border-[#555555]"}`}
                 autoComplete="new-password"
+                onBlur={() => setPwdTouched(true)}
               />
+              {(pwdTouched || invalid) && !passwordStrong && (
+                <div className="mt-2 text-[12px] text-[#FF5A5A]">비밀번호가 규칙에 맞지 않습니다: {missingRules.join(", ")}</div>
+              )}
               <label className={`block text-[12px] mt-3 mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>새 비밀번호 확인</label>
               <input
                 type="password"
