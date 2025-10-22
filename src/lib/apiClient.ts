@@ -1,6 +1,6 @@
 import { env } from "./env";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token";
-import { getSelectedProjectId } from "./project";
+import { getSelectedProjectId, clearSelectedProjectId } from "./project";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -133,12 +133,18 @@ export class ApiClient {
     } catch (err: any) {
       // If unauthorized, try to refresh once, then retry original request
       if (err && (err.status === 401 || err.status === 403)) {
+        const code: string = (err?.data?.code as string) || String(err?.data?.message || "").toUpperCase();
+        // Immediate auto-logout for explicit missing token cases
+        if (typeof code === "string" && code.toUpperCase().includes("MISSING_AUTHENTICATION_TOKEN")) {
+          this.handleAutoLogout();
+          throw err;
+        }
         try {
           await this.refreshTokens();
           return await exec();
         } catch (refreshErr) {
-          // On refresh failure, clear tokens and rethrow original error
-          clearTokens();
+          // On refresh failure, auto-logout and rethrow original error
+          this.handleAutoLogout();
           throw err;
         }
       }
@@ -189,6 +195,30 @@ export class ApiClient {
     });
     return this.refreshInFlight;
   }
+
+  private handleAutoLogout(): void {
+    // Clear client-side auth footprints and send to login
+    clearTokens();
+    try {
+      clearSelectedProjectId();
+    } catch {}
+    if (typeof window !== "undefined") {
+      const pathname = window.location.pathname || "/";
+      // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
+      if (!isPublicRoute(pathname)) {
+        window.location.replace("/login");
+      }
+    }
+  }
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return (
+    pathname === "/login" ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/auth/callback/")
+  );
 }
 
 // Singleton for app usage

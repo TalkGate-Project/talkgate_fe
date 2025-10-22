@@ -13,15 +13,15 @@ export default function LoginPage() {
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [autoLogin, setAutoLogin] = useState(false);
+  const [autoLogin, setAutoLogin] = useState(getRememberMePreference());
   const [invalid, setInvalid] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    // If user is already authenticated, redirect to dashboard
+    // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()
       .then(() => {
-        if (mounted) router.replace("/dashboard");
+        if (mounted) router.replace("/projects");
       })
       .catch(() => {
         if (mounted) setChecking(false);
