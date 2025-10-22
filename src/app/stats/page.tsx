@@ -1,8 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, BarChart, Bar, LabelList, Cell } from "recharts";
+import AssignMemberTable from "@/components/stats/AssignMemberTable";
+import AssignProgressList from "@/components/stats/AssignProgressList";
+import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
+import PaymentBarChart from "@/components/stats/PaymentBarChart";
+import StatusBarChart from "@/components/stats/StatusBarChart";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 const TAB_ITEMS: { key: TabKey; label: string }[] = [
@@ -17,6 +22,9 @@ export default function StatsPage() {
   const router = useRouter();
   const search = useSearchParams();
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
+  const [assignMode, setAssignMode] = useState<"team" | "member">((search.get("assign") as any) === "member" ? "member" : "team");
+  const [paymentMode, setPaymentMode] = useState<"team" | "member">((search.get("pay") as any) === "member" ? "member" : "team");
+  const [rankingMode, setRankingMode] = useState<"team" | "member">((search.get("rank") as any) === "member" ? "member" : "team");
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
     return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ?? "apply") as TabKey;
@@ -33,6 +41,27 @@ export default function StatsPage() {
     if (mode === "daily") params.delete("mode"); else params.set("mode", mode);
     router.replace(`?${params.toString()}`);
     setApplyMode(mode);
+  }
+
+  function setAssignModeQS(mode: "team" | "member") {
+    const params = new URLSearchParams(search.toString());
+    if (mode === "team") params.delete("assign"); else params.set("assign", mode);
+    router.replace(`?${params.toString()}`);
+    setAssignMode(mode);
+  }
+
+  function setPaymentModeQS(mode: "team" | "member") {
+    const params = new URLSearchParams(search.toString());
+    if (mode === "team") params.delete("pay"); else params.set("pay", mode);
+    router.replace(`?${params.toString()}`);
+    setPaymentMode(mode);
+  }
+
+  function setRankingModeQS(mode: "team" | "member") {
+    const params = new URLSearchParams(search.toString());
+    if (mode === "team") params.delete("rank"); else params.set("rank", mode);
+    router.replace(`?${params.toString()}`);
+    setRankingMode(mode);
   }
 
   const dailyData = [
@@ -163,52 +192,73 @@ export default function StatsPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-[#252525]">배정통계</h2>
               <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
-                <button className="rounded-[6px] text-[14px] bg-white font-semibold text-[#252525] cursor-default">팀별</button>
-                <button className="rounded-[6px] text-[14px] text-[#808080] cursor-pointer">팀원별</button>
+                <button className={`rounded-[6px] text-[14px] ${assignMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setAssignModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${assignMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setAssignModeQS('member')}>팀원별</button>
               </div>
             </div>
-
-            {/* 팀별 배정 현황 카드들 */}
-            <div className="mt-5 grid grid-cols-4 gap-4">
-              {[
-                { label: 'A팀', count: 45, color: '#ADF6D2' },
-                { label: 'B팀', count: 38, color: '#FFDE81' },
-                { label: 'C팀', count: 39, color: '#FC9595' },
-                { label: '배정되지 않음', count: 15, color: '#7EA5F8' },
-              ].map((i) => (
-                <div key={i.label} className="h-[70px] bg-[#F8F8F8] rounded-[12px] px-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full" style={{ background: i.color }} />
-                    <span className="text-[18px] font-bold text-[#000]">{i.label}</span>
-                  </div>
-                  <span className="text-[14px] text-[#252525]">{i.count}건</span>
+            {assignMode === 'team' ? (
+              <>
+                {/* 팀별 배정 현황 카드들 */}
+                <div className="mt-5 grid grid-cols-4 gap-4">
+                  {[
+                    { label: 'A팀', count: 45, color: '#ADF6D2' },
+                    { label: 'B팀', count: 38, color: '#FFDE81' },
+                    { label: 'C팀', count: 39, color: '#FC9595' },
+                    { label: '배정되지 않음', count: 15, color: '#7EA5F8' },
+                  ].map((i) => (
+                    <div key={i.label} className="h-[70px] bg-[#F8F8F8] rounded-[12px] px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full" style={{ background: i.color }} />
+                        <span className="text-[18px] font-bold text-[#000]">{i.label}</span>
+                      </div>
+                      <span className="text-[14px] text-[#252525]">{i.count}건</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* 진행바 목록 */}
-            <AssignProgressList />
+                {/* 진행바 목록 */}
+                <AssignProgressList />
+              </>
+            ) : (
+              <AssignMemberTable />
+            )}
           </section>
         )}
 
         {active === "payment" && (
           <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
-            <h2 className="text-[18px] font-semibold text-[#252525]">결제통계</h2>
-            <div className="mt-4 h-[300px] rounded-[10px] bg-[#F7F7F7] border border-[#E2E2E2] grid place-items-center text-[#808080]">그래프 영역</div>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[18px] font-semibold text-[#252525]">결제통계</h2>
+              <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
+                <button className={`rounded-[6px] text-[14px] ${paymentMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setPaymentModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${paymentMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setPaymentModeQS('member')}>팀원별</button>
+              </div>
+            </div>
+            <div className="mt-6" />
+            {paymentMode === 'team' ? <PaymentBarChart /> : <PaymentMemberTable />}
           </section>
         )}
 
         {active === "status" && (
           <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
-            <h2 className="text-[18px] font-semibold text-[#252525]">처리상태</h2>
-            <div className="mt-4 h-[300px] rounded-[10px] bg-[#F7F7F7] border border-[#E2E2E2] grid place-items-center text-[#808080]">상태 분포 그래프</div>
+            <h2 className="text-[18px] font-semibold text-[#252525]">처리상태통계</h2>
+            <div className="mt-2 text-[16px] text-[#252525] opacity-80">상태별 분포</div>
+            <div className="mt-4">
+              <StatusBarChart />
+            </div>
           </section>
         )}
 
         {active === "ranking" && (
           <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
-            <h2 className="text-[18px] font-semibold text-[#252525]">전체랭킹</h2>
-            <div className="mt-4 h-[300px] rounded-[10px] bg-[#F7F7F7] border border-[#E2E2E2] grid place-items-center text-[#808080]">랭킹 표</div>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[18px] font-semibold text-[#252525]">전체랭킹</h2>
+              <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
+                <button className={`rounded-[6px] text-[14px] ${rankingMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setRankingModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${rankingMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setRankingModeQS('member')}>팀원별</button>
+              </div>
+            </div>
+
+            {rankingMode === 'team' ? <TeamRankingList /> : <TeamMemberRankingList />}
           </section>
         )}
       </div>
@@ -216,29 +266,66 @@ export default function StatsPage() {
   );
 }
 
-function AssignProgressList() {
+// components moved out to '@/components/stats/*'
+
+// inlined modal removed; using '@/components/MemberStatsFilterModal'
+
+function TeamRankingList() {
   const rows = [
-    { label: 'A팀', value: 45, max: 45, color: '#ADF6D2' },
-    { label: 'B팀', value: 38, max: 45, color: '#FFDE81' },
-    { label: 'C팀', value: 39, max: 45, color: '#FC9595' },
-    { label: '배정되지 않음', value: 15, max: 45, color: '#7EA5F8' },
+    { rank: 1, team: 'A팀', amount: 15500000, delta: 1200000 },
+    { rank: 2, team: 'B팀', amount: 15500000, delta: 800000 },
+    { rank: 3, team: 'C팀', amount: 15500000, delta: 700000 },
+    { rank: 4, team: 'D팀', amount: 15500000, delta: 40000 },
   ];
   return (
-    <div className="mt-6 space-y-4">
-      {rows.map((r) => {
-        const pct = Math.max(0, Math.min(100, (r.value / r.max) * 100));
-        return (
-          <div key={r.label} className="bg-[#F8F8F8] rounded-[12px] px-4 py-3">
-            <div className="flex items-center justify-between text-[14px]">
-              <span className="text-[#000]">{r.label}</span>
-              <span className="text-[#252525]">{r.value}건</span>
+    <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
+      <div className="space-y-3">
+        {rows.map((r) => (
+          <div key={r.team} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">{r.rank === 4 ? '#4' : ''}</div>
+              <div>
+                <div className="text-[18px] font-bold text-[#000]">{r.team}</div>
+                <div className="mt-1 text-[14px] text-[#252525]">₩ {r.amount.toLocaleString()}원</div>
+              </div>
             </div>
-            <div className="mt-2 h-3 rounded-full bg-[#E2E2E2]">
-              <div className="h-3 rounded-full" style={{ width: `${pct}%`, background: r.color }} />
-            </div>
+            <div className="px-3 h-[25px] rounded-full bg-[#D6FAE8] grid place-items-center text-[14px] font-bold text-[#004824]">+{r.delta.toLocaleString()}</div>
           </div>
-        );
-      })}
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TeamMemberRankingList() {
+  const rows = [
+    { name: '김영업', team: 'A팀', amount: 15500000, changePct: 18.5 },
+    { name: '이마케팅', team: 'B팀', amount: 15500000, changePct: 12.8 },
+    { name: '박세일즈', team: 'B팀', amount: 15500000, changePct: 12.8 },
+    { name: '최고객', team: 'C팀', amount: 15500000, changePct: 12.8, rank: 4 },
+    { name: '정상담', team: 'B팀', amount: 15500000, changePct: 12.8, rank: 5 },
+  ];
+  return (
+    <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
+      <div className="space-y-3">
+        {rows.map((r, idx) => (
+          <div key={r.name} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
+                {r.rank ? `#${r.rank}` : ''}
+              </div>
+              <div>
+                <div className="text-[18px] font-bold text-[#000] flex items-center gap-2">
+                  {r.name}
+                  <span className="text-[14px] font-medium text-[#808080]">| {r.team}</span>
+                </div>
+                <div className="mt-1 text-[14px] text-[#252525]">₩ {r.amount.toLocaleString()}원</div>
+              </div>
+            </div>
+            <div className="px-3 h-[25px] rounded-full bg-[#D6FAE8] grid place-items-center text-[14px] font-bold text-[#004824]">+{r.changePct}%</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
