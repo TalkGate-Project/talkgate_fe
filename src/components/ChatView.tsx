@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { talkgateSocket, Conversation, ChatMessage } from "@/lib/realtime";
 import ChatFilterModal from "@/components/ChatFilterModal";
+import EmojiPicker from "@/components/EmojiPicker";
 
 type Props = { projectId: number; devMode: boolean };
 
@@ -19,6 +20,9 @@ export default function ChatView({ projectId, devMode }: Props) {
   const socketRef = useRef<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "album">("list");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [emojiPickerPosition, setEmojiPickerPosition] = useState({ x: 0, y: 0 });
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
   // Filter state synced with query string: status = all | active | closed
   const statusFromQuery = (searchParams.get("status") || "all").toLowerCase();
@@ -133,6 +137,21 @@ export default function ChatView({ projectId, devMode }: Props) {
     if (!input.trim() || !activeId) return;
     socketRef.current.emit("sendMessage", { conversationId: activeId, content: input, messageType: "text" });
     setInput("");
+  }
+
+  function handleEmojiButtonClick() {
+    if (emojiButtonRef.current) {
+      const rect = emojiButtonRef.current.getBoundingClientRect();
+      setEmojiPickerPosition({
+        x: rect.left - 108, // 피커 너비의 절반만큼 왼쪽으로 이동
+        y: rect.top
+      });
+    }
+    setEmojiPickerOpen(true);
+  }
+
+  function handleEmojiSelect(emoji: string) {
+    setInput(prev => prev + emoji);
   }
 
   // Filtered conversations according to status
@@ -337,7 +356,12 @@ export default function ChatView({ projectId, devMode }: Props) {
               </svg>
             </button>
             {/* 이모지 */}
-            <button aria-label="emoji" className="w-9 h-9 grid place-items-center">
+            <button 
+              ref={emojiButtonRef}
+              aria-label="emoji" 
+              className="w-9 h-9 grid place-items-center"
+              onClick={handleEmojiButtonClick}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14.8284 14.8284C13.2663 16.3905 10.7337 16.3905 9.17157 14.8284M9 10H9.01M15 10H15.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -377,6 +401,14 @@ export default function ChatView({ projectId, devMode }: Props) {
           </div>
         </div>
       </div>
+
+      {/* 이모지 피커 */}
+      <EmojiPicker
+        isOpen={emojiPickerOpen}
+        onClose={() => setEmojiPickerOpen(false)}
+        onEmojiSelect={handleEmojiSelect}
+        position={emojiPickerPosition}
+      />
     </div>
   );
 }
