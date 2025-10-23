@@ -1,4 +1,4 @@
-import Panel from "./Panel";
+import Panel from "@/components/common/Panel";
 
 const items = [
   { rank: 1, team: "A팀", amount: "7560만원", diff: "+120만원" },

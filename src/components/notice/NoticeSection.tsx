@@ -1,4 +1,4 @@
-import Panel from "./Panel";
+import Panel from "@/components/common/Panel";
 
 type Notice = { id: number; title: string; author: string; time: string; badge?: string };
 

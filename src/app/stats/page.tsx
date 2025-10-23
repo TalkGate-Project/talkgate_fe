@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, BarChart, Bar, LabelList, Cell } from "recharts";
 import AssignMemberTable from "@/components/stats/AssignMemberTable";
@@ -18,7 +18,7 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "ranking", label: "전체랭킹" },
 ];
 
-export default function StatsPage() {
+function StatsPage() {
   const router = useRouter();
   const search = useSearchParams();
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
@@ -330,4 +330,14 @@ function TeamMemberRankingList() {
   );
 }
 
-
+export default function StatsPageWrapper() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-[#808080]">불러오는 중...</div>
+      </main>
+    }>
+      <StatsPage />
+    </Suspense>
+  );
+}

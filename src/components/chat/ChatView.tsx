@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { talkgateSocket, Conversation, ChatMessage } from "@/lib/realtime";
-import ChatFilterModal from "@/components/ChatFilterModal";
-import EmojiPicker from "@/components/EmojiPicker";
+import ChatFilterModal from "./ChatFilterModal";
+import EmojiPicker from "./EmojiPicker";
 
 type Props = { projectId: number; devMode: boolean };
 

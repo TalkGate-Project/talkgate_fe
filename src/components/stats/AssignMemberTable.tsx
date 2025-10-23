@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import MemberStatsFilterModal, { type MemberFilterState } from "@/components/MemberStatsFilterModal";
+import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
 
 export default function AssignMemberTable() {
   const baseRows = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Checkbox from "@/components/Checkbox";
+import Checkbox from "@/components/common/Checkbox";
 
 export type Messenger = "all" | "telegram" | "instagram" | "line" | "kakao" | "facebook" | "x";
 

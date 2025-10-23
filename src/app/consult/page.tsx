@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ChatPanel from "@/components/ChatPanel";
+import ChatPanel from "@/components/chat/ChatPanel";
 import { getSelectedProjectId } from "@/lib/project";
 
 export default function ConsultPage() {

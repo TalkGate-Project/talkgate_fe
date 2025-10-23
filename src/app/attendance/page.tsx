@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Panel from "@/components/Panel";
+import Panel from "@/components/common/Panel";
 import { mockAttendanceData, AttendanceRecord } from "@/data/mockAttendanceData";
-import AttendanceFilterModal, { AttendanceFilterState } from "@/components/AttendanceFilterModal";
-import EmployeeInfoModal from "@/components/EmployeeInfoModal";
+import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
+import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState("2025-10-01");

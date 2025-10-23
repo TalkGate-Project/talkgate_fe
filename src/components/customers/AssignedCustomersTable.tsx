@@ -1,4 +1,4 @@
-import Panel from "./Panel";
+import Panel from "@/components/common/Panel";
 
 type Row = {
   name: string;

@@ -1,5 +1,5 @@
 "use client";
-import Panel from "./Panel";
+import Panel from "@/components/common/Panel";
 import {
   AreaChart,
   Area,
@@ -43,7 +43,7 @@ export default function StatsSection() {
             <XAxis dataKey="d" tickMargin={8} stroke="#B0B0B0" />
             <YAxis hide />
             <Tooltip cursor={{ stroke: "#A7F3D0" }} contentStyle={{ borderRadius: 8 }} />
-            <Area type="monotone" dataKey="v" stroke="#34d399" strokeWidth={3} fill="url(#g)" dot={{ r: 4, fill: "#34d399" } as DotProps} />
+            <Area type="monotone" dataKey="v" stroke="#34d399" strokeWidth={3} fill="url(#g)" dot={{ r: 4, fill: "#34d399" }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

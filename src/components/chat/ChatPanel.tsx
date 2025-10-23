@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-const ChatView = dynamic(() => import("@/components/ChatView"), { ssr: false });
+const ChatView = dynamic(() => import("./ChatView"), { ssr: false });
 
 export default function ChatPanel({ projectId, devMode }: { projectId: number; devMode: boolean }) {
   return (

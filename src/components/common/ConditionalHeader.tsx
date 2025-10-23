@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Header from "./Header";
+import Header from "../layout/Header";
 
 export default function ConditionalHeader() {
   const pathname = usePathname();
@@ -14,7 +14,7 @@ export default function ConditionalHeader() {
     pathname.startsWith("/customers") ||
     pathname.startsWith("/stats") ||
     pathname.startsWith("/projects/") ||
-    pathname.startsWith("/notices") ||
+    pathname.startsWith("/notice") ||
     pathname.startsWith("/attendance") ||
     pathname.startsWith("/settings");
   if (!shouldShow) return null;

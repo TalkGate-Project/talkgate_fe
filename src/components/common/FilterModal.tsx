@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "react-datepicker";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
-import Checkbox from "@/components/Checkbox";
+import Checkbox from "@/components/common/Checkbox";
 
 export type FilterValues = {
     teamId?: number;

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
-import ConditionalHeader from "../components/ConditionalHeader";
+import ConditionalHeader from "../components/common/ConditionalHeader";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({

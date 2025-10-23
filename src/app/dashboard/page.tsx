@@ -1,11 +1,11 @@
-import Panel from "@/components/Panel";
-import KpiCard from "@/components/KpiCard";
-import GreetingBanner from "@/components/GreetingBanner";
-import AssignedCustomersTable from "@/components/AssignedCustomersTable";
-import SalesRanking from "@/components/SalesRanking";
-import CalendarSection from "@/components/CalendarSection";
-import NoticeSection from "@/components/NoticeSection";
-import StatsSection from "@/components/StatsSection";
+import Panel from "@/components/common/Panel";
+import KpiCard from "@/components/dashboard/KpiCard";
+import GreetingBanner from "@/components/layout/GreetingBanner";
+import AssignedCustomersTable from "@/components/customers/AssignedCustomersTable";
+import SalesRanking from "@/components/dashboard/SalesRanking";
+import CalendarSection from "@/components/dashboard/CalendarSection";
+import NoticeSection from "@/components/notice/NoticeSection";
+import StatsSection from "@/components/stats/StatsSection";
 
 export default function DashboardPage() {
   return (

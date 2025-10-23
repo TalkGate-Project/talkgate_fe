@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignupService } from "@/services/signup";
-import Checkbox from "@/components/Checkbox";
+import Checkbox from "@/components/common/Checkbox";
 import { AuthService } from "@/services/auth";
 
 type Step = "account" | "verify" | "profile" | "done";

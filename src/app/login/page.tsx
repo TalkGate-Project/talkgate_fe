@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { buildOAuthAuthorizeUrl } from "@/lib/oauth";
-import Checkbox from "@/components/Checkbox";
+import Checkbox from "@/components/common/Checkbox";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
 
 export default function LoginPage() {

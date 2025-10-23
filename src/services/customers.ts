@@ -130,4 +130,26 @@ export const CustomersService = {
   },
 };
 
-
+// Re-export types for convenience
+export type {
+  CustomersListQuery,
+  CustomersListResponse,
+  CreateCustomerInput,
+  CreateCustomerResponse,
+  CustomerDetailResponse,
+  UpdateCustomerInput,
+  UpdateCustomerResponse,
+  AssignCustomersInput,
+  AssignCustomersResponse,
+  AddCustomerMessengerInput,
+  RemoveCustomerMessengerInput,
+  BasicSuccessResponse,
+  AddCustomerNoteInput,
+  RemoveCustomerNoteInput,
+  AddCustomerPaymentHistoryInput,
+  RemoveCustomerPaymentHistoryInput,
+  AddCustomerScheduleInput,
+  RemoveCustomerScheduleInput,
+  UnassignCustomersInput,
+  UnassignCustomersResponse,
+} from "@/types/customers";

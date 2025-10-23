@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MembersService } from "@/services/members";
@@ -139,7 +139,7 @@ function EnvelopeAnimation({
   );
 }
 
-export default function InviteLanding() {
+function InviteLanding() {
   const router = useRouter();
   const search = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -243,4 +243,20 @@ export default function InviteLanding() {
   );
 }
 
+export default function InvitePage() {
+  return (
+    <Suspense fallback={
+      <main
+        className="min-h-screen relative flex items-center justify-center"
+        style={{
+          background: "linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)",
+        }}
+      >
+        <div className="text-center text-white text-xl">초대 정보를 불러오는 중...</div>
+      </main>
+    }>
+      <InviteLanding />
+    </Suspense>
+  );
+}
 

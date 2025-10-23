@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Panel from "@/components/Panel";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import Panel from "@/components/common/Panel";
 import { useCustomersList } from "@/hooks/useCustomersList";
 import { CustomersListQuery, CustomerListItem, RecentNote } from "@/types/customers";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { AssetsService } from "@/services/assets";
-import FilterModal from "@/components/FilterModal";
-import AssignCustomersModal from "@/components/AssignCustomersModal";
-import CustomerDetailModal from "@/components/CustomerDetailModal";
+import FilterModal from "@/components/common/FilterModal";
+import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
+import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import { CustomersService } from "@/services/customers";
-import Checkbox from "@/components/Checkbox";
+import Checkbox from "@/components/common/Checkbox";
 import { getSelectedProjectId } from "@/lib/project";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function CustomersPage() {
+function CustomersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -319,7 +319,7 @@ export default function CustomersPage() {
                   <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080]">불러오는 중...</td>
                 </tr>
               )}
-              {error && !loading && (
+              {Boolean(error) && !loading && (
                 <tr>
                   <td colSpan={9} className="px-6 h-[72px] text-center text-red-500">데이터를 불러오지 못했습니다</td>
                 </tr>
@@ -479,4 +479,14 @@ export default function CustomersPage() {
   );
 }
 
-
+export default function CustomersPageWrapper() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-[#808080]">불러오는 중...</div>
+      </main>
+    }>
+      <CustomersPage />
+    </Suspense>
+  );
+}

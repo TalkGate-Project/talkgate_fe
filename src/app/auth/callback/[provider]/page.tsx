@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackPage() {
   const router = useRouter();
   const params = useParams<{ provider: string }>();
   const searchParams = useSearchParams();
@@ -56,4 +56,16 @@ export default function OAuthCallbackPage() {
   );
 }
 
-
+export default function OAuthCallbackPageWrapper() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="text-lg">소셜 로그인 처리 중...</div>
+        </div>
+      </main>
+    }>
+      <OAuthCallbackPage />
+    </Suspense>
+  );
+}
