@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 
 export default function GeneralSettings() {
   const [serviceName, setServiceName] = useState("거래소 텔레마케팅 관리");
@@ -13,6 +14,7 @@ export default function GeneralSettings() {
     "결제유력"
   ]);
   const [isAttendanceEnabled, setIsAttendanceEnabled] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleAddStatus = () => {
     if (newStatusName.trim()) {
@@ -32,6 +34,11 @@ export default function GeneralSettings() {
       newStatuses[index] = newName.trim();
       setStatuses(newStatuses);
     }
+  };
+
+  const handleDeleteService = () => {
+    console.log("Service deleted:", serviceName);
+    // 실제 구현에서는 서비스 삭제 API 호출
   };
 
   return (
@@ -139,10 +146,21 @@ export default function GeneralSettings() {
         <p className="text-[14px] text-[#FF4444] mb-4">
           서비스를 삭제하면 모든 데이터가 영구적으로 삭제되며 복수할 수 없습니다.
         </p>
-        <button className="px-4 py-2 bg-[#FF4444] text-white text-[14px] font-medium rounded-[5px] hover:bg-[#E03E3E] transition-colors">
+        <button 
+          onClick={() => setIsDeleteModalOpen(true)}
+          className="px-4 py-2 bg-[#FF4444] text-white text-[14px] font-medium rounded-[5px] hover:bg-[#E03E3E] transition-colors"
+        >
           서비스 삭제
         </button>
       </div>
+
+      {/* Service Delete Modal */}
+      <ServiceDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteService}
+        serviceName={serviceName}
+      />
     </div>
   );
 }

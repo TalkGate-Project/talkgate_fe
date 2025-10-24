@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Pagination from "@/components/common/Pagination";
+import InviteMemberModal from "@/components/common/InviteMemberModal";
+import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 
 interface Member {
   id: string;
@@ -12,6 +14,7 @@ interface Member {
   joinDate: string;
   isAdmin: boolean;
   avatar: string;
+  hasSubordinates: boolean; // 하위 조직/구성원 존재 여부
 }
 
 function MemberRow({ member, onDelete }: { member: Member; onDelete: (id: string) => void }) {
@@ -89,7 +92,8 @@ export default function MemberSettings() {
       affiliation: "소속없음",
       joinDate: "2024-01-01",
       isAdmin: true,
-      avatar: "김"
+      avatar: "김",
+      hasSubordinates: true // 하위 조직/구성원 있음 (삭제 불가)
     },
     {
       id: "2",
@@ -99,7 +103,8 @@ export default function MemberSettings() {
       affiliation: "소속없음",
       joinDate: "2024-01-01",
       isAdmin: false,
-      avatar: "이"
+      avatar: "이",
+      hasSubordinates: true // 하위 조직/구성원 있음 (삭제 불가)
     },
     {
       id: "3",
@@ -109,7 +114,8 @@ export default function MemberSettings() {
       affiliation: "소속없음",
       joinDate: "2024-01-01",
       isAdmin: false,
-      avatar: "박"
+      avatar: "박",
+      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
     },
     {
       id: "4",
@@ -119,7 +125,8 @@ export default function MemberSettings() {
       affiliation: "영업1지점",
       joinDate: "2024-01-01",
       isAdmin: false,
-      avatar: "최"
+      avatar: "최",
+      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
     },
     {
       id: "5",
@@ -129,21 +136,39 @@ export default function MemberSettings() {
       affiliation: "영업1지점",
       joinDate: "2024-01-01",
       isAdmin: false,
-      avatar: "정"
+      avatar: "정",
+      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
     }
   ]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 10;
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const handleDelete = (id: string) => {
-    console.log("Delete member:", id);
-    // 실제 구현에서는 API 호출로 멤버 삭제
+    const member = members.find(m => m.id === id);
+    if (member) {
+      setSelectedMember(member);
+      setIsDeleteModalOpen(true);
+    }
   };
 
   const handleInviteMember = () => {
-    console.log("Invite member");
-    // 실제 구현에서는 멤버 초대 모달 열기
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteConfirm = (email: string, role: string) => {
+    console.log("Invite member:", email, role);
+    // 실제 구현에서는 멤버 초대 API 호출
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedMember) {
+      console.log("Delete member:", selectedMember.id);
+      // 실제 구현에서는 멤버 삭제 API 호출
+    }
   };
 
   return (
@@ -201,6 +226,21 @@ export default function MemberSettings() {
           onPageChange={setCurrentPage}
         />
       </div>
+
+      {/* Invite Member Modal */}
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={handleInviteConfirm}
+      />
+
+      {/* Delete Member Modal */}
+      <DeleteMemberModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        member={selectedMember}
+      />
     </div>
   );
 }
