@@ -4,7 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MembersService } from "@/services/members";
-import { AuthService } from "@/services/auth";
 import { savePendingInviteToken, getPendingInviteToken, clearPendingInviteToken } from "@/lib/invite";
 
 type VerifyResponse = any; // shape refined when backend spec finalized
@@ -163,16 +162,6 @@ function InviteLanding() {
         const payload: any = (res as any)?.data;
         setInviteInfo(payload?.data ?? payload ?? {});
         setIsTokenValid(true);
-
-        // 세션 확인: 이미 로그인되어 있으면 바로 수락/거절 플로우 유지
-        try {
-          await AuthService.me();
-        } catch {
-          // 비로그인 상태: 토큰 보관 후 로그인 화면으로 이동
-          savePendingInviteToken(token);
-          router.replace("/login");
-          return;
-        }
       } catch (e: any) {
         setError(e?.data?.message || e?.message || "초대 정보를 확인할 수 없습니다.");
       } finally {
@@ -193,6 +182,14 @@ function InviteLanding() {
       clearPendingInviteToken();
       router.replace("/projects");
     } catch (e: any) {
+      const status = e?.status;
+      if (status === 401 || status === 403) {
+        // 인증 필요: 초대 토큰 보관 후 로그인으로 이동
+        const effectiveToken = token || getPendingInviteToken();
+        if (effectiveToken) savePendingInviteToken(effectiveToken);
+        router.replace("/login");
+        return;
+      }
       alert(e?.data?.message || e?.message || "초대를 수락할 수 없습니다.");
     }
   }

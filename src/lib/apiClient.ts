@@ -217,7 +217,8 @@ function isPublicRoute(pathname: string): boolean {
     pathname === "/login" ||
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/auth/callback/")
+    pathname.startsWith("/auth/callback/") ||
+    pathname.startsWith("/invite")
   );
 }
 
