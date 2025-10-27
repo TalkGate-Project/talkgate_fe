@@ -38,7 +38,7 @@ export default function Header() {
       <div className="mx-auto max-w-[1324px] w-full h-full px-0 flex items-center">
         {/* Brand (left) */}
         <div className="flex items-center h-full">
-          <Link href="/" className="text-white text-[16px] font-semibold tracking-[-0.02em]">
+          <Link href="/dashboard" className="text-white text-[16px] font-semibold tracking-[-0.02em]">
             Talkgate
           </Link>
         </div>
@@ -130,17 +130,17 @@ export default function Header() {
                 <div className="flex flex-col gap-1">
                   {/* 개인설정 */}
                   <button
-                    className="flex items-center gap-4 px-7 py-5 bg-[rgba(214,250,232,0.3)] hover:bg-[rgba(214,250,232,0.4)] transition-colors"
+                    className="flex items-center gap-4 px-7 py-5 hover:bg-[rgba(214,250,232,0.3)] transition-colors"
                     onClick={() => {
                       setOpen(false);
-                      router.push("/settings");
+                      router.push("/my-settings");
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="#00E272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="#00E272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="#808080" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="#808080" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-[16px] font-bold text-[#00E272] tracking-[-0.02em]">
+                    <span className="text-[16px] font-medium text-[#808080] tracking-[-0.02em]">
                       개인설정
                     </span>
                   </button>

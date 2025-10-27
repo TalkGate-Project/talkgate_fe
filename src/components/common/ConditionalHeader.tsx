@@ -16,7 +16,8 @@ export default function ConditionalHeader() {
     pathname.startsWith("/projects/") ||
     pathname.startsWith("/notice") ||
     pathname.startsWith("/attendance") ||
-    pathname.startsWith("/settings");
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/my-settings");
   if (!shouldShow) return null;
   return (
     <>
