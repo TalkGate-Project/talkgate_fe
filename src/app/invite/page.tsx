@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MembersService } from "@/services/members";
 import { savePendingInviteToken, getPendingInviteToken, clearPendingInviteToken } from "@/lib/invite";
 
-type VerifyResponse = any; // shape refined when backend spec finalized
 
 // 3D 봉투 애니메이션 컴포넌트
 function EnvelopeAnimation({ 
@@ -24,106 +23,79 @@ function EnvelopeAnimation({
 }) {
   return (
     <div className="relative" style={{ perspective: "1000px" }}>
-      {/* 봉투 컨테이너 - 622px 너비로 확장 */}
+      {/* 봉투 컨테이너 */}
       <div className="relative w-[622px] h-[620px] mx-auto">
-        {/* 봉투 몸통 (하단 사각형) - 밝은 톤 */}
+        {/* 1) 봉투 바닥(뒤쪽): 단색 화이트 10% 오퍼시티 */}
         <div
-          className="absolute bottom-0 w-full h-[520px] rounded-b-lg shadow-lg"
+          className="absolute bottom-0 w-full h-[520px] rounded-b-[12px] shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
           style={{
-            background: "linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%)",
-            border: "1px solid #dee2e6",
+            backgroundColor: "#7B7F84", // 불투명 고정 색상
+            border: "1px solid rgba(255,255,255,0.08)",
+            zIndex: 10,
           }}
         />
-        
-        {/* 봉투 덮개 (상단 삼각형) - 밝은 톤, 간격 없이 연결 */}
+
+        {/* 3) 봉투 덮개: 단색 화이트 10% 오퍼시티, 삼각형 (최상단 레이어) */}
         <motion.div
-          className="absolute top-[100px] w-full h-[250px] cursor-pointer"
+          className="absolute top-[96px] w-full h-[252px] cursor-pointer"
           style={{
-            background: "linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)",
+            backgroundColor: "#5D5D5D", // 뚜껑 겉면 색상(접힌 상태의 역삼각형)
             clipPath: "polygon(0 0, 100% 0, 50% 100%)",
             transformOrigin: "top center",
-            border: "1px solid #dee2e6",
-            borderBottom: "none", // 몸통과 간격 없이 연결
+            border: "none",
+            borderBottom: "none",
+            // 카드(20)보다 뒤, 바닥(10)보다는 앞
+            zIndex: 12,
           }}
-          animate={{
-            rotateX: isOpen ? -120 : 0,
-          }}
-          transition={{
-            duration: 1.2,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
+          animate={{ rotateX: isOpen ? -118 : 0 }}
+          transition={{ duration: 1.0, ease: [0.25, 0.46, 0.45, 0.94] }}
           onClick={onOpen}
         >
-          {/* 덮개 위의 Talkgate 로고 */}
-          <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-gray-600 text-3xl font-bold">
+          {/* 상단 워드마크 위치 보정 */}
+          <div className="absolute top-9 left-1/2 -translate-x-1/2 text-white/80 text-3xl font-semibold tracking-tight">
             Talkgate
           </div>
         </motion.div>
 
-        {/* 초대장 (봉투 안에 숨겨져 있다가 올라오는 내용) */}
+        {/* 2) 초대장 내용물: 중앙 카드 */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
               className="absolute inset-0 flex items-center justify-center"
-              initial={{
-                y: 80, // 봉투 안 깊숙이 숨겨진 상태
-                opacity: 0,
-                scale: 0.9,
-              }}
-              animate={{
-                y: 0, // 위로 올라옴
-                opacity: 1,
-                scale: 1,
-              }}
-              exit={{
-                y: 80,
-                opacity: 0,
-                scale: 0.9,
-              }}
-              transition={{
-                delay: 0.8, // 덮개가 완전히 열린 후
-                duration: 1.0,
-                ease: [0.25, 0.46, 0.45, 0.94],
-              }}
+              style={{ zIndex: 20 }}
+              initial={{ y: 80, opacity: 0, scale: 0.95 }}
+              animate={{ y: -130, opacity: 1, scale: 1 }}
+              exit={{ y: 80, opacity: 0, scale: 0.95 }}
+              transition={{ delay: 0.7, duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              {/* 초대장 배경 */}
-              <div 
-                className="w-[480px] h-[448px] rounded-lg p-8 flex flex-col justify-center items-center text-center shadow-2xl"
+              <div
+                className="w-[520px] min-h-[420px] rounded-[12px] px-10 py-9 flex flex-col items-center text-center"
                 style={{
-                  background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
+                  background: "linear-gradient(180deg, rgba(20,20,20,0.98) 0%, rgba(12,12,12,0.98) 100%)",
+                  boxShadow: "0 24px 40px rgba(0,0,0,0.45)",
+                  border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
-                {/* Talkgate 로고 */}
-                <div className="text-white text-3xl font-bold mb-6">Talkgate</div>
-                
-                {/* 초대 메시지 */}
-                <div className="text-white mb-6">
-                  <div className="text-xl mb-3">
+                <div className="text-white text-[40px] leading-none font-bold mb-6">Talkgate</div>
+                <div className="text-white/95 mb-5">
+                  <div className="text-[18px] mb-2">
                     <span className="font-semibold">"{inviteInfo?.projectName || "프로젝트"}"</span>에 초대되었습니다.
                   </div>
-                  <div className="text-lg text-gray-300 mb-2">
-                    {new Date().toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                  <div className="text-[14px] text-white/70 mb-2">
+                    {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </div>
-                  <div className="text-sm text-gray-400">
-                    본 초대는 7일 후 자동 만료됩니다.
-                  </div>
+                  <div className="text-[12px] text-white/50">본 초대는 7일 후 자동 만료됩니다.</div>
                 </div>
 
-                {/* 버튼들 */}
                 <div className="flex flex-col items-center gap-3">
                   <button
-                    className="px-8 py-3 bg-white text-gray-800 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors"
+                    className="px-7 h-[40px] rounded-[8px] bg-white text-[#0F0F0F] text-[15px] font-semibold hover:bg-white/90 transition-colors"
                     onClick={onAccept}
                   >
                     프로젝트 가입하기
                   </button>
                   <button
-                    className="px-6 py-2 text-gray-400 hover:text-white text-sm transition-colors"
+                    className="px-4 h-[32px] text-white/60 hover:text-white/85 text-[13px] transition-colors"
                     onClick={onDecline}
                   >
                     거절
@@ -133,6 +105,47 @@ function EnvelopeAnimation({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* 3) 앞면(겉면): 직사각형 + 두 개의 직각삼각형 조합. 객체 opacity는 사용하지 않음 */}
+        {(() => {
+          // 투명도 없는 고정 색상으로 내용물이 비치지 않도록 처리
+          const envelopeColor = "#7B7F84";
+          const borderColor = "rgba(255,255,255,0.08)";
+          const baseHeight = 160; // 받침 직사각형 높이(상단 역삼각형과 맞닿도록 상향)
+          const triHeight = 160; // 삼각형 높이(상단 각도와 시각적으로 맞추기 위해 증가)
+          const halfWidth = 311; // 컨테이너 절반 (622px / 2)
+          return (
+            <div className="absolute bottom-0 left-0 w-full pointer-events-none" style={{ height: baseHeight + triHeight, zIndex: 30 }}>
+              {/* 받침 직사각형 */}
+              <div
+                className="absolute left-0 bottom-0 w-full"
+                style={{ height: baseHeight, backgroundColor: envelopeColor }}
+              />
+              {/* 좌측 직각삼각형 (왼쪽 하단이 직각) */}
+              <div
+                className="absolute left-0"
+                style={{
+                  bottom: baseHeight,
+                  width: 0,
+                  height: 0,
+                  borderRight: `${halfWidth}px solid transparent`,
+                  borderBottom: `${triHeight}px solid ${envelopeColor}`,
+                }}
+              />
+              {/* 우측 직각삼각형 (오른쪽 하단이 직각) */}
+              <div
+                className="absolute right-0"
+                style={{
+                  bottom: baseHeight,
+                  width: 0,
+                  height: 0,
+                  borderLeft: `${halfWidth}px solid transparent`,
+                  borderBottom: `${triHeight}px solid ${envelopeColor}`,
+                }}
+              />
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -203,7 +216,11 @@ function InviteLanding() {
     <main
       className="min-h-screen relative flex items-center justify-center"
       style={{
-        background: "linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)",
+        // 로그인 페이지와 동일한 톤의 그라데이션 배경
+        backgroundImage: "url('/login_bg.png')",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       <div className="w-full max-w-4xl mx-auto px-4">
@@ -246,7 +263,10 @@ export default function InvitePage() {
       <main
         className="min-h-screen relative flex items-center justify-center"
         style={{
-          background: "linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%)",
+          backgroundImage: "url('/login_bg.png')",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
         <div className="text-center text-white text-xl">초대 정보를 불러오는 중...</div>
