@@ -94,27 +94,75 @@ export default function Header() {
               </span>
             </button>
             {open && (
-              <div className="absolute right-0 mt-2 w-44 bg-white rounded-[8px] shadow-[0_10px_30px_rgba(0,0,0,0.15)] py-1 z-50">
-                <button
-                  className="w-full text-left px-3 py-2 text-[14px] text-[#111827] hover:bg-[#F3F4F6]"
-                  onClick={() => {
-                    clearTokens();
-                    clearSelectedProjectId();
-                    setOpen(false);
-                    router.replace("/login");
-                  }}
-                >
-                  로그아웃
-                </button>
-                <button
-                  className="w-full text-left px-3 py-2 text-[14px] text-[#111827] hover:bg-[#F3F4F6]"
-                  onClick={() => {
-                    setOpen(false);
-                    router.push("/projects");
-                  }}
-                >
-                  프로젝트 선택
-                </button>
+              <div className="absolute right-0 top-[65px] w-[360px] bg-white rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] py-5 z-50">
+                {/* User Info Section */}
+                <div className="flex flex-col gap-3 px-6 mb-3">
+                  <div className="flex items-start gap-3">
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-full bg-[#808080] flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-[18px] font-semibold leading-5 text-center tracking-[-0.02em]">
+                        {user?.name ? user.name.charAt(0) : "김"}
+                      </span>
+                    </div>
+                    
+                    {/* User Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-[16px] font-semibold leading-5 text-[#000000] tracking-[0.2px]">
+                          {user?.email || "user@kakao.com"}
+                        </div>
+                        <div className="w-px h-4 bg-[#808080]"></div>
+                        <div className="text-[14px] font-medium leading-5 text-[#808080]">
+                          A팀
+                        </div>
+                      </div>
+                      <div className="text-[14px] font-medium leading-5 text-[#808080]">
+                        UID : {user?.id || "12345"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="w-full h-[1px] bg-[#E2E2E2] mb-2.5"></div>
+
+                {/* Menu Items */}
+                <div className="flex flex-col gap-1">
+                  {/* 개인설정 */}
+                  <button
+                    className="flex items-center gap-4 px-7 py-5 bg-[rgba(214,250,232,0.3)] hover:bg-[rgba(214,250,232,0.4)] transition-colors"
+                    onClick={() => {
+                      setOpen(false);
+                      router.push("/settings");
+                    }}
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="#00E272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="#00E272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-[16px] font-bold text-[#00E272] tracking-[-0.02em]">
+                      개인설정
+                    </span>
+                  </button>
+
+                  {/* 로그아웃 */}
+                  <button
+                    className="flex items-center gap-4 px-7 py-3 hover:bg-gray-50 transition-colors"
+                    onClick={() => {
+                      clearTokens();
+                      clearSelectedProjectId();
+                      setOpen(false);
+                      router.replace("/login");
+                    }}
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-[16px] font-medium text-[#808080] tracking-[-0.02em]">
+                      로그아웃
+                    </span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
