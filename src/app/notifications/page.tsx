@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotificationsService, Notification, NotificationCategory, NotificationType } from "@/services/notifications";
 import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon, NoticeShieldIcon } from "@/components/notice/icons/NoticeIcons";
 
-export default function NotificationsPage() {
+export function NotificationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -268,5 +268,17 @@ export default function NotificationsPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function NotificationsPageWrapper() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#F8F8F8]">
+        <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24 text-[#808080]">불러오는 중...</div>
+      </main>
+    }>
+      <NotificationsPage />
+    </Suspense>
   );
 }

@@ -251,7 +251,7 @@ function CustomersPage() {
                 const { uploadUrl, fileUrl, url } = presign.data as any;
                 const putUrl = uploadUrl || url;
                 if (putUrl) await AssetsService.uploadToS3(putUrl, file);
-                await CustomersBulkService.createImport({ fileUrl: fileUrl || undefined, fileName: file.name });
+                await CustomersBulkService.createImport({ fileUrl: fileUrl || undefined, fileName: file.name, projectId: projectId! });
                 alert("업로드 요청이 접수되었습니다.");
               } catch (err) {
                 console.error(err);
@@ -273,7 +273,7 @@ function CustomersPage() {
                 const appliedForExport: any = applied;
                 if (appliedForExport.name) exportQuery.name = appliedForExport.name;
                 if (appliedForExport.contact1) exportQuery.contact1 = appliedForExport.contact1;
-                const blobRes = await CustomersBulkService.exportExcel(exportQuery);
+                const blobRes = await CustomersBulkService.exportExcel({ projectId: projectId!, query: exportQuery });
                 const blob = blobRes.data;
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");

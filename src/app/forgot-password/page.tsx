@@ -15,6 +15,7 @@ export default function ForgotPasswordPage() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [resetToken, setResetToken] = useState("");
   const [invalid, setInvalid] = useState(false);
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
@@ -125,8 +126,12 @@ export default function ForgotPasswordPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setInvalid(false);
-                ForgotPasswordService.verifyIdentity({ email, name, phone, code })
-                  .then(() => setStep("reset"))
+                ForgotPasswordService.verifyIdentity({ email, otp: code })
+                  .then((res: any) => {
+                    const token = res?.data?.data?.resetToken || res?.data?.resetToken;
+                    if (token) setResetToken(String(token));
+                    setStep("reset");
+                  })
                   .catch(() => setInvalid(true));
               }}
             >
@@ -169,7 +174,7 @@ export default function ForgotPasswordPage() {
                   setInvalid(true);
                   return;
                 }
-                ForgotPasswordService.setNewPassword({ email, password, passwordConfirm })
+                ForgotPasswordService.setNewPassword({ resetToken, newPassword: password })
                   .then(() => setStep("done"))
                   .catch(() => setInvalid(true));
               }}

@@ -30,6 +30,7 @@ export default function DeleteMemberModal({
   };
 
   const handleConfirm = () => {
+    if (!member) return;
     if (!member.hasSubordinates) {
       onConfirm();
       handleClose();
