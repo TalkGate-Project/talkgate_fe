@@ -80,6 +80,26 @@ export const AuthService = {
   me() {
     return apiClient.get<Me>("/v1/auth/user");
   },
+
+  // Profile & Security
+  changePassword(input: { currentPassword: string; newPassword: string }) {
+    return apiClient.patch<{ result: true; data: { message: string } }>("/v1/auth/change-password", input);
+  },
+  updateProfile(input: { name?: string; profileImageUrl?: string; phone?: string }) {
+    return apiClient.patch<Me>("/v1/auth/profile", input);
+  },
+  resendEmailVerification(input: { email: string }) {
+    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/resend-email-verification", input);
+  },
+  sendPasswordResetCode(input: { email: string }) {
+    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/send-password-reset-code", input);
+  },
+  verifyPasswordResetCode(input: { email: string; otp: string }) {
+    return apiClient.post<{ result: true; data: { resetToken: string; message: string } }>("/v1/auth/verify-password-reset-code", input);
+  },
+  resetPassword(input: { resetToken: string; newPassword: string }) {
+    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/reset-password", input);
+  },
 };
 
 

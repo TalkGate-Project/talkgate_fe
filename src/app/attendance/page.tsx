@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Panel from "@/components/common/Panel";
-import { mockAttendanceData, AttendanceRecord } from "@/data/mockAttendanceData";
 import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
+import { AttendanceService, AttendanceItem } from "@/services/attendance";
+import { getSelectedProjectId } from "@/lib/project";
+import type { AttendanceRecord } from "@/data/mockAttendanceData";
 
 export default function AttendancePage() {
-  const [selectedDate, setSelectedDate] = useState("2025-10-01");
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10;
+  const [limit, setLimit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<AttendanceFilterState>({
     team: 'all',
@@ -17,6 +21,14 @@ export default function AttendancePage() {
   });
   const [isEmployeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<AttendanceRecord | null>(null);
+  const [rows, setRows] = useState<AttendanceItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const id = getSelectedProjectId();
+    setProjectId(id || null);
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -39,17 +51,56 @@ export default function AttendancePage() {
     setSelectedDate(date.toISOString().split('T')[0]);
   };
 
-  // Filter attendance data based on selected filters
+  // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
   const filteredData = useMemo(() => {
-    return mockAttendanceData.filter((record) => {
-      const teamMatch = filters.team === 'all' || record.team === filters.team;
-      const positionMatch = filters.position === 'all' || record.position === filters.position;
+    return rows.filter((r) => {
+      const teamMatch = filters.team === 'all' || r.teamName === filters.team;
+      const positionMatch = filters.position === 'all' || String(r.role) === filters.position;
       return teamMatch && positionMatch;
     });
-  }, [filters]);
+  }, [filters, rows]);
 
-  const handleEmployeeClick = (employee: AttendanceRecord) => {
-    setSelectedEmployee(employee);
+  useEffect(() => {
+    if (!projectId) return;
+    setLoading(true);
+    setError(null);
+    AttendanceService.list({ projectId, date: selectedDate, page: currentPage, limit })
+      .then((res) => {
+        const payload: any = res.data as any;
+        const data = (payload?.data || payload)?.data || payload;
+        setRows(data?.attendances || []);
+        setTotalPages(data?.totalPages || 1);
+      })
+      .catch((e: any) => setError(e?.data?.message || e?.message || "불러오지 못했습니다"))
+      .finally(() => setLoading(false));
+  }, [projectId, selectedDate, currentPage, limit]);
+
+  function formatHm(iso?: string | null) {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  function computeWorkTime(att?: string | null, leave?: string | null) {
+    if (!att || !leave) return "";
+    const diffMs = new Date(leave).getTime() - new Date(att).getTime();
+    if (diffMs <= 0) return "";
+    const mins = Math.floor(diffMs / 60000);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}시간 ${m}분`;
+  }
+
+  const handleEmployeeClick = (employee: AttendanceItem) => {
+    const mapped: AttendanceRecord = {
+      id: employee.id,
+      name: employee.memberName,
+      team: employee.teamName,
+      position: String(employee.role),
+      clockIn: formatHm(employee.attendanceAt),
+      clockOut: formatHm(employee.leaveAt),
+      workTime: computeWorkTime(employee.attendanceAt, employee.leaveAt) || "-",
+    };
+    setSelectedEmployee(mapped);
     setEmployeeModalOpen(true);
   };
 
@@ -144,20 +195,35 @@ export default function AttendancePage() {
               </tr>
             </thead>
             <tbody className="text-[14px] text-[#252525]">
-              {filteredData.map((record, index) => (
+              {loading && (
+                <tr>
+                  <td className="px-6 h-[58px]" colSpan={6}>불러오는 중...</td>
+                </tr>
+              )}
+              {Boolean(error) && !loading && (
+                <tr>
+                  <td className="px-6 h-[58px] text-red-500" colSpan={6}>{error}</td>
+                </tr>
+              )}
+              {filteredData.map((record) => (
                 <tr 
-                  key={record.id} 
+                  key={record.id}
                   className="border-b-[0.4px] border-[#E2E2E2] cursor-pointer hover:bg-[#F8F8F8] transition-colors"
                   onClick={() => handleEmployeeClick(record)}
                 >
-                  <td className="px-6 h-[58px] align-middle opacity-80">{record.name}</td>
-                  <td className="px-6 h-[58px] align-middle opacity-80">{record.team}</td>
-                  <td className="px-6 h-[58px] align-middle opacity-80">{record.position}</td>
-                  <td className="px-6 h-[58px] align-middle opacity-80">{record.clockIn}</td>
-                  <td className="px-6 h-[58px] align-middle opacity-80">{record.clockOut}</td>
-                  <td className="px-6 h-[58px] align-middle opacity-80 font-semibold">{record.workTime}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80">{record.memberName}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80">{record.teamName}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80">{String(record.role)}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80">{record.attendanceAt ? new Date(record.attendanceAt).toLocaleTimeString() : '-'}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80">{record.leaveAt ? new Date(record.leaveAt).toLocaleTimeString() : '-'}</td>
+                  <td className="px-6 h-[58px] align-middle opacity-80 font-semibold">{/* 서버가 근무시간을 직접 주지 않으므로 표시 생략 */}</td>
                 </tr>
               ))}
+              {!loading && !error && filteredData.length === 0 && (
+                <tr>
+                  <td className="px-6 h-[58px]" colSpan={6}>데이터가 없습니다</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -183,7 +249,8 @@ export default function AttendancePage() {
 
           {/* Page numbers */}
           {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
-            const pageNum = i + 1;
+            const start = Math.max(1, Math.min(currentPage - 4, totalPages - 9));
+            const pageNum = start + i;
             const isActive = pageNum === currentPage;
             return (
               <button

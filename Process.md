@@ -2,6 +2,41 @@
 
 본 문서는 프런트엔드에서 연동/타이핑한 API의 진행 상황과 결정 사항을 기록합니다. (최신순)
 
+### 2025-10-28
+
+- 현황 요약
+  - 스웨거 총 API: 85개
+  - 실제 코드에서 호출 중인 스웨거 API: 31개
+  - 현재 연동 진척률: 약 36.5% (31/85)
+
+- 스웨거엔 있으나 프런트 서비스에 미정의(또는 미사용)
+  - Asset: `POST /v1/asset/profile-image/presigned-url`
+  - Conversations: 서비스 선언 완료(미사용 화면 대기)
+  - Customer Bulk: `GET /v1/customers-bulk/export`, `POST /v1/customers-bulk/import`, `GET /v1/customers-bulk/import`, `GET /v1/customers-bulk/import/{jobId}` (현재 FE 경로 불일치로 미정의 취급)
+  - Member: `GET /v1/members/my`
+
+- 프런트에 선언되어 있으나 스웨거에 없음/경로 불일치
+  - Notifications: `GET /v1/notifications`, `GET /v1/notifications/counts`, `POST /v1/notifications/mark-all-read`, `POST /v1/notifications/{id}/mark-read`
+  - Teams: `/v1/teams` 계열 일체 (CRUD, 멤버 추가/삭제, 리더 지정)
+  - Projects: `GET /v1/projects/profile`
+  - Customers Bulk: `POST/GET /v1/customers-bulk/bulk-import`, `GET /v1/customers-bulk/bulk-import/{jobId}`, `GET /v1/customers-bulk/export-excel` (스웨거는 `/import`, `/export` 경로)
+
+- 코드에서 실제로 호출 중인 스웨거 API (대표)
+  - Auth: `POST /v1/auth/login`, `POST /v1/auth/google|kakao|naver`, `POST /v1/auth/refresh`, `GET /v1/auth/user`, `POST /v1/auth/check-email-duplicate`
+  - Auth(추가): `PATCH /v1/auth/change-password`, `PATCH /v1/auth/profile`, `POST /v1/auth/resend-email-verification`, `POST /v1/auth/send-password-reset-code`, `POST /v1/auth/verify-password-reset-code`, `POST /v1/auth/reset-password`
+  - Customers: `GET /v1/customers`, `GET /v1/customers/{id}`, `PATCH /v1/customers/{id}`, `POST /v1/customers/assign`, `POST/DELETE /v1/customers/notes`, `POST/DELETE /v1/customers/payment-histories`, `POST/DELETE /v1/customers/schedules`, `POST /v1/customers/messengers`
+  - Customer Note Categories: `GET /v1/customer-note-categories`
+  - Members/MemberTree: `GET /v1/members-tree/tree`, `POST /v1/members/invitations/verify`, `POST /v1/members/invitations/accept`
+  - Projects: `GET /v1/projects`, `POST /v1/projects`
+  - Assets: `POST /v1/asset/bulk-import/presigned-url`
+  - Attendance: `POST /v1/attendance/check-in`, `POST /v1/attendance/check-out`, `GET /v1/attendance/list`, `GET /v1/attendance/my-status`
+  - Conversations(서비스 선언): `PATCH /v1/conversations/{conversationId}/customer`, `DELETE /v1/conversations/{conversationId}/customer`, `PATCH /v1/conversations/close/{conversationId}`, `GET /v1/conversations/customers/unconnected`
+
+- 다음 조치 제안
+  1) Customers Bulk 경로를 스웨거와 일치하도록 교정 (`/import`, `/export`)
+  2) Attendance·Conversations·Auth(비밀번호/프로필/재전송) 영역 서비스 추가 및 화면 연동 계획 수립
+  3) Notifications·Teams·Projects profile 등 스웨거 미존재 엔드포인트는 백엔드와 경로 합의 또는 제거/대체
+
 ### 2025-10-15
 
 - 공통

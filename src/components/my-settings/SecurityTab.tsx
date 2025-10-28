@@ -27,6 +27,10 @@ export default function SecurityTab() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [changing, setChanging] = useState(false);
 
   // Mock QR code data
   const qrCodeValue = "otpauth://totp/YourApp:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=YourApp";
@@ -47,6 +51,22 @@ export default function SecurityTab() {
     console.log("Verify code:", verificationCode);
     // TODO: Implement verification logic
   };
+
+  async function onSubmitChangePassword() {
+    try {
+      setChanging(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.changePassword({ currentPassword, newPassword });
+      alert("비밀번호가 변경되었습니다.");
+      setShowChangePw(false);
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (e: any) {
+      alert(e?.data?.message || e?.message || "변경에 실패했습니다");
+    } finally {
+      setChanging(false);
+    }
+  }
 
   return (
     <div className="bg-white rounded-[14px] p-8">
@@ -182,10 +202,33 @@ export default function SecurityTab() {
           <div className="text-[14px] font-medium text-[#808080]">
             비밀번호를 안전하게 관리하여 계정을 보호하세요.
           </div>
-          <button className="px-4 py-2 bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold rounded-[5px] hover:bg-[#404040] transition-colors">
+          <button onClick={() => setShowChangePw(true)} className="px-4 py-2 bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold rounded-[5px] hover:bg-[#404040] transition-colors">
             비밀번호 변경
           </button>
         </div>
+
+        {showChangePw && (
+          <div className="mt-4 border border-[#E2E2E2] rounded-[12px] p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[12px] text-[#6B7280] mb-1">현재 비밀번호</label>
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
+              </div>
+              <div>
+                <label className="block text-[12px] text-[#6B7280] mb-1">새 비밀번호</label>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2]" onClick={() => { setShowChangePw(false); setCurrentPassword(""); setNewPassword(""); }}>
+                취소
+              </button>
+              <button disabled={changing} className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] disabled:opacity-60" onClick={onSubmitChangePassword}>
+                변경하기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Account Section */}

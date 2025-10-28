@@ -5,14 +5,24 @@ import { useMe } from "@/hooks/useMe";
 import Image from "next/image";
 
 export default function ProfileTab() {
-  const { user } = useMe();
+  const { user, refetch } = useMe();
   const [name, setName] = useState(user?.name || "김직원");
   const [email, setEmail] = useState(user?.email || "abcd@gmail.com");
   const [contact, setContact] = useState("010-1234-5678");
+  const [saving, setSaving] = useState(false);
 
-  const handleEditProfile = () => {
-    console.log("프로필 수정");
-    // TODO: Implement profile edit logic
+  const handleEditProfile = async () => {
+    try {
+      setSaving(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.updateProfile({ name, phone: contact });
+      await refetch();
+      alert("프로필이 업데이트되었습니다.");
+    } catch (e: any) {
+      alert(e?.data?.message || e?.message || "업데이트에 실패했습니다");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -34,7 +44,8 @@ export default function ProfileTab() {
         </div>
         <button
           onClick={handleEditProfile}
-          className="px-3 py-1.5 border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50 transition-colors"
+          disabled={saving}
+          className="px-3 py-1.5 border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50 transition-colors disabled:opacity-60"
         >
           프로필 수정
         </button>
