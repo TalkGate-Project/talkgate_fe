@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TeamMember {
   id: string;
@@ -25,6 +26,11 @@ export default function TeamManagementSettings() {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [draggedItem, setDraggedItem] = useState<TeamMember | null>(null);
   const [dragOverItem, setDragOverItem] = useState<string | null>(null);
+  // Tree canvas pan/zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // 조직도 데이터
   // 팀/멤버 트리 데이터 (드래그앤드랍으로 재배치될 수 있으므로 setter 필요)
@@ -146,6 +152,19 @@ export default function TeamManagementSettings() {
     setViewMode({ type: mode });
   };
 
+  // Design tokens used across list/tree (spacing, connector, node sizes)
+  const TOKENS = {
+    connector: { rootWidth: 1.5, width: 1, depth0: '#E2E2E2', depthN: '#E9E9E9' },
+    node: {
+      specs: {
+        0: { w: 148, h: 44, avatar: 32 },
+        1: { w: 136, h: 44, avatar: 28 },
+        n: { w: 120, h: 40, avatar: 24 },
+      },
+    },
+    gaps: { verticalRoot: 24, vertical: 20, horizontalDesktop: 24, horizontalTablet: 16 },
+  } as const;
+
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     // 검색 시 관련 조직도 펼치기
@@ -190,17 +209,24 @@ export default function TeamManagementSettings() {
         <div key={item.id} className="relative mb-2">
           {/* Vertical line for hierarchy */}
           {item.level > 0 && (
-            <div 
-              className="absolute left-0 top-0 bottom-0 w-px bg-[#F8F8F8]"
-              style={{ left: `${indentLevel - 12}px` }}
-            />
+            <>
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-px"
+                style={{ left: `${indentLevel - 12}px`, background: '#E2E2E2' }}
+              />
+              {/* elbow connector */}
+              <div 
+                className="absolute h-px"
+                style={{ left: `${indentLevel - 12}px`, top: 34, width: 12, background: '#E2E2E2' }}
+              />
+            </>
           )}
           
           <div 
             className={`flex items-center px-6 py-5 gap-4 border border-[#E2E2E2] rounded-[12px] cursor-move transition-all ${
               item.isLeader 
                 ? 'bg-gradient-to-r from-[rgba(214,250,232,0.3)] to-[rgba(214,250,232,0.3)]' 
-                : 'bg-[#F8F8F8]'
+                : 'bg-white'
             } ${searchTerm && (item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
               item.department.toLowerCase().includes(searchTerm.toLowerCase())) ? 'ring-2 ring-blue-300' : ''} ${
               dragOverItem === item.id ? 'ring-2 ring-blue-400 bg-blue-50' : ''
@@ -262,33 +288,71 @@ export default function TeamManagementSettings() {
     });
   };
 
+  // Simple pan/zoom handlers (Ctrl+wheel zoom, Middle/Shift drag pan)
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    setZoom((z) => {
+      const next = Math.min(2, Math.max(0.6, z - e.deltaY * 0.0015));
+      return Number(next.toFixed(2));
+    });
+  }, []);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 1 && !e.shiftKey) return;
+    isPanningRef.current = true;
+    panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  }, [pan.x, pan.y]);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanningRef.current) return;
+    setPan({ x: e.clientX - panStartRef.current.x, y: e.clientY - panStartRef.current.y });
+  }, []);
+
+  const onMouseUp = useCallback(() => { isPanningRef.current = false; }, []);
+
   const renderTreeView = () => {
     return (
-      <div className="relative min-h-[500px] overflow-auto">
+      <div className="relative min-h-[500px] overflow-auto" onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} role="tree" aria-label="조직도 트리">
         <div className="p-8">
-          {/* Root level */}
-          <div className="flex justify-center mb-8">
-            {teamData.map((rootItem) => (
-              <div key={rootItem.id} className="relative">
-                {renderTreeNode(rootItem)}
-              </div>
-            ))}
+          {/* Pannable/zoomable canvas */}
+          <div className="relative" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center top' }}>
+            {/* Root level */}
+            <div className="flex justify-center mb-8">
+              {teamData.map((rootItem) => (
+                <div key={rootItem.id} className="relative">
+                  {renderTreeNode(rootItem, 0)}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
     );
   };
 
-  const renderTreeNode = (item: TeamMember) => {
+  const renderTreeNode = (item: TeamMember, level: number = 0) => {
     const hasChildren = item.children && item.children.length > 0;
-    
+    const spec = level === 0 ? TOKENS.node.specs[0] : level === 1 ? TOKENS.node.specs[1] : TOKENS.node.specs.n;
+    const nodeMinWidth = `${spec.w}px`;
+    const nodeHeight = `${spec.h}px`;
+    const connectorColor = level === 0 ? TOKENS.connector.depth0 : TOKENS.connector.depthN;
+    const connectorWidth = level === 0 ? TOKENS.connector.rootWidth : TOKENS.connector.width;
+    const verticalToChildren = level === 0 ? 18 : 14; // px
+    const childrenTopPadding = level === 0 ? 18 : 14; // px
+
     return (
       <div className="relative">
-        {/* Node */}
-        <div className={`flex flex-col items-center p-4 border border-[#E2E2E2] rounded-[12px] min-w-[120px] cursor-move transition-all ${
+        {/* Department badge above node, truncation for long labels */}
+        <div className="absolute -top-[22px] left-1/2 -translate-x-1/2 px-3 py-1 bg-[#D3E1FE] rounded-[30px] max-w-[160px]">
+          <span className="block text-[12px] font-medium text-[#4D82F3] opacity-80 truncate" title={item.department}>{item.department}</span>
+        </div>
+
+        {/* Node pill: focus-visible ring, drag handle zone, leader tint */}
+        <div className={`group relative flex items-center px-4 gap-3 border border-[#E2E2E2] rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4D82F3]/40 ${
           item.isLeader 
             ? 'bg-gradient-to-b from-[rgba(214,250,232,0.3)] to-[rgba(214,250,232,0.3)]' 
-            : 'bg-[#F8F8F8]'
+            : 'bg-white'
         } ${dragOverItem === item.id ? 'ring-2 ring-blue-400 bg-blue-50' : ''} ${
           draggedItem?.id === item.id ? 'opacity-50' : ''
         }`}
@@ -297,54 +361,74 @@ export default function TeamManagementSettings() {
         onDragOver={(e) => handleDragOver(e, item.id)}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, item.id)}
-        onDragEnd={handleDragEnd}>
+        onDragEnd={handleDragEnd}
+        role="treeitem"
+        aria-label={`${item.department} ${item.name}`}
+        aria-grabbed={draggedItem?.id === item.id}
+        style={{ minWidth: nodeMinWidth, height: nodeHeight }}
+        >
+          {/* Drag handle (visible on hover) */}
+          <div className="hidden group-hover:flex items-center justify-center text-[#B0B0B0] cursor-grab active:cursor-grabbing" aria-hidden>
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4h2v2H7V4zm4 0h2v2h-2V4zM7 9h2v2H7V9zm4 0h2v2h-2V9zM7 14h2v2H7v-2zm4 0h2v2h-2v-2z" fill="#B0B0B0"/></svg>
+          </div>
           {/* Avatar */}
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-[16px] font-semibold mb-2 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[14px] font-semibold ${
             item.isLeader ? 'bg-[#00B55B]' : 'bg-[#808080]'
           }`}>
             {item.avatar}
           </div>
-          
           {/* Name */}
-          <div className="text-[14px] font-semibold text-[#000000] text-center mb-1">
-            {item.name}
-          </div>
-          
-          {/* Department tag */}
-          <div className="px-2 py-1 bg-[#D3E1FE] rounded-[30px]">
-            <span className="text-[10px] font-medium text-[#4D82F3]">
-              {item.department}
-            </span>
+          <div className="text-[16px] font-semibold text-[#000000] tracking-[0.2px]">{item.name}</div>
+          {/* Role chip (optional) */}
+          {item.isLeader && (
+            <div className="ml-1 px-2 py-0.5 rounded-[30px] bg-[#E8F5E8]">
+              <span className="text-[10px] font-semibold text-[#00B55B]">리더</span>
+            </div>
+          )}
+
+          {/* Hover tooltip with meta info */}
+          <div className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 top-[calc(100%+8px)] bg-[#252525] text-white text-[12px] px-2 py-1 rounded shadow-md whitespace-nowrap">
+            {item.department} · {item.role}
           </div>
         </div>
         
         {/* Children */}
-        {hasChildren && (
-          <div className="relative mt-4">
-            {/* Vertical line from parent to children */}
-            <div className="absolute left-1/2 top-0 w-px h-4 bg-[#F8F8F8] transform -translate-x-1/2" />
-            
-            {/* Horizontal line connecting children */}
-            <div className="relative flex justify-center items-start gap-8 pt-4">
-              {item.children!.map((child, index) => (
-                <div key={child.id} className="relative">
-                  {/* Horizontal line to child */}
-                  <div className={`absolute top-0 w-8 h-px bg-[#F8F8F8] ${
-                    index === 0 ? 'left-0' : index === item.children!.length - 1 ? 'right-0' : 'left-1/2 transform -translate-x-1/2'
-                  }`} />
-                  
-                  {/* Vertical line from horizontal to child */}
-                  <div className="absolute top-0 left-1/2 w-px h-4 bg-[#F8F8F8] transform -translate-x-1/2" />
-                  
-                  {/* Child node */}
-                  <div className="pt-4">
-                    {renderTreeNode(child)}
+        <AnimatePresence initial={false}>
+          {hasChildren && (
+            <motion.div className="relative mt-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              {/* Vertical connector from parent to children */}
+              <div
+                className="absolute left-1/2 top-0 transform -translate-x-1/2"
+                style={{ width: connectorWidth, height: verticalToChildren, background: connectorColor, borderRadius: 9999 }}
+              />
+
+              {/* Horizontal connector across children */}
+              <div className="relative flex justify-center items-start gap-6 md:gap-6 sm:gap-4"
+                   style={{ paddingTop: childrenTopPadding }}>
+                <div className="absolute top-0 h-px rounded"
+                     style={{ left: '12px', right: '12px', background: connectorColor }} />
+
+                {item.children!.map((child) => (
+                  <div key={child.id} className="relative pt-4">
+                    {/* Vertical drop from horizontal to child */}
+                    <div className="absolute top-0 left-1/2 rounded"
+                      style={{ width: connectorWidth, height: 16, background: connectorColor, transform: 'translateX(-50%)' }}
+                    />
+                    {/* Child node */}
+                    <div className="pt-4">
+                      {renderTreeNode(child, level + 1)}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   };
