@@ -35,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
+      <head>
+        <link rel="stylesheet" as="style" crossOrigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+      </head>
       <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
         <ConditionalHeader />
         {/* No fixed padding; header component inserts spacer only when visible */}

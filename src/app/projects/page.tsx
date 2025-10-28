@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
+import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import { setSelectedProjectId } from "@/lib/project";
 
 export default function ProjectsPage() {
@@ -10,9 +11,7 @@ export default function ProjectsPage() {
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<any[]>([]);
 	const [showCreate, setShowCreate] = useState(false);
-	const [creating, setCreating] = useState(false);
-	const [formName, setFormName] = useState("");
-	const [formAttendance, setFormAttendance] = useState(false);
+	// legacy inline modal state removed in favor of component
 
     useEffect(() => {
         let mounted = true;
@@ -91,65 +90,19 @@ export default function ProjectsPage() {
                 </div>
             </div>
 
-		{/* Create Modal */}
+		{/* Create Modal (two-step) */}
 		{showCreate && (
-			<div className="fixed inset-0 z-50 flex items-center justify-center">
-				<div className="absolute inset-0 bg-black/50" onClick={() => !creating && setShowCreate(false)} />
-				<div className="relative bg-white rounded-[12px] shadow-[0_13px_61px_rgba(0,0,0,0.25)] w-[420px] p-6">
-					<h2 className="text-[18px] font-semibold text-[#252525]">새 서비스 생성</h2>
-					<form
-						className="mt-4 space-y-4"
-						onSubmit={(e) => {
-							e.preventDefault();
-							setCreating(true);
-							ProjectsService.create({ name: formName, useAttendanceMenu: formAttendance })
-								.then(() => {
-									// refresh list
-									return ProjectsService.list().then((res) => {
-										const payload: any = (res as any)?.data;
-										const list = Array.isArray(payload) ? payload : payload?.data;
-										setProjects(Array.isArray(list) ? list : []);
-									});
-								})
-								.then(() => {
-									setShowCreate(false);
-									setFormName("");
-									setFormAttendance(false);
-								})
-								.catch(() => alert("생성에 실패했습니다."))
-								.finally(() => setCreating(false));
-						}}
-					>
-						<label className="block">
-							<span className="block text-[12px] text-[#6B7280] mb-1">프로젝트 이름</span>
-							<input
-								required
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
-								placeholder="예: 거래소 텔레마케팅 관리"
-								className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-3 text-[#111827]"
-							/>
-						</label>
-						<label className="flex items-center gap-2">
-							<input
-								type="checkbox"
-								checked={formAttendance}
-								onChange={(e) => setFormAttendance(e.target.checked)}
-								className="w-4 h-4"
-							/>
-							<span className="text-[14px] text-[#111827]">근태 메뉴 사용</span>
-						</label>
-						<div className="mt-6 flex justify-end gap-2">
-							<button type="button" disabled={creating} className="h-[36px] px-4 rounded-[8px] border border-[#D1D5DB] text-[#374151]" onClick={() => setShowCreate(false)}>
-								취소
-							</button>
-							<button type="submit" disabled={creating || !formName.trim()} className="h-[36px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] font-semibold">
-								{creating ? "생성 중..." : "생성"}
-							</button>
-						</div>
-					</form>
-				</div>
-			</div>
+			<CreateProjectModal
+				onClose={() => setShowCreate(false)}
+				onCreated={async () => {
+					// refresh list after creation
+					const res = await ProjectsService.list();
+					const payload: any = (res as any)?.data;
+					const list = Array.isArray(payload) ? payload : payload?.data;
+					setProjects(Array.isArray(list) ? list : []);
+					setShowCreate(false);
+				}}
+			/>
 		)}
         </main>
     );

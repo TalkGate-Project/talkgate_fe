@@ -82,8 +82,8 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
 
-  /* Typography (font families are stacks; next/font variables come first) */
-  --font-sans: var(--font-inter), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  /* Typography (font families are stacks; Pretendard 우선) */
+  --font-sans: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono: var(--font-roboto-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Semantic text sizes + line-heights (use text-*, leading-*) */
@@ -154,7 +154,12 @@
 body {
   background: var(--color-surface-10);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+}
+
+/* 모든 요소에 Pretendard 적용 */
+* {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
 /* Semantic typography utilities (single class to avoid text-[px]) */

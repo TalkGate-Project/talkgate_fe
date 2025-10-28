@@ -27,7 +27,8 @@ export default function TeamManagementSettings() {
   const [dragOverItem, setDragOverItem] = useState<string | null>(null);
 
   // 조직도 데이터
-  const [teamData] = useState<TeamMember[]>([
+  // 팀/멤버 트리 데이터 (드래그앤드랍으로 재배치될 수 있으므로 setter 필요)
+  const [teamData, setTeamData] = useState<TeamMember[]>([
     {
       id: '1',
       name: '박본부장',
@@ -359,6 +360,75 @@ export default function TeamManagementSettings() {
     return result;
   };
 
+  // ===== Drag & Drop 재배치 유틸리티 =====
+  // 트리에서 특정 id 노드를 제거하고, 제거된 노드와 갱신된 트리를 반환
+  function removeNodeById(items: TeamMember[], targetId: string): { next: TeamMember[]; removed: TeamMember | null } {
+    let removed: TeamMember | null = null;
+    const next = items.map((n) => ({ ...n, children: n.children ? [...n.children] : undefined }));
+    function walk(arr: TeamMember[]): TeamMember[] {
+      const out: TeamMember[] = [];
+      for (const node of arr) {
+        if (node.id === targetId) {
+          removed = { ...node };
+          continue;
+        }
+        if (node.children && node.children.length) {
+          node.children = walk(node.children);
+        }
+        out.push(node);
+      }
+      return out;
+    }
+    return { next: walk(next), removed };
+  }
+
+  // 트리에서 특정 id의 노드 정보를 찾음 (부모 id와 현재 레벨 포함)
+  function findNodeInfo(items: TeamMember[], targetId: string, parentId?: string, level: number = 0): { node: TeamMember; parentId?: string; level: number } | null {
+    for (const node of items) {
+      if (node.id === targetId) return { node, parentId, level: node.level ?? level } as any;
+      if (node.children) {
+        const found = findNodeInfo(node.children, targetId, node.id, (node.level ?? level) + 1);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  // 노드 및 하위 노드의 level과 parentId를 일괄 갱신
+  function updateLevels(node: TeamMember, baseLevel: number, parentId?: string) {
+    node.level = baseLevel;
+    node.parentId = parentId;
+    if (node.children && node.children.length) {
+      node.children = node.children.map((c) => {
+        const copy = { ...c };
+        updateLevels(copy, baseLevel + 1, node.id);
+        return copy;
+      });
+    }
+  }
+
+  // 대상(targetId)의 형제 다음 위치로 노드를 삽입 (동일 부모의 다음 순서)
+  function insertAfterSibling(items: TeamMember[], targetId: string, node: TeamMember, newParentId?: string, newLevel: number = 0): TeamMember[] {
+    const clone = items.map((n) => ({ ...n, children: n.children ? [...n.children] : undefined }));
+    function walk(arr: TeamMember[], parentId?: string): TeamMember[] {
+      const out: TeamMember[] = [];
+      for (let i = 0; i < arr.length; i++) {
+        const cur = arr[i];
+        out.push(cur);
+        if (cur.id === targetId) {
+          const toInsert = { ...node };
+          updateLevels(toInsert, newLevel, newParentId);
+          out.splice(out.length, 0, toInsert);
+        }
+        if (cur.children && cur.children.length) {
+          cur.children = walk(cur.children, cur.id);
+        }
+      }
+      return out;
+    }
+    return walk(clone);
+  }
+
   // 드래그 앤 드롭 핸들러들
   const handleDragStart = (e: React.DragEvent, item: TeamMember) => {
     setDraggedItem(item);
@@ -380,16 +450,31 @@ export default function TeamManagementSettings() {
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     setDragOverItem(null);
-    
+
     if (!draggedItem || draggedItem.id === targetId) {
       setDraggedItem(null);
       return;
     }
 
-    // 드래그 앤 드롭 로직 구현
-    console.log(`Moving ${draggedItem.name} to ${targetId}`);
-    // 실제 구현에서는 여기서 데이터 구조를 업데이트해야 합니다.
-    
+    // 1) 소스 노드 제거
+    const { next: withoutSource, removed } = removeNodeById(teamData, draggedItem.id);
+    if (!removed) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // 2) 타겟 정보 조회 (타겟의 부모/레벨 확인)
+    const info = findNodeInfo(withoutSource, targetId);
+    if (!info) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // 3) 소스 노드를 타겟의 다음 형제 위치로 삽입 (동일 부모)
+    const updated = insertAfterSibling(withoutSource, targetId, removed, info.parentId, info.level);
+
+    // 4) 트리 상태 갱신
+    setTeamData(updated);
     setDraggedItem(null);
   };
 
