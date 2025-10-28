@@ -25,6 +25,7 @@ export const config = {
     '/notices/:path*',
     '/attendance/:path*',
     '/settings/:path*',
+    '/notifications/:path*',
   ],
 };
 

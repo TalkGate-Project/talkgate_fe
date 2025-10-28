@@ -22,6 +22,8 @@ export default function Header() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
+  const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
 
@@ -32,6 +34,20 @@ export default function Header() {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  // Load unread notification count
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      try {
+        // Mock data - 실제로는 API 호출
+        const mockUnreadCount = 2; // 예시로 2개
+        setUnreadCount(mockUnreadCount);
+      } catch (error) {
+        console.error("Failed to load unread count:", error);
+      }
+    };
+    loadUnreadCount();
   }, []);
 
   return (
@@ -65,7 +81,10 @@ export default function Header() {
         {/* Actions (right) */}
         <div className="ml-auto flex items-center gap-4">
           {/* Bell with indicator */}
-          <div className="relative w-6 h-6 text-white">
+          <button
+            onClick={() => router.push("/notifications")}
+            className="relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
+          >
             <svg
               className="w-6 h-6"
               viewBox="0 0 24 24"
@@ -81,8 +100,10 @@ export default function Header() {
                 strokeLinejoin="round"
               />
             </svg>
-            <span className="absolute -top-0.5 -right-0.5 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
-          </div>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
+            )}
+          </button>
 
           {/* Avatar + dropdown */}
           <div className="relative" ref={menuRef}>
@@ -149,6 +170,29 @@ export default function Header() {
                       isProfileHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
                     }`}>
                       개인설정
+                    </span>
+                  </button>
+
+                  {/* 프로젝트 선택 */}
+                  <button
+                    className={`flex items-center gap-4 px-7 py-5 transition-colors ${
+                      isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                    }`}
+                    onMouseEnter={() => setIsProjectSelectHovered(true)}
+                    onMouseLeave={() => setIsProjectSelectHovered(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      router.push("/projects");
+                    }}
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className={`text-[16px] tracking-[-0.02em] ${
+                      isProjectSelectHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
+                    }`}>
+                      프로젝트 선택
                     </span>
                   </button>
 
