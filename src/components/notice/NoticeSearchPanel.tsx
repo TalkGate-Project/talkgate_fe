@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface NoticeSearchPanelProps {
-  onSearch: (term: string) => void;
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  onSearch: () => void;
 }
 
-export default function NoticeSearchPanel({ onSearch }: NoticeSearchPanelProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSearch }: NoticeSearchPanelProps) {
   const router = useRouter();
 
   return (
@@ -31,28 +31,26 @@ export default function NoticeSearchPanel({ onSearch }: NoticeSearchPanelProps) 
               type="text"
               placeholder="검색어를 입력하세요"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => onSearchTermChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  onSearch(searchTerm);
+                  e.preventDefault();
+                  onSearch();
                 }
               }}
               className="w-[296px] h-[34px] px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#808080] placeholder:text-[#808080] focus:outline-none focus:border-[#252525]"
             />
           </div>
           <button 
-            onClick={() => onSearch(searchTerm)}
+            onClick={onSearch}
             className="h-[34px] px-3 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold"
           >
             검색
           </button>
         </div>
 
-        {/* 글쓰기 버튼들 */}
+        {/* 글쓰기 버튼 */}
         <div className="flex items-center gap-3">
-          <button className="h-[34px] px-3 bg-white border border-[#E2E2E2] text-[#808080] rounded-[5px] text-[14px] font-semibold">
-            글쓰기 권한없음 버튼
-          </button>
           <button 
             onClick={() => router.push("/notice/write")}
             className="h-[34px] px-3 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold"

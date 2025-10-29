@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { useFetch } from "@/hooks/useFetch";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/apiClient";
 
 export type MeUser = {
   id: number;
@@ -16,13 +16,20 @@ type MeResponse = {
 };
 
 export function useMe() {
-  const select = useMemo(() => (raw: unknown) => {
-    const res = raw as MeResponse;
-    return res?.data as MeUser;
-  }, []);
+  const query = useQuery({
+    queryKey: ["auth", "user"],
+    queryFn: async () => {
+      const res = await apiClient.get<MeResponse>("/v1/auth/user");
+      return res.data.data;
+    },
+  });
 
-  const { data, loading, error, refetch, cancel } = useFetch<MeUser>("/v1/auth/user", { select });
-  return { user: data, loading, error, refetch, cancel } as const;
+  return {
+    user: query.data ?? null,
+    loading: query.isLoading,
+    error: (query.error as unknown) ?? null,
+    refetch: query.refetch,
+  } as const;
 }
 
 

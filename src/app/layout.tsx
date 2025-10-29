@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
+import ReactQueryProvider from "@/providers/ReactQueryProvider";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({
@@ -40,9 +41,11 @@ export default function RootLayout({
         <link rel="stylesheet" as="style" crossOrigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
       </head>
       <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
-        <ConditionalHeader />
-        {/* No fixed padding; header component inserts spacer only when visible */}
-        <div>{children}</div>
+        <ReactQueryProvider>
+          <ConditionalHeader />
+          {/* No fixed padding; header component inserts spacer only when visible */}
+          <div>{children}</div>
+        </ReactQueryProvider>
       </body>
     </html>
   );
