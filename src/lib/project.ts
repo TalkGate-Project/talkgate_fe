@@ -16,6 +16,9 @@ function cookieAttrs(): string {
 export function setSelectedProjectId(projectId: string | number) {
   if (!isBrowser()) return;
   document.cookie = `${COOKIE_KEY}=${encodeURIComponent(String(projectId))}; ${cookieAttrs()}`;
+  try {
+    (window as any).tgSelectedProjectId = String(projectId);
+  } catch {}
 }
 
 export function getSelectedProjectId(): string | null {

@@ -21,7 +21,7 @@ export default function LoginPage() {
     // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()
       .then(() => {
-        if (mounted) router.replace("/projects");
+        if (mounted) router.replace("/dashboard");
       })
       .catch(() => {
         if (mounted) setChecking(false);
@@ -99,7 +99,7 @@ export default function LoginPage() {
               setInvalid(false);
               setRememberMePreference(autoLogin);
               AuthService.login({ email, password })
-                .then(() => router.replace("/projects"))
+                .then(() => router.replace("/dashboard"))
                 .catch((err: any) => {
                   const status = err?.status;
                   const code = err?.data?.code;

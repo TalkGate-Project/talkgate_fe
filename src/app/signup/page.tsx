@@ -222,7 +222,7 @@ export default function SignupPage() {
                   agreePrivacy,
                 })
                   .then(() => AuthService.login({ email, password }))
-                  .then(() => router.replace("/projects"))
+                  .then(() => router.replace("/dashboard"))
                   .then(() => setStep("done"))
                   .catch(() => setInvalid(true));
               }}

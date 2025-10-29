@@ -33,7 +33,7 @@ function OAuthCallbackPage() {
         } else {
           throw new Error("unsupported provider");
         }
-        if (mounted) router.replace("/projects");
+        if (mounted) router.replace("/dashboard");
       } catch (e: any) {
         if (mounted) setError("로그인에 실패했습니다. 다시 시도해주세요.");
       }

@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
 import { setTokens, clearTokens } from "@/lib/token";
+import { setSelectedProjectId } from "@/lib/project";
 
 // DTOs can be refined later per actual contract
 export type LoginInput = { email: string; password: string };
@@ -13,11 +14,19 @@ export const AuthService = {
   // Social login
   loginGoogle(input: SocialLoginInput) {
     return apiClient.post<LoginOutput>("/v1/auth/google", input).then((res) => {
-      // Expecting { result, data: { accessToken, refreshToken, user } }
+      // Expecting { result, data: { accessToken, refreshToken, user, projectId? } }
       const anyRes: any = res.data as any;
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
       return res;
     });
   },
@@ -27,6 +36,14 @@ export const AuthService = {
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
       return res;
     });
   },
@@ -36,6 +53,14 @@ export const AuthService = {
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
       return res;
     });
   },
@@ -47,6 +72,14 @@ export const AuthService = {
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
       return res;
     });
   },
@@ -73,6 +106,14 @@ export const AuthService = {
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
       return res;
     });
   },
