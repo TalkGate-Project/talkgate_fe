@@ -100,7 +100,7 @@ function insertAfterSibling(
   return walk(items);
 }
 
-function isDescendant(tree: TeamMember[], ancestorId: string, targetId: string): boolean {
+export function isDescendant(tree: TeamMember[], ancestorId: string, targetId: string): boolean {
   function walk(nodes: TeamMember[], foundAncestor: boolean): boolean {
     for (const node of nodes) {
       const nextFoundAncestor = foundAncestor || node.id === ancestorId;

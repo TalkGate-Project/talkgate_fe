@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { DragEvent, MouseEvent, WheelEvent } from "react";
+import type { DragEvent, MouseEvent, WheelEvent, ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TeamMember } from "@/data/mockTeamData";
 import { DragHandlers, DragState } from "./useTeamTree";
@@ -44,7 +44,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
   }, []);
 
   const renderNode = useCallback(
-    (item: TeamMember): JSX.Element => {
+    (item: TeamMember): ReactElement => {
       const leaderChildren = item.children?.filter((child) => child.isLeader) ?? [];
       const memberChildren = item.children?.filter((child) => !child.isLeader) ?? [];
       const isDragOver = dragState.dragOverItemId === item.id;
@@ -249,7 +249,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
 
   return (
     <div
-      className="relative min-h-[500px] overflow-auto"
+      className="relative min-h-[500px] max-w-[950px] overflow-x-auto overflow-y-visible"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -257,12 +257,18 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
       role="tree"
       aria-label="조직도 트리"
     >
-      <div className="p-8">
+      <div className="p-8 inline-block">
         <div
           className="relative"
-          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center top" }}
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center top",
+            width: "max-content",
+          }}
         >
-          <div className="flex justify-center mb-8">{tree}</div>
+          <div className="flex flex-nowrap gap-8 items-start mb-8" style={{ width: "max-content" }}>
+            {tree}
+          </div>
         </div>
       </div>
     </div>

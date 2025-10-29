@@ -8,9 +8,10 @@ type Props = {
   data: TeamMember[];
   dragHandlers: DragHandlers;
   dragState: DragState;
+  tags?: string[];
 };
 
-export default function TeamListView({ data, dragHandlers, dragState }: Props) {
+export default function TeamListView({ data, dragHandlers, dragState, tags = [] }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -22,7 +23,7 @@ export default function TeamListView({ data, dragHandlers, dragState }: Props) {
       flattenTeamData(data)
         .filter((member) =>
           member.name.toLowerCase().includes(lowerSearch) ||
-          member.department.toLowerCase().includes(lowerSearch)
+          (member.department ? member.department.toLowerCase().includes(lowerSearch) : false)
         )
         .map((member) => member.id)
     );
@@ -141,9 +142,11 @@ export default function TeamListView({ data, dragHandlers, dragState }: Props) {
                 {item.avatar}
               </div>
               <div className="text-[16px] font-semibold text-[#000000]">{item.name}</div>
-              <div className="px-3 py-1 bg-[#D3E1FE] rounded-[30px]">
-                <span className="text-[12px] font-medium text-[#4D82F3]">{item.department}</span>
-              </div>
+              {item.department && (
+                <div className="px-3 py-1 bg-[#D3E1FE] rounded-[30px]">
+                  <span className="text-[12px] font-medium text-[#4D82F3]">{item.department}</span>
+                </div>
+              )}
             </div>
             {hasChildren && isExpanded && item.children && (
               <div>{renderItems(item.children)}</div>
@@ -171,7 +174,7 @@ export default function TeamListView({ data, dragHandlers, dragState }: Props) {
         </button>
       </div>
       <div className="flex gap-2 mb-6">
-        {['영업본부', '영업1지점', '신규고객팀', '온라인영업팀', '영업2지점'].map((tag) => (
+        {tags.map((tag) => (
           <div key={tag} className="px-3 py-1 bg-[#E2E2E2] rounded-[30px]">
             <span className="text-[12px] font-medium text-[#595959]">{tag}</span>
           </div>

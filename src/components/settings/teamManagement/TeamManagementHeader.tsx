@@ -3,9 +3,11 @@ import { TOKENS } from "./tokens";
 type Props = {
   viewMode: "list" | "tree";
   onChange: (mode: "list" | "tree") => void;
+  onCreateTeam: () => void;
+  creating?: boolean;
 };
 
-export default function TeamManagementHeader({ viewMode, onChange }: Props) {
+export default function TeamManagementHeader({ viewMode, onChange, onCreateTeam, creating }: Props) {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -16,6 +18,7 @@ export default function TeamManagementHeader({ viewMode, onChange }: Props) {
           팀관리
         </h1>
         <button
+          onClick={onCreateTeam}
           className="flex justify-center items-center px-3 py-2 rounded-[5px] font-semibold hover:opacity-90 transition-opacity"
           style={{
             background: TOKENS.colors.light[90],
@@ -24,8 +27,9 @@ export default function TeamManagementHeader({ viewMode, onChange }: Props) {
             lineHeight: "17px",
             letterSpacing: "-0.02em",
           }}
+          disabled={creating}
         >
-          팀 생성
+          {creating ? "처리 중..." : "팀 생성"}
         </button>
       </div>
       <div className="w-full h-px bg-[#E2E2E2] mb-6 opacity-50" />
