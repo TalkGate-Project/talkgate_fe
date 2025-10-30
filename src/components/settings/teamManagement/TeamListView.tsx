@@ -9,9 +9,10 @@ type Props = {
   dragHandlers: DragHandlers;
   dragState: DragState;
   tags?: string[];
+  onMemberClick: (member: TeamMember) => void;
 };
 
-export default function TeamListView({ data, dragHandlers, dragState, tags = [] }: Props) {
+export default function TeamListView({ data, dragHandlers, dragState, tags = [], onMemberClick }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -141,7 +142,14 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [] 
               >
                 {item.avatar}
               </div>
-              <div className="text-[16px] font-semibold text-[#000000]">{item.name}</div>
+              <button
+                type="button"
+                onClick={() => onMemberClick(item)}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline"
+              >
+                {item.name}
+              </button>
               {item.department && (
                 <div className="px-3 py-1 bg-[#D3E1FE] rounded-[30px]">
                   <span className="text-[12px] font-medium text-[#4D82F3]">{item.department}</span>

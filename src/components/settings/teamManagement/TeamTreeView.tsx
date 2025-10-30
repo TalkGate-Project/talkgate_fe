@@ -11,9 +11,10 @@ type Props = {
   data: TeamMember[];
   dragHandlers: DragHandlers;
   dragState: DragState;
+  onMemberClick: (member: TeamMember) => void;
 };
 
-export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
+export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isPanningRef = useRef(false);
@@ -101,8 +102,13 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
             >
               {item.avatar}
             </div>
-            <div
-              className="font-semibold"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMemberClick(item);
+              }}
+              className="font-semibold text-left hover:underline focus:underline"
               style={{
                 fontSize: "16px",
                 lineHeight: "24px",
@@ -111,7 +117,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
               }}
             >
               {item.name}
-            </div>
+            </button>
           </div>
 
           <AnimatePresence initial={false}>
@@ -227,7 +233,16 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[14px] font-semibold bg-[#808080]">
                             {member.avatar}
                           </div>
-                          <div className="text-[16px] font-semibold text-[#000000]">{member.name}</div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onMemberClick(member);
+                            }}
+                            className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline"
+                          >
+                            {member.name}
+                          </button>
                         </div>
                       </div>
                     );
@@ -239,7 +254,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState }: Props) {
         </div>
       );
     },
-    [dragHandlers, dragState]
+    [dragHandlers, dragState, onMemberClick]
   );
 
   const tree = useMemo(
