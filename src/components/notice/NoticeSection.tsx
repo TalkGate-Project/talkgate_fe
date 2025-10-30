@@ -15,22 +15,22 @@ export default function NoticeSection() {
     <Panel
       title={<span className="typo-title-2">공지사항</span>}
       action={
-        <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em]">더보기</button>
+        <button className="h-[34px] px-3 rounded-[5px] border border-[var(--border)] bg-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-[var(--neutral-10)]">더보기</button>
       }
       className="rounded-[14px]"
     >
-      <div className="divide-y divide-[#E2E2E2]/60">
+      <div className="divide-y divide-[var(--border)]/60">
         {notices.map((n) => (
           <div key={n.id} className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
               {n.badge && (
-                <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-[#FFEBEB] text-[#D83232]">{n.badge}</span>
+                <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-[var(--danger-10)] text-[var(--danger-40)]">{n.badge}</span>
               )}
-              <span className="typo-body-2 text-[#252525] opacity-80">{n.title}</span>
+              <span className="typo-body-2 text-foreground opacity-80">{n.title}</span>
             </div>
             <div className="flex items-center gap-12">
-              <span className="typo-body-2 text-[#252525] opacity-80">{n.author}</span>
-              <span className="typo-body-2 text-[#252525] opacity-80">{n.time}</span>
+              <span className="typo-body-2 text-foreground opacity-80">{n.author}</span>
+              <span className="typo-body-2 text-foreground opacity-80">{n.time}</span>
             </div>
           </div>
         ))}
@@ -38,18 +38,20 @@ export default function NoticeSection() {
 
       {/* Pagination mock */}
       <div className="mt-6 flex items-center justify-center gap-2">
-        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[#B0B0B0]">
+        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
           <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
         </button>
         {Array.from({ length: 10 }).map((_, i) => (
           <button
             key={i}
-            className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${i === 0 ? "bg-[#252525] text-white" : "text-[#808080]"}`}
+            className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${
+              i === 0 ? "bg-[var(--neutral-90)] text-[var(--neutral-0)]" : "text-[var(--neutral-60)]"
+            }`}
           >
             {i + 1}
           </button>
         ))}
-        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[#B0B0B0]">
+        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
           <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
         </button>
       </div>

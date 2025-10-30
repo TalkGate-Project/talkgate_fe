@@ -1,27 +1,73 @@
 import { apiClient } from "@/lib/apiClient";
 
-export type Project = unknown; // refine later
+export type ApiSuccess<T> = {
+  result: true;
+  data: T;
+};
+
+export type ApiError = {
+  result: false;
+  code: string;
+  message: string;
+  traceId?: string;
+};
+
+export type ApiResult<T> = ApiSuccess<T> | ApiError;
+
+export type Project = {
+  id: number;
+  name: string;
+  subDomain: string;
+  logoUrl?: string | null;
+  useAttendanceMenu: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectSummary = Project & {
+  memberCount?: number;
+  assignedCustomerCount?: number;
+  todayScheduleCount?: number;
+};
+
+export type CreateProjectPayload = {
+  name: string;
+  subDomain?: string;
+  logoUrl?: string;
+  useAttendanceMenu?: boolean;
+};
+
+export type UpdateProjectPayload = Partial<CreateProjectPayload>;
+
+export type CheckSubDomainDuplicateResponse = ApiSuccess<{
+  isDuplicate: boolean;
+  message?: string;
+}>;
 
 export const ProjectsService = {
-  create(payload: Record<string, unknown>) {
-    return apiClient.post<Project>("/v1/projects", payload);
+  create(payload: CreateProjectPayload) {
+    return apiClient.post<ApiSuccess<Project>>("/v1/projects", payload);
   },
-  // Optional helper to check subdomain availability (endpoint can be adjusted server-side)
-  checkSubdomainAvailability(subdomain: string) {
-    return apiClient.get<{ available: boolean }>(`/v1/projects/subdomain/availability`, { query: { subdomain } });
+  update(payload: UpdateProjectPayload, headers?: Record<string, string>) {
+    return apiClient.patch<ApiSuccess<Project>>("/v1/projects", payload, headers ? { headers } : undefined);
   },
-  update(payload: Record<string, unknown>) {
-    return apiClient.patch<Project>(`/v1/projects`, payload);
-  },
-  remove(payload: Record<string, unknown>) {
-    // API uses DELETE with body; some servers accept JSON body for DELETE
-    return apiClient.delete<void>(`/v1/projects`, { body: payload } as any);
+  remove(headers?: Record<string, string>) {
+    return apiClient.delete<ApiSuccess<Project>>("/v1/projects", headers ? { headers } : undefined);
   },
   list(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<Project[]>("/v1/projects", { query });
+    return apiClient.get<ApiSuccess<ProjectSummary[]>>("/v1/projects", { query });
+  },
+  detailBySubDomain(subDomain: string, headers?: Record<string, string>) {
+    return apiClient.get<ApiSuccess<Project>>(`/v1/projects/${subDomain}`, headers ? { headers } : undefined);
+  },
+  checkSubDomainDuplicate(subDomain: string) {
+    return apiClient.post<CheckSubDomainDuplicateResponse>(
+      "/v1/projects/check-sub-domain-duplicate",
+      { subDomain }
+    );
   },
   myProfile(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<unknown>("/v1/projects/profile", { query });
+    return apiClient.get<ApiSuccess<unknown>>("/v1/projects/profile", { query });
   },
 };
 

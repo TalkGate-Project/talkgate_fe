@@ -9,7 +9,7 @@ import StatsSection from "@/components/stats/StatsSection";
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-[calc(100vh-54px)] text-foreground">
+    <main className="min-h-[calc(100vh-54px)] bg-[var(--background)] text-foreground">
       <div className="mx-auto max-w-[1324px] w-full px-0 py-8">
         {/* Greeting Banner */}
         <GreetingBanner />

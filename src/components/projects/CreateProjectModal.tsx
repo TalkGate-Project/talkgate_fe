@@ -46,8 +46,11 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     }
     try {
       setDomainChecking(true);
-      const res = await ProjectsService.checkSubdomainAvailability(subdomain);
-      setDomainAvailable(Boolean((res as any)?.data?.available));
+      const res = await ProjectsService.checkSubDomainDuplicate(subdomain);
+      const payload = res.data;
+      const duplicateInfo = payload?.data;
+      const isDuplicate = Boolean(duplicateInfo?.isDuplicate);
+      setDomainAvailable(!isDuplicate);
     } catch {
       setDomainAvailable(false);
     } finally {
@@ -61,20 +64,20 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     if (submitting) return;
     setSubmitting(true);
     try {
-      let brandIconUrl: string | undefined = undefined;
+      let logoUrl: string | undefined = undefined;
       if (iconFile) {
         // 1) presign → 2) upload → 3) use fileUrl
         const presigned = await AssetsService.presignAttachment({ fileName: iconFile.name, fileType: iconFile.type || "application/octet-stream" });
         const { uploadUrl, fileUrl, url } = (presigned as any).data || {};
         const putUrl: string | undefined = uploadUrl || url;
         if (putUrl) await AssetsService.uploadToS3(putUrl, iconFile);
-        brandIconUrl = fileUrl;
+        logoUrl = fileUrl;
       }
 
       await ProjectsService.create({
         name: projectName.trim(),
-        subdomain: subdomain || undefined,
-        brandIconUrl,
+        subDomain: subdomain || undefined,
+        logoUrl,
       });
       await onCreated();
     } catch (e) {

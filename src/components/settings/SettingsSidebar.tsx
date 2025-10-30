@@ -4,9 +4,18 @@ import ConsultationChannelIcon from "./icons/ConsultationChannelIcon";
 import MemberIcon from "./icons/MemberIcon";
 import InvitedMemberIcon from "./icons/InvitedMemberIcon";
 import TeamManagementIcon from "./icons/TeamManagementIcon";
+import CustomerApiIcon from "./icons/CustomerApiIcon";
 import BatchRegistrationIcon from "./icons/BatchRegistrationIcon";
 
-type SettingsTab = "general" | "profile" | "consultation-channel" | "member" | "invited-member" | "team-management" | "batch-registration";
+type SettingsTab =
+  | "general"
+  | "profile"
+  | "consultation-channel"
+  | "member"
+  | "invited-member"
+  | "customer-api"
+  | "team-management"
+  | "batch-registration";
 
 interface SettingsSidebarProps {
   activeTab: SettingsTab;
@@ -33,6 +42,11 @@ const SIDEBAR_ITEMS = [
     key: "member" as const,
     label: "멤버",
     icon: MemberIcon,
+  },
+  {
+    key: "customer-api" as const,
+    label: "고객등록 API",
+    icon: CustomerApiIcon,
   },
   {
     key: "invited-member" as const,

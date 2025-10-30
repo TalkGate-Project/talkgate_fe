@@ -19,7 +19,7 @@ export default function AssignedCustomersTable() {
     <Panel
       title={<span className="typo-title-2">새로 할당된 고객 (4)</span>}
       action={
-        <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white">
+        <button className="h-[34px] px-3 rounded-[5px] border border-[var(--border)] bg-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-[var(--neutral-10)]">
           더보기
         </button>
       }
@@ -30,7 +30,7 @@ export default function AssignedCustomersTable() {
       <div className="overflow-hidden rounded-[12px] grow" style={{ width: "100%" }}>
         <table className="w-full text-left border-separate border-spacing-0">
           <thead>
-            <tr className="bg-[#EDEDED] text-[#808080]">
+            <tr className="bg-[var(--neutral-20)] text-[var(--neutral-60)]">
               {[
                 "이름",
                 "전화번호",
@@ -40,7 +40,7 @@ export default function AssignedCustomersTable() {
               ].map((h, i) => (
                 <th
                   key={h}
-                  className={`typo-title-2 font-bold px-6 h-[48px] ${
+                  className={`typo-title-2 font-bold px-6 h-[48px] text-[var(--neutral-70)] ${
                     i === 0 ? "rounded-l-[12px]" : i === 4 ? "rounded-r-[12px]" : ""
                   }`}
                 >
@@ -51,13 +51,13 @@ export default function AssignedCustomersTable() {
           </thead>
           <tbody className="typo-body-3">
             {rows.map((r) => (
-              <tr key={r.name} className="border-b-[0.5px] border-[#E2E2E2]">
-                <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{r.name}</td>
-                <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{r.phone}</td>
-                <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{r.sns}</td>
-                <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{r.time}</td>
+              <tr key={r.name} className="border-b-[0.5px] border-[var(--border)]">
+                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.name}</td>
+                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.phone}</td>
+                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.sns}</td>
+                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.time}</td>
                 <td className="px-6 h-[58px] align-middle">
-                  <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]">
+                  <button className="h-[34px] px-3 rounded-[5px] bg-[var(--neutral-90)] text-[14px] font-semibold tracking-[-0.02em] text-[var(--neutral-0)] transition-colors">
                     고객정보
                   </button>
                 </td>
@@ -69,20 +69,22 @@ export default function AssignedCustomersTable() {
 
       {/* pagination */}
       <div className="h-[64px] flex items-center justify-center gap-2">
-        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[#B0B0B0]">
+        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
           <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
         </button>
         {Array.from({ length: 10 }).map((_, i) => (
           <button
             key={i}
             className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${
-              i === 0 ? "bg-[#252525] text-white" : "text-[#808080]"
+              i === 0
+                ? "bg-[var(--neutral-90)] text-[var(--neutral-0)]"
+                : "text-[var(--neutral-60)]"
             }`}
           >
             {i + 1}
           </button>
         ))}
-        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[#B0B0B0]">
+        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
           <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
         </button>
       </div>

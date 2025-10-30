@@ -25,7 +25,7 @@ export default function StatsSection() {
   return (
     <Panel
       title={<span className="typo-title-2">통계</span>}
-      action={<button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em]">더보기</button>}
+      action={<button className="h-[34px] px-3 rounded-[5px] border border-[var(--border)] bg-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-[var(--neutral-10)]">더보기</button>}
       className="rounded-[14px]"
       style={{ height: 420 }}
       bodyClassName="px-6 pb-6 pt-4"
@@ -35,15 +35,23 @@ export default function StatsSection() {
           <AreaChart data={data} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
             <defs>
               <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#34d399" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#34d399" stopOpacity={0.05} />
+                <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--primary-60)" stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#EDEDED" vertical={false} />
-            <XAxis dataKey="d" tickMargin={8} stroke="#B0B0B0" />
+            <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
+            <XAxis dataKey="d" tickMargin={8} stroke="var(--neutral-50)" tick={{ fill: "var(--neutral-60)" }} />
             <YAxis hide />
-            <Tooltip cursor={{ stroke: "#A7F3D0" }} contentStyle={{ borderRadius: 8 }} />
-            <Area type="monotone" dataKey="v" stroke="#34d399" strokeWidth={3} fill="url(#g)" dot={{ r: 4, fill: "#34d399" }} />
+            <Tooltip
+              cursor={{ stroke: "var(--primary-60)" }}
+              contentStyle={{
+                borderRadius: 8,
+                backgroundColor: "var(--neutral-0)",
+                border: `1px solid var(--border)`,
+                color: "var(--foreground)",
+              }}
+            />
+            <Area type="monotone" dataKey="v" stroke="var(--primary-60)" strokeWidth={3} fill="url(#g)" dot={{ r: 4, fill: "var(--primary-60)" }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

@@ -10,8 +10,17 @@ import MemberSettings from "./MemberSettings";
 import InvitedMemberSettings from "./InvitedMemberSettings";
 import TeamManagementSettings from "./TeamManagementSettings";
 import BatchRegistrationHistorySettings from "./BatchRegistrationHistorySettings";
+import CustomerApiSettings from "./customer-api/CustomerApiSettings";
 
-type SettingsTab = "general" | "profile" | "consultation-channel" | "member" | "invited-member" | "team-management" | "batch-registration";
+type SettingsTab =
+  | "general"
+  | "profile"
+  | "consultation-channel"
+  | "member"
+  | "invited-member"
+  | "customer-api"
+  | "team-management"
+  | "batch-registration";
 
 const TAB_COMPONENTS = {
   general: GeneralSettings,
@@ -19,6 +28,7 @@ const TAB_COMPONENTS = {
   "consultation-channel": ConsultationChannelSettings,
   member: MemberSettings,
   "invited-member": InvitedMemberSettings,
+  "customer-api": CustomerApiSettings,
   "team-management": TeamManagementSettings,
   "batch-registration": BatchRegistrationHistorySettings,
 };
