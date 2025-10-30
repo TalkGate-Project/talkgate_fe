@@ -121,11 +121,11 @@ function CustomersPage() {
 
   function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
-      <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-[#F2F2F2]">
-        <span className="text-[14px] text-[#000]">{label}</span>
-        <button aria-label="remove" onClick={onRemove} className="w-4 h-4 grid place-items-center">
+      <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-[#F2F2F2] dark:bg-[#222222]">
+        <span className="text-[14px] text-[#000] dark:text-[#FFFFFF]">{label}</span>
+        <button aria-label="remove" onClick={onRemove} className="w-4 h-4 grid place-items-center text-[#000] dark:text-[#FFFFFF]">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 9L9 3M3 3L9 9" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
@@ -135,28 +135,28 @@ function CustomersPage() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+    <main className="container mx-auto max-w-[1324px] min-h-screen pt-[90px] pb-12 text-[#252525] dark:text-[#E9E9E9]">
       {/* Top panel: title + search */}
       <Panel
         className="rounded-[14px] mb-4"
         title={
           <div className="-mx-6 px-7 pb-3 flex items-end gap-3">
-            <h1 className="text-[24px] leading-[20px] font-bold text-[#252525]">고객목록</h1>
-            <span className="text-[#808080]">|</span>
-            <p className="text-[18px] leading-[20px] font-medium text-[#808080]">고객 데이터를 확인하고 관리하세요</p>
+            <h1 className="text-[24px] leading-[20px] font-bold text-[#252525] dark:text-[#E9E9E9]">고객목록</h1>
+            <span className="text-[#808080] dark:text-[#B9B9B9]">|</span>
+            <p className="text-[18px] leading-[20px] font-medium text-[#808080] dark:text-[#B9B9B9]">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-3 border-t border-[#E2E2E2]"
+        bodyClassName="px-7 pb-4 pt-3 border-t border-[#E2E2E2] dark:border-[#444444]"
       >
         {/* Filters row (Figma: two 384x59 inputs; buttons follow immediately) */}
         <div className="mb-2 flex flex-wrap items-end gap-3" style={{ minHeight: 59 }}>
           {/* 이름 */}
           <div className="min-w-[384px]" style={{ width: 384 }}>
-            <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">이름</label>
-            <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px]">
+            <label className="block text-[14px] leading-[17px] text-[#808080] dark:text-[#B9B9B9] mb-2">이름</label>
+            <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-[#111111]">
               <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
                 <input
-                  className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#252525]"
+                  className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] dark:placeholder:text-[#B9B9B9] text-[#252525] dark:text-[#E9E9E9]"
                   placeholder="이름 검색"
                   value={filters.name ?? ""}
                   onChange={(e) => setFilters((f) => ({ ...f, name: e.target.value }))}
@@ -167,11 +167,11 @@ function CustomersPage() {
 
           {/* 핸드폰번호 */}
           <div className="min-w-[384px]" style={{ width: 384 }}>
-            <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">핸드폰번호</label>
-            <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px]">
+            <label className="block text-[14px] leading-[17px] text-[#808080] dark:text-[#B9B9B9] mb-2">핸드폰번호</label>
+            <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-[#111111]">
               <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
                 <input
-                  className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#252525]"
+                  className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] dark:placeholder:text-[#B9B9B9] text-[#252525] dark:text-[#E9E9E9]"
                   placeholder="핸드폰번호 검색"
                   value={filters.contact1 ?? ""}
                   onChange={(e) => setFilters((f) => ({ ...f, contact1: e.target.value }))}
@@ -183,13 +183,13 @@ function CustomersPage() {
           {/* Buttons immediately after inputs */}
           <div className="flex items-end gap-2">
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white"
+              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-[#FDFDFD] bg-white dark:bg-[#111111]"
               onClick={() => setFilterOpen(true)}
             >
               필터추가
             </button>
             <button
-              className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]"
+              className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]"
               onClick={() => {
                 // Apply draft filters to URL; this triggers data fetching
                 const params = new URLSearchParams();
@@ -261,13 +261,13 @@ function CustomersPage() {
               }
             }} />
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white"
+              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-[#FDFDFD] bg-white dark:bg-[#111111]"
               onClick={() => fileInputRef.current?.click()}
             >
               엑셀 업로드
             </button>
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white"
+              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-[#FDFDFD] bg-white dark:bg-[#111111]"
               onClick={async () => {
                 const exportQuery: Record<string, string | number | boolean> = { page: applied.page || 1, limit: applied.limit || 10 } as any;
                 const appliedForExport: any = applied;
@@ -285,8 +285,8 @@ function CustomersPage() {
             >
               엑셀 다운로드
             </button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => alert("고객등록 폼은 추후 연결")}>고객등록</button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => setAssignOpen(true)}>일괄배정</button>
+            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => alert("고객등록 폼은 추후 연결")}>고객등록</button>
+            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => setAssignOpen(true)}>일괄배정</button>
           </div>
         }
         bodyClassName="p-6"
@@ -295,7 +295,7 @@ function CustomersPage() {
         <div className="overflow-hidden rounded-[12px]" style={{ width: "100%" }}>
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
-              <tr className="bg-[#EDEDED] text-[#808080]">
+              <tr className="bg-[#EDEDED] dark:bg-[#222222] text-[#808080] dark:text-[#B9B9B9]">
                 <th className="px-6 h-[48px] rounded-l-[12px]">
                   <input type="checkbox" checked={allSelectedOnPage} onChange={toggleSelectAll} />
                 </th>
@@ -316,7 +316,7 @@ function CustomersPage() {
             <tbody className="typo-body-3">
               {loading && (
                 <tr>
-                  <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080]">불러오는 중...</td>
+                  <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080] dark:text-[#B9B9B9]">불러오는 중...</td>
                 </tr>
               )}
               {Boolean(error) && !loading && (
@@ -329,7 +329,7 @@ function CustomersPage() {
                 return (
                   <tr
                     key={c.id}
-                    className={`border-b-[0.5px] border-[#E2E2E2] ${hoveredId === c.id ? "bg-[#F8F8F8]" : ""}`}
+                    className={`border-b-[0.5px] border-[#E2E2E2] dark:border-[#444444] ${hoveredId === c.id ? "bg-[#F8F8F8] dark:bg-[#1A1A1A]" : ""}`}
                     onMouseEnter={(e) => {
                       if (hoverHideRef.current) { clearTimeout(hoverHideRef.current); hoverHideRef.current = null; }
                       const { clientX, clientY } = e;
@@ -357,22 +357,22 @@ function CustomersPage() {
                         setSelectedIds((prev) => (next ? [...prev, c.id] : prev.filter((id) => id !== c.id)));
                       }} ariaLabel={`select ${c.name}`} />
                     </td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">
-                      <button className="underline underline-offset-2" onClick={() => setDetailId(c.id)}>{c.name}</button>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                      <button className="underline underline-offset-2 text-inherit" onClick={() => setDetailId(c.id)}>{c.name}</button>
                     </td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.applicationRoute}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.mediaCompany}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.site}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.assignedTeamName}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.assignedMemberName}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{new Date(c.applicationDate || c.createdAt).toLocaleString()}</td>
-                    <td className="px-6 h-[58px] align-middle text-[#252525] opacity-80">{c.assignedAt ? new Date(c.assignedAt).toLocaleString() : "-"}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.applicationRoute}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.mediaCompany}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.site}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.assignedTeamName}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.assignedMemberName}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{new Date(c.applicationDate || c.createdAt).toLocaleString()}</td>
+                    <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">{c.assignedAt ? new Date(c.assignedAt).toLocaleString() : "-"}</td>
                   </tr>
                 );
               })}
               {data && customers.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080]">결과가 없습니다</td>
+                  <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080] dark:text-[#B9B9B9]">결과가 없습니다</td>
                 </tr>
               )}
             </tbody>
@@ -381,11 +381,11 @@ function CustomersPage() {
 
         {/* Footer row: count + pagination + limit */}
         <div className="h-[64px] flex items-center justify-between gap-4 mt-2">
-          <div className="text-[#B0B0B0] text-[14px]">총 {data?.data.total ?? 0}건 ({selectedIds.length}개 선택)</div>
+          <div className="text-[#B0B0B0] dark:text-[#959595] text-[14px]">총 {data?.data.total ?? 0}건 ({selectedIds.length}개 선택)</div>
           <div className="flex items-center gap-2">
             <button aria-label="prev" disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="w-8 h-8 grid place-items-center text-[#B0B0B0] disabled:opacity-40">
+              className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40">
               <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
             </button>
             {Array.from({ length: Math.min(10, totalPages) }).map((_, i) => {
@@ -393,17 +393,17 @@ function CustomersPage() {
               const num = start + i;
               const isActive = num === page;
               return (
-                <button key={i} onClick={() => setPage(num)} className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${isActive ? "bg-[#252525] text-white" : "text-[#808080]"}`}>{num}</button>
+                <button key={i} onClick={() => setPage(num)} className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${isActive ? "bg-[#252525] dark:bg-[#E9E9E9] text-white dark:text-[#111111]" : "text-[#808080] dark:text-[#B9B9B9]"}`}>{num}</button>
               );
             })}
             <button aria-label="next" disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="w-8 h-8 grid place-items-center text-[#B0B0B0] disabled:opacity-40">
+              className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40">
               <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
             </button>
           </div>
           <select
-            className="h-[34px] px-2 border border-[#E2E2E2] rounded-[5px]"
+            className="h-[34px] px-2 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-[#111111] text-[#252525] dark:text-[#FDFDFD]"
             value={String(limit)}
             onChange={(e) => {
               setLimit(Number(e.target.value));
@@ -455,22 +455,22 @@ function CustomersPage() {
           onMouseEnter={() => { if (hoverHideRef.current) { clearTimeout(hoverHideRef.current); hoverHideRef.current = null; } }}
           onMouseLeave={() => { setHoverInfo(null); setHoveredId(null); }}
         >
-          <div className="rounded-[5px] bg-white shadow-[0_8px_12px_rgba(9,30,66,0.1)]">
-            <div className="px-5 pt-5 pb-3 text-[14px] font-medium text-[#000]">{hoverInfo.name}님의 최근 상담 내용</div>
+          <div className="rounded-[5px] bg-white dark:bg-[#111111] shadow-[0_8px_12px_rgba(9,30,66,0.1)]">
+            <div className="px-5 pt-5 pb-3 text-[14px] font-medium text-[#000] dark:text-[#E9E9E9]">{hoverInfo.name}님의 최근 상담 내용</div>
             {hoverInfo.notes.length > 0 ? (
               <div className="px-5 pb-5 space-y-3">
                 {hoverInfo.notes.slice(0, 2).map((n) => (
-                  <div key={n.id} className="bg-[#F8F8F8] rounded-[12px] p-4">
-                    <div className="flex items-center justify-between text-[#808080] text-[14px]">
+                  <div key={n.id} className="bg-[#F8F8F8] dark:bg-[#1A1A1A] rounded-[12px] p-4">
+                    <div className="flex items-center justify-between text-[#808080] dark:text-[#B9B9B9] text-[14px]">
                       <span className="inline-flex items-center h-[22px] rounded-[30px] bg-[#D3E1FE] px-3 text-[12px] text-[#4D82F3] opacity-80">메모</span>
                       <span>{new Date(n.createdAt).toLocaleString()}</span>
                     </div>
-                    <div className="mt-2 text-[14px] text-[#595959]">{n.note}</div>
+                    <div className="mt-2 text-[14px] text-[#595959] dark:text-[#CFCFCF]">{n.note}</div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="px-5 pb-6 text-[14px] text-[#595959]">최근 상담 내용이 없습니다</div>
+              <div className="px-5 pb-6 text-[14px] text-[#595959] dark:text-[#CFCFCF]">최근 상담 내용이 없습니다</div>
             )}
           </div>
         </div>
@@ -483,7 +483,7 @@ export default function CustomersPageWrapper() {
   return (
     <Suspense fallback={
       <main className="min-h-screen flex items-center justify-center">
-        <div className="text-[#808080]">불러오는 중...</div>
+        <div className="text-[#808080] dark:text-[#B9B9B9]">불러오는 중...</div>
       </main>
     }>
       <CustomersPage />

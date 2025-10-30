@@ -31,7 +31,7 @@ export default function ProjectsPage() {
     }, []);
 
     return (
-        <main className="min-h-screen bg-white">
+        <main className="min-h-screen bg-white dark:bg-[#111111]">
             <div className="max-w-[1200px] mx-auto px-6 pt-24 pb-24">
                 <h1 className="text-[32px] leading-[38px] font-bold text-[#252525] text-center">프로젝트 선택</h1>
                 <p className="text-[18px] leading-[21px] text-[#808080] text-center mt-4">
