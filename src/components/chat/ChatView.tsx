@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation, ChatMessage } from "@/lib/realtime";
+import { ConversationsService } from "@/services/conversations";
+import type {
+  ConversationEvent,
+  ConversationsListEvent,
+  MessageResultEvent,
+  MessagesListEvent,
+  MessagesMarkedReadEvent,
+  SocketErrorEvent,
+  NewMessageEvent,
+} from "@/types/conversations";
 import ChatFilterModal from "./ChatFilterModal";
 import EmojiPicker from "./EmojiPicker";
+import CustomerLinkModeModal from "./customer-link/CustomerLinkModeModal";
+import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal";
+import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
 
 type Props = { projectId: number; devMode: boolean };
 
@@ -17,11 +31,14 @@ export default function ChatView({ projectId, devMode }: Props) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const socketRef = useRef<any>(null);
   const [viewMode, setViewMode] = useState<"list" | "album">("list");
   const [filterOpen, setFilterOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [emojiPickerPosition, setEmojiPickerPosition] = useState({ x: 0, y: 0 });
+  const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
+  const socketRef = useRef<Socket | null>(null);
+  const activeIdRef = useRef<number | null>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
   // Filter state synced with query string: status = all | active | closed
@@ -35,52 +52,104 @@ export default function ChatView({ projectId, devMode }: Props) {
     router.replace(`?${params.toString()}`, { scroll: false });
   }
 
-  // Connect on mount (skip if devMode)
-  useEffect(() => {
-    if (devMode) return; // use dummy data
-    const s = talkgateSocket.connect(projectId);
-    socketRef.current = s;
+  const activeConversation = useMemo(() => conversations.find((c) => c.id === activeId) || null, [conversations, activeId]);
 
-    function onReady() { setConnected(true); setSocketError(null); }
-    s.on("Ready", onReady);
-    s.on("connect_error", (err: any) => {
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  useEffect(() => {
+    if (linkStep && !activeConversation) {
+      setLinkStep(null);
+    }
+  }, [linkStep, activeConversation]);
+
+  const showBanner = useCallback((type: "success" | "error", message: string) => {
+    setBanner({ type, message });
+  }, []);
+
+  useEffect(() => {
+    if (!banner) return;
+    const timer = window.setTimeout(() => setBanner(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [banner]);
+
+  const getConversationRequest = useCallback(() => {
+    const platformMap: Record<string, string> = { telegram: "telegram", instagram: "instagram", line: "line" };
+    const status = statusFilter === "all" ? undefined : statusFilter;
+    const platformQuery = searchParams.get("platform") || undefined;
+    const platform = platformQuery && platformMap[platformQuery] ? platformMap[platformQuery] : undefined;
+    return { status, platform } as const;
+  }, [statusFilter, searchParams]);
+
+  // Socket connection lifecycle (skip in dev mode)
+  useEffect(() => {
+    if (devMode) return;
+    const socket = talkgateSocket.connect(projectId);
+    socketRef.current = socket;
+
+    const onReady = () => {
+      setConnected(true);
+      setSocketError(null);
+    };
+
+    const onConnectError = (err: any) => {
       setConnected(false);
       setSocketError(err?.message || "소켓 연결에 실패했습니다.");
-    });
-    s.on("error", (payload: any) => {
-      // 서버에서 전송하는 에러 포맷(WebSocketErrorCode) 대응
-      const code = payload?.code;
+    };
+
+    const onSocketError = (payload: SocketErrorEvent) => {
+      const code = payload?.code ? `[${payload.code}] ` : "";
       const message = payload?.message || "알 수 없는 오류";
-      setSocketError(`${code ? `[${code}] ` : ""}${message}`);
-    });
-    s.on("disconnect", (reason: any) => {
+      const combined = `${code}${message}`;
+      setSocketError(combined);
+      showBanner("error", combined);
+    };
+
+    const onDisconnect = (reason: any) => {
       setConnected(false);
-      if (reason !== 'io client disconnect') setSocketError(`연결이 종료되었습니다: ${String(reason)}`);
-    });
-    s.on("conversationsList", (payload: any) => {
-      setConversations(payload?.conversations || []);
-      if (!activeId && payload?.conversations?.[0]?.id) {
-        const first = payload.conversations[0].id;
-        setActiveId(first);
-        s.emit("getMessages", { conversationId: first, limit: 50 });
-        s.emit("markMessagesRead", { conversationId: first });
+      if (reason !== "io client disconnect") {
+        const msg = `연결이 종료되었습니다: ${String(reason)}`;
+        setSocketError(msg);
       }
-    });
-    s.on("messagesList", (payload: any) => {
-      if (payload?.conversationId !== activeId) return;
-      setMessages(payload?.messages || []);
-    });
-    s.on("messageResult", (payload: any) => {
-      if (!payload?.success) return;
-      // Replace temp if needed; for now just refetch
-      s.emit("getMessages", { conversationId: payload.conversationId, limit: 50 });
-    });
-    s.on("newMessage", (payload: any) => {
-      const { message, conversation, isNewConversation } = payload || {};
-      if (isNewConversation && conversation) {
-        setConversations((prev) => [conversation, ...prev]);
-      } else if (conversation) {
-        // move to top if exists, otherwise prepend
+    };
+
+    const onConversationsList = (payload: ConversationsListEvent) => {
+      const items = payload?.conversations ?? [];
+      setConversations(items);
+      const current = activeIdRef.current;
+      if ((!current || !items.some((c) => c.id === current)) && items[0]?.id) {
+        setActiveId(items[0].id);
+      }
+    };
+
+    const onConversation = (payload: ConversationEvent) => {
+      if (!payload?.conversation) return;
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === payload.conversation.id);
+        if (!exists) return [payload.conversation, ...prev];
+        return prev.map((c) => (c.id === payload.conversation.id ? payload.conversation : c));
+      });
+    };
+
+    const onMessagesList = (payload: MessagesListEvent) => {
+      if (!payload || payload.conversationId !== activeIdRef.current) return;
+      setMessages(payload.messages ?? []);
+    };
+
+    const onMessageResult = (payload: MessageResultEvent) => {
+      if (!payload?.success) {
+        const message = payload?.error || payload?.message || "메시지 전송에 실패했습니다.";
+        showBanner("error", message);
+        return;
+      }
+      socket.emit("getMessages", { conversationId: payload.conversationId, limit: 50 });
+    };
+
+    const onNewMessage = (payload: NewMessageEvent) => {
+      if (!payload) return;
+      const { message, conversation } = payload;
+      if (conversation) {
         setConversations((prev) => {
           const exists = prev.find((c) => c.id === conversation.id);
           if (!exists) return [conversation, ...prev];
@@ -88,30 +157,128 @@ export default function ChatView({ projectId, devMode }: Props) {
           return [conversation, ...others];
         });
       }
-      if (message?.conversationId === activeId) {
+      const current = activeIdRef.current;
+      if (message?.conversationId === current) {
         setMessages((prev) => [...prev, message]);
-        s.emit("markMessagesRead", { conversationId: activeId });
+        if (current) {
+          socket.emit("markMessagesRead", { conversationId: current });
+        }
       }
-    });
+    };
 
-    // initial fetch with filters from query if provided
-    const platformMap: Record<string, string> = { telegram: 'telegram', instagram: 'instagram', line: 'line' };
-    const status = statusFilter === 'all' ? undefined : statusFilter;
-    const platformQuery = searchParams.get('platform') || undefined;
-    const platform = platformQuery && platformMap[platformQuery] ? platformMap[platformQuery] : undefined;
-    s.emit("getConversations", { limit: 20, status, platform });
+    const onMessagesMarkedRead = (payload: MessagesMarkedReadEvent) => {
+      if (!payload) return;
+      const id = payload.conversationId;
+      setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)));
+    };
+
+    socket.on("Ready", onReady);
+    socket.on("connect_error", onConnectError);
+    socket.on("disconnect", onDisconnect);
+    socket.on("error", onSocketError as any);
+    socket.on("conversationsList", onConversationsList as any);
+    socket.on("conversation", onConversation as any);
+    socket.on("messagesList", onMessagesList as any);
+    socket.on("messageResult", onMessageResult as any);
+    socket.on("newMessage", onNewMessage as any);
+    socket.on("messagesMarkedRead", onMessagesMarkedRead as any);
+
+    socket.emit("getConversations", { limit: 20, ...getConversationRequest() });
 
     return () => {
-      s.off("Ready", onReady);
-      s.off("conversationsList");
-      s.off("messagesList");
-      s.off("messageResult");
-      s.off("newMessage");
-      s.off("connect_error");
-      s.off("error");
-      s.off("disconnect");
+      socket.off("Ready", onReady);
+      socket.off("connect_error", onConnectError);
+      socket.off("disconnect", onDisconnect);
+      socket.off("error", onSocketError as any);
+      socket.off("conversationsList", onConversationsList as any);
+      socket.off("conversation", onConversation as any);
+      socket.off("messagesList", onMessagesList as any);
+      socket.off("messageResult", onMessageResult as any);
+      socket.off("newMessage", onNewMessage as any);
+      socket.off("messagesMarkedRead", onMessagesMarkedRead as any);
     };
-  }, [projectId, activeId, devMode, statusFilter, searchParams]);
+  }, [projectId, devMode, getConversationRequest, showBanner]);
+
+  useEffect(() => {
+    if (devMode || !activeId) return;
+    const socket = socketRef.current;
+    if (!socket) return;
+    socket.emit("getMessages", { conversationId: activeId, limit: 50 });
+    socket.emit("markMessagesRead", { conversationId: activeId });
+  }, [activeId, devMode]);
+
+  useEffect(() => {
+    if (activeId !== null) return;
+    setMessages([]);
+  }, [activeId]);
+
+  const linkCustomerToConversation = useCallback(
+    async (customerId: number) => {
+      if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
+      try {
+        const response = await ConversationsService.linkCustomer({
+          conversationId: activeId,
+          projectId: String(projectId),
+          customerId,
+        });
+        if (!response.data?.result) throw new Error("고객 연동에 실패했습니다.");
+        setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, customerId } : c)));
+        socketRef.current?.emit("getConversationById", { id: activeId });
+        socketRef.current?.emit("getConversations", { limit: 20, ...getConversationRequest() });
+        showBanner("success", "고객 연동이 완료되었습니다.");
+      } catch (err: any) {
+        const message = err?.data?.message || err?.message || "고객 연동에 실패했습니다.";
+        showBanner("error", message);
+        throw new Error(message);
+      }
+    },
+    [activeId, projectId, getConversationRequest, showBanner]
+  );
+
+  const handleCloseConversation = useCallback(async () => {
+    if (!activeId) {
+      showBanner("error", "대화방을 먼저 선택해주세요.");
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("현재 상담을 완료 처리하시겠습니까?");
+      if (!confirmed) return;
+    }
+    try {
+      const response = await ConversationsService.close({
+        conversationId: activeId,
+        projectId: String(projectId),
+      });
+      if (!response.data?.result) throw new Error("상담 완료 처리에 실패했습니다.");
+      setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, status: "closed" } : c)));
+      showBanner("success", "상담을 완료 처리했습니다.");
+      socketRef.current?.emit("getConversationById", { id: activeId });
+      socketRef.current?.emit("getConversations", { limit: 20, ...getConversationRequest() });
+    } catch (err: any) {
+      const message = err?.data?.message || err?.message || "상담 완료 처리에 실패했습니다.";
+      showBanner("error", message);
+    }
+  }, [activeId, projectId, getConversationRequest, showBanner]);
+
+  const openLinkFlow = useCallback(() => {
+    if (!activeId) {
+      showBanner("error", "대화방을 먼저 선택해주세요.");
+      return;
+    }
+    setLinkStep("mode");
+  }, [activeId, showBanner]);
+
+  const closeLinkFlow = useCallback(() => {
+    setLinkStep(null);
+  }, []);
+
+  const handleLinkAndClose = useCallback(
+    async (customerId: number) => {
+      await linkCustomerToConversation(customerId);
+      setLinkStep(null);
+    },
+    [linkCustomerToConversation]
+  );
 
   // Dev mode: seed dummy data
   useEffect(() => {
@@ -135,7 +302,32 @@ export default function ChatView({ projectId, devMode }: Props) {
 
   function send() {
     if (!input.trim() || !activeId) return;
-    socketRef.current.emit("sendMessage", { conversationId: activeId, content: input, messageType: "text" });
+    if (devMode) {
+      const now = new Date().toISOString();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Number(now),
+          conversationId: activeId,
+          type: "text",
+          direction: "outgoing",
+          status: "done",
+          content: input,
+          sentAt: now,
+          createdAt: now,
+          updatedAt: now,
+        } as ChatMessage,
+      ]);
+      setInput("");
+      return;
+    }
+
+    const socket = socketRef.current;
+    if (!socket) {
+      showBanner("error", "소켓 연결 상태를 확인해주세요.");
+      return;
+    }
+    socket.emit("sendMessage", { conversationId: activeId, content: input, messageType: "text" });
     setInput("");
   }
 
@@ -162,15 +354,16 @@ export default function ChatView({ projectId, devMode }: Props) {
 
   // Ensure activeId is valid under current filter
   useEffect(() => {
-    if (!filteredConversations.length) return;
+    if (!filteredConversations.length) {
+      setActiveId(null);
+      return;
+    }
     const stillVisible = filteredConversations.some((c) => c.id === activeId);
     if (!stillVisible) {
       const first = filteredConversations[0].id;
       setActiveId(first);
-      socketRef.current?.emit('getMessages', { conversationId: first, limit: 50 });
-      socketRef.current?.emit('markMessagesRead', { conversationId: first });
     }
-  }, [statusFilter, filteredConversations]);
+  }, [statusFilter, filteredConversations, activeId]);
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -254,8 +447,6 @@ export default function ChatView({ projectId, devMode }: Props) {
                 className={`w-full text-left px-5 py-3 border-t border-[#F0F0F0] hover:bg-[#F8F8F8] ${activeId===c.id?'bg-[#F8F8F8]':''}`}
                 onClick={() => {
                   setActiveId(c.id);
-                  socketRef.current?.emit('getMessages', { conversationId: c.id, limit: 50 });
-                  socketRef.current?.emit('markMessagesRead', { conversationId: c.id });
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -282,7 +473,7 @@ export default function ChatView({ projectId, devMode }: Props) {
           <div className="mt-4 h-[calc(840px-170px)] overflow-auto px-4">
             <div className="grid grid-cols-3 gap-3">
               {filteredConversations.map((c) => (
-                <button key={c.id} onClick={() => { setActiveId(c.id); socketRef.current?.emit('getMessages',{ conversationId:c.id, limit:50}); socketRef.current?.emit('markMessagesRead',{ conversationId:c.id}); }} className={`relative h-[72px] rounded-[8px] border ${activeId===c.id?'border-[#00E272]':'border-[#E2E2E2]'} bg-white hover:bg-[#F8F8F8]` }>
+                <button key={c.id} onClick={() => setActiveId(c.id)} className={`relative h-[72px] rounded-[8px] border ${activeId===c.id?'border-[#00E272]':'border-[#E2E2E2]'} bg-white hover:bg-[#F8F8F8]` }>
                   <div className="absolute top-1 right-1">
                     {c.unreadCount ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#D83232] text-white text-[12px]">{c.unreadCount}</span> : null}
                   </div>
@@ -311,17 +502,42 @@ export default function ChatView({ projectId, devMode }: Props) {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#F2F2F2]" />
             <div>
-              <div className="text-[20px] font-bold text-[#000]">{conversations.find((c)=>c.id===activeId)?.name || '대화 선택'}</div>
-              <div className="text-[14px] text-[#808080]">ID : {conversations.find((c)=>c.id===activeId)?.platformConversationId || '-'}</div>
+              <div className="text-[20px] font-bold text-[#000]">{activeConversation?.name || "대화 선택"}</div>
+              <div className="text-[14px] text-[#808080]">ID : {activeConversation?.platformConversationId || "-"}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="h-[34px] px-4 rounded-[5px] bg-white border border-[#E2E2E2] text-[12px]">고객정보</button>
-            <button className="h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px]">상담완료</button>
+            <button
+              className="h-[34px] px-4 rounded-[5px] bg-[#00C97E] text-white text-[12px] font-semibold disabled:bg-[#A5E3C9] disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={openLinkFlow}
+              disabled={!activeConversation}
+            >
+              고객연동
+            </button>
+            <button
+              className="h-[34px] px-4 rounded-[5px] bg-white border border-[#E2E2E2] text-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={!activeConversation}
+            >
+              고객정보
+            </button>
+            <button
+              className="h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleCloseConversation}
+              disabled={!activeConversation || activeConversation?.status === "closed"}
+            >
+              {activeConversation?.status === "closed" ? "완료됨" : "상담완료"}
+            </button>
           </div>
         </div>
         {/* Messages area */}
          <div className="flex-1 overflow-auto p-6 space-y-6">
+          {banner && (
+            <div
+              className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${banner.type === "success" ? "bg-[#E6F7EF] border-[#B9EBD3] text-[#0E7A4D]" : "bg-[#FFF7F7] border-[#FFE2E2] text-[#B42318]"}`}
+            >
+              {banner.message}
+            </div>
+          )}
           {!connected || socketError ? (
             <div className="mb-4">
               <div className="w-full rounded-[8px] border border-[#FFE2E2] bg-[#FFF7F7] text-[#B42318] text-[12px] px-3 py-2">
@@ -408,6 +624,28 @@ export default function ChatView({ projectId, devMode }: Props) {
         onClose={() => setEmojiPickerOpen(false)}
         onEmojiSelect={handleEmojiSelect}
         position={emojiPickerPosition}
+      />
+
+      <CustomerLinkModeModal
+        open={linkStep === "mode"}
+        onClose={closeLinkFlow}
+        onSelect={(mode) => setLinkStep(mode)}
+      />
+      <CustomerLinkExistingModal
+        open={linkStep === "existing" && Boolean(activeConversation)}
+        onClose={closeLinkFlow}
+        onBack={() => setLinkStep("mode")}
+        projectId={projectId}
+        conversationName={activeConversation?.name}
+        onLink={handleLinkAndClose}
+      />
+      <CustomerLinkCreateModal
+        open={linkStep === "create" && Boolean(activeConversation)}
+        onClose={closeLinkFlow}
+        onBack={() => setLinkStep("mode")}
+        projectId={projectId}
+        conversationName={activeConversation?.name}
+        onLink={handleLinkAndClose}
       />
     </div>
   );

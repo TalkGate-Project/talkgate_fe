@@ -1,60 +1,9 @@
 "use client";
 
-import { io, Socket } from "socket.io-client";
+import { io, type Socket } from "socket.io-client";
 import { getAccessToken } from "@/lib/token";
-
-export type MessageType =
-  | "text"
-  | "image"
-  | "video"
-  | "audio"
-  | "file"
-  | "sticker"
-  | "location"
-  | "system";
-
-export type ChatMessage = {
-  id: number;
-  conversationId: number;
-  type: MessageType;
-  direction: "incoming" | "outgoing";
-  status: "done" | "failed" | "unsupported";
-  content?: string;
-  fileUrl?: string;
-  fileName?: string;
-  fileType?: string;
-  fileSize?: number;
-  thumbnailUrl?: string;
-  sentAt: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Conversation = {
-  id: number;
-  memberId: number;
-  customerId?: number;
-  platform: string;
-  platformConversationId: string;
-  name: string;
-  profileUrl?: string;
-  status: "active" | "closed";
-  lastReadMessageId?: number;
-  lastActivityAt: string;
-  createdAt: string;
-  updatedAt: string;
-  latestMessage?: ChatMessage;
-  unreadCount: number;
-};
-
-type ConversationsListPayload = {
-  conversations: Conversation[];
-  limit: number;
-  cursor?: number;
-  nextCursor?: number;
-  hasMore: boolean;
-  timestamp: string;
-};
+import { env } from "@/lib/env";
+export type { ChatMessage, Conversation, MessageType } from "@/types/conversations";
 
 export class TalkgateSocket {
   private socket: Socket | null = null;
@@ -63,7 +12,10 @@ export class TalkgateSocket {
     const token = getAccessToken();
     if (!token) throw new Error("로그인이 필요합니다.");
     if (this.socket?.connected) return this.socket;
-    this.socket = io('/chat', {
+
+    const base = env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, "");
+
+    this.socket = io(`${base}/chat`, {
       auth: { token, projectId },
       autoConnect: true,
       transports: ["websocket"],
@@ -88,5 +40,4 @@ export class TalkgateSocket {
 }
 
 export const talkgateSocket = new TalkgateSocket();
-
 

@@ -1,26 +1,22 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type UnconnectedCustomersResponse = {
-  result: true;
-  data: {
-    customers: Array<{ id: number; name: string; contact1?: string; contact2?: string; assignedMember?: Record<string, unknown> }>;
-    total: number;
-  };
-};
+import type {
+  ConversationActionResponse,
+  UnconnectedCustomersResponse,
+} from "@/types/conversations";
 
 export const ConversationsService = {
   linkCustomer(params: { conversationId: number | string; projectId: string; customerId: number }) {
-    return apiClient.patch<unknown>(`/v1/conversations/${params.conversationId}/customer`, { customerId: params.customerId }, {
+    return apiClient.patch<ConversationActionResponse>(`/v1/conversations/${params.conversationId}/customer`, { customerId: params.customerId }, {
       headers: { "x-project-id": params.projectId },
     });
   },
   unlinkCustomer(params: { conversationId: number | string; projectId: string }) {
-    return apiClient.delete<unknown>(`/v1/conversations/${params.conversationId}/customer`, {
+    return apiClient.delete<ConversationActionResponse>(`/v1/conversations/${params.conversationId}/customer`, {
       headers: { "x-project-id": params.projectId },
     });
   },
   close(params: { conversationId: number | string; projectId: string }) {
-    return apiClient.patch<unknown>(`/v1/conversations/close/${params.conversationId}`, {}, {
+    return apiClient.patch<ConversationActionResponse>(`/v1/conversations/close/${params.conversationId}`, {}, {
       headers: { "x-project-id": params.projectId },
     });
   },
