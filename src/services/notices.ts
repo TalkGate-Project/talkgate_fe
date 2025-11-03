@@ -32,7 +32,7 @@ export const NoticesService = {
     const { notices, ...rest } = res.data.data;
     return {
       ...rest,
-      notices: notices.map((notice) => ({
+      notices: notices === null ? null : notices.map((notice) => ({
         ...notice,
         content: decodeNoticeContent(notice.content),
       })),

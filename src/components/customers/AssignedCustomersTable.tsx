@@ -28,14 +28,14 @@ export default function AssignedCustomersTable() {
     placeholderData: (previous) => previous,
   });
 
-  const customers: RecentlyAssignedCustomer[] = data?.data.data ?? [];
+  const customers: RecentlyAssignedCustomer[] = data?.data.data === null ? [] : (data?.data.data ?? []);
   const totalCount = data?.data.totalCount ?? customers.length;
 
   const rows = useMemo(() => customers.slice(0, 10), [customers]);
 
   const loading = isLoading && !data;
   const showError = isError && !isFetching;
-  const showEmpty = !loading && !showError && rows.length === 0;
+  const showEmpty = !loading && !showError && (data?.data.data === null || rows.length === 0);
 
   return (
     <Panel

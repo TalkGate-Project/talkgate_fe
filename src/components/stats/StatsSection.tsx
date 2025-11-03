@@ -37,7 +37,7 @@ export default function StatsSection() {
   });
 
   const chartData = useMemo(() => {
-    const records: CustomerPaymentWeeklyRecord[] = data?.data.data ?? [];
+    const records = data?.data.data === null ? [] : (data?.data.data ?? []);
     return records
       .map((item) => ({
         label: `${formatDate(item.weekStartDate)}~${formatDate(item.weekEndDate)}`,
@@ -49,6 +49,7 @@ export default function StatsSection() {
 
   const loading = isLoading && !data;
   const error = isError && !isFetching;
+  const showEmpty = !loading && !error && (data?.data.data === null || chartData.length === 0);
 
   return (
     <Panel
@@ -69,8 +70,8 @@ export default function StatsSection() {
           <ChartSkeleton />
         ) : error ? (
           <EmptyState message="주간 매출 통계를 불러오는 중 문제가 발생했습니다." error />
-        ) : chartData.length === 0 ? (
-          <EmptyState message="표시할 데이터가 없습니다." />
+        ) : showEmpty ? (
+          <EmptyState message={data?.data.data === null ? "주간 매출 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."} />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>

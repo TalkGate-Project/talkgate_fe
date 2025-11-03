@@ -213,7 +213,7 @@ export function NotificationsPage() {
                     onClick={() => handleCategoryChange(category)}
                     className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border ${
                       isActive
-                        ? "bg-primary-10 border-2 border-primary-60 font-semibold text-foreground"
+                        ? "bg-notification-unread border-2 border-notification-unread font-semibold text-foreground"
                         : "border-border font-medium text-foreground opacity-80"
                     }`}
                   >
@@ -243,7 +243,7 @@ export function NotificationsPage() {
                     key={notification.id}
                     className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border ${
                       !notification.read
-                        ? "bg-primary-10 border-primary-60"
+                        ? "bg-notification-unread border-notification-unread"
                         : "bg-card border-border"
                     }`}
                   >
@@ -255,7 +255,7 @@ export function NotificationsPage() {
                         <span className="text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground">
                           {notification.title}
                         </span>
-                        {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-80" />}
+                        {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60" />}
                       </div>
                       <p className="mt-1 text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60">
                         {notification.content}

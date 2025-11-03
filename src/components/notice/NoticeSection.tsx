@@ -27,9 +27,13 @@ export default function NoticeSection() {
     placeholderData: (previous) => previous,
   });
 
-  const notices: Notice[] = useMemo(() => data?.notices ?? [], [data?.notices]);
+  const notices: Notice[] = useMemo(() => {
+    if (data?.notices === null) return [];
+    return data?.notices ?? [];
+  }, [data?.notices]);
   const loading = isLoading && !data;
   const error = isError && !isFetching;
+  const showEmpty = !loading && !error && (data?.notices === null || notices.length === 0);
 
   return (
     <Panel
@@ -49,8 +53,8 @@ export default function NoticeSection() {
         <NoticeSkeleton />
       ) : error ? (
         <NoticeEmpty message="공지사항을 불러오는 중 문제가 발생했습니다." error />
-      ) : notices.length === 0 ? (
-        <NoticeEmpty message="등록된 공지사항이 없습니다." />
+      ) : showEmpty ? (
+        <NoticeEmpty message={data?.notices === null ? "공지사항 데이터가 없습니다." : "등록된 공지사항이 없습니다."} />
       ) : (
         <div className="divide-y divide-[var(--border)]/60">
           {notices.map((n) => (

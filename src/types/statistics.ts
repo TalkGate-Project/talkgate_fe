@@ -20,7 +20,7 @@ export type PaginationQuery = {
 };
 
 export type PagedPayload<T> = {
-  data: T[];
+  data: T[] | null; // null when no data
   totalCount: number;
   page: number;
   limit: number;
@@ -58,7 +58,7 @@ export type CustomerAssignmentTeamRecord = {
 };
 
 export type CustomerAssignmentByTeamResponse = ApiSuccessResponse<{
-  data: CustomerAssignmentTeamRecord[];
+  data: CustomerAssignmentTeamRecord[] | null; // null when no data
   totalCount: number;
 }>;
 
@@ -76,7 +76,7 @@ export type CustomerNoteStatusRecord = {
 };
 
 export type CustomerNoteStatusResponse = ApiSuccessResponse<{
-  data: CustomerNoteStatusRecord[];
+  data: CustomerNoteStatusRecord[] | null; // null when no data
   totalCount: number;
 }>;
 
@@ -117,7 +117,7 @@ export type CustomerPaymentTeamRecord = {
 };
 
 export type CustomerPaymentByTeamResponse = ApiSuccessResponse<{
-  data: Array<CustomerPaymentTeamRecord | null>;
+  data: Array<CustomerPaymentTeamRecord | null> | null; // null when no data
   totalCount: number;
 }>;
 
@@ -134,7 +134,7 @@ export type CustomerPaymentWeeklyRecord = {
 };
 
 export type CustomerPaymentWeeklyResponse = ApiSuccessResponse<{
-  data: CustomerPaymentWeeklyRecord[];
+  data: CustomerPaymentWeeklyRecord[] | null; // null when no data
   totalCount: number;
 }>;
 

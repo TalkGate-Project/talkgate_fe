@@ -19,7 +19,7 @@ export interface NoticeListQuery {
 }
 
 export interface NoticeListData {
-  notices: Notice[];
+  notices: Notice[] | null; // null when no data
   total: number;
   page: number;
   limit: number;

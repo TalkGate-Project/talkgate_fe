@@ -65,17 +65,15 @@ export default function CalendarSection() {
     }
     return result;
   }, [current]);
-  const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
-  const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
-  const startDateParam = format(monthStart, "yyyy-MM-dd");
-  const endDateParam = format(monthEnd, "yyyy-MM-dd");
+  const year = current.getFullYear();
+  const month = current.getMonth() + 1; // 1-12
 
   const { data, isLoading, isError, isFetching } = useQuery({
-    queryKey: ["dashboard", "schedule", projectId, startDateParam, endDateParam],
+    queryKey: ["dashboard", "schedule", projectId, year, month],
     enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await SchedulesService.list({ projectId, startDate: startDateParam, endDate: endDateParam });
+      const res = await SchedulesService.list({ projectId, year, month });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -84,9 +82,9 @@ export default function CalendarSection() {
 
   const schedulesByDay = useMemo(() => {
     const map = new Map<string, WeeklyScheduleItem[]>();
-    const items: WeeklyScheduleItem[] = data?.data.data ?? [];
-    for (const item of items) {
-      const iso = extractDateTime(item);
+    const schedules = data?.data.schedules === null ? [] : (data?.data.schedules ?? []);
+    for (const item of schedules) {
+      const iso = item.scheduleTime;
       if (!iso) continue;
       const key = iso.slice(0, 10);
       if (!map.has(key)) map.set(key, []);
@@ -171,8 +169,8 @@ export default function CalendarSection() {
                   <div className="space-y-1 mt-auto mb-2 ml-2 mr-2">
                     {daySchedules.slice(0, 3).map((schedule, idx) => (
                       <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60">
-                        <span className="w-3 h-3 rounded-full" style={{ background: COLORS[idx % COLORS.length] }} />
-                        {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
+                        <span className="w-3 h-3 rounded-full" style={{ background: schedule.colorCode || COLORS[idx % COLORS.length] }} />
+                        {schedule.description || schedule.customer?.name || "일정"}
                       </div>
                     ))}
                     {daySchedules.length > 3 && (
@@ -210,17 +208,17 @@ export default function CalendarSection() {
                 </div>
               ) : selectedSchedules.length === 0 ? (
                 <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">
-                  선택한 날짜에 일정이 없습니다.
+                  {data?.data.schedules === null ? "일정 데이터가 없습니다." : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (
-                selectedSchedules.map((schedule, idx) => (
-                  <div key={`${schedule.id}-${idx}`} className="flex items-center gap-4 bg-card rounded-[12px] p-4" style={{ maxWidth: 304 }}>
-                    <span className="w-4 h-4 rounded-full shrink-0" style={{ background: COLORS[idx % COLORS.length] }} />
+                selectedSchedules.map((schedule) => (
+                  <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4" style={{ maxWidth: 304 }}>
+                    <span className="w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
                     <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0">
                       {formatScheduleTime(schedule)}
                     </span>
                     <span className="typo-body-2 text-neutral-60 flex-1 break-words whitespace-normal">
-                      {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
+                      {schedule.description || schedule.customer?.name || "일정"}
                     </span>
                   </div>
                 ))
@@ -233,17 +231,8 @@ export default function CalendarSection() {
   );
 }
 
-function extractDateTime(schedule: WeeklyScheduleItem) {
-  return (
-    (typeof schedule.scheduleTime === "string" && schedule.scheduleTime) ||
-    (typeof (schedule as any).startAt === "string" && (schedule as any).startAt) ||
-    (typeof (schedule as any).startTime === "string" && (schedule as any).startTime) ||
-    null
-  );
-}
-
 function formatScheduleTime(schedule: WeeklyScheduleItem) {
-  const iso = extractDateTime(schedule);
+  const iso = schedule.scheduleTime;
   if (!iso) return "-";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "-";

@@ -34,7 +34,7 @@ export default function AssignProgressList() {
   });
 
   const rows = useMemo(() => {
-    const items: CustomerAssignmentTeamRecord[] = data?.data.data ?? [];
+    const items = data?.data.data === null ? [] : (data?.data.data ?? []);
     const max = Math.max(1, ...items.map((item) => item.totalAssignedCount));
     return items.map((item, index) => ({
       label: item.teamName ?? "소속없음",
@@ -86,10 +86,10 @@ export default function AssignProgressList() {
     );
   }
 
-  if (!rows.length) {
+  if (data?.data.data === null || !rows.length) {
     return (
       <div className="mt-6 flex h-[140px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-4 text-[14px] text-neutral-60">
-        표시할 배정 통계가 없습니다.
+        {data?.data.data === null ? "배정 통계 데이터가 없습니다." : "표시할 배정 통계가 없습니다."}
       </div>
     );
   }

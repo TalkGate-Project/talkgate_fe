@@ -39,7 +39,7 @@ export default function StatusBarChart() {
   });
 
   const chartData = useMemo(() => {
-    const records: CustomerNoteStatusRecord[] = data?.data.data ?? [];
+    const records = data?.data.data === null ? [] : (data?.data.data ?? []);
     return records.map((item, index) => ({
       label: item.categoryName ?? "일반",
       value: item.totalCount ?? 0,
@@ -79,10 +79,10 @@ export default function StatusBarChart() {
     );
   }
 
-  if (!chartData.length) {
+  if (data?.data.data === null || !chartData.length) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
-        표시할 처리 상태 통계가 없습니다.
+        {data?.data.data === null ? "처리 상태 통계 데이터가 없습니다." : "표시할 처리 상태 통계가 없습니다."}
       </div>
     );
   }

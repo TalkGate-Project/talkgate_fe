@@ -98,7 +98,7 @@ export default function AssignMemberTable() {
   const teamOptions = useMemo(() => {
     const base = [{ label: "전체", value: "all" }];
     const seen = new Set<string>();
-    const records: CustomerAssignmentTeamRecord[] = teamOverviewQuery.data?.data.data ?? [];
+    const records = teamOverviewQuery.data?.data.data === null ? [] : (teamOverviewQuery.data?.data.data ?? []);
     records.forEach((item) => {
       if (item.teamId === null) return;
       const value = String(item.teamId);
@@ -110,13 +110,14 @@ export default function AssignMemberTable() {
   }, [teamOverviewQuery.data]);
 
   const memberPayload = memberQuery.data?.data;
-  const rows: CustomerAssignmentMemberRecord[] = memberPayload?.data ?? [];
+  const rows: CustomerAssignmentMemberRecord[] = memberPayload?.data === null ? [] : (memberPayload?.data ?? []);
   const totalCount = memberPayload?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageNumbers = useMemo(() => Array.from({ length: totalPages }, (_, idx) => idx + 1), [totalPages]);
 
   const showSkeleton = memberQuery.isLoading && !memberQuery.data;
   const showError = memberQuery.isError && !memberQuery.isFetching;
+  const showEmpty = !showSkeleton && !showError && (memberPayload?.data === null || rows.length === 0);
 
   const Header = (
     <div className="mb-3 flex items-center gap-2">
@@ -176,9 +177,9 @@ export default function AssignMemberTable() {
             데이터를 불러오는 중 오류가 발생했습니다.
           </div>
         )}
-        {!showSkeleton && !showError && rows.length === 0 && (
+        {showEmpty && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-neutral-60">
-            표시할 데이터가 없습니다.
+            {memberPayload?.data === null ? "배정 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."}
           </div>
         )}
         {!showSkeleton && !showError && rows.map((r, index) => {

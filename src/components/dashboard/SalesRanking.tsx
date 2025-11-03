@@ -154,6 +154,7 @@ function useRankingData({
   const rows = useMemo<RankingRow[]>(() => {
     if (mode === "team") {
       const payload = teamQuery.data?.data;
+      if (payload?.data === null) return [];
       const list: RankingTeamRecord[] = payload?.data ?? [];
       return list.map((item) => ({
         rank: item.rank,
@@ -164,6 +165,7 @@ function useRankingData({
       }));
     }
     const payload = memberQuery.data?.data;
+    if (payload?.data === null) return [];
     const list: RankingMemberRecord[] = payload?.data ?? [];
     return list.map((item) => ({
       rank: item.rank,

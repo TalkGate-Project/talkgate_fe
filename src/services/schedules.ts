@@ -3,17 +3,15 @@ import type { ScheduleListResponse } from "@/types/dashboard";
 
 export type ScheduleListQuery = {
   projectId: string;
-  startDate?: string; // YYYY-MM-DD
-  endDate?: string;   // YYYY-MM-DD
-  memberId?: number;
-  teamId?: number;
+  year: number;
+  month: number; // 1-12
 };
 
 export const SchedulesService = {
   list(query: ScheduleListQuery) {
-    const { projectId, ...qs } = query;
+    const { projectId, year, month } = query;
     return apiClient.get<ScheduleListResponse>(`/v1/schedules`, {
-      query: qs,
+      query: { year, month },
       headers: { "x-project-id": projectId },
     });
   },

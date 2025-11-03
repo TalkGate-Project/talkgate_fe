@@ -19,7 +19,7 @@ export type RecentlyAssignedCustomer = {
 };
 
 export type RecentlyAssignedCustomersResponse = ApiSuccessResponse<{
-  data: RecentlyAssignedCustomer[];
+  data: RecentlyAssignedCustomer[] | null; // null when no data
   totalCount: number;
   page?: number;
   limit?: number;
@@ -27,20 +27,25 @@ export type RecentlyAssignedCustomersResponse = ApiSuccessResponse<{
 
 export type WeeklyScheduleItem = {
   id: number;
+  scheduleTime: string; // ISO datetime
+  description: string;
+  colorCode: string;
+  customer?: {
+    id: number;
+    name: string;
+  };
+  createdAt: string;
+  // Backward compatibility fields
   title?: string;
-  description?: string;
-  scheduleTime?: string; // ISO datetime
   endTime?: string | null;
   allDay?: boolean;
   memberName?: string;
   teamName?: string;
   color?: string | null;
-  [key: string]: unknown;
 };
 
 export type ScheduleListResponse = ApiSuccessResponse<{
-  data: WeeklyScheduleItem[];
-  totalCount?: number;
+  schedules: WeeklyScheduleItem[] | null; // null when no data
 }>;
 
 

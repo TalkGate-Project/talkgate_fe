@@ -171,13 +171,13 @@ function StatsPage() {
   });
 
   const chartDailyData = useMemo(() => {
-    const records: CustomerRegistrationRecord[] = registrationChartQuery.data?.data.data ?? [];
+    const records = registrationChartQuery.data?.data.data === null ? [] : (registrationChartQuery.data?.data.data ?? []);
     const sorted = [...records].sort((a, b) => new Date(a.statisticsDate).getTime() - new Date(b.statisticsDate).getTime());
     return sorted.map((item) => ({ x: formatChartDay(item.statisticsDate), y: item.totalCount }));
   }, [registrationChartQuery.data]);
 
   const chartMonthlyData = useMemo(() => {
-    const records: CustomerRegistrationRecord[] = registrationChartQuery.data?.data.data ?? [];
+    const records = registrationChartQuery.data?.data.data === null ? [] : (registrationChartQuery.data?.data.data ?? []);
     const map = new Map<string, number>();
     records.forEach((item) => {
       const key = item.statisticsDate.slice(0, 7);
@@ -189,7 +189,7 @@ function StatsPage() {
   }, [registrationChartQuery.data]);
 
   const registrationPayload = registrationTableQuery.data?.data;
-  const registrationRows: CustomerRegistrationRecord[] = registrationPayload?.data ?? [];
+  const registrationRows: CustomerRegistrationRecord[] = registrationPayload?.data === null ? [] : (registrationPayload?.data ?? []);
   const registrationTotalCount = registrationPayload?.totalCount ?? 0;
   const registrationLimit = registrationPayload?.limit ?? APPLY_TABLE_LIMIT;
   const registrationTotalPages = Math.max(1, Math.ceil(registrationTotalCount / registrationLimit));
@@ -219,7 +219,7 @@ function StatsPage() {
   const chartData = applyMode === "daily" ? chartDailyData : chartMonthlyData;
   const chartHasData = chartData.length > 0;
 
-  const assignmentTeams: CustomerAssignmentTeamRecord[] = assignmentTeamQuery.data?.data.data ?? [];
+  const assignmentTeams: CustomerAssignmentTeamRecord[] = assignmentTeamQuery.data?.data.data === null ? [] : (assignmentTeamQuery.data?.data.data ?? []);
   const assignmentCards = useMemo(
     () =>
       [...assignmentTeams]
@@ -290,7 +290,7 @@ function StatsPage() {
                   </div>
                 ) : !chartHasData ? (
                   <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
-                    표시할 데이터가 없습니다.
+                    {registrationChartQuery.data?.data.data === null ? "신청 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."}
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
@@ -357,9 +357,9 @@ function StatsPage() {
                     <div className="flex h-[160px] items-center justify-center text-[14px] text-danger-40">
                       데이터를 불러오는 중 오류가 발생했습니다.
                     </div>
-                  ) : registrationRows.length === 0 ? (
+                  ) : (registrationPayload?.data === null || registrationRows.length === 0) ? (
                     <div className="flex h-[160px] items-center justify-center text-[14px] text-neutral-60">
-                      표시할 데이터가 없습니다.
+                      {registrationPayload?.data === null ? "신청 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."}
                     </div>
                   ) : (
                     registrationRows.map((row) => (
