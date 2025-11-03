@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import type { MemberTreeResponse } from "@/types/membersTree";
 
 export type Member = {
   id: number;
@@ -45,6 +46,9 @@ export const MembersService = {
   },
   verifyInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/verify`, payload);
+  },
+  projectTree() {
+    return apiClient.get<MemberTreeResponse>(`/v1/members-tree/tree`);
   },
 };
 

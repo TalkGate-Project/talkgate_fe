@@ -1,16 +1,33 @@
+"use client";
+
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+
 import Panel from "@/components/common/Panel";
-
-type Notice = { id: number; title: string; author: string; time: string; badge?: string };
-
-const notices: Notice[] = [
-  { id: 1, title: "시스템 점검 안내", author: "관리자", time: "10분전", badge: "중요" },
-  { id: 2, title: "신규 기능 업데이트 안내", author: "김영수", time: "10분전" },
-  { id: 3, title: "9월 정기 팀 미팅 안내", author: "관리자", time: "10분전" },
-  { id: 4, title: "[개인장비] 모니터 구매 요청", author: "관리자", time: "10분전" },
-  { id: 5, title: "여름 휴가 신청 안내", author: "김아로마", time: "2025.09.19" },
-];
+import { NoticesService } from "@/services/notices";
+import { getSelectedProjectId } from "@/lib/project";
+import type { Notice } from "@/types/notices";
 
 export default function NoticeSection() {
+  const projectId = getSelectedProjectId();
+
+  const { data, isLoading, isError, isFetching } = useQuery({
+    queryKey: ["dashboard", "notices", projectId],
+    enabled: Boolean(projectId),
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      return await NoticesService.list({ projectId, page: 1, limit: 5 });
+    },
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+  const notices: Notice[] = useMemo(() => data?.notices ?? [], [data?.notices]);
+  const loading = isLoading && !data;
+  const error = isError && !isFetching;
+
   return (
     <Panel
       title={<span className="typo-title-2">공지사항</span>}
@@ -19,44 +36,61 @@ export default function NoticeSection() {
       }
       className="rounded-[14px]"
     >
-      <div className="divide-y divide-[var(--border)]/60">
-        {notices.map((n) => (
-          <div key={n.id} className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              {n.badge && (
-                <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-[var(--danger-10)] text-[var(--danger-40)]">{n.badge}</span>
-              )}
-              <span className="typo-body-2 text-foreground opacity-80">{n.title}</span>
+      {!projectId ? (
+        <NoticeEmpty message="프로젝트를 먼저 선택해주세요." />
+      ) : loading ? (
+        <NoticeSkeleton />
+      ) : error ? (
+        <NoticeEmpty message="공지사항을 불러오는 중 문제가 발생했습니다." error />
+      ) : notices.length === 0 ? (
+        <NoticeEmpty message="등록된 공지사항이 없습니다." />
+      ) : (
+        <div className="divide-y divide-[var(--border)]/60">
+          {notices.map((n) => (
+            <div key={n.id} className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                {n.important && (
+                  <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-[var(--danger-10)] text-[var(--danger-40)]">중요</span>
+                )}
+                <span className="typo-body-2 text-foreground opacity-80">{n.title}</span>
+              </div>
+              <div className="flex items-center gap-12">
+                <span className="typo-body-2 text-foreground opacity-80">{n.authorName ?? "-"}</span>
+                <span className="typo-body-2 text-foreground opacity-80">{formatNoticeTime(n.createdAt)}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-12">
-              <span className="typo-body-2 text-foreground opacity-80">{n.author}</span>
-              <span className="typo-body-2 text-foreground opacity-80">{n.time}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination mock */}
-      <div className="mt-6 flex items-center justify-center gap-2">
-        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
-          <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
-        </button>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <button
-            key={i}
-            className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${
-              i === 0 ? "bg-[var(--neutral-90)] text-[var(--neutral-0)]" : "text-[var(--neutral-60)]"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
-          <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
-        </button>
-      </div>
+          ))}
+        </div>
+      )}
     </Panel>
   );
+}
+
+function NoticeEmpty({ message, error }: { message: string; error?: boolean }) {
+  return (
+    <div className={`flex h-[240px] items-center justify-center text-[14px] ${error ? "text-[var(--danger-40)]" : "text-[var(--neutral-60)]"}`}>
+      {message}
+    </div>
+  );
+}
+
+function NoticeSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <div key={idx} className="flex items-center justify-between gap-3 py-4">
+          <span className="h-5 w-48 animate-pulse rounded bg-[var(--neutral-20)]" />
+          <span className="h-5 w-32 animate-pulse rounded bg-[var(--neutral-20)]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatNoticeTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return formatDistanceToNow(date, { addSuffix: true, locale: ko });
 }
 
 

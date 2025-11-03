@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-type TeamValue = 'all'|'A팀'|'B팀'|'C팀'|'배정되지않음';
-type SortValue = 'desc'|'asc';
+type TeamValue = string;
+type SortValue = "desc" | "asc";
 
 export type MemberFilterState = { team: TeamValue; sort: SortValue };
+
+type TeamOption = { label: string; value: TeamValue };
+type SortOption = { label: string; value: SortValue };
 
 type Props = {
   open: boolean;
@@ -14,9 +17,35 @@ type Props = {
   onClose: () => void;
   onApply: (f: MemberFilterState) => void;
   defaults: MemberFilterState;
+  teamOptions?: TeamOption[];
+  sortOptions?: SortOption[];
 };
 
-export default function MemberStatsFilterModal({ open, title, onClose, onApply, defaults }: Props) {
+const FALLBACK_TEAM_OPTIONS: TeamOption[] = [
+  { label: "전체", value: "all" },
+  { label: "A팀", value: "A팀" },
+  { label: "B팀", value: "B팀" },
+  { label: "C팀", value: "C팀" },
+  { label: "배정되지않음", value: "배정되지않음" },
+];
+
+const FALLBACK_SORT_OPTIONS: SortOption[] = [
+  { label: "내림차순", value: "desc" },
+  { label: "오름차순", value: "asc" },
+];
+
+export default function MemberStatsFilterModal({
+  open,
+  title,
+  onClose,
+  onApply,
+  defaults,
+  teamOptions,
+  sortOptions,
+}: Props) {
+  const availableTeamOptions = teamOptions?.length ? teamOptions : FALLBACK_TEAM_OPTIONS;
+  const availableSortOptions = sortOptions?.length ? sortOptions : FALLBACK_SORT_OPTIONS;
+
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
   const [localSort, setLocalSort] = useState<SortValue>(defaults.sort);
 
@@ -41,13 +70,7 @@ export default function MemberStatsFilterModal({ open, title, onClose, onApply, 
           <div>
             <div className="text-[14px] text-[#808080] mb-2">팀별</div>
             <div className="flex flex-wrap gap-2">
-              {[
-                { label: '전체', value: 'all' as TeamValue },
-                { label: 'A팀', value: 'A팀' as TeamValue },
-                { label: 'B팀', value: 'B팀' as TeamValue },
-                { label: 'C팀', value: 'C팀' as TeamValue },
-                { label: '배정되지않음', value: '배정되지않음' as TeamValue },
-              ].map((opt) => (
+              {availableTeamOptions.map((opt) => (
                 <button key={opt.value} onClick={() => setLocalTeam(opt.value)} className={`px-3 h-[28px] rounded-[6px] border ${localTeam===opt.value? 'bg-[#D6FAE8] border-[#51F8A5] text-[#004824]' : 'border-[#E2E2E2] text-[#252525]'}`}>{opt.label}</button>
               ))}
             </div>
@@ -55,17 +78,22 @@ export default function MemberStatsFilterModal({ open, title, onClose, onApply, 
           <div>
             <div className="text-[14px] text-[#808080] mb-2">정렬</div>
             <div className="flex gap-2">
-              {[
-                { label: '내림차순', value: 'desc' as SortValue },
-                { label: '오름차순', value: 'asc' as SortValue },
-              ].map((opt) => (
+              {availableSortOptions.map((opt) => (
                 <button key={opt.value} onClick={() => setLocalSort(opt.value)} className={`px-3 h-[28px] rounded-[6px] border ${localSort===opt.value? 'bg-[#D6FAE8] border-[#51F8A5] text-[#004824]' : 'border-[#E2E2E2] text-[#252525]'}`}>{opt.label}</button>
               ))}
             </div>
           </div>
         </div>
         <div className="px-6 py-3 flex justify-end gap-2 border-t border-[#E2E2E2]">
-          <button className="h-[32px] px-4 rounded-[6px] border border-[#E2E2E2]" onClick={() => { setLocalTeam('all'); setLocalSort('desc'); }}>초기화</button>
+          <button
+            className="h-[32px] px-4 rounded-[6px] border border-[#E2E2E2]"
+            onClick={() => {
+              setLocalTeam(availableTeamOptions[0]?.value ?? "all");
+              setLocalSort(availableSortOptions[0]?.value ?? "desc");
+            }}
+          >
+            초기화
+          </button>
           <button className="h-[32px] px-4 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => onApply({ team: localTeam, sort: localSort })}>적용완료</button>
         </div>
       </div>

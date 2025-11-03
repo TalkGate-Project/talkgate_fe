@@ -1,5 +1,21 @@
-export default function GreetingBanner() {
+type GreetingBannerProps = {
+  userName?: string | null;
+  todayQuote?: string | null;
+  now?: Date;
+  loading?: boolean;
+};
+
+export default function GreetingBanner({ userName, todayQuote, now = new Date(), loading }: GreetingBannerProps) {
   const gradient = "linear-gradient(90deg, var(--neutral-0) 65%, color-mix(in srgb, var(--primary-20) 35%, transparent))";
+  const displayName = userName ? `${userName}님` : "팀원님";
+  const formattedNow = new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(now).replace(".", ".");
 
   return (
     <section
@@ -11,10 +27,24 @@ export default function GreetingBanner() {
       <div className="flex items-center justify-between gap-6">
         <div>
           <h1 className="typo-h2 text-foreground tracking-[-0.02em]">
-            안녕하세요, 김직원님 👋
+            {loading ? (
+              <span className="inline-flex h-8 w-48 animate-pulse rounded bg-[var(--neutral-20)]" />
+            ) : (
+              <>안녕하세요, {displayName} 👋</>
+            )}
           </h1>
-          <p className="mt-3 typo-title-1 text-muted-foreground">2025. 09.19 오후 3:04:26</p>
-          <p className="mt-3 typo-title-1 text-muted-foreground">&ldquo;투자에서 가장 중요한 것은 시간이다&rdquo;</p>
+          <p className="mt-3 typo-title-1 text-muted-foreground">
+            {loading ? <span className="inline-flex h-6 w-40 animate-pulse rounded bg-[var(--neutral-20)]" /> : formattedNow}
+          </p>
+          <p className="mt-3 typo-title-1 text-muted-foreground">
+            {loading ? (
+              <span className="inline-flex h-6 w-80 animate-pulse rounded bg-[var(--neutral-20)]" />
+            ) : todayQuote ? (
+              <>“{todayQuote}”</>
+            ) : (
+              "오늘도 고객과의 만남을 준비해 보세요!"
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-3 h-full">
           <button

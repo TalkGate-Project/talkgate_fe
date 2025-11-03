@@ -1,23 +1,42 @@
+"use client";
+
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+
 import Panel from "@/components/common/Panel";
-
-type Row = {
-  name: string;
-  phone: string;
-  sns: string;
-  time: string;
-};
-
-const rows: Row[] = [
-  { name: "홍길동", phone: "010-1234-5678", sns: "네이버", time: "10분전" },
-  { name: "이철수", phone: "010-1234-5678", sns: "구글", time: "10분전" },
-  { name: "김영희", phone: "010-1234-5678", sns: "페이스북", time: "10분전" },
-  { name: "오영수", phone: "010-1234-5678", sns: "인스타그램", time: "2025.09.19" },
-];
+import { CustomersService } from "@/services/customers";
+import { getSelectedProjectId } from "@/lib/project";
+import type { RecentlyAssignedCustomer, RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 
 export default function AssignedCustomersTable() {
+  const projectId = getSelectedProjectId();
+
+  const { data, isLoading, isError, isFetching } = useQuery<RecentlyAssignedCustomersResponse>({
+    queryKey: ["dashboard", "recently-assigned", projectId],
+    enabled: Boolean(projectId),
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await CustomersService.recentlyAssigned(projectId, { limit: 10 });
+      return res.data;
+    },
+    staleTime: 60 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+  const customers: RecentlyAssignedCustomer[] = data?.data.data ?? [];
+  const totalCount = data?.data.totalCount ?? customers.length;
+
+  const rows = useMemo(() => customers.slice(0, 10), [customers]);
+
+  const loading = isLoading && !data;
+  const showError = isError && !isFetching;
+  const showEmpty = !loading && !showError && rows.length === 0;
+
   return (
     <Panel
-      title={<span className="typo-title-2">새로 할당된 고객 (4)</span>}
+      title={<span className="typo-title-2">새로 할당된 고객 ({totalCount})</span>}
       action={
         <button className="h-[34px] px-3 rounded-[5px] border border-[var(--border)] bg-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-[var(--neutral-10)]">
           더보기
@@ -28,67 +47,76 @@ export default function AssignedCustomersTable() {
       bodyClassName="px-6 pb-0 pt-4 flex flex-col"
     >
       <div className="overflow-hidden rounded-[12px] grow" style={{ width: "100%" }}>
-        <table className="w-full text-left border-separate border-spacing-0">
-          <thead>
-            <tr className="bg-[var(--neutral-20)] text-[var(--neutral-60)]">
-              {[
-                "이름",
-                "전화번호",
-                "SNS",
-                "시간",
-                "정보",
-              ].map((h, i) => (
-                <th
-                  key={h}
-                  className={`typo-title-2 font-bold px-6 h-[48px] text-[var(--neutral-70)] ${
-                    i === 0 ? "rounded-l-[12px]" : i === 4 ? "rounded-r-[12px]" : ""
-                  }`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="typo-body-3">
-            {rows.map((r) => (
-              <tr key={r.name} className="border-b-[0.5px] border-[var(--border)]">
-                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.name}</td>
-                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.phone}</td>
-                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.sns}</td>
-                <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{r.time}</td>
-                <td className="px-6 h-[58px] align-middle">
-                  <button className="h-[34px] px-3 rounded-[5px] bg-[var(--neutral-90)] text-[14px] font-semibold tracking-[-0.02em] text-[var(--neutral-0)] transition-colors">
-                    고객정보
-                  </button>
-                </td>
+        {!projectId ? (
+          <div className="flex h-full items-center justify-center text-[14px] text-[var(--neutral-60)]">
+            프로젝트를 먼저 선택해주세요.
+          </div>
+        ) : loading ? (
+          <LoadingTableSkeleton />
+        ) : showError ? (
+          <div className="flex h-full items-center justify-center text-[14px] text-[var(--danger-40)]">
+            데이터를 불러오는 중 문제가 발생했습니다.
+          </div>
+        ) : showEmpty ? (
+          <div className="flex h-full items-center justify-center text-[14px] text-[var(--neutral-60)]">
+            최근에 배정된 고객이 없습니다.
+          </div>
+        ) : (
+          <table className="w-full text-left border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-[var(--neutral-20)] text-[var(--neutral-60)]">
+                {["이름", "전화번호", "유입경로", "배정 시각", "정보"].map((h, i) => (
+                  <th
+                    key={h}
+                    className={`typo-title-2 font-bold px-6 h-[48px] text-[var(--neutral-70)] ${
+                      i === 0 ? "rounded-l-[12px]" : i === 4 ? "rounded-r-[12px]" : ""
+                    }`}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* pagination */}
-      <div className="h-[64px] flex items-center justify-center gap-2">
-        <button aria-label="prev" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
-          <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
-        </button>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <button
-            key={i}
-            className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${
-              i === 0
-                ? "bg-[var(--neutral-90)] text-[var(--neutral-0)]"
-                : "text-[var(--neutral-60)]"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-        <button aria-label="next" className="w-8 h-8 grid place-items-center text-[var(--neutral-50)]">
-          <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
-        </button>
+            </thead>
+            <tbody className="typo-body-3">
+              {rows.map((customer) => {
+                const contact = customer.contact1 ?? customer.contact2 ?? "-";
+                const route = customer.applicationRoute ?? customer.mediaCompany ?? customer.site ?? "-";
+                const assignedLabel = customer.assignedAt
+                  ? formatDistanceToNow(new Date(customer.assignedAt), { addSuffix: true, locale: ko })
+                  : "-";
+                return (
+                  <tr key={customer.id} className="border-b-[0.5px] border-[var(--border)]">
+                    <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{customer.name}</td>
+                    <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{contact}</td>
+                    <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{route}</td>
+                    <td className="px-6 h-[58px] align-middle text-foreground opacity-80">{assignedLabel}</td>
+                    <td className="px-6 h-[58px] align-middle">
+                      <button className="h-[34px] px-3 rounded-[5px] bg-[var(--neutral-90)] text-[14px] font-semibold tracking-[-0.02em] text-[var(--neutral-0)] transition-colors">
+                        고객정보
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </Panel>
+  );
+}
+
+function LoadingTableSkeleton() {
+  return (
+    <div className="flex h-full flex-col justify-center gap-3">
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <div key={idx} className="mx-6 flex items-center gap-4">
+          {Array.from({ length: 5 }).map((__, colIdx) => (
+            <span key={colIdx} className="h-5 flex-1 animate-pulse rounded bg-[var(--neutral-20)]" />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 

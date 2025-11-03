@@ -3,9 +3,10 @@ type KpiCardProps = {
   label: string;
   value: string;
   className?: string;
+  loading?: boolean;
 };
 
-export default function KpiCard({ icon, label, value, className }: KpiCardProps) {
+export default function KpiCard({ icon, label, value, className, loading }: KpiCardProps) {
   return (
     <div className={`surface rounded-[14px] elevation-1 px-6 py-5 h-[120px] flex items-center justify-between ${className ?? ""}`}>
       <div>
@@ -14,7 +15,7 @@ export default function KpiCard({ icon, label, value, className }: KpiCardProps)
           className="mt-2 font-[var(--font-montserrat)] font-bold text-[28px] leading-[34px] tracking-[1px]"
           style={{ color: "var(--foreground)" }}
         >
-          {value}
+          {loading ? <span className="inline-flex h-8 w-24 animate-pulse rounded bg-[var(--neutral-20)]" /> : value}
         </div>
       </div>
 

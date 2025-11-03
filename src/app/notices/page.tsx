@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import NoticeSearchPanel from "@/components/notice/NoticeSearchPanel";
 import NoticeTable from "@/components/notice/NoticeTable";
 import NoticePagination from "@/components/notice/NoticePagination";
@@ -11,7 +13,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const ITEMS_PER_PAGE = 10;
 
-export default function NoticePage() {
+function NoticePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -180,5 +182,19 @@ export default function NoticePage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function NoticePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12 text-[var(--neutral-60)]">
+          공지사항을 불러오는 중입니다...
+        </main>
+      }
+    >
+      <NoticePageContent />
+    </Suspense>
   );
 }

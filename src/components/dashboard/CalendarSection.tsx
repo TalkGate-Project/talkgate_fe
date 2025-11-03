@@ -1,12 +1,22 @@
 "use client";
-import Panel from "@/components/common/Panel";
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
+
+import Panel from "@/components/common/Panel";
+import { getSelectedProjectId } from "@/lib/project";
+import { SchedulesService } from "@/services/schedules";
+import type { WeeklyScheduleItem } from "@/types/dashboard";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
+const COLORS = ["#00E272", "#00B55B", "#7EA5F8", "#2563EB", "#EFB008", "#D83232", "#FC9595"];
 
 export default function CalendarSection() {
-  const [current, setCurrent] = useState(new Date(2025, 8, 1)); // 2025.09 기준
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2025, 8, 9));
+  const projectId = getSelectedProjectId();
+  const today = new Date();
+  const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
   const ym = `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, "0")}`;
 
   const goPrev = () => {
@@ -44,6 +54,41 @@ export default function CalendarSection() {
     }
     return result;
   }, [current]);
+  const monthStart = new Date(current.getFullYear(), current.getMonth(), 1);
+  const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+  const startDateParam = format(monthStart, "yyyy-MM-dd");
+  const endDateParam = format(monthEnd, "yyyy-MM-dd");
+
+  const { data, isLoading, isError, isFetching } = useQuery({
+    queryKey: ["dashboard", "schedule", projectId, startDateParam, endDateParam],
+    enabled: Boolean(projectId),
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await SchedulesService.list({ projectId, startDate: startDateParam, endDate: endDateParam });
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+  const schedulesByDay = useMemo(() => {
+    const map = new Map<string, WeeklyScheduleItem[]>();
+    const items: WeeklyScheduleItem[] = data?.data.data ?? [];
+    for (const item of items) {
+      const iso = extractDateTime(item);
+      if (!iso) continue;
+      const key = iso.slice(0, 10);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(item);
+    }
+    return map;
+  }, [data]);
+
+  const selectedKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
+  const selectedSchedules = selectedKey ? schedulesByDay.get(selectedKey) ?? [] : [];
+  const loading = isLoading && !data;
+  const error = isError && !isFetching;
+
   return (
     <Panel
       title={<span className="typo-title-2">달력 & 일정</span>}
@@ -94,13 +139,14 @@ export default function CalendarSection() {
                 ? "border-2 border-[var(--primary-60)]"
                 : "border border-[var(--border)]";
               const backgroundClass = isPrevMonth ? "bg-[var(--neutral-10)]" : "bg-[var(--neutral-0)]";
+              const key = format(cell.date, "yyyy-MM-dd");
+              const daySchedules = schedulesByDay.get(key) ?? [];
               return (
                 <div
                   key={i}
                   onClick={() => {
                     setSelectedDate(cell.date);
                     if (!cell.inCurrent) {
-                      // 클릭 시 해당 월로 이동
                       setCurrent(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1));
                     }
                   }}
@@ -114,26 +160,14 @@ export default function CalendarSection() {
                     {cell.date.getDate()}
                   </div>
                   <div className="space-y-1 mt-auto mb-2 ml-2 mr-2">
-                    {cell.inCurrent && cell.date.getDate() === 9 && (
-                      <>
-                        <div className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
-                          <span className="w-3 h-3 rounded-full bg-[#00E272]" /> 박지율 전화상담
-                        </div>
-                        <div className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
-                          <span className="w-3 h-3 rounded-full bg-[#00B55B]" /> 김지우 전화상담
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-[var(--neutral-60)]">그 외 2건</div>
-                      </>
-                    )}
-                    {!cell.inCurrent && i === 2 && (
-                      <>
-                        <div className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
-                          <span className="w-3 h-3 rounded-full bg-[#EFB008]" /> 월 콜 리스트 검토
-                        </div>
-                        <div className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
-                          <span className="w-3 h-3 rounded-full bg-[#D83232]" /> 신규 고객 상담
-                        </div>
-                      </>
+                    {daySchedules.slice(0, 3).map((schedule, idx) => (
+                      <div key={idx} className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
+                        <span className="w-3 h-3 rounded-full" style={{ background: COLORS[idx % COLORS.length] }} />
+                        {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
+                      </div>
+                    ))}
+                    {daySchedules.length > 3 && (
+                      <div className="flex items-center gap-1 text-[10px] text-[var(--neutral-60)]">그 외 {daySchedules.length - 3}건</div>
                     )}
                   </div>
                 </div>
@@ -146,33 +180,74 @@ export default function CalendarSection() {
         <aside className="order-1 lg:order-2 lg:shrink-0">
           <div className="bg-[var(--neutral-10)] rounded-[12px] p-4 h-full relative flex flex-col">
             <div className="flex items-center justify-between mb-4 gap-2">
-              <div className="typo-title-2">09.09 목요일 (8)</div>
-              <button className="h-[34px] px-3 rounded-[5px] bg-[var(--neutral-90)] text-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em]">
-                고객정보
-              </button>
+              <div className="typo-title-2">
+                {selectedDate ? format(selectedDate, "MM.dd EEEE", { locale: ko }) : "일정"} ({selectedSchedules.length})
+              </div>
             </div>
             <div className="space-y-3 pr-3 overflow-y-auto" style={{ maxHeight: 405 }}>
-              {[
-                { c: "#00E272", t: "All day", d: "박지율 전화상담" },
-                { c: "#00B55B", t: "13:00", d: "김지우 전화상담" },
-                { c: "#7EA5F8", t: "14:00", d: "오주영 전화상담" },
-                { c: "#2563EB", t: "16:00", d: "박지율 전화 예약 상담 요청 안내", tall: true },
-                { c: "#EFB008", t: "17:00", d: "박지율 전화상담" },
-                { c: "#976400", t: "18:00", d: "박지율 전화상담" },
-                { c: "#D83232", t: "19:00", d: "박지율 전화상담" },
-                { c: "#FC9595", t: "20:00", d: "박지율 전화상담" },
-              ].map((it, idx) => (
-                <div key={idx} className="flex items-center gap-4 bg-[var(--neutral-0)] rounded-[12px] p-4" style={{ maxWidth: 304 }}>
-                  <span className="w-4 h-4 rounded-full shrink-0" style={{ background: it.c }} />
-                  <span className="typo-body-2 text-[var(--neutral-60)] w-[61px] text-center self-center shrink-0">{it.t}</span>
-                  <span className={`typo-body-2 text-[var(--neutral-60)] flex-1 break-words whitespace-normal ${it.tall ? "" : ""}`}>{it.d}</span>
+              {!projectId ? (
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--neutral-60)]">
+                  프로젝트를 먼저 선택해주세요.
                 </div>
-              ))}
+              ) : loading ? (
+                <ScheduleSkeleton />
+              ) : error ? (
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--danger-40)]">
+                  일정을 불러오는 중 문제가 발생했습니다.
+                </div>
+              ) : selectedSchedules.length === 0 ? (
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--neutral-60)]">
+                  선택한 날짜에 일정이 없습니다.
+                </div>
+              ) : (
+                selectedSchedules.map((schedule, idx) => (
+                  <div key={`${schedule.id}-${idx}`} className="flex items-center gap-4 bg-[var(--neutral-0)] rounded-[12px] p-4" style={{ maxWidth: 304 }}>
+                    <span className="w-4 h-4 rounded-full shrink-0" style={{ background: COLORS[idx % COLORS.length] }} />
+                    <span className="typo-body-2 text-[var(--neutral-60)] w-[61px] text-center self-center shrink-0">
+                      {formatScheduleTime(schedule)}
+                    </span>
+                    <span className="typo-body-2 text-[var(--neutral-60)] flex-1 break-words whitespace-normal">
+                      {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </aside>
       </div>
     </Panel>
+  );
+}
+
+function extractDateTime(schedule: WeeklyScheduleItem) {
+  return (
+    (typeof schedule.scheduleTime === "string" && schedule.scheduleTime) ||
+    (typeof (schedule as any).startAt === "string" && (schedule as any).startAt) ||
+    (typeof (schedule as any).startTime === "string" && (schedule as any).startTime) ||
+    null
+  );
+}
+
+function formatScheduleTime(schedule: WeeklyScheduleItem) {
+  const iso = extractDateTime(schedule);
+  if (!iso) return "-";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "-";
+  return format(date, "HH:mm");
+}
+
+function ScheduleSkeleton() {
+  return (
+    <div className="flex h-[240px] flex-col justify-center gap-3">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <div key={idx} className="flex items-center gap-4">
+          <span className="h-4 w-4 rounded-full bg-[var(--neutral-20)]" />
+          <span className="h-5 w-16 rounded bg-[var(--neutral-20)]" />
+          <span className="h-5 flex-1 rounded bg-[var(--neutral-20)]" />
+        </div>
+      ))}
+    </div>
   );
 }
 

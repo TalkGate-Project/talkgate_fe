@@ -2,12 +2,25 @@
 
 import { Suspense, useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, BarChart, Bar, LabelList, Cell } from "recharts";
 import AssignMemberTable from "@/components/stats/AssignMemberTable";
 import AssignProgressList from "@/components/stats/AssignProgressList";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
 import PaymentBarChart from "@/components/stats/PaymentBarChart";
 import StatusBarChart from "@/components/stats/StatusBarChart";
+import { getSelectedProjectId } from "@/lib/project";
+import { StatisticsService } from "@/services/statistics";
+import type {
+  CustomerRegistrationRecord,
+  CustomerRegistrationResponse,
+  CustomerAssignmentTeamRecord,
+  CustomerAssignmentByTeamResponse,
+  RankingTeamRecord,
+  RankingTeamResponse,
+  RankingMemberRecord,
+  RankingMemberResponse,
+} from "@/types/statistics";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 const TAB_ITEMS: { key: TabKey; label: string }[] = [
@@ -18,13 +31,45 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "ranking", label: "전체랭킹" },
 ];
 
+const APPLY_TABLE_LIMIT = 10;
+const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
+const ASSIGN_COLORS = ["#ADF6D2", "#FFDE81", "#FC9595", "#7EA5F8", "#BAE6FD", "#F9A8D4"];
+
+function formatChartDay(input: string) {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${month}.${day}`;
+}
+
+function formatChartMonth(input: string) {
+  const [year, month] = input.split("-");
+  if (!year || !month) return input;
+  return `${year.slice(-2)}.${month}`;
+}
+
+function formatTableDate(input: string) {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}.${month}.${day}`;
+}
+
 function StatsPage() {
   const router = useRouter();
   const search = useSearchParams();
+  const projectId = getSelectedProjectId();
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
   const [assignMode, setAssignMode] = useState<"team" | "member">((search.get("assign") as any) === "member" ? "member" : "team");
   const [paymentMode, setPaymentMode] = useState<"team" | "member">((search.get("pay") as any) === "member" ? "member" : "team");
   const [rankingMode, setRankingMode] = useState<"team" | "member">((search.get("rank") as any) === "member" ? "member" : "team");
+  const [applyPage, setApplyPage] = useState(() => {
+    const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
+    return Number.isFinite(initial) && initial > 0 ? initial : 1;
+  });
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
     return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ?? "apply") as TabKey;
@@ -39,8 +84,10 @@ function StatsPage() {
   function setApplyModeQS(mode: "daily" | "monthly") {
     const params = new URLSearchParams(search.toString());
     if (mode === "daily") params.delete("mode"); else params.set("mode", mode);
+    params.delete("applyPage");
     router.replace(`?${params.toString()}`);
     setApplyMode(mode);
+    setApplyPage(1);
   }
 
   function setAssignModeQS(mode: "team" | "member") {
@@ -64,23 +111,113 @@ function StatsPage() {
     setRankingMode(mode);
   }
 
-  const dailyData = [
-    { x: "09.11", y: 0 },
-    { x: "09.12", y: 5 },
-    { x: "09.13", y: 12 },
-    { x: "09.14", y: 6 },
-    { x: "09.15", y: 14 },
-    { x: "09.16", y: 23, peak: true },
-    { x: "09.17", y: 13 },
-  ];
-  const monthlyData = [
-    { x: "04", y: 51 },
-    { x: "05", y: 72 },
-    { x: "06", y: 66 },
-    { x: "07", y: 98 },
-    { x: "08", y: 132, peak: true },
-    { x: "09", y: 117 },
-  ];
+  function setApplyPageQS(page: number) {
+    const params = new URLSearchParams(search.toString());
+    if (page <= 1) params.delete("applyPage"); else params.set("applyPage", String(page));
+    router.replace(`?${params.toString()}`);
+    setApplyPage(page);
+  }
+
+  const registrationTableQuery = useQuery<
+    CustomerRegistrationResponse,
+    Error,
+    CustomerRegistrationResponse,
+    ["stats", "registration", "table", { projectId: string | null; page: number; limit: number }]
+  >({
+    queryKey: ["stats", "registration", "table", { projectId, page: applyPage, limit: APPLY_TABLE_LIMIT }],
+    enabled: Boolean(projectId),
+    placeholderData: (previous) => previous,
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await StatisticsService.customerRegistration({
+        projectId,
+        page: applyPage,
+        limit: APPLY_TABLE_LIMIT,
+      });
+      return res.data;
+    },
+  });
+
+  const registrationChartQuery = useQuery<
+    CustomerRegistrationResponse
+  >({
+    queryKey: ["stats", "registration", "chart", projectId],
+    enabled: Boolean(projectId),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await StatisticsService.customerRegistration({
+        projectId,
+        page: 1,
+        limit: 30,
+      });
+      return res.data;
+    },
+  });
+
+  const chartDailyData = useMemo(() => {
+    const records: CustomerRegistrationRecord[] = registrationChartQuery.data?.data.data ?? [];
+    const sorted = [...records].sort((a, b) => new Date(a.statisticsDate).getTime() - new Date(b.statisticsDate).getTime());
+    return sorted.map((item) => ({ x: formatChartDay(item.statisticsDate), y: item.totalCount }));
+  }, [registrationChartQuery.data]);
+
+  const chartMonthlyData = useMemo(() => {
+    const records: CustomerRegistrationRecord[] = registrationChartQuery.data?.data.data ?? [];
+    const map = new Map<string, number>();
+    records.forEach((item) => {
+      const key = item.statisticsDate.slice(0, 7);
+      map.set(key, (map.get(key) ?? 0) + item.totalCount);
+    });
+    return Array.from(map.entries())
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([key, value]) => ({ x: formatChartMonth(key), y: value }));
+  }, [registrationChartQuery.data]);
+
+  const registrationPayload = registrationTableQuery.data?.data;
+  const registrationRows: CustomerRegistrationRecord[] = registrationPayload?.data ?? [];
+  const registrationTotalCount = registrationPayload?.totalCount ?? 0;
+  const registrationLimit = registrationPayload?.limit ?? APPLY_TABLE_LIMIT;
+  const registrationTotalPages = Math.max(1, Math.ceil(registrationTotalCount / registrationLimit));
+  const registrationPageNumbers = useMemo(
+    () => Array.from({ length: registrationTotalPages }, (_, idx) => idx + 1),
+    [registrationTotalPages]
+  );
+
+  const showChartSkeleton = registrationChartQuery.isLoading && !registrationChartQuery.data;
+  const showChartError = registrationChartQuery.isError && !registrationChartQuery.isFetching;
+  const showTableSkeleton = registrationTableQuery.isLoading && !registrationTableQuery.data;
+  const showTableError = registrationTableQuery.isError && !registrationTableQuery.isFetching;
+
+  const assignmentTeamQuery = useQuery<
+    CustomerAssignmentByTeamResponse
+  >({
+    queryKey: ["stats", "assignment", "team-overview", projectId],
+    enabled: Boolean(projectId),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await StatisticsService.customerAssignmentByTeam({ projectId });
+      return res.data;
+    },
+  });
+
+  const chartData = applyMode === "daily" ? chartDailyData : chartMonthlyData;
+  const chartHasData = chartData.length > 0;
+
+  const assignmentTeams: CustomerAssignmentTeamRecord[] = assignmentTeamQuery.data?.data.data ?? [];
+  const assignmentCards = useMemo(
+    () =>
+      [...assignmentTeams]
+        .sort((a, b) => b.totalAssignedCount - a.totalAssignedCount)
+        .slice(0, 4)
+        .map((team, index) => ({
+          ...team,
+          color: ASSIGN_COLORS[index % ASSIGN_COLORS.length],
+        })),
+    [assignmentTeams]
+  );
+  const assignCardsLoading = assignmentTeamQuery.isLoading && !assignmentTeamQuery.data;
+  const assignCardsError = assignmentTeamQuery.isError && !assignmentTeamQuery.isFetching;
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-[#F8F8F8]">
@@ -120,31 +257,55 @@ function StatsPage() {
                 </div>
               </div>
               <div className="mt-4 h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={applyMode==='daily'? dailyData : monthlyData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#51F8A5" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#51F8A5" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid stroke="#EDEDED" vertical={false} />
-                    <XAxis dataKey="x" tick={{ fill: "#808080" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#808080" }} axisLine={false} tickLine={false} width={32} />
-                    <Tooltip
-                      cursor={{ stroke: "#51F8A5", strokeWidth: 1, opacity: 0.25 }}
-                      content={({ active, payload }) => {
-                        if (!active || !payload?.length) return null;
-                        const v = payload[0].value as number;
-                        return (
-                          <div className="px-3 py-1 bg-black text-white rounded-[6px] text-[12px]">{v}</div>
-                        );
-                      }}
-                    />
-                    <Area type="monotone" dataKey="y" stroke="none" fill="url(#applyGradient)" />
-                    <Line type="monotone" dataKey="y" stroke="#51F8A5" strokeWidth={2} dot={{ r: 5, fill: "#00E272", stroke: "#51F8A5", strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {!projectId && (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                    프로젝트를 먼저 선택해주세요.
+                  </div>
+                )}
+                {projectId && showChartSkeleton && (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+                  </div>
+                )}
+                {projectId && showChartError && (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+                    신청 통계를 불러오는 중 문제가 발생했습니다.
+                  </div>
+                )}
+                {projectId && !showChartSkeleton && !showChartError && !chartHasData && (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                    표시할 데이터가 없습니다.
+                  </div>
+                )}
+                {projectId && !showChartSkeleton && !showChartError && chartHasData && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+                      <defs>
+                        <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#51F8A5" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#51F8A5" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="#EDEDED" vertical={false} />
+                      <XAxis dataKey="x" tick={{ fill: "#808080" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#808080" }} axisLine={false} tickLine={false} width={40} />
+                      <Tooltip
+                        cursor={{ stroke: "#51F8A5", strokeWidth: 1, opacity: 0.25 }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const v = payload[0].value as number;
+                          return (
+                            <div className="rounded-[6px] bg-black px-3 py-1 text-[12px] text-white">
+                              {NUMBER_FORMATTER.format(v)}건
+                            </div>
+                          );
+                        }}
+                      />
+                      <Area type="monotone" dataKey="y" stroke="none" fill="url(#applyGradient)" />
+                      <Line type="monotone" dataKey="y" stroke="#51F8A5" strokeWidth={2} dot={{ r: 5, fill: "#00E272", stroke: "#51F8A5", strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </section>
             {/* 상세 데이터 테이블 카드 */}
@@ -166,22 +327,58 @@ function StatsPage() {
                   <div className="px-4 py-2">엑셀 업로드</div>
                   <div className="px-4 py-2">API</div>
                 </div>
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="grid grid-cols-5 text-[14px] text-[#252525] opacity-80">
-                    <div className="px-4 py-3">9월 {11 + i}일</div>
-                    <div className="px-4 py-3">8건</div>
-                    <div className="px-4 py-3">3건</div>
-                    <div className="px-4 py-3">2건</div>
-                    <div className="px-4 py-3">3건</div>
-                  </div>
-                ))}
-                <div className="mt-3 flex items-center justify-center gap-2">
-                  <button className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] rotate-90" />
-                  {Array.from({ length: 10 }).map((_, i) => (
-                    <button key={i} className={`w-8 h-8 rounded-full grid place-items-center ${i===0? 'bg-[#252525] text-white' : 'text-[#808080]'}`}>{i+1}</button>
+                <div className="divide-y divide-[#E2E2E2] min-h-[240px]">
+                  {!projectId && (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#808080]">
+                      프로젝트를 먼저 선택해주세요.
+                    </div>
+                  )}
+                  {projectId && showTableSkeleton && (
+                    <ApplyTableSkeleton rows={APPLY_TABLE_LIMIT} />
+                  )}
+                  {projectId && showTableError && (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#E35555]">
+                      데이터를 불러오는 중 오류가 발생했습니다.
+                    </div>
+                  )}
+                  {projectId && !showTableSkeleton && !showTableError && registrationRows.length === 0 && (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#808080]">
+                      표시할 데이터가 없습니다.
+                    </div>
+                  )}
+                  {projectId && !showTableSkeleton && !showTableError && registrationRows.map((row) => (
+                    <div key={row.id} className="grid grid-cols-5 text-[14px] text-[#252525] opacity-80">
+                      <div className="px-4 py-3">{formatTableDate(row.statisticsDate)}</div>
+                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.totalCount)}건</div>
+                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.directInputCount)}건</div>
+                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</div>
+                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.apiCount)}건</div>
+                    </div>
                   ))}
-                  <button className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] -rotate-90" />
                 </div>
+                {projectId && registrationRows.length > 0 && (
+                  <div className="mt-3 flex items-center justify-center gap-2">
+                    <button
+                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] rotate-90 disabled:border-[#E2E2E2] disabled:text-[#CCCCCC]"
+                      onClick={() => setApplyPageQS(Math.max(1, applyPage - 1))}
+                      disabled={applyPage <= 1}
+                    />
+                    {registrationPageNumbers.map((num) => (
+                      <button
+                        key={num}
+                        className={`w-8 h-8 rounded-full grid place-items-center ${num===applyPage? 'bg-[#252525] text-white' : 'text-[#808080]'}`}
+                        onClick={() => setApplyPageQS(num)}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                    <button
+                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] -rotate-90 disabled:border-[#E2E2E2] disabled:text-[#CCCCCC]"
+                      onClick={() => setApplyPageQS(Math.min(registrationTotalPages, applyPage + 1))}
+                      disabled={applyPage >= registrationTotalPages}
+                    />
+                  </div>
+                )}
               </div>
             </section>
           </>
@@ -199,19 +396,39 @@ function StatsPage() {
             {assignMode === 'team' ? (
               <>
                 {/* 팀별 배정 현황 카드들 */}
-                <div className="mt-5 grid grid-cols-4 gap-4">
-                  {[
-                    { label: 'A팀', count: 45, color: '#ADF6D2' },
-                    { label: 'B팀', count: 38, color: '#FFDE81' },
-                    { label: 'C팀', count: 39, color: '#FC9595' },
-                    { label: '배정되지 않음', count: 15, color: '#7EA5F8' },
-                  ].map((i) => (
-                    <div key={i.label} className="h-[70px] bg-[#F8F8F8] rounded-[12px] px-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full" style={{ background: i.color }} />
-                        <span className="text-[18px] font-bold text-[#000]">{i.label}</span>
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {!projectId && (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                      프로젝트를 먼저 선택해주세요.
+                    </div>
+                  )}
+                  {projectId && assignCardsLoading &&
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <div key={idx} className="h-[70px] rounded-[12px] bg-[#F8F8F8] px-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-4 w-4 animate-pulse rounded-full bg-[#E2E2E2]" />
+                          <span className="h-4 w-20 animate-pulse rounded bg-[#E2E2E2]" />
+                        </div>
+                        <span className="h-4 w-10 animate-pulse rounded bg-[#E2E2E2]" />
                       </div>
-                      <span className="text-[14px] text-[#252525]">{i.count}건</span>
+                    ))}
+                  {projectId && assignCardsError && (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+                      팀별 배정 데이터를 불러오는 중 문제가 발생했습니다.
+                    </div>
+                  )}
+                  {projectId && !assignCardsLoading && !assignCardsError && !assignmentCards.length && (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                      표시할 팀별 배정 데이터가 없습니다.
+                    </div>
+                  )}
+                  {projectId && !assignCardsLoading && !assignCardsError && assignmentCards.map((item) => (
+                    <div key={`${item.teamId ?? 'none'}-${item.teamName ?? 'unknown'}`} className="h-[70px] bg-[#F8F8F8] rounded-[12px] px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full" style={{ background: item.color }} />
+                        <span className="text-[18px] font-bold text-[#000]">{item.teamName ?? "소속없음"}</span>
+                      </div>
+                      <span className="text-[14px] text-[#252525]">{NUMBER_FORMATTER.format(item.totalAssignedCount)}건</span>
                     </div>
                   ))}
                 </div>
@@ -258,7 +475,7 @@ function StatsPage() {
               </div>
             </div>
 
-            {rankingMode === 'team' ? <TeamRankingList /> : <TeamMemberRankingList />}
+            {rankingMode === 'team' ? <TeamRankingList projectId={projectId} /> : <TeamMemberRankingList projectId={projectId} />}
           </section>
         )}
       </div>
@@ -270,62 +487,178 @@ function StatsPage() {
 
 // inlined modal removed; using '@/components/MemberStatsFilterModal'
 
-function TeamRankingList() {
-  const rows = [
-    { rank: 1, team: 'A팀', amount: 15500000, delta: 1200000 },
-    { rank: 2, team: 'B팀', amount: 15500000, delta: 800000 },
-    { rank: 3, team: 'C팀', amount: 15500000, delta: 700000 },
-    { rank: 4, team: 'D팀', amount: 15500000, delta: 40000 },
-  ];
+function TeamRankingList({ projectId }: { projectId: string | null }) {
+  const { data, isLoading, isError, isFetching } = useQuery<RankingTeamResponse>({
+    queryKey: ["stats", "ranking", "team", projectId],
+    enabled: Boolean(projectId),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await StatisticsService.rankingTeam({ projectId, page: 1, limit: 5 });
+      return res.data;
+    },
+  });
+
+  const payload = data?.data;
+  const rows: RankingTeamRecord[] = payload?.data ?? [];
+
+  if (!projectId) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+        프로젝트를 먼저 선택해주세요.
+      </div>
+    );
+  }
+
+  if (isLoading && !data) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+      </div>
+    );
+  }
+
+  if (isError && !isFetching) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+        팀 랭킹을 불러오는 중 문제가 발생했습니다.
+      </div>
+    );
+  }
+
+  if (!rows.length) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+        표시할 팀 랭킹 데이터가 없습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
       <div className="space-y-3">
-        {rows.map((r) => (
-          <div key={r.team} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">{r.rank === 4 ? '#4' : ''}</div>
-              <div>
-                <div className="text-[18px] font-bold text-[#000]">{r.team}</div>
-                <div className="mt-1 text-[14px] text-[#252525]">₩ {r.amount.toLocaleString()}원</div>
+        {rows.map((row) => {
+          const change = row.rankChange ?? 0;
+          const changeLabel = change > 0 ? `+${change}` : change < 0 ? `${change}` : "-";
+          const badgeColor = change > 0 ? "bg-[#D6FAE8] text-[#004824]" : change < 0 ? "bg-[#FEE2E2] text-[#B91C1C]" : "bg-[#E5E7EB] text-[#4B5563]";
+          return (
+            <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
+                  #{row.rank}
+                </div>
+                <div>
+                  <div className="text-[18px] font-bold text-[#000]">{row.teamName ?? "소속없음"}</div>
+                  <div className="mt-1 text-[14px] text-[#252525]">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원 / {NUMBER_FORMATTER.format(row.totalCount)}건</div>
+                </div>
+              </div>
+              <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
+                {changeLabel}
               </div>
             </div>
-            <div className="px-3 h-[25px] rounded-full bg-[#D6FAE8] grid place-items-center text-[14px] font-bold text-[#004824]">+{r.delta.toLocaleString()}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function TeamMemberRankingList() {
-  const rows = [
-    { name: '김영업', team: 'A팀', amount: 15500000, changePct: 18.5 },
-    { name: '이마케팅', team: 'B팀', amount: 15500000, changePct: 12.8 },
-    { name: '박세일즈', team: 'B팀', amount: 15500000, changePct: 12.8 },
-    { name: '최고객', team: 'C팀', amount: 15500000, changePct: 12.8, rank: 4 },
-    { name: '정상담', team: 'B팀', amount: 15500000, changePct: 12.8, rank: 5 },
-  ];
+function TeamMemberRankingList({ projectId }: { projectId: string | null }) {
+  const { data, isLoading, isError, isFetching } = useQuery<RankingMemberResponse>({
+    queryKey: ["stats", "ranking", "member", projectId],
+    enabled: Boolean(projectId),
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const res = await StatisticsService.rankingMember({ projectId, page: 1, limit: 5 });
+      return res.data;
+    },
+  });
+
+  const payload = data?.data;
+  const rows: RankingMemberRecord[] = payload?.data ?? [];
+
+  if (!projectId) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+        프로젝트를 먼저 선택해주세요.
+      </div>
+    );
+  }
+
+  if (isLoading && !data) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+      </div>
+    );
+  }
+
+  if (isError && !isFetching) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+        팀원 랭킹을 불러오는 중 문제가 발생했습니다.
+      </div>
+    );
+  }
+
+  if (!rows.length) {
+    return (
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+        표시할 팀원 랭킹 데이터가 없습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
       <div className="space-y-3">
-        {rows.map((r, idx) => (
-          <div key={r.name} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
-                {r.rank ? `#${r.rank}` : ''}
-              </div>
-              <div>
-                <div className="text-[18px] font-bold text-[#000] flex items-center gap-2">
-                  {r.name}
-                  <span className="text-[14px] font-medium text-[#808080]">| {r.team}</span>
+        {rows.map((row) => {
+          const changeRate = row.amountChangeRate ?? "0";
+          const rateValue = Number.parseFloat(changeRate);
+          const badgeColor = Number.isNaN(rateValue)
+            ? "bg-[#E5E7EB] text-[#4B5563]"
+            : rateValue >= 0
+              ? "bg-[#D6FAE8] text-[#004824]"
+              : "bg-[#FEE2E2] text-[#B91C1C]";
+          const badgeLabel = Number.isNaN(rateValue) ? "-" : `${rateValue > 0 ? "+" : ""}${rateValue}%`;
+          return (
+            <div key={`${row.memberId}-${row.memberName}`} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
+                  #{row.rank}
                 </div>
-                <div className="mt-1 text-[14px] text-[#252525]">₩ {r.amount.toLocaleString()}원</div>
+                <div>
+                  <div className="text-[18px] font-bold text-[#000] flex items-center gap-2">
+                    {row.memberName}
+                    <span className="text-[14px] font-medium text-[#808080]">
+                      {typeof row.previousRank === "number" ? `전 순위 ${row.previousRank}` : "전 순위 정보 없음"}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-[14px] text-[#252525]">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
+                </div>
+              </div>
+              <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
+                {badgeLabel}
               </div>
             </div>
-            <div className="px-3 h-[25px] rounded-full bg-[#D6FAE8] grid place-items-center text-[14px] font-bold text-[#004824]">+{r.changePct}%</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+    </div>
+  );
+}
+
+function ApplyTableSkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="space-y-0">
+      {Array.from({ length: rows }).map((_, idx) => (
+        <div key={idx} className="grid grid-cols-5 px-4 py-3">
+          {Array.from({ length: 5 }).map((__, colIdx) => (
+            <div key={colIdx} className="h-4 w-full rounded bg-[#F0F0F0] animate-pulse" />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

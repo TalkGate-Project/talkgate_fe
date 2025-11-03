@@ -21,6 +21,7 @@ import {
   UnassignCustomersInput,
   UnassignCustomersResponse,
 } from "@/types/customers";
+import type { RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 
 export const CustomersService = {
   // 고객 목록 조회 (권한별 필터 자동 적용)
@@ -125,6 +126,12 @@ export const CustomersService = {
   unassign(input: UnassignCustomersInput) {
     const { projectId, ...body } = input;
     return apiClient.post<UnassignCustomersResponse>(`/v1/customers/unassign`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  recentlyAssigned(projectId: string, query?: { limit?: number; page?: number }) {
+    return apiClient.get<RecentlyAssignedCustomersResponse>(`/v1/customers/recently-assigned`, {
+      query,
       headers: { "x-project-id": projectId },
     });
   },
