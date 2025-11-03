@@ -369,7 +369,7 @@ export default function ChatView({ projectId, devMode }: Props) {
     <div className="grid grid-cols-12 gap-6">
       {/* Left Side: 상담 채팅 목록 (Figma 스타일 반영) */}
       <div className="col-span-3">
-        <div className="w-[286px] h-[840px] bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
+        <div className="w-[286px] h-[840px] bg-white dark:bg-[#111111] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
         <div className="px-5 pt-5 pb-3 flex items-center justify-between">
           <h2 className="text-[18px] font-bold text-[#252525]">상담 채팅</h2>
           <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ export default function ChatView({ projectId, devMode }: Props) {
         <ChatFilterModal open={filterOpen} onClose={() => setFilterOpen(false)} onApply={() => setFilterOpen(false)} />
         {/* Tabs */}
         <div className="px-5">
-          <div className="grid grid-cols-3 gap-2 bg-[#F3F3F3] rounded-[10px] p-1">
+          <div className="grid grid-cols-3 gap-2 bg-[#F3F3F3] dark:bg-[#222222] rounded-[10px] p-1">
             <button
               className={`h-[34px] rounded-[8px] text-[16px] ${statusFilter==='all'?'bg-white text-[#252525] font-bold':'text-[#808080]'}`}
               onClick={() => setStatusFilter('all')}
@@ -444,7 +444,7 @@ export default function ChatView({ projectId, devMode }: Props) {
             {filteredConversations.map((c) => (
               <button
                 key={c.id}
-                className={`w-full text-left px-5 py-3 border-t border-[#F0F0F0] hover:bg-[#F8F8F8] ${activeId===c.id?'bg-[#F8F8F8]':''}`}
+                className={`w-full text-left px-5 py-3 border-t border-[#F0F0F0] dark:border-[#444444] hover:bg-[#F8F8F8] dark:hover:bg-[#1A1A1A] ${activeId===c.id?'bg-[#F8F8F8] dark:bg-[#1A1A1A]':''}`}
                 onClick={() => {
                   setActiveId(c.id);
                 }}
@@ -496,7 +496,7 @@ export default function ChatView({ projectId, devMode }: Props) {
 
       {/* Main Contents: 메시지 뷰 (688x840 카드) */}
       <div className="col-span-6 flex justify-center">
-        <div className="w-[688px] h-[840px] rounded-[14px] bg-white border border-[#E2E2E2] flex flex-col">
+        <div className="w-[688px] h-[840px] rounded-[14px] bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] flex flex-col">
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -556,7 +556,7 @@ export default function ChatView({ projectId, devMode }: Props) {
           ))}
         </div>
         {/* Input bar */}
-        <div className="h-[76px] px-6 border-t border-[#E2E2E2]">
+        <div className="h-[76px] px-6 border-t border-[#E2E2E2] dark:border-[#444444]">
           <div className="h-full flex items-center gap-1">
             <input value={input} onChange={(e)=>setInput(e.target.value)} className="flex-1 h-[44px] rounded-[8px] px-4 text-[12px] outline-none" placeholder="메세지를 입력하세요." />
             {/* 이미지 첨부 */}
@@ -589,8 +589,8 @@ export default function ChatView({ projectId, devMode }: Props) {
       </div>
 
       {/* Right Side: AI 상담도우미 */}
-      <div className="col-span-3 rounded-[14px] bg-white border border-[#E2E2E2] flex flex-col">
-        <div className="px-4 py-4 flex items-center justify-between border-b border-[#E2E2E2]">
+      <div className="col-span-3 rounded-[14px] bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] flex flex-col">
+        <div className="px-4 py-4 flex items-center justify-between border-b border-[#E2E2E2] dark:border-[#444444]">
           <div className="flex items-center gap-2">
             <h3 className="text-[20px] font-bold">AI상담도우미</h3>
             <span className="inline-block w-2 h-2 rounded-full bg-[#00E272]" />
@@ -604,7 +604,7 @@ export default function ChatView({ projectId, devMode }: Props) {
             <div className="mt-2 text-[11px] text-[#808080]">{new Date().toLocaleString()}</div>
           </div>
         </div>
-        <div className="h-[76px] px-4 border-t border-[#E2E2E2]">
+        <div className="h-[76px] px-4 border-t border-[#E2E2E2] dark:border-[#444444]">
           <div className="h-full flex items-center gap-2">
             <input className="flex-1 h-[40px] px-3 text-[12px] outline-none bg-transparent border-0" placeholder="메세지를 입력하세요." />
             <button className="w-[34px] h-[34px] grid place-items-center" aria-label="send">

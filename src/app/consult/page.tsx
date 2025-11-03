@@ -16,12 +16,12 @@ export default function ConsultPage() {
   if (!projectId) return null;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-[#F8F8F8]">
+    <main className="min-h-[calc(100vh-54px)] bg-[#F8F8F8] dark:bg-[#1E1E1E]">
       {/* Dev toggle fixed on top-right */}
-      <div className="fixed top-[62px] right-[24px] z-50 bg-white border border-[#E2E2E2] rounded-[8px] shadow-sm px-3 h-[36px] flex items-center gap-2">
-        <span className="text-[12px] text-[#808080]">Dev Mode</span>
+      <div className="fixed top-[62px] right-[24px] z-50 bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-sm px-3 h-[36px] flex items-center gap-2">
+        <span className="text-[12px] text-[#808080] dark:text-[#B9B9B9]">Dev Mode</span>
         <button
-          className={`w-[44px] h-[22px] rounded-full relative ${devMode ? 'bg-[#252525]' : 'bg-[#E5E7EB]'}`}
+          className={`w-[44px] h-[22px] rounded-full relative ${devMode ? 'bg-[#252525]' : 'bg-[#E5E7EB] dark:bg-[#444444]'}`}
           onClick={() => setDevMode((v) => !v)}
           aria-label="toggle dev mode"
         >
