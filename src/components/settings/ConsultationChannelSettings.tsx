@@ -13,7 +13,7 @@ interface ChannelCardProps {
 
 function ChannelCard({ name, description, icon, isConnected, onConnect, onDisconnect }: ChannelCardProps) {
   return (
-    <div className="flex items-center justify-between p-6 border border-[#E2E2E2] rounded-[12px] min-h-[132px]">
+    <div className="flex items-center justify-between p-6 border border-border rounded-[12px] min-h-[132px]">
       {/* Left Content - Icon and Text */}
       <div className="flex items-center gap-4">
         {/* Icon */}
@@ -24,12 +24,12 @@ function ChannelCard({ name, description, icon, isConnected, onConnect, onDiscon
         {/* Text Content */}
         <div>
           {/* Channel Name */}
-          <h3 className="text-[16px] font-semibold text-[#000000] mb-1 leading-6">
+          <h3 className="text-[16px] font-semibold text-foreground mb-1 leading-6">
             {name}
           </h3>
           
           {/* Description */}
-          <p className="text-[14px] font-medium text-[#808080] leading-6">
+          <p className="text-[14px] font-medium text-neutral-60 leading-6">
             {description}
           </p>
         </div>
@@ -38,8 +38,8 @@ function ChannelCard({ name, description, icon, isConnected, onConnect, onDiscon
       {/* Right Content - Status and Button */}
       <div className="flex flex-col items-end gap-2">
         {isConnected && (
-          <div className="flex items-center justify-center px-3 py-1 bg-[#D6FAE8] rounded-[30px]">
-            <span className="text-[12px] font-medium text-[#00B55B] opacity-80">
+          <div className="flex items-center justify-center px-3 py-1 bg-primary-10 rounded-[30px]">
+            <span className="text-[12px] font-medium text-primary-80 opacity-80">
               연결됨
             </span>
           </div>
@@ -49,8 +49,8 @@ function ChannelCard({ name, description, icon, isConnected, onConnect, onDiscon
           onClick={isConnected ? onDisconnect : onConnect}
           className={`flex items-center justify-center px-4 py-2 rounded-[5px] text-[14px] font-semibold ${
             isConnected
-              ? "bg-white border border-[#E2E2E2] text-[#000000] hover:bg-gray-50"
-              : "bg-[#252525] text-[#D0D0D0] hover:bg-[#333333]"
+              ? "bg-card border border-border text-foreground hover:bg-neutral-10"
+              : "bg-neutral-90 text-neutral-0 hover:opacity-90"
           } transition-colors`}
         >
           {isConnected ? "연결해제" : "연결하기"}
@@ -128,21 +128,21 @@ export default function ConsultationChannelSettings() {
   };
 
   return (
-    <div className="bg-white rounded-[14px] p-6">
+    <div className="bg-card rounded-[14px] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-[24px] font-bold text-[#252525] leading-5">
+        <h1 className="text-[24px] font-bold text-foreground leading-5">
           상담 채널 연동
         </h1>
-        <div className="flex items-center px-3 py-1 bg-[#D6FAE8] rounded-[30px]">
-          <span className="text-[12px] font-medium text-[#00B55B] opacity-80">
+        <div className="flex items-center px-3 py-1 bg-primary-10 rounded-[30px]">
+          <span className="text-[12px] font-medium text-primary-80 opacity-80">
             연결된 채널 : {connectedCount}개
           </span>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-[#E2E2E2] opacity-50 mb-12"></div>
+      <div className="w-full h-[1px] bg-border opacity-50 mb-12"></div>
 
       {/* Channel Cards Grid */}
       <div className="grid grid-cols-2 gap-6">

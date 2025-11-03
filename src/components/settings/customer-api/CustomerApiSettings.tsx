@@ -37,29 +37,29 @@ export default function CustomerApiSettings() {
   };
 
   return (
-    <div className="bg-white rounded-[14px] shadow-sm p-10 flex flex-col gap-8">
+    <div className="bg-card rounded-[14px] shadow-sm p-10 flex flex-col gap-8">
       <header className="space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-[24px] font-bold text-[#252525]">고객등록 API</h1>
+          <h1 className="text-[24px] font-bold text-foreground">고객등록 API</h1>
         </div>
-        <p className="text-[16px] font-medium text-[#808080]">
+        <p className="text-[16px] font-medium text-neutral-60">
           외부 시스템에서 고객 정보를 등록할 수 있는 API 엔드포인트와 인증 키를 관리합니다.
         </p>
       </header>
 
       <section className="space-y-6">
         <div className="space-y-2">
-          <h2 className="text-[16px] font-semibold text-[#252525]">API 엔드포인트</h2>
-          <div className="flex items-center gap-3 bg-[#F8F8F8] rounded-[12px] px-6 py-4">
+          <h2 className="text-[16px] font-semibold text-foreground">API 엔드포인트</h2>
+          <div className="flex items-center gap-3 bg-neutral-10 rounded-[12px] px-6 py-4">
             <input
               type="text"
               value={API_ENDPOINT_PLACEHOLDER}
               readOnly
-              className="flex-1 bg-transparent text-[14px] text-[#252525] font-medium outline-none"
+              className="flex-1 bg-transparent text-[14px] text-foreground font-medium outline-none"
             />
             <button
               onClick={handleCopyEndpoint}
-              className="h-9 px-4 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525] hover:bg-white"
+              className="h-9 px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground hover:bg-neutral-10"
             >
               {copyState === "copied" ? "복사됨" : "복사"}
             </button>
@@ -68,10 +68,10 @@ export default function CustomerApiSettings() {
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-semibold text-[#252525]">API 키</h2>
+            <h2 className="text-[16px] font-semibold text-foreground">API 키</h2>
           </div>
           <div
-            className="flex items-center gap-3 bg-[#F8F8F8] rounded-[12px] px-6 py-4"
+            className="flex items-center gap-3 bg-neutral-10 rounded-[12px] px-6 py-4"
             onMouseEnter={() => setShowKey(true)}
             onMouseLeave={() => setShowKey(false)}
           >
@@ -79,24 +79,24 @@ export default function CustomerApiSettings() {
               type="text"
               value={API_KEY_PLACEHOLDER}
               readOnly
-              className={`flex-1 bg-transparent text-[14px] text-[#252525] font-medium outline-none transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
+              className={`flex-1 bg-transparent text-[14px] text-foreground font-medium outline-none transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
             />
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyKey}
-                className="h-9 px-4 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525] hover:bg-white"
+                className="h-9 px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground hover:bg-neutral-10"
               >
                 {keyCopyState === "copied" ? "복사됨" : "복사"}
               </button>
               <button
                 onClick={handleRegenerate}
-                className="h-9 px-4 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-white hover:opacity-90"
+                className="h-9 px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90"
               >
                 재발급
               </button>
             </div>
           </div>
-          <p className="text-[14px] text-[#EFB008]">
+          <p className="text-[14px] text-warning-40">
             ⚠️ API 키는 안전한 곳에 보관하세요. 키가 노출되면 즉시 재발급하시기 바랍니다.
           </p>
         </div>

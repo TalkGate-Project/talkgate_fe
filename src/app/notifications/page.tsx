@@ -164,23 +164,23 @@ export function NotificationsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#F8F8F8] dark:bg-[#1E1E1E]">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24">
         {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
-        <section className="bg-white rounded-[14px]">
+        <section className="bg-card rounded-[14px]">
           <div className="px-7 pt-6 pb-5">
             <div className="flex items-center gap-4">
-              <h1 className="text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-[#252525]">알림</h1>
-              <div className="w-px h-4 bg-[#808080]" />
-              <p className="text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-[#808080]">모든 알림을 확인하고 관리하세요</p>
+              <h1 className="text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">알림</h1>
+              <div className="w-px h-4 bg-neutral-60" />
+              <p className="text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">모든 알림을 확인하고 관리하세요</p>
             </div>
 
             {/* 세그먼트 컨트롤 */}
-            <div className="mt-6 inline-flex items-center p-1.5 gap-2 bg-[#EDEDED] rounded-[12px]">
+            <div className="mt-6 inline-flex items-center p-1.5 gap-2 bg-neutral-20 rounded-[12px]">
               <button
                 onClick={() => setShowUnreadOnly(false)}
                 className={`h-[31px] px-8 rounded-[5px] text-[14px] tracking-[-0.02em] ${
-                  !showUnreadOnly ? "bg-white font-semibold text-[#252525]" : "font-medium text-[#808080]"
+                  !showUnreadOnly ? "bg-card font-semibold text-foreground" : "font-medium text-neutral-60"
                 }`}
               >
                 전체 ({counts.all})
@@ -188,22 +188,22 @@ export function NotificationsPage() {
               <button
                 onClick={() => setShowUnreadOnly(true)}
                 className={`h-[31px] px-8 rounded-[5px] text-[14px] tracking-[-0.02em] ${
-                  showUnreadOnly ? "bg-white font-semibold text-[#252525]" : "font-medium text-[#252525] opacity-80"
+                  showUnreadOnly ? "bg-card font-semibold text-foreground" : "font-medium text-foreground opacity-80"
                 }`}
               >
                 미읽음 ({counts.unread})
               </button>
             </div>
           </div>
-          <div className="h-px bg-[#E2E2E2]" />
+          <div className="h-px bg-border" />
         </section>
 
         <div className="h-6" />
 
         {/* 하단 컨테이너: 탭 + 목록 */}
-        <section className="bg-white rounded-[14px]">
+        <section className="bg-card rounded-[14px]">
           {/* 탭 */}
-          <div className="px-7 py-4 flex items-center justify-between border-b border-[#E2E2E2]">
+          <div className="px-7 py-4 flex items-center justify-between border-b border-border">
             <div className="flex items-center gap-3">
               {(["all", "notice", "customer", "system", "security"] as NotificationCategory[]).map((category) => {
                 const isActive = activeCategory === category;
@@ -213,8 +213,8 @@ export function NotificationsPage() {
                     onClick={() => handleCategoryChange(category)}
                     className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border ${
                       isActive
-                        ? "bg-[rgba(214,250,232,0.3)] border-[2px] border-[#51F8A5] font-semibold text-[#000000]"
-                        : "border-[#E2E2E2] font-medium text-[#252525] opacity-80"
+                        ? "bg-primary-10 border-2 border-primary-60 font-semibold text-foreground"
+                        : "border-border font-medium text-foreground opacity-80"
                     }`}
                   >
                     {categoryLabels[category]} {category !== "all" && counts[category as NotificationType]}
@@ -224,7 +224,7 @@ export function NotificationsPage() {
             </div>
             <button
               onClick={handleMarkAllAsRead}
-              className="h-[34px] px-3 rounded-[5px] bg-white border border-[#E2E2E2] text-[#000000] text-[14px] font-semibold"
+              className="h-[34px] px-3 rounded-[5px] bg-card border border-border text-foreground text-[14px] font-semibold"
             >
               모두 읽음 처리
             </button>
@@ -233,9 +233,9 @@ export function NotificationsPage() {
           {/* 리스트 */}
           <div className="px-7 py-6">
             {loading ? (
-              <div className="text-center py-12 text-[#808080]">불러오는 중...</div>
+              <div className="text-center py-12 text-neutral-60">불러오는 중...</div>
             ) : filteredNotifications.length === 0 ? (
-              <div className="text-center py-12 text-[#808080]">알림이 없습니다.</div>
+              <div className="text-center py-12 text-neutral-60">알림이 없습니다.</div>
             ) : (
               <div className="space-y-3">
                 {filteredNotifications.map((notification) => (
@@ -243,8 +243,8 @@ export function NotificationsPage() {
                     key={notification.id}
                     className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border ${
                       !notification.read
-                        ? "bg-[rgba(214,250,232,0.3)] border-[#51F8A5]"
-                        : "bg-white border-[#E2E2E2]"
+                        ? "bg-primary-10 border-primary-60"
+                        : "bg-card border-border"
                     }`}
                   >
                     <div className="w-6 h-6 flex items-center justify-center">
@@ -252,16 +252,16 @@ export function NotificationsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-[#000000]">
+                        <span className="text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground">
                           {notification.title}
                         </span>
-                        {!notification.read && <span className="w-2 h-2 rounded-full bg-[#00E272]" />}
+                        {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-80" />}
                       </div>
-                      <p className="mt-1 text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-[#808080]">
+                      <p className="mt-1 text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60">
                         {notification.content}
                       </p>
                     </div>
-                    <div className="text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-[#808080] text-right">
+                    <div className="text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 text-right">
                       {formatTime(notification.createdAt)}
                     </div>
                   </div>
@@ -278,8 +278,8 @@ export function NotificationsPage() {
 export default function NotificationsPageWrapper() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#F8F8F8] dark:bg-[#1E1E1E]">
-        <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24 text-[#808080]">불러오는 중...</div>
+      <main className="min-h-screen bg-background">
+        <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24 text-neutral-60">불러오는 중...</div>
       </main>
     }>
       <NotificationsPage />

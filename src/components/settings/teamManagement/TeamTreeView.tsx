@@ -55,17 +55,15 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         <div key={item.id} className="relative flex flex-col items-center">
           {item.isLeader && (
             <div
-              className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center px-3 py-1 rounded-[30px] shadow-sm"
+              className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center px-3 py-1 rounded-[30px] shadow-sm bg-secondary-10"
               style={{
                 top: `-${TOKENS.spacing.badgeOffset}px`,
                 width: `${TOKENS.node.badge.w}px`,
                 height: `${TOKENS.node.badge.h}px`,
-                background: TOKENS.colors.secondaryLight,
               }}
             >
               <span
-                className="text-[12px] font-medium truncate"
-                style={{ color: TOKENS.colors.secondary, opacity: 0.8 }}
+                className="text-[12px] font-medium truncate text-secondary-40 opacity-80"
                 title={item.department}
               >
                 {item.department}
@@ -74,15 +72,14 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
           )}
 
           <div
-            className={`group relative flex items-center px-6 gap-4 border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4D82F3]/40 ${
+            className={`group relative flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 ${
               item.isLeader
-                ? "bg-gradient-to-b from-[rgba(214,250,232,0.3)] to-[rgba(214,250,232,0.3)]"
-                : "bg-white"
-            } ${isDragOver ? "ring-2 ring-blue-400 bg-blue-50" : ""} ${isDragging ? "opacity-50" : ""}`}
+                ? "bg-primary-10 bg-opacity-30"
+                : "bg-card"
+            } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               minWidth: `${TOKENS.node.leader.w}px`,
               height: `${TOKENS.node.leader.h}px`,
-              borderColor: TOKENS.colors.light[30],
             }}
             draggable
             onDragStart={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragStart(e, item)}
@@ -92,12 +89,12 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             onDragEnd={dragHandlers.handleDragEnd}
           >
             <div
-              className="rounded-full flex items-center justify-center text-white font-semibold"
+              className={`rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[14px] ${
+                item.isLeader ? "bg-primary-80" : "bg-neutral-60"
+              }`}
               style={{
                 width: `${TOKENS.node.leader.avatar}px`,
                 height: `${TOKENS.node.leader.avatar}px`,
-                fontSize: "14px",
-                background: item.isLeader ? TOKENS.colors.primary : TOKENS.colors.light[60],
               }}
             >
               {item.avatar}
@@ -108,13 +105,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                 e.stopPropagation();
                 onMemberClick(item);
               }}
-              className="font-semibold text-left hover:underline focus:underline"
-              style={{
-                fontSize: "16px",
-                lineHeight: "24px",
-                color: TOKENS.colors.light[100],
-                letterSpacing: "0.2px",
-              }}
+              className="font-semibold text-left text-[16px] leading-6 tracking-[0.2px] text-foreground hover:underline focus:underline"
             >
               {item.name}
             </button>

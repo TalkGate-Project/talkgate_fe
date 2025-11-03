@@ -196,8 +196,8 @@ export default function NoticeDetailPage() {
   if (loading) {
     return (
       <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
-        <div className="bg-white rounded-[14px] p-6 text-center" role="status">
-          <p className="text-[14px] text-[#808080]">공지사항을 불러오는 중입니다...</p>
+        <div className="bg-card rounded-[14px] p-6 text-center" role="status">
+          <p className="text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</p>
         </div>
       </main>
     );
@@ -206,11 +206,11 @@ export default function NoticeDetailPage() {
   if (error || !notice) {
     return (
       <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
-        <div className="bg-white rounded-[14px] p-6 text-center">
-          <p className="mb-4 text-[14px] text-[#D83232]">{error || "공지사항을 찾을 수 없습니다."}</p>
+        <div className="bg-card rounded-[14px] p-6 text-center">
+          <p className="mb-4 text-[14px] text-danger-40">{error || "공지사항을 찾을 수 없습니다."}</p>
           <button
             onClick={handleBackToList}
-            className="h-[34px] px-4 bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold"
+            className="h-[34px] px-4 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             목록으로
           </button>
@@ -221,7 +221,7 @@ export default function NoticeDetailPage() {
 
   return (
     <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
-      <div className="bg-white rounded-[14px] p-6">
+      <div className="bg-card rounded-[14px] p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <button
@@ -229,20 +229,20 @@ export default function NoticeDetailPage() {
               className="w-6 h-6 flex items-center justify-center"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="#252525" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M15 18L9 12L15 6" stroke="var(--neutral-90)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
             {notice.important && (
-              <div className="px-3 py-1 bg-[#FFEBEB] rounded-[30px]">
-                <span className="text-[12px] font-medium text-[#D83232]">중요</span>
+              <div className="px-3 py-1 bg-danger-10 rounded-[30px]">
+                <span className="text-[12px] font-medium text-danger-40">중요</span>
               </div>
             )}
-            <h1 className="text-[24px] font-bold text-[#252525]">{notice.title}</h1>
+            <h1 className="text-[24px] font-bold text-foreground">{notice.title}</h1>
             <div className="w-6 h-6 flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M21.44 11.05L12.25 20.24C11.1242 21.3658 9.59722 21.9983 8.005 21.9983C6.41278 21.9983 4.88583 21.3658 3.76 20.24C2.63417 19.1142 2.00167 17.5872 2.00167 15.995C2.00167 14.4028 2.63417 12.8758 3.76 11.75L12.95 2.56C13.7006 1.80944 14.7186 1.38778 15.79 1.38778C16.8614 1.38778 17.8794 1.80944 18.63 2.56C19.3806 3.31056 19.8022 4.32856 19.8022 5.4C19.8022 6.47144 19.3806 7.48944 18.63 8.24L9.41 17.46C9.03473 17.8353 8.53127 18.0493 8.005 18.0493C7.47873 18.0493 6.97527 17.8353 6.6 17.46C6.22473 17.0847 6.01071 16.5813 6.01071 16.055C6.01071 15.5287 6.22473 15.0253 6.6 14.65L15.07 6.18"
-                  stroke="#B0B0B0"
+                  stroke="var(--neutral-50)"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -254,14 +254,14 @@ export default function NoticeDetailPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleEdit}
-                className="h-[34px] px-3 bg-white border border-[#E2E2E2] text-black rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
+                className="h-[34px] px-3 bg-card border border-border text-foreground rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
                 disabled={deleting}
               >
                 수정
               </button>
               <button
                 onClick={handleDelete}
-                className="h-[34px] px-3 bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
+                className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
                 disabled={deleting}
               >
                 {deleting ? "삭제 중..." : "삭제"}
@@ -270,9 +270,9 @@ export default function NoticeDetailPage() {
           )}
         </div>
 
-        <div className="border-t border-[#E2E2E2] mb-6" />
+        <div className="border-t border-border mb-6" />
 
-        <div className="flex items-center gap-6 mb-6 text-[14px] text-[#808080]">
+        <div className="flex items-center gap-6 mb-6 text-[14px] text-neutral-60">
           <div>
             <span className="font-medium">작성일: </span>
             <span>{formattedDate}</span>
@@ -283,18 +283,18 @@ export default function NoticeDetailPage() {
           </div>
         </div>
 
-        <div className="border-t border-[#E2E2E2] mb-6" />
+        <div className="border-t border-border mb-6" />
 
         <div className="mb-8 min-h-[400px]">
-          <div className="text-[14px] text-[#252525] leading-6 whitespace-pre-line">
+          <div className="text-[14px] text-foreground leading-6 whitespace-pre-line">
             {notice.content}
           </div>
         </div>
 
-        <div className="border-t border-[#E2E2E2] mb-6" />
+        <div className="border-t border-border mb-6" />
 
         {(deleteError || listError) && (
-          <div className="mb-4 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[13px] text-[#D83232]">
+          <div className="mb-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[13px] text-danger-40">
             {deleteError ?? listError}
           </div>
         )}
@@ -304,26 +304,26 @@ export default function NoticeDetailPage() {
             <button
               onClick={handlePrevious}
               disabled={!neighbours.prev || listLoading || deleting}
-              className="w-8 h-8 bg-[#F5F5F5] rounded-full flex items-center justify-center disabled:opacity-50"
+              className="w-8 h-8 bg-neutral-20 rounded-full flex items-center justify-center disabled:opacity-50"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 19L12 5M5 12L12 5L19 12" stroke="#808080" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 19L12 5M5 12L12 5L19 12" stroke="var(--neutral-60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
             <button
               onClick={handleNext}
               disabled={!neighbours.next || listLoading || deleting}
-              className="w-8 h-8 bg-[#F5F5F5] rounded-full flex items-center justify-center disabled:opacity-50"
+              className="w-8 h-8 bg-neutral-20 rounded-full flex items-center justify-center disabled:opacity-50"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5L12 19M19 12L12 19L5 12" stroke="#808080" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 5L12 19M19 12L12 19L5 12" stroke="var(--neutral-60)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
 
           <button
             onClick={handleBackToList}
-            className="h-[34px] px-4 bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold"
+            className="h-[34px] px-4 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             목록으로
           </button>

@@ -26,37 +26,37 @@ export default function ProfileTab() {
   };
 
   return (
-    <div className="bg-white rounded-[14px] p-8">
+    <div className="bg-card rounded-[14px] p-8">
       {/* Title */}
-      <h1 className="text-[24px] font-bold text-[#252525] mb-4">
+      <h1 className="text-[24px] font-bold text-foreground mb-4">
         개인 설정
       </h1>
 
       {/* Sub-title and Edit Button Row */}
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h2 className="text-[16px] font-semibold text-[#000000] mb-1">
+          <h2 className="text-[16px] font-semibold text-foreground mb-1">
             프로필 설정
           </h2>
-          <p className="text-[14px] font-medium text-[#808080]">
+          <p className="text-[14px] font-medium text-neutral-60">
             서비스에서 사용되는 프로필 정보를 설정합니다.
           </p>
         </div>
         <button
           onClick={handleEditProfile}
           disabled={saving}
-          className="px-3 py-1.5 border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50 transition-colors disabled:opacity-60"
+          className="px-3 py-1.5 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-60"
         >
           프로필 수정
         </button>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-[#E2E2E2] mb-8"></div>
+      <div className="w-full h-[1px] bg-border mb-8"></div>
 
       {/* Avatar - Full width centered */}
       <div className="flex justify-center mb-8">
-        <div className="w-20 h-20 rounded-full bg-[#808080] flex items-center justify-center overflow-hidden">
+        <div className="w-20 h-20 rounded-full bg-neutral-60 flex items-center justify-center overflow-hidden">
           {user?.profileImageUrl ? (
             <Image
               src={user.profileImageUrl}
@@ -81,42 +81,42 @@ export default function ProfileTab() {
         <div className="space-y-6">
         {/* 이름 */}
         <div>
-          <label className="block text-[14px] font-medium text-[#808080] mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
             이름
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#000000] focus:outline-none focus:border-[#252525]"
+            className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
             placeholder="이름을 입력하세요"
           />
         </div>
 
         {/* 이메일 */}
         <div>
-          <label className="block text-[14px] font-medium text-[#808080] mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
             이메일
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#000000] focus:outline-none focus:border-[#252525]"
+            className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
             placeholder="이메일을 입력하세요"
           />
         </div>
 
         {/* 연락처 */}
         <div>
-          <label className="block text-[14px] font-medium text-[#808080] mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
             연락처
           </label>
           <input
             type="tel"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
-            className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#000000] focus:outline-none focus:border-[#252525]"
+            className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
             placeholder="연락처를 입력하세요"
           />
         </div>
@@ -124,4 +124,3 @@ export default function ProfileTab() {
     </div>
   );
 }
-

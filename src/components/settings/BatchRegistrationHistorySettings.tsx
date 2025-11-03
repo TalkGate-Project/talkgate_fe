@@ -17,11 +17,11 @@ interface BatchRegistrationRecord {
 
 function StatusBadge({ status }: { status: string }) {
   const statusStyles = {
-    완료: "bg-[#D6FAE8] text-[#00B55B]",
-    대기: "bg-[#FFF5D5] text-[#976400]",
-    진행중: "bg-[#D3E1FE] text-[#4D82F3]",
-    필요: "bg-[#D6FAE8] text-[#00B55B]",
-    실패: "bg-[#FFEBEB] text-[#D83232]",
+    완료: "bg-primary-10 text-primary-80",
+    대기: "bg-warning-10 text-warning-60",
+    진행중: "bg-secondary-10 text-secondary-40",
+    필요: "bg-primary-10 text-primary-80",
+    실패: "bg-danger-10 text-danger-40",
   };
 
   return (
@@ -159,29 +159,29 @@ export default function BatchRegistrationHistorySettings() {
       <>
         <div className="flex items-center py-4">
           {/* 파일명 */}
-          <div className="w-[260px] text-[14px] font-semibold text-[#252525] opacity-80">
+          <div className="w-[260px] text-[14px] font-semibold text-foreground opacity-80">
             {record.fileName}
           </div>
 
           {/* 업로더 */}
-          <div className="w-[80px] text-[14px] font-semibold text-[#252525] opacity-80">
+          <div className="w-[80px] text-[14px] font-semibold text-foreground opacity-80">
             {record.uploader}
           </div>
 
           {/* 전체 고객 수 */}
-          <div className="w-[120px] text-right text-[14px] font-semibold text-[#252525] opacity-80">
+          <div className="w-[120px] text-right text-[14px] font-semibold text-foreground opacity-80">
             {record.totalCustomers}
           </div>
 
           {/* 성공 */}
-          <div className="w-[80px] text-[14px] font-semibold text-[#00B55B] opacity-80">
+          <div className="w-[80px] text-[14px] font-semibold text-primary-80 opacity-80">
             {record.successCount}
           </div>
 
           {/* 실패 */}
           <div 
             onClick={() => record.failureCount > 0 && handleFailureClick(record)}
-            className="w-[80px] text-[14px] font-bold text-[#2563EB] underline opacity-80 cursor-pointer"
+            className="w-[80px] text-[14px] font-bold text-secondary-40 underline opacity-80 cursor-pointer"
           >
             {record.failureCount}
           </div>
@@ -192,59 +192,59 @@ export default function BatchRegistrationHistorySettings() {
           </div>
 
           {/* 업로드 일시 */}
-          <div className="flex-1 text-[14px] font-semibold text-[#252525] opacity-80">
+          <div className="flex-1 text-[14px] font-semibold text-foreground opacity-80">
             {record.uploadDate}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="w-full h-[0.4px] bg-[#E2E2E2]"></div>
+        <div className="w-full h-[0.4px] bg-border"></div>
       </>
     );
   }
 
   return (
-    <div className="bg-white rounded-[14px] p-8">
+    <div className="bg-card rounded-[14px] p-8">
       {/* Title */}
-      <h1 className="text-[24px] font-bold text-[#252525] mb-4">
+      <h1 className="text-[24px] font-bold text-foreground mb-4">
         일괄 등록 이력
       </h1>
 
       {/* Sub-title */}
-      <h2 className="text-[16px] font-semibold text-[#000000] mb-1">
+      <h2 className="text-[16px] font-semibold text-foreground mb-1">
         일괄 등록 이력
       </h2>
 
       {/* Description */}
-      <p className="text-[14px] font-medium text-[#808080] mb-6">
+      <p className="text-[14px] font-medium text-neutral-60 mb-6">
         엑셀 파일을 통한 고객 정보 일괄 등록 이력을 확인할 수 있습니다.
       </p>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-[#E2E2E2] mb-6"></div>
+      <div className="w-full h-[1px] bg-border mb-6"></div>
 
       {/* Table Header */}
-      <div className="bg-[#EDEDED] rounded-[12px] px-6 py-3 mb-4">
+      <div className="bg-neutral-20 rounded-[12px] px-6 py-3 mb-4">
         <div className="flex items-center">
-          <div className="w-[260px] text-[16px] font-bold text-[#808080]">
+          <div className="w-[260px] text-[16px] font-bold text-neutral-60">
             파일명
           </div>
-          <div className="w-[80px] text-[16px] font-bold text-[#808080]">
+          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
             업로더
           </div>
-          <div className="w-[120px] text-right text-[16px] font-bold text-[#808080]">
+          <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60">
             전체 고객 수
           </div>
-          <div className="w-[80px] text-[16px] font-bold text-[#808080]">
+          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
             성공
           </div>
-          <div className="w-[80px] text-[16px] font-bold text-[#808080]">
+          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
             실패
           </div>
-          <div className="w-[80px] text-[16px] font-bold text-[#808080]">
+          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
             상태
           </div>
-          <div className="flex-1 text-[16px] font-bold text-[#808080]">
+          <div className="flex-1 text-[16px] font-bold text-neutral-60">
             업로드 일시
           </div>
         </div>

@@ -205,7 +205,7 @@ export default function TeamManagementSettings() {
 
   if (treeLoading) {
     return (
-      <div className="w-full h-full bg-white rounded-[14px] p-8 flex items-center justify-center text-[#808080]">
+      <div className="w-full h-full bg-card rounded-[14px] p-8 flex items-center justify-center text-neutral-60">
         조직도를 불러오는 중입니다...
       </div>
     );
@@ -213,10 +213,10 @@ export default function TeamManagementSettings() {
 
   if (treeError) {
     return (
-      <div className="w-full h-full bg-white rounded-[14px] p-8 flex flex-col gap-4 items-center justify-center text-[#D83232]">
+      <div className="w-full h-full bg-card rounded-[14px] p-8 flex flex-col gap-4 items-center justify-center text-danger-40">
         <span>조직 정보를 불러오지 못했습니다.</span>
         <button
-          className="px-4 py-2 bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold"
+          className="px-4 py-2 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           onClick={() => location.reload()}
         >
           새로고침
@@ -226,9 +226,9 @@ export default function TeamManagementSettings() {
   }
 
   return (
-    <div className="w-full h-full bg-white rounded-[14px] p-8 overflow-hidden">
+    <div className="w-full h-full bg-card rounded-[14px] p-8 overflow-hidden">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
-      <div className="w-full h-px bg-[#E2E2E2] mb-6" />
+      <div className="w-full h-px bg-border mb-6" />
       {viewMode === "list" ? (
         <div className="max-h-[600px] overflow-y-auto pr-2">
           <TeamListView data={teamMembers} dragHandlers={dragHandlers} dragState={dragState} tags={uniqueDepartments} onMemberClick={handleMemberClick} />
@@ -241,28 +241,28 @@ export default function TeamManagementSettings() {
 
       {pendingMove && pendingMoveInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-[16px] shadow-xl w-[420px] p-6">
-            <h2 className="text-[18px] font-bold text-[#252525] mb-4">조직 이동 확인</h2>
-            <div className="rounded-[12px] bg-[#F8F8F8] px-4 py-5 mb-5 flex flex-col gap-4">
+          <div className="bg-card rounded-[16px] shadow-xl w-[420px] p-6">
+            <h2 className="text-[18px] font-bold text-foreground mb-4">조직 이동 확인</h2>
+            <div className="rounded-[12px] bg-neutral-10 px-4 py-5 mb-5 flex flex-col gap-4">
               <div>
-                <span className="block text-[12px] font-medium text-[#808080] mb-1">이동할 항목</span>
-                <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-white text-[14px] font-semibold text-[#252525]">
+                <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 항목</span>
+                <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-card text-[14px] font-semibold text-foreground">
                   {pendingMoveInfo.source.name}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
-                  <span className="block text-[12px] font-medium text-[#808080] mb-1">현재 위치</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#FFF3DC] text-[14px] font-semibold text-[#BA7C12]">
+                  <span className="block text-[12px] font-medium text-neutral-60 mb-1">현재 위치</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-warning-10 text-[14px] font-semibold text-warning-60">
                     {pendingMoveInfo.currentParent ? `${pendingMoveInfo.currentParent.name} (${pendingMoveInfo.currentParent.department})` : "루트"}
                   </span>
                 </div>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M9 18L15 12L9 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <div className="flex-1">
-                  <span className="block text-[12px] font-medium text-[#808080] mb-1">이동할 위치</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-[#E4F7EF] text-[14px] font-semibold text-[#1F9E68]">
+                  <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 위치</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-primary-10 text-[14px] font-semibold text-primary-80">
                     {`${pendingMoveInfo.target.name} (${pendingMoveInfo.target.department})`}
                   </span>
                 </div>
@@ -271,14 +271,14 @@ export default function TeamManagementSettings() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={cancelMove}
-                className="px-4 py-2 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525]"
+                className="px-4 py-2 rounded-[5px] border border-border text-[14px] font-semibold text-foreground"
                 disabled={moveMutation.isPending}
               >
                 취소
               </button>
               <button
                 onClick={confirmMove}
-                className="px-4 py-2 rounded-[5px] bg-[#252525] text-white text-[14px] font-semibold"
+                className="px-4 py-2 rounded-[5px] bg-neutral-90 text-neutral-0 text-[14px] font-semibold"
                 disabled={moveMutation.isPending}
               >
                 {moveMutation.isPending ? "이동 중..." : "조직이동"}

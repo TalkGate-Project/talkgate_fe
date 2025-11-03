@@ -90,22 +90,22 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
             {item.level > 0 && (
               <>
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-px"
-                  style={{ left: `${indent - 12}px`, background: "#E2E2E2" }}
+                  className="absolute left-0 top-0 bottom-0 w-px bg-border"
+                  style={{ left: `${indent - 12}px` }}
                 />
                 <div
-                  className="absolute h-px"
-                  style={{ left: `${indent - 12}px`, top: 34, width: 12, background: "#E2E2E2" }}
+                  className="absolute h-px bg-border"
+                  style={{ left: `${indent - 12}px`, top: 34, width: 12 }}
                 />
               </>
             )}
             <div
-              className={`flex items-center px-6 py-5 gap-4 border border-[#E2E2E2] rounded-[12px] cursor-move transition-all ${
+              className={`flex items-center px-6 py-5 gap-4 border border-border rounded-[12px] cursor-move transition-all ${
                 item.isLeader
-                  ? "bg-gradient-to-r from-[rgba(214,250,232,0.3)] to-[rgba(214,250,232,0.3)]"
-                  : "bg-white"
-              } ${isMatch ? "ring-2 ring-blue-300" : ""} ${
-                isDragOver ? "ring-2 ring-blue-400 bg-blue-50" : ""
+                  ? "bg-primary-10 bg-opacity-30"
+                  : "bg-card"
+              } ${isMatch ? "ring-2 ring-secondary-40" : ""} ${
+                isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
               } ${isDragging ? "opacity-50" : ""}`}
               style={{ marginLeft: `${indent}px` }}
               draggable
@@ -118,16 +118,18 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
               {hasChildren && (
                 <button
                   onClick={() => toggleExpand(item.id)}
-                  className="w-6 h-6 flex items-center justify-center border border-[#E2E2E2] rounded-[5px] transform rotate-90 hover:bg-gray-50 transition-colors"
+                  className={`w-6 h-6 flex items-center justify-center border border-border rounded-[5px] hover:bg-neutral-10 transition-colors ${
+                    isExpanded ? "" : "rotate-[-90deg]"
+                  }`}
                 >
                   <svg
-                    className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                    className="w-4 h-4"
                     viewBox="0 0 24 24"
                     fill="none"
                   >
                     <path
                       d="M9 18L15 12L9 6"
-                      stroke="#B0B0B0"
+                      stroke="var(--neutral-60)"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -135,9 +137,10 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
                   </svg>
                 </button>
               )}
+              {!hasChildren && <div className="w-6 h-6" />}
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[14px] font-semibold ${
-                  item.isLeader ? "bg-[#00B55B]" : "bg-[#808080]"
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-neutral-0 text-[14px] font-semibold ${
+                  item.isLeader ? "bg-primary-80" : "bg-neutral-60"
                 }`}
               >
                 {item.avatar}
@@ -146,13 +149,13 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
                 type="button"
                 onClick={() => onMemberClick(item)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline"
+                className="text-left text-[16px] font-semibold text-foreground hover:underline focus:underline"
               >
                 {item.name}
               </button>
               {item.department && (
-                <div className="px-3 py-1 bg-[#D3E1FE] rounded-[30px]">
-                  <span className="text-[12px] font-medium text-[#4D82F3]">{item.department}</span>
+                <div className="px-3 py-1 bg-secondary-10 rounded-[30px]">
+                  <span className="text-[12px] font-medium text-secondary-40">{item.department}</span>
                 </div>
               )}
             </div>
@@ -174,20 +177,22 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="직원 및 팀 이름을 검색하세요"
-            className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#808080] focus:outline-none focus:border-[#252525]"
+            className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
           />
         </div>
-        <button className="px-4 py-2 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold">
+        <button className="px-4 py-2 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
           검색
         </button>
       </div>
-      <div className="flex gap-2 mb-6">
-        {tags.map((tag) => (
-          <div key={tag} className="px-3 py-1 bg-[#E2E2E2] rounded-[30px]">
-            <span className="text-[12px] font-medium text-[#595959]">{tag}</span>
-          </div>
-        ))}
-      </div>
+      {tags.length > 0 && (
+        <div className="flex gap-2 mb-6">
+          {tags.map((tag) => (
+            <div key={tag} className="px-3 py-1 bg-neutral-20 rounded-[30px]">
+              <span className="text-[12px] font-medium text-neutral-70">{tag}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div>{renderItems(data)}</div>
     </div>
   );
