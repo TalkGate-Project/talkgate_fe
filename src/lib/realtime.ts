@@ -13,9 +13,9 @@ export class TalkgateSocket {
     if (!token) throw new Error("로그인이 필요합니다.");
     if (this.socket?.connected) return this.socket;
 
-    const base = env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, "");
+    const wsUrl = env.NEXT_PUBLIC_WS_CHAT_BASE_URL ?? "";
 
-    this.socket = io(`${base}/chat`, {
+    this.socket = io(wsUrl, {
       auth: { token, projectId },
       autoConnect: true,
       transports: ["websocket"],
@@ -40,4 +40,5 @@ export class TalkgateSocket {
 }
 
 export const talkgateSocket = new TalkgateSocket();
+
 

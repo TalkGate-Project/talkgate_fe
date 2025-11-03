@@ -5,6 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
+import NotificationProvider from "@/providers/NotificationProvider";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({
@@ -58,9 +59,11 @@ export default function RootLayout({
       <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
         <ErrorFeedbackModalProvider>
           <ReactQueryProvider>
-            <ConditionalHeader />
-            {/* No fixed padding; header component inserts spacer only when visible */}
-            <div>{children}</div>
+            <NotificationProvider>
+              <ConditionalHeader />
+              {/* No fixed padding; header component inserts spacer only when visible */}
+              <div>{children}</div>
+            </NotificationProvider>
           </ReactQueryProvider>
         </ErrorFeedbackModalProvider>
       </body>
