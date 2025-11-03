@@ -18,6 +18,11 @@ export function setSelectedProjectId(projectId: string | number) {
   document.cookie = `${COOKIE_KEY}=${encodeURIComponent(String(projectId))}; ${cookieAttrs()}`;
   try {
     (window as any).tgSelectedProjectId = String(projectId);
+    window.dispatchEvent(
+      new CustomEvent("tg:selected-project-change", {
+        detail: { projectId: String(projectId) },
+      })
+    );
   } catch {}
 }
 
@@ -30,6 +35,13 @@ export function getSelectedProjectId(): string | null {
 export function clearSelectedProjectId() {
   if (!isBrowser()) return;
   document.cookie = `${COOKIE_KEY}=; Max-Age=0; ${cookieAttrs()}`;
+  try {
+    window.dispatchEvent(
+      new CustomEvent("tg:selected-project-change", {
+        detail: { projectId: null },
+      })
+    );
+  } catch {}
 }
 
 

@@ -9,7 +9,7 @@ import AssignProgressList from "@/components/stats/AssignProgressList";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
 import PaymentBarChart from "@/components/stats/PaymentBarChart";
 import StatusBarChart from "@/components/stats/StatusBarChart";
-import { getSelectedProjectId } from "@/lib/project";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type {
   CustomerRegistrationRecord,
@@ -33,7 +33,14 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
 
 const APPLY_TABLE_LIMIT = 10;
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
-const ASSIGN_COLORS = ["#ADF6D2", "#FFDE81", "#FC9595", "#7EA5F8", "#BAE6FD", "#F9A8D4"];
+const ASSIGN_COLORS = [
+  "var(--primary-20)",
+  "var(--warning-20)",
+  "var(--danger-20)",
+  "var(--secondary-20)",
+  "var(--secondary-10)",
+  "var(--secondary-40)",
+];
 
 function formatChartDay(input: string) {
   const date = new Date(input);
@@ -61,7 +68,7 @@ function formatTableDate(input: string) {
 function StatsPage() {
   const router = useRouter();
   const search = useSearchParams();
-  const projectId = getSelectedProjectId();
+  const [projectId, projectReady] = useSelectedProjectId();
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
   const [assignMode, setAssignMode] = useState<"team" | "member">((search.get("assign") as any) === "member" ? "member" : "team");
   const [paymentMode, setPaymentMode] = useState<"team" | "member">((search.get("pay") as any) === "member" ? "member" : "team");
@@ -118,6 +125,10 @@ function StatsPage() {
     setApplyPage(page);
   }
 
+  const waitingForProject = !projectReady;
+  const hasProject = projectReady && Boolean(projectId);
+  const missingProject = projectReady && !projectId;
+
   const registrationTableQuery = useQuery<
     CustomerRegistrationResponse,
     Error,
@@ -125,7 +136,7 @@ function StatsPage() {
     ["stats", "registration", "table", { projectId: string | null; page: number; limit: number }]
   >({
     queryKey: ["stats", "registration", "table", { projectId, page: applyPage, limit: APPLY_TABLE_LIMIT }],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     placeholderData: (previous) => previous,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
@@ -142,7 +153,7 @@ function StatsPage() {
     CustomerRegistrationResponse
   >({
     queryKey: ["stats", "registration", "chart", projectId],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
@@ -192,7 +203,7 @@ function StatsPage() {
     CustomerAssignmentByTeamResponse
   >({
     queryKey: ["stats", "assignment", "team-overview", projectId],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
@@ -220,22 +231,22 @@ function StatsPage() {
   const assignCardsError = assignmentTeamQuery.isError && !assignmentTeamQuery.isFetching;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-[#F8F8F8]">
+    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
         {/* Top card with tabs */}
-        <section className="bg-white rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+        <section className="surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
           <div className="flex items-center gap-4">
-            <h1 className="text-[24px] font-bold text-[#252525]">통계</h1>
-            <span className="w-px h-4 bg-[#808080] opacity-60" />
-            <p className="text-[18px] text-[#808080]">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
+            <h1 className="text-[24px] font-bold text-neutral-90">통계</h1>
+            <span className="w-px h-4 bg-neutral-60 opacity-60" />
+            <p className="text-[18px] text-neutral-60">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
           </div>
-          <div className="mt-5 h-[48px] bg-[#EDEDED] rounded-[12px] px-3 flex items-center">
+          <div className="mt-5 h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center">
             <div className="flex items-center gap-2">
               {TAB_ITEMS.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`h-[31px] rounded-[5px] px-8 text-[16px] cursor-pointer ${active===t.key? 'bg-white text-[#252525] font-bold' : 'text-[#808080]'} `}
+                  className={`h-[31px] rounded-[5px] px-8 text-[16px] cursor-pointer ${active===t.key? 'bg-card text-foreground font-bold' : 'text-neutral-60'} `}
                 >
                   {t.label}
                 </button>
@@ -248,132 +259,134 @@ function StatsPage() {
         {active === "apply" && (
           <>
             {/* 신청통계 그래프 카드 */}
-            <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
+            <section className="mt-6 surface rounded-[14px] p-6 border border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-[18px] font-semibold text-[#252525]">신청통계</h2>
-                <div className="h-[36px] w-[240px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
-                  <button className={`rounded-[6px] text-[14px] ${applyMode==='daily'?'bg-white font-semibold text-[#252525]':'text-[#808080]'}`} onClick={()=> setApplyModeQS('daily')}>일간</button>
-                  <button className={`rounded-[6px] text-[14px] ${applyMode==='monthly'?'bg-white font-semibold text-[#252525]':'text-[#808080]'}`} onClick={()=> setApplyModeQS('monthly')}>월간</button>
+                <h2 className="text-[18px] font-semibold text-neutral-90">신청통계</h2>
+                <div className="h-[36px] w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+                  <button className={`rounded-[6px] text-[14px] ${applyMode==='daily'?'bg-card font-semibold text-foreground':'text-neutral-60'}`} onClick={()=> setApplyModeQS('daily')}>일간</button>
+                  <button className={`rounded-[6px] text-[14px] ${applyMode==='monthly'?'bg-card font-semibold text-foreground':'text-neutral-60'}`} onClick={()=> setApplyModeQS('monthly')}>월간</button>
                 </div>
               </div>
               <div className="mt-4 h-[300px]">
-                {!projectId && (
-                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                {waitingForProject ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                  </div>
+                ) : missingProject ? (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
                     프로젝트를 먼저 선택해주세요.
                   </div>
-                )}
-                {projectId && showChartSkeleton && (
+                ) : showChartSkeleton ? (
                   <div className="flex h-full items-center justify-center">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
                   </div>
-                )}
-                {projectId && showChartError && (
-                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+                ) : showChartError ? (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 text-[14px] text-danger-40">
                     신청 통계를 불러오는 중 문제가 발생했습니다.
                   </div>
-                )}
-                {projectId && !showChartSkeleton && !showChartError && !chartHasData && (
-                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                ) : !chartHasData ? (
+                  <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
                     표시할 데이터가 없습니다.
                   </div>
-                )}
-                {projectId && !showChartSkeleton && !showChartError && chartHasData && (
+                ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#51F8A5" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#51F8A5" stopOpacity={0} />
+                          <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="var(--primary-40)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="#EDEDED" vertical={false} />
-                      <XAxis dataKey="x" tick={{ fill: "#808080" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: "#808080" }} axisLine={false} tickLine={false} width={40} />
+                      <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
+                      <XAxis dataKey="x" tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} width={40} />
                       <Tooltip
-                        cursor={{ stroke: "#51F8A5", strokeWidth: 1, opacity: 0.25 }}
+                        cursor={{ stroke: "var(--primary-40)", strokeWidth: 1, opacity: 0.25 }}
                         content={({ active, payload }) => {
                           if (!active || !payload?.length) return null;
                           const v = payload[0].value as number;
                           return (
-                            <div className="rounded-[6px] bg-black px-3 py-1 text-[12px] text-white">
+                            <div className="rounded-[6px] bg-neutral-90 px-3 py-1 text-[12px] text-neutral-0">
                               {NUMBER_FORMATTER.format(v)}건
                             </div>
                           );
                         }}
                       />
                       <Area type="monotone" dataKey="y" stroke="none" fill="url(#applyGradient)" />
-                      <Line type="monotone" dataKey="y" stroke="#51F8A5" strokeWidth={2} dot={{ r: 5, fill: "#00E272", stroke: "#51F8A5", strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                      <Line type="monotone" dataKey="y" stroke="var(--primary-40)" strokeWidth={2} dot={{ r: 5, fill: "var(--primary-60)", stroke: "var(--primary-40)", strokeWidth: 2 }} activeDot={{ r: 6 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </section>
             {/* 상세 데이터 테이블 카드 */}
-            <section className="mt-6 bg-white rounded-[14px] p-6">
+            <section className="mt-6 surface rounded-[14px] p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-[18px] font-semibold text-[#000]">상세 데이터</h3>
+                <h3 className="text-[18px] font-semibold text-neutral-90">상세 데이터</h3>
                 <div className="flex items-center gap-3">
-                  <div className="w-[175px] h-[34px] border border-[#E2E2E2] rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]"><span className="opacity-90">연도 . 월 . 일</span><span className="w-5 h-5 border-2 border-[#B0B0B0] rounded" /></div>
-                  <span className="mx-1">-</span>
-                  <div className="w-[175px] h-[34px] border border-[#E2E2E2] rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]"><span className="opacity-90">연도 . 월 . 일</span><span className="w-5 h-5 border-2 border-[#B0B0B0] rounded" /></div>
+                  <div className="w-[175px] h-[34px] border border-border rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]"><span className="opacity-90">연도 . 월 . 일</span><span className="w-5 h-5 border-2 border-neutral-40 rounded" /></div>
+                  <span className="mx-1 text-neutral-60">-</span>
+                  <div className="w-[175px] h-[34px] border border-border rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]"><span className="opacity-90">연도 . 월 . 일</span><span className="w-5 h-5 border-2 border-neutral-40 rounded" /></div>
                 </div>
               </div>
-              <div className="mt-4 h-px bg-[#E2E2E2]" />
+              <div className="mt-4 h-px bg-neutral-30" />
               <div className="mt-4">
-                <div className="grid grid-cols-5 text-[16px] text-[#808080] font-semibold">
+                <div className="grid grid-cols-5 text-[16px] text-neutral-60 font-semibold">
                   <div className="px-4 py-2">날짜</div>
                   <div className="px-4 py-2">신청 건수</div>
                   <div className="px-4 py-2">직접입력</div>
                   <div className="px-4 py-2">엑셀 업로드</div>
                   <div className="px-4 py-2">API</div>
                 </div>
-                <div className="divide-y divide-[#E2E2E2] min-h-[240px]">
-                  {!projectId && (
-                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#808080]">
+                <div className="divide-y divide-neutral-30 min-h-[240px]">
+                  {waitingForProject ? (
+                    <div className="flex h-[160px] items-center justify-center">
+                      <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                    </div>
+                  ) : missingProject ? (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-neutral-60">
                       프로젝트를 먼저 선택해주세요.
                     </div>
-                  )}
-                  {projectId && showTableSkeleton && (
+                  ) : showTableSkeleton ? (
                     <ApplyTableSkeleton rows={APPLY_TABLE_LIMIT} />
-                  )}
-                  {projectId && showTableError && (
-                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#E35555]">
+                  ) : showTableError ? (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-danger-40">
                       데이터를 불러오는 중 오류가 발생했습니다.
                     </div>
-                  )}
-                  {projectId && !showTableSkeleton && !showTableError && registrationRows.length === 0 && (
-                    <div className="flex h-[160px] items-center justify-center text-[14px] text-[#808080]">
+                  ) : registrationRows.length === 0 ? (
+                    <div className="flex h-[160px] items-center justify-center text-[14px] text-neutral-60">
                       표시할 데이터가 없습니다.
                     </div>
+                  ) : (
+                    registrationRows.map((row) => (
+                      <div key={row.id} className="grid grid-cols-5 text-[14px] text-neutral-90 opacity-80">
+                        <div className="px-4 py-3">{formatTableDate(row.statisticsDate)}</div>
+                        <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.totalCount)}건</div>
+                        <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.directInputCount)}건</div>
+                        <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</div>
+                        <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.apiCount)}건</div>
+                      </div>
+                    ))
                   )}
-                  {projectId && !showTableSkeleton && !showTableError && registrationRows.map((row) => (
-                    <div key={row.id} className="grid grid-cols-5 text-[14px] text-[#252525] opacity-80">
-                      <div className="px-4 py-3">{formatTableDate(row.statisticsDate)}</div>
-                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.totalCount)}건</div>
-                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.directInputCount)}건</div>
-                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</div>
-                      <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.apiCount)}건</div>
-                    </div>
-                  ))}
                 </div>
-                {projectId && registrationRows.length > 0 && (
+                {hasProject && registrationRows.length > 0 && (
                   <div className="mt-3 flex items-center justify-center gap-2">
                     <button
-                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] rotate-90 disabled:border-[#E2E2E2] disabled:text-[#CCCCCC]"
+                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
                       onClick={() => setApplyPageQS(Math.max(1, applyPage - 1))}
                       disabled={applyPage <= 1}
                     />
                     {registrationPageNumbers.map((num) => (
                       <button
                         key={num}
-                        className={`w-8 h-8 rounded-full grid place-items-center ${num===applyPage? 'bg-[#252525] text-white' : 'text-[#808080]'}`}
+                        className={`w-8 h-8 rounded-full grid place-items-center ${num===applyPage? 'bg-neutral-90 text-neutral-0' : 'text-neutral-60'}`}
                         onClick={() => setApplyPageQS(num)}
                       >
                         {num}
                       </button>
                     ))}
                     <button
-                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-[#B0B0B0] -rotate-90 disabled:border-[#E2E2E2] disabled:text-[#CCCCCC]"
+                      className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 -rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
                       onClick={() => setApplyPageQS(Math.min(registrationTotalPages, applyPage + 1))}
                       disabled={applyPage >= registrationTotalPages}
                     />
@@ -385,52 +398,55 @@ function StatsPage() {
         )}
 
         {active === "assign" && (
-          <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
+          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-[#252525]">배정통계</h2>
-              <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
-                <button className={`rounded-[6px] text-[14px] ${assignMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setAssignModeQS('team')}>팀별</button>
-                <button className={`rounded-[6px] text-[14px] ${assignMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setAssignModeQS('member')}>팀원별</button>
+              <h2 className="text-[18px] font-semibold text-neutral-90">배정통계</h2>
+              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+                <button className={`rounded-[6px] text-[14px] ${assignMode==='team'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setAssignModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${assignMode==='member'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setAssignModeQS('member')}>팀원별</button>
               </div>
             </div>
             {assignMode === 'team' ? (
               <>
                 {/* 팀별 배정 현황 카드들 */}
                 <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {!projectId && (
-                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                  {waitingForProject ? (
+                    <div className="col-span-full flex h-[70px] items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                    </div>
+                  ) : missingProject ? (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
                       프로젝트를 먼저 선택해주세요.
                     </div>
-                  )}
-                  {projectId && assignCardsLoading &&
+                  ) : assignCardsLoading ? (
                     Array.from({ length: 4 }).map((_, idx) => (
-                      <div key={idx} className="h-[70px] rounded-[12px] bg-[#F8F8F8] px-4 flex items-center justify-between">
+                      <div key={idx} className="h-[70px] rounded-[12px] bg-neutral-10 px-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="h-4 w-4 animate-pulse rounded-full bg-[#E2E2E2]" />
-                          <span className="h-4 w-20 animate-pulse rounded bg-[#E2E2E2]" />
+                          <span className="h-4 w-4 animate-pulse rounded-full bg-neutral-20" />
+                          <span className="h-4 w-20 animate-pulse rounded bg-neutral-20" />
                         </div>
-                        <span className="h-4 w-10 animate-pulse rounded bg-[#E2E2E2]" />
+                        <span className="h-4 w-10 animate-pulse rounded bg-neutral-20" />
                       </div>
-                    ))}
-                  {projectId && assignCardsError && (
-                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+                    ))
+                  ) : assignCardsError ? (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 text-[14px] text-danger-40">
                       팀별 배정 데이터를 불러오는 중 문제가 발생했습니다.
                     </div>
-                  )}
-                  {projectId && !assignCardsLoading && !assignCardsError && !assignmentCards.length && (
-                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+                  ) : !assignmentCards.length ? (
+                    <div className="col-span-full flex h-[70px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
                       표시할 팀별 배정 데이터가 없습니다.
                     </div>
-                  )}
-                  {projectId && !assignCardsLoading && !assignCardsError && assignmentCards.map((item) => (
-                    <div key={`${item.teamId ?? 'none'}-${item.teamName ?? 'unknown'}`} className="h-[70px] bg-[#F8F8F8] rounded-[12px] px-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded-full" style={{ background: item.color }} />
-                        <span className="text-[18px] font-bold text-[#000]">{item.teamName ?? "소속없음"}</span>
+                  ) : (
+                    assignmentCards.map((item) => (
+                      <div key={`${item.teamId ?? 'none'}-${item.teamName ?? 'unknown'}`} className="h-[70px] bg-neutral-10 rounded-[12px] px-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-4 h-4 rounded-full" style={{ background: item.color }} />
+                          <span className="text-[18px] font-bold text-neutral-90">{item.teamName ?? "소속없음"}</span>
+                        </div>
+                        <span className="text-[14px] text-neutral-90">{NUMBER_FORMATTER.format(item.totalAssignedCount)}건</span>
                       </div>
-                      <span className="text-[14px] text-[#252525]">{NUMBER_FORMATTER.format(item.totalAssignedCount)}건</span>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
                 {/* 진행바 목록 */}
                 <AssignProgressList />
@@ -442,12 +458,12 @@ function StatsPage() {
         )}
 
         {active === "payment" && (
-          <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
+          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-[#252525]">결제통계</h2>
-              <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
-                <button className={`rounded-[6px] text-[14px] ${paymentMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setPaymentModeQS('team')}>팀별</button>
-                <button className={`rounded-[6px] text-[14px] ${paymentMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setPaymentModeQS('member')}>팀원별</button>
+              <h2 className="text-[18px] font-semibold text-neutral-90">결제통계</h2>
+              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+                <button className={`rounded-[6px] text-[14px] ${paymentMode==='team'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setPaymentModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${paymentMode==='member'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setPaymentModeQS('member')}>팀원별</button>
               </div>
             </div>
             <div className="mt-6" />
@@ -456,9 +472,9 @@ function StatsPage() {
         )}
 
         {active === "status" && (
-          <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
-            <h2 className="text-[18px] font-semibold text-[#252525]">처리상태통계</h2>
-            <div className="mt-2 text-[16px] text-[#252525] opacity-80">상태별 분포</div>
+          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+            <h2 className="text-[18px] font-semibold text-neutral-90">처리상태통계</h2>
+            <div className="mt-2 text-[16px] text-neutral-90 opacity-80">상태별 분포</div>
             <div className="mt-4">
               <StatusBarChart />
             </div>
@@ -466,12 +482,12 @@ function StatsPage() {
         )}
 
         {active === "ranking" && (
-          <section className="mt-6 bg-white rounded-[14px] p-6 border border-[#E2E2E2]">
+          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-[#252525]">전체랭킹</h2>
-              <div className="h-[36px] w-[180px] bg-[#EDEDED] rounded-[8px] grid grid-cols-2 p-1">
-                <button className={`rounded-[6px] text-[14px] ${rankingMode==='team'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setRankingModeQS('team')}>팀별</button>
-                <button className={`rounded-[6px] text-[14px] ${rankingMode==='member'?'bg-white font-semibold text-[#252525]':'text-[#808080]'} cursor-pointer`} onClick={()=> setRankingModeQS('member')}>팀원별</button>
+              <h2 className="text-[18px] font-semibold text-neutral-90">전체랭킹</h2>
+              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+                <button className={`rounded-[6px] text-[14px] ${rankingMode==='team'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setRankingModeQS('team')}>팀별</button>
+                <button className={`rounded-[6px] text-[14px] ${rankingMode==='member'?'bg-card font-semibold text-foreground':'text-neutral-60'} cursor-pointer`} onClick={()=> setRankingModeQS('member')}>팀원별</button>
               </div>
             </div>
 
@@ -504,7 +520,7 @@ function TeamRankingList({ projectId }: { projectId: string | null }) {
 
   if (!projectId) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         프로젝트를 먼저 선택해주세요.
       </div>
     );
@@ -513,14 +529,14 @@ function TeamRankingList({ projectId }: { projectId: string | null }) {
   if (isLoading && !data) {
     return (
       <div className="mt-6 flex h-[160px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
       </div>
     );
   }
 
   if (isError && !isFetching) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 text-[14px] text-danger-40">
         팀 랭킹을 불러오는 중 문제가 발생했습니다.
       </div>
     );
@@ -528,28 +544,28 @@ function TeamRankingList({ projectId }: { projectId: string | null }) {
 
   if (!rows.length) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         표시할 팀 랭킹 데이터가 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
+    <div className="mt-6 bg-neutral-10 rounded-[12px] p-5">
       <div className="space-y-3">
         {rows.map((row) => {
           const change = row.rankChange ?? 0;
           const changeLabel = change > 0 ? `+${change}` : change < 0 ? `${change}` : "-";
-          const badgeColor = change > 0 ? "bg-[#D6FAE8] text-[#004824]" : change < 0 ? "bg-[#FEE2E2] text-[#B91C1C]" : "bg-[#E5E7EB] text-[#4B5563]";
+          const badgeColor = change > 0 ? "bg-primary-10 text-primary-100" : change < 0 ? "bg-danger-10 text-danger-60" : "bg-neutral-20 text-neutral-70";
           return (
-            <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+            <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
+                <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
                   #{row.rank}
                 </div>
                 <div>
-                  <div className="text-[18px] font-bold text-[#000]">{row.teamName ?? "소속없음"}</div>
-                  <div className="mt-1 text-[14px] text-[#252525]">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원 / {NUMBER_FORMATTER.format(row.totalCount)}건</div>
+                  <div className="text-[18px] font-bold text-neutral-90">{row.teamName ?? "소속없음"}</div>
+                  <div className="mt-1 text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원 / {NUMBER_FORMATTER.format(row.totalCount)}건</div>
                 </div>
               </div>
               <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
@@ -580,7 +596,7 @@ function TeamMemberRankingList({ projectId }: { projectId: string | null }) {
 
   if (!projectId) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         프로젝트를 먼저 선택해주세요.
       </div>
     );
@@ -589,14 +605,14 @@ function TeamMemberRankingList({ projectId }: { projectId: string | null }) {
   if (isLoading && !data) {
     return (
       <div className="mt-6 flex h-[160px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
       </div>
     );
   }
 
   if (isError && !isFetching) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] text-[14px] text-[#E35555]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 text-[14px] text-danger-40">
         팀원 랭킹을 불러오는 중 문제가 발생했습니다.
       </div>
     );
@@ -604,38 +620,38 @@ function TeamMemberRankingList({ projectId }: { projectId: string | null }) {
 
   if (!rows.length) {
     return (
-      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-[#F8F8F8] text-[14px] text-[#808080]">
+      <div className="mt-6 flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         표시할 팀원 랭킹 데이터가 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="mt-6 bg-[#F8F8F8] rounded-[12px] p-5">
+    <div className="mt-6 bg-neutral-10 rounded-[12px] p-5">
       <div className="space-y-3">
         {rows.map((row) => {
           const changeRate = row.amountChangeRate ?? "0";
           const rateValue = Number.parseFloat(changeRate);
           const badgeColor = Number.isNaN(rateValue)
-            ? "bg-[#E5E7EB] text-[#4B5563]"
+            ? "bg-neutral-20 text-neutral-70"
             : rateValue >= 0
-              ? "bg-[#D6FAE8] text-[#004824]"
-              : "bg-[#FEE2E2] text-[#B91C1C]";
+              ? "bg-primary-10 text-primary-100"
+              : "bg-danger-10 text-danger-60";
           const badgeLabel = Number.isNaN(rateValue) ? "-" : `${rateValue > 0 ? "+" : ""}${rateValue}%`;
           return (
-            <div key={`${row.memberId}-${row.memberName}`} className="bg-white rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+            <div key={`${row.memberId}-${row.memberName}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-[60px] h-[60px] rounded-[12px] bg-[#F5F5FF] grid place-items-center text-[18px] font-bold text-[#808080]">
+                <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
                   #{row.rank}
                 </div>
                 <div>
-                  <div className="text-[18px] font-bold text-[#000] flex items-center gap-2">
+                  <div className="text-[18px] font-bold text-neutral-90 flex items-center gap-2">
                     {row.memberName}
-                    <span className="text-[14px] font-medium text-[#808080]">
+                    <span className="text-[14px] font-medium text-neutral-60">
                       {typeof row.previousRank === "number" ? `전 순위 ${row.previousRank}` : "전 순위 정보 없음"}
                     </span>
                   </div>
-                  <div className="mt-1 text-[14px] text-[#252525]">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
+                  <div className="mt-1 text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
                 </div>
               </div>
               <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
@@ -655,7 +671,7 @@ function ApplyTableSkeleton({ rows }: { rows: number }) {
       {Array.from({ length: rows }).map((_, idx) => (
         <div key={idx} className="grid grid-cols-5 px-4 py-3">
           {Array.from({ length: 5 }).map((__, colIdx) => (
-            <div key={colIdx} className="h-4 w-full rounded bg-[#F0F0F0] animate-pulse" />
+            <div key={colIdx} className="h-4 w-full rounded bg-neutral-20 animate-pulse" />
           ))}
         </div>
       ))}
@@ -667,7 +683,7 @@ export default function StatsPageWrapper() {
   return (
     <Suspense fallback={
       <main className="min-h-screen flex items-center justify-center">
-        <div className="text-[#808080]">불러오는 중...</div>
+        <div className="text-neutral-60">불러오는 중...</div>
       </main>
     }>
       <StatsPage />

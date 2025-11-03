@@ -4,7 +4,7 @@ import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
-import { getSelectedProjectId } from "@/lib/project";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerPaymentTeamRecord, CustomerPaymentByTeamResponse } from "@/types/statistics";
 
@@ -25,12 +25,15 @@ function getDefaultRange() {
 }
 
 export default function PaymentBarChart() {
-  const projectId = getSelectedProjectId();
+  const [projectId, projectReady] = useSelectedProjectId();
+  const waitingForProject = !projectReady;
+  const hasProject = projectReady && Boolean(projectId);
+  const missingProject = projectReady && !projectId;
   const { startDate, endDate } = getDefaultRange();
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate, endDate }],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.customerPaymentByTeam({ projectId, startDate, endDate });
@@ -50,9 +53,17 @@ export default function PaymentBarChart() {
       }));
   }, [data]);
 
-  if (!projectId) {
+  if (waitingForProject) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-white px-6 text-[14px] text-[#808080]">
+      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+      </div>
+    );
+  }
+
+  if (missingProject) {
+    return (
+      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
         프로젝트를 먼저 선택해주세요.
       </div>
     );
@@ -61,14 +72,14 @@ export default function PaymentBarChart() {
   if (isLoading && !data) {
     return (
       <div className="flex h-[320px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2E2E2] border-t-[#51F8A5]" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
       </div>
     );
   }
 
   if (isError && !isFetching) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-[#FFB4B4] bg-[#FFF6F6] px-6 text-[14px] text-[#E35555]">
+      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
         결제 통계를 불러오는 중 문제가 발생했습니다.
       </div>
     );
@@ -76,7 +87,7 @@ export default function PaymentBarChart() {
 
   if (!chartData.length) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-[#E2E2E2] bg-white px-6 text-[14px] text-[#808080]">
+      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
         표시할 결제 통계가 없습니다.
       </div>
     );
@@ -88,20 +99,20 @@ export default function PaymentBarChart() {
         <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 24 }}>
           <defs>
             <linearGradient id="payGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#51F8A5" stopOpacity={0.75} />
-              <stop offset="100%" stopColor="#5EEAD4" stopOpacity={0.35} />
+              <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.75} />
+              <stop offset="100%" stopColor="var(--primary-20)" stopOpacity={0.35} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#EDEDED" vertical={false} />
-          <XAxis dataKey="team" tick={{ fill: "#808080" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "#808080" }} axisLine={false} tickLine={false} width={48} />
+          <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
+          <XAxis dataKey="team" tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} width={48} />
           <Tooltip
-            cursor={{ fill: "rgba(81,248,165,0.1)" }}
+            cursor={{ fill: "rgba(0,226,114,0.08)" }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               const record = payload[0].payload as { team: string; amount: number; count: number };
               return (
-                <div className="rounded-[6px] bg-black px-3 py-1 text-[12px] text-white">
+                <div className="rounded-[6px] bg-neutral-90 px-3 py-1 text-[12px] text-neutral-0">
                   {NUMBER_FORMATTER.format(record.amount)}원 / {NUMBER_FORMATTER.format(record.count)}건
                 </div>
               );
@@ -114,15 +125,15 @@ export default function PaymentBarChart() {
               formatter={(label: unknown): ReactNode =>
                 typeof label === "number" ? `${NUMBER_FORMATTER.format(label)}원` : (label as ReactNode)
               }
-              style={{ fill: "#808080", fontSize: 12 }}
+              style={{ fill: "var(--neutral-60)", fontSize: 12 }}
             />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="mt-2 flex items-center justify-around text-[12px] text-[#808080]">
+      <div className="mt-2 flex items-center justify-around text-[12px] text-neutral-60">
         {chartData.map((entry) => (
           <div key={entry.team} className="text-center">
-            <div className="text-[#252525]">{entry.team}</div>
+            <div className="text-neutral-90">{entry.team}</div>
             <div>{NUMBER_FORMATTER.format(entry.count)}건</div>
           </div>
         ))}

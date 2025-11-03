@@ -12,18 +12,21 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { getSelectedProjectId } from "@/lib/project";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerPaymentWeeklyRecord, CustomerPaymentWeeklyResponse } from "@/types/statistics";
 
 const WEEKS = 6;
 
 export default function StatsSection() {
-  const projectId = getSelectedProjectId();
+  const [projectId, projectReady] = useSelectedProjectId();
+  const waitingForProject = !projectReady;
+  const hasProject = projectReady && Boolean(projectId);
+  const missingProject = projectReady && !projectId;
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentWeeklyResponse>({
     queryKey: ["dashboard", "weekly-payments", projectId, { weeks: WEEKS }],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.customerPaymentWeekly({ projectId, weeks: WEEKS });
@@ -50,13 +53,17 @@ export default function StatsSection() {
   return (
     <Panel
       title={<span className="typo-title-2">주간 매출 통계</span>}
-      action={<button className="h-[34px] px-3 rounded-[5px] border border-[var(--border)] bg-[var(--neutral-0)] text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-[var(--neutral-10)]">더보기</button>}
+      action={<button className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
       className="rounded-[14px]"
       style={{ height: 420 }}
       bodyClassName="px-6 pb-6 pt-4"
     >
       <div className="h-[320px]">
-        {!projectId ? (
+        {waitingForProject ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          </div>
+        ) : missingProject ? (
           <EmptyState message="프로젝트를 먼저 선택해주세요." />
         ) : loading ? (
           <ChartSkeleton />
@@ -86,7 +93,7 @@ export default function StatsSection() {
                 labelFormatter={(label) => `${label}`}
                 contentStyle={{
                   borderRadius: 8,
-                  backgroundColor: "var(--neutral-0)",
+                  backgroundColor: "var(--card)",
                   border: `1px solid var(--border)`,
                   color: "var(--foreground)",
                 }}
@@ -114,7 +121,7 @@ function formatCurrency(value: number) {
 
 function EmptyState({ message, error }: { message: string; error?: boolean }) {
   return (
-    <div className={`flex h-full items-center justify-center text-[14px] ${error ? "text-[var(--danger-40)]" : "text-[var(--neutral-60)]"}`}>
+    <div className={`flex h-full items-center justify-center text-[14px] ${error ? "text-danger-40" : "text-neutral-60"}`}>
       {message}
     </div>
   );
@@ -124,7 +131,7 @@ function ChartSkeleton() {
   return (
     <div className="flex h-full flex-col justify-center gap-3">
       {Array.from({ length: 3 }).map((_, idx) => (
-        <div key={idx} className="mx-6 h-8 animate-pulse rounded bg-[var(--neutral-20)]" />
+        <div key={idx} className="mx-6 h-8 animate-pulse rounded bg-neutral-20" />
       ))}
     </div>
   );

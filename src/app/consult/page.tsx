@@ -16,16 +16,16 @@ export default function ConsultPage() {
   if (!projectId) return null;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-[#F8F8F8] dark:bg-[#1E1E1E]">
+    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
       {/* Dev toggle fixed on top-right */}
-      <div className="fixed top-[62px] right-[24px] z-50 bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-sm px-3 h-[36px] flex items-center gap-2">
-        <span className="text-[12px] text-[#808080] dark:text-[#B9B9B9]">Dev Mode</span>
+      <div className="fixed top-[62px] right-[24px] z-50 bg-card border border-border rounded-[8px] shadow-sm px-3 h-[36px] flex items-center gap-2">
+        <span className="text-[12px] text-neutral-60">Dev Mode</span>
         <button
-          className={`w-[44px] h-[22px] rounded-full relative ${devMode ? 'bg-[#252525]' : 'bg-[#E5E7EB] dark:bg-[#444444]'}`}
+          className={`w-[44px] h-[22px] rounded-full relative transition-colors ${devMode ? "bg-neutral-90" : "bg-neutral-30"}`}
           onClick={() => setDevMode((v) => !v)}
           aria-label="toggle dev mode"
         >
-          <span className={`absolute top-1 left-1 w-[18px] h-[18px] rounded-full bg-white transition-all ${devMode ? 'translate-x-[22px]' : ''}`} />
+          <span className={`absolute top-1 left-1 w-[18px] h-[18px] rounded-full bg-neutral-0 shadow transition-all ${devMode ? "translate-x-[22px]" : ""}`} />
         </button>
       </div>
 

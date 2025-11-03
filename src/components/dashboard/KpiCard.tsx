@@ -10,12 +10,11 @@ export default function KpiCard({ icon, label, value, className, loading }: KpiC
   return (
     <div className={`surface rounded-[14px] elevation-1 px-6 py-5 h-[120px] flex items-center justify-between ${className ?? ""}`}>
       <div>
-        <div className="typo-caption-2 font-semibold" style={{ color: "var(--neutral-70)" }}>{label}</div>
+        <div className="typo-caption-2 font-semibold text-neutral-70">{label}</div>
         <div
-          className="mt-2 font-[var(--font-montserrat)] font-bold text-[28px] leading-[34px] tracking-[1px]"
-          style={{ color: "var(--foreground)" }}
+          className="mt-2 font-[var(--font-montserrat)] font-bold text-[28px] leading-[34px] tracking-[1px] text-foreground"
         >
-          {loading ? <span className="inline-flex h-8 w-24 animate-pulse rounded bg-[var(--neutral-20)]" /> : value}
+          {loading ? <span className="inline-flex h-8 w-24 animate-pulse rounded bg-neutral-20" /> : value}
         </div>
       </div>
 

@@ -10,13 +10,16 @@ import SalesRanking from "@/components/dashboard/SalesRanking";
 import CalendarSection from "@/components/dashboard/CalendarSection";
 import NoticeSection from "@/components/notice/NoticeSection";
 import StatsSection from "@/components/stats/StatsSection";
-import { getSelectedProjectId } from "@/lib/project";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { SummaryResponse } from "@/types/statistics";
 import { useMe } from "@/hooks/useMe";
 
 function DashboardContent() {
-  const projectId = getSelectedProjectId();
+  const [projectId, projectReady] = useSelectedProjectId();
+  const waitingForProject = !projectReady;
+  const hasProject = projectReady && Boolean(projectId);
+  const missingProject = projectReady && !projectId;
   const { user } = useMe();
 
   const {
@@ -26,7 +29,7 @@ function DashboardContent() {
     isFetching: summaryFetching,
   } = useQuery<SummaryResponse>({
     queryKey: ["dashboard", "summary", projectId],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.summary({ projectId });
@@ -58,14 +61,15 @@ function DashboardContent() {
   }, [summary]);
 
   const summaryErrorState = summaryError && !summaryFetching;
+  const bannerLoading = waitingForProject || missingProject || (summaryLoading && !summary);
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-[var(--background)] text-foreground">
+    <main className="min-h-[calc(100vh-54px)] bg-background text-foreground">
       <div className="mx-auto max-w-[1324px] w-full px-0 py-8">
         <GreetingBanner
           userName={user?.name ?? user?.email ?? null}
           todayQuote={summary?.todayQuote ?? null}
-          loading={summaryLoading && !summary}
+          loading={bannerLoading}
         />
 
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -74,34 +78,42 @@ function DashboardContent() {
               key={card.label}
               label={card.label}
               value={card.value}
-              loading={(summaryLoading && !summary) || summaryErrorState}
+              loading={bannerLoading || summaryErrorState}
             />
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-9">
-            <AssignedCustomersTable />
+        {missingProject ? (
+          <div className="mt-12 flex h-[240px] items-center justify-center rounded-[16px] border border-dashed border-neutral-30 bg-card text-neutral-60">
+            프로젝트를 먼저 선택해주세요.
           </div>
-          <div className="col-span-12 lg:col-span-3">
-            <SalesRanking />
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="mt-6 grid grid-cols-12 gap-6">
+              <div className="col-span-12 lg:col-span-9">
+                <AssignedCustomersTable />
+              </div>
+              <div className="col-span-12 lg:col-span-3">
+                <SalesRanking />
+              </div>
+            </div>
 
-        <div className="mt-6 grid grid-cols-12 gap-6">
-          <div className="col-span-12">
-            <CalendarSection />
-          </div>
-        </div>
+            <div className="mt-6 grid grid-cols-12 gap-6">
+              <div className="col-span-12">
+                <CalendarSection />
+              </div>
+            </div>
 
-        <div className="mt-6 grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-6">
-            <NoticeSection />
-          </div>
-          <div className="col-span-12 lg:col-span-6">
-            <StatsSection />
-          </div>
-        </div>
+            <div className="mt-6 grid grid-cols-12 gap-6">
+              <div className="col-span-12 lg:col-span-6">
+                <NoticeSection />
+              </div>
+              <div className="col-span-12 lg:col-span-6">
+                <StatsSection />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
@@ -111,8 +123,8 @@ export default function DashboardPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-[calc(100vh-54px)] bg-[var(--background)] text-foreground flex items-center justify-center">
-          <div className="text-[var(--neutral-60)]">대시보드를 불러오는 중입니다...</div>
+        <main className="min-h-[calc(100vh-54px)] bg-background text-foreground flex items-center justify-center">
+          <div className="text-neutral-60">대시보드를 불러오는 중입니다...</div>
         </main>
       }
     >

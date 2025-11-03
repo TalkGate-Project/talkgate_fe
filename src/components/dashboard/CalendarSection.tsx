@@ -5,15 +5,26 @@ import { ko } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 
 import Panel from "@/components/common/Panel";
-import { getSelectedProjectId } from "@/lib/project";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
 import type { WeeklyScheduleItem } from "@/types/dashboard";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
-const COLORS = ["#00E272", "#00B55B", "#7EA5F8", "#2563EB", "#EFB008", "#D83232", "#FC9595"];
+const COLORS = [
+  "var(--primary-60)",
+  "var(--primary-80)",
+  "var(--secondary-20)",
+  "var(--secondary-60)",
+  "var(--warning-40)",
+  "var(--danger-40)",
+  "var(--danger-20)",
+];
 
 export default function CalendarSection() {
-  const projectId = getSelectedProjectId();
+  const [projectId, projectReady] = useSelectedProjectId();
+  const waitingForProject = !projectReady;
+  const hasProject = projectReady && Boolean(projectId);
+  const missingProject = projectReady && !projectId;
   const today = new Date();
   const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
@@ -61,7 +72,7 @@ export default function CalendarSection() {
 
   const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["dashboard", "schedule", projectId, startDateParam, endDateParam],
-    enabled: Boolean(projectId),
+    enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await SchedulesService.list({ projectId, startDate: startDateParam, endDate: endDateParam });
@@ -94,16 +105,16 @@ export default function CalendarSection() {
       title={<span className="typo-title-2">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
-          <button onClick={goPrev} className="w-[34px] h-[34px] rounded-[5px] border border-[var(--border)] grid place-items-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={goPrev} className="w-[34px] h-[34px] rounded-[5px] border border-border grid place-items-center text-neutral-50">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
           <div className="px-3 h-[34px] grid place-items-center text-foreground font-[var(--font-montserrat)] font-bold text-[18px] leading-[22px] tracking-[1px]">
             {ym}
           </div>
-          <button onClick={goNext} className="w-[34px] h-[34px] rounded-[5px] border border-[var(--border)] grid place-items-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={goNext} className="w-[34px] h-[34px] rounded-[5px] border border-border grid place-items-center text-neutral-50">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
@@ -117,10 +128,10 @@ export default function CalendarSection() {
         {/* Calendar grid */}
         <div className="order-2 lg:order-1 lg:w-[896px]">
           {/* Week header bar */}
-          <div className="mb-2 bg-[var(--neutral-20)] rounded-[12px]">
+          <div className="mb-2 bg-neutral-20 rounded-[12px]">
             <div className="grid" style={{ gridTemplateColumns: "repeat(7, 128px)" }}>
               {days.map((d) => (
-                <div key={d} className="h-12 grid place-items-center text-[var(--neutral-60)] typo-title-4">
+                <div key={d} className="h-12 grid place-items-center text-neutral-60 typo-title-4">
                   {d}
                 </div>
               ))}
@@ -135,10 +146,8 @@ export default function CalendarSection() {
                 cell.date.getFullYear() === selectedDate.getFullYear() &&
                 cell.date.getMonth() === selectedDate.getMonth() &&
                 cell.date.getDate() === selectedDate.getDate();
-              const borderClass = isSelected
-                ? "border-2 border-[var(--primary-60)]"
-                : "border border-[var(--border)]";
-              const backgroundClass = isPrevMonth ? "bg-[var(--neutral-10)]" : "bg-[var(--neutral-0)]";
+              const borderClass = isSelected ? "border-2 border-primary-60" : "border border-border";
+              const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
               const daySchedules = schedulesByDay.get(key) ?? [];
               return (
@@ -154,20 +163,20 @@ export default function CalendarSection() {
                 >
                   <div
                     className={`font-[var(--font-montserrat)] text-[16px] leading-[20px] ml-2 mt-2 ${
-                      isPrevMonth ? "text-[var(--neutral-50)]" : "text-[var(--neutral-70)]"
+                      isPrevMonth ? "text-neutral-50" : "text-neutral-70"
                     }`}
                   >
                     {cell.date.getDate()}
                   </div>
                   <div className="space-y-1 mt-auto mb-2 ml-2 mr-2">
                     {daySchedules.slice(0, 3).map((schedule, idx) => (
-                      <div key={idx} className="flex items-center gap-1 text-[12px] text-[var(--neutral-60)]">
+                      <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60">
                         <span className="w-3 h-3 rounded-full" style={{ background: COLORS[idx % COLORS.length] }} />
                         {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
                       </div>
                     ))}
                     {daySchedules.length > 3 && (
-                      <div className="flex items-center gap-1 text-[10px] text-[var(--neutral-60)]">그 외 {daySchedules.length - 3}건</div>
+                      <div className="flex items-center gap-1 text-[10px] text-neutral-60">그 외 {daySchedules.length - 3}건</div>
                     )}
                   </div>
                 </div>
@@ -178,35 +187,39 @@ export default function CalendarSection() {
 
         {/* Right schedule list */}
         <aside className="order-1 lg:order-2 lg:shrink-0">
-          <div className="bg-[var(--neutral-10)] rounded-[12px] p-4 h-full relative flex flex-col">
+          <div className="bg-neutral-10 rounded-[12px] p-4 h-full relative flex flex-col">
             <div className="flex items-center justify-between mb-4 gap-2">
               <div className="typo-title-2">
                 {selectedDate ? format(selectedDate, "MM.dd EEEE", { locale: ko }) : "일정"} ({selectedSchedules.length})
               </div>
             </div>
             <div className="space-y-3 pr-3 overflow-y-auto" style={{ maxHeight: 405 }}>
-              {!projectId ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--neutral-60)]">
+              {waitingForProject ? (
+                <div className="flex h-[240px] items-center justify-center">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                </div>
+              ) : missingProject ? (
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">
                   프로젝트를 먼저 선택해주세요.
                 </div>
               ) : loading ? (
                 <ScheduleSkeleton />
               ) : error ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--danger-40)]">
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-danger-40">
                   일정을 불러오는 중 문제가 발생했습니다.
                 </div>
               ) : selectedSchedules.length === 0 ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-[var(--neutral-60)]">
+                <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">
                   선택한 날짜에 일정이 없습니다.
                 </div>
               ) : (
                 selectedSchedules.map((schedule, idx) => (
-                  <div key={`${schedule.id}-${idx}`} className="flex items-center gap-4 bg-[var(--neutral-0)] rounded-[12px] p-4" style={{ maxWidth: 304 }}>
+                  <div key={`${schedule.id}-${idx}`} className="flex items-center gap-4 bg-card rounded-[12px] p-4" style={{ maxWidth: 304 }}>
                     <span className="w-4 h-4 rounded-full shrink-0" style={{ background: COLORS[idx % COLORS.length] }} />
-                    <span className="typo-body-2 text-[var(--neutral-60)] w-[61px] text-center self-center shrink-0">
+                    <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0">
                       {formatScheduleTime(schedule)}
                     </span>
-                    <span className="typo-body-2 text-[var(--neutral-60)] flex-1 break-words whitespace-normal">
+                    <span className="typo-body-2 text-neutral-60 flex-1 break-words whitespace-normal">
                       {schedule.title ?? schedule.description ?? schedule.memberName ?? "일정"}
                     </span>
                   </div>
@@ -242,9 +255,9 @@ function ScheduleSkeleton() {
     <div className="flex h-[240px] flex-col justify-center gap-3">
       {Array.from({ length: 4 }).map((_, idx) => (
         <div key={idx} className="flex items-center gap-4">
-          <span className="h-4 w-4 rounded-full bg-[var(--neutral-20)]" />
-          <span className="h-5 w-16 rounded bg-[var(--neutral-20)]" />
-          <span className="h-5 flex-1 rounded bg-[var(--neutral-20)]" />
+          <span className="h-4 w-4 rounded-full bg-neutral-20" />
+          <span className="h-5 w-16 rounded bg-neutral-20" />
+          <span className="h-5 flex-1 rounded bg-neutral-20" />
         </div>
       ))}
     </div>
