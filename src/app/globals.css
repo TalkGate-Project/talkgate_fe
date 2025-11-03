@@ -108,6 +108,10 @@
   --warning: var(--warning-60);
   --danger: var(--danger-60);
   --color-surface-10: var(--neutral-light-10);
+  
+  /* Notification unread background (light mode) */
+  --notification-unread-bg: rgba(214, 250, 232, 0.3);
+  --notification-unread-border: var(--primary-60);
 }
 
 :root[data-theme="dark"] {
@@ -134,6 +138,10 @@
   --warning: var(--warning-40);
   --danger: var(--danger-40);
   --color-surface-10: var(--neutral-dark-20);
+  
+  /* Notification unread background (dark mode) */
+  --notification-unread-bg: rgba(214, 250, 232, 0.1);
+  --notification-unread-border: var(--primary-40);
 }
 
 @theme inline {
@@ -283,6 +291,10 @@
     --warning: var(--warning-40);
     --danger: var(--danger-40);
     --color-surface-10: var(--neutral-dark-20);
+    
+    /* Notification unread background (dark mode) */
+    --notification-unread-bg: rgba(214, 250, 232, 0.1);
+    --notification-unread-border: var(--primary-40);
   }
 }
 
@@ -417,6 +429,10 @@ body {
 @utility border-primary-60 { border-color: var(--primary-60); }
 @utility border-primary-80 { border-color: var(--primary-80); }
 @utility border-primary-100 { border-color: var(--primary-100); }
+
+/* Notification unread styles */
+@utility bg-notification-unread { background-color: var(--notification-unread-bg); }
+@utility border-notification-unread { border-color: var(--notification-unread-border); }
 
 @utility text-secondary-10 { color: var(--secondary-10); }
 @utility text-secondary-20 { color: var(--secondary-20); }
