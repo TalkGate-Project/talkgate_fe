@@ -17,6 +17,10 @@ export default function LoginPage() {
   const [invalid, setInvalid] = useState(false);
 
   useEffect(() => {
+    document.title = "TalkGate - 로그인";
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()

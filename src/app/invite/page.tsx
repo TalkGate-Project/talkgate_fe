@@ -163,6 +163,10 @@ function InviteLanding() {
   const token = useMemo(() => search.get("token") || "", [search]);
 
   useEffect(() => {
+    document.title = "TalkGate - 초대";
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     async function init() {
       setLoading(true);

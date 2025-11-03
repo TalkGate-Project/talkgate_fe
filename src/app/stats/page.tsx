@@ -69,6 +69,10 @@ function StatsPage() {
   const router = useRouter();
   const search = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
+
+  useEffect(() => {
+    document.title = "TalkGate - 통계";
+  }, []);
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
   const [assignMode, setAssignMode] = useState<"team" | "member">((search.get("assign") as any) === "member" ? "member" : "team");
   const [paymentMode, setPaymentMode] = useState<"team" | "member">((search.get("pay") as any) === "member" ? "member" : "team");

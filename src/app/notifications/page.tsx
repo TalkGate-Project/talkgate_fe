@@ -15,6 +15,10 @@ export function NotificationsPage() {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
   useEffect(() => {
+    document.title = "TalkGate - 알림";
+  }, []);
+
+  useEffect(() => {
     const category = (searchParams.get("category") || "all") as NotificationCategory;
     setActiveCategory(category);
     setShowUnreadOnly(searchParams.get("unreadOnly") === "true");

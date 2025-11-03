@@ -1,7 +1,13 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useEffect } from "react";
 import SettingsClient from "@/components/settings/SettingsClient";
 
 export default function SettingsPage() {
+  useEffect(() => {
+    document.title = "TalkGate - 설정";
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#F5F5F5] dark:bg-[#1E1E1E] pt-[90px] pb-12">
       <div className="container mx-auto max-w-[1324px] px-4">

@@ -9,6 +9,10 @@ export default function ProjectScopedDashboardRedirect() {
   const params = useParams<{ projectId: string }>();
 
   useEffect(() => {
+    document.title = "TalkGate";
+  }, []);
+
+  useEffect(() => {
     const id = params?.projectId;
     if (id) setSelectedProjectId(id);
     router.replace("/dashboard");

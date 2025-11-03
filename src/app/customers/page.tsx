@@ -20,6 +20,10 @@ function CustomersPage() {
   const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "TalkGate - 고객목록";
+  }, []);
+
+  useEffect(() => {
     const id = getSelectedProjectId();
     if (!id) {
       router.replace("/projects");

@@ -26,6 +26,10 @@ export default function AttendancePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "TalkGate - 근태";
+  }, []);
+
+  useEffect(() => {
     const id = getSelectedProjectId();
     setProjectId(id || null);
   }, []);

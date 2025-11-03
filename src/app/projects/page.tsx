@@ -14,6 +14,10 @@ export default function ProjectsPage() {
 	// legacy inline modal state removed in favor of component
 
     useEffect(() => {
+        document.title = "TalkGate - 프로젝트";
+    }, []);
+
+    useEffect(() => {
         let mounted = true;
         ProjectsService.list()
             .then((res) => {

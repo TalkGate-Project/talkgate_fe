@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -21,6 +21,10 @@ function DashboardContent() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const { user } = useMe();
+
+  useEffect(() => {
+    document.title = "TalkGate";
+  }, []);
 
   const {
     data: summaryData,

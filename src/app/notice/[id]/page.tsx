@@ -28,6 +28,10 @@ export default function NoticeDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const [projectId, setProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "TalkGate - 공지사항";
+  }, []);
   const { member: myMember } = useMyMember(projectId);
 
   const noticeId = useMemo(() => {

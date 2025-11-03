@@ -9,6 +9,10 @@ export default function ConsultPage() {
   const [devMode, setDevMode] = useState<boolean>(true);
 
   useEffect(() => {
+    document.title = "TalkGate - 상담";
+  }, []);
+
+  useEffect(() => {
     const id = getSelectedProjectId();
     if (id) setProjectId(Number(id));
   }, []);

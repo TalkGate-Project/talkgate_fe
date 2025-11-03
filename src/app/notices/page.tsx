@@ -21,6 +21,10 @@ function NoticePageContent() {
   const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
+    document.title = "TalkGate - 공지사항";
+  }, []);
+
+  useEffect(() => {
     const id = getSelectedProjectId();
     if (!id) {
       router.replace("/projects");

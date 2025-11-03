@@ -14,6 +14,10 @@ function OAuthCallbackPage() {
   const provider = (params?.provider || "").toString();
   const code = searchParams.get("code");
 
+  useEffect(() => {
+    document.title = "TalkGate - 로그인 중";
+  }, []);
+
   const callbackUrl = useMemo(() => {
     if (!provider) return "";
     return getCallbackUrl(provider as any);

@@ -28,6 +28,10 @@ function NoticeWritePage() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+
+  useEffect(() => {
+    document.title = noticeId ? "TalkGate - 공지사항 수정" : "TalkGate - 공지사항 작성";
+  }, [noticeId]);
   const [isImportant, setIsImportant] = useState(false);
   const [loading, setLoading] = useState<boolean>(Boolean(noticeId));
   const [submitting, setSubmitting] = useState(false);

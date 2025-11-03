@@ -22,6 +22,10 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
 
+  useEffect(() => {
+    document.title = "TalkGate - 회원가입";
+  }, []);
+
   const emailValid = useMemo(() => /.+@.+\..+/.test(email), [email]);
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordMatch = useMemo(() => password === passwordConfirm && password.length > 0, [password, passwordConfirm]);

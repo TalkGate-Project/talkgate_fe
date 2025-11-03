@@ -17,6 +17,11 @@ export default function ForgotPasswordPage() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [resetToken, setResetToken] = useState("");
   const [invalid, setInvalid] = useState(false);
+
+  useEffect(() => {
+    document.title = "TalkGate - 비밀번호 찾기";
+  }, []);
+
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
   const passwordHasLower = useMemo(() => /[a-z]/.test(password), [password]);
