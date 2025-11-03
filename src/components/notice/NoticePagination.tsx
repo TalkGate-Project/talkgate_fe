@@ -22,7 +22,7 @@ export default function NoticePagination({
         className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M15 18L9 12L15 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
 
@@ -33,8 +33,8 @@ export default function NoticePagination({
           onClick={() => onPageChange(page)}
           className={`w-8 h-8 rounded-full text-[14px] font-normal flex items-center justify-center ${
             currentPage === page
-              ? "bg-[#252525] text-white"
-              : "text-[#808080] hover:bg-[#F8F8F8]"
+              ? "bg-neutral-90 text-neutral-0"
+              : "text-neutral-60 hover:bg-neutral-10"
           }`}
         >
           {page}
@@ -48,7 +48,7 @@ export default function NoticePagination({
         className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M9 18L15 12L9 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
     </div>

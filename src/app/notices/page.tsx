@@ -149,7 +149,7 @@ function NoticePageContent() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12 bg-background">
       {/* 검색 및 글쓰기 패널 */}
       <div className="mb-6">
         <NoticeSearchPanel
@@ -167,7 +167,7 @@ function NoticePageContent() {
           buildNoticeHref={buildNoticeHref}
         />
         {errorMessage && (
-          <div className="mt-4 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[14px] text-[#D83232]">
+          <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
             {errorMessage}
           </div>
         )}

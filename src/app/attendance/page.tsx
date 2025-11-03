@@ -105,31 +105,31 @@ export default function AttendancePage() {
   };
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12 bg-background">
       {/* Top panel: title + date selector */}
       <Panel
         className="rounded-[14px] mb-4"
         title={
           <div className="-mx-6 px-7 pb-3 flex items-end gap-3">
-            <h1 className="text-[24px] leading-[20px] font-bold text-[#252525]">근태</h1>
-            <span className="text-[#808080]">|</span>
-            <p className="text-[18px] leading-[20px] font-medium text-[#808080]">직원들의 출퇴근 현황을 확인하고 관리하세요</p>
+            <h1 className="text-[24px] leading-[20px] font-bold text-foreground">근태</h1>
+            <span className="text-neutral-60">|</span>
+            <p className="text-[18px] leading-[20px] font-medium text-neutral-60">직원들의 출퇴근 현황을 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-3 border-t border-[#E2E2E2]"
+        bodyClassName="px-7 pb-4 pt-3 border-t border-border"
       >
         {/* Date selector */}
         <div className="flex justify-center">
-          <div className="h-[48px] bg-[#EDEDED] rounded-[12px] px-3 flex items-center gap-3">
+          <div className="h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center gap-3">
             {/* Previous button */}
             <button
               onClick={() => navigateDate('prev')}
-              className="w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] flex items-center justify-center"
+              className="w-[34px] h-[34px] bg-card border border-border rounded-[5px] flex items-center justify-center"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M15 18L9 12L15 6"
-                  stroke="#B0B0B0"
+                  stroke="var(--neutral-50)"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -138,8 +138,8 @@ export default function AttendancePage() {
             </button>
             
             {/* Date display */}
-            <div className="px-8 py-[6px] bg-white rounded-[5px]">
-              <span className="text-[16px] font-bold text-[#252525]">
+            <div className="px-8 py-[6px] bg-card rounded-[5px]">
+              <span className="text-[16px] font-bold text-foreground">
                 {formatDate(selectedDate)}
               </span>
             </div>
@@ -147,12 +147,12 @@ export default function AttendancePage() {
             {/* Next button */}
             <button
               onClick={() => navigateDate('next')}
-              className="w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] flex items-center justify-center"
+              className="w-[34px] h-[34px] bg-card border border-border rounded-[5px] flex items-center justify-center"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M9 18L15 12L9 6"
-                  stroke="#B0B0B0"
+                  stroke="var(--neutral-50)"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -168,13 +168,13 @@ export default function AttendancePage() {
         className="rounded-[14px]"
         title={
           <div className="flex items-center gap-3">
-            <h2 className="text-[18px] font-semibold text-[#000000]">출퇴근 현황</h2>
+            <h2 className="text-[18px] font-semibold text-foreground">출퇴근 현황</h2>
             <button 
               onClick={() => setFilterOpen(true)}
-              className="w-6 h-6 border border-[#E2E2E2] rounded-[5px] flex items-center justify-center"
+              className="w-6 h-6 border border-border rounded-[5px] flex items-center justify-center"
             >
               <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z" stroke="var(--neutral-50)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
@@ -185,7 +185,7 @@ export default function AttendancePage() {
         <div className="overflow-hidden rounded-[12px]">
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
-              <tr className="bg-[#EDEDED] text-[#808080]">
+              <tr className="bg-neutral-20 text-neutral-60">
                 <th className="px-6 h-[48px] rounded-l-[12px] text-[16px] font-bold">이름</th>
                 <th className="px-6 h-[48px] text-[16px] font-bold">팀</th>
                 <th className="px-6 h-[48px] text-[16px] font-bold">직급</th>
@@ -194,7 +194,7 @@ export default function AttendancePage() {
                 <th className="px-6 h-[48px] rounded-r-[12px] text-[16px] font-bold">근무시간</th>
               </tr>
             </thead>
-            <tbody className="text-[14px] text-[#252525]">
+            <tbody className="text-[14px] text-foreground">
               {loading && (
                 <tr>
                   <td className="px-6 h-[58px]" colSpan={6}>불러오는 중...</td>
@@ -202,13 +202,13 @@ export default function AttendancePage() {
               )}
               {Boolean(error) && !loading && (
                 <tr>
-                  <td className="px-6 h-[58px] text-red-500" colSpan={6}>{error}</td>
+                  <td className="px-6 h-[58px] text-danger-40" colSpan={6}>{error}</td>
                 </tr>
               )}
               {filteredData.map((record) => (
                 <tr 
                   key={record.id}
-                  className="border-b-[0.4px] border-[#E2E2E2] cursor-pointer hover:bg-[#F8F8F8] transition-colors"
+                  className="border-b-[0.4px] border-border cursor-pointer hover:bg-neutral-10 transition-colors"
                   onClick={() => handleEmployeeClick(record)}
                 >
                   <td className="px-6 h-[58px] align-middle opacity-80">{record.memberName}</td>
@@ -239,7 +239,7 @@ export default function AttendancePage() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#B0B0B0"
+                stroke="var(--neutral-50)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -258,8 +258,8 @@ export default function AttendancePage() {
                 onClick={() => setCurrentPage(pageNum)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
                   isActive 
-                    ? "bg-[#252525] text-white" 
-                    : "text-[#808080]"
+                    ? "bg-neutral-90 text-neutral-0" 
+                    : "text-neutral-60"
                 }`}
               >
                 {pageNum}
@@ -276,7 +276,7 @@ export default function AttendancePage() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M9 18L15 12L9 6"
-                stroke="#B0B0B0"
+                stroke="var(--neutral-50)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"

@@ -12,12 +12,12 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
   const router = useRouter();
 
   return (
-    <div className="bg-white rounded-[14px] p-6">
+    <div className="bg-card rounded-[14px] p-6">
       {/* 제목 및 설명 */}
       <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-[24px] font-bold text-[#252525]">공지사항</h1>
-        <div className="w-px h-4 bg-[#808080]" />
-        <p className="text-[18px] font-medium text-[#808080]">
+        <h1 className="text-[24px] font-bold text-foreground">공지사항</h1>
+        <div className="w-px h-4 bg-neutral-60" />
+        <p className="text-[18px] font-medium text-neutral-60">
           공지사항과 중요한 안내사항을 확인하세요
         </p>
       </div>
@@ -38,12 +38,12 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
                   onSearch();
                 }
               }}
-              className="w-[296px] h-[34px] px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#808080] placeholder:text-[#808080] focus:outline-none focus:border-[#252525]"
+              className="w-[296px] h-[34px] px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 placeholder:text-neutral-60 bg-card focus:outline-none focus:border-neutral-90"
             />
           </div>
           <button 
             onClick={onSearch}
-            className="h-[34px] px-3 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold"
+            className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             검색
           </button>
@@ -53,7 +53,7 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push("/notice/write")}
-            className="h-[34px] px-3 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold"
+            className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             글쓰기
           </button>
