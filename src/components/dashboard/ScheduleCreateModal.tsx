@@ -80,7 +80,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="w-[440px] h-[444px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[440px] h-[444px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="일정 추가"
     >
         {/* Header */}
