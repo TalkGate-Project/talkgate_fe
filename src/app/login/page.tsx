@@ -103,7 +103,7 @@ export default function LoginPage() {
               setInvalid(false);
               setRememberMePreference(autoLogin);
               AuthService.login({ email, password })
-                .then(() => router.replace("/dashboard"))
+                .then(() => router.replace("/projects"))
                 .catch((err: any) => {
                   const status = err?.status;
                   const code = err?.data?.code;
