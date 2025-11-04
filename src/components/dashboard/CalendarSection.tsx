@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
@@ -10,6 +10,7 @@ import { SchedulesService } from "@/services/schedules";
 import type { WeeklyScheduleItem } from "@/types/dashboard";
 import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
 import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
+import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -23,6 +24,7 @@ const COLORS = [
 ];
 
 export default function CalendarSection() {
+  const queryClient = useQueryClient();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -99,6 +101,7 @@ export default function CalendarSection() {
   const selectedSchedules = selectedKey ? schedulesByDay.get(selectedKey) ?? [] : [];
   const loading = isLoading && !data;
   const error = isError && !isFetching;
+  const [showCreate, setShowCreate] = useState(false);
 
   return (
     <Panel
@@ -188,6 +191,12 @@ export default function CalendarSection() {
               <div className="typo-title-2">
                 {selectedDate ? format(selectedDate, "MM.dd EEEE", { locale: ko }) : "일정"} ({selectedSchedules.length})
               </div>
+              <button
+                className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+                onClick={() => setShowCreate(true)}
+              >
+                일정 추가
+              </button>
             </div>
             <div className="space-y-3 pr-3 overflow-y-auto" style={{ maxHeight: 405 }}>
               {waitingForProject ? (
@@ -225,6 +234,16 @@ export default function CalendarSection() {
           </div>
         </aside>
       </div>
+      {showCreate && (
+        <ScheduleCreateModal
+          defaultDate={selectedDate ?? current}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            if (!projectId) return;
+            queryClient.invalidateQueries({ queryKey: ["dashboard", "schedule", projectId, year, month] });
+          }}
+        />
+      )}
     </Panel>
   );
 }
