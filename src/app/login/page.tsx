@@ -66,22 +66,31 @@ export default function LoginPage() {
       {/* Right-side transparent container with card as background */}
       <div
         className="
-          absolute top-0 h-screen flex justify-center w-[594px]
+          absolute top-0 h-screen flex justify-center
           md:left-1/2 md:-translate-x-1/2
           lg:left-auto lg:translate-x-0 lg:right-[8vw]
           xl:right-[12vw]
         "
         style={{
+          // Responsive card width: keep 594px around 1440/1920, gently scale up on ultra-wide,
+          // and cap to 92vw on small screens to avoid overflow.
+          width: "min(92vw, clamp(594px, 30vw, 1080px))",
           backgroundImage: "url('/login_card.png')",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: "594px auto",
+          backgroundSize: "100% auto",
         }}
       >
         {/* Logo + form column. Top -> logo at 337px from top of screen */}
         <div
-          className="mx-auto flex flex-col items-center pt-[330px] w-[340px]"
+          className="mx-auto flex flex-col items-center"
           aria-label="login-form-area"
+          style={{
+            // Inner column width scales with card width (≈340px at 594px card width)
+            width: "min(90%, calc(min(92vw, clamp(594px, 30vw, 1080px)) * 0.572))",
+            // Vertical offset aligns to the printed card artwork (≈330px at 594px)
+            paddingTop: "calc(min(92vw, clamp(594px, 30vw, 1080px)) * 0.556)",
+          }}
         >
           {/* Wordmark logo */}
           <svg width="203" height="48" viewBox="0 0 203 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -186,7 +195,7 @@ export default function LoginPage() {
                 window.location.href = url;
               }}
             >
-              <img src="/kakao.png" alt="" width={24} height={24} />
+              <img src="/kakao.png" alt="" />
             </button>
             <button
               aria-label="naver"
@@ -197,7 +206,7 @@ export default function LoginPage() {
                 window.location.href = url;
               }}
             >
-              <img src="/naver.png" alt="" width={24} height={24} />
+              <img src="/naver.png" alt="" />
             </button>
             <button
               aria-label="google"
@@ -207,7 +216,7 @@ export default function LoginPage() {
                 window.location.href = url;
               }}
             >
-              <img src="/google.png" alt="" width={24} height={24} />
+              <img src="/google.png" alt="" />
             </button>
           </div>
 
