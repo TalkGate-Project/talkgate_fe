@@ -14,6 +14,10 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { SummaryResponse } from "@/types/statistics";
 import { useMe } from "@/hooks/useMe";
+import RecentCustomersIcon from "@/components/common/icons/RecentCustomersIcon";
+import TotalCustomersIcon from "@/components/common/icons/TotalCustomersIcon";
+import PaymentRateIcon from "@/components/common/icons/PaymentRateIcon";
+import PaymentAmountIcon from "@/components/common/icons/PaymentAmountIcon";
 
 function DashboardContent() {
   const [projectId, projectReady] = useSelectedProjectId();
@@ -47,20 +51,20 @@ function DashboardContent() {
   const cards = useMemo(() => {
     if (!summary) {
       return [
-        { label: "최근 배정 고객", value: "-" },
-        { label: "전체 배정 고객", value: "-" },
-        { label: "결제율", value: "-" },
-        { label: "결제 누적", value: "-" },
+        { label: "최근 배정 고객", value: "-", icon: <RecentCustomersIcon /> },
+        { label: "전체 배정 고객", value: "-", icon: <TotalCustomersIcon /> },
+        { label: "결제율", value: "-", icon: <PaymentRateIcon /> },
+        { label: "결제 누적", value: "-", icon: <PaymentAmountIcon /> },
       ];
     }
     const rawRate = summary.paymentRate ?? 0;
     const normalizedRate = rawRate > 1 ? rawRate : rawRate * 100;
     const paymentAmount = summary.totalPaymentAmount ?? 0;
     return [
-      { label: "최근 배정 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR") },
-      { label: "전체 배정 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR") },
-      { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%` },
-      { label: "결제 누적", value: `₩ ${paymentAmount.toLocaleString("ko-KR")}` },
+      { label: "최근 배정 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
+      { label: "전체 배정 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
+      { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%`, icon: <PaymentRateIcon /> },
+      { label: "결제 누적", value: `₩ ${paymentAmount.toLocaleString("ko-KR")}`, icon: <PaymentAmountIcon /> },
     ];
   }, [summary]);
 
@@ -82,6 +86,7 @@ function DashboardContent() {
               key={card.label}
               label={card.label}
               value={card.value}
+              icon={card.icon}
               loading={bannerLoading || summaryErrorState}
             />
           ))}

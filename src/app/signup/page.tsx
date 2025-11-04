@@ -178,7 +178,7 @@ export default function SignupPage() {
                 className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50"
                 disabled={!emailChecked || !emailValid || !passwordStrong || !passwordMatch}
               >
-                다음(이메일 인증)
+                다음
               </button>
             </form>
           )}

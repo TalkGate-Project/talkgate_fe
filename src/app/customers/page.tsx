@@ -251,10 +251,11 @@ function CustomersPage() {
               const file = e.target.files?.[0];
               if (!file) return;
               try {
-                const presign = await AssetsService.presignBulkImport({ fileName: file.name, fileType: file.type || "application/octet-stream" });
+                const fileType = file.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                const presign = await AssetsService.presignBulkImport({ fileName: file.name, fileType });
                 const { uploadUrl, fileUrl, url } = presign.data as any;
                 const putUrl = uploadUrl || url;
-                if (putUrl) await AssetsService.uploadToS3(putUrl, file);
+                if (putUrl) await AssetsService.uploadToS3(putUrl, file, fileType);
                 await CustomersBulkService.createImport({ fileUrl: fileUrl || undefined, fileName: file.name, projectId: projectId! });
                 alert("업로드 요청이 접수되었습니다.");
               } catch (err) {

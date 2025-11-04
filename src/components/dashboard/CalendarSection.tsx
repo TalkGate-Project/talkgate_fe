@@ -8,6 +8,8 @@ import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
 import type { WeeklyScheduleItem } from "@/types/dashboard";
+import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
+import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -103,18 +105,14 @@ export default function CalendarSection() {
       title={<span className="typo-title-2">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
-          <button onClick={goPrev} className="w-[34px] h-[34px] rounded-[5px] border border-border grid place-items-center text-neutral-50">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+          <button onClick={goPrev} className="w-[36px] h-[36px] grid place-items-center">
+            <CalendarPrevIcon />
           </button>
           <div className="px-3 h-[34px] grid place-items-center text-foreground font-[var(--font-montserrat)] font-bold text-[18px] leading-[22px] tracking-[1px]">
             {ym}
           </div>
-          <button onClick={goNext} className="w-[34px] h-[34px] rounded-[5px] border border-border grid place-items-center text-neutral-50">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+          <button onClick={goNext} className="w-[36px] h-[36px] grid place-items-center">
+            <CalendarNextIcon />
           </button>
         </div>
       }

@@ -37,7 +37,12 @@ export type CreateProjectPayload = {
   useAttendanceMenu?: boolean;
 };
 
-export type UpdateProjectPayload = Partial<CreateProjectPayload>;
+export type UpdateProjectPayload = {
+  name?: string;
+  logoUrl?: string;
+  subDomain?: string;
+  useAttendanceMenu?: boolean;
+};
 
 export type CheckSubDomainDuplicateResponse = ApiSuccess<{
   isDuplicate: boolean;

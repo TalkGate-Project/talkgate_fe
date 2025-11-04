@@ -19,7 +19,7 @@ export default function KpiCard({ icon, label, value, className, loading }: KpiC
       </div>
 
       <div
-        className="w-[72px] h-[72px] rounded-[12px] grid place-items-center"
+        className="w-[60px] h-[60px] rounded-[12px] grid place-items-center"
         style={{ background: "color-mix(in srgb, var(--primary-60) 15%, transparent)" }}
       >
         {icon ?? (

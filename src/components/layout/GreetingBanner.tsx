@@ -1,6 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { ProjectsService } from "@/services/projects";
+import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
   userName?: string | null;
@@ -12,6 +17,8 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   const gradient = "linear-gradient(90deg, var(--neutral-0) 65%, color-mix(in srgb, var(--primary-20) 35%, transparent))";
   const displayName = userName ? `${userName}님` : "팀원님";
   const [now] = useState(() => new Date());
+  const [projectId, projectReady] = useSelectedProjectId();
+  
   const formattedNow = useMemo(() => {
     return new Intl.DateTimeFormat("ko-KR", {
       year: "numeric",
@@ -25,6 +32,29 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
       .replace(".", ".");
   }, [now]);
 
+  // 프로젝트 목록 조회
+  const { data: projectsData } = useQuery<ProjectSummary[]>({
+    queryKey: ["projects", "list"],
+    queryFn: async () => {
+      const res = await ProjectsService.list();
+      // API 응답 구조에 따라 안전하게 배열 추출
+      const payload: any = (res as any)?.data;
+      const list = Array.isArray(payload) ? payload : payload?.data;
+      return Array.isArray(list) ? list : [];
+    },
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+    enabled: projectReady,
+  });
+
+  // 현재 선택된 프로젝트 찾기
+  const currentProject = useMemo(() => {
+    if (!projectId || !projectsData || !Array.isArray(projectsData)) return null;
+    return projectsData.find((p: ProjectSummary) => String(p.id) === String(projectId)) || null;
+  }, [projectId, projectsData]);
+
+  const projectName = currentProject?.name || "프로젝트";
+  const projectLogoUrl = currentProject?.logoUrl;
+
   return (
     <section
       className="surface rounded-[32px] p-6 md:p-8 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]"
@@ -36,11 +66,31 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         {/* Left: badge + title + quote */}
         <div className="min-w-0">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-neutral-90 text-neutral-0 grid place-items-center">
-              <span className="text-[14px] font-semibold">X</span>
-            </div>
+            {loading || !projectReady ? (
+              <div className="w-7 h-7 rounded-full bg-neutral-20 animate-pulse" />
+            ) : projectLogoUrl ? (
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-neutral-90 grid place-items-center flex-shrink-0">
+                <Image
+                  src={projectLogoUrl}
+                  alt={projectName}
+                  width={28}
+                  height={28}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-neutral-90 text-neutral-0 grid place-items-center flex-shrink-0">
+                <span className="text-[14px] font-semibold">
+                  {projectName.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
             <div className="text-[16px] font-medium leading-[19px] tracking-[-0.02em] text-neutral-90">
-              거래소 텔레마케팅 관리
+              {loading || !projectReady ? (
+                <span className="inline-flex h-5 w-40 animate-pulse rounded bg-neutral-20" />
+              ) : (
+                projectName
+              )}
             </div>
           </div>
           <h1 className="mt-4 text-[32px] leading-[38px] font-bold tracking-[-0.114286px] text-foreground">
@@ -56,7 +106,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
             ) : todayQuote ? (
               <>“{todayQuote}”</>
             ) : (
-              "투자에서 가장 중요한 것은 시간이다."
+              "-"
             )}
           </p>
         </div>
