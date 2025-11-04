@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MembersService, Member } from "@/services/members";
+import BaseModal from "@/components/common/BaseModal";
 import { useMe } from "@/hooks/useMe";
 
 export type AssignCustomersModalProps = {
@@ -68,9 +69,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={() => !loading && onClose()} />
-      <div className="relative bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] w-[848px] max-w-[92vw] p-6">
+    <BaseModal onClose={() => !loading && onClose()} overlayClassName="bg-black/50" containerClassName="relative w-[848px] max-w-[92vw] rounded-[14px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] p-6" ariaLabel="고객 배정">
         {/* Header row */}
         <div className="flex items-center justify-between">
           <div className="text-[18px] font-bold text-[#000]">고객 배정</div>
@@ -160,8 +159,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

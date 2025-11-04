@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
 import Panel from "@/components/common/Panel";
@@ -16,6 +17,7 @@ import type {
 type RankingMode = "team" | "member";
 
 export default function SalesRanking() {
+  const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -52,7 +54,10 @@ export default function SalesRanking() {
     <Panel
       title={<span className="typo-title-2">이달 판매 랭킹</span>}
       action={
-        <button className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">
+        <button
+          onClick={() => router.push(`/stats?tab=ranking&rank=${mode}`)}
+          className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+        >
           더보기
         </button>
       }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CustomersService } from "@/services/customers";
+import BaseModal from "@/components/common/BaseModal";
 import { CustomerDetail } from "@/types/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 
@@ -117,9 +118,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={() => !loading && onClose()} />
-      <div className="relative bg-white rounded-[14px] w-[92vw] max-w-[1284px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.37)]">
+    <BaseModal onClose={() => !loading && onClose()} overlayClassName="bg-black/50" containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white p-6 shadow-[0_13px_61px_rgba(169,169,169,0.37)]" ariaLabel="고객정보">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-[18px] font-semibold text-[#111827]">고객정보</h2>
@@ -476,8 +475,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

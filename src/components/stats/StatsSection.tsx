@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
 import {
@@ -19,6 +20,7 @@ import type { CustomerPaymentWeeklyRecord, CustomerPaymentWeeklyResponse } from 
 const WEEKS = 6;
 
 export default function StatsSection() {
+  const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -54,7 +56,7 @@ export default function StatsSection() {
   return (
     <Panel
       title={<span className="typo-title-2">주간 매출 통계</span>}
-      action={<button className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
+      action={<button onClick={() => router.push("/stats?tab=payment")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
       className="rounded-[14px]"
       style={{ height: 420 }}
       bodyClassName="px-6 pb-6 pt-4"

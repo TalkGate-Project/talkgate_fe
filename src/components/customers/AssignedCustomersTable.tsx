@@ -6,11 +6,13 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import Panel from "@/components/common/Panel";
+import { useRouter } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { RecentlyAssignedCustomer, RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 
 export default function AssignedCustomersTable() {
+  const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -41,7 +43,7 @@ export default function AssignedCustomersTable() {
     <Panel
       title={<span className="typo-title-2">새로 할당된 고객 ({totalCount})</span>}
       action={
-        <button className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">
+        <button onClick={() => router.push("/customers")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">
           더보기
         </button>
       }

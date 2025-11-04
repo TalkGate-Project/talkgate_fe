@@ -9,6 +9,7 @@ import { AssetsService } from "@/services/assets";
 import FilterModal from "@/components/common/FilterModal";
 import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
 import { CustomersService } from "@/services/customers";
 import Checkbox from "@/components/common/Checkbox";
 import { getSelectedProjectId } from "@/lib/project";
@@ -39,6 +40,7 @@ function CustomersPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isAssignOpen, setAssignOpen] = useState(false);
+  const [isCreateOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ name: string; notes: RecentNote[]; top: number; left: number } | null>(null);
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -290,7 +292,7 @@ function CustomersPage() {
             >
               엑셀 다운로드
             </button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => alert("고객등록 폼은 추후 연결")}>고객등록</button>
+            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => setCreateOpen(true)}>고객등록</button>
             <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] dark:bg-[#E9E9E9] text-[#D0D0D0] dark:text-[#111111] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => setAssignOpen(true)}>일괄배정</button>
           </div>
         }
@@ -451,6 +453,15 @@ function CustomersPage() {
 
       {/* Customer detail modal */}
       <CustomerDetailModal open={detailId !== null} onClose={() => setDetailId(null)} customerId={detailId} />
+
+      {/* Customer create modal */}
+      <CustomerCreateModal
+        open={isCreateOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={async () => {
+          await refetch();
+        }}
+      />
 
       {/* Hover: recent notes popover */}
       {hoverInfo && (
