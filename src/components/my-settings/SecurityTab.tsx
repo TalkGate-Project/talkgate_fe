@@ -1,0 +1,257 @@
+"use client";
+
+import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+
+interface ToggleProps {
+  enabled: boolean;
+  onChange: (enabled: boolean) => void;
+}
+
+function Toggle({ enabled, onChange }: ToggleProps) {
+  return (
+    <button
+      onClick={() => onChange(!enabled)}
+      className={`w-10 h-6 rounded-full transition-colors flex items-center p-0.5 ${
+        enabled ? "bg-primary-60" : "bg-neutral-40"
+      }`}
+    >
+      <div
+        className={`w-4 h-4 rounded-full bg-neutral-0 transition-transform ${
+          enabled ? "translate-x-4" : "translate-x-0"
+        }`}
+      />
+    </button>
+  );
+}
+
+export default function SecurityTab() {
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [changing, setChanging] = useState(false);
+
+  // Mock QR code data
+  const qrCodeValue = "otpauth://totp/YourApp:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=YourApp";
+  const secretCode = "JBSWY3DPEHPK3PXP";
+
+  const handleToggleTwoFactor = (enabled: boolean) => {
+    setTwoFactorEnabled(enabled);
+    if (enabled) {
+      setShowSetup(true);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(secretCode);
+  };
+
+  const handleVerify = () => {
+    console.log("Verify code:", verificationCode);
+    // TODO: Implement verification logic
+  };
+
+  async function onSubmitChangePassword() {
+    try {
+      setChanging(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.changePassword({ currentPassword, newPassword });
+      alert("비밀번호가 변경되었습니다.");
+      setShowChangePw(false);
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (e: any) {
+      alert(e?.data?.message || e?.message || "변경에 실패했습니다");
+    } finally {
+      setChanging(false);
+    }
+  }
+
+  return (
+    <div className="bg-card rounded-[14px] p-8">
+      {/* Title */}
+      <h1 className="text-[24px] font-bold text-foreground mb-4">
+        보안 설정
+      </h1>
+
+      {/* Divider */}
+      <div className="w-full h-[1px] bg-border mb-6"></div>
+
+      {/* 2-Step Verification Section */}
+      <div className="bg-card rounded-[5px] border border-border p-6 mb-6">
+        <div className="text-[16px] font-semibold text-foreground mb-4">2단계 인증</div>
+
+        {/* Divider */}
+        <div className="w-full h-[1px] bg-border opacity-50 mb-4"></div>
+
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="text-[16px] font-semibold text-foreground mb-1">
+              2단계 인증 (2FA)
+            </div>
+            <div className="text-[14px] font-medium text-neutral-60">
+              로그인 시 추가 보안 인증을 사용합니다.
+            </div>
+          </div>
+          <Toggle
+            enabled={twoFactorEnabled}
+            onChange={handleToggleTwoFactor}
+          />
+        </div>
+
+        {/* Setup Steps (shown when enabled) */}
+        {twoFactorEnabled && showSetup && (
+          <div className="mt-8 space-y-8">
+            {/* Step 1: QR Code */}
+            <div>
+              <div className="text-[16px] font-semibold text-foreground mb-1">
+                1단계: 인증 앱 설정
+              </div>
+              <div className="text-[14px] font-medium text-neutral-60 mb-4">
+                Google Authenticator, Authy 등의 인증 앱으로 아래 QR 코드를 스캔하세요.
+              </div>
+
+              {/* QR Code Container */}
+              <div className="w-full bg-neutral-10 rounded-[12px] p-4 mb-4 flex items-center justify-start">
+                <div className="w-[200px] h-[200px]">
+                  <QRCodeSVG
+                    value={qrCodeValue}
+                    size={168}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+
+                {/* Manual Input */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div>
+                    <div className="text-[14px] font-medium text-neutral-60 mb-2">
+                      수동 입력 코드
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={secretCode}
+                        readOnly
+                        className="px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
+                      />
+                      <button
+                        onClick={handleCopy}
+                        className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors"
+                      >
+                        복사
+                      </button>
+                    </div>
+                    <div className="text-[14px] font-medium text-neutral-60 mt-2">
+                      QR 코드를 스캔할 수 없는 경우 위 코드를 수동으로 입력하세요.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Verification */}
+            <div>
+              <div className="text-[16px] font-semibold text-foreground mb-1">
+                2단계: 인증 코드 입력
+              </div>
+              <div className="text-[14px] font-medium text-neutral-60 mb-4">
+                인증 앱에서 생성된 6자리 코드를 입력하세요.
+              </div>
+
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="______"
+                  maxLength={6}
+                  className="w-[137px] px-3 py-2 border border-border rounded-[5px] text-[14px] text-center tracking-[0.2em] text-foreground bg-card"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowSetup(false)}
+                    className="px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleVerify}
+                    className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors"
+                  >
+                    인증
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Change Password Section */}
+      <div className="bg-card rounded-[14px] border border-border p-6 mb-6">
+        <div className="text-[16px] font-semibold text-foreground mb-4">비밀번호 변경</div>
+
+        {/* Divider */}
+        <div className="w-full h-[1px] bg-border mb-4"></div>
+
+        <div className="flex items-center justify-between">
+          <div className="text-[14px] font-medium text-neutral-60">
+            비밀번호를 안전하게 관리하여 계정을 보호하세요.
+          </div>
+          <button onClick={() => setShowChangePw(true)} className="px-4 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors">
+            비밀번호 변경
+          </button>
+        </div>
+
+        {showChangePw && (
+          <div className="mt-4 border border-border rounded-[12px] p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[12px] text-neutral-60 mb-1">현재 비밀번호</label>
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-border px-3 bg-card text-foreground" />
+              </div>
+              <div>
+                <label className="block text-[12px] text-neutral-60 mb-1">새 비밀번호</label>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-border px-3 bg-card text-foreground" />
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <button className="h-[34px] px-3 rounded-[5px] border border-border text-foreground hover:bg-neutral-10" onClick={() => { setShowChangePw(false); setCurrentPassword(""); setNewPassword(""); }}>
+                취소
+              </button>
+              <button disabled={changing} className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-0 disabled:opacity-60" onClick={onSubmitChangePassword}>
+                변경하기
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Account Section */}
+      <div className="bg-card rounded-[14px] border border-danger-10 p-6">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="text-[16px] font-semibold text-danger-40">계정 삭제</div>
+          <div className="px-3 py-0.5 bg-danger-10 text-danger-40 text-[12px] font-medium rounded-[30px]">
+            주의
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="w-full h-[1px] bg-border mb-4"></div>
+
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-[14px] font-medium text-danger-40">
+            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복수할 수 없습니다.
+          </div>
+          <button className="px-4 py-2 bg-danger-40 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors">
+            계정 삭제
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
