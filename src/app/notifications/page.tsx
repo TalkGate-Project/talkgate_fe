@@ -1,86 +1,76 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotificationsService, Notification, NotificationCategory, NotificationType } from "@/services/notifications";
 import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon, NoticeShieldIcon } from "@/components/notice/icons/NoticeIcons";
 
+// API 타입을 UI에서 사용하는 형태로 변환
+type UINotification = Omit<Notification, "isRead"> & { read: boolean };
+
+// API NotificationType을 UI NotificationCategory로 매핑
+const mapNotificationTypeToCategory = (type: NotificationType): NotificationCategory => {
+  switch (type) {
+    case "notice":
+      return "notice";
+    case "customer_assignment":
+      return "customer";
+    default:
+      return "all";
+  }
+};
+
 export function NotificationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<UINotification[]>([]);
   const [counts, setCounts] = useState({ all: 0, notice: 0, customer: 0, system: 0, security: 0, unread: 0 });
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     document.title = "TalkGate - 알림";
   }, []);
 
-  useEffect(() => {
-    const category = (searchParams.get("category") || "all") as NotificationCategory;
-    setActiveCategory(category);
-    setShowUnreadOnly(searchParams.get("unreadOnly") === "true");
-
-    loadNotifications(category);
-  }, [searchParams]);
-
-  const loadNotifications = async (category: NotificationCategory) => {
+  const loadNotifications = useCallback(async (category: NotificationCategory, unreadOnly: boolean) => {
     setLoading(true);
     try {
-      // Mock data
-      const mockNotifications: Notification[] = [
-        {
-          id: 1,
-          type: "notice",
-          title: "새로운 공지사항",
-          content: "새로운 공지사항이 등록되었습니다.",
-          read: false,
-          createdAt: new Date(Date.now() - 4 * 60000).toISOString(),
-        },
-        {
-          id: 2,
-          type: "notice",
-          title: "새로운 공지사항",
-          content: "새로운 공지사항이 등록되었습니다.",
-          read: false,
-          createdAt: new Date(Date.now() - 4 * 60000).toISOString(),
-        },
-        {
-          id: 3,
-          type: "customer",
-          title: "새로운 고객 배정",
-          content: "4명의 고객이 배정되었습니다.",
-          read: true,
-          createdAt: new Date(Date.now() - 4 * 60000).toISOString(),
-        },
-        {
-          id: 4,
-          type: "system",
-          title: "시스템 점검 안내",
-          content: "4명의 고객이 배정되었습니다.",
-          read: true,
-          createdAt: new Date(Date.now() - 4 * 60000).toISOString(),
-        },
-        {
-          id: 5,
-          type: "security",
-          title: "보안 경고 알림",
-          content: "비밀번호가 오래되었습니다. 7일 이내에 변경해주세요.",
-          read: true,
-          createdAt: "2025-10-11T00:00:00Z",
-        },
-      ];
+      // TODO: API에 카테고리별 필터링 기능이 없어서 클라이언트 사이드에서 필터링합니다.
+      // 향후 API에 type 필터 파라미터가 추가되면 서버 사이드 필터링으로 변경 필요
+      const query: { limit?: number; cursor?: number; isRead?: boolean } = {
+        limit: 100, // 충분히 큰 값으로 설정 (페이지네이션은 추후 구현)
+      };
 
-      setNotifications(mockNotifications);
+      if (unreadOnly) {
+        query.isRead = false;
+      }
 
-      const allCount = mockNotifications.length;
-      const unreadCount = mockNotifications.filter((n) => !n.read).length;
-      const noticeCount = mockNotifications.filter((n) => n.type === "notice").length;
-      const customerCount = mockNotifications.filter((n) => n.type === "customer").length;
-      const systemCount = mockNotifications.filter((n) => n.type === "system").length;
-      const securityCount = mockNotifications.filter((n) => n.type === "security").length;
+      const response = await NotificationsService.list(query);
+      
+      // API 타입을 UI 타입으로 변환 (isRead -> read)
+      const uiNotifications: UINotification[] = response.notifications.map((n) => ({
+        ...n,
+        read: n.isRead,
+      }));
+
+      setNotifications(uiNotifications);
+      setNextCursor(response.nextCursor ?? null);
+      setHasMore(response.hasMore);
+
+      // 미읽음 개수 조회
+      const unreadCount = await NotificationsService.getUnreadCount();
+
+      // TODO: API에 카테고리별 카운트 기능이 없어서 클라이언트 사이드에서 계산합니다.
+      // 향후 API에 카테고리별 카운트 엔드포인트가 추가되면 서버 사이드 카운트로 변경 필요
+      const allCount = uiNotifications.length;
+      const noticeCount = uiNotifications.filter((n) => n.type === "notice").length;
+      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment").length;
+      // TODO: system, security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
+      const systemCount = 0;
+      const securityCount = 0;
 
       setCounts({
         all: allCount,
@@ -95,7 +85,16 @@ export function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const category = (searchParams.get("category") || "all") as NotificationCategory;
+    const unreadOnly = searchParams.get("unreadOnly") === "true";
+    setActiveCategory(category);
+    setShowUnreadOnly(unreadOnly);
+
+    loadNotifications(category, unreadOnly);
+  }, [searchParams, loadNotifications]);
 
   const handleCategoryChange = (category: NotificationCategory) => {
     setShowUnreadOnly(false);
@@ -109,9 +108,19 @@ export function NotificationsPage() {
   const handleMarkAllAsRead = async () => {
     try {
       await NotificationsService.markAllAsRead();
-      loadNotifications(activeCategory);
+      loadNotifications(activeCategory, showUnreadOnly);
     } catch (error) {
       console.error("Failed to mark all as read:", error);
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await NotificationsService.markAsRead(notificationId);
+      // 읽음 처리 후 목록 새로고침
+      loadNotifications(activeCategory, showUnreadOnly);
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
     }
   };
 
@@ -119,12 +128,8 @@ export function NotificationsPage() {
     switch (type) {
       case "notice":
         return <NoticeMegaphoneIcon />;
-      case "customer":
+      case "customer_assignment":
         return <NoticeUsersIcon />;
-      case "system":
-        return <NoticeCogIcon />;
-      case "security":
-        return <NoticeShieldIcon />;
       default:
         return null;
     }
@@ -160,12 +165,14 @@ export function NotificationsPage() {
 
   const filteredNotifications = displayedNotifications.filter((n) => {
     if (activeCategory === "all") return true;
-    return n.type === activeCategory;
+    // API 타입을 UI 카테고리로 매핑하여 필터링
+    const category = mapNotificationTypeToCategory(n.type);
+    return category === activeCategory;
   });
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24">
+      <div className="mx-auto max-w-[1324px] px-6 pt-6 pb-24">
         {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
         <section className="bg-card rounded-[14px]">
           <div className="px-7 pt-6 pb-5">
@@ -217,7 +224,7 @@ export function NotificationsPage() {
                         : "border-border font-medium text-foreground opacity-80"
                     }`}
                   >
-                    {categoryLabels[category]} {category !== "all" && counts[category as NotificationType]}
+                    {categoryLabels[category]} {category !== "all" && counts[category]}
                   </button>
                 );
               })}
@@ -241,10 +248,11 @@ export function NotificationsPage() {
                 {filteredNotifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border ${
+                    onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+                    className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border cursor-pointer transition-colors ${
                       !notification.read
-                        ? "bg-notification-unread border-notification-unread"
-                        : "bg-card border-border"
+                        ? "bg-notification-unread border-notification-unread hover:opacity-90"
+                        : "bg-card border-border hover:bg-neutral-10"
                     }`}
                   >
                     <div className="w-6 h-6 flex items-center justify-center">
@@ -279,7 +287,7 @@ export default function NotificationsPageWrapper() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-[1324px] px-6 pt-24 pb-24 text-neutral-60">불러오는 중...</div>
+        <div className="mx-auto max-w-[1324px] px-6 pt-6 pb-24 text-neutral-60">불러오는 중...</div>
       </main>
     }>
       <NotificationsPage />

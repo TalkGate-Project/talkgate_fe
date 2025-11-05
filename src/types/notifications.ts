@@ -2,6 +2,9 @@
 
 export type NotificationType = "customer_assignment" | "notice";
 
+// UI에서 사용하는 카테고리 타입 (필터링용)
+export type NotificationCategory = "all" | "notice" | "customer" | "system" | "security";
+
 export interface Notification {
   id: number;
   type: NotificationType;

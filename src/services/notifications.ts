@@ -4,6 +4,8 @@ import type {
   NotificationListResponse,
   NotificationUnreadCountResponse,
   NotificationListQuery,
+  NotificationCategory,
+  NotificationType,
 } from "@/types/notifications";
 
 // API response wrapper types
@@ -38,4 +40,14 @@ export const NotificationsService = {
     await apiClient.post<ApiSuccessResponse<unknown>>("/v1/notifications/read/all");
   },
 };
+
+// Re-export types for convenience
+export type {
+  Notification,
+  NotificationCategory,
+  NotificationType,
+  NotificationListResponse,
+  NotificationUnreadCountResponse,
+  NotificationListQuery,
+} from "@/types/notifications";
 
