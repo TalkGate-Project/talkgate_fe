@@ -18,6 +18,7 @@ export type RequestOptions = {
   signal?: AbortSignal;
   responseType?: "auto" | "json" | "text" | "blob";
   credentials?: RequestCredentials; // per-request override
+  suppressAutoLogout?: boolean; // if true, do not auto-redirect on 401/403
 };
 
 export type ApiResponse<T> = {
@@ -131,12 +132,13 @@ export class ApiClient {
     try {
       return await exec();
     } catch (err: any) {
-      // If unauthorized, try to refresh once, then retry original request
-      if (err && (err.status === 401 || err.status === 403)) {
+      // If unauthorized (401), try to refresh once, then retry original request.
+      // Do NOT refresh on 403 (forbidden) to avoid unnecessary logout on access control errors.
+      if (err && err.status === 401) {
         const code: string = (err?.data?.code as string) || String(err?.data?.message || "").toUpperCase();
         // Immediate auto-logout for explicit missing token cases
         if (typeof code === "string" && code.toUpperCase().includes("MISSING_AUTHENTICATION_TOKEN")) {
-          this.handleAutoLogout();
+          if (!options.suppressAutoLogout) this.handleAutoLogout();
           throw err;
         }
         try {
@@ -144,7 +146,7 @@ export class ApiClient {
           return await exec();
         } catch (refreshErr) {
           // On refresh failure, auto-logout and rethrow original error
-          this.handleAutoLogout();
+          if (!options.suppressAutoLogout) this.handleAutoLogout();
           throw err;
         }
       }

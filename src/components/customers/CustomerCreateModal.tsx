@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
-import { CustomersService, CreateCustomerMessengerInfo } from "@/services/customers";
+import { CustomersService } from "@/services/customers";
+import type { CreateCustomerMessengerInfo } from "@/types/customers";
 
 type Props = {
   open: boolean;

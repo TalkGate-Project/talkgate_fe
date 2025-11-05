@@ -6,9 +6,14 @@ import type {
 
 export const ConversationsService = {
   linkCustomer(params: { conversationId: number | string; projectId: string; customerId: number }) {
-    return apiClient.patch<ConversationActionResponse>(`/v1/conversations/${params.conversationId}/customer`, { customerId: params.customerId }, {
-      headers: { "x-project-id": params.projectId },
-    });
+    return apiClient.patch<ConversationActionResponse>(
+      `/v1/conversations/${params.conversationId}/customer`,
+      { customerId: params.customerId },
+      {
+        headers: { "x-project-id": params.projectId },
+        suppressAutoLogout: true, // prevent global redirect during investigation
+      }
+    );
   },
   unlinkCustomer(params: { conversationId: number | string; projectId: string }) {
     return apiClient.delete<ConversationActionResponse>(`/v1/conversations/${params.conversationId}/customer`, {

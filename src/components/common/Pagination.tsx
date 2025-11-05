@@ -1,49 +1,56 @@
-import React from 'react';
-import ChevronLeftIcon from './icons/ChevronLeftIcon';
-import ChevronRightIcon from './icons/ChevronRightIcon';
+"use client";
 
-interface PaginationProps {
-  currentPage: number;
+type Props = {
+  page: number;
   totalPages: number;
-  onPageChange: (page: number) => void;
-}
+  onPageChange: (next: number) => void;
+  disabled?: boolean;
+  maxButtons?: number; // default 10
+  className?: string;
+};
 
-export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const pages = Array.from({ length: Math.min(totalPages, 10) }, (_, i) => i + 1);
+export default function Pagination({ page, totalPages, onPageChange, disabled = false, maxButtons = 10, className = "" }: Props) {
+  const safeTotal = Math.max(1, totalPages || 1);
+  const clampedPage = Math.min(Math.max(1, page || 1), safeTotal);
+  const half = Math.floor(maxButtons / 2);
+  const start = Math.max(1, Math.min(clampedPage - half, safeTotal - (maxButtons - 1)));
+  const count = Math.min(maxButtons, safeTotal - start + 1);
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Previous Button */}
+    <div className={`flex items-center gap-2 ${className}`}>
       <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
+        aria-label="prev"
+        className="w-8 h-8 grid place-items-center text-[#B0B0B0] disabled:opacity-40"
+        disabled={disabled || clampedPage <= 1}
+        onClick={() => onPageChange(Math.max(1, clampedPage - 1))}
       >
-        <ChevronLeftIcon className="w-6 h-6" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 19L8 12L15 5" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
-
-      {/* Page Numbers */}
-      {pages.map((page) => (
-        <button
-          key={page}
-          onClick={() => onPageChange(page)}
-          className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-normal ${
-            page === currentPage
-              ? "bg-[#252525] text-white"
-              : "text-[#808080] hover:bg-gray-100"
-          }`}
-        >
-          {page}
-        </button>
-      ))}
-
-      {/* Next Button */}
+      {Array.from({ length: count }).map((_, idx) => {
+        const num = start + idx;
+        const active = num === clampedPage;
+        return (
+          <button
+            key={num}
+            onClick={() => onPageChange(num)}
+            className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${active ? "bg-[#252525] text-white" : "text-[#808080]"}`}
+            disabled={disabled}
+          >
+            {num}
+          </button>
+        );
+      })}
       <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
+        aria-label="next"
+        className="w-8 h-8 grid place-items-center text-[#B0B0B0] disabled:opacity-40"
+        disabled={disabled || clampedPage >= safeTotal}
+        onClick={() => onPageChange(Math.min(safeTotal, clampedPage + 1))}
       >
-        <ChevronRightIcon className="w-6 h-6" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 19L16 12L9 5" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
     </div>
   );

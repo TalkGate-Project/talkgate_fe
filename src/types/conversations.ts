@@ -137,9 +137,16 @@ export type ConversationActionResponse = ApiSuccessResponse<Record<string, unkno
 export type UnconnectedCustomer = {
   id: number;
   name: string;
-  contact1?: string;
-  contact2?: string;
-  assignedMember?: Record<string, unknown> | null;
+  contact1?: string | null;
+  contact2?: string | null;
+  assignedMember?: {
+    id: number;
+    name: string;
+    team?: {
+      id: number;
+      name: string;
+    } | null;
+  } | null;
 };
 
 export type UnconnectedCustomersResponse = ApiSuccessResponse<{
