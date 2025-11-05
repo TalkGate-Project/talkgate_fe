@@ -57,12 +57,12 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   return (
     <section
-      className="surface rounded-[32px] p-6 md:p-8 shadow-[6px_6px_54px_rgba(0,0,0,0.05)]"
+      className="surface rounded-[32px] p-6 md:p-8 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] h-[178px]"
       style={{
         background: gradient,
       }}
     >
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex items-start justify-between gap-6 h-full">
         {/* Left: badge + title + quote */}
         <div className="min-w-0">
           <div className="flex items-center gap-3">
@@ -112,7 +112,8 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         </div>
 
         {/* Right: actions + timestamp */}
-        <div className="flex flex-col items-end gap-3 self-center">
+        <div className="flex flex-col items-end gap-3 justify-between h-full">
+          <div></div>
           <div className="flex items-center gap-3">
             <button className="h-[34px] px-3 rounded-[5px] border border-neutral-50 bg-neutral-0 text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
               ● 퇴근상태

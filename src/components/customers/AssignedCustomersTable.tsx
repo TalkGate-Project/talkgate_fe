@@ -41,7 +41,7 @@ export default function AssignedCustomersTable() {
 
   return (
     <Panel
-      title={<span className="typo-title-2">새로 할당된 고객 ({totalCount})</span>}
+      title={<span className="typo-title-4">새로 배정된 고객</span>}
       action={
         <button onClick={() => router.push("/customers")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">
           더보기

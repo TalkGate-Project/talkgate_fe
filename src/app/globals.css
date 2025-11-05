@@ -352,6 +352,11 @@ body {
 @utility typo-caption-1 { @apply text-caption-1 leading-caption-1 font-medium; }
 @utility typo-caption-2 { @apply text-caption-2 leading-caption-2 font-normal; }
 
+/* Montserrat font utility for KPI values and numeric emphasis */
+@utility font-montserrat {
+  font-family: var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui;
+}
+
 /* Section labels used in docs (Roboto Mono 700 20/32, muted) */
 @utility typo-label {
   font-family: var(--font-roboto-mono), ui-monospace, monospace;

@@ -51,20 +51,20 @@ function DashboardContent() {
   const cards = useMemo(() => {
     if (!summary) {
       return [
-        { label: "최근 배정 고객", value: "-", icon: <RecentCustomersIcon /> },
-        { label: "전체 배정 고객", value: "-", icon: <TotalCustomersIcon /> },
+        { label: "새로 배정된 고객", value: "-", icon: <RecentCustomersIcon /> },
+        { label: "전체 배정된 고객", value: "-", icon: <TotalCustomersIcon /> },
         { label: "결제율", value: "-", icon: <PaymentRateIcon /> },
-        { label: "결제 누적", value: "-", icon: <PaymentAmountIcon /> },
+        { label: "결제누적액", value: "-", icon: <PaymentAmountIcon /> },
       ];
     }
     const rawRate = summary.paymentRate ?? 0;
     const normalizedRate = rawRate > 1 ? rawRate : rawRate * 100;
     const paymentAmount = summary.totalPaymentAmount ?? 0;
     return [
-      { label: "최근 배정 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
-      { label: "전체 배정 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
+      { label: "새로 배정된 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
+      { label: "전체 배정된 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
       { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%`, icon: <PaymentRateIcon /> },
-      { label: "결제 누적", value: `₩ ${paymentAmount.toLocaleString("ko-KR")}`, icon: <PaymentAmountIcon /> },
+      { label: "결제누적액", value: `₩ ${paymentAmount.toLocaleString("ko-KR")}`, icon: <PaymentAmountIcon /> },
     ];
   }, [summary]);
 

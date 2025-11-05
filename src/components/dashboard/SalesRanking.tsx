@@ -52,7 +52,7 @@ export default function SalesRanking() {
 
   return (
     <Panel
-      title={<span className="typo-title-2">이달 판매 랭킹</span>}
+      title={<span className="typo-title-4">이달 판매 랭킹</span>}
       action={
         <button
           onClick={() => router.push(`/stats?tab=ranking&rank=${mode}`)}
@@ -64,7 +64,7 @@ export default function SalesRanking() {
       className="rounded-[14px]"
       style={{ height: 420, boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
     >
-      <div className="w-full bg-neutral-20 rounded-[12px] p-1 grid grid-cols-2">
+      <div className="w-full bg-neutral-20 rounded-[12px] px-3 py-2 grid grid-cols-2">
         <button
           className={`h-[31px] rounded-[5px] typo-title-4 ${mode === "team" ? "bg-card text-foreground" : "text-neutral-60"}`}
           onClick={() => setMode("team")}

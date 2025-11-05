@@ -105,13 +105,13 @@ export default function CalendarSection() {
 
   return (
     <Panel
-      title={<span className="typo-title-2">달력 & 일정</span>}
+      title={<span className="typo-title-4">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
           <button onClick={goPrev} className="w-[36px] h-[36px] grid place-items-center">
             <CalendarPrevIcon />
           </button>
-          <div className="px-3 h-[34px] grid place-items-center text-foreground font-[var(--font-montserrat)] font-bold text-[18px] leading-[22px] tracking-[1px]">
+          <div className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]">
             {ym}
           </div>
           <button onClick={goNext} className="w-[36px] h-[36px] grid place-items-center">
@@ -161,7 +161,7 @@ export default function CalendarSection() {
                   className={`relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
-                    className={`font-[var(--font-montserrat)] text-[16px] leading-[20px] ml-2 mt-2 ${
+                    className={`font-montserrat text-[16px] leading-[20px] ml-2 mt-2 ${
                       isPrevMonth ? "text-neutral-50" : "text-neutral-70"
                     }`}
                   >
