@@ -2,52 +2,31 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Socket } from "socket.io-client";
-import { talkgateSocket, Conversation, ChatMessage } from "@/lib/realtime";
-import { ConversationsService } from "@/services/conversations";
-import type {
-  ConversationEvent,
-  ConversationsListEvent,
-  MessageResultEvent,
-  MessagesListEvent,
-  MessagesMarkedReadEvent,
-  SocketErrorEvent,
-  NewMessageEvent,
-} from "@/types/conversations";
+import { Conversation } from "@/lib/realtime";
+import { useChatController } from "./useChatController";
 import ChatFilterModal from "./ChatFilterModal";
 import EmojiPicker from "./EmojiPicker";
+import ChatInputBar from "./ChatInputBar";
 import CustomerLinkModeModal from "./customer-link/CustomerLinkModeModal";
 import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal";
 import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
 
-type Props = { projectId: number; devMode: boolean };
+type Props = { projectId: number };
 
-export default function ChatView({ projectId, devMode }: Props) {
+export default function ChatView({ projectId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [connected, setConnected] = useState(false);
-  const [socketError, setSocketError] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "album">("list");
   const [filterOpen, setFilterOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [emojiPickerMode, setEmojiPickerMode] = useState<"compact" | "full">("compact");
   const [emojiPickerPosition, setEmojiPickerPosition] = useState({
     x: 0,
     y: 0,
   });
-  const [banner, setBanner] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [linkStep, setLinkStep] = useState<
-    null | "mode" | "existing" | "create"
-  >(null);
-  const socketRef = useRef<Socket | null>(null);
-  const activeIdRef = useRef<number | null>(null);
+  const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const [input, setInput] = useState("");
 
   // Filter state synced with query string: status = all | active | closed
   const statusFromQuery = (searchParams.get("status") || "all").toLowerCase();
@@ -63,14 +42,34 @@ export default function ChatView({ projectId, devMode }: Props) {
     router.replace(`?${params.toString()}`, { scroll: false });
   }
 
-  const activeConversation = useMemo(
-    () => conversations.find((c) => c.id === activeId) || null,
-    [conversations, activeId]
-  );
+  const platformMap: Record<string, "line" | "telegram" | "instagram" | undefined> = {
+    telegram: "telegram",
+    instagram: "instagram",
+    line: "line",
+  };
+  const platformQuery = (searchParams.get("platform") || "").toLowerCase();
+  const platform = platformMap[platformQuery];
 
-  useEffect(() => {
-    activeIdRef.current = activeId;
-  }, [activeId]);
+  const {
+    connected,
+    socketError,
+    conversations,
+    activeId,
+    setActiveId,
+    activeConversation,
+    messages,
+    banner,
+    send,
+    linkCustomerToConversation,
+    closeConversation,
+    notify,
+    conversationsPage,
+    messagesPage,
+    loadMoreConversations,
+    loadOlderMessages,
+    attachmentUploading,
+    sendAttachment,
+  } = useChatController({ projectId, status: statusFilter, platform });
 
   useEffect(() => {
     if (linkStep && !activeConversation) {
@@ -78,241 +77,13 @@ export default function ChatView({ projectId, devMode }: Props) {
     }
   }, [linkStep, activeConversation]);
 
-  const showBanner = useCallback(
-    (type: "success" | "error", message: string) => {
-      setBanner({ type, message });
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!banner) return;
-    const timer = window.setTimeout(() => setBanner(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [banner]);
-
-  const getConversationRequest = useCallback(() => {
-    const platformMap: Record<string, string> = {
-      telegram: "telegram",
-      instagram: "instagram",
-      line: "line",
-    };
-    const status = statusFilter === "all" ? undefined : statusFilter;
-    const platformQuery = searchParams.get("platform") || undefined;
-    const platform =
-      platformQuery && platformMap[platformQuery]
-        ? platformMap[platformQuery]
-        : undefined;
-    return { status, platform } as const;
-  }, [statusFilter, searchParams]);
-
-  // Socket connection lifecycle (skip in dev mode)
-  useEffect(() => {
-    if (devMode) return;
-    const socket = talkgateSocket.connect(projectId);
-    socketRef.current = socket;
-
-    const onReady = () => {
-      setConnected(true);
-      setSocketError(null);
-    };
-
-    const onConnectError = (err: any) => {
-      setConnected(false);
-      setSocketError(err?.message || "소켓 연결에 실패했습니다.");
-    };
-
-    const onSocketError = (payload: SocketErrorEvent) => {
-      const code = payload?.code ? `[${payload.code}] ` : "";
-      const message = payload?.message || "알 수 없는 오류";
-      const combined = `${code}${message}`;
-      setSocketError(combined);
-      showBanner("error", combined);
-    };
-
-    const onDisconnect = (reason: any) => {
-      setConnected(false);
-      if (reason !== "io client disconnect") {
-        const msg = `연결이 종료되었습니다: ${String(reason)}`;
-        setSocketError(msg);
-      }
-    };
-
-    const onConversationsList = (payload: ConversationsListEvent) => {
-      const items = payload?.conversations ?? [];
-      setConversations(items);
-      const current = activeIdRef.current;
-      if ((!current || !items.some((c) => c.id === current)) && items[0]?.id) {
-        setActiveId(items[0].id);
-      }
-    };
-
-    const onConversation = (payload: ConversationEvent) => {
-      if (!payload?.conversation) return;
-      setConversations((prev) => {
-        const exists = prev.find((c) => c.id === payload.conversation.id);
-        if (!exists) return [payload.conversation, ...prev];
-        return prev.map((c) =>
-          c.id === payload.conversation.id ? payload.conversation : c
-        );
-      });
-    };
-
-    const onMessagesList = (payload: MessagesListEvent) => {
-      if (!payload || payload.conversationId !== activeIdRef.current) return;
-      setMessages(payload.messages ?? []);
-    };
-
-    const onMessageResult = (payload: MessageResultEvent) => {
-      if (!payload?.success) {
-        const message =
-          payload?.error || payload?.message || "메시지 전송에 실패했습니다.";
-        showBanner("error", message);
-        return;
-      }
-      socket.emit("getMessages", {
-        conversationId: payload.conversationId,
-        limit: 50,
-      });
-    };
-
-    const onNewMessage = (payload: NewMessageEvent) => {
-      if (!payload) return;
-      const { message, conversation } = payload;
-      if (conversation) {
-        setConversations((prev) => {
-          const exists = prev.find((c) => c.id === conversation.id);
-          if (!exists) return [conversation, ...prev];
-          const others = prev.filter((c) => c.id !== conversation.id);
-          return [conversation, ...others];
-        });
-      }
-      const current = activeIdRef.current;
-      if (message?.conversationId === current) {
-        setMessages((prev) => [...prev, message]);
-        if (current) {
-          socket.emit("markMessagesRead", { conversationId: current });
-        }
-      }
-    };
-
-    const onMessagesMarkedRead = (payload: MessagesMarkedReadEvent) => {
-      if (!payload) return;
-      const id = payload.conversationId;
-      setConversations((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c))
-      );
-    };
-
-    socket.on("Ready", onReady);
-    socket.on("connect_error", onConnectError);
-    socket.on("disconnect", onDisconnect);
-    socket.on("error", onSocketError as any);
-    socket.on("conversationsList", onConversationsList as any);
-    socket.on("conversation", onConversation as any);
-    socket.on("messagesList", onMessagesList as any);
-    socket.on("messageResult", onMessageResult as any);
-    socket.on("newMessage", onNewMessage as any);
-    socket.on("messagesMarkedRead", onMessagesMarkedRead as any);
-
-    socket.emit("getConversations", { limit: 20, ...getConversationRequest() });
-
-    return () => {
-      socket.off("Ready", onReady);
-      socket.off("connect_error", onConnectError);
-      socket.off("disconnect", onDisconnect);
-      socket.off("error", onSocketError as any);
-      socket.off("conversationsList", onConversationsList as any);
-      socket.off("conversation", onConversation as any);
-      socket.off("messagesList", onMessagesList as any);
-      socket.off("messageResult", onMessageResult as any);
-      socket.off("newMessage", onNewMessage as any);
-      socket.off("messagesMarkedRead", onMessagesMarkedRead as any);
-    };
-  }, [projectId, devMode, getConversationRequest, showBanner]);
-
-  useEffect(() => {
-    if (devMode || !activeId) return;
-    const socket = socketRef.current;
-    if (!socket) return;
-    socket.emit("getMessages", { conversationId: activeId, limit: 50 });
-    socket.emit("markMessagesRead", { conversationId: activeId });
-  }, [activeId, devMode]);
-
-  useEffect(() => {
-    if (activeId !== null) return;
-    setMessages([]);
-  }, [activeId]);
-
-  const linkCustomerToConversation = useCallback(
-    async (customerId: number) => {
-      if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
-      try {
-        const response = await ConversationsService.linkCustomer({
-          conversationId: activeId,
-          projectId: String(projectId),
-          customerId,
-        });
-        if (!response.data?.result)
-          throw new Error("고객 연동에 실패했습니다.");
-        setConversations((prev) =>
-          prev.map((c) => (c.id === activeId ? { ...c, customerId } : c))
-        );
-        socketRef.current?.emit("getConversationById", { id: activeId });
-        socketRef.current?.emit("getConversations", {
-          limit: 20,
-          ...getConversationRequest(),
-        });
-        showBanner("success", "고객 연동이 완료되었습니다.");
-      } catch (err: any) {
-        const message =
-          err?.data?.message || err?.message || "고객 연동에 실패했습니다.";
-        showBanner("error", message);
-        throw new Error(message);
-      }
-    },
-    [activeId, projectId, getConversationRequest, showBanner]
-  );
-
-  const handleCloseConversation = useCallback(async () => {
-    if (!activeId) {
-      showBanner("error", "대화방을 먼저 선택해주세요.");
-      return;
-    }
-    if (typeof window !== "undefined") {
-      const confirmed = window.confirm("현재 상담을 완료 처리하시겠습니까?");
-      if (!confirmed) return;
-    }
-    try {
-      const response = await ConversationsService.close({
-        conversationId: activeId,
-        projectId: String(projectId),
-      });
-      if (!response.data?.result)
-        throw new Error("상담 완료 처리에 실패했습니다.");
-      setConversations((prev) =>
-        prev.map((c) => (c.id === activeId ? { ...c, status: "closed" } : c))
-      );
-      showBanner("success", "상담을 완료 처리했습니다.");
-      socketRef.current?.emit("getConversationById", { id: activeId });
-      socketRef.current?.emit("getConversations", {
-        limit: 20,
-        ...getConversationRequest(),
-      });
-    } catch (err: any) {
-      const message =
-        err?.data?.message || err?.message || "상담 완료 처리에 실패했습니다.";
-      showBanner("error", message);
-    }
-  }, [activeId, projectId, getConversationRequest, showBanner]);
-
   const openLinkFlow = useCallback(() => {
     if (!activeId) {
-      showBanner("error", "대화방을 먼저 선택해주세요.");
+      notify("error", "대화방을 먼저 선택해주세요.");
       return;
     }
     setLinkStep("mode");
-  }, [activeId, showBanner]);
+  }, [activeId, notify]);
 
   const closeLinkFlow = useCallback(() => {
     setLinkStep(null);
@@ -326,239 +97,58 @@ export default function ChatView({ projectId, devMode }: Props) {
     [linkCustomerToConversation]
   );
 
-  // Dev mode: seed dummy data
-  useEffect(() => {
-    if (!devMode) return;
-    const dummyConvs = [
-      {
-        id: 1,
-        memberId: 1,
-        platform: "instagram",
-        platformConversationId: "younghee_kim",
-        name: "김영희",
-        status: "active",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 0,
-        latestMessage: {
-          id: 1,
-          conversationId: 1,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "안녕하세요. 문의드릴게 있습니다.",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-      {
-        id: 2,
-        memberId: 1,
-        platform: "line",
-        platformConversationId: "line_user",
-        name: "김직원",
-        status: "active",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 0,
-        latestMessage: {
-          id: 2,
-          conversationId: 2,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "상담 예약하고 싶습니다.",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-      {
-        id: 3,
-        memberId: 1,
-        platform: "kakao",
-        platformConversationId: "kakao_user",
-        name: "이영민",
-        status: "closed",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 5,
-        latestMessage: {
-          id: 3,
-          conversationId: 3,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "앞으로의 결과는 어떤가요?",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-      {
-        id: 4,
-        memberId: 1,
-        platform: "telegram",
-        platformConversationId: "tg_user",
-        name: "박영훈",
-        status: "active",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 5,
-        latestMessage: {
-          id: 4,
-          conversationId: 4,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "문의드릴게 있습니다.",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-      {
-        id: 5,
-        memberId: 1,
-        platform: "x",
-        platformConversationId: "x_user",
-        name: "오민지",
-        status: "closed",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 5,
-        latestMessage: {
-          id: 5,
-          conversationId: 5,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "문의드릴게 있습니다.",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-      {
-        id: 6,
-        memberId: 1,
-        platform: "facebook",
-        platformConversationId: "fb_user",
-        name: "김민지",
-        status: "active",
-        lastActivityAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        unreadCount: 5,
-        latestMessage: {
-          id: 6,
-          conversationId: 6,
-          type: "text",
-          direction: "incoming",
-          status: "done",
-          content: "문의드릴게 있습니다.",
-          sentAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any,
-      } as any,
-    ] as Conversation[];
-    setConversations(dummyConvs);
-    setActiveId(1);
-    setMessages([
-      {
-        id: 1,
-        conversationId: 1,
-        type: "text",
-        direction: "incoming",
-        status: "done",
-        content:
-          "안녕하세요, OOO 상품 관련해서 문의드립니다. 광고를 보고 관심이 생겼는데, 가장 핵심적인 혜택과 다른 상품과의 큰 차이점이 뭔지 자세히 알고 싶습니다. 지금 바로 상담 가능한가요?",
-        sentAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as any,
-      {
-        id: 2,
-        conversationId: 1,
-        type: "text",
-        direction: "outgoing",
-        status: "done",
-        content:
-          "안녕하세요, [Talkgate] 상담사 김민지입니다. 무엇을 도와드릴까요?",
-        sentAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as any,
-      {
-        id: 3,
-        conversationId: 1,
-        type: "text",
-        direction: "incoming",
-        status: "done",
-        content: "위의 질문과 동일합니다. 확인바랍니다.",
-        sentAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as any,
-    ] as any);
-  }, [devMode]);
-
-  function send() {
-    if (!input.trim() || !activeId) return;
-    if (devMode) {
-      const now = new Date().toISOString();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Number(now),
-          conversationId: activeId,
-          type: "text",
-          direction: "outgoing",
-          status: "done",
-          content: input,
-          sentAt: now,
-          createdAt: now,
-          updatedAt: now,
-        } as ChatMessage,
-      ]);
-      setInput("");
-      return;
-    }
-
-    const socket = socketRef.current;
-    if (!socket) {
-      showBanner("error", "소켓 연결 상태를 확인해주세요.");
-      return;
-    }
-    socket.emit("sendMessage", {
-      conversationId: activeId,
-      content: input,
-      messageType: "text",
-    });
+  function onSend() {
+    if (!input.trim()) return;
+    send(input);
     setInput("");
   }
 
   function handleEmojiButtonClick() {
+    // 토글: 열려 있으면 닫기, 닫혀 있으면 compact로 열기
+    if (emojiPickerOpen) {
+      setEmojiPickerOpen(false);
+      return;
+    }
     if (emojiButtonRef.current) {
       const rect = emojiButtonRef.current.getBoundingClientRect();
       setEmojiPickerPosition({
-        x: rect.left - 108, // 피커 너비의 절반만큼 왼쪽으로 이동
+        x: rect.left - 108,
         y: rect.top,
       });
     }
+    setEmojiPickerMode("compact");
     setEmojiPickerOpen(true);
   }
 
   function handleEmojiSelect(emoji: string) {
     setInput((prev) => prev + emoji);
   }
+
+  // File inputs for attachments
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const onAttachImage = useCallback(() => {
+    imageInputRef.current?.click();
+  }, []);
+  const onAttachFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+  const onImageSelected = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) sendAttachment(file);
+      e.target.value = ""; // allow re-select same file
+    },
+    [sendAttachment]
+  );
+  const onFileSelected = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) sendAttachment(file);
+      e.target.value = "";
+    },
+    [sendAttachment]
+  );
 
   // Filtered conversations according to status
   const filteredConversations = useMemo(() => {
@@ -579,7 +169,26 @@ export default function ChatView({ projectId, devMode }: Props) {
       const first = filteredConversations[0].id;
       setActiveId(first);
     }
-  }, [statusFilter, filteredConversations, activeId]);
+  }, [statusFilter, filteredConversations, activeId, setActiveId]);
+
+  const convScrollRef = useRef<HTMLDivElement | null>(null);
+  const onConversationsScroll = useCallback(() => {
+    const el = convScrollRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) {
+      loadMoreConversations();
+    }
+  }, [loadMoreConversations]);
+
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
+  const onMessagesScroll = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    if (el.scrollTop <= 48) {
+      // load older messages when near top
+      loadOlderMessages();
+    }
+  }, [loadOlderMessages]);
 
   return (
     <div className="grid grid-cols-12 gap-6">
@@ -731,7 +340,11 @@ export default function ChatView({ projectId, devMode }: Props) {
           </div>
           {/* List/Album */}
           {viewMode === "list" ? (
-            <div className="mt-4 h-[calc(840px-170px)] overflow-auto">
+            <div
+              className="mt-4 h-[calc(840px-170px)] overflow-auto"
+              ref={convScrollRef}
+              onScroll={onConversationsScroll}
+            >
               {filteredConversations.map((c) => (
                 <button
                   key={c.id}
@@ -859,7 +472,7 @@ export default function ChatView({ projectId, devMode }: Props) {
               </button>
               <button
                 className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleCloseConversation}
+                onClick={closeConversation}
                 disabled={
                   !activeConversation || activeConversation?.status === "closed"
                 }
@@ -871,7 +484,11 @@ export default function ChatView({ projectId, devMode }: Props) {
             </div>
           </div>
           {/* Messages area */}
-          <div className="flex-1 overflow-auto p-6 space-y-6">
+          <div
+            className="flex-1 overflow-auto p-6 space-y-6"
+            ref={messagesScrollRef}
+            onScroll={onMessagesScroll}
+          >
             {banner && (
               <div
                 className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${
@@ -925,88 +542,17 @@ export default function ChatView({ projectId, devMode }: Props) {
             ))}
           </div>
           {/* Input bar */}
-          <div className="h-[76px] px-6 border-t border-[#E2E2E2] dark:border-[#444444]">
-            <div className="h-full flex items-center gap-1">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="flex-1 h-[44px] rounded-[8px] px-4 text-[12px] outline-none"
-                placeholder="메세지를 입력하세요."
-              />
-              {/* 이미지 첨부 */}
-              <button
-                aria-label="attach image"
-                className="w-9 h-9 grid place-items-center"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M4 16L8.58579 11.4142C9.36683 10.6332 10.6332 10.6332 11.4142 11.4142L16 16M14 14L15.5858 12.4142C16.3668 11.6332 17.6332 11.6332 18.4142 12.4142L20 14M14 8H14.01M6 20H18C19.1046 20 20 19.1046 20 18V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V18C4 19.1046 4.89543 20 6 20Z"
-                    stroke="#B0B0B0"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {/* 파일 첨부 */}
-              <button
-                aria-label="attach file"
-                className="w-9 h-9 grid place-items-center"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15.1716 7L8.58579 13.5858C7.80474 14.3668 7.80474 15.6332 8.58579 16.4142C9.36684 17.1953 10.6332 17.1953 11.4142 16.4142L17.8284 9.82843C19.3905 8.26633 19.3905 5.73367 17.8284 4.17157C16.2663 2.60948 13.7337 2.60948 12.1716 4.17157L5.75736 10.7574C3.41421 13.1005 3.41421 16.8995 5.75736 19.2426C8.1005 21.5858 11.8995 21.5858 14.2426 19.2426L20.5 13"
-                    stroke="#B0B0B0"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {/* 이모지 */}
-              <button
-                ref={emojiButtonRef}
-                aria-label="emoji"
-                className="w-9 h-9 grid place-items-center"
-                onClick={handleEmojiButtonClick}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M14.8284 14.8284C13.2663 16.3905 10.7337 16.3905 9.17157 14.8284M9 10H9.01M15 10H15.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                    stroke="#B0B0B0"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <button
-                className="h-[48px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] disabled:opacity-50"
-                onClick={send}
-                disabled={!connected}
-              >
-                전송하기
-              </button>
-            </div>
-          </div>
+          <ChatInputBar
+            input={input}
+            onInputChange={setInput}
+            onSend={onSend}
+            connected={connected}
+            onClickEmoji={handleEmojiButtonClick}
+            emojiButtonRef={emojiButtonRef}
+            onAttachImage={onAttachImage}
+            onAttachFile={onAttachFile}
+            attachmentUploading={attachmentUploading}
+          />
         </div>
       </div>
 
@@ -1070,6 +616,23 @@ export default function ChatView({ projectId, devMode }: Props) {
         onClose={() => setEmojiPickerOpen(false)}
         onEmojiSelect={handleEmojiSelect}
         position={emojiPickerPosition}
+        mode={emojiPickerMode}
+        onToggleMode={(m) => setEmojiPickerMode(m)}
+      />
+
+      {/* Hidden file inputs */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onImageSelected}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={onFileSelected}
       />
 
       <CustomerLinkModeModal
