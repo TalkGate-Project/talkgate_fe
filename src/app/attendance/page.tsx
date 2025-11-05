@@ -109,7 +109,7 @@ export default function AttendancePage() {
   };
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12 bg-background">
+    <main className="container mx-auto max-w-[1324px] pt-6 pb-12 bg-background">
       {/* Top panel: title + date selector */}
       <Panel
         className="rounded-[14px] mb-4"

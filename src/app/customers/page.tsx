@@ -116,7 +116,7 @@ function CustomersPage() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] min-h-screen pt-[90px] pb-12 text-[#252525] dark:text-[#E9E9E9]">
+    <main className="container mx-auto max-w-[1324px] min-h-screen pt-6 pb-12 text-[#252525] dark:text-[#E9E9E9]">
       {/* Top panel: title + search */}
       <Panel
         className="rounded-[14px] mb-4"

@@ -119,9 +119,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
         // initial load/refresh
         setConversations(items);
       }
-      const current = activeIdRef.current;
-      if ((!current || !items.some((c) => c.id === current)) && items[0]?.id) {
-        setActiveId(items[0].id);
+      // Do not auto-select a conversation; keep current selection if still present
+      const current = activeIdRef.copy ? (activeIdRef as any).current : activeIdRef.current;
+      if (current && !items.some((c) => c.id === current)) {
+        setActiveId(null);
       }
     };
 

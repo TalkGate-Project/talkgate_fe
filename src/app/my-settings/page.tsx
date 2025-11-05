@@ -9,7 +9,7 @@ export default function MySettingsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background pt-[90px] pb-12">
+    <main className="min-h-screen bg-background pt-6 pb-12">
       <div className="container mx-auto max-w-[1324px] px-4">
         <Suspense fallback={
           <div className="flex gap-6">
