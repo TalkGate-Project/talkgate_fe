@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import { setSelectedProjectId } from "@/lib/project";
+import Image from "next/image";
 
 export default function ProjectsPage() {
     const router = useRouter();
@@ -36,7 +37,7 @@ export default function ProjectsPage() {
 
     return (
         <main className="min-h-screen bg-white dark:bg-[#111111]">
-            <div className="max-w-[1200px] mx-auto px-6 pt-24 pb-24">
+            <div className="max-w-[1428px] mx-auto px-6 pt-24 pb-24">
                 <h1 className="text-[32px] leading-[38px] font-bold text-[#252525] text-center">프로젝트 선택</h1>
                 <p className="text-[18px] leading-[21px] text-[#808080] text-center mt-4">
                     관리할 서비스를 선택하거나 새로운 서비스를 생성하세요
@@ -51,19 +52,32 @@ export default function ProjectsPage() {
                         <div className="col-span-full text-center text-[#808080]">표시할 프로젝트가 없습니다.</div>
                     )}
                     {projects.map((p: any) => (
-                        <div key={p.id} className="rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white p-6 border border-transparent hover:border-[#00E272] transition-colors duration-200">
-                            <div className="flex items-center justify-between">
-                                <div className="text-[18px] font-semibold text-[#000]">{p.name}</div>
-                                <span className="text-[12px] text-[#808080]">멤버 {p.memberCount ?? 0}명</span>
+                        <div key={p.id} className="md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white p-6 border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    {p.logoUrl ? (
+                                        <img src={p.logoUrl} alt={`${p.name} 로고`} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                                    ) : (
+                                        <div className="w-7 h-7 rounded-full bg-[#EDEDED]" />
+                                    )}
+                                    <div className="text-[18px] font-semibold text-[#000] truncate">{p.name}</div>
+                                </div>
+                                <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-60 traslate-y-[-2px]">멤버 {p.memberCount ?? 0}명</div>
                             </div>
                             <div className="grid grid-cols-2 gap-6 mt-5">
-                                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5">
-                                    <div className="text-[16px] font-semibold text-[#252525]">나에게 할당된 고객</div>
-                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.assignedCustomerCount ?? 0}건</div>
+                                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-[16px] font-semibold text-[#252525]">나에게 할당된 고객</div>
+                                        <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.assignedCustomerCount ?? 0}건</div>
+                                    </div>
+                                    <Image src="/project-assigned-customer.png" alt="할당 고객 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
                                 </div>
-                                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5">
-                                    <div className="text-[16px] font-semibold text-[#252525]">오늘 예약 일정</div>
-                                    <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.todayScheduleCount ?? 0}건</div>
+                                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-[16px] font-semibold text-[#252525]">오늘 예약 일정</div>
+                                        <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.todayScheduleCount ?? 0}건</div>
+                                    </div>
+                                    <Image src="/project-reserved-item.png" alt="예약 일정 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
                                 </div>
                             </div>
                             <div className="mt-6 flex justify-end">
