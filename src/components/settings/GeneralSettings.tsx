@@ -37,17 +37,17 @@ export default function GeneralSettings() {
   };
 
   const handleDeleteService = () => {
-    console.log("Service deleted:", serviceName);
-    // 실제 구현에서는 서비스 삭제 API 호출
+    console.log("Project deleted:", serviceName);
+    // 실제 구현에서는 프로젝트 삭제 API 호출
   };
 
   return (
     <div className="bg-card rounded-[14px] shadow-sm p-6">
       <h1 className="text-[24px] font-bold text-foreground mb-8">일반설정</h1>
 
-      {/* 서비스 이름 */}
+      {/* 프로젝트 이름 */}
       <div className="mb-8">
-        <h3 className="text-[16px] font-semibold text-foreground mb-4">서비스 이름</h3>
+        <h3 className="text-[16px] font-semibold text-foreground mb-4">프로젝트 이름</h3>
         <div className="flex gap-3">
           <input
             type="text"
@@ -108,10 +108,10 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      {/* 서비스 기능 */}
+      {/* 프로젝트 기능 */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="text-[16px] font-semibold text-foreground">서비스 기능</h3>
+          <h3 className="text-[16px] font-semibold text-foreground">프로젝트 기능</h3>
           <span className="px-2 py-1 bg-primary-10 text-[12px] font-medium text-primary-80 rounded-[4px]">
             관리자 전용
           </span>
@@ -135,22 +135,22 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      {/* 서비스 삭제 */}
+      {/* 프로젝트 삭제 */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="text-[16px] font-semibold text-foreground">서비스 삭제</h3>
+          <h3 className="text-[16px] font-semibold text-foreground">프로젝트 삭제</h3>
           <span className="px-2 py-1 bg-danger-10 text-[12px] font-medium text-danger-40 rounded-[4px]">
             주의
           </span>
         </div>
         <p className="text-[14px] text-danger-40 mb-4">
-          서비스를 삭제하면 모든 데이터가 영구적으로 삭제되며 복수할 수 없습니다.
+          프로젝트를 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
         </p>
         <button 
           onClick={() => setIsDeleteModalOpen(true)}
           className="px-4 py-2 bg-danger-40 text-neutral-0 text-[14px] font-medium rounded-[5px] hover:opacity-90 transition-colors"
         >
-          서비스 삭제
+          프로젝트 삭제
         </button>
       </div>
 

@@ -125,6 +125,14 @@ function CustomersPage() {
     }
   };
 
+  // Keep URL in sync for pagination/limit so data fetching follows
+  function pushPage(nextPage: number, nextLimit?: number) {
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set("page", String(nextPage));
+    params.set("limit", String(nextLimit ?? limit));
+    router.push(`/customers?${params.toString()}`, { scroll: false });
+  }
+
   function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
       <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-[#F2F2F2] dark:bg-[#222222]">
@@ -391,7 +399,11 @@ function CustomersPage() {
           <div className="text-[#B0B0B0] dark:text-[#959595] text-[14px]">총 {data?.data.total ?? 0}건 ({selectedIds.length}개 선택)</div>
           <div className="flex items-center gap-2">
             <button aria-label="prev" disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => {
+                const next = Math.max(1, page - 1);
+                setPage(next);
+                pushPage(next);
+              }}
               className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40">
               <span className="block w-4 h-4 border-2 border-current rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
             </button>
@@ -400,11 +412,15 @@ function CustomersPage() {
               const num = start + i;
               const isActive = num === page;
               return (
-                <button key={i} onClick={() => setPage(num)} className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${isActive ? "bg-[#252525] dark:bg-[#E9E9E9] text-white dark:text-[#111111]" : "text-[#808080] dark:text-[#B9B9B9]"}`}>{num}</button>
+                <button key={i} onClick={() => { setPage(num); pushPage(num); }} className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${isActive ? "bg-[#252525] dark:bg-[#E9E9E9] text-white dark:text-[#111111]" : "text-[#808080] dark:text-[#B9B9B9]"}`}>{num}</button>
               );
             })}
             <button aria-label="next" disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => {
+                const next = Math.min(totalPages, page + 1);
+                setPage(next);
+                pushPage(next);
+              }}
               className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40">
               <span className="block w-4 h-4 border-2 border-current -rotate-90" style={{ borderLeft: "transparent", borderBottom: "transparent" }} />
             </button>
@@ -413,8 +429,10 @@ function CustomersPage() {
             className="h-[34px] px-2 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-[#111111] text-[#252525] dark:text-[#FDFDFD]"
             value={String(limit)}
             onChange={(e) => {
-              setLimit(Number(e.target.value));
+              const nextLimit = Number(e.target.value);
+              setLimit(nextLimit);
               setPage(1);
+              pushPage(1, nextLimit);
             }}
           >
             {[10, 20, 50].map((n) => (

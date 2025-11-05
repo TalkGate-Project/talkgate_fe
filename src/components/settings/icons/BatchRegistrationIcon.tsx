@@ -5,32 +5,8 @@ interface BatchRegistrationIconProps {
 
 export default function BatchRegistrationIcon({ isActive = false, className = "" }: BatchRegistrationIconProps) {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      className={className}
-    >
-      <path
-        d="M4 2C2.89543 2 2 2.89543 2 4V16C2 17.1046 2.89543 18 4 18H16C17.1046 18 18 17.1046 18 16V4C18 2.89543 17.1046 2 16 2H4Z"
-        stroke={isActive ? "#00C851" : "#808080"}
-        strokeWidth="1.5"
-        fill="none"
-      />
-      <path
-        d="M6 6H14M6 10H14M6 14H10"
-        stroke={isActive ? "#00C851" : "#808080"}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M15 6L17 8L15 10"
-        stroke={isActive ? "#00C851" : "#808080"}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M19 11H5M19 11C20.1046 11 21 11.8954 21 13V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V13C3 11.8954 3.89543 11 5 11M19 11V9C19 7.89543 18.1046 7 17 7M5 11V9C5 7.89543 5.89543 7 7 7M7 7V5C7 3.89543 7.89543 3 9 3H15C16.1046 3 17 3.89543 17 5V7M7 7H17" stroke={isActive ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }

@@ -70,7 +70,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
     <div className="w-[280px] max-h-[530px] bg-card rounded-[14px] shadow-sm p-6">
       {/* 헤더 */}
       <div className="mb-8">
-        <h2 className="text-[18px] font-bold text-foreground mb-1">서비스 설정</h2>
+        <h2 className="text-[18px] font-bold text-foreground mb-1">프로젝트 설정</h2>
         <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
       </div>
 

@@ -63,7 +63,7 @@ export default function ServiceDeleteModal({
         <div className="p-8 h-full flex flex-col">
           {/* Header */}
           <div className="text-[#D83232] text-[18px] font-semibold mb-8">
-            서비스 삭제확인
+            프로젝트 삭제확인
           </div>
 
           {/* Warning Icon */}
@@ -76,7 +76,7 @@ export default function ServiceDeleteModal({
           {/* Main Warning */}
           <div className="text-center mb-8">
             <div className="text-[#D83232] text-[18px] font-semibold mb-2">
-              정말로 서비스를 삭제하시겠습니까?
+              정말로 프로젝트를 삭제하시겠습니까?
             </div>
             <div className="text-[#000000] text-[14px] font-medium">
               이 작업은 되돌릴 수 없으며, 다음 데이터가 영구적으로 삭제됩니다
@@ -97,7 +97,7 @@ export default function ServiceDeleteModal({
           {/* Confirmation Input */}
           <div className="bg-[#F8F8F8] rounded-[5px] p-6 mb-6">
             <div className="text-[#000000] text-[14px] font-medium mb-3">
-              서비스 삭제를 확인하려면 아래에 이름 "{serviceName}"을 정확히 입력하세요.
+              프로젝트 삭제를 확인하려면 아래에 이름 "{serviceName}"을 정확히 입력하세요.
             </div>
             <input
               type="text"
@@ -128,7 +128,7 @@ export default function ServiceDeleteModal({
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              서비스 삭제
+              프로젝트 삭제
             </button>
           </div>
         </div>
