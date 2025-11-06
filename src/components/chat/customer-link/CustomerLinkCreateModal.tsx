@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import BaseModal from "@/components/common/BaseModal";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
 
@@ -13,19 +14,10 @@ type Props = {
   onLink: (customerId: number) => Promise<void>;
 };
 
-type MessengerCandidate = {
+type MessengerAccount = {
   messenger: string;
   account: string;
 };
-
-const messengerOptions: Array<{ value: string; label: string }> = [
-  { value: "line", label: "라인" },
-  { value: "telegram", label: "텔레그램" },
-  { value: "instagram", label: "인스타그램" },
-  { value: "kakao", label: "카카오톡" },
-  { value: "facebook", label: "페이스북" },
-  { value: "etc", label: "기타" },
-];
 
 export default function CustomerLinkCreateModal({
   open,
@@ -35,269 +27,475 @@ export default function CustomerLinkCreateModal({
   conversationName,
   onLink,
 }: Props) {
+  const [submitting, setSubmitting] = useState(false);
+
+  // 기본 정보
   const [name, setName] = useState("");
-  const [contact1, setContact1] = useState("");
   const [contact1Type, setContact1Type] = useState("휴대폰");
+  const [contact1, setContact1] = useState("");
   const [contact2Type, setContact2Type] = useState("집");
   const [contact2, setContact2] = useState("");
-  const [residentFront, setResidentFront] = useState("");
-  const [residentBack, setResidentBack] = useState("");
+  const [residentId1, setResidentId1] = useState("");
+  const [residentId2, setResidentId2] = useState("");
   const [ageRange, setAgeRange] = useState("");
   const [job, setJob] = useState("");
-  const [messengerType, setMessengerType] = useState(messengerOptions[0].value);
-  const [messengerAccount, setMessengerAccount] = useState("");
-  const [messengers, setMessengers] = useState<MessengerCandidate[]>([]);
+
+  // 메신저 계정
+  const [messengerAccounts, setMessengerAccounts] = useState<MessengerAccount[]>([]);
+  const [currentMessengerType, setCurrentMessengerType] = useState("기타");
+  const [currentMessengerAccount, setCurrentMessengerAccount] = useState("");
+
+  // 데이터 정보
   const [applicationRoute, setApplicationRoute] = useState("");
   const [site, setSite] = useState("");
   const [mediaCompany, setMediaCompany] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const resetForm = useCallback(() => {
+  const contactTypes = ["휴대폰", "집", "회사", "기타"];
+  const messengerTypes = ["라인", "카카오톡", "텔레그램", "인스타그램", "기타"];
+
+  const handleReset = () => {
     setName("");
-    setContact1("");
     setContact1Type("휴대폰");
+    setContact1("");
     setContact2Type("집");
     setContact2("");
-    setResidentFront("");
-    setResidentBack("");
+    setResidentId1("");
+    setResidentId2("");
     setAgeRange("");
     setJob("");
-    setMessengerType(messengerOptions[0].value);
-    setMessengerAccount("");
-    setMessengers([]);
+    setMessengerAccounts([]);
+    setCurrentMessengerType("기타");
+    setCurrentMessengerAccount("");
     setApplicationRoute("");
     setSite("");
     setMediaCompany("");
     setSpecialNotes("");
-    setError(null);
-  }, []);
+  };
 
   useEffect(() => {
     if (open) {
-      resetForm();
+      handleReset();
     }
-  }, [open, resetForm]);
-
-  const formattedMessengers = useMemo<CreateCustomerMessengerInfo[] | undefined>(() => {
-    if (!messengers.length) return undefined;
-    return messengers.map((m) => ({ messenger: m.messenger, account: m.account }));
-  }, [messengers]);
+  }, [open]);
 
   const handleAddMessenger = () => {
-    const trimmed = messengerAccount.trim();
-    if (!trimmed) return;
-    const exists = messengers.some((m) => m.messenger === messengerType && m.account === trimmed);
-    if (exists) {
-      setError("이미 동일한 메신저 계정이 추가되어 있습니다.");
-      return;
-    }
-    setMessengers((prev) => [...prev, { messenger: messengerType, account: trimmed }]);
-    setMessengerAccount("");
-    setError(null);
+    if (!currentMessengerAccount.trim()) return;
+    setMessengerAccounts((prev) => [...prev, { messenger: currentMessengerType, account: currentMessengerAccount.trim() }]);
+    setCurrentMessengerAccount("");
+  };
+
+  const handleRemoveMessenger = (index: number) => {
+    setMessengerAccounts((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
     if (!name.trim() || !contact1.trim()) {
-      setError("이름과 연락처1은 필수 항목입니다.");
+      alert("이름과 연락처1은 필수입니다.");
       return;
     }
-    setLoading(true);
-    setError(null);
+    setSubmitting(true);
     try {
-      const residentId = residentFront && residentBack ? `${residentFront}-${residentBack}` : undefined;
+      const messengerInfo: CreateCustomerMessengerInfo[] = messengerAccounts.map((acc) => ({
+        messenger: acc.messenger.toLowerCase().replace(/톡/g, "").replace(/그램/g, "").replace(/스타그램/g, "instagram") || "other",
+        account: acc.account,
+      }));
+
       const response = await CustomersService.create({
+        projectId: String(projectId),
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
-        residentId,
-        ageRange: ageRange.trim() || undefined,
-        job: job.trim() || undefined,
-        messengerInfo: formattedMessengers,
-        applicationRoute: applicationRoute.trim() || undefined,
-        site: site.trim() || undefined,
-        mediaCompany: mediaCompany.trim() || undefined,
-        specialNotes: specialNotes.trim() || undefined,
-        projectId: String(projectId),
+        residentId: residentId1 && residentId2 ? `${residentId1}-${residentId2}` : undefined,
+        ageRange: ageRange || undefined,
+        job: job || undefined,
+        messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
+        applicationRoute: applicationRoute || undefined,
+        site: site || undefined,
+        mediaCompany: mediaCompany || undefined,
+        specialNotes: specialNotes || undefined,
       });
+
       const newCustomerId = response.data?.data?.id;
-      if (!newCustomerId) throw new Error("고객 생성에 실패했습니다.");
+      if (!newCustomerId) {
+        throw new Error("고객 생성에 실패했습니다.");
+      }
+
       await onLink(newCustomerId);
-      resetForm();
-    } catch (err: any) {
-      const message = err?.data?.message || err?.message || "고객 등록에 실패했습니다.";
-      setError(message);
+      handleReset();
+      onClose();
+    } catch (e: any) {
+      alert(e?.data?.message || e?.message || "고객 등록에 실패했습니다.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[140]">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[760px] -translate-x-1/2 -translate-y-1/2">
-        <div className="relative max-h-[90vh] overflow-auto rounded-[16px] bg-white px-8 py-9 shadow-[0px_32px_90px_rgba(15,23,42,0.24)]">
+    <BaseModal
+      onClose={() => (!submitting ? onClose() : undefined)}
+      overlayClassName="bg-black/30"
+      containerClassName="relative w-[848px] h-[856px] rounded-[14px] bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      ariaLabel="고객 등록"
+    >
+      <div className="relative w-full h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4">
+          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90">고객등록</h2>
           <button
             aria-label="close"
-            onClick={onClose}
-            className="absolute right-6 top-6 h-8 w-8 rounded-full border border-[#E2E2E2] text-[#808080]"
+            onClick={() => !submitting && onClose()}
+            className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-90 transition-colors"
           >
-            ×
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex h-9 items-center gap-2 text-[13px] text-[#4B5563] hover:text-[#111827]"
-          >
-            <span className="text-[16px]">←</span>
-            이전 단계로 돌아가기
-          </button>
-          <h2 className="mt-4 text-[22px] font-semibold text-[#111827]">고객등록</h2>
-          {conversationName ? (
-            <p className="mt-1 text-[13px] text-[#6B7280]">대화방: {conversationName}</p>
-          ) : null}
+        </div>
 
-          <section className="mt-6">
-            <h3 className="text-[16px] font-semibold text-[#111827]">기본 정보</h3>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">이름*</span>
-                <input value={name} onChange={(e) => setName(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="고객 이름을 입력하세요" />
-              </label>
-              <div className="grid grid-cols-[120px,1fr] gap-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-[13px] text-[#6B7280]">연락처1*</span>
-                  <select value={contact1Type} onChange={(e) => setContact1Type(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]">
-                    <option value="휴대폰">휴대폰</option>
-                    <option value="집">집</option>
-                    <option value="회사">회사</option>
-                  </select>
-                </div>
-                <label className="flex flex-col gap-2">
-                  <span className="text-[13px] text-[#6B7280]">&nbsp;</span>
-                  <input value={contact1} onChange={(e) => setContact1(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="010-0000-0000" />
-                </label>
-              </div>
-              <div className="grid grid-cols-[120px,1fr] gap-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-[13px] text-[#6B7280]">연락처2</span>
-                  <select value={contact2Type} onChange={(e) => setContact2Type(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]">
-                    <option value="집">집</option>
-                    <option value="회사">회사</option>
-                    <option value="기타">기타</option>
-                  </select>
-                </div>
-                <label className="flex flex-col gap-2">
-                  <span className="text-[13px] text-[#6B7280]">&nbsp;</span>
-                  <input value={contact2} onChange={(e) => setContact2(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="추가 연락처를 입력하세요" />
-                </label>
-              </div>
-              <div className="grid grid-cols-[160px,1fr] gap-2 md:col-span-2">
-                <div className="flex flex-col gap-2">
-                  <span className="text-[13px] text-[#6B7280]">주민등록번호</span>
-                  <div className="grid grid-cols-[1fr,1fr] gap-2">
-                    <input value={residentFront} onChange={(e) => setResidentFront(e.target.value)} maxLength={6} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="123456" />
-                    <input value={residentBack} onChange={(e) => setResidentBack(e.target.value)} maxLength={7} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="1234567" />
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          {/* 기본 정보 */}
+          <div className="mb-6">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-4">기본 정보</h3>
+            <div className="border-t border-neutral-30 pt-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* 이름 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    이름<span className="text-danger-60">*</span>
+                  </label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="고객 이름을 입력하세요"
+                    />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="flex flex-col gap-2">
-                    <span className="text-[13px] text-[#6B7280]">연령</span>
-                    <input value={ageRange} onChange={(e) => setAgeRange(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="예: 30대" />
+
+                {/* 연락처1 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    연락처1<span className="text-danger-60">*</span>
                   </label>
-                  <label className="flex flex-col gap-2">
-                    <span className="text-[13px] text-[#6B7280]">직업</span>
-                    <input value={job} onChange={(e) => setJob(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="직업" />
-                  </label>
+                  <div className="flex gap-2">
+                    <div className="w-[120px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
+                        <select
+                          value={contact1Type}
+                          onChange={(e) => setContact1Type(e.target.value)}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
+                        >
+                          {contactTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                        <svg
+                          className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                          width="10"
+                          height="8"
+                          viewBox="0 0 10 8"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-neutral-90" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                        <input
+                          type="text"
+                          value={contact1}
+                          onChange={(e) => setContact1(e.target.value)}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                          placeholder="010-1234-5678"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 연락처2 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연락처2</label>
+                  <div className="flex gap-2">
+                    <div className="w-[120px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
+                        <select
+                          value={contact2Type}
+                          onChange={(e) => setContact2Type(e.target.value)}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
+                        >
+                          {contactTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                        <svg
+                          className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                          width="10"
+                          height="8"
+                          viewBox="0 0 10 8"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-neutral-90" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                        <input
+                          type="text"
+                          value={contact2}
+                          onChange={(e) => setContact2(e.target.value)}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                          placeholder="선택사항"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 주민등록번호 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">주민등록번호</label>
+                  <div className="flex gap-2 items-center">
+                    <div className="flex-1">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                        <input
+                          type="text"
+                          value={residentId1}
+                          onChange={(e) => setResidentId1(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90 text-left"
+                          placeholder="123456"
+                          maxLength={6}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[14px] leading-[17px] text-neutral-60">-</span>
+                    <div className="flex-1">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                        <input
+                          type="text"
+                          value={residentId2}
+                          onChange={(e) => setResidentId2(e.target.value.replace(/\D/g, "").slice(0, 7))}
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90 text-left"
+                          placeholder="567890"
+                          maxLength={7}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 연령 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연령</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={ageRange}
+                      onChange={(e) => setAgeRange(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="연령"
+                    />
+                  </div>
+                </div>
+
+                {/* 직업 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">직업</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={job}
+                      onChange={(e) => setJob(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="직업"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
 
-          <section className="mt-8">
-            <h3 className="text-[16px] font-semibold text-[#111827]">메신저 계정</h3>
-            <div className="mt-4 grid grid-cols-[140px_1fr_auto] items-end gap-3">
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">메신저</span>
-                <select value={messengerType} onChange={(e) => setMessengerType(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]">
-                  {messengerOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">계정 ID</span>
-                <input value={messengerAccount} onChange={(e) => setMessengerAccount(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="계정 ID를 입력하세요" />
-              </label>
-              <button type="button" className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-4 text-[13px] text-[#111827]" onClick={handleAddMessenger}>
-                추가
-              </button>
-            </div>
-            {messengers.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {messengers.map((m, idx) => (
-                  <span key={`${m.messenger}-${m.account}-${idx}`} className="inline-flex items-center gap-2 rounded-full bg-[#EEF2FF] px-3 py-1 text-[12px] text-[#4D82F3]">
-                    {messengerOptions.find((opt) => opt.value === m.messenger)?.label || m.messenger} · {m.account}
-                    <button aria-label="remove" className="text-[#4D82F3]" onClick={() => setMessengers((prev) => prev.filter((_, i) => i !== idx))}>
-                      ×
-                    </button>
-                  </span>
-                ))}
+          {/* 메신저 계정 */}
+          <div className="mb-6">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-4">메신저 계정</h3>
+            <div className="border-t border-neutral-30 pt-4">
+              <div className="flex gap-2 mb-3">
+                <div className="w-[120px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px] relative">
+                    <select
+                      value={currentMessengerType}
+                      onChange={(e) => setCurrentMessengerType(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
+                    >
+                      {messengerTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                    <svg
+                      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      width="10"
+                      height="8"
+                      viewBox="0 0 10 8"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-neutral-90" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px]">
+                    <input
+                      type="text"
+                      value={currentMessengerAccount}
+                      onChange={(e) => setCurrentMessengerAccount(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="계정 ID를 입력하세요"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddMessenger}
+                  className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
+                >
+                  추가
+                </button>
               </div>
-            ) : null}
-          </section>
-
-          <section className="mt-8">
-            <h3 className="text-[16px] font-semibold text-[#111827]">데이터 정보</h3>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">신청 경로</span>
-                <input value={applicationRoute} onChange={(e) => setApplicationRoute(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="신청 경로를 입력하세요" />
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">사이트</span>
-                <input value={site} onChange={(e) => setSite(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="사이트명을 입력하세요" />
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#6B7280]">매체사</span>
-                <input value={mediaCompany} onChange={(e) => setMediaCompany(e.target.value)} className="h-[40px] rounded-[8px] border border-[#D1D5DB] px-3 text-[14px]" placeholder="매체사를 입력하세요" />
-              </label>
-              <label className="flex flex-col gap-2 md:col-span-2">
-                <span className="text-[13px] text-[#6B7280]">특이사항</span>
-                <textarea value={specialNotes} onChange={(e) => setSpecialNotes(e.target.value)} rows={3} className="rounded-[8px] border border-[#D1D5DB] px-3 py-2 text-[14px]" placeholder="특이사항을 입력하세요" />
-              </label>
+              {messengerAccounts.length > 0 && (
+                <div className="space-y-2">
+                  {messengerAccounts.map((acc, index) => (
+                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]">
+                      <span className="text-[14px] text-neutral-90 flex-1">
+                        {acc.messenger}: {acc.account}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMessenger(index)}
+                        className="text-neutral-60 hover:text-neutral-90"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </section>
+          </div>
 
-          {error ? (
-            <div className="mt-5 rounded-[10px] border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 text-[12px] text-[#B91C1C]">
-              {error}
+          {/* 데이터 정보 */}
+          <div>
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-4">데이터 정보</h3>
+            <div className="border-t border-neutral-30 pt-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* 신청 경로 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">신청 경로</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={applicationRoute}
+                      onChange={(e) => setApplicationRoute(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="신청 경로를 입력하세요"
+                    />
+                  </div>
+                </div>
+
+                {/* 사이트 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">사이트</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={site}
+                      onChange={(e) => setSite(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="사이트"
+                    />
+                  </div>
+                </div>
+
+                {/* 매체사 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">매체사</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                    <input
+                      type="text"
+                      value={mediaCompany}
+                      onChange={(e) => setMediaCompany(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      placeholder="매체사"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 특이사항 */}
+              <div>
+                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">특이사항</label>
+                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] min-h-[66px]">
+                  <textarea
+                    value={specialNotes}
+                    onChange={(e) => setSpecialNotes(e.target.value)}
+                    className="w-full min-h-[51px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90 resize-none"
+                    placeholder="특이사항을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </div>
             </div>
-          ) : null}
+          </div>
+        </div>
 
-          <div className="mt-6 flex justify-end gap-3">
+        {/* Footer */}
+        <div className="border-t border-neutral-30 px-6 py-4 flex justify-between gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 disabled:opacity-60"
+          >
+            닫기
+          </button>
+          <div className="flex gap-3">
             <button
-              className="h-[38px] rounded-[10px] border border-[#D1D5DB] px-5 text-[13px] text-[#4B5563]"
-              onClick={resetForm}
-              disabled={loading}
+              type="button"
+              onClick={handleReset}
+              disabled={submitting}
+              className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 disabled:opacity-60"
             >
               초기화
             </button>
             <button
-              className="h-[38px] rounded-[10px] bg-[#00C97E] px-5 text-[13px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={submitting}
+              className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
             >
-              {loading ? "적용 중..." : "적용완료"}
+              {submitting ? "적용 중..." : "적용완료"}
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
-
-

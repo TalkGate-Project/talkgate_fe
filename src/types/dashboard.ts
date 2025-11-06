@@ -1,4 +1,4 @@
-import type { ApiSuccessResponse } from "./statistics";
+import type { ApiSuccessResponse } from "./common";
 
 export type RecentlyAssignedCustomer = {
   id: number;

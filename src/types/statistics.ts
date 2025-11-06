@@ -1,18 +1,8 @@
 // Statistics domain types
 
+import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
+
 export type SortOrder = "ASC" | "DESC";
-
-export type ApiSuccessResponse<T> = {
-  result: true;
-  data: T;
-};
-
-export type ApiErrorResponse = {
-  result: false;
-  code: string;
-  message: string;
-  traceId: string;
-};
 
 export type PaginationQuery = {
   page: number;

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MembersService } from "@/services/members";
 import { savePendingInviteToken, getPendingInviteToken, clearPendingInviteToken } from "@/lib/invite";
+import loginBgImg from "@/assets/images/auth/login_bg.png";
 
 
 // 3D 봉투 애니메이션 컴포넌트
@@ -221,7 +222,7 @@ function InviteLanding() {
       className="min-h-screen relative flex items-center justify-center"
       style={{
         // 로그인 페이지와 동일한 톤의 그라데이션 배경
-        backgroundImage: "url('/login_bg.png')",
+        backgroundImage: `url('${loginBgImg.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",

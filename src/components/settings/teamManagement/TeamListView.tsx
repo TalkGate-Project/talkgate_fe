@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { TeamMember } from "@/data/mockTeamData";
-import { DragHandlers, DragState, flattenTeamData } from "./useTeamTree";
+import { DragHandlers, DragState, flattenTeamData } from "@/hooks/useTeamTree";
 
 type Props = {
   data: TeamMember[];

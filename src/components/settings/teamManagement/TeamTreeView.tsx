@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { DragEvent, MouseEvent, WheelEvent, ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TeamMember } from "@/data/mockTeamData";
-import { DragHandlers, DragState } from "./useTeamTree";
+import { DragHandlers, DragState } from "@/hooks/useTeamTree";
 import { TOKENS } from "./tokens";
 
 type Props = {

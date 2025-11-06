@@ -51,13 +51,13 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       {/* POP-UP 440x336 centered */}
       <div className="absolute" style={{ width: 440, height: 336, left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>
-        <div className="relative w-full h-full bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
+        <div className="relative w-full h-full bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
           {/* Header */}
           <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-            <h2 className="text-[18px] leading-[21px] font-semibold text-[#000]">필터설정</h2>
+            <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">필터설정</h2>
             <button aria-label="close" onClick={onClose} className="w-6 h-6 grid place-items-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-neutral-50" />
               </svg>
             </button>
           </div>
@@ -66,12 +66,12 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
           <div className="px-6 space-y-4" style={{ height: 336 - 56 - 64 }}>
             {/* 메신저 아이콘 */}
             <div>
-              <div className="text-[14px] text-[#808080] mb-2">메신저</div>
+              <div className="text-[14px] text-neutral-60 mb-2">메신저</div>
               <div className="flex items-center gap-3">
                 {/* 전체 버튼 */}
                 <button
                   onClick={() => setMessenger("all")}
-                  className={`h-[34px] px-3 rounded-[8px] border text-[14px] ${messenger==='all' ? 'border-[#51F8A5] bg-[rgba(214,250,232,0.3)]' : 'border-[#E2E2E2] bg-white'}`}
+                  className={`h-[34px] px-3 rounded-[8px] border text-[14px] ${messenger==='all' ? 'border-primary-40 bg-primary-10' : 'border-neutral-30 bg-neutral-0'}`}
                 >
                   전체
                 </button>
@@ -79,7 +79,7 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
                   <button
                     key={it.key}
                     onClick={() => setMessenger(it.key)}
-                    className={`w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${messenger===it.key? 'border-[#E2E2E2] bg-white' : 'border-[#E2E2E2] bg-white'}`}
+                    className={`w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${messenger===it.key? 'border-neutral-30 bg-neutral-0' : 'border-neutral-30 bg-neutral-0'}`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={it.icon!} alt="" className="w-5 h-5" />
@@ -90,26 +90,26 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
 
             {/* 처리상태 멀티 선택 */}
             <div ref={dropdownRef} className="relative">
-              <div className="text-[14px] text-[#808080] mb-2">처리상태</div>
+              <div className="text-[14px] text-neutral-60 mb-2">처리상태</div>
               <button
                 type="button"
                 onClick={() => setStatusOpen((v)=>!v)}
-                className="w-full h-[34px] border border-[#E2E2E2] rounded-[5px] px-3 flex items-center justify-between"
+                className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between"
               >
-                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] opacity-90">{statuses.length ? `${statuses.length}개 선택됨` : '상태 선택'}</span>
+                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-90 opacity-90">{statuses.length ? `${statuses.length}개 선택됨` : '상태 선택'}</span>
                 <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${statusOpen? 'rotate-180' : ''}`}>
-                  <path d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z" fill="#000"/>
+                  <path d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z" fill="currentColor" className="fill-neutral-90"/>
                 </svg>
               </button>
 
               {statuses.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                   {statuses.map((s) => (
-                    <span key={s} className="inline-flex items-center h-[22px] rounded-full px-3 bg-[#D6FAE8] text-[#00B55B] text-[12px] opacity-80">
+                    <span key={s} className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80">
                       {s}
                       <button className="ml-2 w-3 h-3 grid place-items-center" aria-label="remove" onClick={() => setStatuses((prev)=> prev.filter((x)=> x!==s))}>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 9L9 3M3 3L9 9" stroke="#00B55B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-primary-80" />
                         </svg>
                       </button>
                     </span>
@@ -118,13 +118,13 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
               )}
 
               {statusOpen && (
-                <div className="absolute left-0 right-0 z-10 mt-2 bg-white border border-[#E2E2E2] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3">
+                <div className="absolute left-0 right-0 z-10 mt-2 bg-neutral-0 border border-neutral-30 rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3">
                   {statusOptions.map((opt) => {
                     const checked = statuses.includes(opt);
                     return (
                       <label key={opt} className="flex items-center gap-3 h-10 px-1">
                         <Checkbox checked={checked} onChange={(next)=> setStatuses((prev)=> next ? [...prev, opt] : prev.filter((x)=> x!==opt))} ariaLabel={opt} />
-                        <span className="text-[14px] text-[#000]">{opt}</span>
+                        <span className="text-[14px] text-neutral-90">{opt}</span>
                       </label>
                     );
                   })}
@@ -134,9 +134,9 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 flex items-center justify-end gap-3 border-t border-[#E2E2E2]">
-            <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white" onClick={()=>{ setMessenger('all'); setStatuses([]); }}>초기화</button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={()=> onApply({ messenger, statuses })}>적용완료</button>
+          <div className="px-6 py-4 flex items-center justify-end gap-3 border-t border-neutral-30">
+            <button className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0" onClick={()=>{ setMessenger('all'); setStatuses([]); }}>초기화</button>
+            <button className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]" onClick={()=> onApply({ messenger, statuses })}>적용완료</button>
           </div>
         </div>
       </div>

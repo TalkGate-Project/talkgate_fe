@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
+import ConditionalContentScale from "../components/common/ConditionalContentScale";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
@@ -23,7 +24,7 @@ const robotoMono = Roboto_Mono({
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -62,7 +63,9 @@ export default function RootLayout({
             <NotificationProvider>
               <ConditionalHeader />
               {/* No fixed padding; header component inserts spacer only when visible */}
-              <div>{children}</div>
+              <ConditionalContentScale>
+                <div>{children}</div>
+              </ConditionalContentScale>
             </NotificationProvider>
           </ReactQueryProvider>
         </ErrorFeedbackModalProvider>

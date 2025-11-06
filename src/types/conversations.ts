@@ -120,26 +120,23 @@ export type WebSocketErrorCode =
 
 // REST API envelopes
 
-export type ApiSuccessResponse<T = Record<string, unknown>> = {
-  result: true;
-  data: T;
-};
-
-export type ApiErrorResponse = {
-  result: false;
-  code: string;
-  message: string;
-  traceId: string;
-};
+import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
 
 export type ConversationActionResponse = ApiSuccessResponse<Record<string, unknown>>;
 
 export type UnconnectedCustomer = {
   id: number;
   name: string;
-  contact1?: string;
-  contact2?: string;
-  assignedMember?: Record<string, unknown> | null;
+  contact1?: string | null;
+  contact2?: string | null;
+  assignedMember?: {
+    id: number;
+    name: string;
+    team?: {
+      id: number;
+      name: string;
+    } | null;
+  } | null;
 };
 
 export type UnconnectedCustomersResponse = ApiSuccessResponse<{

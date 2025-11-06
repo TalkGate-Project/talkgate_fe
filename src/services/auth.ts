@@ -1,14 +1,23 @@
 import { apiClient } from "@/lib/apiClient";
-import { setTokens, clearTokens } from "@/lib/token";
+import { setTokens } from "@/lib/token";
 import { setSelectedProjectId } from "@/lib/project";
-
-// DTOs can be refined later per actual contract
-export type LoginInput = { email: string; password: string };
-export type LoginOutput = unknown;
-export type SocialLoginInput = { code: string; callbackUrl: string };
-export type SignupInput = { email: string; password: string; name: string };
-export type SignupOutput = unknown;
-export type Me = unknown;
+import type {
+  LoginInput,
+  LoginOutput,
+  SocialLoginInput,
+  SignupInput,
+  SignupOutput,
+  Me,
+  ChangePasswordInput,
+  ChangePasswordResponse,
+  UpdateProfileInput,
+  ResendEmailVerificationInput,
+  SendPasswordResetCodeInput,
+  VerifyPasswordResetCodeInput,
+  VerifyPasswordResetCodeResponse,
+  ResetPasswordInput,
+  BasicMessageResponse,
+} from "@/types/auth";
 
 export const AuthService = {
   // Social login
@@ -123,24 +132,22 @@ export const AuthService = {
   },
 
   // Profile & Security
-  changePassword(input: { currentPassword: string; newPassword: string }) {
-    return apiClient.patch<{ result: true; data: { message: string } }>("/v1/auth/change-password", input);
+  changePassword(input: ChangePasswordInput) {
+    return apiClient.patch<ChangePasswordResponse>("/v1/auth/change-password", input);
   },
-  updateProfile(input: { name?: string; profileImageUrl?: string; phone?: string }) {
+  updateProfile(input: UpdateProfileInput) {
     return apiClient.patch<Me>("/v1/auth/profile", input);
   },
-  resendEmailVerification(input: { email: string }) {
-    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/resend-email-verification", input);
+  resendEmailVerification(input: ResendEmailVerificationInput) {
+    return apiClient.post<BasicMessageResponse>("/v1/auth/resend-email-verification", input);
   },
-  sendPasswordResetCode(input: { email: string }) {
-    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/send-password-reset-code", input);
+  sendPasswordResetCode(input: SendPasswordResetCodeInput) {
+    return apiClient.post<BasicMessageResponse>("/v1/auth/send-password-reset-code", input);
   },
-  verifyPasswordResetCode(input: { email: string; otp: string }) {
-    return apiClient.post<{ result: true; data: { resetToken: string; message: string } }>("/v1/auth/verify-password-reset-code", input);
+  verifyPasswordResetCode(input: VerifyPasswordResetCodeInput) {
+    return apiClient.post<VerifyPasswordResetCodeResponse>("/v1/auth/verify-password-reset-code", input);
   },
-  resetPassword(input: { resetToken: string; newPassword: string }) {
-    return apiClient.post<{ result: true; data: { message: string } }>("/v1/auth/reset-password", input);
+  resetPassword(input: ResetPasswordInput) {
+    return apiClient.post<BasicMessageResponse>("/v1/auth/reset-password", input);
   },
 };
-
-

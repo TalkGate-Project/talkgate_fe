@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import checkedImg from "@/assets/images/common/checked.png";
+import uncheckedImg from "@/assets/images/common/unchecked.png";
 
 type Props = {
   checked: boolean;
@@ -33,7 +35,7 @@ export default function Checkbox({ checked, onChange, disabled, size = 18, class
       {!imgBroken ? (
         // Use native img to bypass Next.js optimizer; more resilient to small PNGs
         <img
-          src={checked ? "/checked.png" : "/unchecked.png"}
+          src={checked ? checkedImg : uncheckedImg}
           alt={checked ? "checked" : "unchecked"}
           width={size}
           height={size}

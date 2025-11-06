@@ -46,7 +46,7 @@ function removeNodeById(items: TeamMember[], targetId: string) {
         node = {
           ...node,
           children: walk(node.children),
-        };
+        } as TeamMember;
       }
       next.push(node);
     });
@@ -84,13 +84,13 @@ function insertAfterSibling(
   function walk(nodes: TeamMember[]): TeamMember[] {
     const next: TeamMember[] = [];
     nodes.forEach((current) => {
-      let cloned = { ...current };
+      let cloned = { ...current } as TeamMember;
       if (cloned.children) {
-        cloned = { ...cloned, children: walk(cloned.children) };
+        cloned = { ...cloned, children: walk(cloned.children) } as TeamMember;
       }
       next.push(cloned);
       if (cloned.id === targetId) {
-        const toInsert = { ...node };
+        const toInsert = { ...node } as TeamMember;
         updateLevels(toInsert, newLevel, newParentId);
         next.push(toInsert);
       }
@@ -118,7 +118,7 @@ export function isDescendant(tree: TeamMember[], ancestorId: string, targetId: s
 
 export function flattenTeamData(items: TeamMember[], level = 0): TeamMember[] {
   return items.flatMap((item) => {
-    const current = { ...item, level };
+    const current = { ...item, level } as TeamMember;
     if (!item.children || item.children.length === 0) return [current];
     return [current, ...flattenTeamData(item.children, level + 1)];
   });
@@ -203,3 +203,5 @@ export function useTeamTree(initialData: TeamMember[]) {
     dragState,
   };
 }
+
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Panel from "@/components/common/Panel";
 
 interface NoticeSearchPanelProps {
   searchTerm: string;
@@ -12,16 +13,19 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
   const router = useRouter();
 
   return (
-    <div className="bg-card rounded-[14px] p-6">
-      {/* 제목 및 설명 */}
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-[24px] font-bold text-foreground">공지사항</h1>
-        <div className="w-px h-4 bg-neutral-60" />
-        <p className="text-[18px] font-medium text-neutral-60">
-          공지사항과 중요한 안내사항을 확인하세요
-        </p>
-      </div>
-
+    <Panel
+      className="rounded-[14px]"
+      title={
+        <div className="flex items-end gap-3">
+          <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">공지사항</h1>
+          <span className="w-px h-4 bg-neutral-60 opacity-60" />
+          <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
+            공지사항과 중요한 안내사항을 확인하세요
+          </p>
+        </div>
+      }
+      bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+    >
       {/* 검색 및 버튼 영역 */}
       <div className="flex items-center justify-between">
         {/* 검색 영역 */}
@@ -59,6 +63,6 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
           </button>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }

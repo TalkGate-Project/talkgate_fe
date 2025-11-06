@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CustomersService } from "@/services/customers";
+import BaseModal from "@/components/common/BaseModal";
 import { CustomerDetail } from "@/types/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 
@@ -117,25 +118,23 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={() => !loading && onClose()} />
-      <div className="relative bg-white rounded-[14px] w-[92vw] max-w-[1284px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.37)]">
+    <BaseModal onClose={() => !loading && onClose()} overlayClassName="bg-black/50" containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white p-6 shadow-[0_13px_61px_rgba(169,169,169,0.37)]" ariaLabel="고객정보">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-[18px] font-semibold text-[#111827]">고객정보</h2>
-          <button aria-label="close" className="w-6 h-6 grid place-items-center rounded-full bg-[#000] text-white" onClick={onClose}>×</button>
+          <button aria-label="close" className="w-6 h-6 grid place-items-center rounded-full bg-neutral-100 text-white" onClick={onClose}>×</button>
         </div>
 
-        {loading && <div className="py-16 text-center text-[#808080]">불러오는 중...</div>}
+        {loading && <div className="py-16 text-center text-neutral-60">불러오는 중...</div>}
         {!loading && detail && (
           <div className="mt-4 grid grid-cols-12 gap-6">
             {/* Left: form and tabs */}
             <div className="col-span-12 lg:col-span-8">
               {/* Tabs */}
-              <div className="flex gap-6 border-b border-[#E2E2E2]">
-                <button className={`pb-2 text-[16px] ${tab === "basic" ? "font-semibold text-black border-b-2 border-black" : "text-[#808080]"}`} onClick={() => setTab("basic")}>기본 정보</button>
-                <button className={`pb-2 text-[16px] ${tab === "data" ? "font-semibold text-black border-b-2 border-black" : "text-[#808080]"}`} onClick={() => setTab("data")}>데이터 정보</button>
-                <button className={`pb-2 text-[16px] ${tab === "sales" ? "font-semibold text-black border-b-2 border-black" : "text-[#808080]"}`} onClick={() => setTab("sales")}>영업정보</button>
+              <div className="flex gap-6 border-b border-neutral-30">
+                <button className={`pb-2 text-[16px] ${tab === "basic" ? "font-semibold text-black border-b-2 border-black" : "text-neutral-60"}`} onClick={() => setTab("basic")}>기본 정보</button>
+                <button className={`pb-2 text-[16px] ${tab === "data" ? "font-semibold text-black border-b-2 border-black" : "text-neutral-60"}`} onClick={() => setTab("data")}>데이터 정보</button>
+                <button className={`pb-2 text-[16px] ${tab === "sales" ? "font-semibold text-black border-b-2 border-black" : "text-neutral-60"}`} onClick={() => setTab("sales")}>영업정보</button>
               </div>
 
               {tab === "basic" && (
@@ -178,7 +177,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                       <span className="block text-[12px] text-[#6B7280] mb-1">주민등록번호</span>
                       <input value={residentFront} onChange={(e) => setResidentFront(e.target.value)} className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-3" placeholder="123456" />
                     </label>
-                    <div className="pb-2 text-center text-[#808080]">-</div>
+                    <div className="pb-2 text-center text-neutral-60">-</div>
                     <label className="block">
                       <span className="sr-only">주민등록번호 뒤</span>
                       <input value={residentBack} onChange={(e) => setResidentBack(e.target.value)} className="w-full h-[40px] rounded-[8px] border border-[#E5E7EB] px-3" placeholder="*******" />
@@ -196,7 +195,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
 
                   {/* Messenger Accounts */}
                   <div className="md:col-span-2">
-                    <div className="text-[14px] font-semibold text-[#000] mb-2">메신저 계정</div>
+                    <div className="text-[14px] font-semibold text-ink mb-2">메신저 계정</div>
                     <div className="flex flex-col gap-2">
                       <div className="flex gap-2">
                         <select value={newMessengerType} onChange={(e) => setNewMessengerType(e.target.value)} className="w-[120px] h-[36px] rounded-[6px] border border-[#E5E7EB] px-2">
@@ -207,7 +206,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                           <option>기타</option>
                         </select>
                         <input value={newMessengerAccount} onChange={(e) => setNewMessengerAccount(e.target.value)} placeholder="계정 ID를 입력하세요" className="flex-1 h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
-                        <button type="button" className="h-[36px] px-3 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => {
+                        <button type="button" className="h-[36px] px-3 rounded-[6px] bg-neutral-90 text-neutral-40" onClick={() => {
                           if (!newMessengerAccount.trim()) return;
                           const toAdd = { messenger: newMessengerType, account: newMessengerAccount.trim() };
                           setMessengersLocal((prev) => [...prev, toAdd]);
@@ -219,12 +218,12 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                       {messengersLocal.length > 0 && (
                         <div className="mt-2 space-y-2">
                           {messengersLocal.map((m, idx) => (
-                            <div key={`${m.messenger}-${m.account}-${idx}`} className="flex items-center justify-between bg-[#F8F8F8] rounded-[12px] px-4 py-3">
+                            <div key={`${m.messenger}-${m.account}-${idx}`} className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 py-3">
                               <div className="flex items-center gap-3">
-                                <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#EFB008] text-white text-[12px]">메신저</span>
-                                <span className="text-[14px] text-[#000]">{m.account}</span>
+                                <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-warning-40 text-white text-[12px]">메신저</span>
+                                <span className="text-[14px] text-ink">{m.account}</span>
                               </div>
-                              <button className="w-5 h-5 grid place-items-center rounded-full bg-[#000] text-white" onClick={() => {
+                              <button className="w-5 h-5 grid place-items-center rounded-full bg-neutral-100 text-white" onClick={() => {
                                 const copy = [...messengersLocal];
                                 copy.splice(idx, 1);
                                 setMessengersLocal(copy);
@@ -234,7 +233,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 text-right text-[12px] text-[#808080]">{new Date(detail.updatedAt || detail.createdAt).toLocaleString()}</div>
+                    <div className="mt-2 text-right text-[12px] text-neutral-60">{new Date(detail.updatedAt || detail.createdAt).toLocaleString()}</div>
                   </div>
                 </div>
               )}
@@ -265,7 +264,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
 
                   {/* 결제 내역 */}
                   <div>
-                    <div className="text-[16px] font-semibold text-[#252525] mb-3">결제 내역</div>
+                    <div className="text-[16px] font-semibold text-neutral-90 mb-3">결제 내역</div>
                     <div className="grid grid-cols-1 md:grid-cols-[180px_1fr_140px_1fr_auto] gap-2">
                       <input value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} placeholder="연도. 월 . 일" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
                       <input value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))} placeholder="금액" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
@@ -275,7 +274,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                         <option>계좌이체</option>
                       </select>
                       <input value={paymentDesc} onChange={(e) => setPaymentDesc(e.target.value)} placeholder="설명을 추가하세요" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
-                      <button className="h-[36px] px-3 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => {
+                      <button className="h-[36px] px-3 rounded-[6px] bg-neutral-90 text-neutral-40" onClick={() => {
                         if (!detail || !paymentDate || !paymentAmount) return;
                         CustomersService.addPaymentHistory({
                           customerId: detail.id,
@@ -295,12 +294,12 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                     {/* 실제 결제 내역 */}
                     <div className="mt-3 space-y-2 max-h-[200px] overflow-auto pr-1">
                       {detail.paymentHistories?.map((ph) => (
-                        <div key={ph.id} className="bg-[#F8F8F8] rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]">
+                        <div key={ph.id} className="bg-neutral-10 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]">
                           <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] text-[#22C55E] text-[12px]">{ph.paymentMethod === 'creditCard' ? '카드' : ph.paymentMethod}</span>
                           <span className="text-[#111827]">{ph.description || '결제'}</span>
                           <span className="ml-auto text-[#16A34A] font-semibold">{ph.amount?.toLocaleString()}원</span>
-                          <span className="ml-3 text-[#808080]">{formatDate(ph.paymentDate)}</span>
-                          <button className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-[#000] text-white" onClick={() => {
+                          <span className="ml-3 text-neutral-60">{formatDate(ph.paymentDate)}</span>
+                          <button className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 text-white" onClick={() => {
                             CustomersService.removePaymentHistory({ paymentHistoryId: ph.id, projectId: (window as any)?.tgSelectedProjectId || '' })
                               .then(() => setDetail((prev) => prev ? { ...prev, paymentHistories: prev.paymentHistories.filter((x) => x.id !== ph.id) } : prev));
                           }}>×</button>
@@ -311,13 +310,13 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
 
                   {/* 일정 관리 */}
             <div>
-                    <div className="text-[16px] font-semibold text-[#252525] mb-3">일정관리</div>
+                    <div className="text-[16px] font-semibold text-neutral-90 mb-3">일정관리</div>
                     <div className="grid grid-cols-1 md:grid-cols-[180px_60px_60px_1fr_auto] gap-2">
                       <input value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} placeholder="연도. 월 . 일" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
                       <input value={scheduleHour} onChange={(e) => setScheduleHour(e.target.value.replace(/[^0-9]/g, ""))} placeholder="시" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
                       <input value={scheduleMinute} onChange={(e) => setScheduleMinute(e.target.value.replace(/[^0-9]/g, ""))} placeholder="분" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
                       <input value={scheduleDesc} onChange={(e) => setScheduleDesc(e.target.value)} placeholder="일정내용을 추가하세요" className="h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
-                      <button className="h-[36px] px-3 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => {
+                      <button className="h-[36px] px-3 rounded-[6px] bg-neutral-90 text-neutral-40" onClick={() => {
                         if (!detail || !scheduleDate || !scheduleDesc) return;
                         const dateIso = new Date(`${scheduleDate} ${scheduleHour || "00"}:${scheduleMinute || "00"}:00`).toISOString();
                         CustomersService.addSchedule({ customerId: detail.id, scheduleTime: dateIso, description: scheduleDesc, projectId: (window as any)?.tgSelectedProjectId || "" })
@@ -333,11 +332,11 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                     {/* 실제 일정 목록 */}
                     <div className="mt-3 space-y-2 max-h-[220px] overflow-auto pr-1">
                       {detail.schedules?.map((sc) => (
-                        <div key={sc.id} className="bg-[#F8F8F8] rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]">
+                        <div key={sc.id} className="bg-neutral-10 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]">
                           <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] text-[#10B981] text-[12px]">{formatDate(sc.scheduleTime)}</span>
                           <span className="text-[#111827]">{sc.description}</span>
-                          <span className="ml-auto text-[#808080]">{formatDate(sc.createdAt)}</span>
-                          <button className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-[#000] text-white" onClick={() => {
+                          <span className="ml-auto text-neutral-60">{formatDate(sc.createdAt)}</span>
+                          <button className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 text-white" onClick={() => {
                             CustomersService.removeSchedule({ scheduleId: sc.id, projectId: (window as any)?.tgSelectedProjectId || '' })
                               .then(() => setDetail((prev) => prev ? { ...prev, schedules: prev.schedules.filter((x) => x.id !== sc.id) } : prev));
                           }}>×</button>
@@ -386,7 +385,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
 
             {/* Right: 상담 내용 기록 */}
             <div className="col-span-12 lg:col-span-4">
-              <div className="text-[16px] font-semibold text-[#252525] mb-3">상담 내용 기록</div>
+              <div className="text-[16px] font-semibold text-neutral-90 mb-3">상담 내용 기록</div>
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <select value={noteCategoryId as any} onChange={(e) => setNoteCategoryId(e.target.value ? Number(e.target.value) : "")} className="w-[110px] h-[36px] rounded-[6px] border border-[#E5E7EB] px-2">
@@ -396,7 +395,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                     ))}
                   </select>
                   <input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} placeholder="상담 내용을 입력하세요" className="flex-1 h-[36px] rounded-[6px] border border-[#E5E7EB] px-3" />
-                  <button className="h-[36px] px-3 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => {
+                  <button className="h-[36px] px-3 rounded-[6px] bg-neutral-90 text-neutral-40" onClick={() => {
                     const catId = typeof noteCategoryId === "number" ? noteCategoryId : undefined;
                     if (!noteInput.trim() || !detail) return;
                     CustomersService.addNote({ customerId: detail.id, categoryId: catId || 0, note: noteInput.trim(), projectId: (window as any)?.tgSelectedProjectId || "" })
@@ -411,13 +410,13 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
 
                 <div className="mt-2 space-y-2 max-h-[260px] overflow-auto pr-1">
                   {detail.notes?.map((n) => (
-                    <div key={n.id} className="bg-[#F8F8F8] rounded-[12px] px-4 py-3 relative">
+                    <div key={n.id} className="bg-neutral-10 rounded-[12px] px-4 py-3 relative">
                       <div className="flex items-center gap-2 text-[12px]">
                         <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px]" style={{ background: categories.find((c) => c.id === n.categoryId)?.color || "#D3E1FE" , color: "#4D82F3" }}>{categories.find((c) => c.id === n.categoryId)?.name || "일반"}</span>
-                        <span className="text-[#808080]">{new Date(n.createdAt).toLocaleString()}</span>
+                        <span className="text-neutral-60">{new Date(n.createdAt).toLocaleString()}</span>
                       </div>
-                      <div className="mt-2 text-[14px] text-[#595959]">{n.note}</div>
-                      <button className="absolute top-3 right-3 w-5 h-5 grid place-items-center rounded-full bg-[#000] text-white" onClick={() => {
+                      <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
+                      <button className="absolute top-3 right-3 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 text-white" onClick={() => {
                         CustomersService.removeNote({ noteId: n.id, projectId: (window as any)?.tgSelectedProjectId || "" })
                           .then(() => setDetail((prev) => prev ? { ...prev, notes: prev.notes.filter((x) => x.id !== n.id) } : prev));
                       }}>×</button>
@@ -428,8 +427,8 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-[#E2E2E2]">
-              <button className="h-[34px] px-4 rounded-[5px] border border-[#E2E2E2]" onClick={() => {
+            <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-neutral-30">
+              <button className="h-[34px] px-4 rounded-[5px] border border-neutral-30" onClick={() => {
                 if (!detail) return;
                 setName(detail.name || "");
                 setContact1(detail.contact1 || "");
@@ -453,7 +452,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                 setAssignedTeamName(detail.assignedTeamName || "");
                 setSpecialNotes(detail.specialNotes || "");
               }}>초기화</button>
-              <button className="h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0]" onClick={() => {
+              <button className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-40" onClick={() => {
                 if (!detail) return;
                 const residentId = residentFront || residentBack ? `${residentFront}-${residentBack}` : undefined;
                 CustomersService.update(String(detail.id), {
@@ -476,8 +475,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

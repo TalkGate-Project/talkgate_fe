@@ -57,7 +57,7 @@ export default function ProfileSettings() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-[16px] font-semibold text-foreground mb-2">프로필 정보</h2>
-            <p className="text-[14px] text-neutral-60">서비스에서 사용되는 프로필 정보를 설정합니다.</p>
+            <p className="text-[14px] text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
           </div>
           <button className="px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors">
             프로필 수정

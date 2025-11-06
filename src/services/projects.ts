@@ -1,48 +1,14 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type ApiSuccess<T> = {
-  result: true;
-  data: T;
-};
-
-export type ApiError = {
-  result: false;
-  code: string;
-  message: string;
-  traceId?: string;
-};
-
-export type ApiResult<T> = ApiSuccess<T> | ApiError;
-
-export type Project = {
-  id: number;
-  name: string;
-  subDomain: string;
-  logoUrl?: string | null;
-  useAttendanceMenu: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type ProjectSummary = Project & {
-  memberCount?: number;
-  assignedCustomerCount?: number;
-  todayScheduleCount?: number;
-};
-
-export type CreateProjectPayload = {
-  name: string;
-  subDomain?: string;
-  logoUrl?: string;
-  useAttendanceMenu?: boolean;
-};
-
-export type UpdateProjectPayload = Partial<CreateProjectPayload>;
-
-export type CheckSubDomainDuplicateResponse = ApiSuccess<{
-  isDuplicate: boolean;
-  message?: string;
-}>;
+import type { ApiSuccess } from "@/types/common";
+import type {
+  Project,
+  ProjectSummary,
+  CreateProjectPayload,
+  UpdateProjectPayload,
+  CheckSubDomainDuplicateResponse,
+  ApiKeyResponse,
+  ExternalApiEndpointResponse,
+} from "@/types/projects";
 
 export const ProjectsService = {
   create(payload: CreateProjectPayload) {
@@ -60,15 +26,25 @@ export const ProjectsService = {
   detailBySubDomain(subDomain: string, headers?: Record<string, string>) {
     return apiClient.get<ApiSuccess<Project>>(`/v1/projects/${subDomain}`, headers ? { headers } : undefined);
   },
+  detailById(headers?: Record<string, string>) {
+    return apiClient.get<ApiSuccess<Project>>("/v1/projects/by-id", headers ? { headers } : undefined);
+  },
   checkSubDomainDuplicate(subDomain: string) {
     return apiClient.post<CheckSubDomainDuplicateResponse>(
       "/v1/projects/check-sub-domain-duplicate",
       { subDomain }
     );
   },
+  getApiKey(headers?: Record<string, string>) {
+    return apiClient.get<ApiKeyResponse>("/v1/projects/api-key", headers ? { headers } : undefined);
+  },
+  regenerateApiKey(headers?: Record<string, string>) {
+    return apiClient.post<ApiKeyResponse>("/v1/projects/api-key/regenerate", {}, headers ? { headers } : undefined);
+  },
+  getExternalApiEndpoint(headers?: Record<string, string>) {
+    return apiClient.get<ExternalApiEndpointResponse>("/v1/projects/external-api-endpoint", headers ? { headers } : undefined);
+  },
   myProfile(query?: Record<string, string | number | boolean>) {
     return apiClient.get<ApiSuccess<unknown>>("/v1/projects/profile", { query });
   },
 };
-
-

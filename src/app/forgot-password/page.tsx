@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ForgotPasswordService } from "@/services/forgotPassword";
+import loginBgImg from "@/assets/images/auth/login_bg.png";
+import loginCardImg from "@/assets/images/auth/login_card.png";
 
 type Step = "email" | "verify" | "reset" | "done";
 
@@ -47,7 +49,7 @@ export default function ForgotPasswordPage() {
     <main
       className="min-h-screen relative"
       style={{
-        backgroundImage: "url('/login_bg.png')",
+        backgroundImage: `url('${loginBgImg.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -79,7 +81,7 @@ export default function ForgotPasswordPage() {
           xl:right-[12vw]
         "
         style={{
-          backgroundImage: "url('/login_card.png')",
+          backgroundImage: `url('${loginCardImg.src}')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "594px auto",

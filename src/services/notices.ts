@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
 import { decodeNoticeContent, encodeNoticeContent } from "@/lib/notice";
-import {
+import type {
   Notice,
   NoticeListData,
   NoticeListQuery,

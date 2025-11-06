@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Notice } from "@/types/notices";
+import TableSkeleton from "@/components/common/TableSkeleton";
 
 interface NoticeTableProps {
   notices: Notice[];
@@ -40,7 +41,7 @@ export default function NoticeTable({ notices, loading = false, buildNoticeHref 
       {/* 테이블 본문 */}
       <div className="mt-0">
         {loading ? (
-          <div className="py-12 text-center text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</div>
+          <TableSkeleton rows={5} columns={["flex", 100, 120]} />
         ) : notices.length === 0 ? (
           <div className="py-12 text-center text-[14px] text-neutral-60">등록된 공지사항이 없습니다.</div>
         ) : (

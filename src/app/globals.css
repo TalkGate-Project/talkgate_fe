@@ -301,7 +301,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
 /* 모든 요소에 Pretendard 적용 */
@@ -352,6 +352,12 @@ body {
 @utility typo-caption-1 { @apply text-caption-1 leading-caption-1 font-medium; }
 @utility typo-caption-2 { @apply text-caption-2 leading-caption-2 font-normal; }
 
+/* Montserrat font utility for KPI values and numeric emphasis */
+@utility font-montserrat {
+  font-family: var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui;
+  font-synthesis: none; /* do not fake missing weights/styles */
+}
+
 /* Section labels used in docs (Roboto Mono 700 20/32, muted) */
 @utility typo-label {
   font-family: var(--font-roboto-mono), ui-monospace, monospace;
@@ -383,6 +389,9 @@ body {
 @utility text-neutral-80 { color: var(--neutral-80); }
 @utility text-neutral-90 { color: var(--neutral-90); }
 @utility text-neutral-100 { color: var(--neutral-100); }
+
+/* Avoid collision with Tailwind's built-in neutral scale. Use semantic alias. */
+@utility text-ink { color: var(--neutral-100); }
 
 @utility bg-neutral-0 { background-color: var(--neutral-0); }
 @utility bg-neutral-10 { background-color: var(--neutral-10); }
@@ -504,3 +513,28 @@ body {
 @utility text-foreground { color: var(--foreground); }
 @utility text-muted-foreground { color: var(--muted-foreground); }
 @utility border-border { border-color: var(--border); }
+
+/* Fixed Figma-aligned text color (does not change with theme) */
+@utility text-figma-muted { color: #B0B0B0; }
+
+/*
+  Global scaling rules for strong visual parity with 1920px baseline.
+  - 1281px–1440px → scale 0.9
+  - 1025px–1280px → scale 0.8
+  We scale a single wrapper (see app layout) so header and content move together.
+*/
+.app-scale {
+  transform-origin: top center;
+}
+
+@media (max-width: 1440px) and (min-width: 1281px) {
+  .app-scale {
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 1280px) and (min-width: 1025px) {
+  .app-scale {
+    transform: scale(0.8);
+  }
+}

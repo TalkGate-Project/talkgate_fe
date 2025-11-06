@@ -9,11 +9,6 @@ export type Member = {
   descendants?: Member[];
 };
 
-export type MembersTreeResponse = {
-  result: true;
-  data: { rootMembers: Member[] };
-};
-
 export const MembersService = {
   list(query?: Record<string, string | number | boolean>) {
     return apiClient.get<Member[]>(`/v1/members`, { query });

@@ -1,19 +1,11 @@
 // Mocked signup flow service to be replaced with real API calls later.
 import { apiClient } from "@/lib/apiClient";
-
-export type CheckEmailInput = { email: string };
-export type CheckEmailOutput = { available: true };
-
-export type RegisterInput = {
-  email: string;
-  password: string;
-  name: string;
-  phone: string;
-  code?: string;
-  agreeTerms: boolean;
-  agreePrivacy: boolean;
-};
-export type RegisterOutput = { success: true };
+import type {
+  CheckEmailInput,
+  CheckEmailOutput,
+  RegisterInput,
+  RegisterOutput,
+} from "@/types/signup";
 
 export const SignupService = {
   checkEmailAvailable(input: CheckEmailInput): Promise<CheckEmailOutput> {
@@ -36,9 +28,17 @@ export const SignupService = {
   },
 
   register(input: RegisterInput): Promise<RegisterOutput> {
-    // Replace with: return apiClient.post('/v1/auth/signup', input).then(r => r.data)
-    return Promise.resolve({ success: true });
+    const body: any = {
+      email: input.email,
+      password: input.password,
+      isAllowTerms: Boolean(input.agreeTerms),
+      isAllowPrivacy: Boolean(input.agreePrivacy),
+      // Optional invitationToken is not present in our form; left undefined
+    };
+    return apiClient
+      .post<any>("/v1/auth/signup", body)
+      .then((res) => {
+        return { success: true } as RegisterOutput;
+      });
   },
 };
-
-

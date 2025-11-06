@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -11,6 +12,7 @@ import { NoticesService } from "@/services/notices";
 import type { Notice } from "@/types/notices";
 
 export default function NoticeSection() {
+  const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -39,7 +41,7 @@ export default function NoticeSection() {
     <Panel
       title={<span className="typo-title-2">공지사항</span>}
       action={
-        <button className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
+        <button onClick={() => router.push("/notices")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
       }
       className="rounded-[14px]"
     >

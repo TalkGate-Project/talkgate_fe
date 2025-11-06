@@ -5,25 +5,8 @@ interface TeamManagementIconProps {
 
 export default function TeamManagementIcon({ isActive = false, className = "" }: TeamManagementIconProps) {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      className={className}
-    >
-      <path
-        d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V16C18 17.1046 17.1046 18 16 18H4C2.89543 18 2 17.1046 2 16V4Z"
-        stroke={isActive ? "#00C851" : "#808080"}
-        strokeWidth="1.5"
-        fill="none"
-      />
-      <path
-        d="M6 6H14M6 10H14M6 14H10"
-        stroke={isActive ? "#00C851" : "#808080"}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M19 21V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V21M19 21L21 21M19 21H14M5 21L3 21M5 21H10M9 6.99998H10M9 11H10M14 6.99998H15M14 11H15M10 21V16C10 15.4477 10.4477 15 11 15H13C13.5523 15 14 15.4477 14 16V21M10 21H14" stroke={isActive ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }

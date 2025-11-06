@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { SignupService } from "@/services/signup";
 import Checkbox from "@/components/common/Checkbox";
 import { AuthService } from "@/services/auth";
+import loginBgImg from "@/assets/images/auth/login_bg.png";
+import loginCardImg from "@/assets/images/auth/login_card.png";
 
 type Step = "account" | "verify" | "profile" | "done";
 
@@ -53,7 +55,7 @@ export default function SignupPage() {
     <main
       className="min-h-screen relative"
       style={{
-        backgroundImage: "url('/login_bg.png')",
+        backgroundImage: `url('${loginBgImg.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -85,7 +87,7 @@ export default function SignupPage() {
           xl:right-[12vw]
         "
         style={{
-          backgroundImage: "url('/login_card.png')",
+          backgroundImage: `url('${loginCardImg.src}')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "594px auto",
@@ -178,7 +180,7 @@ export default function SignupPage() {
                 className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50"
                 disabled={!emailChecked || !emailValid || !passwordStrong || !passwordMatch}
               >
-                다음(이메일 인증)
+                다음
               </button>
             </form>
           )}
