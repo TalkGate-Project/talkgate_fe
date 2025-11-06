@@ -110,19 +110,19 @@ export default function CustomerLinkExistingModal({
     <BaseModal
       onClose={() => (!linking ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] h-[856px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[848px] h-[856px] rounded-[14px] bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="기존 고객과 연동"
     >
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-3">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-[#000000]">
+          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90">
             고객연동
           </h2>
           <button
             aria-label="close"
             onClick={() => !linking && onClose()}
-            className="w-6 h-6 grid place-items-center text-[#B0B0B0] hover:text-[#000000] transition-colors"
+            className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-90 transition-colors"
           >
             <svg
               width="24"
@@ -141,7 +141,7 @@ export default function CustomerLinkExistingModal({
             </svg>
           </button>
         </div>
-        <div className="px-6 pb-3 text-[14px] text-[#808080]">
+        <div className="px-6 pb-3 text-[14px] text-neutral-60">
           현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다.
         </div>
 
@@ -155,12 +155,12 @@ export default function CustomerLinkExistingModal({
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="w-full h-[36px] rounded-[10px] border border-[#E2E2E2] bg-white pl-10 pr-3 text-[14px] outline-none placeholder:text-[#808080]"
+                className="w-full h-[36px] rounded-[10px] border border-neutral-30 bg-neutral-0 pl-10 pr-3 text-[14px] outline-none placeholder:text-neutral-60"
                 placeholder="이름 연락처로 검색..."
                 disabled={loading}
               />
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B0B0B0]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-50"
                 width="18"
                 height="18"
                 viewBox="0 0 20 20"
@@ -186,10 +186,10 @@ export default function CustomerLinkExistingModal({
           </div>
 
           {/* Table */}
-          <div className="overflow-hidden rounded-[12px] border border-[#E2E2E2] min-h-[340px]">
+          <div className="overflow-hidden rounded-[12px] border border-neutral-30 min-h-[340px]">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead>
-                <tr className="bg-[#EDEDED] text-[#808080]">
+                <tr className="bg-neutral-20 text-neutral-60">
                   {[
                     "이름",
                     "연령",
@@ -216,10 +216,10 @@ export default function CustomerLinkExistingModal({
               </thead>
               <tbody className="text-[14px]">
                 {loading && Array.from({ length: PAGE_LIMIT }).map((_, idx) => (
-                  <tr key={`sk-${idx}`} className="border-b border-[#F0F0F0] animate-pulse">
+                  <tr key={`sk-${idx}`} className="border-b border-neutral-20 animate-pulse">
                     {Array.from({ length: 7 }).map((__, cIdx) => (
                       <td key={cIdx} className="px-6 h-[56px] align-middle">
-                        <div className="h-3 rounded bg-[#F0F0F0]" style={{ width: cIdx === 0 ? 80 : cIdx === 2 ? 140 : 60 }} />
+                        <div className="h-3 rounded bg-neutral-20" style={{ width: cIdx === 0 ? 80 : cIdx === 2 ? 140 : 60 }} />
                       </td>
                     ))}
                   </tr>
@@ -228,7 +228,7 @@ export default function CustomerLinkExistingModal({
                   <tr>
                     <td
                       colSpan={7}
-                      className="h-[64px] text-center text-[#808080]"
+                      className="h-[64px] text-center text-neutral-60"
                     >
                       연동 가능한 고객이 없습니다.
                     </td>
@@ -236,24 +236,24 @@ export default function CustomerLinkExistingModal({
                 )}
                 {!loading &&
                   customers.map((c) => (
-                    <tr key={c.id} className="border-b border-[#F0F0F0]">
-                      <td className="px-6 h-[56px] align-middle text-[#252525]">
+                    <tr key={c.id} className="border-b border-neutral-20">
+                      <td className="px-6 h-[56px] align-middle text-neutral-90">
                         {c.name}
                       </td>
-                    <td className="px-6 h-[56px] align-middle text-[#808080]">-</td>
+                    <td className="px-6 h-[56px] align-middle text-neutral-60">-</td>
                       <td className="px-6 h-[56px] align-middle">
                         <span className="font-semibold">
                           {c.contact1 || "-"}
                         </span>
                       </td>
-                    <td className="px-6 h-[56px] align-middle text-[#808080]">{c.assignedMember?.team?.name || "-"}</td>
-                    <td className="px-6 h-[56px] align-middle text-[#808080]">{c.assignedMember?.name || "-"}</td>
-                      <td className="px-6 h-[56px] align-middle text-[#808080]">
+                    <td className="px-6 h-[56px] align-middle text-neutral-60">{c.assignedMember?.team?.name || "-"}</td>
+                    <td className="px-6 h-[56px] align-middle text-neutral-60">{c.assignedMember?.name || "-"}</td>
+                      <td className="px-6 h-[56px] align-middle text-neutral-60">
                         -
                       </td>
                       <td className="px-6 h-[56px] align-middle">
                         <button
-                          className="h-[28px] px-3 rounded-[6px] bg-[#252525] text-[13px] text-white"
+                          className="h-[28px] px-3 rounded-[6px] bg-neutral-90 text-[13px] text-neutral-0"
                           onClick={() => onLink(c.id)}
                           disabled={linking}
                         >
@@ -268,7 +268,7 @@ export default function CustomerLinkExistingModal({
 
           {/* Pagination (bottom bar style) */}
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-[14px] text-[#808080]">
+            <span className="text-[14px] text-neutral-60">
               총 {total.toLocaleString()}건
             </span>
             <Pagination
@@ -278,7 +278,7 @@ export default function CustomerLinkExistingModal({
               disabled={loading}
             />
             <button
-              className="h-[34px] px-4 rounded-[6px] border border-[#E2E2E2] text-[14px]"
+              className="h-[34px] px-4 rounded-[6px] border border-neutral-30 text-[14px]"
               onClick={onClose}
               disabled={linking}
             >
@@ -288,7 +288,7 @@ export default function CustomerLinkExistingModal({
 
           {/* Error */}
           {error && (
-            <div className="mt-3 rounded-[5px] border border-[#FECACA] bg-[#FEF2F2] px-3 py-2 text-[14px] text-[#B91C1C]">
+            <div className="mt-3 rounded-[5px] border border-danger-20 bg-danger-10 px-3 py-2 text-[14px] text-danger-60">
               {error}
             </div>
           )}

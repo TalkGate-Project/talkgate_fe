@@ -124,11 +124,11 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-[#000000]">고객등록</h2>
+          <h2 className="text-[18px] font-semibold leading-[21px] text-ink">고객등록</h2>
           <button
             aria-label="close"
             onClick={() => !submitting && onClose()}
-            className="w-6 h-6 grid place-items-center text-[#B0B0B0] hover:text-[#000000] transition-colors"
+            className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-ink transition-colors"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -140,20 +140,20 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {/* 기본 정보 */}
           <div className="mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-[#000000] mb-4">기본 정보</h3>
-            <div className="border-t border-[#E2E2E2] pt-4">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">기본 정보</h3>
+            <div className="border-t border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* 이름 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     이름<span className="text-[#FF0000]">*</span>
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="고객 이름을 입력하세요"
                     />
                   </div>
@@ -161,16 +161,16 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 연락처1 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     연락처1<span className="text-[#FF0000]">*</span>
                   </label>
                   <div className="flex gap-2">
                     <div className="w-[120px]">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px] relative">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact1Type}
                           onChange={(e) => setContact1Type(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#808080] appearance-none pr-6"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
                         >
                           {contactTypes.map((type) => (
                             <option key={type} value={type}>
@@ -186,17 +186,17 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="#000000" />
+                                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
                         </svg>
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={contact1}
                           onChange={(e) => setContact1(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                           placeholder="010-1234-5678"
                         />
                       </div>
@@ -206,14 +206,14 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 연락처2 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">연락처2</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연락처2</label>
                   <div className="flex gap-2">
                     <div className="w-[120px]">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px] relative">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact2Type}
                           onChange={(e) => setContact2Type(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#808080] appearance-none pr-6"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
                         >
                           {contactTypes.map((type) => (
                             <option key={type} value={type}>
@@ -229,17 +229,17 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="#000000" />
+                                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
                         </svg>
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={contact2}
                           onChange={(e) => setContact2(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                           placeholder="선택사항"
                         />
                       </div>
@@ -249,28 +249,28 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 주민등록번호 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">주민등록번호</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">주민등록번호</label>
                   <div className="flex gap-2 items-center">
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={residentId1}
                           onChange={(e) => setResidentId1(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000] text-left"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
                           placeholder="123456"
                           maxLength={6}
                         />
                       </div>
                     </div>
-                    <span className="text-[14px] leading-[17px] text-[#808080]">-</span>
+                    <span className="text-[14px] leading-[17px] text-neutral-60">-</span>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={residentId2}
                           onChange={(e) => setResidentId2(e.target.value.replace(/\D/g, "").slice(0, 7))}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000] text-left"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
                           placeholder="567890"
                           maxLength={7}
                         />
@@ -281,13 +281,13 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 연령 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">연령</label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연령</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={ageRange}
                       onChange={(e) => setAgeRange(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="연령"
                     />
                   </div>
@@ -295,13 +295,13 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 직업 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">직업</label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">직업</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={job}
                       onChange={(e) => setJob(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="직업"
                     />
                   </div>
@@ -312,15 +312,15 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
           {/* 메신저 계정 */}
           <div className="mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-[#000000] mb-4">메신저 계정</h3>
-            <div className="border-t border-[#E2E2E2] pt-4">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">메신저 계정</h3>
+            <div className="border-t border-neutral-30 pt-4">
               <div className="flex gap-2 mb-3">
                 <div className="w-[120px]">
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[34px] relative">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px] relative">
                     <select
                       value={currentMessengerType}
                       onChange={(e) => setCurrentMessengerType(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#808080] appearance-none pr-6"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
                     >
                       {messengerTypes.map((type) => (
                         <option key={type} value={type}>
@@ -336,17 +336,17 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="#000000" />
+                                      <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
                     </svg>
                   </div>
                 </div>
                 <div className="flex-1">
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[34px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px]">
                     <input
                       type="text"
                       value={currentMessengerAccount}
                       onChange={(e) => setCurrentMessengerAccount(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="계정 ID를 입력하세요"
                     />
                   </div>
@@ -354,7 +354,7 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                 <button
                   type="button"
                   onClick={handleAddMessenger}
-                  className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold tracking-[-0.02em] text-[#D0D0D0] whitespace-nowrap"
+                  className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
                 >
                   추가
                 </button>
@@ -362,14 +362,14 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
               {messengerAccounts.length > 0 && (
                 <div className="space-y-2">
                   {messengerAccounts.map((acc, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-[#F8F8F8] rounded-[5px]">
-                      <span className="text-[14px] text-[#000000] flex-1">
+                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]">
+                      <span className="text-[14px] text-ink flex-1">
                         {acc.messenger}: {acc.account}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleRemoveMessenger(index)}
-                        className="text-[#808080] hover:text-[#000000]"
+                        className="text-neutral-60 hover:text-ink"
                       >
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -384,18 +384,18 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
           {/* 데이터 정보 */}
           <div>
-            <h3 className="text-[16px] font-semibold leading-[19px] text-[#000000] mb-4">데이터 정보</h3>
-            <div className="border-t border-[#E2E2E2] pt-4">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">데이터 정보</h3>
+            <div className="border-t border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">신청 경로</label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">신청 경로</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={applicationRoute}
                       onChange={(e) => setApplicationRoute(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="신청 경로를 입력하세요"
                     />
                   </div>
@@ -403,13 +403,13 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 사이트 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">사이트</label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">사이트</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={site}
                       onChange={(e) => setSite(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="사이트"
                     />
                   </div>
@@ -417,13 +417,13 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 매체사 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">매체사</label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[33px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">매체사</label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
                       value={mediaCompany}
                       onChange={(e) => setMediaCompany(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000]"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="매체사"
                     />
                   </div>
@@ -432,12 +432,12 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
               {/* 특이사항 */}
               <div>
-                <label className="block text-[14px] leading-[17px] text-[#808080] mb-2">특이사항</label>
-                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] min-h-[66px]">
+                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">특이사항</label>
+                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] min-h-[66px]">
                   <textarea
                     value={specialNotes}
                     onChange={(e) => setSpecialNotes(e.target.value)}
-                    className="w-full min-h-[51px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] text-[#000000] resize-none"
+                    className="w-full min-h-[51px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink resize-none"
                     placeholder="특이사항을 입력하세요"
                     rows={3}
                   />
@@ -448,12 +448,12 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#E2E2E2] px-6 py-4 flex justify-end gap-3">
+        <div className="border-t border-neutral-30 px-6 py-4 flex justify-end gap-3">
           <button
             type="button"
             onClick={handleReset}
             disabled={submitting}
-            className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000000] bg-white disabled:opacity-60"
+            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink bg-white disabled:opacity-60"
           >
             초기화
           </button>
@@ -461,7 +461,7 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !projectId}
-            className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold tracking-[-0.02em] text-[#D0D0D0] disabled:opacity-60"
+            className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
           >
             적용완료
           </button>
