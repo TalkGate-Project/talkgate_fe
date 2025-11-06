@@ -54,4 +54,14 @@ export function formatTableDate(input: string): string {
   return `${year}.${month}.${day}`;
 }
 
+/**
+ * 양수 정수로 파싱합니다. 유효하지 않은 값은 fallback으로 대체됩니다.
+ */
+export function parsePositiveInt(value: string | null | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.floor(parsed);
+}
+
 

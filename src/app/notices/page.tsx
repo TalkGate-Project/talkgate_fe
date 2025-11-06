@@ -2,21 +2,17 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import NoticeSearchPanel from "@/components/notice/NoticeSearchPanel";
 import NoticeTable from "@/components/notice/NoticeTable";
 import NoticePagination from "@/components/notice/NoticePagination";
-import { useFetch } from "@/hooks/useFetch";
-import { Notice, NoticeListData, NoticeListResponse } from "@/types/notices";
 import { getSelectedProjectId } from "@/lib/project";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-const ITEMS_PER_PAGE = 10;
+import { useNoticeQueryParams } from "@/hooks/useNoticeQueryParams";
+import { useNoticeList } from "@/hooks/useNoticeList";
 
 function NoticePageContent() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
 
@@ -33,122 +29,37 @@ function NoticePageContent() {
     setProjectId(id);
   }, [router]);
 
-  const pageParam = searchParams.get("page");
-  const rawTitleParam = searchParams.get("title") ?? "";
-  const limitParam = searchParams.get("limit");
-
-  const currentPage = useMemo(() => {
-    const parsed = pageParam ? Number(pageParam) : 1;
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-  }, [pageParam]);
-
-  const limit = useMemo(() => {
-    const parsed = limitParam ? Number(limitParam) : ITEMS_PER_PAGE;
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : ITEMS_PER_PAGE;
-  }, [limitParam]);
-
-  useEffect(() => {
-    setSearchInput(rawTitleParam);
-  }, [rawTitleParam]);
-
-  const baseQuery = useMemo(
-    () => ({
-      page: currentPage,
-      limit,
-      title: rawTitleParam.trim() ? rawTitleParam.trim() : undefined,
-    }),
-    [currentPage, limit, rawTitleParam]
-  );
-
-  const detailQueryString = useMemo(() => {
-    const paramsClone = new URLSearchParams(searchParams);
-    paramsClone.set("page", String(currentPage));
-    paramsClone.set("limit", String(limit));
-    return paramsClone.toString();
-  }, [currentPage, limit, searchParams]);
-
-  const buildNoticeHref = useCallback(
-    (notice: Notice) => {
-      const qs = detailQueryString;
-      return qs ? `/notice/${notice.id}?${qs}` : `/notice/${notice.id}`;
-    },
-    [detailQueryString]
-  );
-
-  const request = useMemo(() => {
-    if (!projectId) return null;
-    return {
-      query: baseQuery,
-      headers: { "x-project-id": projectId },
-    } as const;
-  }, [baseQuery, projectId]);
-
-  const select = useCallback((raw: unknown): NoticeListData => {
-    const response = raw as NoticeListResponse;
-    if (!response?.data) {
-      throw new Error("잘못된 공지사항 응답 형식입니다.");
-    }
-    return response.data;
-  }, []);
-
-  const { data, loading, error, refetch } = useFetch<NoticeListData>("/v1/notices", {
-    immediate: false,
-    request: request ?? undefined,
-    select,
+  const { page, limit, title, updateQuery, buildDetailUrl } = useNoticeQueryParams();
+  const { notices, loading, errorMessage, totalPages, data } = useNoticeList({
+    projectId,
+    page,
+    limit,
+    title,
   });
 
+  // 검색어를 URL 파라미터와 동기화
   useEffect(() => {
-    if (!request) return;
-    void refetch();
-  }, [request, refetch]);
+    setSearchInput(title || "");
+  }, [title]);
 
-  const notices = data?.notices ?? [];
-  const totalPages = data ? Math.max(1, data.totalPages) : 1;
-
-  const persistQuery = useCallback(
-    (updates: Record<string, string | number | undefined | null>) => {
-      const params = new URLSearchParams(searchParams);
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === undefined || value === null || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, String(value));
-        }
-      });
-      params.set("limit", String(limit));
-      const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-    },
-    [limit, pathname, router, searchParams]
-  );
-
+  // 페이지가 전체 페이지 수를 초과하면 마지막 페이지로 이동
   useEffect(() => {
     if (!data) return;
-    const pages = Math.max(1, data.totalPages);
-    if (currentPage > pages) {
-      persistQuery({ page: pages });
+    const maxPage = Math.max(1, data.totalPages);
+    if (page > maxPage) {
+      updateQuery({ page: maxPage });
     }
-  }, [currentPage, data, persistQuery]);
+  }, [page, data, updateQuery]);
 
-  const handlePageChange = (page: number) => {
-    if (loading) return;
-    if (page === currentPage) return;
-    persistQuery({ page });
+  const handlePageChange = (newPage: number) => {
+    if (loading || newPage === page) return;
+    updateQuery({ page: newPage });
   };
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();
-    persistQuery({ page: 1, title: trimmed || undefined });
+    updateQuery({ page: 1, title: trimmed || undefined });
   };
-
-  const errorMessage = useMemo(() => {
-    if (!error) return null;
-    if (error instanceof Error) return error.message;
-    const errData = (error as any)?.data;
-    if (typeof errData?.message === "string") return errData.message;
-    if (typeof errData?.code === "string") return errData.code;
-    return "공지사항을 불러오지 못했습니다.";
-  }, [error]);
 
   if (!projectId) return null;
 
@@ -165,9 +76,9 @@ function NoticePageContent() {
         {/* 공지사항 목록 테이블 */}
         <div className="mt-4">
           <NoticeTable
-            notices={notices}
+            notices={notices ?? []}
             loading={loading}
-            buildNoticeHref={buildNoticeHref}
+            buildNoticeHref={(notice) => buildDetailUrl(notice.id)}
           />
           {errorMessage && (
             <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
@@ -179,7 +90,7 @@ function NoticePageContent() {
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-4">
           <NoticePagination
-            currentPage={currentPage}
+            currentPage={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />

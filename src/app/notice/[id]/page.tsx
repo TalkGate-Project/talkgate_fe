@@ -1,77 +1,22 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { NoticesService } from "@/services/notices";
-import { Notice, NoticeListData } from "@/types/notices";
 import { getSelectedProjectId } from "@/lib/project";
-import { useMyMember } from "@/hooks/useMyMember";
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  const data = (error as any)?.data;
-  if (typeof data?.message === "string") return data.message;
-  if (typeof data?.code === "string") return data.code;
-  return "요청 처리 중 오류가 발생했습니다.";
-}
-
-function parsePositiveInt(value: string | null, fallback: number): number {
-  if (!value) return fallback;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
-  return Math.floor(parsed);
-}
+import { useNoticeQueryParams } from "@/hooks/useNoticeQueryParams";
+import { useNoticeDetail } from "@/hooks/useNoticeDetail";
+import { useNoticeList } from "@/hooks/useNoticeList";
+import { useNoticeNeighbours } from "@/hooks/useNoticeNeighbours";
+import NoticeDetailSkeleton from "@/components/notice/NoticeDetailSkeleton";
 
 export default function NoticeDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
   const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "TalkGate - 공지사항";
   }, []);
-  const { member: myMember } = useMyMember(projectId);
-
-  const noticeId = useMemo(() => {
-    const raw = params?.id;
-    if (!raw) return null;
-    const parsed = Number(Array.isArray(raw) ? raw[0] : raw);
-    if (!Number.isFinite(parsed) || parsed <= 0) return null;
-    return Math.floor(parsed);
-  }, [params]);
-
-  const page = useMemo(() => parsePositiveInt(searchParams.get("page"), 1), [searchParams]);
-  const limit = useMemo(() => parsePositiveInt(searchParams.get("limit"), 10), [searchParams]);
-  const titleFilter = useMemo(() => {
-    const raw = searchParams.get("title") ?? "";
-    return raw.trim() ? raw.trim() : undefined;
-  }, [searchParams]);
-
-  const listQueryString = useMemo(() => {
-    const paramsCopy = new URLSearchParams(searchParams);
-    return paramsCopy.toString();
-  }, [searchParams]);
-
-  const detailHref = useMemo(() => {
-    const suffix = listQueryString ? `?${listQueryString}` : "";
-    return {
-      toList: `/notices${suffix}`,
-      toDetail: (id: number) => `/notice/${id}${suffix}`,
-      toEdit: (id: number) => `/notice/write?id=${id}${suffix ? `&${listQueryString}` : ""}`,
-    } as const;
-  }, [listQueryString]);
-
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const [loading, setLoading] = useState<boolean>(Boolean(noticeId));
-  const [error, setError] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<boolean>(false);
-
-  const [listData, setListData] = useState<NoticeListData | null>(null);
-  const [listLoading, setListLoading] = useState<boolean>(false);
-  const [listError, setListError] = useState<string | null>(null);
 
   useEffect(() => {
     const id = getSelectedProjectId();
@@ -82,125 +27,74 @@ export default function NoticeDetailPage() {
     setProjectId(id);
   }, [router]);
 
-  useEffect(() => {
-    if (!projectId || !noticeId) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    (async () => {
-      try {
-        const data = await NoticesService.detail(noticeId, projectId);
-        if (!cancelled) setNotice(data);
-      } catch (err) {
-        if (!cancelled) setError(getErrorMessage(err));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, noticeId]);
+  const noticeId = useMemo(() => {
+    const raw = params?.id;
+    if (!raw) return null;
+    const parsed = Number(Array.isArray(raw) ? raw[0] : raw);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return Math.floor(parsed);
+  }, [params]);
 
-  useEffect(() => {
-    if (!projectId) return;
-    let cancelled = false;
-    setListLoading(true);
-    setListError(null);
-    (async () => {
-      try {
-        const data = await NoticesService.list({
-          projectId,
-          page,
-          limit,
-          title: titleFilter,
-        });
-        if (!cancelled) setListData(data);
-      } catch (err) {
-        if (!cancelled) setListError(getErrorMessage(err));
-      } finally {
-        if (!cancelled) setListLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, page, limit, titleFilter]);
+  const { page, limit, title, queryString, buildDetailUrl, listUrl } = useNoticeQueryParams();
 
-  const neighbours = useMemo(() => {
-    if (!notice || !listData?.notices?.length) {
-      return { prev: null, next: null } as const;
-    }
-    const idx = listData.notices.findIndex((candidate) => candidate.id === notice.id);
-    if (idx === -1) return { prev: null, next: null } as const;
-    const prev = idx > 0 ? listData.notices[idx - 1] : null;
-    const next = idx < listData.notices.length - 1 ? listData.notices[idx + 1] : null;
-    return { prev, next } as const;
-  }, [listData, notice]);
+  const {
+    notice,
+    loading,
+    error,
+    formattedDate,
+    canEdit,
+    deleting,
+    deleteError,
+    handleDelete,
+  } = useNoticeDetail({ noticeId, projectId });
 
-  const formattedDate = useMemo(() => {
-    if (!notice?.createdAt) return "-";
-    try {
-      return format(new Date(notice.createdAt), "yyyy-MM-dd");
-    } catch {
-      return "-";
-    }
-  }, [notice?.createdAt]);
+  const {
+    data: listData,
+    loading: listLoading,
+    errorMessage: listErrorMessage,
+  } = useNoticeList({
+    projectId,
+    page,
+    limit,
+    title,
+  });
 
-  const canEdit = useMemo(() => {
-    if (!notice) return false;
-    if (typeof (notice as any).isMyNotice === "boolean") return Boolean((notice as any).isMyNotice);
-    if (typeof (notice as any).isMine === "boolean") return Boolean((notice as any).isMine);
-    if (myMember?.id && notice.authorId) return myMember.id === notice.authorId;
-    return false;
-  }, [notice, myMember?.id]);
+  const neighbours = useNoticeNeighbours(notice, listData);
 
   const handleBackToList = () => {
-    router.push(detailHref.toList);
+    router.push(listUrl);
   };
 
   const handleEdit = () => {
     if (!notice) return;
-    router.push(detailHref.toEdit(notice.id));
+    const editUrl = `/notice/write?id=${notice.id}${queryString ? `&${queryString}` : ""}`;
+    router.push(editUrl);
   };
 
-  const handleDelete = () => {
-    if (!projectId || !notice) return;
-    if (!window.confirm("정말로 이 공지사항을 삭제하시겠습니까?")) return;
-    setDeleting(true);
-    setDeleteError(null);
-    void (async () => {
-      try {
-        await NoticesService.remove(notice.id, projectId);
-        router.push(detailHref.toList);
-        router.refresh();
-      } catch (err) {
-        setDeleteError(getErrorMessage(err));
-        setDeleting(false);
-      }
-    })();
+  const handleDeleteWithRedirect = async () => {
+    try {
+      await handleDelete();
+      router.push(listUrl);
+      router.refresh();
+    } catch {
+      // handleDelete already handles error state
+    }
   };
 
   const handlePrevious = () => {
     if (!neighbours.prev) return;
-    router.push(detailHref.toDetail(neighbours.prev.id));
+    router.push(buildDetailUrl(neighbours.prev.id));
   };
 
   const handleNext = () => {
     if (!neighbours.next) return;
-    router.push(detailHref.toDetail(neighbours.next.id));
+    router.push(buildDetailUrl(neighbours.next.id));
   };
 
   if (!projectId) return null;
 
   if (loading) {
-    return (
-      <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-        <div className="bg-card rounded-[14px] p-6 text-center" role="status">
-          <p className="text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</p>
-        </div>
-      </main>
-    );
+    return <NoticeDetailSkeleton />;
   }
 
   if (error || !notice) {
@@ -260,7 +154,7 @@ export default function NoticeDetailPage() {
                 수정
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteWithRedirect}
                 className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
                 disabled={deleting}
               >
@@ -293,9 +187,9 @@ export default function NoticeDetailPage() {
 
         <div className="border-t border-border mb-6" />
 
-        {(deleteError || listError) && (
+        {(deleteError || listErrorMessage) && (
           <div className="mb-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[13px] text-danger-40">
-            {deleteError ?? listError}
+            {deleteError ?? listErrorMessage}
           </div>
         )}
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Panel from "@/components/common/Panel";
+import TableSkeleton from "@/components/common/TableSkeleton";
 import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
 import { AttendanceService, AttendanceItem } from "@/services/attendance";
@@ -241,7 +242,7 @@ export default function AttendancePage() {
           {/* 테이블 본문 */}
           <div>
             {loading ? (
-              <div className="py-12 text-center text-[14px] text-neutral-60">근태 데이터를 불러오는 중입니다...</div>
+              <TableSkeleton rows={8} columns={["flex", 120, 80, 100, 100, 100]} />
             ) : error ? (
               <div className="py-12 text-center text-[14px] text-danger-40">{error}</div>
             ) : filteredData.length === 0 ? (
