@@ -14,6 +14,7 @@ import type {
 } from "@/types/conversations";
 import { ConversationsService } from "@/services/conversations";
 import { AssetsService } from "@/services/assets";
+import { useBannerNotification } from "./useBannerNotification";
 
 type Params = {
   projectId: number;
@@ -21,42 +22,53 @@ type Params = {
   platform?: "line" | "telegram" | "instagram";
 };
 
-type Banner = { type: "success" | "error"; message: string } | null;
-
 export function useChatController({ projectId, status = "all", platform }: Params) {
+  // ============================================
+  // 배너 알림 관리
+  // ============================================
+  const { banner, showBanner } = useBannerNotification();
+
+  // ============================================
+  // 소켓 연결 및 상태 관리
+  // ============================================
   const socketRef = useRef<Socket | null>(null);
   const activeIdRef = useRef<number | null>(null);
-
   const [connected, setConnected] = useState(false);
   const [socketError, setSocketError] = useState<string | null>(null);
+
+  // ============================================
+  // 대화 목록 관리
+  // ============================================
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [banner, setBanner] = useState<Banner>(null);
-  const [attachmentUploading, setAttachmentUploading] = useState<boolean>(false);
   const [convCursor, setConvCursor] = useState<number | undefined>(undefined);
   const [convHasMore, setConvHasMore] = useState<boolean>(false);
   const convLoadingRef = useRef(false);
   const lastConvCursorRequestedRef = useRef<number | undefined>(undefined);
 
+  // ============================================
+  // 메시지 관리
+  // ============================================
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [msgCursor, setMsgCursor] = useState<number | undefined>(undefined);
   const [msgHasMore, setMsgHasMore] = useState<boolean>(false);
   const msgLoadingRef = useRef(false);
   const lastMsgCursorRequestedRef = useRef<number | undefined>(undefined);
 
-  // optimistic map: tempId -> true
+  // ============================================
+  // Optimistic UI 업데이트 관리
+  // ============================================
+  // 임시 메시지 ID 추적용 맵
   const tempIdSetRef = useRef<Set<string>>(new Set());
 
-  const showBanner = useCallback((type: "success" | "error", message: string) => {
-    setBanner({ type, message });
-  }, []);
+  // ============================================
+  // 첨부파일 업로드 상태
+  // ============================================
+  const [attachmentUploading, setAttachmentUploading] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!banner) return;
-    const timer = window.setTimeout(() => setBanner(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [banner]);
-
+  // ============================================
+  // 파생 상태
+  // ============================================
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeId) || null,
     [conversations, activeId]
@@ -66,9 +78,30 @@ export function useChatController({ projectId, status = "all", platform }: Param
     activeIdRef.current = activeId;
   }, [activeId]);
 
+  // ============================================
+  // 소켓 연결 및 이벤트 핸들러 설정
+  // ============================================
+  // showBanner를 ref로 안정화하여 useEffect 재실행 방지
+  const showBannerRef = useRef(showBanner);
+  useEffect(() => {
+    showBannerRef.current = showBanner;
+  }, [showBanner]);
+
   useEffect(() => {
     const socket = talkgateSocket.connect(projectId);
     socketRef.current = socket;
+
+    // 소켓이 이미 연결되어 있으면 상태를 즉시 업데이트
+    if (socket.connected) {
+      setConnected(true);
+      setSocketError(null);
+    }
+
+    // 소켓 연결 상태 핸들러
+    const handleConnected = () => {
+      setConnected(true);
+      setSocketError(null);
+    };
 
     const onReady = () => {
       setConnected(true);
@@ -85,7 +118,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       const message = payload?.message || "알 수 없는 오류";
       const combined = `${code}${message}`;
       setSocketError(combined);
-      showBanner("error", combined);
+      showBannerRef.current("error", combined);
     };
 
     const onDisconnect = (reason: any) => {
@@ -93,9 +126,13 @@ export function useChatController({ projectId, status = "all", platform }: Param
       if (reason !== "io client disconnect") {
         const msg = `연결이 종료되었습니다: ${String(reason)}`;
         setSocketError(msg);
+      } else {
+        // 클라이언트가 의도적으로 연결을 끊은 경우 에러 메시지 제거
+        setSocketError(null);
       }
     };
 
+    // 대화 목록 관련 이벤트 핸들러
     const onConversationsList = (payload: ConversationsListEvent) => {
       const items = payload?.conversations ?? [];
       const nextCursor = (payload as any)?.nextCursor as number | undefined;
@@ -108,7 +145,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       lastConvCursorRequestedRef.current = undefined;
 
       if (requestedCursor) {
-        // pagination append
+        // 페이징: 기존 목록에 추가
         setConversations((prev) => {
           const existingIds = new Set(prev.map((c) => c.id));
           const merged = [...prev];
@@ -116,16 +153,17 @@ export function useChatController({ projectId, status = "all", platform }: Param
           return merged;
         });
       } else {
-        // initial load/refresh
+        // 초기 로드/새로고침: 전체 교체
         setConversations(items);
       }
-      // Do not auto-select a conversation; keep current selection if still present
+      // 대화 목록이 변경되어도 자동 선택하지 않음; 현재 선택이 유효하면 유지
       const current = activeIdRef.copy ? (activeIdRef as any).current : activeIdRef.current;
       if (current && !items.some((c) => c.id === current)) {
         setActiveId(null);
       }
     };
 
+    // 대화 업데이트 이벤트 핸들러
     const onConversation = (payload: ConversationEvent) => {
       if (!payload?.conversation) return;
       setConversations((prev) => {
@@ -135,6 +173,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       });
     };
 
+    // 메시지 목록 관련 이벤트 핸들러
     const onMessagesList = (payload: MessagesListEvent) => {
       if (!payload || payload.conversationId !== activeIdRef.current) return;
       const msgs = payload.messages ?? [];
@@ -148,22 +187,24 @@ export function useChatController({ projectId, status = "all", platform }: Param
       lastMsgCursorRequestedRef.current = undefined;
 
       if (requestedCursor) {
-        // prepend older
+        // 페이징: 기존 메시지 앞에 이전 메시지 추가 (백엔드가 오래된 메시지부터 보내는 것으로 가정)
         setMessages((prev) => {
           const existingIds = new Set(prev.map((m) => m.id));
           const merged = [...msgs.filter((m) => !existingIds.has(m.id)), ...prev];
           return merged;
         });
       } else {
+        // 초기 로드: 전체 교체 (백엔드 순서 그대로 사용)
         setMessages(msgs);
       }
     };
 
+    // 메시지 전송 결과 이벤트 핸들러
     const onMessageResult = (payload: MessageResultEvent) => {
       if (!payload?.success) {
         const message = payload?.error || payload?.message || "메시지 전송에 실패했습니다.";
         showBanner("error", message);
-        // mark optimistic as failed
+        // Optimistic UI 업데이트 실패 처리
         if (payload?.tempMessageId) {
           setMessages((prev) =>
             prev.map((m: any) =>
@@ -173,7 +214,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         }
         return;
       }
-      // reconcile optimistic
+      // Optimistic UI 업데이트: 임시 메시지를 실제 메시지로 교체
       if ((payload as any).tempMessageId) {
         const tempId = (payload as any).tempMessageId as string;
         setMessages((prev) =>
@@ -187,10 +228,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
       }
     };
 
+    // 새 메시지 수신 이벤트 핸들러
     const onNewMessage = (payload: NewMessageEvent) => {
       if (!payload) return;
       const { message, conversation } = payload;
       if (conversation) {
+        // 대화 목록 업데이트 (최신 메시지가 있는 대화를 맨 위로 이동)
         setConversations((prev) => {
           const exists = prev.find((c) => c.id === conversation.id);
           if (!exists) return [conversation, ...prev];
@@ -200,23 +243,30 @@ export function useChatController({ projectId, status = "all", platform }: Param
       }
       const current = activeIdRef.current;
       if (message?.conversationId === current) {
+        // 현재 활성 대화의 메시지면 뒤에 추가 (백엔드가 오래된 것부터 최신 순서로 관리)
         setMessages((prev) => {
-          if (prev.some((m) => m.id === message.id)) return prev; // dedup
+          if (prev.some((m) => m.id === message.id)) return prev; // 중복 제거
           return [...prev, message];
         });
         if (current) {
+          // 읽음 처리
           socket.emit("markMessagesRead", { conversationId: current });
         }
       }
     };
 
+    // 메시지 읽음 처리 이벤트 핸들러
     const onMessagesMarkedRead = (payload: MessagesMarkedReadEvent) => {
       if (!payload) return;
       const id = payload.conversationId;
       setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)));
     };
 
-    socket.on("Ready", onReady);
+    // Socket.IO 기본 이벤트: connect와 ready 이벤트 모두 처리
+    // connect: Socket.IO 연결이 완료됨
+    socket.on("connect", handleConnected);
+    // ready: 서버에서 채팅 준비 완료를 알림 (소문자)
+    socket.on("ready", onReady);
     socket.on("connect_error", onConnectError);
     socket.on("disconnect", onDisconnect);
     socket.on("error", onSocketError as any);
@@ -235,8 +285,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
     lastConvCursorRequestedRef.current = undefined;
     convLoadingRef.current = true;
 
+    // 클린업: 이벤트 리스너 제거
     return () => {
-      socket.off("Ready", onReady);
+      socket.off("connect", handleConnected);
+      socket.off("ready", onReady);
       socket.off("connect_error", onConnectError);
       socket.off("disconnect", onDisconnect);
       socket.off("error", onSocketError as any);
@@ -247,8 +299,11 @@ export function useChatController({ projectId, status = "all", platform }: Param
       socket.off("newMessage", onNewMessage as any);
       socket.off("messagesMarkedRead", onMessagesMarkedRead as any);
     };
-  }, [projectId, status, platform, showBanner]);
+  }, [projectId, status, platform]); // showBanner 제거하여 불필요한 재연결 방지
 
+  // ============================================
+  // 활성 대화 변경 시 메시지 로드
+  // ============================================
   useEffect(() => {
     if (!activeId) return;
     const socket = socketRef.current;
@@ -264,6 +319,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
     setMessages([]);
   }, [activeId]);
 
+  // ============================================
+  // 메시지 전송 액션
+  // ============================================
   const send = useCallback(
     (content: string) => {
       if (!content.trim() || !activeId) return;
@@ -275,23 +333,22 @@ export function useChatController({ projectId, status = "all", platform }: Param
       const tempMessageId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       tempIdSetRef.current.add(tempMessageId);
       const now = new Date().toISOString();
-      // optimistic append
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Number.NEGATIVE_INFINITY, // temporary non-colliding id
-          conversationId: activeId,
-          type: "text",
-          direction: "outgoing",
-          status: "pending" as any,
-          content,
-          sentAt: now,
-          createdAt: now,
-          updatedAt: now,
-          tempMessageId,
-        } as any,
-      ]);
-      // bump conversation order locally
+      // Optimistic UI: 즉시 메시지 추가 (뒤에 추가하여 최신 메시지가 아래로)
+      const tempMessage = {
+        id: Number.NEGATIVE_INFINITY, // 충돌하지 않는 임시 ID
+        conversationId: activeId,
+        type: "text",
+        direction: "outgoing",
+        status: "pending" as any,
+        content,
+        sentAt: now,
+        createdAt: now,
+        updatedAt: now,
+        tempMessageId,
+      } as any;
+      
+      setMessages((prev) => [...prev, tempMessage]);
+      // Optimistic UI: 대화 목록 순서 업데이트 (최신 메시지가 있는 대화를 맨 위로)
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
         if (!target) return prev;
@@ -323,6 +380,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
     [activeId, showBanner]
   );
 
+  // ============================================
+  // 고객 연동 액션
+  // ============================================
   const linkCustomerToConversation = useCallback(
     async (customerId: number) => {
       if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
@@ -344,6 +404,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
     [activeId, projectId, showBanner]
   );
 
+  // ============================================
+  // 상담 완료 액션
+  // ============================================
   const closeConversation = useCallback(async () => {
     if (!activeId) {
       showBanner("error", "대화방을 먼저 선택해주세요.");
@@ -367,6 +430,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
     }
   }, [activeId, projectId, showBanner]);
 
+  // ============================================
+  // 파일 전송 액션
+  // ============================================
   const detectMessageType = (file: File): "image" | "video" | "audio" | "file" => {
     if (file.type.startsWith("image/")) return "image";
     if (file.type.startsWith("video/")) return "video";
@@ -387,26 +453,25 @@ export function useChatController({ projectId, status = "all", platform }: Param
       const messageType = detectMessageType(file);
       setAttachmentUploading(true);
 
-      // optimistic
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Number.NEGATIVE_INFINITY,
-          conversationId: activeId,
-          type: messageType,
-          direction: "outgoing",
-          status: "pending" as any,
-          content: undefined,
-          fileUrl: undefined,
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          sentAt: now,
-          createdAt: now,
-          updatedAt: now,
-          tempMessageId,
-        } as any,
-      ]);
+      // Optimistic UI: 즉시 메시지 추가 (뒤에 추가하여 최신 메시지가 아래로)
+      const tempMessage = {
+        id: Number.NEGATIVE_INFINITY,
+        conversationId: activeId,
+        type: messageType,
+        direction: "outgoing",
+        status: "pending" as any,
+        content: undefined,
+        fileUrl: undefined,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        sentAt: now,
+        createdAt: now,
+        updatedAt: now,
+        tempMessageId,
+      } as any;
+      
+      setMessages((prev) => [...prev, tempMessage]);
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
         if (!target) return prev;
@@ -459,6 +524,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
     [activeId, showBanner]
   );
 
+  // ============================================
+  // 페이징 액션
+  // ============================================
   const loadMoreConversations = useCallback(() => {
     if (convLoadingRef.current || !convHasMore) return;
     const socket = socketRef.current;
@@ -497,7 +565,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     notify: showBanner,
     attachmentUploading,
     sendAttachment,
-    // pagination
+    // 페이징
     conversationsPage: { hasMore: convHasMore },
     messagesPage: { hasMore: msgHasMore },
     loadMoreConversations,
