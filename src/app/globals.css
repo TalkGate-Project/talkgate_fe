@@ -301,7 +301,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
 /* 모든 요소에 Pretendard 적용 */
@@ -355,6 +355,7 @@ body {
 /* Montserrat font utility for KPI values and numeric emphasis */
 @utility font-montserrat {
   font-family: var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui;
+  font-synthesis: none; /* do not fake missing weights/styles */
 }
 
 /* Section labels used in docs (Roboto Mono 700 20/32, muted) */

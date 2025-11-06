@@ -33,6 +33,7 @@ export default function CalendarSection() {
   const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
   const ym = `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, "0")}`;
+  const montserratStyle = { fontFamily: 'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui' };
 
   const goPrev = () => {
     const y = current.getFullYear();
@@ -111,7 +112,7 @@ export default function CalendarSection() {
           <button onClick={goPrev} className="w-[36px] h-[36px] grid place-items-center">
             <CalendarPrevIcon />
           </button>
-          <div className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]">
+          <div className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]" style={montserratStyle}>
             {ym}
           </div>
           <button onClick={goNext} className="w-[36px] h-[36px] grid place-items-center">
@@ -125,10 +126,10 @@ export default function CalendarSection() {
     >
       <div className="w-[1324px] h-full gap-6 grid lg:flex lg:items-start">
         {/* Calendar grid */}
-        <div className="order-2 lg:order-1 lg:w-[896px]">
+        <div className="order-2 lg:order-1 lg:w-[912px]">
           {/* Week header bar */}
           <div className="mb-2 bg-neutral-20 rounded-[12px]">
-            <div className="grid" style={{ gridTemplateColumns: "repeat(7, 128px)" }}>
+            <div className="grid" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
               {days.map((d) => (
                 <div key={d} className="h-12 grid place-items-center text-neutral-60 typo-title-4">
                   {d}
@@ -137,7 +138,7 @@ export default function CalendarSection() {
             </div>
           </div>
           {/* Days */}
-          <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(7, 128px)" }}>
+          <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
             {cells.map((cell, i) => {
               const isPrevMonth = !cell.inCurrent;
               const isSelected =
@@ -161,9 +162,10 @@ export default function CalendarSection() {
                   className={`relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
-                    className={`font-montserrat text-[16px] leading-[20px] ml-2 mt-2 ${
+                    className={`font-montserrat font-medium text-[16px] leading-[20px] ml-2 mt-2 ${
                       isPrevMonth ? "text-neutral-50" : "text-neutral-70"
                     }`}
+                    style={montserratStyle}
                   >
                     {cell.date.getDate()}
                   </div>
@@ -175,7 +177,9 @@ export default function CalendarSection() {
                       </div>
                     ))}
                     {daySchedules.length > 3 && (
-                      <div className="flex items-center gap-1 text-[10px] text-neutral-60">그 외 {daySchedules.length - 3}건</div>
+                      <div className="flex items-center gap-1 text-[10px] text-neutral-60">
+                        그 외 <span className="font-montserrat" style={montserratStyle}>{daySchedules.length - 3}</span>건
+                      </div>
                     )}
                   </div>
                 </div>
@@ -185,11 +189,18 @@ export default function CalendarSection() {
         </div>
 
         {/* Right schedule list */}
-        <aside className="order-1 lg:order-2 lg:shrink-0">
+        <aside className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]">
           <div className="bg-neutral-10 rounded-[12px] p-4 h-full relative flex flex-col">
             <div className="flex items-center justify-between mb-4 gap-2">
               <div className="typo-title-2">
-                {selectedDate ? format(selectedDate, "MM.dd EEEE", { locale: ko }) : "일정"} ({selectedSchedules.length})
+                {selectedDate ? (
+                  <>
+                    <span className="font-montserrat" style={montserratStyle}>{format(selectedDate, "MM.dd")}</span>{" "}
+                    {format(selectedDate, "EEEE", { locale: ko })}
+                  </>
+                ) : (
+                  "일정"
+                )} ({<span className="font-montserrat" style={montserratStyle}>{selectedSchedules.length}</span>})
               </div>
               <button
                 className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
@@ -221,7 +232,7 @@ export default function CalendarSection() {
                 selectedSchedules.map((schedule) => (
                   <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4" style={{ maxWidth: 304 }}>
                     <span className="w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
-                    <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0">
+                    <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0 font-montserrat" style={montserratStyle}>
                       {formatScheduleTime(schedule)}
                     </span>
                     <span className="typo-body-2 text-neutral-60 flex-1 break-words whitespace-normal">

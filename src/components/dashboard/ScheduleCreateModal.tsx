@@ -107,7 +107,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
                 <CalendarPrevIcon />
               </button>
               <div className="flex-1 h-[34px] bg-white rounded-[5px] grid place-items-center px-8">
-                <span className="font-[var(--font-montserrat)] font-bold text-[16px] text-[#252525]">
+                <span className="font-montserrat font-bold text-[16px] text-[#252525]">
                   {format(current, "yyyy - MM - dd (EEE)")}
                 </span>
               </div>
