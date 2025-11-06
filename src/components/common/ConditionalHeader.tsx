@@ -20,7 +20,7 @@ export default function ConditionalHeader() {
     pathname.startsWith("/customers") ||
     pathname.startsWith("/stats") ||
     pathname.startsWith("/projects/") || // 프로젝트 스코프 경로 (리다이렉트 용도)
-    pathname.startsWith("/notices") ||
+    pathname.startsWith("/notice") || // 공지사항 목록 및 상세 페이지
     pathname.startsWith("/attendance") ||
     pathname.startsWith("/settings") ||
     pathname.startsWith("/notifications") ||

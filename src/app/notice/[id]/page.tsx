@@ -195,7 +195,7 @@ export default function NoticeDetailPage() {
 
   if (loading) {
     return (
-      <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+      <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
         <div className="bg-card rounded-[14px] p-6 text-center" role="status">
           <p className="text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</p>
         </div>
@@ -205,7 +205,7 @@ export default function NoticeDetailPage() {
 
   if (error || !notice) {
     return (
-      <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+      <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
         <div className="bg-card rounded-[14px] p-6 text-center">
           <p className="mb-4 text-[14px] text-danger-40">{error || "공지사항을 찾을 수 없습니다."}</p>
           <button
@@ -220,7 +220,7 @@ export default function NoticeDetailPage() {
   }
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+    <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
       <div className="bg-card rounded-[14px] p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
