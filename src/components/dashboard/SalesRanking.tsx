@@ -1,20 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
-import type {
-  RankingMemberRecord,
-  RankingMemberResponse,
-  RankingTeamRecord,
-  RankingTeamResponse,
-} from "@/types/statistics";
-
-type RankingMode = "team" | "member";
+import type { RankingMemberResponse, RankingTeamResponse } from "@/types/statistics";
+import { useSalesRankingData, type RankingMode } from "@/hooks/useSalesRankingData";
+import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 
 export default function SalesRanking() {
   const router = useRouter();
@@ -48,7 +43,7 @@ export default function SalesRanking() {
     placeholderData: (previous) => previous,
   });
 
-  const { rows, loading, error } = useRankingData({ mode, teamQuery, memberQuery });
+  const { rows, loading, error } = useSalesRankingData({ mode, teamQuery, memberQuery });
 
   return (
     <Panel
@@ -104,7 +99,7 @@ export default function SalesRanking() {
               <li key={`${mode}-${item.rank}-${item.name}`} className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
                 <div className="flex items-center gap-3">
                   <span
-                    className={`grid place-items-center w-6 h-6 rounded-full text-[14px] ${
+                    className={`grid place-items-center w-6 h-6 rounded-full text-[14px] font-montserrat ${
                       item.rank <= 3 ? "bg-neutral-90 text-neutral-0" : "bg-neutral-20 text-neutral-60"
                     }`}
                   >
@@ -113,13 +108,13 @@ export default function SalesRanking() {
                   <span className="typo-title-4 text-foreground opacity-90">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="typo-body-3 text-foreground opacity-90">{item.amountLabel}</span>
+                  <span className="typo-body-3 text-foreground opacity-90 font-montserrat">{item.amountLabel}</span>
                   <span
                     className={`px-2 py-1 rounded-[5px] typo-caption-2 leading-none ${
                       item.changePositive ? "bg-neutral-20 text-neutral-60" : "bg-danger-10 text-danger-40"
                     }`}
                   >
-                    {item.changeLabel}
+                    <span className="font-montserrat">{item.changeLabel}</span>
                   </span>
                 </div>
               </li>
@@ -131,95 +126,6 @@ export default function SalesRanking() {
   );
 }
 
-type RankingRow = {
-  rank: number;
-  name: string;
-  amountLabel: string;
-  changeLabel: string;
-  changePositive: boolean;
-};
-
-function useRankingData({
-  mode,
-  teamQuery,
-  memberQuery,
-}: {
-  mode: RankingMode;
-  teamQuery: UseQueryResult<RankingTeamResponse>;
-  memberQuery: UseQueryResult<RankingMemberResponse>;
-}) {
-  const loading = mode === "team"
-    ? teamQuery.isLoading && !teamQuery.data
-    : memberQuery.isLoading && !memberQuery.data;
-
-  const error = mode === "team"
-    ? teamQuery.isError && !teamQuery.isFetching
-    : memberQuery.isError && !memberQuery.isFetching;
-
-  const rows = useMemo<RankingRow[]>(() => {
-    if (mode === "team") {
-      const payload = teamQuery.data?.data;
-      if (payload?.data === null) return [];
-      const list: RankingTeamRecord[] = payload?.data ?? [];
-      return list.map((item) => ({
-        rank: item.rank,
-        name: item.teamName ?? "소속없음",
-        amountLabel: `₩ ${formatCurrency(item.totalAmount)}`,
-        changeLabel: formatRankChange(item.rankChange),
-        changePositive: (item.rankChange ?? 0) >= 0,
-      }));
-    }
-    const payload = memberQuery.data?.data;
-    if (payload?.data === null) return [];
-    const list: RankingMemberRecord[] = payload?.data ?? [];
-    return list.map((item) => ({
-      rank: item.rank,
-      name: item.memberName,
-      amountLabel: `₩ ${formatCurrency(item.totalAmount)}`,
-      changeLabel: formatPercentChange(item.amountChangeRate),
-      changePositive: parseFloatSafe(item.amountChangeRate) >= 0,
-    }));
-  }, [mode, teamQuery.data, memberQuery.data]);
-
-  return { rows, loading, error } as const;
-}
-
-function RankingSkeleton() {
-  return (
-    <div className="flex h-[240px] flex-col justify-center gap-3">
-      {Array.from({ length: 5 }).map((_, idx) => (
-        <div key={idx} className="mx-2 flex items-center justify-between gap-3">
-          <span className="h-6 w-6 rounded-full bg-neutral-20" />
-          <span className="flex-1 h-5 rounded bg-neutral-20" />
-          <span className="h-5 w-20 rounded bg-neutral-20" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("ko-KR");
-}
-
-function formatRankChange(change: number | null | undefined) {
-  if (change === null || change === undefined) return "-";
-  if (change === 0) return "유지";
-  return `${change > 0 ? "+" : ""}${change}`;
-}
-
-function parseFloatSafe(value: string | number | null | undefined) {
-  if (value === null || value === undefined) return 0;
-  if (typeof value === "number") return value;
-  const parsed = Number.parseFloat(value);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function formatPercentChange(value: string | number | null | undefined) {
-  const parsed = parseFloatSafe(value);
-  if (parsed === 0) return "0%";
-  const display = Math.round(parsed * 10) / 10;
-  return `${display > 0 ? "+" : ""}${display}%`;
-}
+// formatting helpers moved to @/utils/format
 
 

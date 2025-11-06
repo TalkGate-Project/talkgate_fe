@@ -8,6 +8,8 @@ import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
 import type { WeeklyScheduleItem } from "@/types/dashboard";
+import { generateMonthCells, type CalendarCell } from "@/utils/calendar";
+import { formatTimeFromISO } from "@/utils/datetime";
 import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
 import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
@@ -46,30 +48,7 @@ export default function CalendarSection() {
     setCurrent(new Date(y, m + 1, 1));
   };
 
-  type Cell = { date: Date; inCurrent: boolean };
-  const cells: Cell[] = useMemo(() => {
-    const y = current.getFullYear();
-    const m = current.getMonth();
-    const first = new Date(y, m, 1);
-    const startDow = first.getDay(); // 0=Sun
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const daysInPrev = new Date(y, m, 0).getDate();
-    const totalCells = startDow + daysInMonth <= 35 ? 35 : 42; // 5주 또는 6주
-    const result: Cell[] = [];
-    for (let i = 0; i < totalCells; i++) {
-      if (i < startDow) {
-        const d = daysInPrev - startDow + 1 + i;
-        result.push({ date: new Date(y, m - 1, d), inCurrent: false });
-      } else if (i < startDow + daysInMonth) {
-        const d = i - startDow + 1;
-        result.push({ date: new Date(y, m, d), inCurrent: true });
-      } else {
-        const d = i - (startDow + daysInMonth) + 1;
-        result.push({ date: new Date(y, m + 1, d), inCurrent: false });
-      }
-    }
-    return result;
-  }, [current]);
+  const cells: CalendarCell[] = useMemo(() => generateMonthCells(current), [current]);
   const year = current.getFullYear();
   const month = current.getMonth() + 1; // 1-12
 
@@ -163,7 +142,7 @@ export default function CalendarSection() {
                 >
                   <div
                     className={`font-montserrat font-medium text-[16px] leading-[20px] ml-2 mt-2 ${
-                      isPrevMonth ? "text-neutral-50" : "text-neutral-70"
+                      isPrevMonth ? "text-figma-muted" : "text-neutral-70"
                     }`}
                     style={montserratStyle}
                   >
@@ -260,11 +239,7 @@ export default function CalendarSection() {
 }
 
 function formatScheduleTime(schedule: WeeklyScheduleItem) {
-  const iso = schedule.scheduleTime;
-  if (!iso) return "-";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "-";
-  return format(date, "HH:mm");
+  return formatTimeFromISO(schedule.scheduleTime);
 }
 
 function ScheduleSkeleton() {

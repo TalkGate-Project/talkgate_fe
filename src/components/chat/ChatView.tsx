@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/lib/realtime";
-import { useChatController } from "./useChatController";
+import { useChatController } from "@/hooks/useChatController";
 import ChatFilterModal from "./ChatFilterModal";
 import EmojiPicker from "./EmojiPicker";
 import ChatInputBar from "./ChatInputBar";
