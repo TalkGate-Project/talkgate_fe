@@ -390,6 +390,9 @@ body {
 @utility text-neutral-90 { color: var(--neutral-90); }
 @utility text-neutral-100 { color: var(--neutral-100); }
 
+/* Avoid collision with Tailwind's built-in neutral scale. Use semantic alias. */
+@utility text-ink { color: var(--neutral-100); }
+
 @utility bg-neutral-0 { background-color: var(--neutral-0); }
 @utility bg-neutral-10 { background-color: var(--neutral-10); }
 @utility bg-neutral-20 { background-color: var(--neutral-20); }

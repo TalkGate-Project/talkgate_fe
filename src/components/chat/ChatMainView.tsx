@@ -8,6 +8,7 @@ import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
 import Image from "next/image";
 import DefaultProfile from "@/assets/images/common/default_profile.png";
+import TgsSticker from "./TgsSticker";
 
 type Props = {
   activeConversation: Conversation | null;
@@ -50,6 +51,35 @@ export default function ChatMainView({
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
   const prevMessagesLengthRef = useRef(0);
 
+  const downloadFile = useCallback(async (url: string, fileName?: string) => {
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      // iOS Safari는 a.download 지원이 제한적 → 새 탭으로 열기
+      const ua = navigator.userAgent || "";
+      const isIOS = /iP(ad|hone|od)/.test(navigator.platform) || /iOS|iPhone|iPad|iPod/i.test(ua);
+      if (isIOS) {
+        window.open(blobUrl, "_blank");
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+        return;
+      }
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName || "download";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    } catch (e) {
+      // CORS 등으로 blob 다운로드가 불가능할 때는 새 탭으로 여는 것으로 폴백
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }, []);
+
   // 백엔드가 메시지를 보내는 순서를 그대로 사용하되, 렌더링 시 역순으로 표시
   // (백엔드 순서: [오래된, ..., 최신] → 렌더링: [최신, ..., 오래된])
   const displayMessages = [...messages].reverse();
@@ -91,18 +121,18 @@ export default function ChatMainView({
 
   return (
     <div className="col-span-6 flex justify-center">
-      <div className="w-[688px] h-[840px] rounded-[14px] bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] flex flex-col">
+      <div className="w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {activeConversation ? (
               <>
-                <div className="w-10 h-10 rounded-full bg-[#F2F2F2]" />
+                <div className="w-10 h-10 rounded-full bg-neutral-20" />
                 <div>
-                  <div className="text-[20px] font-bold text-[#000]">
+                  <div className="text-[20px] font-bold text-ink">
                     {activeConversation.name}
                   </div>
-                  <div className="text-[14px] text-[#808080]">
+                  <div className="text-[14px] text-neutral-60">
                     ID : {activeConversation.platformConversationId || "-"}
                   </div>
                 </div>
@@ -113,18 +143,18 @@ export default function ChatMainView({
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="cursor-pointer h-[34px] px-2 rounded-[5px] border border-[#E2E2E2] text-white text-[12px] font-semibold disabled:bg-[#A5E3C9] disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-2 rounded-[5px] border border-border text-neutral-0 text-[12px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={onOpenLinkFlow}
             >
               <LinkIcon />
             </button>
             {activeConversation && (
-              <button className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-white border border-[#E2E2E2] text-[12px] disabled:opacity-60 disabled:cursor-not-allowed">
+              <button className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-card border border-border text-[12px] disabled:opacity-60 disabled:cursor-not-allowed">
                 고객정보
               </button>
             )}
             <button
-              className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-40 text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCloseConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"
@@ -147,8 +177,8 @@ export default function ChatMainView({
               <div
                 className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${
                   banner.type === "success"
-                    ? "bg-[#E6F7EF] border-[#B9EBD3] text-[#0E7A4D]"
-                    : "bg-[#FFF7F7] border-[#FFE2E2] text-[#B42318]"
+                    ? "bg-primary-10 border-primary-20 text-primary-80"
+                    : "bg-danger-10 border-danger-20 text-danger-60"
                 }`}
               >
                 {banner.message}
@@ -156,11 +186,11 @@ export default function ChatMainView({
             )}
             {!connected || socketError ? (
               <div className="mb-4">
-                <div className="w-full rounded-[8px] border border-[#FFE2E2] bg-[#FFF7F7] text-[#B42318] text-[12px] px-3 py-2">
+                <div className="w-full rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
                   {socketError ? socketError : "서버에 연결 중입니다..."}
                 </div>
                 {socketError && (
-                  <div className="mt-2 text-[12px] text-[#808080]">
+                  <div className="mt-2 text-[12px] text-neutral-60">
                     문제가 지속되면 페이지를 새로고침하거나, 네트워크 상태를
                     확인해주세요.
                   </div>
@@ -199,8 +229,8 @@ export default function ChatMainView({
                 <div
                   className={`max-w-[75%] rounded-[16px] ${
                     m.direction === "outgoing"
-                      ? "bg-[#252525] text-white rounded-br-none"
-                      : "bg-[#EDEDED] text-[#000] rounded-bl-none"
+                      ? "bg-neutral-90 text-neutral-0 rounded-br-none"
+                      : "bg-neutral-20 text-ink rounded-bl-none"
                   } ${
                     m.type === "image" || m.type === "video"
                       ? "p-0 overflow-hidden"
@@ -286,61 +316,68 @@ export default function ChatMainView({
                   {/* 파일 메시지 */}
                   {m.type === "file" && m.fileUrl && (
                     <div className="space-y-2">
-                      <a
-                        href={m.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-                      >
-                        <div className="w-10 h-10 rounded-[8px] bg-[#F2F2F2] flex items-center justify-center flex-shrink-0">
-                          <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                      {(() => {
+                        const isPdf =
+                          (m.fileType && /pdf/i.test(m.fileType)) ||
+                          (m.fileName && /\.pdf$/i.test(m.fileName)) ||
+                          /\.pdf$/i.test(m.fileUrl);
+                        if (isPdf) {
+                          return (
+                            <button
+                              onClick={() => downloadFile(m.fileUrl!, m.fileName || "document.pdf")}
+                              className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+                            >
+                              <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M8 13h8M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[12px] font-medium leading-[20px] break-words">
+                                  {m.fileName || "PDF 파일"}
+                                </div>
+                                {m.fileSize && (
+                                  <div className="text-[11px] opacity-70">
+                                    {(m.fileSize / 1024 / 1024).toFixed(2)} MB
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        }
+                        return (
+                          <a
+                            href={m.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                           >
-                            <path
-                              d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14 2V8H20"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M8 13H16"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M8 17H16"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[12px] font-medium leading-[20px] break-words">
-                            {m.fileName || "파일"}
-                          </div>
-                          {m.fileSize && (
-                            <div className="text-[11px] opacity-70">
-                              {(m.fileSize / 1024 / 1024).toFixed(2)} MB
+                            <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M8 13h8M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
                             </div>
-                          )}
-                        </div>
-                      </a>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[12px] font-medium leading-[20px] break-words">
+                                {m.fileName || "파일"}
+                              </div>
+                              {m.fileSize && (
+                                <div className="text-[11px] opacity-70">{(m.fileSize / 1024 / 1024).toFixed(2)} MB</div>
+                              )}
+                            </div>
+                          </a>
+                        );
+                      })()}
                       {m.content && (
                         <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -352,7 +389,19 @@ export default function ChatMainView({
                   {/* 스티커 메시지 */}
                   {m.type === "sticker" && (
                     <div className="py-2">
-                      {m.fileUrl ? (
+                      {/** 우선순위: .tgs → thumbnailUrl → (png/jpg 등 이미지형 fileUrl) → stickerEmoji → 텍스트 대체 */}
+                      {m.fileUrl && /\.tgs$/i.test(m.fileUrl) ? (
+                        <TgsSticker src={m.fileUrl} width={200} height={200} />
+                      ) : m.thumbnailUrl ? (
+                        <Image
+                          src={m.thumbnailUrl}
+                          alt="스티커"
+                          width={200}
+                          height={200}
+                          className="max-w-[200px] max-h-[200px] object-contain"
+                          unoptimized
+                        />
+                      ) : m.fileUrl && /\.(png|jpg|jpeg|gif|webp)$/i.test(m.fileUrl) ? (
                         <Image
                           src={m.fileUrl}
                           alt="스티커"
@@ -361,9 +410,13 @@ export default function ChatMainView({
                           className="max-w-[200px] max-h-[200px] object-contain"
                           unoptimized
                         />
+                      ) : m.stickerEmoji ? (
+                        <div className="w-[120px] h-[120px] grid place-items-center text-[64px]">
+                          {m.stickerEmoji}
+                        </div>
                       ) : (
                         <div className="text-[12px] opacity-70">
-                          스티커 {m.stickerId ? `(${m.stickerId})` : ""}
+                          스티커 {m.stickerId ? `(${m.stickerId})` : "미리보기를 지원하지 않는 형식"}
                         </div>
                       )}
                     </div>
@@ -372,7 +425,7 @@ export default function ChatMainView({
                   {/* 위치 메시지 */}
                   {m.type === "location" && (
                     <div className="space-y-2">
-                      <div className="w-full h-[200px] bg-[#F2F2F2] rounded-[8px] flex items-center justify-center">
+                      <div className="w-full h-[200px] bg-neutral-20 rounded-[8px] flex items-center justify-center">
                         <div className="text-center">
                           <svg
                             width="48"
@@ -423,8 +476,8 @@ export default function ChatMainView({
                   <div
                     className={`mt-2 text-[11px] ${
                       m.direction === "outgoing"
-                        ? "text-[#B0B0B0]"
-                        : "text-[#808080]"
+                        ? "text-neutral-50"
+                        : "text-neutral-60"
                     } ${m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""}`}
                   >
                     {new Date(m.sentAt || m.createdAt).toLocaleString()}
@@ -435,14 +488,14 @@ export default function ChatMainView({
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-[#9CA3AF]">
+            <div className="text-center text-neutral-60">
               <div className="mb-3 mx-auto grid place-items-center">
                 <EmptyChatIcon />
               </div>
-              <div className="text-[16px] font-semibold text-[#4B5563]">
+              <div className="text-[16px] font-semibold text-neutral-70">
                 채팅을 선택하세요
               </div>
-              <div className="text-[13px] text-[#6B7280]">
+              <div className="text-[13px] text-neutral-60">
                 왼쪽 목록에서 상담할 고객을 선택하세요.
               </div>
             </div>

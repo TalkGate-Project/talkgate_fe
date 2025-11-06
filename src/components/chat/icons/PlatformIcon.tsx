@@ -16,7 +16,7 @@ export default function PlatformIcon({ platform }: Props) {
 
   if (!iconPath) {
     return (
-      <div className="w-5 h-5 rounded-full bg-[#EDEDED] grid place-items-center text-[12px] text-[#595959]">
+      <div className="w-5 h-5 rounded-full bg-neutral-20 grid place-items-center text-[12px] text-neutral-70">
         {platform?.slice(0, 1)?.toUpperCase() || "?"}
       </div>
     );

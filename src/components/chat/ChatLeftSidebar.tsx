@@ -66,20 +66,20 @@ export default function ChatLeftSidebar({
 
   return (
     <div className="col-span-3">
-      <div className="w-[286px] h-[840px] bg-white dark:bg-[#111111] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
+      <div className="w-[286px] h-[840px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
         <div className="px-5 pt-5 pb-3 flex items-center justify-between">
-          <h2 className="text-[16px] font-bold text-[#252525]">상담 채팅</h2>
+          <h2 className="text-[16px] font-bold text-neutral-90">상담 채팅</h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
             <button
               aria-label="filter"
-              className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-[#E2E2E2]"
+              className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border"
               onClick={() => setFilterOpen(true)}
             >
               <FilterIcon />
             </button>
             {/* Segmented toggle: list | album */}
-            <div className="w-[51px] h-[26px] rounded-[6px] border border-[#E2E2E2] overflow-hidden flex">
+            <div className="w-[51px] h-[26px] rounded-[6px] border border-border overflow-hidden flex">
               <button
                 aria-label="list-view"
                 onClick={() => setViewMode("list")}
@@ -108,12 +108,12 @@ export default function ChatLeftSidebar({
         />
         {/* Tabs */}
         <div className="px-5">
-          <div className="grid grid-cols-3 gap-2 bg-[#F3F3F3] dark:bg-[#222222] rounded-[10px] px-3 py-2">
+          <div className="grid grid-cols-3 gap-2 bg-neutral-10 dark:bg-neutral-20 rounded-[10px] px-3 py-2">
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "all"
-                  ? "bg-white text-[#252525] font-bold"
-                  : "text-[#808080]"
+                  ? "bg-card text-neutral-90 font-bold"
+                  : "text-neutral-60"
               }`}
               onClick={() => setStatusFilter("all")}
             >
@@ -122,8 +122,8 @@ export default function ChatLeftSidebar({
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "active"
-                  ? "bg-white text-[#252525] font-bold"
-                  : "text-[#808080]"
+                  ? "bg-card text-neutral-90 font-bold"
+                  : "text-neutral-60"
               }`}
               onClick={() => setStatusFilter("active")}
             >
@@ -132,8 +132,8 @@ export default function ChatLeftSidebar({
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "closed"
-                  ? "bg-white text-[#252525] font-bold"
-                  : "text-[#808080]"
+                  ? "bg-card text-neutral-90 font-bold"
+                  : "text-neutral-60"
               }`}
               onClick={() => setStatusFilter("closed")}
             >
@@ -141,10 +141,10 @@ export default function ChatLeftSidebar({
             </button>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-[#D6FAE8] text-[#00B55B] text-[12px]">
+            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-primary-10 text-primary-80 text-[12px]">
               총 {filteredConversations.length}건
             </span>
-            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-[#EDEDED] text-[#595959] text-[12px]">
+            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-neutral-20 text-neutral-70 text-[12px]">
               미읽음{" "}
               {filteredConversations.reduce(
                 (a, c) => a + (c.unreadCount || 0),
@@ -162,42 +162,42 @@ export default function ChatLeftSidebar({
             onScroll={onConversationsScroll}
           >
             {filteredConversations.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-[#808080] text-[14px]">
+              <div className="h-full flex items-center justify-center text-neutral-60 text-[14px]">
                 대기중인 상담이 없습니다.
               </div>
             ) : (
               filteredConversations.map((c) => (
                 <button
                   key={c.id}
-                  className={`w-full text-left px-5 py-3 border-t border-[#F0F0F0] dark:border-[#444444] hover:bg-[#F8F8F8] dark:hover:bg-[#1A1A1A] ${
-                    activeId === c.id ? "bg-[#F8F8F8] dark:bg-[#1A1A1A]" : ""
+                  className={`w-full text-left px-5 py-3 border-t border-neutral-20 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-10 ${
+                    activeId === c.id ? "bg-neutral-10 dark:bg-neutral-10" : ""
                   }`}
                   onClick={() => handleConversationClick(c)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#D6FAE8] grid place-items-center text-[#00E272] text-[14px] font-semibold">
+                      <div className="w-8 h-8 rounded-full bg-primary-10 grid place-items-center text-primary-60 text-[14px] font-semibold">
                         {c.name?.[0] || "?"}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <div className="text-[16px] font-semibold text-[#000]">
+                          <div className="text-[16px] font-semibold text-ink">
                             {c.name}
                           </div>
                         </div>
-                        <div className="text-[14px] text-[#595959] truncate max-w-[200px]">
+                        <div className="text-[14px] text-neutral-70 truncate max-w-[200px]">
                           {c.latestMessage?.content || ""}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[12px] text-[#808080]">
+                      <div className="text-[12px] text-neutral-60">
                         {new Date(
                           c.updatedAt || c.lastActivityAt
                         ).toLocaleTimeString()}
                       </div>
                       {c.unreadCount ? (
-                        <div className="mt-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#D83232] text-white text-[12px]">
+                        <div className="mt-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
                           {c.unreadCount}
                         </div>
                       ) : null}
@@ -211,7 +211,7 @@ export default function ChatLeftSidebar({
           <div className="mt-4 h-[calc(840px-170px)] overflow-auto px-4">
             <div className="grid grid-cols-3 gap-3">
               {filteredConversations.length === 0 ? (
-                <div className="col-span-3 h-full flex items-center justify-center text-[#808080] text-[14px]">
+                <div className="col-span-3 h-full flex items-center justify-center text-neutral-60 text-[14px]">
                   대기중인 상담이 없습니다.
                 </div>
               ) : (
@@ -221,19 +221,19 @@ export default function ChatLeftSidebar({
                     onClick={() => handleConversationClick(c)}
                     className={`relative h-[72px] rounded-[8px] border flex flex-col ${
                       activeId === c.id
-                        ? "border-[#00E272]"
-                        : "border-[#E2E2E2]"
-                    } bg-white hover:bg-[#F8F8F8]`}
+                        ? "border-primary-60"
+                        : "border-border"
+                    } bg-card hover:bg-neutral-10`}
                   >
                     <div className="absolute -top-1 -right-1">
                       {c.unreadCount ? (
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#D83232] text-white text-[12px]">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
                           {c.unreadCount}
                         </span>
                       ) : null}
                     </div>
                     <div className="px-3 pt-2 text-left flex-1">
-                      <div className="text-[14px] font-semibold text-[#000] truncate">
+                      <div className="text-[14px] font-semibold text-ink truncate">
                         {c.name}
                       </div>
                     </div>
