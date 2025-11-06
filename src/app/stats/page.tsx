@@ -2,6 +2,7 @@
 
 import { Suspense, useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Panel from "@/components/common/Panel";
 import AssignMemberTable from "@/components/stats/AssignMemberTable";
 import AssignProgressList from "@/components/stats/AssignProgressList";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
@@ -112,14 +113,19 @@ function StatsPage() {
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
-        {/* Top card with tabs */}
-        <section className="surface rounded-[14px] p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
-          <div className="flex items-center gap-4">
-            <h1 className="text-[24px] font-bold text-neutral-90">통계</h1>
-            <span className="w-px h-4 bg-neutral-60 opacity-60" />
-            <p className="text-[18px] text-neutral-60">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
-          </div>
-          <div className="mt-5 h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center">
+        {/* Top panel with tabs */}
+        <Panel
+          className="rounded-[14px] mb-4"
+          title={
+            <div className="flex items-end gap-3">
+              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">통계</h1>
+              <span className="w-px h-4 bg-neutral-60 opacity-60" />
+              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
+            </div>
+          }
+          bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+        >
+          <div className="h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center">
             <div className="flex items-center gap-2">
               {TAB_ITEMS.map((t) => (
                 <button
@@ -132,13 +138,13 @@ function StatsPage() {
               ))}
             </div>
           </div>
-        </section>
+        </Panel>
 
         {/* Apply Tab: 신청통계 */}
         {active === "apply" && (
           <>
             {/* 신청통계 그래프 카드 */}
-            <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+            <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90">신청통계</h2>
                 <div className="h-[36px] w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
@@ -167,7 +173,7 @@ function StatsPage() {
             </section>
 
             {/* 상세 데이터 테이블 카드 */}
-            <section className="mt-6 surface rounded-[14px] p-6">
+            <section className="mt-6 surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
@@ -183,7 +189,7 @@ function StatsPage() {
 
         {/* Assign Tab: 배정통계 */}
         {active === "assign" && (
-          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+          <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">배정통계</h2>
               <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
@@ -223,7 +229,7 @@ function StatsPage() {
 
         {/* Payment Tab: 결제통계 */}
         {active === "payment" && (
-          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+          <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">결제통계</h2>
               <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
@@ -248,7 +254,7 @@ function StatsPage() {
 
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
-          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+          <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <h2 className="text-[18px] font-semibold text-neutral-90">처리상태통계</h2>
             <div className="mt-2 text-[16px] text-neutral-90 opacity-80">상태별 분포</div>
             <div className="mt-4">
@@ -259,7 +265,7 @@ function StatsPage() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="mt-6 surface rounded-[14px] p-6 border border-border">
+          <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">전체랭킹</h2>
               <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">

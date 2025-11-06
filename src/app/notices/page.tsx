@@ -153,37 +153,37 @@ function NoticePageContent() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-6 pb-12 bg-background">
-      {/* 검색 및 글쓰기 패널 */}
-      <div className="mb-6">
+    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+        {/* 검색 및 글쓰기 패널 */}
         <NoticeSearchPanel
           searchTerm={searchInput}
           onSearchTermChange={setSearchInput}
           onSearch={handleSearch}
         />
-      </div>
 
-      {/* 공지사항 목록 테이블 */}
-      <div className="mb-6">
-        <NoticeTable
-          notices={notices}
-          loading={loading}
-          buildNoticeHref={buildNoticeHref}
-        />
-        {errorMessage && (
-          <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
-            {errorMessage}
-          </div>
-        )}
-      </div>
+        {/* 공지사항 목록 테이블 */}
+        <div className="mt-4">
+          <NoticeTable
+            notices={notices}
+            loading={loading}
+            buildNoticeHref={buildNoticeHref}
+          />
+          {errorMessage && (
+            <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
+              {errorMessage}
+            </div>
+          )}
+        </div>
 
-      {/* 페이지네이션 */}
-      <div className="flex justify-center">
-        <NoticePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+        {/* 페이지네이션 */}
+        <div className="flex justify-center mt-4">
+          <NoticePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     </main>
   );
