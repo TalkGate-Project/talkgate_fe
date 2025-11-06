@@ -33,9 +33,9 @@ export default function CustomerLinkModeModal({
               <path
                 d="M6 18L18 6M6 6L18 18"
                 stroke="#B0B0B0"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>
@@ -71,9 +71,9 @@ export default function CustomerLinkModeModal({
                 <path
                   d="M33 21C33 21 29.3431 21 27 21M30 24V17.5M25 16C25 18.2091 23.2091 20 21 20C18.7909 20 17 18.2091 17 16C17 13.7909 18.7909 12 21 12C23.2091 12 25 13.7909 25 16ZM15 29C15 25.6863 17.6863 23 21 23C24.3137 23 27 25.6863 27 29V30H15V29Z"
                   stroke="#00B55B"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <defs>
                   <filter
@@ -145,9 +145,9 @@ export default function CustomerLinkModeModal({
                 <path
                   d="M25.8284 19.1716C24.2663 17.6095 21.7337 17.6095 20.1716 19.1716L16.1716 23.1716C14.6095 24.7337 14.6095 27.2663 16.1716 28.8284C17.7337 30.3905 20.2663 30.3905 21.8284 28.8284L22.93 27.7269M22.1716 22.8284C23.7337 24.3905 26.2663 24.3905 27.8284 22.8284L31.8284 18.8284C33.3905 17.2663 33.3905 14.7337 31.8284 13.1716C30.2663 11.6095 27.7337 11.6095 26.1716 13.1716L25.072 14.2712"
                   stroke="#2563EB"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <defs>
                   <filter

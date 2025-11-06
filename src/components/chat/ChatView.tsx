@@ -141,6 +141,33 @@ export default function ChatView({ projectId }: Props) {
     setInput((prev) => prev + emoji);
   }
 
+  function renderPlatformIcon(platform?: string) {
+    const iconMap: Record<string, string> = {
+      telegram: "/icons/platform/telegram.png",
+      instagram: "/icons/platform/instagram.png",
+      line: "/icons/platform/line.png",
+      kakao: "/icons/platform/kakao.png",
+      facebook: "/icons/platform/facebook.png",
+      x: "/icons/platform/x.png",
+    };
+
+    const iconPath = platform ? iconMap[platform] : null;
+
+    if (!iconPath) {
+      return (
+        <div className="w-5 h-5 rounded-full bg-[#EDEDED] grid place-items-center text-[12px] text-[#595959]">
+          {platform?.slice(0, 1)?.toUpperCase() || "?"}
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-5 h-5 rounded flex items-center justify-center">
+        <img src={iconPath} alt={platform} className="w-full h-full object-contain" />
+      </div>
+    );
+  }
+
   // File inputs for attachments
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -473,7 +500,7 @@ export default function ChatView({ projectId }: Props) {
                         });
                         setActiveId(c.id);
                       }}
-                      className={`relative h-[72px] rounded-[8px] border ${
+                      className={`relative h-[72px] rounded-[8px] border flex flex-col ${
                         activeId === c.id
                           ? "border-[#00E272]"
                           : "border-[#E2E2E2]"
@@ -486,16 +513,13 @@ export default function ChatView({ projectId }: Props) {
                           </span>
                         ) : null}
                       </div>
-                      <div className="px-3 pt-2 text-left">
+                      <div className="px-3 pt-2 text-left flex-1">
                         <div className="text-[14px] font-semibold text-[#000] truncate">
                           {c.name}
                         </div>
                       </div>
-                      <div className="px-3 pt-1">
-                        {/* platform icon placeholder by platform */}
-                        <div className="w-5 h-5 rounded-full bg-[#EDEDED] grid place-items-center text-[12px] text-[#595959]">
-                          {c.platform?.slice(0, 1)?.toUpperCase()}
-                        </div>
+                      <div className="px-3 pb-2 flex justify-center">
+                        {renderPlatformIcon(c.platform)}
                       </div>
                     </button>
                   ))
@@ -509,134 +533,145 @@ export default function ChatView({ projectId }: Props) {
       {/* Main Contents: 메시지 뷰 (688x840 카드) */}
       <div className="col-span-6 flex justify-center">
         <div className="w-[688px] h-[840px] rounded-[14px] bg-white dark:bg-[#111111] border border-[#E2E2E2] dark:border-[#444444] flex flex-col">
-          {activeConversation ? (
-            <>
-              {/* Header */}
-              <div className="px-6 py-5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+          {/* Header */}
+          <div className="px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {activeConversation ? (
+                <>
                   <div className="w-10 h-10 rounded-full bg-[#F2F2F2]" />
                   <div>
                     <div className="text-[20px] font-bold text-[#000]">
-                      {activeConversation?.name || "대화 선택"}
+                      {activeConversation.name}
                     </div>
                     <div className="text-[14px] text-[#808080]">
-                      ID : {activeConversation?.platformConversationId || "-"}
+                      ID : {activeConversation.platformConversationId || "-"}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="cursor-pointer h-[34px] px-2 rounded-[5px] border border-[#E2E2E2] text-white text-[12px] font-semibold disabled:bg-[#A5E3C9] disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={openLinkFlow}
-                    disabled={!activeConversation}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
-                        stroke="#B0B0B0"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-white border border-[#E2E2E2] text-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
-                    disabled={!activeConversation}
-                  >
-                    고객정보
-                  </button>
-                  <button
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={closeConversation}
-                    disabled={
-                      !activeConversation ||
-                      activeConversation?.status === "closed"
-                    }
-                  >
-                    {activeConversation?.status === "closed"
-                      ? "완료됨"
-                      : "상담완료"}
-                  </button>
-                </div>
-              </div>
-              {/* Messages area */}
-              <div
-                className="flex-1 overflow-auto p-6 space-y-6"
-                ref={messagesScrollRef}
-                onScroll={onMessagesScroll}
+                </>
+              ) : (
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 40 40"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="20" cy="20" r="20" fill="#EDEDED" />
+                  <path
+                    d="M23.3334 15.8333C23.3334 17.6743 21.841 19.1667 20 19.1667C18.1591 19.1667 16.6667 17.6743 16.6667 15.8333C16.6667 13.9924 18.1591 12.5 20 12.5C21.841 12.5 23.3334 13.9924 23.3334 15.8333Z"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M20 21.6667C16.7784 21.6667 14.1667 24.2783 14.1667 27.5H25.8334C25.8334 24.2783 23.2217 21.6667 20 21.6667Z"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="cursor-pointer h-[34px] px-2 rounded-[5px] border border-[#E2E2E2] text-white text-[12px] font-semibold disabled:bg-[#A5E3C9] disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                onClick={openLinkFlow}
               >
-                {banner && (
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {activeConversation && (
+                <button className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-white border border-[#E2E2E2] text-[12px] disabled:opacity-60 disabled:cursor-not-allowed">
+                  고객정보
+                </button>
+              )}
+              <button
+                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={closeConversation}
+                disabled={
+                  !activeConversation || activeConversation?.status === "closed"
+                }
+              >
+                {activeConversation?.status === "closed"
+                  ? "완료됨"
+                  : "상담완료"}
+              </button>
+            </div>
+          </div>
+          {/* Messages area */}
+          {activeConversation ? (
+            <div
+              className="flex-1 overflow-auto p-6 space-y-6"
+              ref={messagesScrollRef}
+              onScroll={onMessagesScroll}
+            >
+              {banner && (
+                <div
+                  className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${
+                    banner.type === "success"
+                      ? "bg-[#E6F7EF] border-[#B9EBD3] text-[#0E7A4D]"
+                      : "bg-[#FFF7F7] border-[#FFE2E2] text-[#B42318]"
+                  }`}
+                >
+                  {banner.message}
+                </div>
+              )}
+              {!connected || socketError ? (
+                <div className="mb-4">
+                  <div className="w-full rounded-[8px] border border-[#FFE2E2] bg-[#FFF7F7] text-[#B42318] text-[12px] px-3 py-2">
+                    {socketError ? socketError : "서버에 연결 중입니다..."}
+                  </div>
+                  <div className="mt-2 text-[12px] text-[#808080]">
+                    문제가 지속되면 페이지를 새로고침하거나, 네트워크 상태를
+                    확인해주세요.
+                  </div>
+                </div>
+              ) : null}
+              {messages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`flex ${
+                    m.direction === "outgoing" ? "justify-end" : ""
+                  }`}
+                >
                   <div
-                    className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${
-                      banner.type === "success"
-                        ? "bg-[#E6F7EF] border-[#B9EBD3] text-[#0E7A4D]"
-                        : "bg-[#FFF7F7] border-[#FFE2E2] text-[#B42318]"
+                    className={`max-w-[75%] rounded-[16px] px-5 py-3 ${
+                      m.direction === "outgoing"
+                        ? "bg-[#252525] text-white rounded-tr-none"
+                        : "bg-[#EDEDED] text-[#000] rounded-tl-none"
                     }`}
                   >
-                    {banner.message}
-                  </div>
-                )}
-                {!connected || socketError ? (
-                  <div className="mb-4">
-                    <div className="w-full rounded-[8px] border border-[#FFE2E2] bg-[#FFF7F7] text-[#B42318] text-[12px] px-3 py-2">
-                      {socketError ? socketError : "서버에 연결 중입니다..."}
+                    <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                      {m.content}
                     </div>
-                    <div className="mt-2 text-[12px] text-[#808080]">
-                      문제가 지속되면 페이지를 새로고침하거나, 네트워크 상태를
-                      확인해주세요.
-                    </div>
-                  </div>
-                ) : null}
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`flex ${
-                      m.direction === "outgoing" ? "justify-end" : ""
-                    }`}
-                  >
                     <div
-                      className={`max-w-[75%] rounded-[16px] px-5 py-3 ${
+                      className={`mt-2 text-[11px] ${
                         m.direction === "outgoing"
-                          ? "bg-[#252525] text-white rounded-tr-none"
-                          : "bg-[#EDEDED] text-[#000] rounded-tl-none"
+                          ? "text-[#B0B0B0]"
+                          : "text-[#808080]"
                       }`}
                     >
-                      <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
-                        {m.content}
-                      </div>
-                      <div
-                        className={`mt-2 text-[11px] ${
-                          m.direction === "outgoing"
-                            ? "text-[#B0B0B0]"
-                            : "text-[#808080]"
-                        }`}
-                      >
-                        {new Date(m.sentAt || m.createdAt).toLocaleString()}
-                      </div>
+                      {new Date(m.sentAt || m.createdAt).toLocaleString()}
                     </div>
                   </div>
-                ))}
-              </div>
-              {/* Input bar */}
-              <ChatInputBar
-                input={input}
-                onInputChange={setInput}
-                onSend={onSend}
-                connected={connected && Boolean(activeConversation)}
-                onClickEmoji={handleEmojiButtonClick}
-                emojiButtonRef={emojiButtonRef}
-                onAttachImage={onAttachImage}
-                onAttachFile={onAttachFile}
-                attachmentUploading={attachmentUploading}
-              />
-            </>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center text-[#9CA3AF]">
@@ -652,9 +687,9 @@ export default function ChatView({ projectId }: Props) {
                       <path
                         d="M62.3333 29.3334H69.6667C73.7168 29.3334 77 32.6166 77 36.6667V58.6667C77 62.7168 73.7168 66 69.6667 66H62.3333V80.6667L47.6667 66H33C30.975 66 29.1416 65.1792 27.8146 63.8521M27.8146 63.8521L40.3333 51.3334H55C59.0501 51.3334 62.3333 48.0501 62.3333 44V22C62.3333 17.9499 59.0501 14.6667 55 14.6667H18.3333C14.2832 14.6667 11 17.9499 11 22V44C11 48.0501 14.2832 51.3334 18.3333 51.3334H25.6667V66L27.8146 63.8521Z"
                         stroke="#B0B0B0"
-                        stroke-width="4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </g>
                   </svg>
@@ -668,6 +703,19 @@ export default function ChatView({ projectId }: Props) {
               </div>
             </div>
           )}
+          {/* Input bar */}
+          <ChatInputBar
+            input={input}
+            onInputChange={setInput}
+            onSend={onSend}
+            connected={connected && Boolean(activeConversation)}
+            onClickEmoji={handleEmojiButtonClick}
+            emojiButtonRef={emojiButtonRef}
+            onAttachImage={onAttachImage}
+            onAttachFile={onAttachFile}
+            attachmentUploading={attachmentUploading}
+            disabled={!activeConversation}
+          />
         </div>
       </div>
 

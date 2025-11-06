@@ -12,6 +12,7 @@ type Props = {
   onAttachImage: () => void;
   onAttachFile: () => void;
   attachmentUploading?: boolean;
+  disabled?: boolean;
 };
 
 export default function ChatInputBar({
@@ -24,6 +25,7 @@ export default function ChatInputBar({
   onAttachImage,
   onAttachFile,
   attachmentUploading,
+  disabled = false,
 }: Props) {
   return (
     <div className="h-[76px] px-6 border-t border-[#E2E2E2] dark:border-[#444444]">
@@ -31,15 +33,16 @@ export default function ChatInputBar({
         <input
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
-          className="flex-1 h-[44px] rounded-[8px] px-4 text-[12px] outline-none"
-          placeholder="메세지를 입력하세요."
+          className="flex-1 h-[44px] rounded-[8px] px-4 text-[12px] outline-none disabled:bg-[#F5F5F5] disabled:text-[#808080] disabled:cursor-not-allowed"
+          placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
+          disabled={disabled}
         />
         {/* 이미지 첨부 */}
         <button
           aria-label="attach image"
-          className="w-9 h-9 grid place-items-center"
+          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachImage}
-          disabled={attachmentUploading}
+          disabled={disabled || attachmentUploading}
         >
           <svg
             width="24"
@@ -60,9 +63,9 @@ export default function ChatInputBar({
         {/* 파일 첨부 */}
         <button
           aria-label="attach file"
-          className="w-9 h-9 grid place-items-center"
+          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachFile}
-          disabled={attachmentUploading}
+          disabled={disabled || attachmentUploading}
         >
           <svg
             width="24"
@@ -84,8 +87,9 @@ export default function ChatInputBar({
         <button
           ref={emojiButtonRef}
           aria-label="emoji"
-          className="w-9 h-9 grid place-items-center"
+          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onClickEmoji}
+          disabled={disabled}
         >
           <svg
             width="24"
@@ -104,9 +108,9 @@ export default function ChatInputBar({
           </svg>
         </button>
         <button
-          className="h-[48px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] disabled:opacity-50"
+          className="h-[48px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onSend}
-          disabled={!connected}
+          disabled={disabled || !connected}
         >
           전송하기
         </button>

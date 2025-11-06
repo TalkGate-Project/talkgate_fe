@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import Image from "next/image";
+import defaultProfileImg from "@/assets/images/common/default_profile.png";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
@@ -67,7 +68,7 @@ export default function ProfileTab() {
             />
           ) : (
             <Image
-              src="/default_profile.png"
+              src={defaultProfileImg}
               alt="Default Profile"
               width={80}
               height={80}

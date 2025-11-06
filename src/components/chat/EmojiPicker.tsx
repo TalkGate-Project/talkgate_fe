@@ -692,9 +692,9 @@ export default function EmojiPicker({
               <path
                 d="M17.6667 11L13 15.6667L8.33337 11"
                 stroke="#B0B0B0"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>
@@ -762,9 +762,9 @@ export default function EmojiPicker({
               <path
                 d="M17.6666 15L12.9999 10.3333L8.33325 15"
                 stroke="#B0B0B0"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>

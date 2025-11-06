@@ -8,6 +8,8 @@ import Checkbox from "@/components/common/Checkbox";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
+import loginBgImg from "@/assets/images/auth/login_bg.png";
+import loginCardImg from "@/assets/images/auth/login_card.png";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,7 +44,7 @@ export default function LoginPage() {
     <main
       className="min-h-screen relative"
       style={{
-        backgroundImage: "url('/login_bg.png')",
+        backgroundImage: `url('${loginBgImg.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -67,7 +69,7 @@ export default function LoginPage() {
           // Responsive card width: keep 594px around 1440/1920, gently scale up on ultra-wide,
           // and cap to 92vw on small screens to avoid overflow.
           width: "min(92vw, clamp(594px, 30vw, 1080px))",
-          backgroundImage: "url('/login_card.png')",
+          backgroundImage: `url('${loginCardImg.src}')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           backgroundSize: "100% auto",

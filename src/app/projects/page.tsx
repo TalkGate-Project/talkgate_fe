@@ -6,6 +6,8 @@ import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import { setSelectedProjectId } from "@/lib/project";
 import Image from "next/image";
+import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
+import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
 
 export default function ProjectsPage() {
     const router = useRouter();
@@ -70,14 +72,14 @@ export default function ProjectsPage() {
                                         <div className="text-[16px] font-semibold text-[#252525]">나에게 할당된 고객</div>
                                         <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.assignedCustomerCount ?? 0}건</div>
                                     </div>
-                                    <Image src="/project-assigned-customer.png" alt="할당 고객 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
+                                    <Image src={projectAssignedCustomerImg} alt="할당 고객 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
                                 </div>
                                 <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
                                     <div>
                                         <div className="text-[16px] font-semibold text-[#252525]">오늘 예약 일정</div>
                                         <div className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525]">{p.todayScheduleCount ?? 0}건</div>
                                     </div>
-                                    <Image src="/project-reserved-item.png" alt="예약 일정 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
+                                    <Image src={projectReservedItemImg} alt="예약 일정 아이콘" width={60} height={60} className="w-[60px] h-[60px]" />
                                 </div>
                             </div>
                             <div className="mt-6 flex justify-end">

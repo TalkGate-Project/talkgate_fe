@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
+import pleaseDragImg from "@/assets/images/projects/please_drag.png";
 
 type Props = {
   onClose: () => void;
@@ -190,7 +191,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src="/please_drag.png" alt="클릭하거나 드래그하여 업로드" className="w-full h-full object-contain" />
+                      <img src={pleaseDragImg} alt="클릭하거나 드래그하여 업로드" className="w-full h-full object-contain" />
                     )}
                   </div>
                 </div>

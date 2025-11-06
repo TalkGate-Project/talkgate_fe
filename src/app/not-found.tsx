@@ -1,9 +1,11 @@
+import loginBgImg from "@/assets/images/auth/login_bg.png";
+
 export default function NotFound() {
   return (
     <main
       className="min-h-screen relative text-white"
       style={{
-        backgroundImage: "url('/login_bg.png')",
+        backgroundImage: `url('${loginBgImg.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "center",
