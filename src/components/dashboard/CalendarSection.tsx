@@ -13,6 +13,7 @@ import { formatTimeFromISO } from "@/utils/datetime";
 import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
 import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
+import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -141,23 +142,25 @@ export default function CalendarSection() {
                   className={`relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
-                    className={`font-montserrat font-medium text-[16px] leading-[20px] ml-2 mt-2 ${
+                    className={`font-montserrat font-medium text-[16px] leading-[20px] ml-3 mt-2 ${
                       isPrevMonth ? "text-figma-muted" : "text-neutral-70"
                     }`}
                     style={montserratStyle}
                   >
                     {cell.date.getDate()}
                   </div>
-                  <div className="space-y-1 mt-auto mb-2 ml-2 mr-2">
-                    {daySchedules.slice(0, 3).map((schedule, idx) => (
-                      <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60">
-                        <span className="w-3 h-3 rounded-full" style={{ background: schedule.colorCode || COLORS[idx % COLORS.length] }} />
-                        {schedule.description || schedule.customer?.name || "일정"}
+                  <div className="mt-auto mb-2 ml-4 mr-2">
+                    {daySchedules.slice(0, 2).map((schedule, idx) => (
+                      <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0">
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[idx % COLORS.length] }} />
+                        <span className="truncate" style={{ maxWidth: 102 }}>
+                          {schedule.description || schedule.customer?.name || "일정"}
+                        </span>
                       </div>
                     ))}
-                    {daySchedules.length > 3 && (
+                    {daySchedules.length > 2 && (
                       <div className="flex items-center gap-1 text-[10px] text-neutral-60">
-                        그 외 <span className="font-montserrat" style={montserratStyle}>{daySchedules.length - 3}</span>건
+                        그 외 <span className="font-montserrat" style={montserratStyle}>{daySchedules.length - 2}</span>건
                       </div>
                     )}
                   </div>
@@ -209,12 +212,12 @@ export default function CalendarSection() {
                 </div>
               ) : (
                 selectedSchedules.map((schedule) => (
-                  <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4" style={{ maxWidth: 304 }}>
+                  <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0" style={{ maxWidth: 304 }}>
                     <span className="w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
                     <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0 font-montserrat" style={montserratStyle}>
-                      {formatScheduleTime(schedule)}
+                      {formatTimeFromISO(schedule.scheduleTime)}
                     </span>
-                    <span className="typo-body-2 text-neutral-60 flex-1 break-words whitespace-normal">
+                    <span className="typo-body-2 text-neutral-60 flex-1 truncate">
                       {schedule.description || schedule.customer?.name || "일정"}
                     </span>
                   </div>
@@ -235,24 +238,6 @@ export default function CalendarSection() {
         />
       )}
     </Panel>
-  );
-}
-
-function formatScheduleTime(schedule: WeeklyScheduleItem) {
-  return formatTimeFromISO(schedule.scheduleTime);
-}
-
-function ScheduleSkeleton() {
-  return (
-    <div className="flex h-[240px] flex-col justify-center gap-3">
-      {Array.from({ length: 4 }).map((_, idx) => (
-        <div key={idx} className="flex items-center gap-4">
-          <span className="h-4 w-4 rounded-full bg-neutral-20" />
-          <span className="h-5 w-16 rounded bg-neutral-20" />
-          <span className="h-5 flex-1 rounded bg-neutral-20" />
-        </div>
-      ))}
-    </div>
   );
 }
 

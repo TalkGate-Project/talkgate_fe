@@ -3,6 +3,8 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
+import ChartSkeleton from "@/components/common/ChartSkeleton";
+import EmptyState from "@/components/common/EmptyState";
 import {
   AreaChart,
   Area,
@@ -11,11 +13,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  LabelList,
 } from "recharts";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
-import type { CustomerPaymentWeeklyRecord, CustomerPaymentWeeklyResponse } from "@/types/statistics";
+import type { CustomerPaymentWeeklyResponse } from "@/types/statistics";
+import { formatMonthDay } from "@/utils/datetime";
+import { formatCurrencyKR } from "@/utils/format";
 
 const WEEKS = 6;
 
@@ -25,6 +30,7 @@ export default function StatsSection() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
+  const montserratStyle = { fontFamily: 'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui' };
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentWeeklyResponse>({
     queryKey: ["dashboard", "weekly-payments", projectId, { weeks: WEEKS }],
@@ -42,12 +48,28 @@ export default function StatsSection() {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
     return records
       .map((item) => ({
-        label: `${formatDate(item.weekStartDate)}~${formatDate(item.weekEndDate)}`,
+        label: `${formatMonthDay(item.weekStartDate)}~${formatMonthDay(item.weekEndDate)}`,
         amount: item.totalAmount,
         count: item.paymentCount,
       }))
       .reverse();
   }, [data]);
+
+  // Compute dynamic domain and max value for labeling/highlighting
+  const { domainMin, domainMax, maxAmount, maxIndex } = useMemo(() => {
+    if (!chartData || chartData.length === 0) {
+      return { domainMin: 0, domainMax: 0, maxAmount: 0, maxIndex: -1 };
+    }
+    const values = chartData.map((d) => d.amount);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = max - min;
+    const padding = span === 0 ? Math.max(1, Math.round(max * 0.1)) : Math.round(span * 0.15);
+    const domainMin = Math.max(0, min - padding);
+    const domainMax = max + padding;
+    const maxIndex = values.findIndex((v) => v === max);
+    return { domainMin, domainMax, maxAmount: max, maxIndex };
+  }, [chartData]);
 
   const loading = isLoading && !data;
   const error = isError && !isFetching;
@@ -76,7 +98,7 @@ export default function StatsSection() {
           <EmptyState message={data?.data.data === null ? "주간 매출 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."} />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+            <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 42, bottom: 12 }}>
               <defs>
                 <linearGradient id="dashboardWeekly" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.35} />
@@ -85,13 +107,14 @@ export default function StatsSection() {
               </defs>
               <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
               <XAxis dataKey="label" tickMargin={8} stroke="var(--neutral-50)" tick={{ fill: "var(--neutral-60)", fontSize: 12 }} />
-              <YAxis tickFormatter={(value) => formatCurrency(value)} stroke="var(--neutral-50)" tick={{ fill: "var(--neutral-60)" }} />
+              {/** Hide Y axis ticks/lines per request, but keep domain to improve contrast */}
+              <YAxis hide domain={[domainMin, domainMax]} />
               <Tooltip
                 cursor={{ stroke: "var(--primary-60)" }}
                 formatter={(value, _name, payload) => {
                   const entry = (payload?.payload as { count?: number }) ?? {};
                   const count = entry.count ?? 0;
-                  return [`${formatCurrency(Number(value ?? 0))}원`, `결제액 (${count.toLocaleString()}건)`];
+                  return [`${formatCurrencyKR(Number(value ?? 0))}원`, `결제액 (${count.toLocaleString()}건)`];
                 }}
                 labelFormatter={(label) => `${label}`}
                 contentStyle={{
@@ -101,7 +124,86 @@ export default function StatsSection() {
                   color: "var(--foreground)",
                 }}
               />
-              <Area type="monotone" dataKey="amount" stroke="var(--primary-60)" strokeWidth={3} fill="url(#dashboardWeekly)" dot={{ r: 4, fill: "var(--primary-60)" }} />
+              <Area
+                type="monotone"
+                dataKey="amount"
+                stroke="var(--primary-60)"
+                strokeWidth={3}
+                fill="url(#dashboardWeekly)"
+                dot={{ r: 5, fill: "var(--primary-60)" }}
+                activeDot={{ r: 7 }}
+              >
+                {/** Always-visible labels at each vertex. Max point adds a separate black '최고점수' bubble above */}
+                <LabelList
+                  dataKey="amount"
+                  position="top"
+                  content={(props: any) => {
+                    const { x, y, value, index } = props;
+                    if (x == null || y == null) return null;
+                    const numeric = formatCurrencyKR(Number(value ?? 0));
+                    const unit = "원";
+                    const label = `${numeric}${unit}`;
+                    const isMax = index === maxIndex;
+                    const textY = y - 12; // place above the point
+                    // Price bubble (always gray)
+                    const rectWidth = Math.max(34, label.length * 8);
+                    const rectX = x - rectWidth / 2;
+                    const rectY = textY - 18;
+                    return (
+                      <g>
+                        {/* gray price bubble */}
+                        <rect
+                          x={rectX}
+                          y={rectY}
+                          rx={6}
+                          ry={6}
+                          width={rectWidth}
+                          height={22}
+                          fill={"var(--neutral-20)"}
+                          stroke={"var(--neutral-20)"}
+                        />
+                        <text x={x} y={rectY + 15} textAnchor={"middle"} fill={"var(--foreground)"} fontSize={12} fontWeight={600}>
+                          <tspan style={montserratStyle}>{numeric}</tspan>
+                          <tspan>{unit}</tspan>
+                        </text>
+                        {isMax ? (
+                          <g>
+                            {/* black '최고점수' bubble above with pointer */}
+                            {(() => {
+                              const badgeWidth = 64; // fixed width for 4 chars comfortably
+                              const badgeHeight = 22;
+                              const badgeX = x - badgeWidth / 2;
+                              const badgeY = rectY - 28; // above price bubble
+                              const cx = x;
+                              return (
+                                <g>
+                                  <rect
+                                    x={badgeX}
+                                    y={badgeY}
+                                    rx={6}
+                                    ry={6}
+                                    width={badgeWidth}
+                                    height={badgeHeight}
+                                    fill={"var(--foreground)"}
+                                  />
+                                  {/* pointer */}
+                                  <polygon
+                                    points={`${cx - 5},${badgeY + badgeHeight} ${cx + 5},${badgeY + badgeHeight} ${cx},${badgeY + badgeHeight + 6}`}
+                                    fill={"var(--foreground)"}
+                                  />
+                                  <text x={x} y={badgeY + 15} textAnchor="middle" fill={"var(--card)"} fontSize={12} fontWeight={700}>
+                                    최고점수
+                                  </text>
+                                </g>
+                              );
+                            })()}
+                          </g>
+                        ) : null}
+                      </g>
+                    );
+                  }}
+                />
+              </Area>
             </AreaChart>
           </ResponsiveContainer>
         )}
@@ -120,24 +222,6 @@ function formatDate(value: string) {
 
 function formatCurrency(value: number) {
   return value.toLocaleString("ko-KR");
-}
-
-function EmptyState({ message, error }: { message: string; error?: boolean }) {
-  return (
-    <div className={`flex h-full items-center justify-center text-[14px] ${error ? "text-danger-40" : "text-neutral-60"}`}>
-      {message}
-    </div>
-  );
-}
-
-function ChartSkeleton() {
-  return (
-    <div className="flex h-full flex-col justify-center gap-3">
-      {Array.from({ length: 3 }).map((_, idx) => (
-        <div key={idx} className="mx-6 h-8 animate-pulse rounded bg-neutral-20" />
-      ))}
-    </div>
-  );
 }
 
 

@@ -7,4 +7,10 @@ export function formatTimeFromISO(iso?: string | null): string {
   return format(date, "HH:mm");
 }
 
+export function formatMonthDay(dateInput: string | Date): string {
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  if (Number.isNaN(date.getTime())) return typeof dateInput === "string" ? dateInput : "-";
+  return format(date, "MM.dd");
+}
+
 
