@@ -1,19 +1,11 @@
 // Mocked signup flow service to be replaced with real API calls later.
 import { apiClient } from "@/lib/apiClient";
-
-export type CheckEmailInput = { email: string };
-export type CheckEmailOutput = { available: true };
-
-export type RegisterInput = {
-  email: string;
-  password: string;
-  name: string;
-  phone: string;
-  code?: string;
-  agreeTerms: boolean;
-  agreePrivacy: boolean;
-};
-export type RegisterOutput = { success: true };
+import type {
+  CheckEmailInput,
+  CheckEmailOutput,
+  RegisterInput,
+  RegisterOutput,
+} from "@/types/signup";
 
 export const SignupService = {
   checkEmailAvailable(input: CheckEmailInput): Promise<CheckEmailOutput> {
@@ -50,5 +42,3 @@ export const SignupService = {
       });
   },
 };
-
-

@@ -6,9 +6,10 @@ import Panel from "@/components/common/Panel";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
-import { AttendanceService, AttendanceItem } from "@/services/attendance";
+import { AttendanceService } from "@/services/attendance";
 import { getSelectedProjectId } from "@/lib/project";
 import type { AttendanceRecord } from "@/data/mockAttendanceData";
+import { AttendanceItem } from "@/types/attendance";
 
 export default function AttendancePage() {
   const router = useRouter();

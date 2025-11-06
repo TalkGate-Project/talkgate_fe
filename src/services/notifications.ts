@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import type { ApiSuccessResponse } from "@/types/common";
 import type {
   Notification,
   NotificationListResponse,
@@ -7,12 +8,6 @@ import type {
   NotificationCategory,
   NotificationType,
 } from "@/types/notifications";
-
-// API response wrapper types
-type ApiSuccessResponse<T> = {
-  result: true;
-  data: T;
-};
 
 export const NotificationsService = {
   // Get notifications list with cursor-based pagination

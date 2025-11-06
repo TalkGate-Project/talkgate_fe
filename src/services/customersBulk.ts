@@ -1,6 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type BulkJob = unknown; // refine later
+import type { BulkJob, BulkJobStatus } from "@/types/customersBulk";
 
 export const CustomersBulkService = {
   // POST /v1/customers-bulk/import
@@ -10,7 +9,7 @@ export const CustomersBulkService = {
   },
 
   // GET /v1/customers-bulk/import
-  listImports(params: { projectId: string; page?: number; limit?: number; status?: "pending" | "processing" | "completed" | "failed" }) {
+  listImports(params: { projectId: string; page?: number; limit?: number; status?: BulkJobStatus }) {
     const { projectId, ...query } = params;
     return apiClient.get<BulkJob[]>("/v1/customers-bulk/import", { query, headers: { "x-project-id": projectId } });
   },
@@ -29,5 +28,3 @@ export const CustomersBulkService = {
     return apiClient.getBlob("/v1/customers-bulk/export", { query, headers: { "x-project-id": projectId } });
   },
 };
-
-

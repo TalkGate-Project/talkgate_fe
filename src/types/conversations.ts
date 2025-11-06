@@ -120,17 +120,7 @@ export type WebSocketErrorCode =
 
 // REST API envelopes
 
-export type ApiSuccessResponse<T = Record<string, unknown>> = {
-  result: true;
-  data: T;
-};
-
-export type ApiErrorResponse = {
-  result: false;
-  code: string;
-  message: string;
-  traceId: string;
-};
+import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
 
 export type ConversationActionResponse = ApiSuccessResponse<Record<string, unknown>>;
 

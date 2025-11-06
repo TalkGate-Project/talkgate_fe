@@ -1,14 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type PresignInput = { fileName: string; fileType: string };
-export type PresignOutput = {
-  result: true;
-  data: {
-    uploadUrl: string;
-    fileUrl: string;
-    fileName?: string;
-  };
-};
+import type { PresignInput, PresignOutput } from "@/types/assets";
 
 export const AssetsService = {
   // Chat 첨부 파일 Presigned URL 발급 (x-project-id 헤더 필요)
@@ -56,5 +47,3 @@ export const AssetsService = {
     }
   },
 };
-
-

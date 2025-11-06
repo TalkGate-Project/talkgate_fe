@@ -1,16 +1,8 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type CustomerNoteCategory = {
-  id: number;
-  name: string;
-  color?: string; // e.g., hex for pills
-  active?: boolean;
-};
-
-export type CustomerNoteCategoriesListResponse = {
-  result: true;
-  data: CustomerNoteCategory[];
-};
+import type {
+  CustomerNoteCategory,
+  CustomerNoteCategoriesListResponse,
+} from "@/types/customerNoteCategories";
 
 export const CustomerNoteCategoriesService = {
   list() {
@@ -26,5 +18,3 @@ export const CustomerNoteCategoriesService = {
     return apiClient.delete<void>(`/v1/customer-note-categories/${id}`);
   },
 };
-
-

@@ -1,7 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
-import type { ScheduleListResponse } from "@/types/dashboard";
-import type { ApiSuccessResponse } from "@/types/statistics";
-import type { WeeklyScheduleItem } from "@/types/dashboard";
+import type { ApiSuccessResponse } from "@/types/common";
+import type { ScheduleListResponse, WeeklyScheduleItem } from "@/types/dashboard";
 
 export type ScheduleListQuery = {
   projectId: string;

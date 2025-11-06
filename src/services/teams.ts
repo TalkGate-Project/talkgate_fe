@@ -1,6 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-
-export type Team = unknown; // refine later
+import type { Team } from "@/types/teams";
 
 export const TeamsService = {
   create(payload: Record<string, unknown>) {
@@ -28,5 +27,3 @@ export const TeamsService = {
     return apiClient.patch<void>(`/v1/teams/${teamId}/members/${memberId}/assign-leader`, {});
   },
 };
-
-

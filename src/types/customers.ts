@@ -224,12 +224,7 @@ export type UnassignCustomersResponse = {
 };
 
 // Common error envelope (thrown by ApiClient on non-2xx)
-export type ApiErrorResponse = {
-  result: false;
-  code: string;
-  message: string;
-  traceId: string;
-};
+import type { ApiErrorResponse } from "./common";
 
 // Messenger add/remove
 export type AddCustomerMessengerInput = {
