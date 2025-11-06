@@ -116,18 +116,19 @@ function CustomersPage() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] min-h-screen pt-6 pb-12 text-[#252525] dark:text-[#E9E9E9]">
+    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
       {/* Top panel: title + search */}
       <Panel
         className="rounded-[14px] mb-4"
         title={
-          <div className="-mx-6 px-7 pb-3 flex items-end gap-3">
-            <h1 className="text-[24px] leading-[20px] font-bold text-[#252525] dark:text-[#E9E9E9]">고객목록</h1>
-            <span className="text-[#808080] dark:text-[#B9B9B9]">|</span>
-            <p className="text-[18px] leading-[20px] font-medium text-[#808080] dark:text-[#B9B9B9]">고객 데이터를 확인하고 관리하세요</p>
+          <div className="flex items-end gap-3">
+            <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
+            <span className="w-px h-4 bg-neutral-60 opacity-60" />
+            <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-3 border-t border-[#E2E2E2] dark:border-[#444444]"
+        bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -156,7 +157,6 @@ function CustomersPage() {
             onCreateOpen={() => setCreateOpen(true)}
           />
         }
-        bodyClassName="p-6"
       >
         <CustomersTable
           customers={customers}
@@ -199,6 +199,7 @@ function CustomersPage() {
         onClose={() => setCreateOpen(false)}
         onCreated={refetch}
       />
+      </div>
     </main>
   );
 }
@@ -207,7 +208,7 @@ export default function CustomersPageWrapper() {
   return (
     <Suspense fallback={
       <main className="min-h-screen flex items-center justify-center">
-        <div className="text-[#808080] dark:text-[#B9B9B9]">불러오는 중...</div>
+        <div className="text-neutral-60">불러오는 중...</div>
       </main>
     }>
       <CustomersPage />

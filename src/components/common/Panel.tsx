@@ -11,9 +11,9 @@ type PanelProps = {
 
 export default function Panel({ title, action, className, children, style, bodyClassName }: PanelProps) {
   return (
-    <section className={`surface rounded-[16px] elevation-1 flex flex-col h-full w-full ${className ?? ""}`} style={style}>
+    <section className={`surface rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] flex flex-col h-full w-full ${className ?? ""}`} style={style}>
       {(title || action) && (
-        <div className="flex items-center justify-between px-6 pt-5">
+        <div className="flex items-center justify-between px-7 pt-7 pb-5">
           {typeof title === "string" ? (
             <h2 className="typo-title-2">{title}</h2>
           ) : (
@@ -22,7 +22,7 @@ export default function Panel({ title, action, className, children, style, bodyC
           {action}
         </div>
       )}
-      <div className={`${bodyClassName ?? (title ? "px-6 pb-6 pt-4" : "p-6")} grow`}>{children}</div>
+      <div className={`${bodyClassName ?? (title ? "px-7 pb-7 pt-4" : "p-7")} grow`}>{children}</div>
     </section>
   );
 }

@@ -9,12 +9,12 @@ type FilterChipsProps = {
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-[#F2F2F2] dark:bg-[#222222]">
-      <span className="text-[14px] text-[#000] dark:text-[#FFFFFF]">{label}</span>
+    <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-neutral-20">
+      <span className="text-[14px] text-neutral-90">{label}</span>
       <button
         aria-label="remove"
         onClick={onRemove}
-        className="w-4 h-4 grid place-items-center text-[#000] dark:text-[#FFFFFF]"
+        className="w-4 h-4 grid place-items-center text-neutral-90"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path

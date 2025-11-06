@@ -82,7 +82,7 @@ export default function CustomersTable({
       <div className="overflow-hidden rounded-[12px]" style={{ width: "100%" }}>
         <table className="w-full text-left border-separate border-spacing-0">
           <thead>
-            <tr className="bg-[#EDEDED] dark:bg-[#222222] text-[#808080] dark:text-[#B9B9B9]">
+            <tr className="bg-neutral-20 text-neutral-60">
               <th className="px-6 h-[48px] rounded-l-[12px]">
                 <input type="checkbox" checked={allSelectedOnPage} onChange={onSelectAll} />
               </th>
@@ -108,7 +108,7 @@ export default function CustomersTable({
           <tbody className="typo-body-3">
             {loading && (
               <tr>
-                <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080] dark:text-[#B9B9B9]">
+                <td colSpan={9} className="px-6 h-[72px] text-center text-neutral-60">
                   불러오는 중...
                 </td>
               </tr>
@@ -125,8 +125,8 @@ export default function CustomersTable({
               return (
                 <tr
                   key={c.id}
-                  className={`border-b-[0.5px] border-[#E2E2E2] dark:border-[#444444] ${
-                    hoveredId === c.id ? "bg-[#F8F8F8] dark:bg-[#1A1A1A]" : ""
+                  className={`border-b-[0.5px] border-neutral-30 ${
+                    hoveredId === c.id ? "bg-neutral-10" : ""
                   }`}
                   onMouseEnter={(e) => handleMouseEnter(e, c)}
                   onMouseMove={handleMouseMove}
@@ -139,7 +139,7 @@ export default function CustomersTable({
                       ariaLabel={`select ${c.name}`}
                     />
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     <button
                       className="underline underline-offset-2 text-inherit"
                       onClick={() => onCustomerClick(c.id)}
@@ -147,25 +147,25 @@ export default function CustomersTable({
                       {c.name}
                     </button>
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.applicationRoute}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.mediaCompany}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.site}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.assignedTeamName}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.assignedMemberName}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {new Date(c.applicationDate || c.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-[#252525] dark:text-[#E9E9E9] opacity-80">
+                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     {c.assignedAt ? new Date(c.assignedAt).toLocaleString() : "-"}
                   </td>
                 </tr>
@@ -173,7 +173,7 @@ export default function CustomersTable({
             })}
             {customers.length === 0 && !loading && (
               <tr>
-                <td colSpan={9} className="px-6 h-[72px] text-center text-[#808080] dark:text-[#B9B9B9]">
+                <td colSpan={9} className="px-6 h-[72px] text-center text-neutral-60">
                   결과가 없습니다
                 </td>
               </tr>

@@ -19,7 +19,7 @@ export default function CustomersPagination({
 }: CustomersPaginationProps) {
   return (
     <div className="h-[64px] flex items-center justify-between gap-4 mt-2">
-      <div className="text-[#B0B0B0] dark:text-[#959595] text-[14px]">
+      <div className="text-neutral-50 text-[14px]">
         총 {total}건 ({selectedCount}개 선택)
       </div>
       <div className="flex items-center gap-2">
@@ -30,7 +30,7 @@ export default function CustomersPagination({
             const next = Math.max(1, page - 1);
             onPageChange(next);
           }}
-          className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40"
+          className="w-8 h-8 grid place-items-center text-neutral-50 disabled:opacity-40"
         >
           <span
             className="block w-4 h-4 border-2 border-current rotate-90"
@@ -46,7 +46,7 @@ export default function CustomersPagination({
               key={i}
               onClick={() => onPageChange(num)}
               className={`w-8 h-8 rounded-full grid place-items-center text-[14px] ${
-                isActive ? "bg-[#252525] dark:bg-[#E9E9E9] text-white dark:text-[#111111]" : "text-[#808080] dark:text-[#B9B9B9]"
+                isActive ? "bg-neutral-90 text-neutral-0" : "text-neutral-60"
               }`}
             >
               {num}
@@ -60,7 +60,7 @@ export default function CustomersPagination({
             const next = Math.min(totalPages, page + 1);
             onPageChange(next);
           }}
-          className="w-8 h-8 grid place-items-center text-[#B0B0B0] dark:text-[#959595] disabled:opacity-40"
+          className="w-8 h-8 grid place-items-center text-neutral-50 disabled:opacity-40"
         >
           <span
             className="block w-4 h-4 border-2 border-current -rotate-90"
@@ -69,7 +69,7 @@ export default function CustomersPagination({
         </button>
       </div>
       <select
-        className="h-[34px] px-2 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-[#111111] text-[#252525] dark:text-[#FDFDFD]"
+        className="h-[34px] px-2 border border-neutral-30 rounded-[5px] bg-neutral-0 text-neutral-90"
         value={String(limit)}
         onChange={(e) => {
           const nextLimit = Number(e.target.value);

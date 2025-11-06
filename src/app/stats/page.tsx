@@ -238,7 +238,7 @@ function StatsPage() {
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
         {/* Top card with tabs */}
-        <section className="surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+        <section className="surface rounded-[14px] p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
           <div className="flex items-center gap-4">
             <h1 className="text-[24px] font-bold text-neutral-90">통계</h1>
             <span className="w-px h-4 bg-neutral-60 opacity-60" />
@@ -335,14 +335,14 @@ function StatsPage() {
               </div>
               <div className="mt-4 h-px bg-neutral-30" />
               <div className="mt-4">
-                <div className="grid grid-cols-5 text-[16px] text-neutral-60 font-semibold">
+                <div className="grid grid-cols-5 text-[16px] text-neutral-60 font-semibold border-b border-neutral-30">
                   <div className="px-4 py-2">날짜</div>
                   <div className="px-4 py-2">신청 건수</div>
                   <div className="px-4 py-2">직접입력</div>
                   <div className="px-4 py-2">엑셀 업로드</div>
                   <div className="px-4 py-2">API</div>
                 </div>
-                <div className="divide-y divide-neutral-30 min-h-[240px]">
+                <div className="min-h-[240px]">
                   {waitingForProject ? (
                     <div className="flex h-[160px] items-center justify-center">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
@@ -363,7 +363,7 @@ function StatsPage() {
                     </div>
                   ) : (
                     registrationRows.map((row) => (
-                      <div key={row.id} className="grid grid-cols-5 text-[14px] text-neutral-90 opacity-80">
+                      <div key={row.id} className="grid grid-cols-5 text-[14px] text-neutral-90 opacity-80 border-b border-neutral-30">
                         <div className="px-4 py-3">{formatTableDate(row.statisticsDate)}</div>
                         <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.totalCount)}건</div>
                         <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.directInputCount)}건</div>
