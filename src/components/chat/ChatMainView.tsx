@@ -391,7 +391,7 @@ export default function ChatMainView({
                     <div className="py-2">
                       {/** 우선순위: .tgs → thumbnailUrl → (png/jpg 등 이미지형 fileUrl) → stickerEmoji → 텍스트 대체 */}
                       {m.fileUrl && /\.tgs$/i.test(m.fileUrl) ? (
-                        <TgsSticker src={m.fileUrl} width={200} height={200} />
+                        <TgsSticker src={m.fileUrl} width={120} height={120} />
                       ) : m.thumbnailUrl ? (
                         <Image
                           src={m.thumbnailUrl}

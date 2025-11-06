@@ -18,8 +18,8 @@ type Props = {
  */
 export default function TgsSticker({
   src,
-  width = 200,
-  height = 200,
+  width = 160,
+  height = 160,
   className,
   loop = true,
   autoplay = true,
@@ -50,8 +50,9 @@ export default function TgsSticker({
           animationData,
         });
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to render .tgs sticker", e);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to render .tgs sticker", e);
+        }
       }
     }
 
