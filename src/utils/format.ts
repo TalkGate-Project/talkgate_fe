@@ -22,4 +22,36 @@ export function formatPercentChange(value: string | number | null | undefined): 
   return `${display > 0 ? "+" : ""}${display}%`;
 }
 
+/**
+ * 차트용 날짜 포맷: MM.DD
+ */
+export function formatChartDay(input: string): string {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${month}.${day}`;
+}
+
+/**
+ * 차트용 월 포맷: YY.MM
+ */
+export function formatChartMonth(input: string): string {
+  const [year, month] = input.split("-");
+  if (!year || !month) return input;
+  return `${year.slice(-2)}.${month}`;
+}
+
+/**
+ * 테이블용 날짜 포맷: YYYY.MM.DD
+ */
+export function formatTableDate(input: string): string {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}.${month}.${day}`;
+}
+
 
