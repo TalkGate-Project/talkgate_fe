@@ -260,7 +260,7 @@ export default function BatchRegistrationHistorySettings() {
       {/* Pagination */}
       <div className="flex justify-center">
         <Pagination
-          currentPage={currentPage}
+          page={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />

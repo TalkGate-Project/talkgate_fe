@@ -14,9 +14,9 @@ type BaseModalProps = {
 // Simple shared counter to handle nested modals scroll lock
 const getCounter = () => {
   if (typeof window === "undefined") return { value: 0 } as any;
-  // @ts-ignore
+  // @ts-expect-error - Attaching modal counter to window object for global state
   window.__tgModalCounter = window.__tgModalCounter || { value: 0 };
-  // @ts-ignore
+  // @ts-expect-error - Accessing modal counter from window object
   return window.__tgModalCounter as { value: number };
 };
 

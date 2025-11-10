@@ -221,7 +221,7 @@ export default function MemberSettings() {
       {/* Pagination */}
       <div className="flex justify-center mt-8">
         <Pagination
-          currentPage={currentPage}
+          page={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
         />

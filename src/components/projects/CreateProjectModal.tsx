@@ -191,7 +191,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pleaseDragImg} alt="클릭하거나 드래그하여 업로드" className="w-full h-full object-contain" />
+                      <img src={pleaseDragImg.src} alt="클릭하거나 드래그하여 업로드" className="w-full h-full object-contain" />
                     )}
                   </div>
                 </div>

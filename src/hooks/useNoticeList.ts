@@ -76,7 +76,7 @@ export function useNoticeList(params: UseNoticeListParams): UseNoticeListResult 
     loading,
     error,
     errorMessage: error ? errorMessage : null,
-    refetch,
+    refetch: async () => { await refetch(); },
     notices,
     totalPages,
   };

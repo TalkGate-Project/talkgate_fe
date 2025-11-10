@@ -12,7 +12,7 @@ import type {
 export const NotificationsService = {
   // Get notifications list with cursor-based pagination
   async list(query?: NotificationListQuery): Promise<NotificationListResponse> {
-    const res = await apiClient.get<ApiSuccessResponse<NotificationListResponse>>("/v1/notifications", { query });
+    const res = await apiClient.get<ApiSuccessResponse<NotificationListResponse>>("/v1/notifications", { query: query as any });
     return res.data.data;
   },
 

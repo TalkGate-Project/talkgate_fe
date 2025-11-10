@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import TableSkeleton from "@/components/common/TableSkeleton";
@@ -12,7 +12,7 @@ import { getSelectedProjectId } from "@/lib/project";
 import type { AttendanceRecord } from "@/data/mockAttendanceData";
 import { AttendanceItem } from "@/types/attendance";
 
-export default function AttendancePage() {
+function AttendancePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -327,5 +327,19 @@ export default function AttendancePage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function AttendancePage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+        <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+          <div className="text-neutral-60">불러오는 중...</div>
+        </div>
+      </main>
+    }>
+      <AttendancePageContent />
+    </Suspense>
   );
 }

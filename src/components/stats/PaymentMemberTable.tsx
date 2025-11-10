@@ -143,7 +143,7 @@ export default function PaymentMemberTable() {
     const maxPagesToShow = 10;
     const halfRange = Math.floor(maxPagesToShow / 2);
     let start = Math.max(1, page - halfRange);
-    let end = Math.min(totalPages, start + maxPagesToShow - 1);
+    const end = Math.min(totalPages, start + maxPagesToShow - 1);
     if (end - start + 1 < maxPagesToShow) {
       start = Math.max(1, end - maxPagesToShow + 1);
     }

@@ -4,6 +4,9 @@ import type {
   CustomerNoteCategoriesListResponse,
 } from "@/types/customerNoteCategories";
 
+// Re-export types for convenience
+export type { CustomerNoteCategory } from "@/types/customerNoteCategories";
+
 export const CustomerNoteCategoriesService = {
   list() {
     return apiClient.get<CustomerNoteCategoriesListResponse>("/v1/customer-note-categories");

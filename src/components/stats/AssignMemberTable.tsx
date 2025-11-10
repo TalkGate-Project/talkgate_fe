@@ -120,7 +120,7 @@ export default function AssignMemberTable() {
     const halfRange = Math.floor(maxPagesToShow / 2);
     
     let startPage = Math.max(1, page - halfRange);
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
     
     // 끝 페이지가 10개 미만이면 시작 페이지 조정
     if (endPage - startPage + 1 < maxPagesToShow) {
