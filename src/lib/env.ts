@@ -50,16 +50,24 @@ function getWebSocketUrl(baseUrl: string, namespace: string): string {
 }
 
 // Read API base URL first
-const apiBaseUrl = readString(
-  "NEXT_PUBLIC_API_BASE_URL",
-  process.env.NODE_ENV === "production" ? "https://api.talkgate.im" : "https://api-dev.talkgate.im"
-);
+// NOTE: Temporary override to force DEV backend for all environments.
+// This prevents the MVP (deployed on Vercel) from pointing at the production API.
+// TODO: Re-enable environment-based selection below and remove the hard-coded URL.
+//   const apiBaseUrl = readString(
+//     "NEXT_PUBLIC_API_BASE_URL",
+//     process.env.NODE_ENV === "production" ? "https://api.talkgate.im" : "https://api-dev.talkgate.im"
+//   );
+const apiBaseUrl = "https://api-dev.talkgate.im";
 
 export const env: AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
   NEXT_PUBLIC_API_TIMEOUT_MS: readNumber("NEXT_PUBLIC_API_TIMEOUT_MS", 10000),
-  NEXT_PUBLIC_WS_CHAT_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_CHAT_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "chat"),
-  NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "notification"),
+  // NOTE: Temporary override to force DEV websocket endpoints for all environments.
+  // TODO: Revert to env-first resolution:
+  //   NEXT_PUBLIC_WS_CHAT_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_CHAT_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "chat"),
+  //   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "notification"),
+  NEXT_PUBLIC_WS_CHAT_BASE_URL: getWebSocketUrl(apiBaseUrl, "chat"),
+  NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: getWebSocketUrl(apiBaseUrl, "notification"),
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: readOptionalString("NEXT_PUBLIC_GOOGLE_CLIENT_ID"),
   NEXT_PUBLIC_KAKAO_REST_API_KEY: readOptionalString("NEXT_PUBLIC_KAKAO_REST_API_KEY"),
   NEXT_PUBLIC_NAVER_CLIENT_ID: readOptionalString("NEXT_PUBLIC_NAVER_CLIENT_ID"),
