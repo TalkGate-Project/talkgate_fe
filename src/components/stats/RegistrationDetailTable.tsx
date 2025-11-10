@@ -3,6 +3,7 @@ import { CustomerRegistrationRecord } from "@/types/statistics";
 import { formatTableDateKR } from "@/utils/format";
 import ApplyTableSkeleton from "./ApplyTableSkeleton";
 import DateRangePicker from "@/components/common/DateRangePicker";
+import Pagination from "@/components/common/Pagination";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -33,7 +34,6 @@ export default function RegistrationDetailTable({
   totalPages,
   onPageChange,
 }: RegistrationDetailTableProps) {
-  const pageNumbers = Array.from({ length: totalPages }, (_, idx) => idx + 1);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
@@ -121,40 +121,13 @@ export default function RegistrationDetailTable({
 
       {/* Pagination */}
       {hasProject && rows.length > 0 && (
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <button
-            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            aria-label="이전 페이지"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          {pageNumbers.map((num) => (
-            <button
-              key={num}
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
-                num === currentPage 
-                  ? 'bg-[#252525] text-white font-normal' 
-                  : 'text-[#808080] font-normal'
-              }`}
-              onClick={() => onPageChange(num)}
-            >
-              {num}
-            </button>
-          ))}
-          <button
-            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage >= totalPages}
-            aria-label="다음 페이지"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            disabled={isLoading}
+          />
         </div>
       )}
     </>
