@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { CustomerRegistrationRecord } from "@/types/statistics";
 import { formatTableDate } from "@/utils/format";
 import ApplyTableSkeleton from "./ApplyTableSkeleton";
+import DateRangePicker from "@/components/common/DateRangePicker";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -32,88 +34,129 @@ export default function RegistrationDetailTable({
   onPageChange,
 }: RegistrationDetailTableProps) {
   const pageNumbers = Array.from({ length: totalPages }, (_, idx) => idx + 1);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  const handleReset = () => {
+    setStartDate(null);
+    setEndDate(null);
+    // TODO: API 호출로 필터 초기화
+  };
+
+  const handleStartChange = (date: Date | null) => {
+    setStartDate(date);
+    // TODO: API 호출로 필터 적용
+  };
+
+  const handleEndChange = (date: Date | null) => {
+    setEndDate(date);
+    // TODO: API 호출로 필터 적용
+  };
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-[18px] font-semibold text-neutral-90">상세 데이터</h3>
-        <div className="flex items-center gap-3">
-          <div className="w-[175px] h-[34px] border border-border rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]">
-            <span className="opacity-90">연도 . 월 . 일</span>
-            <span className="w-5 h-5 border-2 border-neutral-40 rounded" />
-          </div>
-          <span className="mx-1 text-neutral-60">-</span>
-          <div className="w-[175px] h-[34px] border border-border rounded-[5px] px-2 grid grid-cols-[1fr_auto] items-center text-[14px]">
-            <span className="opacity-90">연도 . 월 . 일</span>
-            <span className="w-5 h-5 border-2 border-neutral-40 rounded" />
-          </div>
-        </div>
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          onStartChange={handleStartChange}
+          onEndChange={handleEndChange}
+          onReset={handleReset}
+        />
       </div>
 
-      <div className="mt-4 h-px bg-neutral-30" />
-
-      <div className="mt-4">
-        {/* Table Header */}
-        <div className="grid grid-cols-5 text-[16px] text-neutral-60 font-semibold border-b border-neutral-30">
-          <div className="px-4 py-2">날짜</div>
-          <div className="px-4 py-2">신청 건수</div>
-          <div className="px-4 py-2">직접입력</div>
-          <div className="px-4 py-2">엑셀 업로드</div>
-          <div className="px-4 py-2">API</div>
-        </div>
-
-        {/* Table Body */}
-        <div className="min-h-[240px]">
-          {!hasProject ? (
-            <TableEmptyState message="프로젝트를 먼저 선택해주세요." />
-          ) : isLoading ? (
-            <div className="flex h-[160px] items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
-            </div>
-          ) : isError ? (
-            <div className="flex h-[160px] items-center justify-center text-[14px] text-danger-40">
-              데이터를 불러오는 중 오류가 발생했습니다.
-            </div>
-          ) : rows.length === 0 ? (
-            <TableEmptyState message="표시할 데이터가 없습니다." />
-          ) : (
-            rows.map((row) => (
-              <div key={row.id} className="grid grid-cols-5 text-[14px] text-neutral-90 opacity-80 border-b border-neutral-30">
-                <div className="px-4 py-3">{formatTableDate(row.statisticsDate)}</div>
-                <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.totalCount)}건</div>
-                <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.directInputCount)}건</div>
-                <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</div>
-                <div className="px-4 py-3">{NUMBER_FORMATTER.format(row.apiCount)}건</div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination */}
-        {hasProject && rows.length > 0 && (
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <button
-              className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              disabled={currentPage <= 1}
-            />
-            {pageNumbers.map((num) => (
-              <button
-                key={num}
-                className={`w-8 h-8 rounded-full grid place-items-center ${num === currentPage ? 'bg-neutral-90 text-neutral-0' : 'text-neutral-60'}`}
-                onClick={() => onPageChange(num)}
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 -rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
-              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage >= totalPages}
-            />
-          </div>
-        )}
+      <div className="overflow-hidden">
+        <table className="w-full border-separate border-spacing-0">
+          <thead>
+            <tr className="bg-[#EDEDED] h-[48px]">
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080] rounded-tl-[12px]">날짜</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">신청 건수</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">직접입력</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">엑셀 업로드</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080] rounded-tr-[12px]">API</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!hasProject ? (
+              <tr>
+                <td colSpan={5} className="text-center py-20 text-[14px] text-neutral-60">
+                  프로젝트를 먼저 선택해주세요.
+                </td>
+              </tr>
+            ) : isLoading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-20">
+                  <div className="flex justify-center">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                  </div>
+                </td>
+              </tr>
+            ) : isError ? (
+              <tr>
+                <td colSpan={5} className="text-center py-20 text-[14px] text-danger-40">
+                  데이터를 불러오는 중 오류가 발생했습니다.
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-20 text-[14px] text-neutral-60">
+                  표시할 데이터가 없습니다.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr key={row.id} className="border-b border-[#E2E2E2] border-opacity-40">
+                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{formatTableDate(row.statisticsDate)}</td>
+                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
+                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
+                  <td className="px-4 py-3 text-[14px] font-semibold text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
+                  <td className="px-4 py-3 text-[14px] font-semibold text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.apiCount)}건</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
+
+      {/* Pagination */}
+      {hasProject && rows.length > 0 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <button
+            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            aria-label="이전 페이지"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {pageNumbers.map((num) => (
+            <button
+              key={num}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
+                num === currentPage 
+                  ? 'bg-[#252525] text-white font-normal' 
+                  : 'text-[#808080] font-normal'
+              }`}
+              onClick={() => onPageChange(num)}
+            >
+              {num}
+            </button>
+          ))}
+          <button
+            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage >= totalPages}
+            aria-label="다음 페이지"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </>
   );
 }

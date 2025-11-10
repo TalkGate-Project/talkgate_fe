@@ -12,12 +12,14 @@ type DatePickerProps = {
 	placeholder?: string;
 	className?: string;
 	disabled?: boolean;
+	minDate?: Date | null;
+	maxDate?: Date | null;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate } = props;
 
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"month" | "year">("month");
@@ -62,14 +64,41 @@ export default function DatePicker(props: DatePickerProps) {
 		if (!open) return;
 		function update() {
 			const el = inputRef.current;
+			const panel = panelRef.current;
 			if (!el) return;
+			
 			const r = el.getBoundingClientRect();
-			setPanelPos({ top: r.bottom + 8 + window.scrollY, left: r.left + window.scrollX });
+			const panelHeight = panel?.offsetHeight || 400; // Default estimate 400px
+			const viewportHeight = window.innerHeight;
+			
+			// Calculate if there's enough space below the input
+			const spaceBelow = viewportHeight - r.bottom;
+			const spaceAbove = r.top;
+			
+			// If not enough space below but enough space above, position above
+			let top: number;
+			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
+				// Position above input
+				top = r.top - panelHeight - 8;
+			} else {
+				// Position below input (default)
+				top = r.bottom + 8;
+			}
+			
+			setPanelPos({ 
+				top, 
+				left: r.left 
+			});
 		}
+		
+		// Initial update after a small delay to ensure panel is rendered
+		const timer = setTimeout(update, 0);
 		update();
+		
 		window.addEventListener("resize", update);
 		window.addEventListener("scroll", update, true);
 		return () => {
+			clearTimeout(timer);
 			window.removeEventListener("resize", update);
 			window.removeEventListener("scroll", update, true);
 		};
@@ -204,16 +233,29 @@ export default function DatePicker(props: DatePickerProps) {
 										date.getFullYear() === value.getFullYear() &&
 										date.getMonth() === value.getMonth() &&
 										date.getDate() === value.getDate();
+									
+									// Check if date is disabled based on min/max
+									const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+									const minDateOnly = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
+									const maxDateOnly = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
+									
+									const isDisabled = 
+										(minDateOnly && dateOnly < minDateOnly) ||
+										(maxDateOnly && dateOnly > maxDateOnly);
+									
 									const baseCls =
-										"w-8 h-8 flex items-center justify-center rounded-full text-[14px] cursor-pointer";
+										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525]" : "text-[#B0B0B0]";
 									const selectedCls = isSelected ? "bg-[#D6FAE8]" : "hover:bg-neutral-20";
+									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
+									
 									return (
 										<button
 											key={date.toISOString() + inCurrent}
 											type="button"
-											className={`${baseCls} ${textCls} ${selectedCls}`}
-											onClick={() => onSelectDay(date)}
+											className={`${baseCls} ${textCls} ${isDisabled ? disabledCls : selectedCls} ${disabledCls}`}
+											onClick={() => !isDisabled && onSelectDay(date)}
+											disabled={isDisabled || undefined}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{date.getDate()}

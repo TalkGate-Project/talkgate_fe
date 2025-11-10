@@ -28,15 +28,15 @@ export function useStatsRegistration(projectId: string | null, page: number) {
   });
 
   const chartQuery = useQuery<CustomerRegistrationResponse>({
-    queryKey: ["stats", "registration", "chart", projectId],
+    queryKey: ["stats", "registration", "chart", projectId, page],
     enabled: Boolean(projectId),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.customerRegistration({
         projectId,
-        page: 1,
-        limit: 30,
+        page,
+        limit: APPLY_TABLE_LIMIT,
       });
       return res.data;
     },

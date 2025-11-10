@@ -517,24 +517,3 @@ body {
 /* Fixed Figma-aligned text color (does not change with theme) */
 @utility text-figma-muted { color: #B0B0B0; }
 
-/*
-  Global scaling rules for strong visual parity with 1920px baseline.
-  - 1281px–1440px → scale 0.9
-  - 1025px–1280px → scale 0.8
-  We scale a single wrapper (see app layout) so header and content move together.
-*/
-.app-scale {
-  transform-origin: top center;
-}
-
-@media (max-width: 1440px) and (min-width: 1281px) {
-  .app-scale {
-    transform: scale(0.9);
-  }
-}
-
-@media (max-width: 1280px) and (min-width: 1025px) {
-  .app-scale {
-    transform: scale(0.8);
-  }
-}
