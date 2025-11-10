@@ -66,7 +66,8 @@ export class ApiClient {
     this.timeoutMs = options?.timeoutMs ?? env.NEXT_PUBLIC_API_TIMEOUT_MS;
     this.getDefaultHeaders = options?.getDefaultHeaders;
     // Project-wide default: dev => omit (bypass wildcard CORS), prod => include
-    this.defaultCredentials = process.env.NODE_ENV === "production" ? "include" : "omit";
+    // this.defaultCredentials = process.env.NODE_ENV === "production" ? "include" : "omit";
+    this.defaultCredentials = "omit";
   }
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
