@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerPaymentTeamRecord, CustomerPaymentByTeamResponse } from "@/types/statistics";
+import DateRangePicker from "@/components/common/DateRangePicker";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -29,14 +30,19 @@ export default function PaymentBarChart() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
-  const { startDate, endDate } = getDefaultRange();
+  // Date range (Date objects for picker)
+  const defaultRange = getDefaultRange();
+  const [startDate, setStartDate] = useState<Date | null>(new Date(defaultRange.startDate));
+  const [endDate, setEndDate] = useState<Date | null>(new Date(defaultRange.endDate));
+  const formattedStart = startDate ? formatDate(startDate) : defaultRange.startDate;
+  const formattedEnd = endDate ? formatDate(endDate) : defaultRange.endDate;
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentByTeamResponse>({
-    queryKey: ["stats", "payment", "team", { projectId, startDate, endDate }],
+    queryKey: ["stats", "payment", "team", { projectId, startDate: formattedStart, endDate: formattedEnd }],
     enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.customerPaymentByTeam({ projectId, startDate, endDate });
+      const res = await StatisticsService.customerPaymentByTeam({ projectId, startDate: formattedStart, endDate: formattedEnd });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -52,6 +58,44 @@ export default function PaymentBarChart() {
         count: record.paymentCount ?? 0,
       }));
   }, [data]);
+
+  // X축 커스텀 렌더러: "팀명" + 아래 줄 "N건"
+  const teamToCount = useMemo(
+    () => Object.fromEntries(chartData.map((d) => [d.team, d.count])) as Record<string, number>,
+    [chartData]
+  );
+
+  const renderXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    const label: string = payload?.value ?? "";
+    const count = teamToCount[label] ?? 0;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={14}
+          textAnchor="middle"
+          fill="var(--neutral-100)"
+          fontSize={14}
+          fontWeight={500}
+        >
+          {label}
+        </text>
+        <text
+          x={0}
+          y={0}
+          dy={32}
+          textAnchor="middle"
+          fill="var(--neutral-60)"
+          fontSize={14}
+          fontWeight={500}
+        >
+          {NUMBER_FORMATTER.format(count)}건
+        </text>
+      </g>
+    );
+  };
 
   if (waitingForProject) {
     return (
@@ -94,9 +138,24 @@ export default function PaymentBarChart() {
   }
 
   return (
-    <div className="w-full h-[320px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 24 }}>
+    <div className="w-full">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-[16px] font-semibold text-neutral-90">팀별 결제 현황</h3>
+        <DateRangePicker
+          startDate={startDate}
+          endDate={endDate}
+          onStartChange={setStartDate}
+          onEndChange={setEndDate}
+          onReset={() => {
+            const r = getDefaultRange();
+            setStartDate(new Date(r.startDate));
+            setEndDate(new Date(r.endDate));
+          }}
+        />
+      </div>
+      <div className="h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 56 }}>
           <defs>
             <linearGradient id="payGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.75} />
@@ -104,8 +163,15 @@ export default function PaymentBarChart() {
             </linearGradient>
           </defs>
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-          <XAxis dataKey="team" tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} width={48} />
+          <XAxis
+            dataKey="team"
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+            tick={renderXAxisTick}
+          />
+          {/* 왼쪽 축 라벨 제거 */}
+          <YAxis hide />
           <Tooltip
             cursor={{ fill: "rgba(0,226,114,0.08)" }}
             content={({ active, payload }) => {
@@ -128,15 +194,8 @@ export default function PaymentBarChart() {
               style={{ fill: "var(--neutral-60)", fontSize: 12 }}
             />
           </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="mt-2 flex items-center justify-around text-[12px] text-neutral-60">
-        {chartData.map((entry) => (
-          <div key={entry.team} className="text-center">
-            <div className="text-neutral-90">{entry.team}</div>
-            <div>{NUMBER_FORMATTER.format(entry.count)}건</div>
-          </div>
-        ))}
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

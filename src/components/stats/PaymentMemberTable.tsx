@@ -54,7 +54,9 @@ export default function PaymentMemberTable() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
-  const { startDate, endDate } = getDefaultRange();
+  const initialRange = getDefaultRange();
+  const [startDate, setStartDate] = useState<string>(initialRange.startDate);
+  const [endDate, setEndDate] = useState<string>(initialRange.endDate);
 
   const initialTeam = (searchParams.get("payTeam") as string | null) ?? "all";
   const initialSort = (searchParams.get("paySort") as MemberFilterState["sort"] | null) ?? "desc";
@@ -136,30 +138,58 @@ export default function PaymentMemberTable() {
   const totalCount = memberPayload?.totalCount ?? 0;
   const limit = memberPayload?.limit ?? PAGE_SIZE;
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
-  const pageNumbers = useMemo(() => Array.from({ length: totalPages }, (_, idx) => idx + 1), [totalPages]);
+  // 페이지네이션 10개 윈도우
+  const pageNumbers = useMemo(() => {
+    const maxPagesToShow = 10;
+    const halfRange = Math.floor(maxPagesToShow / 2);
+    let start = Math.max(1, page - halfRange);
+    let end = Math.min(totalPages, start + maxPagesToShow - 1);
+    if (end - start + 1 < maxPagesToShow) {
+      start = Math.max(1, end - maxPagesToShow + 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [page, totalPages]);
 
   const showSkeleton = memberQuery.isLoading && !memberQuery.data;
   const showError = memberQuery.isError && !memberQuery.isFetching;
   const showEmpty = !showSkeleton && !showError && (memberPayload?.data === null || rows.length === 0);
 
   const Header = (
-    <div className="mb-3 flex items-center gap-2">
-      <div className="text-[16px] font-semibold text-neutral-90">팀원별 결제 현황</div>
-      <button
-        aria-label="filter"
-        className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
-        onClick={() => setOpen(true)}
-      >
-        <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
-            stroke="var(--neutral-40)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          ></path>
-        </svg>
-      </button>
+    <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="text-[16px] font-semibold text-neutral-90">팀원별 결제 현황</div>
+        <button
+          aria-label="filter"
+          className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
+          onClick={() => setOpen(true)}
+        >
+          <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
+              stroke="var(--neutral-40)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      {/* Date range pickers */}
+      <div className="flex items-center gap-2">
+        <input
+          type="date"
+          className="h-[34px] rounded-[5px] border border-border px-2 text-[14px]"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <span className="text-neutral-60">-</span>
+        <input
+          type="date"
+          className="h-[34px] rounded-[5px] border border-border px-2 text-[14px]"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+      </div>
     </div>
   );
 
@@ -194,7 +224,7 @@ export default function PaymentMemberTable() {
         <div>결제금액</div>
         <div>결제 건수</div>
       </div>
-      <div className="divide-y divide-neutral-30 min-h-[280px] bg-card">
+      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card">
         {showSkeleton && <SkeletonRows columns={4} rows={PAGE_SIZE} />}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
@@ -221,26 +251,36 @@ export default function PaymentMemberTable() {
           );
         })}
       </div>
-      <div className="mt-4 flex items-center justify-center gap-2 text-[14px] text-neutral-60">
+      <div className="mt-6 flex items-center justify-center gap-2">
         <button
-          className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
+          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
           onClick={() => setPage((prev) => Math.max(1, prev - 1))}
           disabled={page <= 1}
-        />
+          aria-label="이전 페이지"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         {pageNumbers.map((num) => (
           <button
             key={num}
-            className={`w-8 h-8 rounded-full grid place-items-center ${num === page ? "bg-neutral-90 text-neutral-0" : ""}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${num === page ? 'bg-[#252525] text-white font-normal' : 'text-[#808080] font-normal'}`}
             onClick={() => setPage(num)}
           >
             {num}
           </button>
         ))}
         <button
-          className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 -rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
+          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
           onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
           disabled={page >= totalPages}
-        />
+          aria-label="다음 페이지"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
       <MemberStatsFilterModal
         open={open}

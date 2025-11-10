@@ -235,7 +235,7 @@ function StatsPage() {
                 </button>
               </div>
             </div>
-            <div className="mt-6" />
+            <div className="mt-3" />
             {paymentMode === 'team' ? <PaymentBarChart /> : <PaymentMemberTable />}
           </section>
         )}
@@ -244,7 +244,7 @@ function StatsPage() {
         {active === "status" && (
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <h2 className="text-[18px] font-semibold text-neutral-90">처리상태통계</h2>
-            <div className="mt-2 text-[16px] text-neutral-90 opacity-80">상태별 분포</div>
+            <div className="mt-2 text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">상태별 분포</div>
             <div className="mt-4">
               <StatusBarChart />
             </div>
