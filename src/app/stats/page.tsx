@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import AssignMemberTable from "@/components/stats/AssignMemberTable";
-import AssignProgressList from "@/components/stats/AssignProgressList";
+import AssignBarChart from "@/components/stats/AssignBarChart";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
 import PaymentBarChart from "@/components/stats/PaymentBarChart";
 import StatusBarChart from "@/components/stats/StatusBarChart";
@@ -123,7 +123,7 @@ function StatsPage() {
               <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
             </div>
           }
-          bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+          bodyClassName="px-7 py-7 border-t border-neutral-30"
         >
           <div className="h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center">
             <div className="flex items-center gap-2">
@@ -144,18 +144,18 @@ function StatsPage() {
         {active === "apply" && (
           <>
             {/* 신청통계 그래프 카드 */}
-            <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="surface rounded-[14px] px-6 py-4 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90">신청통계</h2>
-                <div className="h-[36px] w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+                <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
                   <button 
-                    className={`rounded-[6px] text-[14px] ${applyMode === 'daily' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
+                    className={`min-h-[31px] rounded-[6px] text-[14px] ${applyMode === 'daily' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
                     onClick={() => setApplyModeQS('daily')}
                   >
                     일간
                   </button>
                   <button 
-                    className={`rounded-[6px] text-[14px] ${applyMode === 'monthly' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
+                    className={`min-h-[31px] rounded-[6px] text-[14px] ${applyMode === 'monthly' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
                     onClick={() => setApplyModeQS('monthly')}
                   >
                     월간
@@ -192,15 +192,15 @@ function StatsPage() {
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">배정통계</h2>
-              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+              <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
                 <button 
-                  className={`rounded-[6px] text-[14px] ${assignMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${assignMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setAssignModeQS('team')}
                 >
                   팀별
                 </button>
                 <button 
-                  className={`rounded-[6px] text-[14px] ${assignMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px]rounded-[6px] text-[14px] ${assignMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setAssignModeQS('member')}
                 >
                   팀원별
@@ -208,19 +208,7 @@ function StatsPage() {
               </div>
             </div>
             {assignMode === 'team' ? (
-              <>
-                {/* 팀별 배정 현황 카드들 */}
-                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <AssignmentCards
-                    teams={assignment.topTeamsWithColors}
-                    isLoading={assignment.isLoading}
-                    isError={assignment.isError}
-                    hasProject={hasProject}
-                  />
-                </div>
-                {/* 진행바 목록 */}
-                <AssignProgressList />
-              </>
+              <AssignBarChart />
             ) : (
               <AssignMemberTable />
             )}
@@ -232,15 +220,15 @@ function StatsPage() {
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">결제통계</h2>
-              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+              <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
                 <button 
-                  className={`rounded-[6px] text-[14px] ${paymentMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${paymentMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setPaymentModeQS('team')}
                 >
                   팀별
                 </button>
                 <button 
-                  className={`rounded-[6px] text-[14px] ${paymentMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${paymentMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setPaymentModeQS('member')}
                 >
                   팀원별
@@ -268,15 +256,15 @@ function StatsPage() {
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">전체랭킹</h2>
-              <div className="h-[36px] w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 p-1">
+              <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
                 <button 
-                  className={`rounded-[6px] text-[14px] ${rankingMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${rankingMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setRankingModeQS('team')}
                 >
                   팀별
                 </button>
                 <button 
-                  className={`rounded-[6px] text-[14px] ${rankingMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${rankingMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
                   onClick={() => setRankingModeQS('member')}
                 >
                   팀원별

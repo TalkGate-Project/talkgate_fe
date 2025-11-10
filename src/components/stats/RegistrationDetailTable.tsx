@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CustomerRegistrationRecord } from "@/types/statistics";
-import { formatTableDate } from "@/utils/format";
+import { formatTableDateKR } from "@/utils/format";
 import ApplyTableSkeleton from "./ApplyTableSkeleton";
 import DateRangePicker from "@/components/common/DateRangePicker";
 
@@ -66,15 +66,15 @@ export default function RegistrationDetailTable({
         />
       </div>
 
-      <div className="overflow-hidden">
-        <table className="w-full border-separate border-spacing-0">
+      <div className="overflow-hidden rounded-[12px]">
+        <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#EDEDED] h-[48px]">
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080] rounded-tl-[12px]">날짜</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">날짜</th>
               <th className="text-left px-4 text-[16px] font-bold text-[#808080]">신청 건수</th>
               <th className="text-left px-4 text-[16px] font-bold text-[#808080]">직접입력</th>
               <th className="text-left px-4 text-[16px] font-bold text-[#808080]">엑셀 업로드</th>
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080] rounded-tr-[12px]">API</th>
+              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">API</th>
             </tr>
           </thead>
           <tbody>
@@ -106,8 +106,8 @@ export default function RegistrationDetailTable({
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.id} className="border-b border-[#E2E2E2] border-opacity-40">
-                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{formatTableDate(row.statisticsDate)}</td>
+                <tr key={row.id} className="border-b border-[#E2E2E2]/40">
+                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
                   <td className="px-4 py-3 text-[14px] font-semibold text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>

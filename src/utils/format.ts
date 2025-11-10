@@ -55,6 +55,17 @@ export function formatTableDate(input: string): string {
 }
 
 /**
+ * 테이블용 날짜 포맷: MM.DD
+ */
+export function formatTableDateKR(input: string): string {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return input;
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${month}월 ${day}일`;
+}
+
+/**
  * 양수 정수로 파싱합니다. 유효하지 않은 값은 fallback으로 대체됩니다.
  */
 export function parsePositiveInt(value: string | null | undefined, fallback: number): number {
