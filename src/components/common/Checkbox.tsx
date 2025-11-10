@@ -35,7 +35,7 @@ export default function Checkbox({ checked, onChange, disabled, size = 18, class
       {!imgBroken ? (
         // Use native img to bypass Next.js optimizer; more resilient to small PNGs
         <img
-          src={checked ? checkedImg : uncheckedImg}
+          src={(checked ? checkedImg : uncheckedImg).src}
           alt={checked ? "checked" : "unchecked"}
           width={size}
           height={size}

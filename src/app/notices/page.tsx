@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NoticeSearchPanel from "@/components/notice/NoticeSearchPanel";
 import NoticeTable from "@/components/notice/NoticeTable";
-import NoticePagination from "@/components/notice/NoticePagination";
+import Pagination from "@/components/common/Pagination";
 import { getSelectedProjectId } from "@/lib/project";
 import { useNoticeQueryParams } from "@/hooks/useNoticeQueryParams";
 import { useNoticeList } from "@/hooks/useNoticeList";
@@ -89,10 +89,11 @@ function NoticePageContent() {
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-4">
-          <NoticePagination
-            currentPage={page}
+          <Pagination
+            page={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
+            disabled={loading}
           />
         </div>
       </div>

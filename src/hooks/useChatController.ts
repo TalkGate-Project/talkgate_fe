@@ -157,7 +157,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         setConversations(items);
       }
       // 대화 목록이 변경되어도 자동 선택하지 않음; 현재 선택이 유효하면 유지
-      const current = activeIdRef.copy ? (activeIdRef as any).current : activeIdRef.current;
+      const current = activeIdRef.current;
       if (current && !items.some((c) => c.id === current)) {
         setActiveId(null);
       }

@@ -84,7 +84,11 @@ export default function CustomersTable({
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
               <th className="px-6 h-[48px] rounded-l-[12px]">
-                <input type="checkbox" checked={allSelectedOnPage} onChange={onSelectAll} />
+                <Checkbox
+                  checked={allSelectedOnPage}
+                  onChange={onSelectAll}
+                  ariaLabel="전체 선택"
+                />
               </th>
               {[
                 "이름",
@@ -98,7 +102,7 @@ export default function CustomersTable({
               ].map((h, i, arr) => (
                 <th
                   key={h}
-                  className={`typo-title-2 font-bold px-6 h-[48px] ${i === arr.length - 1 ? "rounded-r-[12px]" : ""}`}
+                  className={`typo-title-4 font-bold px-6 h-[48px] ${i === arr.length - 1 ? "rounded-r-[12px]" : ""}`}
                 >
                   {h}
                 </th>

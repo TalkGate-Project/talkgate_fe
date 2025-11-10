@@ -12,12 +12,12 @@ import type {
 
 export const ForgotPasswordService = {
   requestResetEmail(input: RequestResetEmailInput): Promise<RequestResetEmailOutput> {
-    return import("@/services/auth").then(({ AuthService }) => AuthService.sendPasswordResetCode({ email: input.email }));
+    return import("@/services/auth").then(({ AuthService }) => AuthService.sendPasswordResetCode({ email: input.email })) as Promise<RequestResetEmailOutput>;
   },
   verifyIdentity(input: VerifyIdentityInput): Promise<VerifyIdentityOutput> {
-    return import("@/services/auth").then(({ AuthService }) => AuthService.verifyPasswordResetCode({ email: input.email, otp: input.otp }));
+    return import("@/services/auth").then(({ AuthService }) => AuthService.verifyPasswordResetCode({ email: input.email, otp: input.otp })) as Promise<VerifyIdentityOutput>;
   },
   setNewPassword(input: SetNewPasswordInput): Promise<SetNewPasswordOutput> {
-    return import("@/services/auth").then(({ AuthService }) => AuthService.resetPassword({ resetToken: input.resetToken, newPassword: input.newPassword }));
+    return import("@/services/auth").then(({ AuthService }) => AuthService.resetPassword({ resetToken: input.resetToken, newPassword: input.newPassword })) as Promise<SetNewPasswordOutput>;
   },
 };

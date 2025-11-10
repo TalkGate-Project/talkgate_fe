@@ -40,12 +40,53 @@ export default function StatusBarChart() {
 
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
-    return records.map((item, index) => ({
-      label: item.categoryName ?? "일반",
-      value: item.totalCount ?? 0,
-      color: COLORS[index % COLORS.length],
-    }));
+    const total = records.reduce((sum, r) => sum + (r?.totalCount ?? 0), 0);
+    return records.map((item, index) => {
+      const value = item.totalCount ?? 0;
+      const percent = total > 0 ? (value / total) * 100 : 0;
+      return {
+        label: item.categoryName ?? "일반",
+        value,
+        percent,
+        color: COLORS[index % COLORS.length],
+      };
+    });
   }, [data]);
+
+  // X축: 라벨 + 하단 퍼센트(소수 1자리, 예: 11.9%)
+  const renderXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    const label: string = payload?.value ?? "";
+    // payload.payload has full datum
+    const p = payload?.payload?.percent ?? 0;
+    const percentText = `${(Math.round(p * 10) / 10).toFixed(1)}%`;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={14}
+          textAnchor="middle"
+          fill="var(--neutral-100)"
+          fontSize={14}
+          fontWeight={500}
+        >
+          {label}
+        </text>
+        <text
+          x={0}
+          y={0}
+          dy={42}
+          textAnchor="middle"
+          fill="var(--neutral-60)"
+          fontSize={14}
+          fontWeight={500}
+        >
+          {percentText}
+        </text>
+      </g>
+    );
+  };
 
   if (waitingForProject) {
     return (
@@ -90,10 +131,17 @@ export default function StatusBarChart() {
   return (
     <div className="w-full h-[320px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 24 }}>
+        <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 56 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-          <XAxis dataKey="label" tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} interval={0} angle={0} height={40} />
-          <YAxis tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} width={32} />
+          <XAxis
+            dataKey="label"
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+            tick={renderXAxisTick}
+          />
+          {/* 왼쪽 축 라벨 제거 */}
+          <YAxis hide />
           <Tooltip
             cursor={{ fill: "rgba(0,0,0,0.04)" }}
             content={({ active, payload }) => {
@@ -106,7 +154,7 @@ export default function StatusBarChart() {
               );
             }}
           />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+          <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={42}>
             {chartData.map((entry, index) => (
               <Cell key={entry.label ?? index} fill={entry.color} />
             ))}

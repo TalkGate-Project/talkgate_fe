@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, LabelList } from "recharts";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -44,30 +44,60 @@ export default function RegistrationChart({ data, isLoading, isError, hasProject
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+      <LineChart data={data} margin={{ top: 30, right: 16, bottom: 0, left: 16 }}>
         <defs>
           <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="var(--primary-40)" stopOpacity={0} />
+            <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.6} />
+            <stop offset="70%" stopColor="var(--primary-40)" stopOpacity={0.2} />
+            <stop offset="100%" stopColor="var(--primary-20)" stopOpacity={0.05} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-        <XAxis dataKey="x" tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: "var(--neutral-60)" }} axisLine={false} tickLine={false} width={40} />
+        <XAxis 
+          dataKey="x" 
+          tick={{ fill: "var(--neutral-60)", fontSize: 12, fontFamily: "var(--font-montserrat)" }} 
+          axisLine={false} 
+          tickLine={false} 
+          tickMargin={8} 
+        />
+        <YAxis hide />
         <Tooltip
-          cursor={{ stroke: "var(--primary-40)", strokeWidth: 1, opacity: 0.25 }}
+          cursor={{ stroke: "var(--primary-60)" }}
           content={({ active, payload }) => {
             if (!active || !payload?.length) return null;
             const v = payload[0].value as number;
             return (
-              <div className="rounded-[6px] bg-neutral-90 px-3 py-1 text-[12px] text-neutral-0">
-                {NUMBER_FORMATTER.format(v)}건
+              <div className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg">
+                <span className="font-semibold">{NUMBER_FORMATTER.format(v)}건</span>
               </div>
             );
           }}
         />
-        <Area type="monotone" dataKey="y" stroke="none" fill="url(#applyGradient)" />
-        <Line type="monotone" dataKey="y" stroke="var(--primary-40)" strokeWidth={2} dot={{ r: 5, fill: "var(--primary-60)", stroke: "var(--primary-40)", strokeWidth: 2 }} activeDot={{ r: 6 }} />
+        <Area type="linear" dataKey="y" stroke="none" fill="url(#applyGradient)" />
+        <Line 
+          type="linear" 
+          dataKey="y" 
+          stroke="var(--primary-60)" 
+          strokeWidth={3} 
+          dot={{ r: 5, fill: "var(--primary-60)" }} 
+          activeDot={{ r: 7 }}
+        >
+          <LabelList
+            dataKey="y"
+            position="top"
+            offset={10}
+            style={{
+              fill: "var(--neutral-90)",
+              fontSize: "12px",
+              fontWeight: "500",
+              fontFamily: "var(--font-montserrat)",
+            }}
+            formatter={(value: any) => {
+              const numValue = typeof value === 'number' ? value : Number(value);
+              return NUMBER_FORMATTER.format(numValue);
+            }}
+          />
+        </Line>
       </LineChart>
     </ResponsiveContainer>
   );

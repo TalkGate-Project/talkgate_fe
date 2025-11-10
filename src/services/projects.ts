@@ -10,6 +10,9 @@ import type {
   ExternalApiEndpointResponse,
 } from "@/types/projects";
 
+// Re-export types for convenience
+export type { Project, ProjectSummary } from "@/types/projects";
+
 export const ProjectsService = {
   create(payload: CreateProjectPayload) {
     return apiClient.post<ApiSuccess<Project>>("/v1/projects", payload);

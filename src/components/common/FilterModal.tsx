@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import DatePicker from "react-datepicker";
+import DatePicker from "@/components/common/DatePicker";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 import Checkbox from "@/components/common/Checkbox";
 
@@ -280,24 +280,12 @@ function DateRange() {
     const [end, setEnd] = useState<Date | null>(null);
     return (
         <div className="flex items-center gap-3">
-            <div className="border border-[#E2E2E2] rounded-[5px] h-[34px] w-[175px] px-2 flex items-center">
-                <DatePicker
-                    selected={start}
-                    onChange={(d) => setStart(d)}
-                    placeholderText="연도 . 월 . 일"
-                    dateFormat="yyyy. MM. dd"
-                    className="w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em]"
-                />
+            <div className="w-[175px]">
+                <DatePicker value={start} onChange={setStart} />
             </div>
             <span className="text-[14px]">-</span>
-            <div className="border border-[#E2E2E2] rounded-[5px] h-[34px] w-[175px] px-2 flex items-center">
-                <DatePicker
-                    selected={end}
-                    onChange={(d) => setEnd(d)}
-                    placeholderText="연도 . 월 . 일"
-                    dateFormat="yyyy. MM. dd"
-                    className="w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em]"
-                />
+            <div className="w-[175px]">
+                <DatePicker value={end} onChange={setEnd} />
             </div>
         </div>
     );

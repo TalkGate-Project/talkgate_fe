@@ -120,7 +120,7 @@ function CustomersPage() {
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
       {/* Top panel: title + search */}
       <Panel
-        className="rounded-[14px] mb-4"
+        className="rounded-[14px] mb-9"
         title={
           <div className="flex items-end gap-3">
             <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
@@ -128,7 +128,7 @@ function CustomersPage() {
             <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+        bodyClassName="px-7 pb-4 pt-7 border-t border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -157,6 +157,7 @@ function CustomersPage() {
             onCreateOpen={() => setCreateOpen(true)}
           />
         }
+        bodyClassName="px-7 pb-7 pt-0"
       >
         <CustomersTable
           customers={customers}

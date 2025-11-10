@@ -113,7 +113,22 @@ export default function AssignMemberTable() {
   const rows: CustomerAssignmentMemberRecord[] = memberPayload?.data === null ? [] : (memberPayload?.data ?? []);
   const totalCount = memberPayload?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const pageNumbers = useMemo(() => Array.from({ length: totalPages }, (_, idx) => idx + 1), [totalPages]);
+  
+  // 페이지네이션: 현재 페이지 기준 10개씩만 표시
+  const pageNumbers = useMemo(() => {
+    const maxPagesToShow = 10;
+    const halfRange = Math.floor(maxPagesToShow / 2);
+    
+    let startPage = Math.max(1, page - halfRange);
+    const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    // 끝 페이지가 10개 미만이면 시작 페이지 조정
+    if (endPage - startPage + 1 < maxPagesToShow) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    return Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx);
+  }, [totalPages, page]);
 
   const showSkeleton = memberQuery.isLoading && !memberQuery.data;
   const showError = memberQuery.isError && !memberQuery.isFetching;
@@ -170,7 +185,7 @@ export default function AssignMemberTable() {
         <div>팀</div>
         <div>배정 건수</div>
       </div>
-      <div className="divide-y divide-neutral-30 min-h-[280px] bg-card">
+      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card">
         {showSkeleton && <SkeletonRows columns={3} rows={PAGE_SIZE} />}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
@@ -196,26 +211,40 @@ export default function AssignMemberTable() {
           );
         })}
       </div>
-      <div className="mt-4 flex items-center justify-center gap-2 text-[14px] text-neutral-60">
+      <div className="mt-6 flex items-center justify-center gap-2">
         <button
-          className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
+          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
           onClick={() => setPage((prev) => Math.max(1, prev - 1))}
           disabled={page <= 1}
-        />
+          aria-label="이전 페이지"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         {pageNumbers.map((num) => (
           <button
             key={num}
-            className={`w-8 h-8 rounded-full grid place-items-center ${num === page ? "bg-neutral-90 text-neutral-0" : ""}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
+              num === page 
+                ? 'bg-[#252525] text-white font-normal' 
+                : 'text-[#808080] font-normal'
+            }`}
             onClick={() => setPage(num)}
           >
             {num}
           </button>
         ))}
         <button
-          className="w-8 h-8 rounded-full grid place-items-center border-2 border-neutral-40 -rotate-90 disabled:border-neutral-30 disabled:text-neutral-40"
+          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
           onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
           disabled={page >= totalPages}
-        />
+          aria-label="다음 페이지"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
       <MemberStatsFilterModal
         open={open}

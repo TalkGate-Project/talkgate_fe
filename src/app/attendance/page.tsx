@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import TableSkeleton from "@/components/common/TableSkeleton";
+import Pagination from "@/components/common/Pagination";
 import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
 import { AttendanceService } from "@/services/attendance";
@@ -11,7 +12,7 @@ import { getSelectedProjectId } from "@/lib/project";
 import type { AttendanceRecord } from "@/data/mockAttendanceData";
 import { AttendanceItem } from "@/types/attendance";
 
-export default function AttendancePage() {
+function AttendancePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -168,15 +169,15 @@ export default function AttendancePage() {
               <p className="text-[18px] leading-[20px] font-medium text-neutral-60">직원들의 출퇴근 현황을 확인하고 관리하세요</p>
             </div>
           }
-          bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+          bodyClassName="px-7 py-[30px]  border-t border-neutral-30"
         >
         {/* Date selector */}
-        <div className="flex justify-center">
-          <div className="h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center gap-3">
+        <div className="flex justify-center w-full">
+          <div className="w-full h-[48px] bg-neutral-20 rounded-[12px] px-3 flex justify-center items-center gap-3">
             {/* Previous button */}
             <button
               onClick={() => navigateDate('prev')}
-              className="w-[34px] h-[34px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+              className="w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
@@ -190,7 +191,7 @@ export default function AttendancePage() {
             </button>
             
             {/* Date display */}
-            <div className="px-8 py-[6px] bg-card rounded-[5px]">
+            <div className="px-8 py-[4px] bg-card rounded-[5px]">
               <span className="text-[16px] font-bold text-foreground">
                 {formatDate(selectedDate)}
               </span>
@@ -199,7 +200,7 @@ export default function AttendancePage() {
             {/* Next button */}
             <button
               onClick={() => navigateDate('next')}
-              className="w-[34px] h-[34px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+              className="w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
@@ -218,7 +219,7 @@ export default function AttendancePage() {
         {/* Bottom area: attendance table */}
         <div className="bg-card rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
           {/* 헤더 영역 */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3 mb-4">
             <h2 className="text-[18px] font-semibold text-neutral-90">출퇴근 현황</h2>
             <button 
               onClick={() => setFilterOpen(true)}
@@ -289,46 +290,19 @@ export default function AttendancePage() {
               ))
             )}
           </div>
-        </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 mt-6">
-          {/* Previous button */}
-          <button
-            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          {/* 구분선 */}
+          <div className="border-t border-border opacity-50 my-4" />
 
-          {/* Page numbers */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`w-8 h-8 rounded-full text-[14px] font-normal flex items-center justify-center ${
-                currentPage === page
-                  ? "bg-neutral-90 text-neutral-0"
-                  : "text-neutral-60 hover:bg-neutral-10"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-
-          {/* Next button */}
-          <button
-            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage >= totalPages}
-            className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          {/* Pagination */}
+          <div className="flex justify-center py-2">
+            <Pagination
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              disabled={loading}
+            />
+          </div>
         </div>
 
         {/* Filter Modal */}
@@ -353,5 +327,19 @@ export default function AttendancePage() {
         />
       </div>
     </main>
+  );
+}
+
+export default function AttendancePage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+        <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+          <div className="text-neutral-60">불러오는 중...</div>
+        </div>
+      </main>
+    }>
+      <AttendancePageContent />
+    </Suspense>
   );
 }

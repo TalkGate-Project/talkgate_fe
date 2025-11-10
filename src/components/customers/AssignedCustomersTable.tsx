@@ -77,7 +77,7 @@ export default function AssignedCustomersTable() {
                 {["이름", "전화번호", "유입경로", "배정 시각", "정보"].map((h, i) => (
                   <th
                     key={h}
-                    className={`typo-title-2 font-bold px-6 h-[48px] text-neutral-70 ${i === 0 ? "rounded-l-[12px]" : i === 4 ? "rounded-r-[12px]" : ""}`}
+                    className={`typo-title-4 font-bold px-6 h-[48px] text-neutral-70 ${i === 0 ? "rounded-l-[12px]" : i === 4 ? "rounded-r-[12px]" : ""}`}
                   >
                     {h}
                   </th>
