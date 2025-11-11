@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
-import { setSelectedProjectId } from "@/lib/project";
+import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
@@ -87,6 +87,8 @@ export default function ProjectsPage() {
                                     className="h-[40px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
                                     onClick={() => {
                                         setSelectedProjectId(p.id);
+                                        // 근태 메뉴 사용 여부도 함께 저장
+                                        setUseAttendanceMenu(p.useAttendanceMenu ?? false);
                                         router.push(`/projects/${p.id}/dashboard`);
                                     }}
                                 >

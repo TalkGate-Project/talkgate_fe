@@ -1,5 +1,15 @@
 import { apiClient } from "@/lib/apiClient";
 import type { MemberTreeResponse } from "@/types/membersTree";
+import type { 
+  MyMember, 
+  MyMemberResponse, 
+  UpdateProfilePayload, 
+  UpdateProfileResponse,
+  MemberListResponse,
+  InviteMemberPayload,
+  InviteMemberResponse,
+  InvitationListResponse
+} from "@/types/members";
 
 export type Member = {
   id: number;
@@ -11,33 +21,36 @@ export type Member = {
 
 export const MembersService = {
   list(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<Member[]>(`/v1/members`, { query });
+    return apiClient.get<MemberListResponse>(`/v1/members`, { query });
   },
   remove(payload: Record<string, unknown>) {
     return apiClient.delete<void>(`/v1/members`, { body: payload } as any);
   },
-  updateSelf(payload: Record<string, unknown>) {
-    return apiClient.patch<Member>(`/v1/members`, payload);
+  my(headers?: Record<string, string>) {
+    return apiClient.get<MyMemberResponse>(`/v1/members/my`, headers ? { headers } : undefined);
+  },
+  updateSelf(payload: UpdateProfilePayload, headers?: Record<string, string>) {
+    return apiClient.patch<UpdateProfileResponse>(`/v1/members`, payload, headers ? { headers } : undefined);
   },
   detail(memberId: string | number) {
     return apiClient.get<Member>(`/v1/members/${memberId}`);
   },
 
   // Invitations
-  invite(payload: Record<string, unknown>) {
-    return apiClient.post<void>(`/v1/members/invitations`, payload);
+  invite(payload: InviteMemberPayload) {
+    return apiClient.post<InviteMemberResponse>(`/v1/members/invitations`, payload);
   },
   listInvitations(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<unknown>(`/v1/members/invitations`, { query });
+    return apiClient.get<InvitationListResponse>(`/v1/members/invitations`, { query });
   },
-  cancelInvitation(invitationId: string) {
+  cancelInvitation(invitationId: number) {
     return apiClient.delete<void>(`/v1/members/invitations/${invitationId}`);
   },
   acceptInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/accept`, payload);
   },
-  resendInvitation(payload: Record<string, unknown>) {
-    return apiClient.post<void>(`/v1/members/invitations/resend`, payload);
+  resendInvitation(invitationId: number) {
+    return apiClient.post<void>(`/v1/members/invitations/${invitationId}/resend`, {});
   },
   verifyInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/verify`, payload);

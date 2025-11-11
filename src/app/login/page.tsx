@@ -8,6 +8,8 @@ import Checkbox from "@/components/common/Checkbox";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
+import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
+import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import loginCardImg from "@/assets/images/auth/login_card.png";
 
@@ -18,6 +20,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(getRememberMePreference());
   const [invalid, setInvalid] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     document.title = "TalkGate - 로그인";
@@ -125,18 +128,32 @@ export default function LoginPage() {
               autoComplete="username"
             />
             <label className={`block text-[12px] mt-3 mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>비밀번호</label>
-            <input
-              name="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (invalid) setInvalid(false);
-              }}
-              placeholder={invalid ? "비밀번호를 다시 입력하세요" : "비밀번호를 입력하세요"}
-              className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (invalid) setInvalid(false);
+                }}
+                placeholder={invalid ? "비밀번호를 다시 입력하세요" : "비밀번호를 입력하세요"}
+                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 pr-12 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                onMouseDown={() => setShowPassword(true)}
+                onMouseUp={() => setShowPassword(false)}
+                onMouseLeave={() => setShowPassword(false)}
+                onTouchStart={() => setShowPassword(true)}
+                onTouchEnd={() => setShowPassword(false)}
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+              >
+                {showPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+              </button>
+            </div>
 
             {/* Options row */}
             <div className="flex items-center justify-between pt-1">

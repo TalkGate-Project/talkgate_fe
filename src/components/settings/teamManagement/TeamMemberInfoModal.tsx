@@ -295,7 +295,7 @@ const canCreateTeam = !isLeader;
         className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col"
         style={{ width: 904, maxHeight: "90vh", transform: "translate(-50%, -50%)" }}
       >
-        <header className="px-6 py-4 border-b border-[#E2E2E2] flex items-center justify-between">
+        <header className="px-6 py-4 border-b border-[#E2E2E266] flex items-center justify-between">
           <h1 className="text-[18px] font-semibold text-[#000000]">직원정보</h1>
           <button
             type="button"
@@ -386,7 +386,7 @@ const canCreateTeam = !isLeader;
           </section>
         </div>
 
-        <footer className="px-6 py-4 border-t border-[#E2E2E2] flex justify-end gap-3">
+        <footer className="px-6 py-4 border-t border-[#E2E2E266] flex justify-end gap-3">
           <button
             type="button"
             onClick={handleReset}

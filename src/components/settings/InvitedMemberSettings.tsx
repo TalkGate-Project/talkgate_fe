@@ -1,43 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getSelectedProjectId } from "@/lib/project";
+import { MembersService } from "@/services/members";
+import type { InvitationListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 
-interface InvitedMember {
-  id: string;
-  email: string;
-  invitationDate: string;
-  expirationDate: string;
-}
+const ROLE_LABELS: Record<string, string> = {
+  admin: "총관리자",
+  subAdmin: "부관리자",
+  leader: "팀장",
+  member: "멤버",
+};
 
 function InvitedMemberRow({ member, onResend, onDelete }: { 
-  member: InvitedMember; 
-  onResend: (id: string) => void; 
-  onDelete: (id: string) => void; 
+  member: InvitationListItem; 
+  onResend: (id: number) => void; 
+  onDelete: (id: number) => void; 
 }) {
+  const invitationDate = new Date(member.createdAt).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).replace(/\. /g, "-").replace(".", "");
+
+  const expirationDate = new Date(member.expiresAt).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).replace(/\. /g, "-").replace(".", "");
+
+  const isExpired = new Date(member.expiresAt) < new Date();
+  const roleLabel = ROLE_LABELS[member.role] || member.role;
+
   return (
     <>
       <div className="flex items-center py-4 w-full">
-        {/* Email - 가장 넓게 */}
-        <div className="flex-[3] text-[14px] text-foreground font-semibold text-left">
-          {member.email}
+        {/* Email & Role - 가장 넓게 */}
+        <div className="flex-[3] text-left">
+          <div className="text-[14px] text-foreground font-semibold">
+            {member.email}
+          </div>
+          <div className="text-[12px] text-neutral-60 mt-0.5">
+            {roleLabel}
+          </div>
         </div>
 
         {/* Invitation Date - 중간 크기 */}
         <div className="flex-[1] text-[14px] text-foreground text-left">
-          {member.invitationDate}
+          {invitationDate}
         </div>
 
         {/* Expiration Date - 중간 크기 */}
-        <div className="flex-[1] text-[14px] text-foreground text-left">
-          {member.expirationDate}
+        <div className="flex-[1] text-left">
+          <div className={`text-[14px] ${isExpired ? 'text-red-500' : 'text-foreground'}`}>
+            {expirationDate}
+          </div>
+          {isExpired && (
+            <div className="text-[12px] text-red-500 mt-0.5">
+              만료됨
+            </div>
+          )}
         </div>
 
         {/* Send/Resend Button Column - 가장 작게 */}
         <div className="flex-[0.5] flex justify-center">
           <button
             onClick={() => onResend(member.id)}
-            className="w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
             title="재전송"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -51,7 +82,7 @@ function InvitedMemberRow({ member, onResend, onDelete }: {
         <div className="flex-[0.5] flex justify-center">
           <button
             onClick={() => onDelete(member.id)}
-            className="w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
             title="삭제"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,69 +99,86 @@ function InvitedMemberRow({ member, onResend, onDelete }: {
 }
 
 export default function InvitedMemberSettings() {
-  const [invitedMembers] = useState<InvitedMember[]>([
-    {
-      id: "1",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "2",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "3",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "4",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "5",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "6",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "7",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    },
-    {
-      id: "8",
-      email: "Kim.sales@company.com",
-      invitationDate: "2024-01-01",
-      expirationDate: "2024-01-01"
-    }
-  ]);
-
+  const queryClient = useQueryClient();
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10;
 
-  const handleResend = (id: string) => {
-    console.log("Resend invitation:", id);
-    // 실제 구현에서는 초대 재전송 API 호출
+  useEffect(() => {
+    const id = getSelectedProjectId();
+    setProjectId(id);
+  }, []);
+
+  // 초대 목록 조회
+  const { data: invitationsData, isLoading } = useQuery({
+    queryKey: ["invitations", "list", projectId, currentPage],
+    queryFn: async () => {
+      const response = await MembersService.listInvitations({ page: currentPage, limit: 10 });
+      return response.data;
+    },
+    enabled: !!projectId,
+  });
+
+  const invitations = invitationsData?.data?.invitations || [];
+  const totalPages = invitationsData?.data?.totalPages || 1;
+
+  // 초대 재전송 mutation
+  const resendMutation = useMutation({
+    mutationFn: (invitationId: number) => MembersService.resendInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations", "list", projectId] });
+      alert("초대 이메일이 재전송되었습니다.");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.data?.message || "초대 재전송에 실패했습니다.";
+      alert(errorMessage);
+    },
+  });
+
+  // 초대 취소 mutation
+  const cancelMutation = useMutation({
+    mutationFn: (invitationId: number) => MembersService.cancelInvitation(invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations", "list", projectId] });
+      alert("초대가 취소되었습니다.");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.data?.message || "초대 취소에 실패했습니다.";
+      alert(errorMessage);
+    },
+  });
+
+  const handleResend = (id: number) => {
+    if (confirm("초대 이메일을 재전송하시겠습니까?")) {
+      resendMutation.mutate(id);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    console.log("Delete invitation:", id);
-    // 실제 구현에서는 초대 삭제 API 호출
+  const handleDelete = (id: number) => {
+    if (confirm("초대를 취소하시겠습니까?")) {
+      cancelMutation.mutate(id);
+    }
   };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (!projectId) {
+    return (
+      <div className="bg-card rounded-[14px] p-6">
+        <p className="text-neutral-60">프로젝트를 선택해주세요.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-[14px] p-6">
+        <p className="text-neutral-60">초대 목록을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-[14px] p-6">
@@ -172,24 +220,32 @@ export default function InvitedMemberSettings() {
 
       {/* Invited Member List */}
       <div className="space-y-0">
-        {invitedMembers.map((member) => (
-          <InvitedMemberRow
-            key={member.id}
-            member={member}
-            onResend={handleResend}
-            onDelete={handleDelete}
-          />
-        ))}
+        {invitations.length === 0 ? (
+          <div className="py-8 text-center text-neutral-60">
+            초대중인 멤버가 없습니다.
+          </div>
+        ) : (
+          invitations.map((invitation) => (
+            <InvitedMemberRow
+              key={invitation.id}
+              member={invitation}
+              onResend={handleResend}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-8">
-        <Pagination
-          page={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
+      {invitations.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
     </div>
   );
 }

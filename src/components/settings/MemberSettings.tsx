@@ -1,78 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getSelectedProjectId } from "@/lib/project";
+import { MembersService } from "@/services/members";
+import type { MemberListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 
-interface Member {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  affiliation: string;
-  joinDate: string;
-  isAdmin: boolean;
-  avatar: string;
-  hasSubordinates: boolean; // 하위 조직/구성원 존재 여부
-}
+const ROLE_LABELS: Record<string, string> = {
+  admin: "총관리자",
+  subAdmin: "부관리자",
+  leader: "팀장",
+  member: "멤버",
+};
 
-function MemberRow({ member, onDelete }: { member: Member; onDelete: (id: string) => void }) {
+function MemberRow({ member, onDelete }: { member: MemberListItem; onDelete: (id: number) => void }) {
+  const isAdmin = member.role === "admin";
+  const avatar = member.name ? member.name[0] : "?";
+  const joinDate = new Date(member.createdAt).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).replace(/\. /g, "-").replace(".", "");
+
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 px-6">
         {/* Member Info */}
-        <div className="flex items-center gap-4 w-[280px]">
+        <div className="flex items-center gap-4 w-[280px] min-w-[280px]">
           {/* Avatar */}
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] ${
-            member.isAdmin ? "bg-primary-80" : "bg-neutral-60"
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] flex-shrink-0 ${
+            isAdmin ? "bg-primary-80" : "bg-neutral-60"
           }`}>
-            {member.avatar}
+            {avatar}
           </div>
           
           {/* Name and Email */}
-          <div>
+          <div className="overflow-hidden">
             <div className="flex items-center gap-2">
-              <span className="text-[16px] font-semibold text-foreground">
+              <span className="text-[16px] font-semibold text-neutral-90 truncate">
                 {member.name}
               </span>
-              {member.isAdmin && (
-                <span className="px-2 py-1 bg-primary-10 text-primary-80 text-[12px] font-medium rounded-[5px]">
+              {isAdmin && (
+                <span className="px-2 py-1 bg-primary-10 text-primary-80 text-[12px] font-medium rounded-[5px] flex-shrink-0">
                   Admin
                 </span>
               )}
             </div>
-            <div className="text-[14px] text-neutral-60">
-              {member.email}
+            <div className="text-[14px] text-neutral-60 truncate">
+              {member.email || `ID: ${member.userId}`}
             </div>
           </div>
         </div>
 
         {/* Role */}
-        <div className="w-[120px] text-[14px] text-foreground">
-          {member.role}
+        <div className="w-[120px] min-w-[120px] text-[14px] text-neutral-90 text-left">
+          {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
         </div>
 
         {/* Affiliation */}
-        <div className="w-[120px] text-[14px] text-foreground">
-          {member.affiliation}
+        <div className={`w-[120px] min-w-[120px] text-[14px] text-left truncate ${
+          member.teamName ? "text-neutral-90" : "text-neutral-60"
+        }`}>
+          {member.teamName || "소속없음"}
         </div>
 
         {/* Join Date */}
-        <div className="w-[100px] text-[14px] text-neutral-60">
-          {member.joinDate}
+        <div className="w-[100px] min-w-[100px] text-[14px] text-neutral-90 text-left">
+          {joinDate}
         </div>
 
-        {/* Delete Button */}
-        <div className="flex justify-end flex-1">
-          <button
-            onClick={() => onDelete(member.id)}
-            className="w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" stroke="var(--neutral-50)" strokeWidth="2" fill="none">
-              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+        {/* Delete Button - admin만 삭제 버튼 숨김 */}
+        <div className="flex justify-end flex-1 min-w-[110px] pr-[110px]">
+          {!isAdmin && (
+            <button
+              onClick={() => onDelete(member.id)}
+              className="w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
       
@@ -83,72 +94,64 @@ function MemberRow({ member, onDelete }: { member: Member; onDelete: (id: string
 }
 
 export default function MemberSettings() {
-  const [members] = useState<Member[]>([
-    {
-      id: "1",
-      name: "김영업",
-      email: "kim.sales@company.com",
-      role: "총관리자",
-      affiliation: "소속없음",
-      joinDate: "2024-01-01",
-      isAdmin: true,
-      avatar: "김",
-      hasSubordinates: true // 하위 조직/구성원 있음 (삭제 불가)
-    },
-    {
-      id: "2",
-      name: "이마케팅",
-      email: "lee.marketing@company.com",
-      role: "부관리자",
-      affiliation: "소속없음",
-      joinDate: "2024-01-01",
-      isAdmin: false,
-      avatar: "이",
-      hasSubordinates: true // 하위 조직/구성원 있음 (삭제 불가)
-    },
-    {
-      id: "3",
-      name: "박개발",
-      email: "park.dev@company.com",
-      role: "팀장",
-      affiliation: "소속없음",
-      joinDate: "2024-01-01",
-      isAdmin: false,
-      avatar: "박",
-      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
-    },
-    {
-      id: "4",
-      name: "최디자인",
-      email: "choi.design@company.com",
-      role: "팀원",
-      affiliation: "영업1지점",
-      joinDate: "2024-01-01",
-      isAdmin: false,
-      avatar: "최",
-      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
-    },
-    {
-      id: "5",
-      name: "정운영",
-      email: "jung.ops@company.com",
-      role: "팀원",
-      affiliation: "영업1지점",
-      joinDate: "2024-01-01",
-      isAdmin: false,
-      avatar: "정",
-      hasSubordinates: false // 하위 조직/구성원 없음 (삭제 가능)
-    }
-  ]);
-
+  const queryClient = useQueryClient();
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [selectedMember, setSelectedMember] = useState<MemberListItem | null>(null);
 
-  const handleDelete = (id: string) => {
-    const member = members.find(m => m.id === id);
+  useEffect(() => {
+    const id = getSelectedProjectId();
+    setProjectId(id);
+  }, []);
+
+  // 멤버 목록 조회
+  const { data: membersData, isLoading } = useQuery({
+    queryKey: ["members", "list", projectId, currentPage],
+    queryFn: async () => {
+      const response = await MembersService.list({ page: currentPage, limit: 10 });
+      return response.data;
+    },
+    enabled: !!projectId,
+  });
+
+  const members = membersData?.data?.members || [];
+  const totalPages = membersData?.data?.totalPages || 1;
+
+  // 멤버 초대 mutation
+  const inviteMutation = useMutation({
+    mutationFn: (payload: { email: string; role: "subAdmin" | "member" }) =>
+      MembersService.invite(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members", "list", projectId] });
+      setIsInviteModalOpen(false);
+      alert("멤버 초대가 완료되었습니다.");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.data?.message || "멤버 초대에 실패했습니다.";
+      alert(errorMessage);
+    },
+  });
+
+  // 멤버 삭제 mutation
+  const deleteMutation = useMutation({
+    mutationFn: (payload: { memberIds: number[] }) =>
+      MembersService.remove(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members", "list", projectId] });
+      setIsDeleteModalOpen(false);
+      setSelectedMember(null);
+      alert("멤버가 삭제되었습니다.");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.data?.message || "멤버 삭제에 실패했습니다.";
+      alert(errorMessage);
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    const member = members.find((m: MemberListItem) => m.id === id);
     if (member) {
       setSelectedMember(member);
       setIsDeleteModalOpen(true);
@@ -159,17 +162,37 @@ export default function MemberSettings() {
     setIsInviteModalOpen(true);
   };
 
-  const handleInviteConfirm = (email: string, role: string) => {
-    console.log("Invite member:", email, role);
-    // 실제 구현에서는 멤버 초대 API 호출
+  const handleInviteConfirm = (email: string, role: "subAdmin" | "member") => {
+    inviteMutation.mutate({ email, role });
   };
 
   const handleDeleteConfirm = () => {
     if (selectedMember) {
-      console.log("Delete member:", selectedMember.id);
-      // 실제 구현에서는 멤버 삭제 API 호출
+      deleteMutation.mutate({ memberIds: [selectedMember.id] });
     }
   };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // 페이지 변경 시 스크롤을 맨 위로 (부드럽게)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (!projectId) {
+    return (
+      <div className="bg-card rounded-[14px] p-6">
+        <p className="text-neutral-60">프로젝트를 선택해주세요.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-[14px] p-6">
+        <p className="text-neutral-60">멤버 목록을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-[14px] p-6">
@@ -192,16 +215,16 @@ export default function MemberSettings() {
       {/* Table Header */}
       <div className="bg-neutral-20 rounded-[12px] px-6 py-3 mb-4">
         <div className="flex items-center">
-          <div className="w-[280px] text-[16px] font-bold text-neutral-60">
+          <div className="w-[280px] min-w-[280px] text-[16px] font-bold text-neutral-60 text-left">
             멤버
           </div>
-          <div className="w-[120px] text-[16px] font-bold text-neutral-60">
+          <div className="w-[120px] min-w-[120px] text-[16px] font-bold text-neutral-60 text-left">
             역할
           </div>
-          <div className="w-[120px] text-[16px] font-bold text-neutral-60">
+          <div className="w-[120px] min-w-[120px] text-[16px] font-bold text-neutral-60 text-left">
             소속
           </div>
-          <div className="w-[100px] text-[16px] font-bold text-neutral-60">
+          <div className="w-[100px] min-w-[100px] text-[16px] font-bold text-neutral-60 text-left">
             가입일
           </div>
         </div>
@@ -209,13 +232,19 @@ export default function MemberSettings() {
 
       {/* Member List */}
       <div className="space-y-0">
-        {members.map((member, index) => (
-          <MemberRow
-            key={member.id}
-            member={member}
-            onDelete={handleDelete}
-          />
-        ))}
+        {members.length === 0 ? (
+          <div className="py-8 text-center text-neutral-60">
+            멤버가 없습니다.
+          </div>
+        ) : (
+          members.map((member: MemberListItem) => (
+            <MemberRow
+              key={member.id}
+              member={member}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
       </div>
 
       {/* Pagination */}
@@ -223,7 +252,7 @@ export default function MemberSettings() {
         <Pagination
           page={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       </div>
 

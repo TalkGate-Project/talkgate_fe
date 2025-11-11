@@ -5,7 +5,7 @@ import { useState } from "react";
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onInvite: (email: string, role: string) => void;
+  onInvite: (email: string, role: "subAdmin" | "member") => void;
 }
 
 export default function InviteMemberModal({ 
@@ -14,7 +14,7 @@ export default function InviteMemberModal({
   onInvite 
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("팀원");
+  const [role, setRole] = useState<"subAdmin" | "member">("member");
 
   const handleInvite = () => {
     if (email.trim()) {
@@ -25,7 +25,7 @@ export default function InviteMemberModal({
 
   const handleClose = () => {
     setEmail("");
-    setRole("팀원");
+    setRole("member");
     onClose();
   };
 
@@ -80,13 +80,11 @@ export default function InviteMemberModal({
             <div className="relative">
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => setRole(e.target.value as "subAdmin" | "member")}
                 className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] focus:outline-none focus:border-[#252525] appearance-none"
               >
-                <option value="팀원">팀원</option>
-                <option value="팀장">팀장</option>
-                <option value="부관리자">부관리자</option>
-                <option value="총관리자">총관리자</option>
+                <option value="member">멤버</option>
+                <option value="subAdmin">부관리자</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg className="w-4 h-4 text-[#B0B0B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

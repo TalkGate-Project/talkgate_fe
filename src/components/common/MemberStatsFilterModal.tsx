@@ -60,7 +60,7 @@ export default function MemberStatsFilterModal({
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]" style={{ width: 480, transform: 'translate(-50%, -50%)' }}>
-        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E2]">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
           <div className="text-[18px] font-semibold">{title}</div>
           <button onClick={onClose} aria-label="close" className="w-6 h-6 grid place-items-center rounded hover:bg-[#F3F3F3]">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6L18 18" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -84,7 +84,7 @@ export default function MemberStatsFilterModal({
             </div>
           </div>
         </div>
-        <div className="px-6 py-3 flex justify-end gap-2 border-t border-[#E2E2E2]">
+        <div className="px-6 py-3 flex justify-end gap-2 border-t border-[#E2E2E266]">
           <button
             className="h-[32px] px-4 rounded-[6px] border border-[#E2E2E2]"
             onClick={() => {

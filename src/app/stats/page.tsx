@@ -12,6 +12,7 @@ import RegistrationChart from "@/components/stats/RegistrationChart";
 import RegistrationDetailTable from "@/components/stats/RegistrationDetailTable";
 import TeamRankingList from "@/components/stats/TeamRankingList";
 import TeamMemberRankingList from "@/components/stats/TeamMemberRankingList";
+import MyRankingCard from "@/components/stats/MyRankingCard";
 import AssignmentCards from "@/components/stats/AssignmentCards";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
@@ -37,10 +38,18 @@ function StatsPage() {
   }, []);
 
   // State from query params
-  const [applyMode, setApplyMode] = useState<"daily" | "monthly">((search.get("mode") as any) === "monthly" ? "monthly" : "daily");
-  const [assignMode, setAssignMode] = useState<"team" | "member">((search.get("assign") as any) === "member" ? "member" : "team");
-  const [paymentMode, setPaymentMode] = useState<"team" | "member">((search.get("pay") as any) === "member" ? "member" : "team");
-  const [rankingMode, setRankingMode] = useState<"team" | "member">((search.get("rank") as any) === "member" ? "member" : "team");
+  const [applyMode, setApplyMode] = useState<"daily" | "monthly">(
+    (search.get("mode") as any) === "monthly" ? "monthly" : "daily"
+  );
+  const [assignMode, setAssignMode] = useState<"team" | "member">(
+    (search.get("assign") as any) === "member" ? "member" : "team"
+  );
+  const [paymentMode, setPaymentMode] = useState<"team" | "member">(
+    (search.get("pay") as any) === "member" ? "member" : "team"
+  );
+  const [rankingMode, setRankingMode] = useState<"team" | "member">(
+    (search.get("rank") as any) === "member" ? "member" : "team"
+  );
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
     return Number.isFinite(initial) && initial > 0 ? initial : 1;
@@ -48,20 +57,21 @@ function StatsPage() {
 
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
-    return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ?? "apply") as TabKey;
+    return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ??
+      "apply") as TabKey;
   }, [search]);
 
   // Query params handlers
   const setTab = (key: TabKey) => {
     const params = new URLSearchParams(search.toString());
-    if (key === "apply") params.delete("tab"); 
+    if (key === "apply") params.delete("tab");
     else params.set("tab", key);
     router.replace(`?${params.toString()}`);
   };
 
   const setApplyModeQS = (mode: "daily" | "monthly") => {
     const params = new URLSearchParams(search.toString());
-    if (mode === "daily") params.delete("mode"); 
+    if (mode === "daily") params.delete("mode");
     else params.set("mode", mode);
     params.delete("applyPage");
     router.replace(`?${params.toString()}`);
@@ -71,7 +81,7 @@ function StatsPage() {
 
   const setAssignModeQS = (mode: "team" | "member") => {
     const params = new URLSearchParams(search.toString());
-    if (mode === "team") params.delete("assign"); 
+    if (mode === "team") params.delete("assign");
     else params.set("assign", mode);
     router.replace(`?${params.toString()}`);
     setAssignMode(mode);
@@ -79,7 +89,7 @@ function StatsPage() {
 
   const setPaymentModeQS = (mode: "team" | "member") => {
     const params = new URLSearchParams(search.toString());
-    if (mode === "team") params.delete("pay"); 
+    if (mode === "team") params.delete("pay");
     else params.set("pay", mode);
     router.replace(`?${params.toString()}`);
     setPaymentMode(mode);
@@ -87,7 +97,7 @@ function StatsPage() {
 
   const setRankingModeQS = (mode: "team" | "member") => {
     const params = new URLSearchParams(search.toString());
-    if (mode === "team") params.delete("rank"); 
+    if (mode === "team") params.delete("rank");
     else params.set("rank", mode);
     router.replace(`?${params.toString()}`);
     setRankingMode(mode);
@@ -95,7 +105,7 @@ function StatsPage() {
 
   const setApplyPageQS = (page: number) => {
     const params = new URLSearchParams(search.toString());
-    if (page <= 1) params.delete("applyPage"); 
+    if (page <= 1) params.delete("applyPage");
     else params.set("applyPage", String(page));
     router.replace(`?${params.toString()}`);
     setApplyPage(page);
@@ -108,7 +118,10 @@ function StatsPage() {
   const registration = useStatsRegistration(projectId, applyPage);
   const assignment = useStatsAssignment(projectId);
 
-  const chartData = applyMode === "daily" ? registration.chartDailyData : registration.chartMonthlyData;
+  const chartData =
+    applyMode === "daily"
+      ? registration.chartDailyData
+      : registration.chartMonthlyData;
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
@@ -118,9 +131,13 @@ function StatsPage() {
           className="rounded-[14px] mb-4"
           title={
             <div className="flex items-end gap-3">
-              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">통계</h1>
+              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
+                통계
+              </h1>
               <span className="w-px h-4 bg-neutral-60 opacity-60" />
-              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요</p>
+              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
+                고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요
+              </p>
             </div>
           }
           bodyClassName="px-7 py-7 border-t border-neutral-30"
@@ -131,7 +148,11 @@ function StatsPage() {
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`h-[31px] rounded-[5px] px-8 text-[16px] cursor-pointer ${active === t.key ? 'bg-card text-foreground font-bold' : 'text-neutral-60'}`}
+                  className={`h-[31px] rounded-[5px] px-8 text-[16px] cursor-pointer ${
+                    active === t.key
+                      ? "bg-card text-foreground font-bold"
+                      : "text-neutral-60"
+                  }`}
                 >
                   {t.label}
                 </button>
@@ -146,17 +167,27 @@ function StatsPage() {
             {/* 신청통계 그래프 카드 */}
             <section className="surface rounded-[14px] px-6 py-4 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-[18px] font-semibold text-neutral-90">신청통계</h2>
+                <h2 className="text-[18px] font-semibold text-neutral-90">
+                  신청통계
+                </h2>
                 <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
-                  <button 
-                    className={`min-h-[31px] rounded-[6px] text-[14px] ${applyMode === 'daily' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
-                    onClick={() => setApplyModeQS('daily')}
+                  <button
+                    className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                      applyMode === "daily"
+                        ? "bg-card font-semibold text-foreground"
+                        : "text-neutral-60"
+                    }`}
+                    onClick={() => setApplyModeQS("daily")}
                   >
                     일간
                   </button>
-                  <button 
-                    className={`min-h-[31px] rounded-[6px] text-[14px] ${applyMode === 'monthly' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'}`} 
-                    onClick={() => setApplyModeQS('monthly')}
+                  <button
+                    className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                      applyMode === "monthly"
+                        ? "bg-card font-semibold text-foreground"
+                        : "text-neutral-60"
+                    }`}
+                    onClick={() => setApplyModeQS("monthly")}
                   >
                     월간
                   </button>
@@ -191,27 +222,33 @@ function StatsPage() {
         {active === "assign" && (
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-neutral-90">배정통계</h2>
+              <h2 className="text-[18px] font-semibold text-neutral-90">
+                배정통계
+              </h2>
               <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
-                <button 
-                  className={`min-h-[31px] rounded-[6px] text-[14px] ${assignMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setAssignModeQS('team')}
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    assignMode === "team"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setAssignModeQS("team")}
                 >
                   팀별
                 </button>
-                <button 
-                  className={`min-h-[31px]rounded-[6px] text-[14px] ${assignMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setAssignModeQS('member')}
+                <button
+                  className={`min-h-[31px]rounded-[6px] text-[14px] ${
+                    assignMode === "member"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setAssignModeQS("member")}
                 >
                   팀원별
                 </button>
               </div>
             </div>
-            {assignMode === 'team' ? (
-              <AssignBarChart />
-            ) : (
-              <AssignMemberTable />
-            )}
+            {assignMode === "team" ? <AssignBarChart /> : <AssignMemberTable />}
           </section>
         )}
 
@@ -219,32 +256,50 @@ function StatsPage() {
         {active === "payment" && (
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-neutral-90">결제통계</h2>
+              <h2 className="text-[18px] font-semibold text-neutral-90">
+                결제통계
+              </h2>
               <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
-                <button 
-                  className={`min-h-[31px] rounded-[6px] text-[14px] ${paymentMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setPaymentModeQS('team')}
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    paymentMode === "team"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setPaymentModeQS("team")}
                 >
                   팀별
                 </button>
-                <button 
-                  className={`min-h-[31px] rounded-[6px] text-[14px] ${paymentMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setPaymentModeQS('member')}
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    paymentMode === "member"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setPaymentModeQS("member")}
                 >
                   팀원별
                 </button>
               </div>
             </div>
             <div className="mt-3" />
-            {paymentMode === 'team' ? <PaymentBarChart /> : <PaymentMemberTable />}
+            {paymentMode === "team" ? (
+              <PaymentBarChart />
+            ) : (
+              <PaymentMemberTable />
+            )}
           </section>
         )}
 
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
-            <h2 className="text-[18px] font-semibold text-neutral-90">처리상태통계</h2>
-            <div className="mt-2 text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">상태별 분포</div>
+            <h2 className="text-[18px] font-semibold text-neutral-90">
+              처리상태통계
+            </h2>
+            <div className="mt-2 text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
+              상태별 분포
+            </div>
             <div className="mt-4">
               <StatusBarChart />
             </div>
@@ -255,28 +310,55 @@ function StatsPage() {
         {active === "ranking" && (
           <section className="surface rounded-[14px] p-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-neutral-90">전체랭킹</h2>
+              <div>
+                <h2 className="text-[18px] font-semibold text-neutral-90">
+                  전체랭킹
+                </h2>
+                <p className="mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
+                  지난달 데이터를 집계하여 랭킹을 산정합니다.
+                </p>
+              </div>
               <div className="w-[180px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
-                <button 
-                  className={`min-h-[31px] rounded-[6px] text-[14px] ${rankingMode === 'team' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setRankingModeQS('team')}
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    rankingMode === "team"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setRankingModeQS("team")}
                 >
                   팀별
                 </button>
-                <button 
-                  className={`min-h-[31px] rounded-[6px] text-[14px] ${rankingMode === 'member' ? 'bg-card font-semibold text-foreground' : 'text-neutral-60'} cursor-pointer`} 
-                  onClick={() => setRankingModeQS('member')}
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    rankingMode === "member"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setRankingModeQS("member")}
                 >
                   팀원별
                 </button>
               </div>
             </div>
 
-            {rankingMode === 'team' ? (
-              <TeamRankingList projectId={projectId} />
-            ) : (
-              <TeamMemberRankingList projectId={projectId} />
-            )}
+            {/* 나의 랭킹 */}
+            <div className="mt-[30px]">
+              <h3 className="text-[16px] font-semibold text-neutral-90">나의 랭킹</h3>
+            </div>
+            <MyRankingCard projectId={projectId} mode={rankingMode} />
+
+            {/* 팀별 / 팀원별 랭킹 리스트 */}
+            <div className="mt-6">
+              <div className="text-[16px] font-semibold text-neutral-90 mb-3">
+                {rankingMode === "team" ? "팀별 랭킹" : "팀원별 랭킹"}
+              </div>
+              {rankingMode === "team" ? (
+                <TeamRankingList projectId={projectId} />
+              ) : (
+                <TeamMemberRankingList projectId={projectId} />
+              )}
+            </div>
           </section>
         )}
       </div>
@@ -286,11 +368,13 @@ function StatsPage() {
 
 export default function StatsPageWrapper() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-neutral-60">불러오는 중...</div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="text-neutral-60">불러오는 중...</div>
+        </main>
+      }
+    >
       <StatsPage />
     </Suspense>
   );

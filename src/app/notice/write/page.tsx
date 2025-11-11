@@ -123,7 +123,7 @@ function NoticeWritePage() {
   if (!projectId) return null;
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+    <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
       <div className="bg-white rounded-[14px] p-6">
         {/* 헤더 영역 */}
         <div className="flex items-center justify-between mb-6">
@@ -165,7 +165,7 @@ function NoticeWritePage() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-[#E2E2E2] mb-6" />
+        <div className="border-t border-[#E2E2E266] mb-6" />
 
         {error && (
           <div className="mb-6 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[14px] text-[#D83232]">
@@ -216,7 +216,7 @@ export default function NoticeWritePageWrapper() {
   return (
     <Suspense
       fallback={
-        <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12">
+        <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
           <div className="bg-white rounded-[14px] p-6">
             <div className="text-center text-[#808080]">불러오는 중...</div>
           </div>

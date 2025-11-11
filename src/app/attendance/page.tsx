@@ -9,6 +9,7 @@ import AttendanceFilterModal, { AttendanceFilterState } from "@/components/atten
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
 import { AttendanceService } from "@/services/attendance";
 import { getSelectedProjectId } from "@/lib/project";
+import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import type { AttendanceRecord } from "@/data/mockAttendanceData";
 import { AttendanceItem } from "@/types/attendance";
 
@@ -16,6 +17,7 @@ function AttendancePageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isAttendanceMenuEnabled, attendanceReady] = useAttendanceMenu();
   
   const [projectId, setProjectId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -47,6 +49,17 @@ function AttendancePageContent() {
   useEffect(() => {
     document.title = "TalkGate - 근태";
   }, []);
+
+  // 근태 메뉴 사용 여부 체크
+  useEffect(() => {
+    if (!attendanceReady) return;
+    
+    if (!isAttendanceMenuEnabled) {
+      // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
+      alert("근태 메뉴는 현재 비활성화되어 있습니다.");
+      router.replace("/dashboard");
+    }
+  }, [isAttendanceMenuEnabled, attendanceReady, router]);
 
   useEffect(() => {
     const id = getSelectedProjectId();
@@ -155,6 +168,19 @@ function AttendancePageContent() {
     setSelectedEmployee(mapped);
     setEmployeeModalOpen(true);
   };
+
+  // 근태 메뉴가 준비되지 않았거나 비활성화된 경우 로딩 표시
+  if (!attendanceReady || !isAttendanceMenuEnabled) {
+    return (
+      <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+        <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-neutral-60">페이지를 확인하는 중...</div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">

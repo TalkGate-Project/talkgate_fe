@@ -135,7 +135,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] h-[568px] flex flex-col">
         {/* 헤더 */}
-        <div className="h-[64px] flex items-center px-7 border-b border-[#E2E2E2]">
+        <div className="h-[64px] flex items-center px-7 border-b border-[#E2E2E266]">
           <div className="text-[18px] font-semibold leading-[21px] text-[#000]">새 프로젝트 생성</div>
           <button
             aria-label="close"
@@ -276,7 +276,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-[#E2E2E2] px-7 py-4 flex items-center justify-end gap-3">
+        <div className="border-t border-[#E2E2E266] px-7 py-4 flex items-center justify-end gap-3">
           <button
             className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
             onClick={() => !submitting && onClose()}

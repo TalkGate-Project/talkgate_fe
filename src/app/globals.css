@@ -159,6 +159,7 @@
   /* Palette: Grayscale 50-900 (light theme baseline) */
   --color-gray-50: #f8f8f8;
   --color-gray-100: #ededed;
+  --color-gray-100-lighter: #edededaa;
   --color-gray-200: #e2e2e2;
   --color-gray-300: #d0d0d0;
   --color-gray-400: #b0b0b0;
@@ -206,7 +207,7 @@
   --color-card: var(--card);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
+  --color-border: var(--color-gray-100-lighter);
   --color-primary: var(--primary);
   --color-success: var(--success);
   --color-warning: var(--warning);

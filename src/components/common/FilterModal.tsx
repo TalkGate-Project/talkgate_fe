@@ -107,7 +107,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-[#E2E2E2]" />
+                    <div className="border-t border-[#E2E2E266]" />
                     <div className="px-6 py-3 flex items-center justify-end gap-3">
                         <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white" onClick={() => setForm({})}>초기화</button>
                         <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
