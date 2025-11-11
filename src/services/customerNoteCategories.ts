@@ -8,16 +8,16 @@ import type {
 export type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 
 export const CustomerNoteCategoriesService = {
-  list() {
-    return apiClient.get<CustomerNoteCategoriesListResponse>("/v1/customer-note-categories");
+  list(headers?: Record<string, string>) {
+    return apiClient.get<CustomerNoteCategoriesListResponse>("/v1/customer-note-categories", headers ? { headers } : undefined);
   },
-  create(payload: Record<string, unknown>) {
-    return apiClient.post<CustomerNoteCategory>("/v1/customer-note-categories", payload);
+  create(payload: Record<string, unknown>, headers?: Record<string, string>) {
+    return apiClient.post<{ result: true; data: CustomerNoteCategory }>("/v1/customer-note-categories", payload, headers ? { headers } : undefined);
   },
-  update(id: string, payload: Record<string, unknown>) {
-    return apiClient.patch<CustomerNoteCategory>(`/v1/customer-note-categories/${id}`, payload);
+  update(id: string, payload: Record<string, unknown>, headers?: Record<string, string>) {
+    return apiClient.patch<{ result: true; data: CustomerNoteCategory }>(`/v1/customer-note-categories/${id}`, payload, headers ? { headers } : undefined);
   },
-  remove(id: string) {
-    return apiClient.delete<void>(`/v1/customer-note-categories/${id}`);
+  remove(id: string, headers?: Record<string, string>) {
+    return apiClient.delete<{ result: true }>(`/v1/customer-note-categories/${id}`, headers ? { headers } : undefined);
   },
 };

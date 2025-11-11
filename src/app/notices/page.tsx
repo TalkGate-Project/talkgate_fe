@@ -105,7 +105,7 @@ export default function NoticePage() {
   return (
     <Suspense
       fallback={
-        <main className="container mx-auto max-w-[1324px] pt-[90px] pb-12 text-[var(--neutral-60)]">
+        <main className="container mx-auto max-w-[1324px] pt-6 pb-12 text-[var(--neutral-60)]">
           공지사항을 불러오는 중입니다...
         </main>
       }

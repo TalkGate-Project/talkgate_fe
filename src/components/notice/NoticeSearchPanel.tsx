@@ -24,7 +24,7 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
           </p>
         </div>
       }
-      bodyClassName="px-7 pb-4 pt-3 border-t border-neutral-30"
+      bodyClassName="px-7 py-[30px] border-t border-neutral-30"
     >
       {/* 검색 및 버튼 영역 */}
       <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
           </div>
           <button 
             onClick={onSearch}
-            className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            className="cursor-pointer w-[66px] h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             검색
           </button>
@@ -57,7 +57,7 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
         <div className="flex items-center gap-3">
           <button 
             onClick={() => router.push("/notice/write")}
-            className="h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            className="cursor-pointer w-[60px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
           >
             글쓰기
           </button>

@@ -3,16 +3,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearTokens } from "@/lib/token";
-import { clearSelectedProjectId } from "@/lib/project";
+import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
+import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 
-const NAV_ITEMS: { label: string; href: string }[] = [
+const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
   { label: "통계", href: "/stats" },
-  { label: "근태", href: "/attendance" },
+];
+
+const ATTENDANCE_ITEM = { label: "근태", href: "/attendance" };
+
+const COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },
   { label: "설정", href: "/settings" },
 ];
@@ -30,6 +35,14 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
+  const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
+
+  // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
+  const NAV_ITEMS = [
+    ...BASE_NAV_ITEMS,
+    ...(showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
+    ...COMMON_NAV_ITEMS,
+  ];
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -96,7 +109,7 @@ export default function Header() {
         {/* 브랜드 영역 (좌측) */}
         <div className="flex items-center h-full">
           <Link href="/dashboard" className="text-white text-[16px] font-semibold tracking-[-0.02em]">
-            Talkgate
+            <img src="/main_logo.png" alt="Talkgate" className="w-[102px]" />
           </Link>
         </div>
 
@@ -278,6 +291,7 @@ export default function Header() {
                     onClick={() => {
                       clearTokens();
                       clearSelectedProjectId();
+                      clearUseAttendanceMenu();
                       setOpen(false);
                       router.replace("/login");
                     }}

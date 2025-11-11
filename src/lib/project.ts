@@ -1,6 +1,7 @@
 "use client";
 
 const COOKIE_KEY = "tg_selected_project_id";
+const ATTENDANCE_STORAGE_KEY = "tg_use_attendance_menu";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
@@ -42,6 +43,41 @@ export function clearSelectedProjectId() {
       })
     );
   } catch {}
+}
+
+// 근태 메뉴 사용 여부 관리
+export function setUseAttendanceMenu(useAttendance: boolean) {
+  if (!isBrowser()) return;
+  try {
+    localStorage.setItem(ATTENDANCE_STORAGE_KEY, String(useAttendance));
+    window.dispatchEvent(
+      new CustomEvent("tg:attendance-menu-change", {
+        detail: { useAttendanceMenu: useAttendance },
+      })
+    );
+  } catch (e) {
+    console.error("Failed to set attendance menu state:", e);
+  }
+}
+
+export function getUseAttendanceMenu(): boolean {
+  if (!isBrowser()) return false;
+  try {
+    const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
+    return stored === "true";
+  } catch (e) {
+    console.error("Failed to get attendance menu state:", e);
+    return false;
+  }
+}
+
+export function clearUseAttendanceMenu() {
+  if (!isBrowser()) return;
+  try {
+    localStorage.removeItem(ATTENDANCE_STORAGE_KEY);
+  } catch (e) {
+    console.error("Failed to clear attendance menu state:", e);
+  }
 }
 
 

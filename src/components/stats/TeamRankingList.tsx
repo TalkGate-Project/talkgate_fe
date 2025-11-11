@@ -1,4 +1,7 @@
 import { useStatsTeamRanking } from "@/hooks/useStatsRanking";
+import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
+import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
+import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -50,7 +53,7 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
   }
 
   return (
-    <div className="mt-6 bg-neutral-10 rounded-[12px] p-5">
+    <div className="bg-neutral-10 rounded-[12px] p-5">
       <div className="space-y-3">
         {rows.map((row) => {
           const change = row.rankChange ?? 0;
@@ -60,9 +63,17 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
           return (
             <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
-                  #{row.rank}
-                </div>
+                {row.rank === 1 ? (
+                  <RankingGoldIcon className="w-[60px] h-[60px]" />
+                ) : row.rank === 2 ? (
+                  <RankingSilverIcon className="w-[60px] h-[60px]" />
+                ) : row.rank === 3 ? (
+                  <RankingBronzeIcon className="w-[60px] h-[60px]" />
+                ) : (
+                  <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
+                    #{row.rank}
+                  </div>
+                )}
                 <div>
                   <div className="text-[18px] font-bold text-neutral-90">{row.teamName ?? "소속없음"}</div>
                   <div className="mt-1 text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원 / {NUMBER_FORMATTER.format(row.totalCount)}건</div>
