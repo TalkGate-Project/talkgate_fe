@@ -1,6 +1,14 @@
 import { apiClient } from "@/lib/apiClient";
 import type { MemberTreeResponse } from "@/types/membersTree";
-import type { MyMember, MyMemberResponse, UpdateProfilePayload, UpdateProfileResponse } from "@/types/members";
+import type { 
+  MyMember, 
+  MyMemberResponse, 
+  UpdateProfilePayload, 
+  UpdateProfileResponse,
+  MemberListResponse,
+  InviteMemberPayload,
+  InviteMemberResponse
+} from "@/types/members";
 
 export type Member = {
   id: number;
@@ -12,7 +20,7 @@ export type Member = {
 
 export const MembersService = {
   list(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<Member[]>(`/v1/members`, { query });
+    return apiClient.get<MemberListResponse>(`/v1/members`, { query });
   },
   remove(payload: Record<string, unknown>) {
     return apiClient.delete<void>(`/v1/members`, { body: payload } as any);
@@ -28,8 +36,8 @@ export const MembersService = {
   },
 
   // Invitations
-  invite(payload: Record<string, unknown>) {
-    return apiClient.post<void>(`/v1/members/invitations`, payload);
+  invite(payload: InviteMemberPayload) {
+    return apiClient.post<InviteMemberResponse>(`/v1/members/invitations`, payload);
   },
   listInvitations(query?: Record<string, string | number | boolean>) {
     return apiClient.get<unknown>(`/v1/members/invitations`, { query });

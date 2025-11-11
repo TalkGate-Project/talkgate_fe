@@ -1,22 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import type { MemberListItem } from "@/types/members";
 
-interface Member {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  affiliation: string;
-  avatar: string;
-  hasSubordinates: boolean; // 하위 조직/구성원 존재 여부
-}
+const ROLE_LABELS: Record<string, string> = {
+  admin: "총관리자",
+  subAdmin: "부관리자",
+  member: "멤버",
+};
 
 interface DeleteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  member: Member | null;
+  member: MemberListItem | null;
 }
 
 export default function DeleteMemberModal({ 
@@ -31,15 +27,15 @@ export default function DeleteMemberModal({
 
   const handleConfirm = () => {
     if (!member) return;
-    if (!member.hasSubordinates) {
-      onConfirm();
-      handleClose();
-    }
+    onConfirm();
+    handleClose();
   };
 
   if (!isOpen || !member) return null;
 
-  const canDelete = !member.hasSubordinates;
+  const avatar = member.name ? member.name[0] : "?";
+  const roleLabel = member.role ? (ROLE_LABELS[member.role] || member.role) : "-";
+  const canDelete = true; // API에서 삭제 가능 여부를 받을 수 있다면 수정
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -77,20 +73,12 @@ export default function DeleteMemberModal({
 
           {/* Warning Message */}
           <div className="text-center mb-6">
-            {member.hasSubordinates ? (
-              <div className="mb-4 p-3 bg-[#FFF5F5] border border-[#FFE8E8] rounded-[5px]">
-                <div className="text-[#FF4444] text-[16px] font-semibold mb-1">
-                  하위 조직 및 구성원이 존재합니다.
-                </div>
-                <div className="text-[12px] text-[#808080]">
-                  하위 조직이나 구성원이 있는 멤버는 삭제할 수 없습니다.
-                </div>
-              </div>
-            ) : (
-              <div className="text-[#D83232] text-[18px] font-semibold mb-4">
-                정말로 멤버를 삭제하시겠습니까?
-              </div>
-            )}
+            <div className="text-[#D83232] text-[18px] font-semibold mb-4">
+              정말로 멤버를 삭제하시겠습니까?
+            </div>
+            <div className="text-[14px] text-[#808080]">
+              삭제된 멤버는 복구할 수 없습니다.
+            </div>
           </div>
 
           {/* Member Info */}
@@ -98,7 +86,7 @@ export default function DeleteMemberModal({
             <div className="flex items-center gap-4">
               {/* Left div - Profile thumbnail */}
               <div className="w-12 h-12 bg-[#4CAF50] rounded-full flex items-center justify-center text-white font-semibold text-[18px]">
-                {member.avatar}
+                {avatar}
               </div>
               
               {/* Right div - Name, email, tags */}
@@ -107,14 +95,14 @@ export default function DeleteMemberModal({
                   {member.name}
                 </div>
                 <div className="text-[14px] text-[#808080]">
-                  {member.email}
+                  {member.email || `ID: ${member.userId}`}
                 </div>
                 <div className="flex gap-2">
                   <span className="px-2 py-1 bg-[#E8E8E8] text-[#252525] text-[12px] rounded">
-                    {member.role}
+                    {roleLabel}
                   </span>
                   <span className="px-2 py-1 bg-[#E8E8E8] text-[#252525] text-[12px] rounded">
-                    {member.affiliation}
+                    {member.teamName || "소속없음"}
                   </span>
                 </div>
               </div>
