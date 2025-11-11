@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
 import type { MemberTreeResponse } from "@/types/membersTree";
+import type { MyMember, MyMemberResponse, UpdateProfilePayload, UpdateProfileResponse } from "@/types/members";
 
 export type Member = {
   id: number;
@@ -16,8 +17,11 @@ export const MembersService = {
   remove(payload: Record<string, unknown>) {
     return apiClient.delete<void>(`/v1/members`, { body: payload } as any);
   },
-  updateSelf(payload: Record<string, unknown>) {
-    return apiClient.patch<Member>(`/v1/members`, payload);
+  my(headers?: Record<string, string>) {
+    return apiClient.get<MyMemberResponse>(`/v1/members/my`, headers ? { headers } : undefined);
+  },
+  updateSelf(payload: UpdateProfilePayload, headers?: Record<string, string>) {
+    return apiClient.patch<UpdateProfileResponse>(`/v1/members`, payload, headers ? { headers } : undefined);
   },
   detail(memberId: string | number) {
     return apiClient.get<Member>(`/v1/members/${memberId}`);

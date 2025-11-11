@@ -33,6 +33,12 @@ export default function GeneralSettings() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 마운트 감지
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -307,7 +313,8 @@ export default function GeneralSettings() {
     }
   };
 
-  if (isLoading) {
+  // Hydration 에러 방지를 위해 클라이언트에서만 렌더링
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <div className="bg-card rounded-[14px] shadow-sm p-7 animate-pulse">

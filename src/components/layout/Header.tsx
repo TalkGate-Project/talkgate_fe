@@ -38,9 +38,10 @@ export default function Header() {
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
 
   // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
+  // Hydration 에러 방지를 위해 attendanceReady를 체크
   const NAV_ITEMS = [
     ...BASE_NAV_ITEMS,
-    ...(showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
+    ...(attendanceReady && showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
     ...COMMON_NAV_ITEMS,
   ];
 
