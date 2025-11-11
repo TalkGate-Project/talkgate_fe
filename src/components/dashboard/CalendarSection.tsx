@@ -126,6 +126,10 @@ export default function CalendarSection() {
                 cell.date.getFullYear() === selectedDate.getFullYear() &&
                 cell.date.getMonth() === selectedDate.getMonth() &&
                 cell.date.getDate() === selectedDate.getDate();
+              const isToday =
+                cell.date.getFullYear() === today.getFullYear() &&
+                cell.date.getMonth() === today.getMonth() &&
+                cell.date.getDate() === today.getDate();
               const borderClass = isSelected ? "border-2 border-primary-60" : "border border-border";
               const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
@@ -147,7 +151,16 @@ export default function CalendarSection() {
                     }`}
                     style={montserratStyle}
                   >
-                    {cell.date.getDate()}
+                    {isToday ? (
+                      <div className="relative w-[24px] h-[24px] flex items-center justify-center">
+                        <div className="absolute w-[24px] h-[24px] bg-[#252525] rounded-full" />
+                        <span className="relative text-[#FFFFFF] font-normal">
+                          {cell.date.getDate()}
+                        </span>
+                      </div>
+                    ) : (
+                      cell.date.getDate()
+                    )}
                   </div>
                   <div className="mt-auto mb-2 ml-4 mr-2">
                     {daySchedules.slice(0, 2).map((schedule, idx) => (
