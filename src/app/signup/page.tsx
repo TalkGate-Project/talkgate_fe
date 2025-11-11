@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { SignupService } from "@/services/signup";
 import Checkbox from "@/components/common/Checkbox";
 import { AuthService } from "@/services/auth";
+import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
+import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import loginCardImg from "@/assets/images/auth/login_card.png";
 
@@ -23,6 +25,8 @@ export default function SignupPage() {
   const [emailChecked, setEmailChecked] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   useEffect(() => {
     document.title = "TalkGate - 회원가입";
@@ -152,24 +156,52 @@ export default function SignupPage() {
               </div>
 
               <label className={`block text-[12px] mt-3 mb-1 ${invalid && !passwordValid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="영문/숫자/특수문자 포함 8자 이상"
-                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${(invalid && !passwordValid) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
-                autoComplete="new-password"
-                onBlur={() => setPwdTouched(true)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="영문/숫자/특수문자 포함 8자 이상"
+                  className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 pr-12 text-white ${(invalid && !passwordValid) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
+                  autoComplete="new-password"
+                  onBlur={() => setPwdTouched(true)}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                  onMouseDown={() => setShowPassword(true)}
+                  onMouseUp={() => setShowPassword(false)}
+                  onMouseLeave={() => setShowPassword(false)}
+                  onTouchStart={() => setShowPassword(true)}
+                  onTouchEnd={() => setShowPassword(false)}
+                  aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                >
+                  {showPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+                </button>
+              </div>
               <label className={`block text-[12px] mt-3 mb-1 ${invalid && !passwordMatch ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>비밀번호 확인</label>
-              <input
-                type="password"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                placeholder="비밀번호를 다시 입력하세요"
-                className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${(invalid && !passwordMatch) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
-                autoComplete="new-password"
-              />
+              <div className="relative">
+                <input
+                  type={showPasswordConfirm ? "text" : "password"}
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  placeholder="비밀번호를 다시 입력하세요"
+                  className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 pr-12 text-white ${(invalid && !passwordMatch) ? "border-[#FF5A5A]" : "border-[#555555]"}`}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                  onMouseDown={() => setShowPasswordConfirm(true)}
+                  onMouseUp={() => setShowPasswordConfirm(false)}
+                  onMouseLeave={() => setShowPasswordConfirm(false)}
+                  onTouchStart={() => setShowPasswordConfirm(true)}
+                  onTouchEnd={() => setShowPasswordConfirm(false)}
+                  aria-label={showPasswordConfirm ? "비밀번호 숨기기" : "비밀번호 보기"}
+                >
+                  {showPasswordConfirm ? <EyeOnIcon /> : <EyeOffIcon />}
+                </button>
+              </div>
               {(pwdTouched || invalid) && !passwordStrong && (
                 <div className="mt-2 text-[12px] text-[#FF5A5A]">
                   비밀번호가 규칙에 맞지 않습니다: {missingRules.join(", ")}
