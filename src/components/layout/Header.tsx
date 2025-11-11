@@ -240,7 +240,7 @@ export default function Header() {
                 </div>
 
                 {/* 구분선 */}
-                <div className="w-full h-[1px] bg-[#E2E2E2] mb-2.5"></div>
+                <div className="w-full h-[1px] bg-[#E2E2E266] mb-2.5"></div>
 
                 {/* 메뉴 목록 */}
                 <div className="flex flex-col gap-1">

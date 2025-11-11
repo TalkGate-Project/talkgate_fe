@@ -191,23 +191,23 @@ export default function CalendarSection() {
                 일정 추가
               </button>
             </div>
-            <div className="space-y-3 pr-3 overflow-y-auto" style={{ maxHeight: 405 }}>
+            <div className="space-y-3 pr-3 overflow-y-auto h-[532px]">
               {waitingForProject ? (
-                <div className="flex h-[240px] items-center justify-center">
+                <div className="flex h-full items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
                 </div>
               ) : missingProject ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">
+                <div className="flex h-[532px] items-center justify-center text-[14px] text-neutral-60">
                   프로젝트를 먼저 선택해주세요.
                 </div>
               ) : loading ? (
                 <ScheduleSkeleton />
               ) : error ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-danger-40">
+                <div className="flex h-[532px] items-center justify-center text-[14px] text-danger-40">
                   일정을 불러오는 중 문제가 발생했습니다.
                 </div>
               ) : selectedSchedules.length === 0 ? (
-                <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">
+                <div className="flex h-[532px] items-center justify-center text-[14px] text-neutral-60">
                   {data?.data.schedules === null ? "일정 데이터가 없습니다." : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (

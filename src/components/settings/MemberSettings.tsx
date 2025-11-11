@@ -12,6 +12,7 @@ import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
   subAdmin: "부관리자",
+  leader: "팀장",
   member: "멤버",
 };
 
@@ -71,7 +72,7 @@ function MemberRow({ member, onDelete }: { member: MemberListItem; onDelete: (id
           {joinDate}
         </div>
 
-        {/* Delete Button - admin은 삭제 불가 */}
+        {/* Delete Button - admin만 삭제 버튼 숨김 */}
         <div className="flex justify-end flex-1 min-w-[110px] pr-[110px]">
           {!isAdmin && (
             <button

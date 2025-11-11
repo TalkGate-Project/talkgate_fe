@@ -13,7 +13,7 @@ export default function Panel({ title, action, className, children, style, bodyC
   return (
     <section className={`surface rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] flex flex-col h-full w-full ${className ?? ""}`} style={style}>
       {(title || action) && (
-        <div className="flex items-center justify-between px-7 pt-7 pb-5">
+        <div className="flex items-center justify-between px-7 pt-7">
           {typeof title === "string" ? (
             <h2 className="typo-title-2">{title}</h2>
           ) : (

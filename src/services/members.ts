@@ -7,7 +7,8 @@ import type {
   UpdateProfileResponse,
   MemberListResponse,
   InviteMemberPayload,
-  InviteMemberResponse
+  InviteMemberResponse,
+  InvitationListResponse
 } from "@/types/members";
 
 export type Member = {
@@ -40,16 +41,16 @@ export const MembersService = {
     return apiClient.post<InviteMemberResponse>(`/v1/members/invitations`, payload);
   },
   listInvitations(query?: Record<string, string | number | boolean>) {
-    return apiClient.get<unknown>(`/v1/members/invitations`, { query });
+    return apiClient.get<InvitationListResponse>(`/v1/members/invitations`, { query });
   },
-  cancelInvitation(invitationId: string) {
+  cancelInvitation(invitationId: number) {
     return apiClient.delete<void>(`/v1/members/invitations/${invitationId}`);
   },
   acceptInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/accept`, payload);
   },
-  resendInvitation(payload: Record<string, unknown>) {
-    return apiClient.post<void>(`/v1/members/invitations/resend`, payload);
+  resendInvitation(invitationId: number) {
+    return apiClient.post<void>(`/v1/members/invitations/${invitationId}/resend`, {});
   },
   verifyInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/verify`, payload);

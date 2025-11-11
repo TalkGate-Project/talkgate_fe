@@ -47,7 +47,7 @@ export default function FailureDetailModal({
       {/* Modal */}
       <div className="relative w-[848px] h-[668px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E2E2]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E2E266]">
           <h2 className="text-[18px] font-semibold leading-5 text-[#000000]">
             실패 내역 상세보기
           </h2>
@@ -99,7 +99,7 @@ export default function FailureDetailModal({
           </div>
 
           {/* Divider */}
-          <div className="w-full h-[1px] bg-[#E2E2E2] mb-6"></div>
+          <div className="w-full h-[1px] bg-[#E2E2E266] mb-6"></div>
 
           {/* Footer Buttons */}
           <div className="flex justify-end gap-3">

@@ -165,7 +165,7 @@ function NoticeWritePage() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-[#E2E2E2] mb-6" />
+        <div className="border-t border-[#E2E2E266] mb-6" />
 
         {error && (
           <div className="mb-6 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[14px] text-[#D83232]">

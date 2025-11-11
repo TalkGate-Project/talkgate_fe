@@ -190,7 +190,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
         </div>
 
         {/* Divider */}
-        <div className="mt-6 border-t border-[#E2E2E2]" />
+        <div className="mt-6 border-t border-[#E2E2E266]" />
 
         {/* Footer */}
         <div className="absolute bottom-4 right-6 flex items-center gap-3">

@@ -89,7 +89,7 @@ export interface MemberListItem {
   email?: string; // API 응답에 없을 수 있음
   phone: string | null;
   profileImageUrl: string | null;
-  role?: "admin" | "subAdmin" | "member"; // API 응답에 없을 수 있음
+  role?: "admin" | "subAdmin" | "leader" | "member"; // API 응답에 없을 수 있음
   teamName?: string; // API 응답에 없을 수 있음
   createdAt: string;
   updatedAt: string;
@@ -120,12 +120,38 @@ export interface InviteMemberResponse {
     id: number;
     projectId: number;
     projectName: string;
-    role: "admin" | "subAdmin" | "member";
+    role: "admin" | "subAdmin" | "leader" | "member";
     email: string;
     token: string;
     expiresAt: string;
     status: "pending";
     createdAt: string;
     updatedAt: string;
+  };
+}
+
+// 초대 목록 아이템
+export interface InvitationListItem {
+  id: number;
+  projectId: number;
+  projectName: string;
+  role: "admin" | "subAdmin" | "leader" | "member";
+  email: string;
+  token: string;
+  expiresAt: string;
+  status: "pending" | "accepted" | "expired";
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 초대 목록 응답
+export interface InvitationListResponse {
+  result: boolean;
+  data: {
+    invitations: InvitationListItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
   };
 }
