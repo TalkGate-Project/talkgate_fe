@@ -84,7 +84,7 @@ export default function ProjectsPage() {
                             </div>
                             <div className="mt-6 flex justify-end">
                                 <button
-                                    className="h-[40px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
+                                    className="cursor-pointer h-[40px] px-4 rounded-[8px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
                                     onClick={() => {
                                         setSelectedProjectId(p.id);
                                         // 근태 메뉴 사용 여부도 함께 저장
