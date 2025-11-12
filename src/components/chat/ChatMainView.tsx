@@ -123,7 +123,7 @@ export default function ChatMainView({
     <div className="col-span-6 flex justify-center">
       <div className="w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
         {/* Header */}
-        <div className="px-6 py-5 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
           <div className="flex items-center gap-3">
             {activeConversation ? (
               <>

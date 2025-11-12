@@ -153,7 +153,7 @@ export default function LoginPage() {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
               >
@@ -184,7 +184,7 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
+            <button type="submit" className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
           </form>
 
           {/* Social buttons */}
@@ -196,7 +196,7 @@ export default function LoginPage() {
           <div className="mt-3 flex items-center justify-center gap-4">
             <button
               aria-label="kakao"
-              className="w-11 h-11 rounded-full"
+              className="cursor-pointer w-11 h-11 rounded-full"
               style={{ background: "#FEE500" }}
               onClick={() => {
                 const url = buildOAuthAuthorizeUrl("kakao");
@@ -207,7 +207,7 @@ export default function LoginPage() {
             </button>
             <button
               aria-label="naver"
-              className="w-11 h-11 rounded-full"
+              className="cursor-pointer w-11 h-11 rounded-full"
               style={{ background: "#03C75A" }}
               onClick={() => {
                 const url = buildOAuthAuthorizeUrl("naver");
@@ -218,7 +218,7 @@ export default function LoginPage() {
             </button>
             <button
               aria-label="google"
-              className="w-11 h-11 rounded-full bg-[#353535]"
+              className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
               onClick={() => {
                 const url = buildOAuthAuthorizeUrl("google");
                 window.location.href = url;
