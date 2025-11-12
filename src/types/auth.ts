@@ -5,7 +5,26 @@ export type LoginInput = {
   password: string;
 };
 
-export type LoginOutput = unknown;
+// Standard login response
+export type LoginResponse = {
+  result: true;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  };
+};
+
+// 2FA required response
+export type TwoFactorRequiredResponse = {
+  result: true;
+  data: {
+    twoFactorToken: string;
+    message: string;
+  };
+};
+
+export type LoginOutput = LoginResponse | TwoFactorRequiredResponse;
 
 export type SocialLoginInput = {
   code: string;
