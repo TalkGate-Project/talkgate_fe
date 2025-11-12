@@ -80,7 +80,7 @@ function DashboardContent() {
           loading={bannerLoading}
         />
 
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-9 grid grid-cols-1 gap-6 md:gap-9 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
             <KpiCard
               key={card.label}
@@ -98,7 +98,7 @@ function DashboardContent() {
           </div>
         ) : (
           <>
-            <div className="mt-6 grid grid-cols-12 gap-6">
+            <div className="mt-9 grid grid-cols-12 gap-9">
               <div className="col-span-12 lg:col-span-9">
                 <AssignedCustomersTable />
               </div>
@@ -107,13 +107,13 @@ function DashboardContent() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-12 gap-6">
+            <div className="mt-9 grid grid-cols-12 gap-6">
               <div className="col-span-12">
                 <CalendarSection />
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-12 gap-6">
+            <div className="mt-9 mb-7 grid grid-cols-12 gap-9">
               <div className="col-span-12 lg:col-span-6">
                 <NoticeSection />
               </div>
