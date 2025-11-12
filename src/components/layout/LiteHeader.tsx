@@ -138,7 +138,7 @@ export default function LiteHeader() {
 
                 <div className="flex flex-col gap-1">
                   <button
-                    className={`flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
                     onMouseEnter={() => setIsProfileHovered(true)}
                     onMouseLeave={() => setIsProfileHovered(false)}
                     onClick={() => {
@@ -156,7 +156,7 @@ export default function LiteHeader() {
                   </button>
 
                   <button
-                    className={`flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
                     onMouseEnter={() => setIsProjectSelectHovered(true)}
                     onMouseLeave={() => setIsProjectSelectHovered(false)}
                     onClick={() => {

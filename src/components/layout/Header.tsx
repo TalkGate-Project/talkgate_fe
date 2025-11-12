@@ -246,7 +246,7 @@ export default function Header() {
                 <div className="flex flex-col gap-1">
                   {/* 개인 설정 */}
                   <button
-                    className={`flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
                       }`}
                     onMouseEnter={() => setIsProfileHovered(true)}
                     onMouseLeave={() => setIsProfileHovered(false)}
@@ -267,7 +267,7 @@ export default function Header() {
 
                   {/* 프로젝트 선택 */}
                   <button
-                    className={`flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
                       }`}
                     onMouseEnter={() => setIsProjectSelectHovered(true)}
                     onMouseLeave={() => setIsProjectSelectHovered(false)}
@@ -288,7 +288,7 @@ export default function Header() {
 
                   {/* 로그아웃 */}
                   <button
-                    className="flex items-center gap-4 px-7 py-3 hover:bg-gray-50 transition-colors"
+                    className="cursor-pointer flex items-center gap-4 px-7 py-3 hover:bg-gray-50 transition-colors"
                     onClick={() => {
                       clearTokens();
                       clearSelectedProjectId();
