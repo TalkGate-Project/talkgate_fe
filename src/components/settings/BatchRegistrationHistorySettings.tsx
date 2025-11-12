@@ -62,10 +62,16 @@ export default function BatchRegistrationHistorySettings() {
           limit: pageSize,
         });
 
-        setRecords(response.data.jobs);
-        setTotal(response.data.total);
+        // API response structure: { ok, status, data: { result, data: { jobs, total, ... } } }
+        const responseData = response.data as any;
+        const actualData = responseData.data || responseData;
+        
+        setRecords(actualData.jobs || []);
+        setTotal(actualData.total || 0);
       } catch (error) {
         console.error("Failed to fetch bulk import jobs:", error);
+        setRecords([]);
+        setTotal(0);
       } finally {
         setIsLoading(false);
       }
@@ -113,12 +119,12 @@ export default function BatchRegistrationHistorySettings() {
           </div>
 
           {/* 업로더 */}
-          <div className="w-[60px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
+          <div className="w-[120px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
             {record.memberName}
           </div>
 
           {/* 전체 고객 수 */}
-          <div className="w-[120px] text-right text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
+          <div className="w-[60px] text-right text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
             {record.totalRows}
           </div>
 
