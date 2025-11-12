@@ -135,7 +135,36 @@ export default function ConsultationChannelSettings() {
   const connectedCount = integrations.length;
 
   const handleConnect = (platform: Platform) => {
+    // 인스타그램은 OAuth 방식으로 처리
+    if (platform === "instagram") {
+      handleInstagramConnect();
+      return;
+    }
     setModalPlatform(platform);
+  };
+
+  const handleInstagramConnect = () => {
+    // Instagram OAuth URL 구성
+    const clientId = "622214674056498";
+    const redirectUri = `${window.location.origin}/instagram/callback`;
+    const scope = [
+      "instagram_business_basic",
+      "instagram_business_manage_messages",
+      "instagram_business_manage_comments",
+      "instagram_business_content_publish",
+      "instagram_business_manage_insights",
+    ].join(",");
+
+    const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=code&scope=${encodeURIComponent(scope)}`;
+
+    // 새 창에서 Instagram 인증 페이지 열기
+    window.open(
+      instagramAuthUrl,
+      "instagram_auth",
+      "width=600,height=700,scrollbars=yes"
+    );
   };
 
   const handleDisconnect = async (platform: Platform) => {

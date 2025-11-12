@@ -13,15 +13,8 @@ export default function NotificationIcon({ isActive = false, className = "" }: N
       className={className}
     >
       <path
-        d="M18 8A6 6 0 006 8c0 3.314-.75 5.25-1.5 6.5-.75 1.25-.75 1.5-.75 2h16.5s0-.75-.75-2C18.75 13.25 18 11.314 18 8z"
-        stroke={isActive ? "var(--primary-80)" : "var(--neutral-60)"}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M13.73 21a2 2 0 01-3.46 0"
-        stroke={isActive ? "var(--primary-80)" : "var(--neutral-60)"}
+        d="M15 17H20L18.5951 15.5951C18.2141 15.2141 18 14.6973 18 14.1585V11C18 8.38757 16.3304 6.16509 14 5.34142V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V5.34142C7.66962 6.16509 6 8.38757 6 11V14.1585C6 14.6973 5.78595 15.2141 5.40493 15.5951L4 17H9M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9"
+        stroke={isActive ? "#00E272" : "#B0B0B0"}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

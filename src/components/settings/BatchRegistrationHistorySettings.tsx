@@ -1,316 +1,259 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Pagination from "@/components/common/Pagination";
 import FailureDetailModal from "@/components/common/FailureDetailModal";
+import { CustomersBulkService } from "@/services/customersBulk";
+import { getSelectedProjectId } from "@/lib/project";
+import type { BulkJob, BulkJobStatus } from "@/types/customersBulk";
 
-interface BatchRegistrationRecord {
-  id: string;
-  fileName: string;
-  uploader: string;
-  totalCustomers: number;
-  successCount: number;
-  failureCount: number;
-  status: "완료" | "대기" | "진행중" | "필요" | "실패";
-  uploadDate: string;
-}
+const STATUS_DISPLAY: Record<BulkJobStatus, string> = {
+  pending: "대기",
+  processing: "진행중",
+  completed: "완료",
+  failed: "실패",
+};
 
-function StatusBadge({ status }: { status: string }) {
-  const statusStyles = {
-    완료: "bg-primary-10 text-primary-80",
-    대기: "bg-warning-10 text-warning-60",
-    진행중: "bg-secondary-10 text-secondary-40",
-    필요: "bg-primary-10 text-primary-80",
-    실패: "bg-danger-10 text-danger-40",
+function StatusBadge({ status }: { status: BulkJobStatus }) {
+  const statusStyles: Record<BulkJobStatus, string> = {
+    completed: "bg-primary-10 text-primary-80",
+    pending: "bg-warning-10 text-warning-60",
+    processing: "bg-secondary-10 text-secondary-40",
+    failed: "bg-danger-10 text-danger-40",
   };
 
   return (
-    <div className={`flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] font-medium ${statusStyles[status as keyof typeof statusStyles]}`}>
-      {status}
+    <div 
+      className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] font-medium leading-[14px] ${statusStyles[status]}`}
+      style={{ opacity: 0.8 }}
+    >
+      {STATUS_DISPLAY[status]}
     </div>
   );
 }
 
 export default function BatchRegistrationHistorySettings() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 10;
+  const [records, setRecords] = useState<BulkJob[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<BatchRegistrationRecord | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const pageSize = 10;
 
-  const [records] = useState<BatchRegistrationRecord[]>([
-    {
-      id: "1",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "이영희",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "2",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "정수진",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 0,
-      status: "대기",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "3",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "4",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "김영업",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "진행중",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "5",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "이개발",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "6",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "대기",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "7",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "실패",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "8",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "정수진",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "9",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "김영업",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "10",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "이프론트",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-  ]);
+  const totalPages = Math.ceil(total / pageSize);
+
+  // Fetch bulk import jobs
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const projectId = getSelectedProjectId();
+      if (!projectId) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await CustomersBulkService.listImports({
+          projectId,
+          page: currentPage,
+          limit: pageSize,
+        });
+
+        // API response structure: { ok, status, data: { result, data: { jobs, total, ... } } }
+        const responseData = response.data as any;
+        const actualData = responseData.data || responseData;
+        
+        setRecords(actualData.jobs || []);
+        setTotal(actualData.total || 0);
+      } catch (error) {
+        console.error("Failed to fetch bulk import jobs:", error);
+        setRecords([]);
+        setTotal(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [currentPage, router]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const handleFailureClick = (record: BatchRegistrationRecord) => {
-    setSelectedRecord(record);
+  const handleFailureClick = (jobId: number) => {
+    setSelectedJobId(jobId);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedRecord(null);
+    setSelectedJobId(null);
   };
 
-  function RecordRow({ record }: { record: BatchRegistrationRecord }) {
+  const formatDateTime = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).replace(/\. /g, "-").replace(".", "");
+  };
+
+  function RecordRow({ record }: { record: BulkJob }) {
+    const isFailureZero = record.failureCount === 0;
+
     return (
       <>
-        <div className="flex items-center py-4">
+        <div className="flex items-center h-12 gap-3">
           {/* 파일명 */}
-          <div className="w-[260px] text-[14px] font-semibold text-foreground opacity-80">
+          <div className="w-[189px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0 truncate" title={record.fileName}>
             {record.fileName}
           </div>
 
           {/* 업로더 */}
-          <div className="w-[80px] text-[14px] font-semibold text-foreground opacity-80">
-            {record.uploader}
+          <div className="w-[120px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
+            {record.memberName}
           </div>
 
           {/* 전체 고객 수 */}
-          <div className="w-[120px] text-right text-[14px] font-semibold text-foreground opacity-80">
-            {record.totalCustomers}
+          <div className="w-[60px] text-right text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
+            {record.totalRows}
           </div>
 
           {/* 성공 */}
-          <div className="w-[80px] text-[14px] font-semibold text-primary-80 opacity-80">
+          <div className="w-[60px] text-right text-[14px] font-semibold text-primary-80 opacity-80 leading-[17px] underline shrink-0">
             {record.successCount}
           </div>
 
           {/* 실패 */}
           <div 
-            onClick={() => record.failureCount > 0 && handleFailureClick(record)}
-            className="w-[80px] text-[14px] font-bold text-secondary-40 underline opacity-80 cursor-pointer"
+            onClick={() => record.failureCount > 0 && handleFailureClick(record.id)}
+            className={`w-[60px] text-right text-[14px] font-bold opacity-80 leading-[17px] shrink-0 mr-6 ${
+              isFailureZero 
+                ? "text-primary-80"
+                : "text-secondary-60 underline cursor-pointer"
+            }`}
           >
             {record.failureCount}
           </div>
 
           {/* 상태 */}
-          <div className="w-[80px]">
+          <div className="w-[105px] shrink-0">
             <StatusBadge status={record.status} />
           </div>
 
           {/* 업로드 일시 */}
-          <div className="flex-1 text-[14px] font-semibold text-foreground opacity-80">
-            {record.uploadDate}
+          <div className="flex-1 text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] min-w-0">
+            {formatDateTime(record.createdAt)}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="w-full h-[0.4px] bg-border"></div>
+        <div className="w-full h-[0.4px] bg-neutral-30"></div>
       </>
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-[14px] py-7">
+        <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
+          일괄 등록 이력
+        </h1>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-neutral-60">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-card rounded-[14px] p-8">
+    <div className="bg-card rounded-[14px] py-7">
       {/* Title */}
-      <h1 className="text-[24px] font-bold text-foreground mb-4">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
         일괄 등록 이력
       </h1>
 
+      <div className="border-b border-[#E2E2E266]"></div>
+
       {/* Sub-title */}
-      <h2 className="text-[16px] font-semibold text-foreground mb-1">
-        일괄 등록 이력
+      <h2 className="px-7 pt-[30px] text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">
+        일괄 고객 등록 이력
       </h2>
 
       {/* Description */}
-      <p className="text-[14px] font-medium text-neutral-60 mb-6">
+      <p className="px-7 text-[14px] font-medium text-neutral-60 leading-5 mb-2">
         엑셀 파일을 통한 고객 정보 일괄 등록 이력을 확인할 수 있습니다.
       </p>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-border mb-6"></div>
+      <div className="mx-7 h-px bg-neutral-30 mb-6"></div>
 
       {/* Table Header */}
-      <div className="bg-neutral-20 rounded-[12px] px-6 py-3 mb-4">
-        <div className="flex items-center">
-          <div className="w-[260px] text-[16px] font-bold text-neutral-60">
-            파일명
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            업로더
-          </div>
-          <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60">
-            전체 고객 수
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            성공
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            실패
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            상태
-          </div>
-          <div className="flex-1 text-[16px] font-bold text-neutral-60">
-            업로드 일시
-          </div>
+      <div className="mx-7 bg-neutral-20 rounded-[12px] px-10 h-12 flex items-center gap-3">
+        <div className="w-[162px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          파일명
+        </div>
+        <div className="w-[60px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          업로더
+        </div>
+        <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          전체 고객 수
+        </div>
+        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          성공
+        </div>
+        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0 mr-6">
+          실패
+        </div>
+        <div className="w-[105px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          상태
+        </div>
+        <div className="flex-1 text-[16px] font-bold text-neutral-60 leading-[19px] min-w-0">
+          업로드 일시
         </div>
       </div>
 
       {/* Record List */}
-      <div className="space-y-0 mb-6">
-        {records.map((record) => (
-          <RecordRow key={record.id} record={record} />
-        ))}
+      <div className="px-10">
+        {records.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-neutral-60">
+            등록된 이력이 없습니다.
+          </div>
+        ) : (
+          records.map((record) => (
+            <RecordRow key={record.id} record={record} />
+          ))
+        )}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center">
-        <Pagination
-          page={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      </div>
+      {totalPages > 0 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
 
       {/* Failure Detail Modal */}
-      {selectedRecord && (
+      {selectedJobId && (
         <FailureDetailModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          fileName={selectedRecord.fileName}
-          uploadTime={selectedRecord.uploadDate}
-          failureCount={selectedRecord.failureCount}
-          failures={generateMockFailures(selectedRecord.failureCount)}
+          jobId={selectedJobId}
         />
       )}
     </div>
   );
-}
-
-// Mock failure data generator
-function generateMockFailures(count: number) {
-  const categories = ["시스템 오류", "고객 중복", "필수필드 누락"];
-  const failures = [];
-  
-  // 최대 20개만 표시
-  const displayCount = Math.min(count, 20);
-  
-  // 균등하게 분배
-  const perCategory = Math.floor(displayCount / 3);
-  const remainder = displayCount % 3;
-  
-  categories.forEach((category, index) => {
-    const categoryCount = perCategory + (index < remainder ? 1 : 0);
-    if (categoryCount > 0) {
-      failures.push({
-        category,
-        count: categoryCount + Math.floor(Math.random() * 100),
-      });
-    }
-  });
-  
-  // 나머지 항목은 랜덤 카테고리로 채우기
-  for (let i = failures.length; i < displayCount; i++) {
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    failures.push({
-      category: randomCategory,
-      count: Math.floor(Math.random() * 150),
-    });
-  }
-  
-  return failures;
 }

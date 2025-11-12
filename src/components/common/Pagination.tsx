@@ -90,7 +90,7 @@ export default function Pagination({ page, totalPages, onPageChange, disabled = 
           <button
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-normal ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-normal leading-[17px] ${
               active 
                 ? "bg-neutral-90 text-neutral-0" 
                 : "text-neutral-60 hover:bg-neutral-10"

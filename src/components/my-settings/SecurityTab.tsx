@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useMe } from "@/hooks/useMe";
+import ChangePasswordModal from "./ChangePasswordModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 interface ToggleProps {
   enabled: boolean;
@@ -12,8 +15,8 @@ function Toggle({ enabled, onChange }: ToggleProps) {
   return (
     <button
       onClick={() => onChange(!enabled)}
-      className={`w-10 h-6 rounded-full transition-colors flex items-center p-0.5 ${
-        enabled ? "bg-primary-60" : "bg-neutral-40"
+      className={`cursor-pointer w-10 h-6 rounded-full transition-colors flex items-center p-0.5 ${
+        enabled ? "bg-primary-60" : "bg-neutral-30"
       }`}
     >
       <div
@@ -26,85 +29,200 @@ function Toggle({ enabled, onChange }: ToggleProps) {
 }
 
 export default function SecurityTab() {
+  const { user, refetch } = useMe();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
-  const [showChangePw, setShowChangePw] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [changing, setChanging] = useState(false);
+  const [showChangePwModal, setShowChangePwModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
+  const [secretCode, setSecretCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Mock QR code data
-  const qrCodeValue = "otpauth://totp/YourApp:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=YourApp";
-  const secretCode = "JBSWY3DPEHPK3PXP";
+  // 사용자의 2FA 상태 확인 (user 데이터에서 가져올 수 있다면)
+  useEffect(() => {
+    if (user) {
+      const userAny = user as any;
+      // 백엔드에서 user 객체에 twoFactorEnabled 필드가 있다고 가정
+      if (userAny.twoFactorEnabled || userAny.isTwoFactorEnabled) {
+        setTwoFactorEnabled(true);
+      }
+    }
+  }, [user]);
 
-  const handleToggleTwoFactor = (enabled: boolean) => {
-    setTwoFactorEnabled(enabled);
+  const handleToggleTwoFactor = async (enabled: boolean) => {
     if (enabled) {
-      setShowSetup(true);
+      // 2FA 활성화 시도 - QR 코드 생성
+      try {
+        setLoading(true);
+        const { AuthService } = await import("@/services/auth");
+        const response = await AuthService.twoFactorSetup();
+        const data = (response.data as any)?.data;
+        
+        if (data) {
+          setQrCodeDataUrl(data.qrCodeDataUrl);
+          setSecretCode(data.secret);
+          setTwoFactorEnabled(true);
+          setShowSetup(true);
+        }
+      } catch (e: any) {
+        const errorCode = e?.response?.data?.code;
+        if (errorCode === "TWO_FACTOR_ALREADY_ENABLED") {
+          alert("2단계 인증이 이미 활성화되어 있습니다.");
+          setTwoFactorEnabled(true);
+        } else {
+          alert(e?.response?.data?.message || "2FA 설정에 실패했습니다.");
+          setTwoFactorEnabled(false);
+        }
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // 2FA 비활성화는 별도 프로세스 필요 (이메일 인증 코드 + TOTP)
+      const confirmed = confirm(
+        "2단계 인증을 비활성화하시겠습니까?\n이메일 인증 코드와 TOTP 코드가 필요합니다."
+      );
+      if (!confirmed) {
+        setTwoFactorEnabled(true);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const { AuthService } = await import("@/services/auth");
+        
+        // 1. 이메일 인증 코드 발송
+        await AuthService.twoFactorDisableSendCode();
+        const emailCode = prompt("이메일로 전송된 인증 코드를 입력하세요:");
+        if (!emailCode) {
+          setTwoFactorEnabled(true);
+          setLoading(false);
+          return;
+        }
+
+        // 2. TOTP 코드 입력
+        const totpCode = prompt("인증 앱의 6자리 코드를 입력하세요:");
+        if (!totpCode) {
+          setTwoFactorEnabled(true);
+          setLoading(false);
+          return;
+        }
+
+        // 3. 2FA 비활성화
+        await AuthService.twoFactorDisable({ emailCode, totpCode });
+        alert("2단계 인증이 비활성화되었습니다.");
+        setTwoFactorEnabled(false);
+        setShowSetup(false);
+        await refetch();
+      } catch (e: any) {
+        const errorCode = e?.response?.data?.code;
+        if (errorCode === "TWO_FACTOR_NOT_ENABLED") {
+          alert("2단계 인증이 활성화되어 있지 않습니다.");
+          setTwoFactorEnabled(false);
+        } else if (errorCode === "INVALID_TWO_FACTOR_CODE") {
+          alert("잘못된 인증 코드입니다.");
+          setTwoFactorEnabled(true);
+        } else {
+          alert(e?.response?.data?.message || "2FA 비활성화에 실패했습니다.");
+          setTwoFactorEnabled(true);
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(secretCode);
+    alert("시크릿 코드가 복사되었습니다.");
   };
 
-  const handleVerify = () => {
-    console.log("Verify code:", verificationCode);
-    // TODO: Implement verification logic
-  };
+  const handleVerify = async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      alert("6자리 인증 코드를 입력하세요.");
+      return;
+    }
 
-  async function onSubmitChangePassword() {
     try {
-      setChanging(true);
+      setLoading(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.twoFactorEnable({ totpCode: verificationCode });
+      alert("2단계 인증이 성공적으로 활성화되었습니다!");
+      setShowSetup(false);
+      setVerificationCode("");
+      await refetch(); // 사용자 정보 업데이트
+    } catch (e: any) {
+      const errorCode = e?.response?.data?.code;
+      if (errorCode === "INVALID_TWO_FACTOR_CODE") {
+        alert("잘못된 인증 코드입니다. 다시 시도해주세요.");
+      } else {
+        alert(e?.response?.data?.message || "인증에 실패했습니다.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (currentPassword: string, newPassword: string) => {
+    try {
       const { AuthService } = await import("@/services/auth");
       await AuthService.changePassword({ currentPassword, newPassword });
       alert("비밀번호가 변경되었습니다.");
-      setShowChangePw(false);
-      setCurrentPassword("");
-      setNewPassword("");
     } catch (e: any) {
       alert(e?.data?.message || e?.message || "변경에 실패했습니다");
-    } finally {
-      setChanging(false);
     }
-  }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      // TODO: Implement account deletion logic
+      console.log("계정 삭제 실행");
+      alert("계정이 삭제되었습니다.");
+    } catch (e: any) {
+      alert(e?.data?.message || e?.message || "삭제에 실패했습니다");
+    }
+  };
 
   return (
-    <div className="bg-card rounded-[14px] p-8">
-      {/* Title */}
-      <h1 className="text-[24px] font-bold text-foreground mb-4">
-        보안 설정
-      </h1>
+    <>
+      {/* First Box - 2-Step Verification */}
+      <div className="bg-card rounded-[14px] mb-6">
+        {/* Title */}
+        <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
+          보안 설정
+        </h1>
 
-      {/* Divider */}
-      <div className="w-full h-[1px] bg-border mb-6"></div>
+        <div className="border-b border-[#E2E2E266]"></div>
 
-      {/* 2-Step Verification Section */}
-      <div className="bg-card rounded-[5px] border border-border p-6 mb-6">
-        <div className="text-[16px] font-semibold text-foreground mb-4">2단계 인증</div>
+        <div className="px-7 py-[30px]">
+          <h2 className="text-[16px] font-semibold text-foreground mb-1">
+            2단계 인증
+          </h2>
+          
+          {/* Divider */}
+          <div className="w-full h-[1px] bg-border my-3"></div>
 
-        {/* Divider */}
-        <div className="w-full h-[1px] bg-border opacity-50 mb-4"></div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="text-[16px] font-semibold text-foreground mb-1">
-              2단계 인증 (2FA)
+          <div className="flex items-center justify-between py-3 pl-6 pr-4">
+            <div className="flex-1">
+              <div className="text-[16px] font-semibold text-foreground mb-1">
+                2단계 인증 (2FA)
+              </div>
+              <div className="text-[14px] font-medium text-neutral-60">
+                로그인 시 추가 보안 인증을 사용합니다.
+              </div>
             </div>
-            <div className="text-[14px] font-medium text-neutral-60">
-              로그인 시 추가 보안 인증을 사용합니다.
-            </div>
+            <Toggle
+              enabled={twoFactorEnabled}
+              onChange={handleToggleTwoFactor}
+            />
           </div>
-          <Toggle
-            enabled={twoFactorEnabled}
-            onChange={handleToggleTwoFactor}
-          />
-        </div>
 
-        {/* Setup Steps (shown when enabled) */}
-        {twoFactorEnabled && showSetup && (
-          <div className="mt-8 space-y-8">
+          {/* Divider */}
+          {twoFactorEnabled && <div className="w-full border-b border-[#E2E2E266] my-4"></div>}
+
+          {/* Setup Steps (shown when enabled) */}
+          {twoFactorEnabled && showSetup && (
+            <div className="space-y-8">
             {/* Step 1: QR Code */}
             <div>
               <div className="text-[16px] font-semibold text-foreground mb-1">
@@ -116,13 +234,18 @@ export default function SecurityTab() {
 
               {/* QR Code Container */}
               <div className="w-full bg-neutral-10 rounded-[12px] p-4 mb-4 flex items-center justify-start">
-                <div className="w-[200px] h-[200px]">
-                  <QRCodeSVG
-                    value={qrCodeValue}
-                    size={168}
-                    level="H"
-                    includeMargin={false}
-                  />
+                <div className="w-[200px] h-[200px] flex items-center justify-center relative">
+                  {qrCodeDataUrl ? (
+                    <Image 
+                      src={qrCodeDataUrl} 
+                      alt="QR Code" 
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="text-neutral-60">QR 코드를 불러오는 중...</div>
+                  )}
                 </div>
 
                 {/* Manual Input */}
@@ -173,85 +296,99 @@ export default function SecurityTab() {
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setShowSetup(false)}
+                    onClick={() => {
+                      setShowSetup(false);
+                      setTwoFactorEnabled(false);
+                      setVerificationCode("");
+                    }}
                     className="px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
+                    disabled={loading}
                   >
                     취소
                   </button>
                   <button
                     onClick={handleVerify}
-                    className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors"
+                    className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors disabled:opacity-50"
+                    disabled={loading || verificationCode.length !== 6}
                   >
-                    인증
+                    {loading ? "인증 중..." : "인증"}
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Change Password Section */}
-      <div className="bg-card rounded-[14px] border border-border p-6 mb-6">
-        <div className="text-[16px] font-semibold text-foreground mb-4">비밀번호 변경</div>
-
-        {/* Divider */}
-        <div className="w-full h-[1px] bg-border mb-4"></div>
-
-        <div className="flex items-center justify-between">
-          <div className="text-[14px] font-medium text-neutral-60">
-            비밀번호를 안전하게 관리하여 계정을 보호하세요.
-          </div>
-          <button onClick={() => setShowChangePw(true)} className="px-4 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors">
+      {/* Second Box - Change Password */}
+      <div className="bg-white rounded-[14px] border border-border mb-6">
+        <div className="px-7 py-6">
+          <h2 className="text-[16px] font-semibold text-foreground mb-1">
             비밀번호 변경
-          </button>
-        </div>
+          </h2>
+          <p className="text-[14px] font-medium text-neutral-60 mb-3">
+            비밀번호를 안전하게 관리하여 계정을 보호하세요.
+          </p>
 
-        {showChangePw && (
-          <div className="mt-4 border border-border rounded-[12px] p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[12px] text-neutral-60 mb-1">현재 비밀번호</label>
-                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-border px-3 bg-card text-foreground" />
-              </div>
-              <div>
-                <label className="block text-[12px] text-neutral-60 mb-1">새 비밀번호</label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full h-[36px] rounded-[6px] border border-border px-3 bg-card text-foreground" />
-              </div>
+          {/* Divider */}
+          <div className="w-full h-[1px] bg-border mb-3"></div>
+
+          <div className="flex items-center justify-between pt-2 px-6">
+            <div className="text-[16px] font-semibold text-foreground">
+              비밀번호 변경
             </div>
-            <div className="mt-3 flex justify-end gap-2">
-              <button className="h-[34px] px-3 rounded-[5px] border border-border text-foreground hover:bg-neutral-10" onClick={() => { setShowChangePw(false); setCurrentPassword(""); setNewPassword(""); }}>
-                취소
-              </button>
-              <button disabled={changing} className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-0 disabled:opacity-60" onClick={onSubmitChangePassword}>
-                변경하기
-              </button>
-            </div>
+            <button 
+              onClick={() => setShowChangePwModal(true)} 
+              className="px-3 py-1.5 bg-neutral-90 text-[#EDEDED] text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
+            >
+              비밀번호 변경
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Delete Account Section */}
-      <div className="bg-card rounded-[14px] border border-danger-10 p-6">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="text-[16px] font-semibold text-danger-40">계정 삭제</div>
-          <div className="px-3 py-0.5 bg-danger-10 text-danger-40 text-[12px] font-medium rounded-[30px]">
-            주의
+      {/* Third Box - Delete Account */}
+      <div className="bg-white rounded-[14px] border border-danger-10">
+        <div className="px-7 py-6">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-[16px] font-semibold text-danger-40">계정 삭제</h2>
+            <div className="px-3 py-1 bg-danger-10 text-danger-40 text-[12px] font-medium rounded-[30px]">
+              주의
+            </div>
           </div>
-        </div>
+          <p className="text-[14px] font-medium text-danger-40 mb-3">
+            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+          </p>
 
-        {/* Divider */}
-        <div className="w-full h-[1px] bg-border mb-4"></div>
+          {/* Divider */}
+          <div className="w-full h-[1px] bg-border mb-3"></div>
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[14px] font-medium text-danger-40">
-            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복수할 수 없습니다.
+          <div className="flex items-center justify-between py-2 bg-[#FFEBEB80] px-6">
+            <div className="text-[16px] font-semibold text-danger-40">
+              계정 삭제
+            </div>
+            <button 
+              onClick={() => setShowDeleteAccountModal(true)}
+              className="px-3 py-1.5 bg-danger-40 text-white text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
+            >
+              계정 삭제
+            </button>
           </div>
-          <button className="px-4 py-2 bg-danger-40 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors">
-            계정 삭제
-          </button>
         </div>
       </div>
-    </div>
+
+      {/* Modals */}
+      <ChangePasswordModal
+        isOpen={showChangePwModal}
+        onClose={() => setShowChangePwModal(false)}
+        onConfirm={handleChangePassword}
+      />
+      <DeleteAccountModal
+        isOpen={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+        onConfirm={handleDeleteAccount}
+      />
+    </>
   );
 }

@@ -27,14 +27,16 @@ export default function ProfileTab() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] p-8">
+    <div className="bg-card rounded-[14px] pb-[140px]">
       {/* Title */}
-      <h1 className="text-[24px] font-bold text-foreground mb-4">
+      <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
         개인 설정
       </h1>
 
+      <div className="border-b border-[#E2E2E266]"></div>
+
       {/* Sub-title and Edit Button Row */}
-      <div className="flex items-start justify-between mb-1">
+      <div className="px-7 py-6 flex items-start justify-between mb-1">
         <div>
           <h2 className="text-[16px] font-semibold text-foreground mb-1">
             프로필 설정
@@ -53,7 +55,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-border mb-8"></div>
+      <div className="mx-7 h-[1px] bg-border mb-8"></div>
 
       {/* Avatar - Full width centered */}
       <div className="flex justify-center mb-8">
@@ -78,11 +80,11 @@ export default function ProfileTab() {
         </div>
       </div>
 
-        {/* Form Fields */}
-        <div className="space-y-6">
+      {/* Form Fields */}
+      <div className="px-7 grid grid-cols-2 gap-5">
         {/* 이름 */}
         <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60">
             이름
           </label>
           <input
@@ -96,7 +98,7 @@ export default function ProfileTab() {
 
         {/* 이메일 */}
         <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60">
             이메일
           </label>
           <input
@@ -110,7 +112,7 @@ export default function ProfileTab() {
 
         {/* 연락처 */}
         <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <label className="block text-[14px] font-medium text-neutral-60">
             연락처
           </label>
           <input

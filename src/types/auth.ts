@@ -5,7 +5,26 @@ export type LoginInput = {
   password: string;
 };
 
-export type LoginOutput = unknown;
+// Standard login response
+export type LoginResponse = {
+  result: true;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  };
+};
+
+// 2FA required response
+export type TwoFactorRequiredResponse = {
+  result: true;
+  data: {
+    twoFactorToken: string;
+    message: string;
+  };
+};
+
+export type LoginOutput = LoginResponse | TwoFactorRequiredResponse;
 
 export type SocialLoginInput = {
   code: string;
@@ -73,3 +92,42 @@ export type BasicMessageResponse = {
   };
 };
 
+// Two-Factor Authentication types
+export type TwoFactorSetupResponse = {
+  result: true;
+  data: {
+    secret: string;
+    qrCodeDataUrl: string;
+    message: string;
+  };
+};
+
+export type TwoFactorSetupInput = {
+  totpCode: string;
+};
+
+export type TwoFactorDisableSendCodeResponse = {
+  result: true;
+  data: {
+    message: string;
+  };
+};
+
+export type TwoFactorDisableInput = {
+  emailCode: string;
+  totpCode: string;
+};
+
+export type TwoFactorLoginInput = {
+  twoFactorToken: string;
+  totpCode: string;
+};
+
+export type TwoFactorLoginOutput = {
+  result: true;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  };
+};

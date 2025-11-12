@@ -100,7 +100,17 @@ export default function LoginPage() {
               setInvalid(false);
               setRememberMePreference(autoLogin);
               AuthService.login({ email, password })
-                .then(() => router.replace("/projects"))
+                .then((res) => {
+                  const data = (res as any)?.data?.data;
+                  // Check if this is a 2FA required response
+                  if (data?.twoFactorToken) {
+                    // Navigate to 2FA login page with the token
+                    router.push(`/login/two-factor?token=${data.twoFactorToken}`);
+                  } else {
+                    // Normal login success
+                    router.replace("/projects");
+                  }
+                })
                 .catch((err: any) => {
                   const status = err?.status;
                   const code = err?.data?.code;
@@ -144,11 +154,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
-                onMouseDown={() => setShowPassword(true)}
-                onMouseUp={() => setShowPassword(false)}
-                onMouseLeave={() => setShowPassword(false)}
-                onTouchStart={() => setShowPassword(true)}
-                onTouchEnd={() => setShowPassword(false)}
+                onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
               >
                 {showPassword ? <EyeOnIcon /> : <EyeOffIcon />}
@@ -171,7 +177,7 @@ export default function LoginPage() {
               </div>
               <button
                 type="button"
-                className="text-[12px] text-[#BFBFBF] underline-offset-2 hover:underline"
+                className="cursor-pointer text-[12px] text-[#BFBFBF] underline-offset-2 hover:underline"
                 onClick={() => router.push("/forgot-password")}
               >
                 비밀번호 찾기
@@ -227,7 +233,7 @@ export default function LoginPage() {
             계정이 없으신가요?{' '}
             <button
               type="button"
-              className="underline underline-offset-2 hover:text-white"
+              className="cursor-pointer underline underline-offset-2 text-[#3690EB]"
               onClick={() => router.push("/signup")}
             >
               회원가입

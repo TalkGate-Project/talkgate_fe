@@ -1,22 +1,28 @@
 import { apiClient } from "@/lib/apiClient";
-import type { BulkJob, BulkJobStatus } from "@/types/customersBulk";
+import type { 
+  BulkJob, 
+  BulkJobDetail, 
+  BulkJobListResponse, 
+  BulkJobListQuery, 
+  BulkJobStatus 
+} from "@/types/customersBulk";
 
 export const CustomersBulkService = {
   // POST /v1/customers-bulk/import
   createImport(payload: { fileUrl?: string; fileName: string; projectId: string }) {
     const { projectId, ...body } = payload;
-    return apiClient.post<BulkJob>("/v1/customers-bulk/import", body, { headers: { "x-project-id": projectId } });
+    return apiClient.post<BulkJob>("/v1/customers-bulk/import", { body, headers: { "x-project-id": projectId } });
   },
 
   // GET /v1/customers-bulk/import
-  listImports(params: { projectId: string; page?: number; limit?: number; status?: BulkJobStatus }) {
+  listImports(params: { projectId: string } & BulkJobListQuery) {
     const { projectId, ...query } = params;
-    return apiClient.get<BulkJob[]>("/v1/customers-bulk/import", { query, headers: { "x-project-id": projectId } });
+    return apiClient.get<BulkJobListResponse>("/v1/customers-bulk/import", { query, headers: { "x-project-id": projectId } });
   },
 
   // GET /v1/customers-bulk/import/{jobId}
-  importDetail(jobId: string, projectId: string) {
-    return apiClient.get<BulkJob>(`/v1/customers-bulk/import/${jobId}`, { headers: { "x-project-id": projectId } });
+  importDetail(jobId: number, projectId: string) {
+    return apiClient.get<BulkJobDetail>(`/v1/customers-bulk/import/${jobId}`, { headers: { "x-project-id": projectId } });
   },
 
   // GET /v1/customers-bulk/export (blob)
@@ -25,6 +31,6 @@ export const CustomersBulkService = {
     query?: Record<string, string | number | boolean | Array<string | number>>;
   }) {
     const { projectId, query } = params;
-    return apiClient.getBlob("/v1/customers-bulk/export", { query, headers: { "x-project-id": projectId } });
+    return apiClient.get("/v1/customers-bulk/export", { query, headers: { "x-project-id": projectId }, responseType: "blob" });
   },
 };
