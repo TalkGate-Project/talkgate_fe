@@ -17,6 +17,12 @@ import type {
   VerifyPasswordResetCodeResponse,
   ResetPasswordInput,
   BasicMessageResponse,
+  TwoFactorSetupResponse,
+  TwoFactorSetupInput,
+  TwoFactorDisableSendCodeResponse,
+  TwoFactorDisableInput,
+  TwoFactorLoginInput,
+  TwoFactorLoginOutput,
 } from "@/types/auth";
 
 export const AuthService = {
@@ -149,5 +155,36 @@ export const AuthService = {
   },
   resetPassword(input: ResetPasswordInput) {
     return apiClient.post<BasicMessageResponse>("/v1/auth/reset-password", input);
+  },
+
+  // Two-Factor Authentication
+  twoFactorSetup() {
+    return apiClient.get<TwoFactorSetupResponse>("/v1/auth/two-factor/setup");
+  },
+  twoFactorEnable(input: TwoFactorSetupInput) {
+    return apiClient.post<Me>("/v1/auth/two-factor/setup", input);
+  },
+  twoFactorDisableSendCode() {
+    return apiClient.post<TwoFactorDisableSendCodeResponse>("/v1/auth/two-factor/disable/send-code");
+  },
+  twoFactorDisable(input: TwoFactorDisableInput) {
+    return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { data: input });
+  },
+  twoFactorLogin(input: TwoFactorLoginInput) {
+    return apiClient.post<TwoFactorLoginOutput>("/v1/auth/two-factor/login", input).then((res) => {
+      const anyRes: any = res.data as any;
+      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      }
+      try {
+        const pid = anyRes?.data?.projectId
+          ?? anyRes?.data?.defaultProjectId
+          ?? anyRes?.data?.user?.defaultProjectId
+          ?? anyRes?.data?.user?.projectId
+          ?? null;
+        if (pid != null) setSelectedProjectId(pid);
+      } catch {}
+      return res;
+    });
   },
 };
