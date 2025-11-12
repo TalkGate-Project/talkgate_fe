@@ -57,6 +57,7 @@ export default function SalesRanking() {
         </button>
       }
       className="rounded-[14px]"
+      headerClassName="flex items-center justify-between px-7 pt-7"
       style={{ height: 420, boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
     >
       <div className="w-full bg-neutral-20 rounded-[12px] px-3 py-2 grid grid-cols-2">
@@ -74,7 +75,7 @@ export default function SalesRanking() {
         </button>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         {waitingForProject ? (
           <div className="flex h-[240px] items-center justify-center">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />

@@ -101,14 +101,15 @@ export default function CalendarSection() {
         </div>
       }
       className="rounded-[14px]"
+      headerClassName="flex items-center justify-between px-7 pt-7"
       style={{ boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
       bodyClassName="px-6 pb-6 pt-4"
     >
-      <div className="w-[1324px] h-full gap-6 grid lg:flex lg:items-start">
+      <div className="w-[1324px] h-full gap-3 grid lg:flex lg:items-start">
         {/* Calendar grid */}
         <div className="order-2 lg:order-1 lg:w-[912px]">
           {/* Week header bar */}
-          <div className="mb-2 bg-neutral-20 rounded-[12px]">
+          <div className="mb-3 bg-neutral-20 rounded-[12px]">
             <div className="grid" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
               {days.map((d) => (
                 <div key={d} className="h-12 grid place-items-center text-neutral-60 typo-title-4">

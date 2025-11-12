@@ -57,7 +57,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   return (
     <section
-      className="surface rounded-[32px] p-6 md:p-8 shadow-[6px_6px_54px_rgba(0,0,0,0.05)] h-[178px]"
+      className="surface rounded-[32px] p-6 md:p-8 md:pl-[64px] md:pr-[76px] shadow-[6px_6px_54px_rgba(0,0,0,0.05)] h-[178px]"
       style={{
         background: gradient,
       }}
@@ -93,14 +93,14 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
               )}
             </div>
           </div>
-          <h1 className="mt-4 text-[32px] leading-[38px] font-bold tracking-[-0.114286px] text-foreground">
+          <h1 className="mt-[12px] text-[32px] leading-[38px] font-bold tracking-[-0.114286px] text-foreground">
             {loading ? (
               <span className="inline-flex h-8 w-60 animate-pulse rounded bg-neutral-20" />
             ) : (
               <>안녕하세요, {displayName} 👋</>
             )}
           </h1>
-          <p className="mt-3 text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
+          <p className="mt-[14px] text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-6 w-80 animate-pulse rounded bg-neutral-20" />
             ) : todayQuote ? (

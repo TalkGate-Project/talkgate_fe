@@ -57,7 +57,7 @@ export default function AssignedCustomersTable() {
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
           </div>
         ) : missingProject ? (
-          <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">
+          <div className="flex h-full items-center justify-center text-[14px] text-neutral-60 pb-10">
             프로젝트를 먼저 선택해주세요.
           </div>
         ) : loading ? (
@@ -67,7 +67,7 @@ export default function AssignedCustomersTable() {
             데이터를 불러오는 중 문제가 발생했습니다.
           </div>
         ) : showEmpty ? (
-          <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">
+          <div className="flex h-full items-center justify-center text-[14px] text-neutral-60 pb-10">
             최근에 배정된 고객이 없습니다.
           </div>
         ) : (
