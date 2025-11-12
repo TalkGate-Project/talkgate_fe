@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessengerIntegrationService } from "@/services/messengerIntegration";
 
-export default function InstagramCallbackPage() {
+function InstagramCallbackContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -137,6 +137,28 @@ export default function InstagramCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function InstagramCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-neutral-10">
+        <div className="bg-card rounded-[14px] shadow-lg p-8 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mb-4" />
+            <h2 className="text-[18px] font-semibold text-foreground mb-2">
+              인스타그램 연동 중...
+            </h2>
+            <p className="text-[14px] text-neutral-60">
+              잠시만 기다려주세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    }>
+      <InstagramCallbackContent />
+    </Suspense>
   );
 }
 

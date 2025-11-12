@@ -31,6 +31,6 @@ export const CustomersBulkService = {
     query?: Record<string, string | number | boolean | Array<string | number>>;
   }) {
     const { projectId, query } = params;
-    return apiClient.get("/v1/customers-bulk/export", { query, headers: { "x-project-id": projectId }, responseType: "blob" });
+    return apiClient.get<Blob>("/v1/customers-bulk/export", { query, headers: { "x-project-id": projectId }, responseType: "blob" });
   },
 };

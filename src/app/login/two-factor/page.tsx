@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
@@ -8,7 +8,7 @@ import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import loginCardImg from "@/assets/images/auth/login_card.png";
 
-export default function TwoFactorLoginPage() {
+function TwoFactorLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [totpCode, setTotpCode] = useState("");
@@ -180,6 +180,14 @@ export default function TwoFactorLoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function TwoFactorLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <TwoFactorLoginContent />
+    </Suspense>
   );
 }
 
