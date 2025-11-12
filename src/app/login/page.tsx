@@ -144,11 +144,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
-                onMouseDown={() => setShowPassword(true)}
-                onMouseUp={() => setShowPassword(false)}
-                onMouseLeave={() => setShowPassword(false)}
-                onTouchStart={() => setShowPassword(true)}
-                onTouchEnd={() => setShowPassword(false)}
+                onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
               >
                 {showPassword ? <EyeOnIcon /> : <EyeOffIcon />}
