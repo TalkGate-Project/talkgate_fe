@@ -25,7 +25,10 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <div className={`flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] font-medium ${statusStyles[status as keyof typeof statusStyles]}`}>
+    <div 
+      className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] font-medium leading-[14px] ${statusStyles[status as keyof typeof statusStyles]}`}
+      style={{ opacity: 0.8 }}
+    >
       {status}
     </div>
   );
@@ -51,7 +54,7 @@ export default function BatchRegistrationHistorySettings() {
     {
       id: "2",
       fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "정수진",
+      uploader: "이영희",
       totalCustomers: 311,
       successCount: 264,
       failureCount: 0,
@@ -61,37 +64,27 @@ export default function BatchRegistrationHistorySettings() {
     {
       id: "3",
       fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "4",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "김영업",
-      totalCustomers: 311,
+      uploader: "정수진",
+      totalCustomers: 1234,
       successCount: 264,
       failureCount: 264,
       status: "진행중",
       uploadDate: "2024-01-01 10:52",
     },
     {
-      id: "5",
+      id: "4",
       fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "이개발",
+      uploader: "박인수",
       totalCustomers: 311,
       successCount: 264,
       failureCount: 264,
-      status: "완료",
+      status: "필요",
       uploadDate: "2024-01-01 10:52",
     },
     {
-      id: "6",
+      id: "5",
       fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
+      uploader: "정수진",
       totalCustomers: 311,
       successCount: 264,
       failureCount: 264,
@@ -99,9 +92,9 @@ export default function BatchRegistrationHistorySettings() {
       uploadDate: "2024-01-01 10:52",
     },
     {
-      id: "7",
+      id: "6",
       fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "박인수",
+      uploader: "김영업",
       totalCustomers: 311,
       successCount: 264,
       failureCount: 264,
@@ -109,33 +102,43 @@ export default function BatchRegistrationHistorySettings() {
       uploadDate: "2024-01-01 10:52",
     },
     {
+      id: "7",
+      fileName: "마케팅부서_캠페인_대상_고객...",
+      uploader: "이개발",
+      totalCustomers: 311,
+      successCount: 264,
+      failureCount: 264,
+      status: "필요",
+      uploadDate: "2024-01-01 10:52",
+    },
+    {
       id: "8",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "정수진",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "9",
-      fileName: "마케팅부서_캠페인_대상_고객...",
-      uploader: "김영업",
-      totalCustomers: 311,
-      successCount: 264,
-      failureCount: 264,
-      status: "완료",
-      uploadDate: "2024-01-01 10:52",
-    },
-    {
-      id: "10",
       fileName: "마케팅부서_캠페인_대상_고객...",
       uploader: "이프론트",
       totalCustomers: 311,
       successCount: 264,
       failureCount: 264,
-      status: "완료",
+      status: "필요",
+      uploadDate: "2024-01-01 10:52",
+    },
+    {
+      id: "9",
+      fileName: "마케팅부서_캠페인_대상_고객...",
+      uploader: "이영희",
+      totalCustomers: 311,
+      successCount: 264,
+      failureCount: 264,
+      status: "필요",
+      uploadDate: "2024-01-01 10:52",
+    },
+    {
+      id: "10",
+      fileName: "마케팅부서_캠페인_대상_고객...",
+      uploader: "이영희",
+      totalCustomers: 311,
+      successCount: 264,
+      failureCount: 264,
+      status: "필요",
       uploadDate: "2024-01-01 10:52",
     },
   ]);
@@ -155,110 +158,116 @@ export default function BatchRegistrationHistorySettings() {
   };
 
   function RecordRow({ record }: { record: BatchRegistrationRecord }) {
+    const isFailureZero = record.failureCount === 0;
+
     return (
       <>
-        <div className="flex items-center py-4">
+        <div className="flex items-center h-12 gap-3">
           {/* 파일명 */}
-          <div className="w-[260px] text-[14px] font-semibold text-foreground opacity-80">
+          <div className="w-[189px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
             {record.fileName}
           </div>
 
           {/* 업로더 */}
-          <div className="w-[80px] text-[14px] font-semibold text-foreground opacity-80">
+          <div className="w-[60px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
             {record.uploader}
           </div>
 
           {/* 전체 고객 수 */}
-          <div className="w-[120px] text-right text-[14px] font-semibold text-foreground opacity-80">
+          <div className="w-[120px] text-right text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0">
             {record.totalCustomers}
           </div>
 
           {/* 성공 */}
-          <div className="w-[80px] text-[14px] font-semibold text-primary-80 opacity-80">
+          <div className="w-[60px] text-right text-[14px] font-semibold text-primary-80 opacity-80 leading-[17px] underline shrink-0">
             {record.successCount}
           </div>
 
           {/* 실패 */}
           <div 
             onClick={() => record.failureCount > 0 && handleFailureClick(record)}
-            className="w-[80px] text-[14px] font-bold text-secondary-40 underline opacity-80 cursor-pointer"
+            className={`w-[60px] text-right text-[14px] font-bold opacity-80 leading-[17px] shrink-0 mr-6 ${
+              isFailureZero 
+                ? "text-primary-80"
+                : "text-secondary-60 underline cursor-pointer"
+            }`}
           >
             {record.failureCount}
           </div>
 
           {/* 상태 */}
-          <div className="w-[80px]">
+          <div className="w-[105px] shrink-0">
             <StatusBadge status={record.status} />
           </div>
 
           {/* 업로드 일시 */}
-          <div className="flex-1 text-[14px] font-semibold text-foreground opacity-80">
+          <div className="flex-1 text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] min-w-0">
             {record.uploadDate}
           </div>
         </div>
 
         {/* Divider */}
-        <div className="w-full h-[0.4px] bg-border"></div>
+        <div className="w-full h-[0.4px] bg-neutral-30"></div>
       </>
     );
   }
 
   return (
-    <div className="bg-card rounded-[14px] p-8">
+    <div className="bg-card rounded-[14px] py-7">
       {/* Title */}
-      <h1 className="text-[24px] font-bold text-foreground mb-4">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
         일괄 등록 이력
       </h1>
 
+      <div className="border-b border-[#E2E2E266]"></div>
+
       {/* Sub-title */}
-      <h2 className="text-[16px] font-semibold text-foreground mb-1">
-        일괄 등록 이력
+      <h2 className="px-7 pt-[30px] text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">
+        일괄 고객 등록 이력
       </h2>
 
       {/* Description */}
-      <p className="text-[14px] font-medium text-neutral-60 mb-6">
+      <p className="px-7 text-[14px] font-medium text-neutral-60 leading-5 mb-2">
         엑셀 파일을 통한 고객 정보 일괄 등록 이력을 확인할 수 있습니다.
       </p>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-border mb-6"></div>
+      <div className="mx-7 h-px bg-neutral-30 mb-6"></div>
 
       {/* Table Header */}
-      <div className="bg-neutral-20 rounded-[12px] px-6 py-3 mb-4">
-        <div className="flex items-center">
-          <div className="w-[260px] text-[16px] font-bold text-neutral-60">
-            파일명
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            업로더
-          </div>
-          <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60">
-            전체 고객 수
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            성공
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            실패
-          </div>
-          <div className="w-[80px] text-[16px] font-bold text-neutral-60">
-            상태
-          </div>
-          <div className="flex-1 text-[16px] font-bold text-neutral-60">
-            업로드 일시
-          </div>
+      <div className="mx-7 bg-neutral-20 rounded-[12px] px-10 h-12 flex items-center gap-3">
+        <div className="w-[162px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          파일명
+        </div>
+        <div className="w-[60px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          업로더
+        </div>
+        <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          전체 고객 수
+        </div>
+        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          성공
+        </div>
+        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0 mr-6">
+          실패
+        </div>
+        <div className="w-[105px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+          상태
+        </div>
+        <div className="flex-1 text-[16px] font-bold text-neutral-60 leading-[19px] min-w-0">
+          업로드 일시
         </div>
       </div>
 
       {/* Record List */}
-      <div className="space-y-0 mb-6">
+      <div className="px-10">
         {records.map((record) => (
           <RecordRow key={record.id} record={record} />
         ))}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-4">
         <Pagination
           page={currentPage}
           totalPages={totalPages}
