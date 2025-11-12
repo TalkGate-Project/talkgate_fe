@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ApiKeyRegenerateModal from "./ApiKeyRegenerateModal";
 
 const API_ENDPOINT_PLACEHOLDER = "https://api.talkgate.im/v1/projects/proj_1fdx73abc123/customers";
 const API_KEY_PLACEHOLDER = "TGK-1a9d6sd9a6sd96asd9a6sd9a6sd9as6d";
@@ -9,6 +10,7 @@ export default function CustomerApiSettings() {
   const [showKey, setShowKey] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const [keyCopyState, setKeyCopyState] = useState<"idle" | "copied">("idle");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCopyEndpoint = async () => {
     try {
@@ -32,8 +34,17 @@ export default function CustomerApiSettings() {
     }
   };
 
-  const handleRegenerate = () => {
-    alert("API 키 재발급은 추후 API 연동 후 구현 예정입니다.");
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleConfirmRegenerate = () => {
+    // TODO: API 연동 후 실제 재발급 로직 구현
+    alert("API 키가 재발급되었습니다. (추후 API 연동 후 실제 구현 예정)");
   };
 
   return (
@@ -89,7 +100,7 @@ export default function CustomerApiSettings() {
                 {keyCopyState === "copied" ? "복사됨" : "복사"}
               </button>
               <button
-                onClick={handleRegenerate}
+                onClick={handleOpenModal}
                 className="h-9 px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90"
               >
                 재발급
@@ -101,6 +112,13 @@ export default function CustomerApiSettings() {
           </p>
         </div>
       </section>
+
+      {/* API Key Regenerate Modal */}
+      <ApiKeyRegenerateModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmRegenerate}
+      />
     </div>
   );
 }
