@@ -168,7 +168,7 @@ export const AuthService = {
     return apiClient.post<TwoFactorDisableSendCodeResponse>("/v1/auth/two-factor/disable/send-code");
   },
   twoFactorDisable(input: TwoFactorDisableInput) {
-    return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { data: input });
+    return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { body: input });
   },
   twoFactorLogin(input: TwoFactorLoginInput) {
     return apiClient.post<TwoFactorLoginOutput>("/v1/auth/two-factor/login", input).then((res) => {
