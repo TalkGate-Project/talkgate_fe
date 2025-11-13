@@ -6,7 +6,7 @@ import type {
   RankingTeamRecord,
   RankingTeamResponse,
 } from "@/types/statistics";
-import { formatCurrencyKR, formatPercentChange, formatRankChange, parseFloatSafe } from "@/utils/format";
+import { formatCurrencyKR, formatAmountChangeKR, formatPercentChange, formatRankChange, parseFloatSafe } from "@/utils/format";
 
 export type RankingMode = "team" | "member";
 
@@ -44,8 +44,10 @@ export function useSalesRankingData({
         rank: item.rank,
         name: item.teamName ?? "소속없음",
         amountLabel: `₩ ${formatCurrencyKR(item.totalAmount)}`,
-        changeLabel: formatRankChange(item.rankChange),
-        changePositive: (item.rankChange ?? 0) >= 0,
+        changeLabel: formatAmountChangeKR(item.totalAmount, item.previousTotalAmount),
+        changePositive: item.previousTotalAmount !== null && item.previousTotalAmount !== undefined
+          ? item.totalAmount >= item.previousTotalAmount
+          : true,
       }));
     }
     const payload = memberQuery.data?.data;
@@ -55,8 +57,10 @@ export function useSalesRankingData({
       rank: item.rank,
       name: item.memberName,
       amountLabel: `₩ ${formatCurrencyKR(item.totalAmount)}`,
-      changeLabel: formatPercentChange(item.amountChangeRate),
-      changePositive: parseFloatSafe(item.amountChangeRate) >= 0,
+      changeLabel: formatAmountChangeKR(item.totalAmount, item.previousTotalAmount),
+      changePositive: item.previousTotalAmount !== null && item.previousTotalAmount !== undefined
+        ? item.totalAmount >= item.previousTotalAmount
+        : true,
     }));
   }, [mode, teamQuery.data, memberQuery.data]);
 

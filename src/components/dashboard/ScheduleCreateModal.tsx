@@ -90,7 +90,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
             <button
               aria-label="close"
               onClick={() => !submitting && onClose()}
-              className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-70"
+              className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-70"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -102,7 +102,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               <button
                 aria-label="prev"
                 onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1))}
-                className="w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] grid place-items-center"
+                className="cursor-pointer w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] grid place-items-center"
               >
                 <CalendarPrevIcon />
               </button>
@@ -114,7 +114,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               <button
                 aria-label="next"
                 onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))}
-                className="w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] grid place-items-center"
+                className="cursor-pointer w-[34px] h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] grid place-items-center"
               >
                 <CalendarNextIcon />
               </button>
@@ -180,7 +180,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-[18px] h-[18px] rounded-full ${color === c ? "ring-2 ring-offset-2 ring-neutral-40" : ""}`}
+                  className={`cursor-pointer w-[18px] h-[18px] rounded-full ${color === c ? "ring-2 ring-offset-2 ring-neutral-40" : ""}`}
                   style={{ background: c }}
                   aria-label={`color ${c}`}
                 />
@@ -196,14 +196,14 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
         <div className="absolute bottom-4 right-6 flex items-center gap-3">
           <button
             onClick={() => !submitting && onClose()}
-            className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold"
           >
             취소
           </button>
           <button
             onClick={onSubmit}
             disabled={submitting || !projectId}
-            className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0] disabled:opacity-60"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0] disabled:opacity-60"
           >
             일정 추가
           </button>

@@ -51,31 +51,31 @@ export default function SalesRanking() {
       action={
         <button
           onClick={() => router.push(`/stats?tab=ranking&rank=${mode}`)}
-          className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
         >
           더보기
         </button>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-7 pt-7"
+      headerClassName="flex items-center justify-between px-7 pt-[22px]"
       style={{ height: 420, boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
     >
       <div className="w-full bg-neutral-20 rounded-[12px] px-3 py-2 grid grid-cols-2">
         <button
-          className={`h-[31px] rounded-[5px] typo-title-4 ${mode === "team" ? "bg-card text-foreground" : "text-neutral-60"}`}
+          className={`cursor-pointer h-[31px] rounded-[5px] typo-title-4 ${mode === "team" ? "bg-card text-foreground" : "text-neutral-60"}`}
           onClick={() => setMode("team")}
         >
           팀별
         </button>
         <button
-          className={`h-[31px] rounded-[5px] typo-title-4 ${mode === "member" ? "bg-card text-foreground" : "text-neutral-60"}`}
+          className={`cursor-pointer h-[31px] rounded-[5px] typo-title-4 ${mode === "member" ? "bg-card text-foreground" : "text-neutral-60"}`}
           onClick={() => setMode("member")}
         >
           팀원별
         </button>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-0">
         {waitingForProject ? (
           <div className="flex h-[240px] items-center justify-center">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
@@ -97,8 +97,8 @@ export default function SalesRanking() {
         ) : (
           <ol>
             {rows.map((item) => (
-              <li key={`${mode}-${item.rank}-${item.name}`} className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
-                <div className="flex items-center gap-3">
+              <li key={`${mode}-${item.rank}-${item.name}`} className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
+                <div className="flex items-center gap-2">
                   <span
                     className={`grid place-items-center w-6 h-6 rounded-full text-[14px] font-montserrat ${
                       item.rank <= 3 ? "bg-neutral-90 text-neutral-0" : "bg-neutral-20 text-neutral-60"
@@ -108,12 +108,10 @@ export default function SalesRanking() {
                   </span>
                   <span className="typo-title-4 text-foreground opacity-90">{item.name}</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="typo-body-3 text-foreground opacity-90 font-montserrat">{item.amountLabel}</span>
                   <span
-                    className={`px-2 py-1 rounded-[5px] typo-caption-2 leading-none ${
-                      item.changePositive ? "bg-neutral-20 text-neutral-60" : "bg-danger-10 text-danger-40"
-                    }`}
+                    className={`px-2 py-1 rounded-[5px] typo-caption-2 leading-none bg-neutral-20 text-neutral-60`}
                   >
                     <span className="font-montserrat">{item.changeLabel}</span>
                   </span>

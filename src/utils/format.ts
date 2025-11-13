@@ -1,5 +1,21 @@
 export function formatCurrencyKR(value: number): string {
-  return value.toLocaleString("ko-KR");
+  if (value >= 100000000) {
+    // 1억 이상
+    const eok = Math.floor(value / 100000000);
+    const man = Math.floor((value % 100000000) / 10000);
+    if (man > 0) {
+      return `${eok}억 ${man.toLocaleString("ko-KR")}만`;
+    }
+    return `${eok}억`;
+  } else if (value >= 10000) {
+    // 1만 이상
+    const man = Math.floor(value / 10000);
+    return `${man.toLocaleString("ko-KR")}만`;
+  } else if (value > 0) {
+    // 1만 미만
+    return value.toLocaleString("ko-KR");
+  }
+  return "0";
 }
 
 export function formatRankChange(change: number | null | undefined): string {
@@ -20,6 +36,28 @@ export function formatPercentChange(value: string | number | null | undefined): 
   if (parsed === 0) return "0%";
   const display = Math.round(parsed * 10) / 10;
   return `${display > 0 ? "+" : ""}${display}%`;
+}
+
+/**
+ * 금액 차이를 만원 단위로 포맷합니다.
+ */
+export function formatAmountChangeKR(current: number, previous: number | null | undefined): string {
+  if (previous === null || previous === undefined) return "-";
+  
+  const diff = current - previous;
+  if (diff === 0) return "유지";
+  
+  const absDiff = Math.abs(diff);
+  const sign = diff > 0 ? "+" : "-";
+  
+  if (absDiff >= 10000) {
+    // 1만 이상
+    const man = Math.floor(absDiff / 10000);
+    return `${sign}${man.toLocaleString("ko-KR")}만`;
+  } else {
+    // 1만 미만
+    return `${sign}${absDiff.toLocaleString("ko-KR")}`;
+  }
 }
 
 /**
