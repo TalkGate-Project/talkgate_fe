@@ -97,6 +97,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setSocketError(null);
     }
 
+    // 페이지 새로고침/닫기 시 소켓 정리
+    const handleBeforeUnload = () => {
+      talkgateSocket.disconnect();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     // 소켓 연결 상태 핸들러
     const handleConnected = () => {
       setConnected(true);
@@ -285,7 +291,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     lastConvCursorRequestedRef.current = undefined;
     convLoadingRef.current = true;
 
-    // 클린업: 이벤트 리스너 제거
+    // 클린업: 이벤트 리스너 제거 및 소켓 연결 해제
     return () => {
       socket.off("connect", handleConnected);
       socket.off("ready", onReady);
@@ -298,6 +304,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
       socket.off("messageResult", onMessageResult as any);
       socket.off("newMessage", onNewMessage as any);
       socket.off("messagesMarkedRead", onMessagesMarkedRead as any);
+      
+      // beforeunload 이벤트 리스너 제거
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      
+      // 페이지 이탈 시 소켓 연결 해제
+      talkgateSocket.disconnect();
     };
   }, [projectId, status, platform]); // showBanner 제거하여 불필요한 재연결 방지
 

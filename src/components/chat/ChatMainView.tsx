@@ -141,13 +141,13 @@ export default function ChatMainView({
     <div className="max-w-[688px] flex justify-center">
       <div className="min-w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
         {/* Header */}
-        <div className="px-7 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
+        <div className="px-7 py-[15px] flex items-center justify-between border-b border-[#E2E2E266]">
           <div className="flex items-center gap-4">
             {activeConversation ? (
               <>
                 <div className="w-10 h-10 rounded-full bg-neutral-20" />
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center leading-[24px] gap-2">
                     <span className="text-[20px] font-bold text-ink">
                       {activeConversation.name}
                     </span>
@@ -155,7 +155,7 @@ export default function ChatMainView({
                       <PlatformIcon platform={activeConversation.platform} />
                     </div>
                   </div>
-                  <div className="text-[14px] text-neutral-60">
+                  <div className="text-[12px] text-neutral-60">
                     ID : {activeConversation.platformConversationId || "-"}
                   </div>
                 </div>

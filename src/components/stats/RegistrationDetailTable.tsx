@@ -69,12 +69,12 @@ export default function RegistrationDetailTable({
       <div className="overflow-hidden rounded-[12px]">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-[#EDEDED] h-[48px]">
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">날짜</th>
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">신청 건수</th>
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">직접입력</th>
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">엑셀 업로드</th>
-              <th className="text-left px-4 text-[16px] font-bold text-[#808080]">API</th>
+            <tr className="bg-neutral-20 h-[40px]">
+              <th className="text-left px-4 text-[16px] font-medium text-neutral-60 rounded-l-[8px]">날짜</th>
+              <th className="text-left px-4 text-[16px] font-medium text-neutral-60">신청 건수</th>
+              <th className="text-left px-4 text-[16px] font-medium text-neutral-60">직접입력</th>
+              <th className="text-left px-4 text-[16px] font-medium text-neutral-60">엑셀 업로드</th>
+              <th className="text-left px-4 text-[16px] font-medium text-neutral-60 rounded-r-[8px]">API</th>
             </tr>
           </thead>
           <tbody>

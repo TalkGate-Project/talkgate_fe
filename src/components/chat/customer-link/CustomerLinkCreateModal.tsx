@@ -149,8 +149,21 @@ export default function CustomerLinkCreateModal({
             onClick={() => !submitting && onClose()}
             className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-90 transition-colors"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              className="cursor-pointer"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 18L18 6M6 6L18 18"
+                stroke="#B0B0B0"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </button>
         </div>
@@ -373,7 +386,7 @@ export default function CustomerLinkCreateModal({
                 <button
                   type="button"
                   onClick={handleAddMessenger}
-                  className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
                 >
                   추가
                 </button>
@@ -467,21 +480,21 @@ export default function CustomerLinkCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 px-6 py-4 flex justify-between gap-3">
-          <button
+        <div className="border-t border-neutral-30 px-6 py-4 flex justify-end gap-3">
+          {/* <button
             type="button"
             onClick={onClose}
             disabled={submitting}
             className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 disabled:opacity-60"
           >
             닫기
-          </button>
+          </button> */}
           <div className="flex gap-3">
             <button
               type="button"
               onClick={handleReset}
               disabled={submitting}
-              className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 disabled:opacity-60"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 disabled:opacity-60"
             >
               초기화
             </button>
@@ -489,7 +502,7 @@ export default function CustomerLinkCreateModal({
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
             >
               {submitting ? "적용 중..." : "적용완료"}
             </button>
