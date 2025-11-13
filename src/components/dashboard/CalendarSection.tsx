@@ -233,11 +233,11 @@ export default function CalendarSection() {
               ) : (
                 selectedSchedules.map((schedule) => (
                   <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0" style={{ maxWidth: 304 }}>
-                    <span className="w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
-                    <span className="typo-body-2 text-neutral-60 w-[61px] text-center self-center shrink-0 font-montserrat" style={montserratStyle}>
+                    <span className="leading-[1] w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
+                    <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
                       {formatTimeFromISO(schedule.scheduleTime)}
                     </span>
-                    <span className="typo-body-2 text-neutral-60 flex-1 truncate">
+                    <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate">
                       {schedule.description || schedule.customer?.name || "일정"}
                     </span>
                   </div>

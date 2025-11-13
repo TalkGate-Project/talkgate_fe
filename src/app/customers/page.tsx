@@ -124,7 +124,7 @@ function CustomersPage() {
         title={
           <div className="flex items-end gap-3">
             <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
-            <span className="w-px h-4 bg-neutral-60 opacity-60" />
+            <span className="w-px h-4 bg-neutral-60 opacity-40" />
             <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
