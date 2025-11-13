@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build --turbopack",
+    "build:no-turbo": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.7",

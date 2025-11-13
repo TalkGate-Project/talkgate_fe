@@ -52,6 +52,11 @@ export default function CalendarSection() {
   const cells: CalendarCell[] = useMemo(() => generateMonthCells(current), [current]);
   const year = current.getFullYear();
   const month = current.getMonth() + 1; // 1-12
+  
+  // 달력의 행 수 계산 (5줄 또는 6줄)
+  const calendarRows = cells.length / 7;
+  // 달력 전체 높이 = 요일 헤더(40px + mb-3 = 52px) + (행 수 × 최소 높이 93px)
+  const calendarHeight = 52 + (calendarRows * 93);
 
   const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["dashboard", "schedule", projectId, year, month],
@@ -105,14 +110,14 @@ export default function CalendarSection() {
       style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       bodyClassName="px-6 pb-6 pt-4"
     >
-      <div className="w-[1324px] h-full gap-3 grid lg:flex lg:items-start">
+      <div className="w-[1324px] gap-3 grid lg:flex lg:items-stretch">
         {/* Calendar grid */}
-        <div className="order-2 lg:order-1 lg:w-[912px]">
+        <div className="order-2 lg:order-1 lg:w-[912px] flex flex-col">
           {/* Week header bar */}
           <div className="mb-3 bg-neutral-20 rounded-[12px]">
             <div className="grid" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
               {days.map((d) => (
-                <div key={d} className="h-12 grid place-items-center text-neutral-60 typo-title-4">
+                <div key={d} className="h-10 grid place-items-center text-neutral-60 typo-title-4">
                   {d}
                 </div>
               ))}
@@ -185,13 +190,13 @@ export default function CalendarSection() {
         </div>
 
         {/* Right schedule list */}
-        <aside className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]">
-          <div className="bg-neutral-10 rounded-[12px] p-4 h-full relative flex flex-col">
-            <div className="flex items-center justify-between mb-4 gap-2">
+        <aside className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]" style={{ minHeight: `${calendarHeight}px` }}>
+          <div className="bg-neutral-10 rounded-[12px] p-7 h-full relative flex flex-col">
+            <div className="flex items-center justify-between mb-5 gap-2">
               <div className="typo-title-2">
                 {selectedDate ? (
                   <>
-                    <span className="font-montserrat" style={montserratStyle}>{format(selectedDate, "MM.dd")}</span>{" "}
+                    <span className="font-montserrat tracking-[1px]" style={montserratStyle}>{format(selectedDate, "MM.dd")}</span>&nbsp;&nbsp;
                     {format(selectedDate, "EEEE", { locale: ko })}
                   </>
                 ) : (
@@ -199,29 +204,30 @@ export default function CalendarSection() {
                 )} ({<span className="font-montserrat" style={montserratStyle}>{selectedSchedules.length}</span>})
               </div>
               <button
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20"
                 onClick={() => setShowCreate(true)}
               >
                 일정 추가
               </button>
             </div>
-            <div className="space-y-3 pr-3 overflow-y-auto h-[532px]">
+            <div className="border-t border-[#E2E2E255] mb-3"></div>
+            <div className="space-y-3 overflow-y-auto flex-1">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
                 </div>
               ) : missingProject ? (
-                <div className="flex h-[532px] items-center justify-center text-[14px] text-neutral-60">
+                <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">
                   프로젝트를 먼저 선택해주세요.
                 </div>
               ) : loading ? (
                 <ScheduleSkeleton />
               ) : error ? (
-                <div className="flex h-[532px] items-center justify-center text-[14px] text-danger-40">
+                <div className="flex h-full items-center justify-center text-[14px] text-danger-40">
                   일정을 불러오는 중 문제가 발생했습니다.
                 </div>
               ) : selectedSchedules.length === 0 ? (
-                <div className="flex h-[532px] items-center justify-center text-[14px] text-neutral-60">
+                <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">
                   {data?.data.schedules === null ? "일정 데이터가 없습니다." : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (

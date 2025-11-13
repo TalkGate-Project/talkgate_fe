@@ -16,10 +16,10 @@ export default function CustomersFilterBar({
   return (
     <div className="mb-2 flex flex-wrap items-end gap-3" style={{ minHeight: 59 }}>
       {/* 이름 */}
-      <div className="min-w-[384px]" style={{ width: 384 }}>
+      <div className="w-[200px]">
         <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">이름</label>
         <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] bg-neutral-0">
-          <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
+          <div className="flex flex-row items-center p-0 gap-[30px] w-[176px] h-[17px]">
             <input
               className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
               placeholder="이름 검색"
@@ -31,10 +31,10 @@ export default function CustomersFilterBar({
       </div>
 
       {/* 핸드폰번호 */}
-      <div className="min-w-[384px]" style={{ width: 384 }}>
+      <div className="w-[200px]">
         <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">핸드폰번호</label>
         <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] bg-neutral-0">
-          <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
+          <div className="flex flex-row items-center p-0 gap-[30px] w-[176px] h-[17px]">
             <input
               className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
               placeholder="핸드폰번호 검색"
