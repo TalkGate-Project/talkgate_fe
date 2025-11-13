@@ -79,16 +79,19 @@ export default function CustomersTable({
 
   return (
     <>
-      <div className="overflow-hidden rounded-[12px]" style={{ width: "100%" }}>
-        <table className="w-full text-left border-separate border-spacing-0">
+      <div className="overflow-hidden" style={{ width: "100%" }}>
+        <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-6 h-[40px] rounded-l-[8px]">
-                <Checkbox
-                  checked={allSelectedOnPage}
-                  onChange={onSelectAll}
-                  ariaLabel="전체 선택"
-                />
+              <th className="px-6 h-[40px] align-middle">
+                <div className="flex items-center justify-start">
+                  <Checkbox
+                    checked={allSelectedOnPage}
+                    onChange={onSelectAll}
+                    ariaLabel="전체 선택"
+                    size={24}
+                  />
+                </div>
               </th>
               {[
                 "이름",
@@ -99,10 +102,10 @@ export default function CustomersTable({
                 "담당자",
                 "신청시간",
                 "배정시간",
-              ].map((h, i, arr) => (
+              ].map((h) => (
                 <th
                   key={h}
-                  className={`typo-title-4 font-medium px-6 h-[40px] ${i === arr.length - 1 ? "rounded-r-[8px]" : ""}`}
+                  className="typo-title-4 font-medium px-6 h-[40px]"
                 >
                   {h}
                 </th>
@@ -124,24 +127,31 @@ export default function CustomersTable({
                 </td>
               </tr>
             )}
-            {customers.map((c) => {
+            {customers.map((c, index) => {
               const checked = selectedIds.includes(c.id);
+              const isLastRow = index === customers.length - 1;
               return (
                 <tr
                   key={c.id}
-                  className={`border-b-[0.5px] border-neutral-30 ${
-                    hoveredId === c.id ? "bg-neutral-10" : ""
-                  }`}
+                  className={`${
+                    isLastRow 
+                      ? "border-b border-[#E2E2E2]" 
+                      : ""
+                  } ${hoveredId === c.id ? "bg-neutral-10" : ""}`}
+                  style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
                   onMouseEnter={(e) => handleMouseEnter(e, c)}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <td className="px-6 h-[58px] align-middle">
-                    <Checkbox
-                      checked={checked}
-                      onChange={(next) => onSelect(c.id, next)}
-                      ariaLabel={`select ${c.name}`}
-                    />
+                  <td className="px-6 h-[58px]">
+                    <div className="flex items-center h-full">
+                      <Checkbox
+                        checked={checked}
+                        onChange={(next) => onSelect(c.id, next)}
+                        ariaLabel={`select ${c.name}`}
+                        size={24}
+                      />
+                    </div>
                   </td>
                   <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
                     <button

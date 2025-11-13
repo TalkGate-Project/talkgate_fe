@@ -124,11 +124,11 @@ function CustomersPage() {
         title={
           <div className="flex items-end gap-3">
             <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
-            <span className="w-px h-4 bg-neutral-60 opacity-60" />
+            <span className="w-px h-4 bg-neutral-60 opacity-40" />
             <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-7 border-t border-neutral-30"
+        bodyClassName="px-7 pb-[18px] pt-[30px] border-t border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -157,7 +157,8 @@ function CustomersPage() {
             onCreateOpen={() => setCreateOpen(true)}
           />
         }
-        bodyClassName="px-7 pb-7 pt-0"
+        headerClassName="px-7 py-6"
+        bodyClassName="px-7 pb-4 pt-0"
       >
         <CustomersTable
           customers={customers}
