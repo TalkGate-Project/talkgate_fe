@@ -20,7 +20,7 @@ export default function ConsultPage() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 py-6">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-6">
         <ChatPanel projectId={projectId} />
       </div>
     </main>

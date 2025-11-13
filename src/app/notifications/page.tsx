@@ -172,7 +172,7 @@ export function NotificationsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[1324px] px-6 pt-6 pb-24">
+      <div className="mx-auto max-w-[1324px] px-6 pt-9 pb-24">
         {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
         <section className="bg-card rounded-[14px]">
           <div className="px-7 pt-6 pb-5">
@@ -287,7 +287,7 @@ export default function NotificationsPageWrapper() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-[1324px] px-6 pt-6 pb-24 text-neutral-60">불러오는 중...</div>
+        <div className="mx-auto max-w-[1324px] px-6 pt-9 pb-24 text-neutral-60">불러오는 중...</div>
       </main>
     }>
       <NotificationsPage />

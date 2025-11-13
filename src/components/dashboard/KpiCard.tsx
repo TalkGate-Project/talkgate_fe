@@ -9,7 +9,10 @@ type KpiCardProps = {
 
 export default function KpiCard({ icon, label, value, className, loading }: KpiCardProps) {
   return (
-    <div className={`surface rounded-[14px] elevation-1 pl-7 pt-7 pr-4 min-h-[120px] flex justify-between ${className ?? ""}`}>
+    <div 
+      className={`surface rounded-[14px] pl-7 pt-7 pr-4 min-h-[120px] flex justify-between ${className ?? ""}`}
+      style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
+    >
       <div>
         <div className="text-title-4 font-semibold text-neutral-90">{label}</div>
         <div
