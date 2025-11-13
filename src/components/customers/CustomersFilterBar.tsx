@@ -46,15 +46,15 @@ export default function CustomersFilterBar({
       </div>
 
       {/* Buttons immediately after inputs */}
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-3">
         <button
-          className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
           onClick={onFilterOpen}
         >
           필터추가
         </button>
         <button
-          className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
           onClick={onSearch}
         >
           검색

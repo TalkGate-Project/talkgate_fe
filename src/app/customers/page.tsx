@@ -128,7 +128,7 @@ function CustomersPage() {
             <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-4 pt-7 border-t border-neutral-30"
+        bodyClassName="px-7 pb-[18px] pt-[30px] border-t border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -157,7 +157,8 @@ function CustomersPage() {
             onCreateOpen={() => setCreateOpen(true)}
           />
         }
-        bodyClassName="px-7 pb-7 pt-0"
+        headerClassName="px-7 py-6"
+        bodyClassName="px-7 pb-4 pt-0"
       >
         <CustomersTable
           customers={customers}
