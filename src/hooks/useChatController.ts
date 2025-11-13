@@ -366,7 +366,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         if (!target) return prev;
         const updated: Conversation = {
           ...target,
-          latestMessage: {
+          lastMessage: {
             id: Number.NEGATIVE_INFINITY as any,
             conversationId: activeId,
             type: "text",
@@ -489,7 +489,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         if (!target) return prev;
         const updated: Conversation = {
           ...target,
-          latestMessage: {
+          lastMessage: {
             id: Number.NEGATIVE_INFINITY as any,
             conversationId: activeId,
             type: messageType as any,
