@@ -117,7 +117,7 @@ function CustomersPage() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
       {/* Top panel: title + search */}
       <Panel
         className="rounded-[14px] mb-9"

@@ -73,7 +73,7 @@ function DashboardContent() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-background text-foreground">
-      <div className="mx-auto max-w-[1324px] w-full px-0 py-6">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-6">
         <GreetingBanner
           userName={user?.name ?? user?.email ?? null}
           todayQuote={summary?.todayQuote ?? null}

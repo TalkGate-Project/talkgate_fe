@@ -173,7 +173,7 @@ function AttendancePageContent() {
   if (!attendanceReady || !isAttendanceMenuEnabled) {
     return (
       <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-        <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+        <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
           <div className="flex items-center justify-center h-64">
             <div className="text-neutral-60">페이지를 확인하는 중...</div>
           </div>
@@ -184,7 +184,7 @@ function AttendancePageContent() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
         {/* Top panel: title + date selector */}
         <Panel
           className="rounded-[14px] mb-4"
@@ -360,7 +360,7 @@ export default function AttendancePage() {
   return (
     <Suspense fallback={
       <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-        <div className="mx-auto max-w-[1324px] w-full px-0 pt-6 pb-12">
+        <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
           <div className="text-neutral-60">불러오는 중...</div>
         </div>
       </main>
