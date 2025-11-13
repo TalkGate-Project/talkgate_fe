@@ -48,7 +48,7 @@ export default function AssignedCustomersTable() {
         </button>
       }
       className="rounded-[14px]"
-      style={{ height: 420, boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
+      style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       headerClassName="flex items-center justify-between px-7 pt-[22px]"
       bodyClassName="px-6 pb-0 pt-4 flex flex-col"
     >

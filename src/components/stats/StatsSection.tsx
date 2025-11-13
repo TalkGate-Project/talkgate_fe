@@ -120,7 +120,7 @@ export default function StatsSection() {
       title={<span className="typo-title-4">주간 매출 통계</span>}
       action={<button onClick={() => router.push("/stats?tab=payment")} className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
       className="rounded-[14px]"
-      style={{ height: 420 }}
+      style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       headerClassName="flex items-center justify-between px-7 pt-[22px]"
       bodyClassName="px-6 pb-6 pt-4"
     >

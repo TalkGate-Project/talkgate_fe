@@ -46,6 +46,7 @@ export default function NoticeSection() {
       className="rounded-[14px]"
       headerClassName="flex items-center justify-between px-7 pt-[22px]"
       bodyClassName="px-7 pb-7 pt-5"
+      style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
     >
       {waitingForProject ? (
         <div className="flex h-[240px] items-center justify-center">

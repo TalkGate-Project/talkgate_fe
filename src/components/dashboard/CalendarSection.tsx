@@ -102,7 +102,7 @@ export default function CalendarSection() {
       }
       className="rounded-[14px]"
       headerClassName="flex items-center justify-between px-7 pt-[22px]"
-      style={{ boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
+      style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       bodyClassName="px-6 pb-6 pt-4"
     >
       <div className="w-[1324px] h-full gap-3 grid lg:flex lg:items-start">
