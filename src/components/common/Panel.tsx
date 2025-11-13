@@ -23,7 +23,7 @@ export default function Panel({ title, action, className, children, style, bodyC
           {action}
         </div>
       )}
-      <div className={`${bodyClassName ?? (title ? "px-7 pb-7 pt-4" : "p-7")} grow`}>{children}</div>
+      <div className={`${bodyClassName ?? (title ? "px-7 pb-7 pt-3" : "p-7")} grow`}>{children}</div>
     </section>
   );
 }

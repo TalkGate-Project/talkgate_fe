@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
@@ -24,12 +24,52 @@ import { formatCurrencyKR } from "@/utils/format";
 
 const WEEKS = 6;
 
+// 날짜로부터 "N월 N째주" 형식의 레이블을 생성하는 함수
+function getWeekLabel(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+  
+  const month = date.getMonth() + 1; // 1-12
+  const dayOfMonth = date.getDate(); // 1-31
+  const weekDay = date.getDay(); // 0(일) ~ 6(토)
+  
+  // 해당 월의 첫날
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstDayOfWeek = firstDay.getDay(); // 0(일) ~ 6(토)
+  
+  // 해당 월에서 현재 주의 시작 요일(weekDay)과 같은 요일이 처음 나오는 날짜를 찾기
+  let firstOccurrence = 1;
+  if (firstDayOfWeek <= weekDay) {
+    firstOccurrence = 1 + (weekDay - firstDayOfWeek);
+  } else {
+    firstOccurrence = 1 + (7 - firstDayOfWeek + weekDay);
+  }
+  
+  // 첫 번째 발생일부터 현재 날짜까지 몇 주가 지났는지 계산
+  let weekNumber;
+  if (dayOfMonth < firstOccurrence) {
+    // 현재 날짜가 이번 달의 첫 번째 해당 요일보다 이전이면 이전 달 주차
+    // 이 경우 이전 달로 표시해야 하지만, 간단하게 처리
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevMonthName = `${prevMonth}월`;
+    return `${prevMonthName} 마지막주`;
+  } else {
+    weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+  }
+  
+  const weekNames = ["첫째주", "둘째주", "셋째주", "넷째주", "다섯째주"];
+  const weekName = weekNames[weekNumber - 1] || `${weekNumber}째주`;
+  
+  return `${month}월 ${weekName}`;
+}
+
 export default function StatsSection() {
   const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const montserratStyle = { fontFamily: 'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui' };
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentWeeklyResponse>({
@@ -48,7 +88,7 @@ export default function StatsSection() {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
     return records
       .map((item) => ({
-        label: `${formatMonthDay(item.weekStartDate)}~${formatMonthDay(item.weekEndDate)}`,
+        label: getWeekLabel(item.weekStartDate),
         amount: item.totalAmount,
         count: item.paymentCount,
       }))
@@ -77,10 +117,11 @@ export default function StatsSection() {
 
   return (
     <Panel
-      title={<span className="typo-title-2">주간 매출 통계</span>}
-      action={<button onClick={() => router.push("/stats?tab=payment")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
+      title={<span className="typo-title-4">주간 매출 통계</span>}
+      action={<button onClick={() => router.push("/stats?tab=payment")} className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
       className="rounded-[14px]"
       style={{ height: 420 }}
+      headerClassName="flex items-center justify-between px-7 pt-[22px]"
       bodyClassName="px-6 pb-6 pt-4"
     >
       <div className="h-[320px]">
@@ -98,7 +139,19 @@ export default function StatsSection() {
           <EmptyState message={data?.data.data === null ? "주간 매출 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."} />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ left: 12, right: 12, top: 42, bottom: 12 }}>
+            <AreaChart 
+              data={chartData} 
+              margin={{ left: 46, right: 12, top: 42, bottom: 12 }}
+              onMouseMove={(state) => {
+                if (state && state.isTooltipActive) {
+                  const idx = state.activeTooltipIndex;
+                  setActiveIndex(typeof idx === 'number' ? idx : null);
+                } else {
+                  setActiveIndex(null);
+                }
+              }}
+              onMouseLeave={() => setActiveIndex(null)}
+            >
               <defs>
                 <linearGradient id="dashboardWeekly" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.35} />
@@ -133,17 +186,22 @@ export default function StatsSection() {
                 dot={{ r: 5, fill: "var(--primary-60)" }}
                 activeDot={{ r: 7 }}
               >
-                {/** Always-visible labels at each vertex. Max point adds a separate black '최고점수' bubble above */}
+                {/** Labels shown only on hover or for max value. Max point adds a separate black '최고점수' bubble above */}
                 <LabelList
                   dataKey="amount"
                   position="top"
                   content={(props: any) => {
                     const { x, y, value, index } = props;
                     if (x == null || y == null) return null;
+                    const isMax = index === maxIndex;
+                    const isActive = index === activeIndex;
+                    
+                    // Show label only if it's the max or currently hovered
+                    if (!isMax && !isActive) return null;
+                    
                     const numeric = formatCurrencyKR(Number(value ?? 0));
                     const unit = "원";
                     const label = `${numeric}${unit}`;
-                    const isMax = index === maxIndex;
                     const textY = y - 12; // place above the point
                     // Price bubble (always gray)
                     const rectWidth = Math.max(34, label.length * 8);

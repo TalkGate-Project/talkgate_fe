@@ -39,11 +39,13 @@ export default function NoticeSection() {
 
   return (
     <Panel
-      title={<span className="typo-title-2">공지사항</span>}
+      title={<span className="typo-title-4">공지사항</span>}
       action={
-        <button onClick={() => router.push("/notices")} className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
+        <button onClick={() => router.push("/notices")} className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
       }
       className="rounded-[14px]"
+      headerClassName="flex items-center justify-between px-7 pt-[22px]"
+      bodyClassName="px-7 pb-7 pt-5"
     >
       {waitingForProject ? (
         <div className="flex h-[240px] items-center justify-center">
@@ -58,9 +60,13 @@ export default function NoticeSection() {
       ) : showEmpty ? (
         <NoticeEmpty message={data?.notices === null ? "공지사항 데이터가 없습니다." : "등록된 공지사항이 없습니다."} />
       ) : (
-        <div className="divide-y divide-[var(--border)]/60">
+        <div className="divide-y divide-[var(--border)]/60 border-t border-[var(--border)]/60">
           {notices.map((n) => (
-            <div key={n.id} className="flex items-center justify-between py-4">
+            <div 
+              key={n.id} 
+              onClick={() => router.push(`/notice/${n.id}`)}
+              className="cursor-pointer flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 {n.important && (
                   <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">중요</span>

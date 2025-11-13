@@ -89,19 +89,19 @@ export default function CalendarSection() {
       title={<span className="typo-title-4">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
-          <button onClick={goPrev} className="w-[36px] h-[36px] grid place-items-center">
+          <button onClick={goPrev} className="cursor-pointer w-[36px] h-[36px] grid place-items-center">
             <CalendarPrevIcon />
           </button>
           <div className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]" style={montserratStyle}>
             {ym}
           </div>
-          <button onClick={goNext} className="w-[36px] h-[36px] grid place-items-center">
+          <button onClick={goNext} className="cursor-pointer w-[36px] h-[36px] grid place-items-center">
             <CalendarNextIcon />
           </button>
         </div>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-7 pt-7"
+      headerClassName="flex items-center justify-between px-7 pt-[22px]"
       style={{ boxShadow: "6px 6px 54px rgba(0,0,0,0.05)" }}
       bodyClassName="px-6 pb-6 pt-4"
     >
@@ -144,7 +144,7 @@ export default function CalendarSection() {
                       setCurrent(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1));
                     }
                   }}
-                  className={`relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
+                  className={`cursor-pointer relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
                     className={`font-montserrat font-medium text-[16px] leading-[20px] ml-3 mt-2 ${
@@ -199,7 +199,7 @@ export default function CalendarSection() {
                 )} ({<span className="font-montserrat" style={montserratStyle}>{selectedSchedules.length}</span>})
               </div>
               <button
-                className="h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
                 onClick={() => setShowCreate(true)}
               >
                 일정 추가
