@@ -6,6 +6,7 @@ import ChatInputBar from "./ChatInputBar";
 import EmptyUserIcon from "./icons/EmptyUserIcon";
 import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
+import PlatformIcon from "./icons/PlatformIcon";
 import Image from "next/image";
 import DefaultProfile from "@/assets/images/common/default_profile.png";
 import TgsSticker from "./TgsSticker";
@@ -20,12 +21,14 @@ type Props = {
   setInput: (value: string) => void;
   onSend: () => void;
   onOpenLinkFlow: () => void;
+  onOpenCustomerDetail: () => void;
   onCloseConversation: () => void;
   attachmentUploading: boolean;
   onAttachImage: () => void;
   onAttachFile: () => void;
   onClickEmoji: () => void;
   emojiButtonRef: React.RefObject<HTMLButtonElement | null>;
+  emojiPickerOpen: boolean;
   loadOlderMessages: () => void;
 };
 
@@ -39,17 +42,32 @@ export default function ChatMainView({
   setInput,
   onSend,
   onOpenLinkFlow,
+  onOpenCustomerDetail,
   onCloseConversation,
   attachmentUploading,
   onAttachImage,
   onAttachFile,
   onClickEmoji,
   emojiButtonRef,
+  emojiPickerOpen,
   loadOlderMessages,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
   const prevMessagesLengthRef = useRef(0);
+
+  const formatMessageTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const ampm = hours >= 12 ? "오후" : "오전";
+    const hour12 = hours % 12 || 12;
+    
+    return `${month}. ${day}. ${ampm} ${hour12}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   const downloadFile = useCallback(async (url: string, fileName?: string) => {
     try {
@@ -120,17 +138,22 @@ export default function ChatMainView({
   }, [messages.length, activeConversation, displayMessages]);
 
   return (
-    <div className="col-span-6 flex justify-center">
-      <div className="w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+    <div className="max-w-[688px] flex justify-center">
+      <div className="min-w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
-          <div className="flex items-center gap-3">
+        <div className="px-7 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
+          <div className="flex items-center gap-4">
             {activeConversation ? (
               <>
                 <div className="w-10 h-10 rounded-full bg-neutral-20" />
                 <div>
-                  <div className="text-[20px] font-bold text-ink">
-                    {activeConversation.name}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[20px] font-bold text-ink">
+                      {activeConversation.name}
+                    </span>
+                    <div className="shrink-0 w-5 h-5">
+                      <PlatformIcon platform={activeConversation.platform} />
+                    </div>
                   </div>
                   <div className="text-[14px] text-neutral-60">
                     ID : {activeConversation.platformConversationId || "-"}
@@ -143,18 +166,21 @@ export default function ChatMainView({
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="cursor-pointer h-[34px] px-2 rounded-[5px] border border-border text-neutral-0 text-[12px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-1.5 rounded-[5px] border border-border text-neutral-0 text-[12px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={onOpenLinkFlow}
             >
               <LinkIcon />
             </button>
             {activeConversation && (
-              <button className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-card border border-border text-[12px] disabled:opacity-60 disabled:cursor-not-allowed">
+              <button 
+                onClick={onOpenCustomerDetail}
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
+              >
                 고객정보
               </button>
             )}
             <button
-              className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-40 text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCloseConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"
@@ -169,7 +195,7 @@ export default function ChatMainView({
         {/* Messages area */}
         {activeConversation ? (
           <div
-            className="flex-1 overflow-auto p-6 space-y-6"
+            className="flex-1 overflow-auto p-7 space-y-5"
             ref={messagesScrollRef}
             onScroll={onMessagesScroll}
           >
@@ -206,7 +232,7 @@ export default function ChatMainView({
               >
                 {/* 상대방 메시지일 때만 프로필 이미지 표시 */}
                 {m.direction === "incoming" && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                     {activeConversation?.profileUrl ? (
                       <Image
                         src={activeConversation.profileUrl}
@@ -239,7 +265,7 @@ export default function ChatMainView({
                 >
                   {/* 텍스트 메시지 */}
                   {m.type === "text" && m.content && (
-                    <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                    <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                       {m.content}
                     </div>
                   )}
@@ -263,7 +289,7 @@ export default function ChatMainView({
                         />
                       </a>
                       {m.content && (
-                        <div className="px-5 py-2 text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                        <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
                         </div>
                       )}
@@ -282,7 +308,7 @@ export default function ChatMainView({
                         비디오를 재생할 수 없습니다.
                       </video>
                       {m.content && (
-                        <div className="px-5 py-2 text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                        <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
                         </div>
                       )}
@@ -306,7 +332,7 @@ export default function ChatMainView({
                         </div>
                       )}
                       {m.content && (
-                        <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                        <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
                         </div>
                       )}
@@ -325,7 +351,7 @@ export default function ChatMainView({
                           return (
                             <button
                               onClick={() => downloadFile(m.fileUrl!, m.fileName || "document.pdf")}
-                              className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+                              className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
                             >
                               <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
                                 <svg
@@ -345,7 +371,7 @@ export default function ChatMainView({
                                   {m.fileName || "PDF 파일"}
                                 </div>
                                 {m.fileSize && (
-                                  <div className="text-[11px] opacity-70">
+                                  <div className="text-[12px] opacity-70">
                                     {(m.fileSize / 1024 / 1024).toFixed(2)} MB
                                   </div>
                                 )}
@@ -358,7 +384,7 @@ export default function ChatMainView({
                             href={m.fileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                            className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity"
                           >
                             <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -372,14 +398,14 @@ export default function ChatMainView({
                                 {m.fileName || "파일"}
                               </div>
                               {m.fileSize && (
-                                <div className="text-[11px] opacity-70">{(m.fileSize / 1024 / 1024).toFixed(2)} MB</div>
+                                <div className="text-[12px] opacity-70">{(m.fileSize / 1024 / 1024).toFixed(2)} MB</div>
                               )}
                             </div>
                           </a>
                         );
                       })()}
                       {m.content && (
-                        <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                        <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
                         </div>
                       )}
@@ -458,7 +484,7 @@ export default function ChatMainView({
                         </div>
                       </div>
                       {m.content && (
-                        <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words">
+                        <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
                         </div>
                       )}
@@ -467,20 +493,20 @@ export default function ChatMainView({
 
                   {/* 시스템 메시지 */}
                   {m.type === "system" && (
-                    <div className="text-[12px] leading-[20px] whitespace-pre-wrap break-words opacity-70 italic">
+                    <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words opacity-70 italic">
                       {m.content || "시스템 메시지"}
                     </div>
                   )}
 
                   {/* 타임스탬프 */}
                   <div
-                    className={`mt-2 text-[11px] ${
+                    className={`mt-2 text-[12px] ${
                       m.direction === "outgoing"
                         ? "text-neutral-50"
                         : "text-neutral-60"
                     } ${m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""}`}
                   >
-                    {new Date(m.sentAt || m.createdAt).toLocaleString()}
+                    {formatMessageTime(m.sentAt || m.createdAt)}
                   </div>
                 </div>
               </div>
@@ -509,6 +535,7 @@ export default function ChatMainView({
           connected={connected && Boolean(activeConversation)}
           onClickEmoji={onClickEmoji}
           emojiButtonRef={emojiButtonRef}
+          emojiPickerOpen={emojiPickerOpen}
           onAttachImage={onAttachImage}
           onAttachFile={onAttachFile}
           attachmentUploading={attachmentUploading}

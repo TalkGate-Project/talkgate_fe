@@ -4,7 +4,7 @@ import SendIcon from "./icons/SendIcon";
 
 export default function ChatRightSidebar() {
   return (
-    <div className="col-span-3 rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+    <div className="max-w-[286px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
       <div className="px-4 py-4 flex items-center justify-between border-b border-border dark:border-neutral-30">
         <div className="flex items-center gap-2">
           <h3 className="text-[20px] font-bold">AI상담도우미</h3>

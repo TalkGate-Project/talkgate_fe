@@ -9,6 +9,7 @@ type Props = {
   connected: boolean;
   onClickEmoji: () => void;
   emojiButtonRef: Ref<HTMLButtonElement>;
+  emojiPickerOpen?: boolean;
   onAttachImage: () => void;
   onAttachFile: () => void;
   attachmentUploading?: boolean;
@@ -22,6 +23,7 @@ export default function ChatInputBar({
   connected,
   onClickEmoji,
   emojiButtonRef,
+  emojiPickerOpen = false,
   onAttachImage,
   onAttachFile,
   attachmentUploading,
@@ -40,7 +42,7 @@ export default function ChatInputBar({
         {/* 이미지 첨부 */}
         <button
           aria-label="attach image"
-          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachImage}
           disabled={disabled || attachmentUploading}
         >
@@ -63,7 +65,7 @@ export default function ChatInputBar({
         {/* 파일 첨부 */}
         <button
           aria-label="attach file"
-          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachFile}
           disabled={disabled || attachmentUploading}
         >
@@ -87,7 +89,7 @@ export default function ChatInputBar({
         <button
           ref={emojiButtonRef}
           aria-label="emoji"
-          className="w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onClickEmoji}
           disabled={disabled}
         >
@@ -100,7 +102,7 @@ export default function ChatInputBar({
           >
             <path
               d="M14.8284 14.8284C13.2663 16.3905 10.7337 16.3905 9.17157 14.8284M9 10H9.01M15 10H15.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-              stroke="#B0B0B0"
+              stroke={emojiPickerOpen ? "#00E272" : "#B0B0B0"}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -108,7 +110,7 @@ export default function ChatInputBar({
           </svg>
         </button>
         <button
-          className="h-[48px] px-4 rounded-[8px] bg-neutral-90 text-neutral-40 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer h-[48px] px-4 rounded-[8px] bg-neutral-90 text-neutral-40 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onSend}
           disabled={disabled || !connected}
         >

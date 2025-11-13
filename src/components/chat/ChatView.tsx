@@ -11,6 +11,7 @@ import ChatRightSidebar from "./ChatRightSidebar";
 import CustomerLinkModeModal from "./customer-link/CustomerLinkModeModal";
 import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal";
 import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
+import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 
 type Props = { projectId: number };
 
@@ -30,6 +31,7 @@ export default function ChatView({ projectId }: Props) {
   const [linkStep, setLinkStep] = useState<
     null | "mode" | "existing" | "create"
   >(null);
+  const [customerDetailOpen, setCustomerDetailOpen] = useState(false);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const [input, setInput] = useState("");
 
@@ -114,6 +116,17 @@ export default function ChatView({ projectId }: Props) {
     },
     [linkCustomerToConversation]
   );
+
+  const openCustomerDetail = useCallback(() => {
+    if (!activeConversation) {
+      return;
+    }
+    if (!activeConversation.customerId) {
+      alert("연결된 고객 정보가 없습니다.");
+      return;
+    }
+    setCustomerDetailOpen(true);
+  }, [activeConversation]);
 
   function onSend() {
     if (!input.trim()) return;
@@ -223,7 +236,7 @@ export default function ChatView({ projectId }: Props) {
   }, [activeId]);
 
   return (
-    <div className="grid grid-cols-12 gap-6">
+    <div className="flex gap-8">
       <ChatLeftSidebar
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
@@ -247,12 +260,14 @@ export default function ChatView({ projectId }: Props) {
         setInput={setInput}
         onSend={onSend}
         onOpenLinkFlow={openLinkFlow}
+        onOpenCustomerDetail={openCustomerDetail}
         onCloseConversation={closeConversation}
         attachmentUploading={attachmentUploading}
         onAttachImage={onAttachImage}
         onAttachFile={onAttachFile}
         onClickEmoji={handleEmojiButtonClick}
         emojiButtonRef={emojiButtonRef}
+        emojiPickerOpen={emojiPickerOpen}
         loadOlderMessages={loadOlderMessages}
       />
 
@@ -303,6 +318,13 @@ export default function ChatView({ projectId }: Props) {
         projectId={projectId}
         conversationName={activeConversation?.name}
         onLink={handleLinkAndClose}
+      />
+
+      {/* 고객 정보 모달 */}
+      <CustomerDetailModal
+        open={customerDetailOpen}
+        onClose={() => setCustomerDetailOpen(false)}
+        customerId={activeConversation?.customerId || null}
       />
     </div>
   );
