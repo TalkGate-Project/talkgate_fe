@@ -17,7 +17,11 @@ type MessengerAccount = {
   account: string;
 };
 
-export default function CustomerCreateModal({ open, onClose, onCreated }: Props) {
+export default function CustomerCreateModal({
+  open,
+  onClose,
+  onCreated,
+}: Props) {
   const [projectId] = useSelectedProjectId();
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,7 +37,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
   const [job, setJob] = useState("");
 
   // 메신저 계정
-  const [messengerAccounts, setMessengerAccounts] = useState<MessengerAccount[]>([]);
+  const [messengerAccounts, setMessengerAccounts] = useState<
+    MessengerAccount[]
+  >([]);
   const [currentMessengerType, setCurrentMessengerType] = useState("기타");
   const [currentMessengerAccount, setCurrentMessengerAccount] = useState("");
 
@@ -50,7 +56,13 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
   const handleAddMessenger = () => {
     if (!currentMessengerAccount.trim()) return;
-    setMessengerAccounts((prev) => [...prev, { messenger: currentMessengerType, account: currentMessengerAccount.trim() }]);
+    setMessengerAccounts((prev) => [
+      ...prev,
+      {
+        messenger: currentMessengerType,
+        account: currentMessengerAccount.trim(),
+      },
+    ]);
     setCurrentMessengerAccount("");
   };
 
@@ -85,17 +97,26 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
     }
     setSubmitting(true);
     try {
-      const messengerInfo: CreateCustomerMessengerInfo[] = messengerAccounts.map((acc) => ({
-        messenger: acc.messenger.toLowerCase().replace(/톡/g, "").replace(/그램/g, "").replace(/스타그램/g, "instagram") || "other",
-        account: acc.account,
-      }));
+      const messengerInfo: CreateCustomerMessengerInfo[] =
+        messengerAccounts.map((acc) => ({
+          messenger:
+            acc.messenger
+              .toLowerCase()
+              .replace(/톡/g, "")
+              .replace(/그램/g, "")
+              .replace(/스타그램/g, "instagram") || "other",
+          account: acc.account,
+        }));
 
       await CustomersService.create({
         projectId,
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
-        residentId: residentId1 && residentId2 ? `${residentId1}-${residentId2}` : undefined,
+        residentId:
+          residentId1 && residentId2
+            ? `${residentId1}-${residentId2}`
+            : undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,
         messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
@@ -124,14 +145,27 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-ink">고객등록</h2>
+          <h2 className="text-[18px] font-semibold leading-[21px]">고객등록</h2>
           <button
             aria-label="close"
             onClick={() => !submitting && onClose()}
-            className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-ink transition-colors"
+            className="w-6 h-6 grid place-items-center"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              className="cursor-pointer"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 18L18 6M6 6L18 18"
+                stroke="#B0B0B0"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </button>
         </div>
@@ -140,7 +174,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           {/* 기본 정보 */}
           <div className="mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">기본 정보</h3>
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
+              기본 정보
+            </h3>
             <div className="border-t border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* 이름 */}
@@ -186,7 +222,11 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
+                          <path
+                            d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
+                            fill="currentColor"
+                            className="fill-ink"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -206,7 +246,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 연락처2 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연락처2</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    연락처2
+                  </label>
                   <div className="flex gap-2">
                     <div className="w-[120px]">
                       <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
@@ -229,7 +271,11 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                                          <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
+                          <path
+                            d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
+                            fill="currentColor"
+                            className="fill-ink"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -249,27 +295,39 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 주민등록번호 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">주민등록번호</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    주민등록번호
+                  </label>
                   <div className="flex gap-2 items-center">
                     <div className="flex-1">
                       <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={residentId1}
-                          onChange={(e) => setResidentId1(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          onChange={(e) =>
+                            setResidentId1(
+                              e.target.value.replace(/\D/g, "").slice(0, 6)
+                            )
+                          }
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
                           placeholder="123456"
                           maxLength={6}
                         />
                       </div>
                     </div>
-                    <span className="text-[14px] leading-[17px] text-neutral-60">-</span>
+                    <span className="text-[14px] leading-[17px] text-neutral-60">
+                      -
+                    </span>
                     <div className="flex-1">
                       <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
                           type="text"
                           value={residentId2}
-                          onChange={(e) => setResidentId2(e.target.value.replace(/\D/g, "").slice(0, 7))}
+                          onChange={(e) =>
+                            setResidentId2(
+                              e.target.value.replace(/\D/g, "").slice(0, 7)
+                            )
+                          }
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
                           placeholder="567890"
                           maxLength={7}
@@ -281,7 +339,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 연령 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연령</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    연령
+                  </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
@@ -295,7 +355,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 직업 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">직업</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    직업
+                  </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
@@ -312,7 +374,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
           {/* 메신저 계정 */}
           <div className="mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">메신저 계정</h3>
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
+              메신저 계정
+            </h3>
             <div className="border-t border-neutral-30 pt-4">
               <div className="flex gap-2 mb-3">
                 <div className="w-[120px]">
@@ -336,7 +400,11 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                                      <path d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z" fill="currentColor" className="fill-ink" />
+                      <path
+                        d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
+                        fill="currentColor"
+                        className="fill-ink"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -345,7 +413,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                     <input
                       type="text"
                       value={currentMessengerAccount}
-                      onChange={(e) => setCurrentMessengerAccount(e.target.value)}
+                      onChange={(e) =>
+                        setCurrentMessengerAccount(e.target.value)
+                      }
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="계정 ID를 입력하세요"
                     />
@@ -362,7 +432,10 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
               {messengerAccounts.length > 0 && (
                 <div className="space-y-2">
                   {messengerAccounts.map((acc, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]">
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]"
+                    >
                       <span className="text-[14px] text-ink flex-1">
                         {acc.messenger}: {acc.account}
                       </span>
@@ -371,8 +444,20 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
                         onClick={() => handleRemoveMessenger(index)}
                         className="text-neutral-60 hover:text-ink"
                       >
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 9L9 3M3 3L9 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -384,12 +469,16 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
           {/* 데이터 정보 */}
           <div>
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">데이터 정보</h3>
+            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
+              데이터 정보
+            </h3>
             <div className="border-t border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">신청 경로</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    신청 경로
+                  </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
@@ -403,7 +492,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 사이트 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">사이트</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    사이트
+                  </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
@@ -417,7 +508,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
                 {/* 매체사 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">매체사</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    매체사
+                  </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                     <input
                       type="text"
@@ -432,7 +525,9 @@ export default function CustomerCreateModal({ open, onClose, onCreated }: Props)
 
               {/* 특이사항 */}
               <div>
-                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">특이사항</label>
+                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                  특이사항
+                </label>
                 <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] min-h-[66px]">
                   <textarea
                     value={specialNotes}

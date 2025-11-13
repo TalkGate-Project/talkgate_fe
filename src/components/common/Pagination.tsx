@@ -62,7 +62,7 @@ export default function Pagination({ page, totalPages, onPageChange, disabled = 
     <div className={`flex items-center gap-2 ${className}`}>
       <button
         aria-label="prev"
-        className="w-6 h-6 flex items-center justify-center text-neutral-50 disabled:opacity-50"
+        className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-50 disabled:opacity-50"
         disabled={disabled || clampedPage <= 1}
         onClick={() => onPageChange(Math.max(1, clampedPage - 1))}
       >
@@ -90,7 +90,7 @@ export default function Pagination({ page, totalPages, onPageChange, disabled = 
           <button
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-normal leading-[17px] ${
+            className={`cursor-pointer w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-normal leading-[17px] ${
               active 
                 ? "bg-neutral-90 text-neutral-0" 
                 : "text-neutral-60 hover:bg-neutral-10"
@@ -104,7 +104,7 @@ export default function Pagination({ page, totalPages, onPageChange, disabled = 
 
       <button
         aria-label="next"
-        className="w-6 h-6 flex items-center justify-center text-neutral-50 disabled:opacity-50"
+        className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-50 disabled:opacity-50"
         disabled={disabled || clampedPage >= safeTotal}
         onClick={() => onPageChange(Math.min(safeTotal, clampedPage + 1))}
       >

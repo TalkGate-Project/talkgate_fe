@@ -83,7 +83,7 @@ export default function CustomersTable({
         <table className="w-full text-left border-separate border-spacing-0">
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-6 h-[48px] rounded-l-[12px]">
+              <th className="px-6 h-[40px] rounded-l-[8px]">
                 <Checkbox
                   checked={allSelectedOnPage}
                   onChange={onSelectAll}
@@ -102,7 +102,7 @@ export default function CustomersTable({
               ].map((h, i, arr) => (
                 <th
                   key={h}
-                  className={`typo-title-4 font-bold px-6 h-[48px] ${i === arr.length - 1 ? "rounded-r-[12px]" : ""}`}
+                  className={`typo-title-4 font-medium px-6 h-[40px] ${i === arr.length - 1 ? "rounded-r-[8px]" : ""}`}
                 >
                   {h}
                 </th>

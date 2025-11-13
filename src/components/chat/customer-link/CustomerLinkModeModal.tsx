@@ -21,7 +21,7 @@ export default function CustomerLinkModeModal({
           <button
             aria-label="close"
             onClick={onClose}
-            className="absolute right-6 top-6 h-8 w-8 rounded-full"
+            className="cursor-pointer absolute right-6 top-6 h-8 w-8 rounded-full"
           >
             <svg
               width="24"
@@ -32,25 +32,25 @@ export default function CustomerLinkModeModal({
             >
               <path
                 d="M6 18L18 6M6 6L18 18"
-                stroke="currentColor"
+                stroke="#B0B0B0"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="stroke-neutral-50"
               />
             </svg>
           </button>
-          <h2 className="text-[18px] font-semibold text-neutral-60">
+          <h2 className="text-[18px] font-semibold text-foreground">
             고객 연동 방식 선택
           </h2>
-          <p className="mt-[30px] text-[14px] text-neutral-70 text-center">
+          <p className="mt-[30px] text-[14px] text-neutral-60 text-center">
             고객 정보 연동 방식을 선택해주세요.
           </p>
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <button
               onClick={() => onSelect("create")}
-              className="group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 bg-primary-10 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
+              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
+              style={{ background: "linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%)" }}
             >
               <svg
                 width="48"
@@ -124,7 +124,8 @@ export default function CustomerLinkModeModal({
 
             <button
               onClick={() => onSelect("existing")}
-              className="group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 bg-secondary-10 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
+              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
+              style={{ background: "linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%)" }}
             >
               <svg
                 width="48"

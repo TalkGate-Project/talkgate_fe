@@ -65,15 +65,15 @@ export default function ChatLeftSidebar({
   };
 
   return (
-    <div className="col-span-3">
+    <div className="max-w-[286px]">
       <div className="w-[286px] h-[840px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
-        <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+        <div className="px-7 pt-[26px] pb-[18px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-neutral-90">상담 채팅</h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
             <button
               aria-label="filter"
-              className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border"
+              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border"
               onClick={() => setFilterOpen(true)}
             >
               <FilterIcon />
@@ -83,7 +83,7 @@ export default function ChatLeftSidebar({
               <button
                 aria-label="list-view"
                 onClick={() => setViewMode("list")}
-                className={`flex-1 grid place-items-center ${
+                className={`cursor-pointer flex-1 grid place-items-center ${
                   viewMode === "list" ? "bg-black" : "bg-white"
                 }`}
               >
@@ -92,7 +92,7 @@ export default function ChatLeftSidebar({
               <button
                 aria-label="album-view"
                 onClick={() => setViewMode("album")}
-                className={`flex-1 grid place-items-center ${
+                className={`cursor-pointer flex-1 grid place-items-center ${
                   viewMode === "album" ? "bg-black" : "bg-white"
                 }`}
               >
@@ -108,7 +108,7 @@ export default function ChatLeftSidebar({
         />
         {/* Tabs */}
         <div className="px-5">
-          <div className="grid grid-cols-3 gap-2 bg-neutral-10 dark:bg-neutral-20 rounded-[10px] px-3 py-2">
+          <div className="grid grid-cols-3 gap-2 bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-3 py-2">
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "all"
@@ -157,7 +157,7 @@ export default function ChatLeftSidebar({
         {/* List/Album */}
         {viewMode === "list" ? (
           <div
-            className="mt-4 h-[calc(840px-170px)] overflow-auto"
+            className="mt-3 h-[calc(840px-170px)] overflow-auto"
             ref={convScrollRef}
             onScroll={onConversationsScroll}
           >
@@ -166,45 +166,82 @@ export default function ChatLeftSidebar({
                 대기중인 상담이 없습니다.
               </div>
             ) : (
-              filteredConversations.map((c) => (
-                <button
-                  key={c.id}
-                  className={`w-full text-left px-5 py-3 border-t border-neutral-20 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-10 ${
-                    activeId === c.id ? "bg-neutral-10 dark:bg-neutral-10" : ""
-                  }`}
-                  onClick={() => handleConversationClick(c)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary-10 grid place-items-center text-primary-60 text-[14px] font-semibold">
-                        {c.name?.[0] || "?"}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-[16px] font-semibold text-ink">
-                            {c.name}
+              filteredConversations.map((c) => {
+                const getLastMessagePreview = () => {
+                  const msg = c.lastMessage;
+                  if (!msg) return " "; // 공백 문자로 최소 높이 유지
+                  
+                  const isIncoming = msg.direction === "incoming";
+                  
+                  if (msg.type === "text") {
+                    const content = msg.content?.trim();
+                    return content || " "; // 내용이 없어도 공백으로 높이 유지
+                  }
+                  if (msg.type === "image") return "사진을 보냈습니다";
+                  if (msg.type === "video") return "동영상을 보냈습니다";
+                  if (msg.type === "audio") return "음성을 보냈습니다";
+                  if (msg.type === "file") return "파일을 보냈습니다";
+                  if (msg.type === "sticker") return "스티커를 보냈습니다";
+                  return " ";
+                };
+
+                const formatTime12Hour = (date: Date) => {
+                  const hours = date.getHours();
+                  const minutes = date.getMinutes();
+                  const ampm = hours >= 12 ? "PM" : "AM";
+                  const hour12 = hours % 12 || 12;
+                  const minuteStr = minutes.toString().padStart(2, "0");
+                  const hourStr = hour12.toString().padStart(2, "0");
+                  return `${hourStr}:${minuteStr} ${ampm}`;
+                };
+
+                const lastMessageText = getLastMessagePreview();
+
+                return (
+                  <button
+                    key={c.id}
+                    className={`cursor-pointer w-full text-left px-4 py-4 h-[72px] border-t border-neutral-20 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-10 ${
+                      activeId === c.id ? "bg-neutral-10 dark:bg-neutral-10" : ""
+                    }`}
+                    onClick={() => handleConversationClick(c)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-primary-10 grid place-items-center text-primary-60 text-[14px] font-semibold shrink-0">
+                          {c.name?.[0] || "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[16px] font-semibold text-ink truncate leading-[20px]">
+                              {c.name}
+                            </span>
+                            <div className="shrink-0 w-4 h-4">
+                              <PlatformIcon platform={c.platform} />
+                            </div>
+                          </div>
+                          <div className="text-[14px] text-neutral-70 truncate mt-0.5 leading-[18px] min-h-[18px]">
+                            {lastMessageText}
                           </div>
                         </div>
-                        <div className="text-[14px] text-neutral-70 truncate max-w-[200px]">
-                          {c.latestMessage?.content || ""}
+                      </div>
+                      <div className="flex flex-col items-end justify-start gap-1.5 shrink-0">
+                        <div className="text-[12px] text-neutral-60 leading-[16px]">
+                          {formatTime12Hour(new Date(c.updatedAt || c.lastActivityAt))}
+                        </div>
+                        <div className="w-5 h-5 flex items-center justify-center">
+                          {c.unreadCount ? (
+                            <div className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-danger-40 text-white text-[12px] font-medium">
+                              {c.unreadCount}
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5" />
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[12px] text-neutral-60">
-                        {new Date(
-                          c.updatedAt || c.lastActivityAt
-                        ).toLocaleTimeString()}
-                      </div>
-                      {c.unreadCount ? (
-                        <div className="mt-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
-                          {c.unreadCount}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         ) : (
@@ -219,7 +256,7 @@ export default function ChatLeftSidebar({
                   <button
                     key={c.id}
                     onClick={() => handleConversationClick(c)}
-                    className={`relative h-[72px] rounded-[8px] border flex flex-col ${
+                    className={`cursor-pointer relative h-[72px] rounded-[8px] border flex flex-col ${
                       activeId === c.id
                         ? "border-primary-60"
                         : "border-border"

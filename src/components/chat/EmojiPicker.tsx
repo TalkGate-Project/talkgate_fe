@@ -655,14 +655,14 @@ export default function EmojiPicker({
             <button
               key={idx}
               onClick={() => handleEmojiClick(emoji)}
-              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
             >
               {emoji}
             </button>
           ))}
           <button
             onClick={() => onToggleMode?.("full")}
-            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full text-gray-500"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-gray-500"
             aria-label="expand-emoji"
             title="더보기"
           >
@@ -723,14 +723,14 @@ export default function EmojiPicker({
             <button
               key={index}
               onClick={() => handleEmojiClick(emoji)}
-              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
             >
               {emoji}
             </button>
           ))}
           <button
             onClick={() => onToggleMode?.("compact")}
-            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-gray-500"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-gray-500"
             aria-label="collapse-emoji"
             title="접기"
           >
@@ -778,7 +778,7 @@ export default function EmojiPicker({
             <button
               key={index}
               onClick={() => handleEmojiClick(emoji)}
-              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
             >
               {emoji}
             </button>

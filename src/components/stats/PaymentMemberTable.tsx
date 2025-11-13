@@ -218,7 +218,7 @@ export default function PaymentMemberTable() {
   return (
     <div className="mt-1">
       {Header}
-      <div className="h-[48px] bg-neutral-20 rounded-[12px] grid grid-cols-4 items-center px-6 text-[16px] text-neutral-60 font-semibold">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-6 text-[16px] text-neutral-60 font-medium">
         <div>이름</div>
         <div>팀</div>
         <div>결제금액</div>

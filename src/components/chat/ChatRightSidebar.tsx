@@ -4,8 +4,8 @@ import SendIcon from "./icons/SendIcon";
 
 export default function ChatRightSidebar() {
   return (
-    <div className="col-span-3 rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
-      <div className="px-4 py-4 flex items-center justify-between border-b border-border dark:border-neutral-30">
+    <div className="max-w-[286px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+      <div className="px-4 py-4.5 flex items-center justify-between border-b border-border dark:border-neutral-30">
         <div className="flex items-center gap-2">
           <h3 className="text-[20px] font-bold">AI상담도우미</h3>
           <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
@@ -28,7 +28,7 @@ export default function ChatRightSidebar() {
       <div className="h-[76px] px-4 border-t border-border dark:border-neutral-30">
         <div className="h-full flex items-center gap-2">
           <input
-            className="flex-1 h-[40px] px-3 text-[12px] outline-none bg-transparent border-0"
+            className="flex-1 h-[40px] px-3 text-[14px] outline-none bg-transparent border-0"
             placeholder="메세지를 입력하세요."
           />
           <button

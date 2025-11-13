@@ -50,7 +50,7 @@ export type Conversation = {
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
-  latestMessage?: ChatMessage;
+  lastMessage?: ChatMessage;
   unreadCount: number;
 };
 

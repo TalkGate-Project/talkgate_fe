@@ -142,7 +142,7 @@ function StatsPage() {
           }
           bodyClassName="px-7 py-7 border-t border-neutral-30"
         >
-          <div className="h-[48px] bg-neutral-20 rounded-[12px] px-3 flex items-center">
+          <div className="h-[40px] bg-neutral-20 rounded-[8px] px-3 flex items-center">
             <div className="flex items-center gap-2">
               {TAB_ITEMS.map((t) => (
                 <button

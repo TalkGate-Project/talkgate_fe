@@ -199,7 +199,7 @@ function AttendancePageContent() {
         >
         {/* Date selector */}
         <div className="flex justify-center w-full">
-          <div className="w-full h-[48px] bg-neutral-20 rounded-[12px] px-3 flex justify-center items-center gap-3">
+          <div className="w-full h-[40px] bg-neutral-20 rounded-[8px] px-3 flex justify-center items-center gap-3">
             {/* Previous button */}
             <button
               onClick={() => navigateDate('prev')}
@@ -258,13 +258,13 @@ function AttendancePageContent() {
           </div>
 
           {/* 테이블 헤더 */}
-          <div className="bg-neutral-20 rounded-[12px] h-[48px] flex items-center px-6">
-            <div className="flex-1 text-[16px] font-bold text-neutral-60">이름</div>
-            <div className="w-[120px] text-[16px] font-bold text-neutral-60 text-center">팀</div>
-            <div className="w-[80px] text-[16px] font-bold text-neutral-60 text-center">직급</div>
-            <div className="w-[100px] text-[16px] font-bold text-neutral-60 text-center">출근시간</div>
-            <div className="w-[100px] text-[16px] font-bold text-neutral-60 text-center">퇴근시간</div>
-            <div className="w-[100px] text-[16px] font-bold text-neutral-60 text-center">근무시간</div>
+          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6">
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">이름</div>
+            <div className="w-[120px] text-[16px] font-medium text-neutral-60 text-center">팀</div>
+            <div className="w-[80px] text-[16px] font-medium text-neutral-60 text-center">직급</div>
+            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">출근시간</div>
+            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">퇴근시간</div>
+            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">근무시간</div>
           </div>
 
           {/* 테이블 본문 */}

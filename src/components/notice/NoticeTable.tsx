@@ -38,15 +38,15 @@ export default function NoticeTable({
   return (
     <div className="bg-card rounded-[14px] p-6">
       {/* 테이블 헤더 */}
-      <div className="bg-neutral-20 rounded-[12px] h-[48px] flex items-center px-6 mb-0">
-        <div className="w-[90px] text-[16px] font-bold text-neutral-60 text-center">
+      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6 mb-0">
+        <div className="w-[90px] text-[16px] font-medium text-neutral-60 text-center">
           　
         </div>
-        <div className="flex-1 text-[16px] font-bold text-neutral-60">제목</div>
-        <div className="w-[210px] text-[16px] font-bold text-neutral-60 text-left">
+        <div className="flex-1 text-[16px] font-medium text-neutral-60">제목</div>
+        <div className="w-[210px] text-[16px] font-medium text-neutral-60 text-left">
           작성자
         </div>
-        <div className="w-[160px] text-[16px] font-bold text-neutral-60 text-left">
+        <div className="w-[160px] text-[16px] font-medium text-neutral-60 text-left">
           작성일
         </div>
       </div>
