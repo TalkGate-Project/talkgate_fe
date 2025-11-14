@@ -89,6 +89,7 @@ export type CustomerMessenger = {
   id: number;
   messenger: string;
   account: string;
+  createdAt?: string;
 };
 
 export type CustomerPaymentHistory = {
@@ -128,6 +129,12 @@ export type CustomerDetail = {
   investmentInfo?: string;
   investmentProfitLoss?: string;
   investmentRistLevel?: string;
+  conversation?: {
+    id: number;
+    platform: "line" | "telegram" | "instagram" | "kakaotalk";
+    name: string;
+    profileUrl?: string | null;
+  } | null;
   paymentHistories: CustomerPaymentHistory[];
   schedules: CustomerSchedule[];
   notes: RecentNote[];

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { CustomerListItem, RecentNote } from "@/types/customers";
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
+import { formatDateTime } from "@/utils/datetime";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -83,7 +84,7 @@ export default function CustomersTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-6 h-[40px] align-middle">
+              <th className="px-6 h-[40px] align-middle rounded-tl-lg rounded-bl-lg">
                 <div className="flex items-center justify-start">
                   <Checkbox
                     checked={allSelectedOnPage}
@@ -100,12 +101,13 @@ export default function CustomersTable({
                 "사이트",
                 "담당팀",
                 "담당자",
+                "카테고리",
                 "신청시간",
                 "배정시간",
-              ].map((h) => (
+              ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className="typo-title-4 font-medium px-6 h-[40px]"
+                  className={`typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-tr-lg rounded-br-lg' : ''}`}
                 >
                   {h}
                 </th>
@@ -115,14 +117,14 @@ export default function CustomersTable({
           <tbody className="typo-body-3">
             {loading && (
               <tr>
-                <td colSpan={9} className="px-6 h-[72px] text-center text-neutral-60">
+                <td colSpan={10} className="px-6 h-[72px] text-center text-neutral-60">
                   불러오는 중...
                 </td>
               </tr>
             )}
             {Boolean(error) && !loading && (
               <tr>
-                <td colSpan={9} className="px-6 h-[72px] text-center text-red-500">
+                <td colSpan={10} className="px-6 h-[72px] text-center text-red-500">
                   데이터를 불러오지 못했습니다
                 </td>
               </tr>
@@ -143,7 +145,7 @@ export default function CustomersTable({
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <td className="px-6 h-[58px]">
+                  <td className="px-6 h-[48px]">
                     <div className="flex items-center h-full">
                       <Checkbox
                         checked={checked}
@@ -153,41 +155,44 @@ export default function CustomersTable({
                       />
                     </div>
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-6 h-[48px] align-middle text-neutral-90 opacity-80">
                     <button
-                      className="underline underline-offset-2 text-inherit"
+                      className="cursor-pointer text-inherit"
                       onClick={() => onCustomerClick(c.id)}
                     >
                       {c.name}
                     </button>
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.applicationRoute}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.mediaCompany}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.site}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedTeamName}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedMemberName}
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                    {new Date(c.applicationDate || c.createdAt).toLocaleString()}
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    카테고리
                   </td>
-                  <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                    {c.assignedAt ? new Date(c.assignedAt).toLocaleString() : "-"}
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    {formatDateTime(c.applicationDate || c.createdAt)}
+                  </td>
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    {formatDateTime(c.assignedAt)}
                   </td>
                 </tr>
               );
             })}
             {customers.length === 0 && !loading && (
               <tr>
-                <td colSpan={9} className="px-6 h-[72px] text-center text-neutral-60">
+                <td colSpan={10} className="px-6 h-[72px] text-center text-neutral-60">
                   결과가 없습니다
                 </td>
               </tr>

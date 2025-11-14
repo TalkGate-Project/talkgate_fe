@@ -41,6 +41,21 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
     const handleCategoryIds = useCallback((ids: number[]) => {
         setForm((f) => ({ ...f, categoryIds: ids }));
     }, []);
+    
+    // Helper functions to convert between Date and string (YYYY-MM-DD)
+    const stringToDate = (str?: string): Date | null => {
+        if (!str) return null;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    };
+    const dateToString = (date: Date | null): string | undefined => {
+        if (!date) return undefined;
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+    
     useEffect(() => {
         function onEsc(e: KeyboardEvent) {
             if (!open) return;
@@ -52,18 +67,24 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
 
     if (!open) return null;
 
+    /**
+     * TODO:
+     * 필터 추가 모달은 어드민 버전은 따로 존재해야함.
+     * 따로 할지 이 파일에서 상태관리로 할지 고민 후 결정 예정
+     */
+
     return (
         <div className="fixed inset-0 z-[100]">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
             {/* Modal container (centered) */}
-            <div className="absolute left-1/2 top-1/2" style={{ width: 848, height: 604, transform: "translate(-50%, -50%)" }}>
+            <div className="absolute left-1/2 top-1/2" style={{ width: 848, transform: "translate(-50%, -50%)" }}>
                 <div className="relative w-full h-full bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
                     {/* Header */}
-                    <div className="px-6 pt-5 pb-3 flex items-center justify-between">
+                    <div className="px-7 pt-7 pb-3 flex items-center justify-between">
                         <h2 className="text-[18px] leading-[21px] font-semibold text-black">필터추가</h2>
-                        <button aria-label="close" onClick={onClose} className="w-6 h-6 grid place-items-center text-[#111827]">
+                        <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center text-[#111827]">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 18L18 6M6 6L18 18" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -71,8 +92,8 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                     </div>
 
                     {/* Body */}
-                    <div className="px-6 pt-4 space-y-3 overflow-auto" style={{ height: 604 - 56 - 74 }}>
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="px-7 pt-[18px] space-y-3 overflow-auto pb-7">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-5">
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
 
@@ -85,7 +106,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                             {/* 상담 내용 */}
                             <div className="col-span-2">
                                 <label className="block text-[14px] text-[#808080] mb-2">상담 내용</label>
-                                <div className="border border-[#E2E2E2] rounded-[5px] px-3 py-2 h-[66px] flex items-start">
+                                <div className="border border-[#E2E2E2] rounded-[5px] px-3 py-2 h-[34px] flex items-start">
                                     <textarea value={form.noteContent || ""} onChange={(e) => setForm((f) => ({ ...f, noteContent: e.target.value || undefined }))} className="w-full h-[66px] resize-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080]" placeholder="상담 내용을 작성해주세요" />
                                 </div>
                             </div>
@@ -94,23 +115,33 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                             <div>
                                 <label className="block text-[14px] text-[#808080] mb-2">신청시간</label>
                                 <div className="flex items-center gap-3">
-                                    <DateRange />
+                                    <DateRange 
+                                        startValue={stringToDate(form.applicationDateFrom)}
+                                        endValue={stringToDate(form.applicationDateTo)}
+                                        onStartChange={(date) => setForm((f) => ({ ...f, applicationDateFrom: dateToString(date) }))}
+                                        onEndChange={(date) => setForm((f) => ({ ...f, applicationDateTo: dateToString(date) }))}
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-[14px] text-[#808080] mb-2">배정시간</label>
                                 <div className="flex items-center gap-3">
-                                    <DateRange />
+                                    <DateRange 
+                                        startValue={stringToDate(form.assignedAtFrom)}
+                                        endValue={stringToDate(form.assignedAtTo)}
+                                        onStartChange={(date) => setForm((f) => ({ ...f, assignedAtFrom: dateToString(date) }))}
+                                        onEndChange={(date) => setForm((f) => ({ ...f, assignedAtTo: dateToString(date) }))}
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-[#E2E2E266]" />
-                    <div className="px-6 py-3 flex items-center justify-end gap-3">
-                        <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white" onClick={() => setForm({})}>초기화</button>
-                        <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
+                    <div className="border-t border-[#E2E2E2]" />
+                    <div className="px-7 py-3 flex items-center justify-end gap-3">
+                        <button className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white" onClick={() => setForm({})}>초기화</button>
+                        <button className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
                     </div>
                 </div>
             </div>
@@ -275,17 +306,35 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
     );
 }
 
-function DateRange() {
-    const [start, setStart] = useState<Date | null>(null);
-    const [end, setEnd] = useState<Date | null>(null);
+function DateRange({ 
+    startValue, 
+    endValue, 
+    onStartChange, 
+    onEndChange 
+}: { 
+    startValue: Date | null; 
+    endValue: Date | null; 
+    onStartChange: (date: Date | null) => void; 
+    onEndChange: (date: Date | null) => void; 
+}) {
     return (
         <div className="flex items-center gap-3">
-            <div className="w-[175px]">
-                <DatePicker value={start} onChange={setStart} />
+            <div className="relative w-[175px]">
+                <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </div>
             </div>
             <span className="text-[14px]">-</span>
-            <div className="w-[175px]">
-                <DatePicker value={end} onChange={setEnd} />
+            <div className="relative w-[175px]">
+                <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                </div>
             </div>
         </div>
     );

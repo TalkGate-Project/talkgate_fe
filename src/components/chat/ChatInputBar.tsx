@@ -35,14 +35,14 @@ export default function ChatInputBar({
         <input
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
-          className="flex-1 h-[44px] rounded-[8px] px-4 text-[14px] outline-none disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="flex-1 h-[44px] rounded-[8px] px-4 text-[14px] outline-none disabled:cursor-not-allowed"
           placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
           disabled={disabled}
         />
         {/* 이미지 첨부 */}
         <button
           aria-label="attach image"
-          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer mr-2 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachImage}
           disabled={disabled || attachmentUploading}
         >
@@ -65,7 +65,7 @@ export default function ChatInputBar({
         {/* 파일 첨부 */}
         <button
           aria-label="attach file"
-          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer mr-2 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onAttachFile}
           disabled={disabled || attachmentUploading}
         >
@@ -89,7 +89,7 @@ export default function ChatInputBar({
         <button
           ref={emojiButtonRef}
           aria-label="emoji"
-          className="cursor-pointer w-9 h-9 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+          className="cursor-pointer mr-2 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
           onClick={onClickEmoji}
           disabled={disabled}
         >
