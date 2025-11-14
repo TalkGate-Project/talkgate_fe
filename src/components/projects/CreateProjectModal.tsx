@@ -52,7 +52,11 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     }
   }, [subdomain]);
 
-  const canGoNext = step === 1 ? (Boolean(iconFile) && projectName.trim().length > 0) : Boolean(subdomain && domainAvailable !== false);
+  // 1단계에서는 프로젝트 이름만 필수, 브랜드 아이콘(이미지)은 선택 사항
+  const canGoNext =
+    step === 1
+      ? projectName.trim().length > 0
+      : Boolean(subdomain && domainAvailable !== false);
 
   // 파일 타입을 정확히 감지하는 헬퍼 함수
   const getFileType = useCallback((file: File): string => {
