@@ -4,8 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
-    "clean": "cmd /c \"if exist .next\\export rmdir /s /q .next\\export\"",
-    "prebuild": "npm run clean",
     "build": "next build --turbopack",
     "build:no-turbo": "next build",
     "start": "next start",
