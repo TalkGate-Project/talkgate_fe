@@ -65,7 +65,7 @@ export default function LiteHeader() {
         {/* 좌측: 로그인으로 이동하는 브랜드 로고 */}
         <div className="flex items-center h-full">
           <Link href="/login" className="text-white text-[16px] font-semibold tracking-[-0.02em]">
-            Talkgate
+            <img src="/main_logo.png" alt="Talkgate" className="w-[102px]" />
           </Link>
         </div>
 
@@ -74,7 +74,7 @@ export default function LiteHeader() {
           {mounted ? (
             <button
               onClick={handleToggleTheme}
-              className="relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
+              className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
               aria-label="다크 모드 전환"
               aria-pressed={isDarkMode}
             >
@@ -103,7 +103,7 @@ export default function LiteHeader() {
           {/* 아바타 + 드롭다운 (개인설정/프로젝트 선택/로그아웃) */}
           <div className="relative" ref={menuRef}>
             <button
-              className="w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
+              className="cursor-pointer w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
               onClick={() => setOpen((v) => !v)}
             >
               <span className="text-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">

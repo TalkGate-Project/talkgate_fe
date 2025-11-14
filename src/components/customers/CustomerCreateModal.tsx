@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import MessengerBadge from "@/components/common/MessengerBadge";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
@@ -445,11 +446,10 @@ export default function CustomerCreateModal({
                   {messengerAccounts.map((acc, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]"
+                      className="flex items-center gap-3 px-3 py-2 bg-neutral-10 rounded-[5px]"
                     >
-                      <span className="text-[14px] text-ink flex-1">
-                        {acc.messenger}: {acc.account}
-                      </span>
+                      <MessengerBadge messenger={acc.messenger} />
+                      <span className="text-[14px] text-ink flex-1">{acc.account}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveMessenger(index)}
