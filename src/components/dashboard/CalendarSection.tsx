@@ -76,7 +76,11 @@ export default function CalendarSection() {
     for (const item of schedules) {
       const iso = item.scheduleTime;
       if (!iso) continue;
-      const key = iso.slice(0, 10);
+      // 서버에서 내려오는 ISO(UTC 기준) 문자열을 브라우저 로컬 시간대(KST 등) 기준 날짜로 변환해서 키를 만든다.
+      // 이렇게 해야 달력 셀(로컬 날짜 기준)과 우측 상세(로컬 시간 기준)가 동일한 날짜에 매핑된다.
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) continue;
+      const key = format(date, "yyyy-MM-dd");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
@@ -172,7 +176,7 @@ export default function CalendarSection() {
                     {daySchedules.slice(0, 2).map((schedule, idx) => (
                       <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0">
                         <span className="w-3 h-3 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[idx % COLORS.length] }} />
-                        <span className="truncate" style={{ maxWidth: 102 }}>
+                        <span className="truncate font-medium" style={{ maxWidth: 102 }}>
                           {schedule.description || schedule.customer?.name || "일정"}
                         </span>
                       </div>
@@ -204,7 +208,7 @@ export default function CalendarSection() {
                 )} ({<span className="font-montserrat" style={montserratStyle}>{selectedSchedules.length}</span>})
               </div>
               <button
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20"
                 onClick={() => setShowCreate(true)}
               >
                 일정 추가
