@@ -133,10 +133,10 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] h-[568px] flex flex-col">
+      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] h-[597px] flex flex-col">
         {/* 헤더 */}
-        <div className="h-[64px] flex items-center px-7 border-b border-[#E2E2E266]">
-          <div className="text-[18px] font-semibold leading-[21px] text-[#000]">새 프로젝트 생성</div>
+        <div className="flex items-center px-7">
+          <div className="text-[18px] font-semibold leading-[1] text-[#000] mt-[24px] mb-[35px]">새 프로젝트 생성</div>
           <button
             aria-label="close"
             className="ml-auto w-6 h-6 grid place-items-center"
@@ -149,8 +149,8 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* 단계 인디케이터 */}
-        <div className="flex items-center justify-center gap-[30px] mt-8 mb-8">
-          <div className="flex flex-col items-center gap-[17px]">
+        <div className="flex justify-center gap-2 mb-6">
+          <div className="flex flex-col items-center gap-2">
             <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 1 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"}`}>
               <span className={`text-[18px] font-semibold leading-[21px] ${step >= 1 ? "text-[#00B55B]" : "text-[#808080]"}`}>
                 1
@@ -160,8 +160,8 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
               기본정보
             </div>
           </div>
-          <div className="w-[60px] h-px bg-[#E2E2E2]" />
-          <div className="flex flex-col items-center gap-[17px]">
+          <div className="w-[60px] h-px bg-[#E2E2E2] mt-[18px]" />
+          <div className="flex flex-col items-center gap-2">
             <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 2 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"}`}>
               <span className={`text-[18px] font-semibold leading-[21px] ${step >= 2 ? "text-[#00B55B]" : "text-[#808080]"}`}>
                 2
@@ -173,10 +173,12 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           </div>
         </div>
 
+        <p className="mb-[30px] text-body-3 text-center font-medium">프로젝트의 브랜드 아이콘과 이름을 설정해주세요.</p>
+
         {/* 본문 */}
-        <div className="flex-1 px-7 overflow-y-auto">
+        <div className="flex-1 px-6 overflow-y-auto">
           {step === 1 ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* 브랜드 아이콘 영역 */}
               <div className="h-[181px] rounded-[5px] bg-[#F8F8F8] px-6 py-3">
                 <div className="text-[14px] font-medium text-[#000]">브랜드 아이콘</div>
@@ -195,7 +197,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="mt-3 text-center text-[14px] text-[#808080]">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
+                <div className="mt-2 text-center text-[14px] text-[#808080]">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
                 <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={onFileChange} />
               </div>
 
@@ -276,9 +278,9 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-[#E2E2E266] px-7 py-4 flex items-center justify-end gap-3">
+        <div className="border-t border-[#E2E2E266] px-7 pt-[18px] pb-3 flex items-center justify-end gap-3">
           <button
-            className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
+            className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
             onClick={() => !submitting && onClose()}
             disabled={submitting}
           >
@@ -286,7 +288,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           </button>
           {step === 2 && (
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
               onClick={() => setStep(1)}
               disabled={submitting}
             >
@@ -295,7 +297,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           )}
           {step === 1 ? (
             <button
-              className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep(2)}
               disabled={!canGoNext || submitting}
             >
@@ -303,7 +305,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             </button>
           ) : (
             <button
-              className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
               disabled={submitting || !canGoNext}
             >
