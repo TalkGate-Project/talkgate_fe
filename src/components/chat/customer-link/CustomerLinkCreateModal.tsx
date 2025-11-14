@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import MessengerBadge from "@/components/common/MessengerBadge";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
 
@@ -410,17 +411,33 @@ export default function CustomerLinkCreateModal({
               {messengerAccounts.length > 0 && (
                 <div className="space-y-2">
                   {messengerAccounts.map((acc, index) => (
-                    <div key={index} className="flex items-center gap-3 px-3 py-2 bg-neutral-10 rounded-[5px]">
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 px-3 py-2 bg-neutral-10 rounded-[5px]"
+                    >
+                      <MessengerBadge messenger={acc.messenger} />
                       <span className="text-[14px] text-neutral-90 flex-1">
-                        {acc.messenger}: {acc.account}
+                        {acc.account}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleRemoveMessenger(index)}
                         className="text-neutral-60 hover:text-neutral-90"
                       >
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 9L9 3M3 3L9 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </button>
                     </div>

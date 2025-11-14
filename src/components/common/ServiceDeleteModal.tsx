@@ -76,7 +76,7 @@ export default function ServiceDeleteModal({
           </div>
 
           {/* Warning Icon */}
-          <div className="flex justify-center mb-4">
+          <div className="cursor-pointer flex justify-center mb-4">
             <svg
               width="40"
               height="40"
@@ -87,9 +87,9 @@ export default function ServiceDeleteModal({
               <path
                 d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
                 stroke="#D83232"
-                stroke-width="4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </div>
@@ -129,7 +129,7 @@ export default function ServiceDeleteModal({
               value={inputValue}
               onChange={handleInputChange}
               placeholder={serviceName}
-              className="w-full px-3 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-medium text-[#808080] focus:outline-none focus:border-[#D83232]"
+              className="w-full px-3 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-medium text-foreground focus:outline-none focus:border-[#D83232]"
             />
           </div>
 
@@ -140,14 +140,14 @@ export default function ServiceDeleteModal({
           <div className="flex justify-end gap-3">
             <button
               onClick={handleClose}
-              className="px-3 py-1.5 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
+              className="cursor-pointer px-3 py-1.5 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
             >
               취소
             </button>
             <button
               onClick={handleConfirm}
               disabled={!isConfirmed}
-              className={`px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
+              className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
                 isConfirmed
                   ? "bg-[#D83232] text-white hover:bg-[#C02828] cursor-pointer"
                   : "bg-[#B0B0B0] text-[#808080] cursor-not-allowed"

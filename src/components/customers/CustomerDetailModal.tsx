@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { SelectHTMLAttributes } from "react";
 import { useRouter } from "next/navigation";
 import { CustomersService } from "@/services/customers";
+import MessengerBadge from "@/components/common/MessengerBadge";
 import BaseModal from "@/components/common/BaseModal";
 import { CustomerDetail } from "@/types/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
@@ -415,9 +416,7 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
                             className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 py-3"
                           >
                             <div className="flex items-center gap-3">
-                              <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-warning-40 text-white text-[12px]">
-                                메신저
-                              </span>
+                              <MessengerBadge messenger={m.messenger} />
                               <span className="text-[14px] text-ink">
                                 {m.account}
                               </span>
