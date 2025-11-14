@@ -166,7 +166,7 @@ export default function ChatMainView({
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="cursor-pointer h-[34px] px-1.5 rounded-[5px] border border-border text-neutral-0 text-[12px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-1.5 rounded-[5px] border border-border text-neutral-0 text-[14px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={onOpenLinkFlow}
             >
               <LinkIcon />
@@ -174,13 +174,13 @@ export default function ChatMainView({
             {activeConversation && (
               <button 
                 onClick={onOpenCustomerDetail}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[12px] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 고객정보
               </button>
             )}
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCloseConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"

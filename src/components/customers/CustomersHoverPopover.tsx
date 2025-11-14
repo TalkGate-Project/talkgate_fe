@@ -1,4 +1,5 @@
 import { RecentNote } from "@/types/customers";
+import { formatDateTime } from "@/utils/datetime";
 
 type CustomersHoverPopoverProps = {
   name: string;
@@ -36,7 +37,7 @@ export default function CustomersHoverPopover({
                   <span className="inline-flex items-center h-[22px] rounded-[30px] bg-secondary-10 px-3 text-[12px] text-secondary-40 opacity-80">
                     메모
                   </span>
-                  <span>{new Date(n.createdAt).toLocaleString()}</span>
+                  <span>{formatDateTime(n.createdAt)}</span>
                 </div>
                 <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
               </div>

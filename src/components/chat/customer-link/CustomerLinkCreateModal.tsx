@@ -137,12 +137,12 @@ export default function CustomerLinkCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] h-[856px] rounded-[14px] bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[848px] h-[523px] rounded-[14px] bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="고객 등록"
     >
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4">
+        <div className="flex items-center justify-between px-7 pt-6 pb-4">
           <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90">고객등록</h2>
           <button
             aria-label="close"
@@ -169,12 +169,12 @@ export default function CustomerLinkCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-7 pb-6 pt-[14px]">
           {/* 기본 정보 */}
           <div className="mb-6">
             <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-4">기본 정보</h3>
             <div className="border-t border-neutral-30 pt-4">
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
@@ -196,8 +196,8 @@ export default function CustomerLinkCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     연락처1<span className="text-danger-60">*</span>
                   </label>
-                  <div className="flex gap-2">
-                    <div className="w-[120px]">
+                  <div className="flex gap-3">
+                    <div className="w-[106px]">
                       <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact1Type}
@@ -239,8 +239,8 @@ export default function CustomerLinkCreateModal({
                 {/* 연락처2 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연락처2</label>
-                  <div className="flex gap-2">
-                    <div className="w-[120px]">
+                  <div className="flex gap-3">
+                    <div className="w-[106px]">
                       <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact2Type}
@@ -282,7 +282,7 @@ export default function CustomerLinkCreateModal({
                 {/* 주민등록번호 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">주민등록번호</label>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-3 items-center">
                     <div className="flex-1">
                       <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
                         <input
@@ -346,8 +346,8 @@ export default function CustomerLinkCreateModal({
           <div className="mb-6">
             <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-4">메신저 계정</h3>
             <div className="border-t border-neutral-30 pt-4">
-              <div className="flex gap-2 mb-3">
-                <div className="w-[120px]">
+              <div className="flex gap-3 mb-3">
+                <div className="w-[106px]">
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px] relative">
                     <select
                       value={currentMessengerType}
@@ -394,7 +394,7 @@ export default function CustomerLinkCreateModal({
               {messengerAccounts.length > 0 && (
                 <div className="space-y-2">
                   {messengerAccounts.map((acc, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-neutral-10 rounded-[5px]">
+                    <div key={index} className="flex items-center gap-3 px-3 py-2 bg-neutral-10 rounded-[5px]">
                       <span className="text-[14px] text-neutral-90 flex-1">
                         {acc.messenger}: {acc.account}
                       </span>

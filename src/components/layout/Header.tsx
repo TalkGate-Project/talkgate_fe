@@ -137,7 +137,7 @@ export default function Header() {
           {mounted ? (
             <button
               onClick={handleToggleTheme}
-              className="relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
+              className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
               aria-label="다크 모드 전환"
               aria-pressed={isDarkMode}
             >
@@ -177,7 +177,7 @@ export default function Header() {
           {/* 알림 아이콘 (읽지 않은 알림 표시) */}
           <button
             onClick={() => router.push("/notifications")}
-            className="relative w-7 h-7 text-white hover:opacity-80 transition-opacity"
+            className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity"
           >
             <svg
               className=""
@@ -202,7 +202,7 @@ export default function Header() {
           {/* 아바타 및 드롭다운 */}
           <div className="relative" ref={menuRef}>
             <button
-              className="w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
+              className="cursor-pointer w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
               onClick={() => setOpen((v) => !v)}
             >
               <span className="text-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">

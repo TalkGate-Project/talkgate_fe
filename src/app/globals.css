@@ -176,6 +176,13 @@
   --color-green-400: #00e272;
   --color-green-500: #00b55b;
   --color-green-600: #004824;
+  /* RGB versions for opacity-friendly backgrounds */
+  --color-green-100-rgb: 214 250 232;
+  --color-green-200-rgb: 173 246 210;
+  --color-green-300-rgb: 81 248 165;
+  --color-green-400-rgb: 0 226 114;
+  --color-green-500-rgb: 0 181 91;
+  --color-green-600-rgb: 0 72 36;
 
   /* Palette: Secondary blues */
   --color-blue-100: #d3e1fe;
@@ -184,6 +191,12 @@
   --color-blue-400: #2563eb;
   --color-blue-500: #0037b3;
   --color-blue-600: #002987;
+  --color-blue-100-rgb: 211 225 254;
+  --color-blue-200-rgb: 126 165 248;
+  --color-blue-300-rgb: 77 130 243;
+  --color-blue-400-rgb: 37 99 235;
+  --color-blue-500-rgb: 0 55 179;
+  --color-blue-600-rgb: 0 41 135;
 
   /* Palette: Warning ambers */
   --color-amber-100: #fff5d5;
@@ -192,6 +205,12 @@
   --color-amber-400: #976400;
   --color-amber-500: #724b00;
   --color-amber-600: #4d2900;
+  --color-amber-100-rgb: 255 245 213;
+  --color-amber-200-rgb: 255 222 129;
+  --color-amber-300-rgb: 239 176 8;
+  --color-amber-400-rgb: 151 100 0;
+  --color-amber-500-rgb: 114 75 0;
+  --color-amber-600-rgb: 77 41 0;
 
   /* Palette: Error reds */
   --color-red-100: #ffebeb;
@@ -200,6 +219,12 @@
   --color-red-400: #b01212;
   --color-red-500: #8c0000;
   --color-red-600: #660000;
+  --color-red-100-rgb: 255 235 235;
+  --color-red-200-rgb: 252 149 149;
+  --color-red-300-rgb: 216 50 50;
+  --color-red-400-rgb: 176 18 18;
+  --color-red-500-rgb: 140 0 0;
+  --color-red-600-rgb: 102 0 0;
 
   /* Semantic tokens (map to CSS variables for easy theming) */
   --color-background: var(--background);
@@ -426,12 +451,34 @@ body {
 @utility text-primary-80 { color: var(--primary-80); }
 @utility text-primary-100 { color: var(--primary-100); }
 
-@utility bg-primary-10 { background-color: var(--primary-10); }
-@utility bg-primary-20 { background-color: var(--primary-20); }
-@utility bg-primary-40 { background-color: var(--primary-40); }
-@utility bg-primary-60 { background-color: var(--primary-60); }
-@utility bg-primary-80 { background-color: var(--primary-80); }
-@utility bg-primary-100 { background-color: var(--primary-100); }
+@utility bg-primary-10 {
+  background-color: rgb(var(--color-green-100-rgb) / 1);
+}
+@utility bg-primary-20 {
+  background-color: rgb(var(--color-green-200-rgb) / 1);
+}
+@utility bg-primary-40 {
+  background-color: rgb(var(--color-green-300-rgb) / 1);
+}
+@utility bg-primary-60 {
+  background-color: rgb(var(--color-green-400-rgb) / 1);
+}
+@utility bg-primary-80 {
+  background-color: rgb(var(--color-green-500-rgb) / 1);
+}
+@utility bg-primary-100 {
+  background-color: rgb(var(--color-green-600-rgb) / 1);
+}
+/* Opacity variants for bg-primary-10/xx (plain CSS, not @utility) */
+.bg-primary-10\/10 { background-color: rgb(var(--color-green-100-rgb) / 0.1); }
+.bg-primary-10\/20 { background-color: rgb(var(--color-green-100-rgb) / 0.2); }
+.bg-primary-10\/30 { background-color: rgb(var(--color-green-100-rgb) / 0.3); }
+.bg-primary-10\/40 { background-color: rgb(var(--color-green-100-rgb) / 0.4); }
+.bg-primary-10\/50 { background-color: rgb(var(--color-green-100-rgb) / 0.5); }
+.bg-primary-10\/60 { background-color: rgb(var(--color-green-100-rgb) / 0.6); }
+.bg-primary-10\/70 { background-color: rgb(var(--color-green-100-rgb) / 0.7); }
+.bg-primary-10\/80 { background-color: rgb(var(--color-green-100-rgb) / 0.8); }
+.bg-primary-10\/90 { background-color: rgb(var(--color-green-100-rgb) / 0.9); }
 
 @utility border-primary-10 { border-color: var(--primary-10); }
 @utility border-primary-20 { border-color: var(--primary-20); }
@@ -451,12 +498,33 @@ body {
 @utility text-secondary-80 { color: var(--secondary-80); }
 @utility text-secondary-100 { color: var(--secondary-100); }
 
-@utility bg-secondary-10 { background-color: var(--secondary-10); }
-@utility bg-secondary-20 { background-color: var(--secondary-20); }
-@utility bg-secondary-40 { background-color: var(--secondary-40); }
-@utility bg-secondary-60 { background-color: var(--secondary-60); }
-@utility bg-secondary-80 { background-color: var(--secondary-80); }
-@utility bg-secondary-100 { background-color: var(--secondary-100); }
+@utility bg-secondary-10 {
+  background-color: rgb(var(--color-blue-100-rgb) / 1);
+}
+@utility bg-secondary-20 {
+  background-color: rgb(var(--color-blue-200-rgb) / 1);
+}
+@utility bg-secondary-40 {
+  background-color: rgb(var(--color-blue-300-rgb) / 1);
+}
+@utility bg-secondary-60 {
+  background-color: rgb(var(--color-blue-400-rgb) / 1);
+}
+@utility bg-secondary-80 {
+  background-color: rgb(var(--color-blue-500-rgb) / 1);
+}
+@utility bg-secondary-100 {
+  background-color: rgb(var(--color-blue-600-rgb) / 1);
+}
+.bg-secondary-10\/10 { background-color: rgb(var(--color-blue-100-rgb) / 0.1); }
+.bg-secondary-10\/20 { background-color: rgb(var(--color-blue-100-rgb) / 0.2); }
+.bg-secondary-10\/30 { background-color: rgb(var(--color-blue-100-rgb) / 0.3); }
+.bg-secondary-10\/40 { background-color: rgb(var(--color-blue-100-rgb) / 0.4); }
+.bg-secondary-10\/50 { background-color: rgb(var(--color-blue-100-rgb) / 0.5); }
+.bg-secondary-10\/60 { background-color: rgb(var(--color-blue-100-rgb) / 0.6); }
+.bg-secondary-10\/70 { background-color: rgb(var(--color-blue-100-rgb) / 0.7); }
+.bg-secondary-10\/80 { background-color: rgb(var(--color-blue-100-rgb) / 0.8); }
+.bg-secondary-10\/90 { background-color: rgb(var(--color-blue-100-rgb) / 0.9); }
 
 @utility border-secondary-10 { border-color: var(--secondary-10); }
 @utility border-secondary-20 { border-color: var(--secondary-20); }
@@ -472,12 +540,33 @@ body {
 @utility text-warning-80 { color: var(--warning-80); }
 @utility text-warning-100 { color: var(--warning-100); }
 
-@utility bg-warning-10 { background-color: var(--warning-10); }
-@utility bg-warning-20 { background-color: var(--warning-20); }
-@utility bg-warning-40 { background-color: var(--warning-40); }
-@utility bg-warning-60 { background-color: var(--warning-60); }
-@utility bg-warning-80 { background-color: var(--warning-80); }
-@utility bg-warning-100 { background-color: var(--warning-100); }
+@utility bg-warning-10 {
+  background-color: rgb(var(--color-amber-100-rgb) / 1);
+}
+@utility bg-warning-20 {
+  background-color: rgb(var(--color-amber-200-rgb) / 1);
+}
+@utility bg-warning-40 {
+  background-color: rgb(var(--color-amber-300-rgb) / 1);
+}
+@utility bg-warning-60 {
+  background-color: rgb(var(--color-amber-400-rgb) / 1);
+}
+@utility bg-warning-80 {
+  background-color: rgb(var(--color-amber-500-rgb) / 1);
+}
+@utility bg-warning-100 {
+  background-color: rgb(var(--color-amber-600-rgb) / 1);
+}
+.bg-warning-10\/10 { background-color: rgb(var(--color-amber-100-rgb) / 0.1); }
+.bg-warning-10\/20 { background-color: rgb(var(--color-amber-100-rgb) / 0.2); }
+.bg-warning-10\/30 { background-color: rgb(var(--color-amber-100-rgb) / 0.3); }
+.bg-warning-10\/40 { background-color: rgb(var(--color-amber-100-rgb) / 0.4); }
+.bg-warning-10\/50 { background-color: rgb(var(--color-amber-100-rgb) / 0.5); }
+.bg-warning-10\/60 { background-color: rgb(var(--color-amber-100-rgb) / 0.6); }
+.bg-warning-10\/70 { background-color: rgb(var(--color-amber-100-rgb) / 0.7); }
+.bg-warning-10\/80 { background-color: rgb(var(--color-amber-100-rgb) / 0.8); }
+.bg-warning-10\/90 { background-color: rgb(var(--color-amber-100-rgb) / 0.9); }
 
 @utility border-warning-10 { border-color: var(--warning-10); }
 @utility border-warning-20 { border-color: var(--warning-20); }
@@ -493,12 +582,33 @@ body {
 @utility text-danger-80 { color: var(--danger-80); }
 @utility text-danger-100 { color: var(--danger-100); }
 
-@utility bg-danger-10 { background-color: var(--danger-10); }
-@utility bg-danger-20 { background-color: var(--danger-20); }
-@utility bg-danger-40 { background-color: var(--danger-40); }
-@utility bg-danger-60 { background-color: var(--danger-60); }
-@utility bg-danger-80 { background-color: var(--danger-80); }
-@utility bg-danger-100 { background-color: var(--danger-100); }
+@utility bg-danger-10 {
+  background-color: rgb(var(--color-red-100-rgb) / 1);
+}
+@utility bg-danger-20 {
+  background-color: rgb(var(--color-red-200-rgb) / 1);
+}
+@utility bg-danger-40 {
+  background-color: rgb(var(--color-red-300-rgb) / 1);
+}
+@utility bg-danger-60 {
+  background-color: rgb(var(--color-red-400-rgb) / 1);
+}
+@utility bg-danger-80 {
+  background-color: rgb(var(--color-red-500-rgb) / 1);
+}
+@utility bg-danger-100 {
+  background-color: rgb(var(--color-red-600-rgb) / 1);
+}
+.bg-danger-10\/10 { background-color: rgb(var(--color-red-100-rgb) / 0.1); }
+.bg-danger-10\/20 { background-color: rgb(var(--color-red-100-rgb) / 0.2); }
+.bg-danger-10\/30 { background-color: rgb(var(--color-red-100-rgb) / 0.3); }
+.bg-danger-10\/40 { background-color: rgb(var(--color-red-100-rgb) / 0.4); }
+.bg-danger-10\/50 { background-color: rgb(var(--color-red-100-rgb) / 0.5); }
+.bg-danger-10\/60 { background-color: rgb(var(--color-red-100-rgb) / 0.6); }
+.bg-danger-10\/70 { background-color: rgb(var(--color-red-100-rgb) / 0.7); }
+.bg-danger-10\/80 { background-color: rgb(var(--color-red-100-rgb) / 0.8); }
+.bg-danger-10\/90 { background-color: rgb(var(--color-red-100-rgb) / 0.9); }
 
 @utility border-danger-10 { border-color: var(--danger-10); }
 @utility border-danger-20 { border-color: var(--danger-20); }
@@ -517,4 +627,36 @@ body {
 
 /* Fixed Figma-aligned text color (does not change with theme) */
 @utility text-figma-muted { color: #B0B0B0; }
+
+/* Custom Scrollbar Styles */
+/* For Webkit browsers (Chrome, Safari, Edge) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D0D0D0 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #D0D0D0;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #B0B0B0;
+}
+
+/* Hide scrollbar buttons (arrows) */
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
 

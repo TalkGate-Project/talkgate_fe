@@ -48,7 +48,7 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
               onClick={() => onTabChange(item.key)}
               className={`cursor-pointer w-full flex items-center gap-3 px-3 py-3 rounded-[8px] text-left transition-colors ${
                 isActive
-                  ? "bg-primary-10 text-primary-80"
+                  ? "bg-primary-10 bg-opacity-30 text-primary-80"
                   : "text-neutral-70 hover:bg-neutral-10"
               }`}
             >

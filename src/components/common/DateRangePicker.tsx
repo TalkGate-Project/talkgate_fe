@@ -55,7 +55,7 @@ export default function DateRangePicker({
             placeholder="연도 . 월 . 일"
             disabled={disabled}
             maxDate={endDate}
-            className="border-neutral-30"
+            className="border-neutral-30 cursor-pointer"
           />
         </div>
         <span className="text-[14px] font-medium text-neutral-90">-</span>
@@ -67,7 +67,7 @@ export default function DateRangePicker({
             placeholder="연도 . 월 . 일"
             disabled={disabled}
             minDate={startDate}
-            className="border-neutral-30"
+            className="border-neutral-30 cursor-pointer"
           />
         </div>
       </div>

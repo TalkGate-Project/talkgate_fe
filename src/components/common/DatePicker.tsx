@@ -169,7 +169,7 @@ export default function DatePicker(props: DatePickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, "yyyy. MM. dd", { locale: ko }) : ""}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 ${className}`}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 cursor-pointer ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
