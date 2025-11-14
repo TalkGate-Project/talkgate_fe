@@ -6,6 +6,11 @@ type KpiCardProps = {
   loading?: boolean;
 };
 
+const montserratStyle = {
+  fontFamily:
+    'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
+};
+
 
 export default function KpiCard({ icon, label, value, className, loading }: KpiCardProps) {
   return (
@@ -17,6 +22,7 @@ export default function KpiCard({ icon, label, value, className, loading }: KpiC
         <div className="text-title-4 font-semibold text-neutral-90">{label}</div>
         <div
           className="mt-2 font-montserrat font-bold text-[28px] leading-[34px] tracking-[1px] text-foreground"
+          style={montserratStyle}
         >
           {loading ? <span className="inline-flex h-8 w-24 animate-pulse rounded bg-neutral-20" /> : value}
         </div>

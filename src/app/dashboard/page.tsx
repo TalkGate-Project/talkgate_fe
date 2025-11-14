@@ -18,6 +18,7 @@ import RecentCustomersIcon from "@/components/common/icons/RecentCustomersIcon";
 import TotalCustomersIcon from "@/components/common/icons/TotalCustomersIcon";
 import PaymentRateIcon from "@/components/common/icons/PaymentRateIcon";
 import PaymentAmountIcon from "@/components/common/icons/PaymentAmountIcon";
+import { formatCurrencyKR } from "@/utils/format";
 
 function DashboardContent() {
   const [projectId, projectReady] = useSelectedProjectId();
@@ -64,7 +65,7 @@ function DashboardContent() {
       { label: "새로 배정된 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
       { label: "전체 배정된 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
       { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%`, icon: <PaymentRateIcon /> },
-      { label: "결제누적액", value: `₩ ${paymentAmount.toLocaleString("ko-KR")}`, icon: <PaymentAmountIcon /> },
+      { label: "결제누적액", value: formatCurrencyKR(paymentAmount), icon: <PaymentAmountIcon /> },
     ];
   }, [summary]);
 
