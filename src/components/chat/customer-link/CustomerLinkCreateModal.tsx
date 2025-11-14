@@ -19,6 +19,22 @@ type MessengerAccount = {
   account: string;
 };
 
+const messengerLabelToApiCode = (label: string): string => {
+  switch (label) {
+    case "라인":
+      return "line";
+    case "카카오톡":
+    case "카카오":
+      return "kakaotalk";
+    case "텔레그램":
+      return "telegram";
+    case "인스타그램":
+      return "instagram";
+    default:
+      return "other";
+  }
+};
+
 export default function CustomerLinkCreateModal({
   open,
   onClose,
@@ -97,7 +113,7 @@ export default function CustomerLinkCreateModal({
     setSubmitting(true);
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] = messengerAccounts.map((acc) => ({
-        messenger: acc.messenger.toLowerCase().replace(/톡/g, "").replace(/그램/g, "").replace(/스타그램/g, "instagram") || "other",
+        messenger: messengerLabelToApiCode(acc.messenger),
         account: acc.account,
       }));
 

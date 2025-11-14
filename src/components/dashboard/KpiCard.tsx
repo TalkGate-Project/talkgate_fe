@@ -24,7 +24,7 @@ export default function KpiCard({ icon, label, value, className, loading }: KpiC
 
       <div
         className="w-[60px] h-[60px] rounded-[12px] grid place-items-center"
-        style={{ background: "color-mix(in srgb, var(--primary-60) 15%, transparent)" }}
+        style={{ background: "color-mix(in srgb, var(--primary-60) 10%, transparent)" }}
       >
         {icon ?? (
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--primary-60)" strokeWidth="2">

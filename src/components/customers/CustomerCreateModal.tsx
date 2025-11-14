@@ -17,6 +17,22 @@ type MessengerAccount = {
   account: string;
 };
 
+const messengerLabelToApiCode = (label: string): string => {
+  switch (label) {
+    case "라인":
+      return "line";
+    case "카카오톡":
+    case "카카오":
+      return "kakaotalk";
+    case "텔레그램":
+      return "telegram";
+    case "인스타그램":
+      return "instagram";
+    default:
+      return "other";
+  }
+};
+
 export default function CustomerCreateModal({
   open,
   onClose,
@@ -99,12 +115,7 @@ export default function CustomerCreateModal({
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] =
         messengerAccounts.map((acc) => ({
-          messenger:
-            acc.messenger
-              .toLowerCase()
-              .replace(/톡/g, "")
-              .replace(/그램/g, "")
-              .replace(/스타그램/g, "instagram") || "other",
+          messenger: messengerLabelToApiCode(acc.messenger),
           account: acc.account,
         }));
 
@@ -139,12 +150,12 @@ export default function CustomerCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] h-[856px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[848px] h-[523px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="고객 등록"
     >
       <div className="relative w-full h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4">
+        <div className="flex items-center justify-between px-7 pt-6 pb-4">
           <h2 className="text-[18px] font-semibold leading-[21px]">고객등록</h2>
           <button
             aria-label="close"
@@ -171,14 +182,14 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-7 pb-6 pt-[14px]">
           {/* 기본 정보 */}
-          <div className="mb-6">
+          <div className="mb-[30px]">
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               기본 정보
             </h3>
             <div className="border-t border-neutral-30 pt-4">
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
@@ -200,8 +211,8 @@ export default function CustomerCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     연락처1<span className="text-[#FF0000]">*</span>
                   </label>
-                  <div className="flex gap-2">
-                    <div className="w-[120px]">
+                  <div className="flex gap-3">
+                    <div className="w-[106px]">
                       <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact1Type}
@@ -250,7 +261,7 @@ export default function CustomerCreateModal({
                     연락처2
                   </label>
                   <div className="flex gap-2">
-                    <div className="w-[120px]">
+                    <div className="w-[106px]">
                       <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
                         <select
                           value={contact2Type}
@@ -373,13 +384,13 @@ export default function CustomerCreateModal({
           </div>
 
           {/* 메신저 계정 */}
-          <div className="mb-6">
+          <div className="mb-[30px]">
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               메신저 계정
             </h3>
             <div className="border-t border-neutral-30 pt-4">
               <div className="flex gap-2 mb-3">
-                <div className="w-[120px]">
+                <div className="w-[106px]">
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px] relative">
                     <select
                       value={currentMessengerType}
@@ -543,7 +554,7 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 px-6 py-4 flex justify-end gap-3">
+        <div className="border-t border-neutral-30 px-7 py-3 flex justify-end gap-3">
           <button
             type="button"
             onClick={handleReset}
