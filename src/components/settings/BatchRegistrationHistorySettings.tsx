@@ -182,7 +182,7 @@ export default function BatchRegistrationHistorySettings() {
         일괄 등록 이력
       </h1>
 
-      <div className="border-b border-[#E2E2E266]"></div>
+      <div className="border-b border-neutral-30/40"></div>
 
       {/* Sub-title */}
       <h2 className="px-7 pt-[30px] text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">

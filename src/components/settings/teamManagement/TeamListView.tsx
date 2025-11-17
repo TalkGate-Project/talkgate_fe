@@ -180,14 +180,14 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
             className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
           />
         </div>
-        <button className="px-4 py-2 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+        <button className="cursor-pointer px-4 py-2 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
           검색
         </button>
       </div>
       {tags.length > 0 && (
         <div className="flex gap-2 mb-6">
           {tags.map((tag) => (
-            <div key={tag} className="px-3 py-1 bg-neutral-20 rounded-[30px]">
+            <div key={tag} className="px-3 py-1 bg-neutral-30 rounded-[30px] leading-[1]">
               <span className="text-[12px] font-medium text-neutral-70">{tag}</span>
             </div>
           ))}
