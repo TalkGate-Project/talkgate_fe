@@ -161,6 +161,8 @@
   --color-gray-100: #ededed;
   --color-gray-100-lighter: #edededaa;
   --color-gray-200: #e2e2e2;
+  /* RGB helper for gray-200 (E2E2E2) to support opacity utilities */
+  --color-gray-200-rgb: 226 226 226;
   --color-gray-300: #d0d0d0;
   --color-gray-400: #b0b0b0;
   --color-gray-500: #808080;
@@ -431,6 +433,13 @@ body {
 @utility bg-neutral-90 { background-color: var(--neutral-90); }
 @utility bg-neutral-100 { background-color: var(--neutral-100); }
 
+/* Opacity variants for neutral-30 (E2E2E2) - use instead of bg-[#E2E2E2xx] */
+.bg-neutral-30\/10 { background-color: rgb(var(--color-gray-200-rgb) / 0.1); }
+.bg-neutral-30\/20 { background-color: rgb(var(--color-gray-200-rgb) / 0.2); }
+.bg-neutral-30\/40 { background-color: rgb(var(--color-gray-200-rgb) / 0.4); }
+.bg-neutral-30\/60 { background-color: rgb(var(--color-gray-200-rgb) / 0.6); }
+.bg-neutral-30\/80 { background-color: rgb(var(--color-gray-200-rgb) / 0.8); }
+
 @utility border-neutral-0 { border-color: var(--neutral-0); }
 @utility border-neutral-10 { border-color: var(--neutral-10); }
 @utility border-neutral-20 { border-color: var(--neutral-20); }
@@ -442,6 +451,18 @@ body {
 @utility border-neutral-80 { border-color: var(--neutral-80); }
 @utility border-neutral-90 { border-color: var(--neutral-90); }
 @utility border-neutral-100 { border-color: var(--neutral-100); }
+
+/* Opacity variants for neutral-30 (E2E2E2) - use instead of border-[#E2E2E2xx] */
+.border-neutral-30\/10 { border-color: rgb(var(--color-gray-200-rgb) / 0.1); }
+.border-neutral-30\/20 { border-color: rgb(var(--color-gray-200-rgb) / 0.2); }
+.border-neutral-30\/40 { border-color: rgb(var(--color-gray-200-rgb) / 0.4); } /* ≈ #E2E2E266 */
+.border-neutral-30\/35 { border-color: rgb(var(--color-gray-200-rgb) / 0.33); } /* ≈ #E2E2E255 */
+
+/* Divide color helper for neutral-30 - use with divide-y / divide-x */
+.divide-neutral-30\/40 > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-opacity: 0.4;
+  border-color: rgb(var(--color-gray-200-rgb) / var(--tw-divide-opacity));
+}
 
 /* Semantic scale utilities */
 @utility text-primary-10 { color: var(--primary-10); }

@@ -74,7 +74,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
           <div
             className={`group relative flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 ${
               item.isLeader
-                ? "bg-primary-10 bg-opacity-30"
+                ? "bg-primary-10/30"
                 : "bg-card"
             } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{

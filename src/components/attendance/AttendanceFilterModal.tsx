@@ -55,10 +55,10 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
                 <button 
                   key={opt.value} 
                   onClick={() => setLocalTeam(opt.value)} 
-                  className={`px-3 h-[28px] rounded-[6px] border flex items-center gap-2 ${
-                    localTeam === opt.value 
-                      ? 'bg-primary-10 border-primary-40 text-primary-100' 
-                      : 'border-border text-foreground bg-card'
+                  className={`px-3 h-[34px] rounded-[5px] border flex items-center gap-2 text-[14px] ${
+                    localTeam === opt.value
+                      ? "border-2 border-primary-40 bg-primary-10/30 text-primary-100"
+                      : "border-border bg-card text-foreground"
                   }`}
                 >
                   {opt.value !== 'all' && (
@@ -83,10 +83,10 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
                 <button 
                   key={opt.value} 
                   onClick={() => setLocalPosition(opt.value)} 
-                  className={`px-3 h-[28px] rounded-[6px] border ${
-                    localPosition === opt.value 
-                      ? 'bg-primary-10 border-primary-40 text-primary-100' 
-                      : 'border-border text-foreground bg-card'
+                  className={`px-3 h-[34px] rounded-[5px] border text-[14px] ${
+                    localPosition === opt.value
+                      ? "border-2 border-primary-40 bg-primary-10/30"
+                      : "border-border bg-card text-foreground"
                   }`}
                 >
                   {opt.label}
@@ -97,7 +97,7 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
         </div>
         <div className="px-6 py-3 flex justify-end gap-2 border-t border-border">
           <button 
-            className="h-[32px] px-4 rounded-[6px] border border-border text-foreground bg-card" 
+            className="cursor-pointer h-[32px] px-4 rounded-[6px] text-[14px] border border-border text-foreground bg-card" 
             onClick={() => { 
               setLocalTeam('all'); 
               setLocalPosition('all'); 
@@ -106,7 +106,7 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
             초기화
           </button>
           <button 
-            className="h-[32px] px-4 rounded-[6px] bg-primary-60 text-neutral-0" 
+            className="cursor-pointer h-[32px] px-4 rounded-[6px] text-[14px] bg-primary-60 text-neutral-0" 
             onClick={() => onApply({ team: localTeam, position: localPosition })}
           >
             적용완료

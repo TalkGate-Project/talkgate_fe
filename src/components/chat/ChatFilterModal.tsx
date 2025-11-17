@@ -3,15 +3,34 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Checkbox from "@/components/common/Checkbox";
 
-export type Messenger = "all" | "telegram" | "instagram" | "line" | "kakao" | "facebook" | "x";
+export type Messenger =
+  | "all"
+  | "telegram"
+  | "instagram"
+  | "line"
+  | "kakao"
+  | "facebook"
+  | "x";
 
 export type ChatFilterDefaults = {
   messenger?: Messenger;
   statuses?: string[]; // ex) ["일반","부재"]
 };
 
-export default function ChatFilterModal({ open, defaults, onClose, onApply }: { open: boolean; defaults?: ChatFilterDefaults; onClose: () => void; onApply: (next: ChatFilterDefaults) => void; }) {
-  const [messenger, setMessenger] = useState<Messenger>(defaults?.messenger ?? "all");
+export default function ChatFilterModal({
+  open,
+  defaults,
+  onClose,
+  onApply,
+}: {
+  open: boolean;
+  defaults?: ChatFilterDefaults;
+  onClose: () => void;
+  onApply: (next: ChatFilterDefaults) => void;
+}) {
+  const [messenger, setMessenger] = useState<Messenger>(
+    defaults?.messenger ?? "all"
+  );
   const [statuses, setStatuses] = useState<string[]>(defaults?.statuses ?? []);
   const [statusOpen, setStatusOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -50,66 +69,139 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       {/* POP-UP 440x336 centered */}
-      <div className="absolute" style={{ width: 440, height: 336, left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>
+      <div
+        className="absolute"
+        style={{
+          width: 440,
+          left: "50%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
         <div className="relative w-full h-full bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
           {/* Header */}
-          <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-            <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">필터설정</h2>
-            <button aria-label="close" onClick={onClose} className="w-6 h-6 grid place-items-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-neutral-50" />
+          <div className="px-7 pt-6 pb-[30px] flex items-center justify-between">
+            <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">
+              필터설정
+            </h2>
+            <button
+              aria-label="close"
+              onClick={onClose}
+              className="cursor-pointer w-6 h-6 grid place-items-center"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 18L18 6M6 6L18 18"
+                  stroke="#B0B0B0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
             </button>
           </div>
 
           {/* Body */}
-          <div className="px-6 space-y-4" style={{ height: 336 - 56 - 64 }}>
+          <div className="px-7 space-y-6 mb-[30px]">
             {/* 메신저 아이콘 */}
             <div>
-              <div className="text-[14px] text-neutral-60 mb-2">메신저</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">메신저</div>
               <div className="flex items-center gap-3">
                 {/* 전체 버튼 */}
                 <button
                   onClick={() => setMessenger("all")}
-                  className={`h-[34px] px-3 rounded-[8px] border text-[14px] ${messenger==='all' ? 'border-primary-40 bg-primary-10' : 'border-neutral-30 bg-neutral-0'}`}
+                  className={`cursor-pointer w-[48px] h-[34px] rounded-[5px] border text-[14px] ${
+                    messenger === "all"
+                      ? "border-2 border-primary-40 bg-primary-10/30 font-bold"
+                      : "border-border bg-card"
+                  }`}
                 >
                   전체
                 </button>
-                {items.filter(i=>i.key!=='all').map((it) => (
-                  <button
-                    key={it.key}
-                    onClick={() => setMessenger(it.key)}
-                    className={`w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${messenger===it.key? 'border-neutral-30 bg-neutral-0' : 'border-neutral-30 bg-neutral-0'}`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={it.icon!} alt="" className="w-5 h-5" />
-                  </button>
-                ))}
+                {items
+                  .filter((i) => i.key !== "all")
+                  .map((it) => (
+                    <button
+                      key={it.key}
+                      onClick={() => setMessenger(it.key)}
+                      className={`cursor-pointer w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
+                        messenger === it.key
+                          ? "border-2 border-primary-40 bg-primary-10/30"
+                          : "border-border bg-card"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={it.icon!} alt="" className="w-5 h-5" />
+                    </button>
+                  ))}
               </div>
             </div>
 
             {/* 처리상태 멀티 선택 */}
             <div ref={dropdownRef} className="relative">
-              <div className="text-[14px] text-neutral-60 mb-2">처리상태</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">처리상태</div>
               <button
                 type="button"
-                onClick={() => setStatusOpen((v)=>!v)}
+                onClick={() => setStatusOpen((v) => !v)}
                 className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between"
               >
-                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-90 opacity-90">{statuses.length ? `${statuses.length}개 선택됨` : '상태 선택'}</span>
-                <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${statusOpen? 'rotate-180' : ''}`}>
-                  <path d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z" fill="currentColor" className="fill-neutral-90"/>
+                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-90 opacity-90">
+                  {statuses.length
+                    ? `${statuses.length}개 선택됨`
+                    : "상태 선택"}
+                </span>
+                <svg
+                  width="10"
+                  height="8"
+                  viewBox="0 0 10 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`${statusOpen ? "rotate-180" : ""}`}
+                >
+                  <path
+                    d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z"
+                    fill="currentColor"
+                    className="fill-neutral-90"
+                  />
                 </svg>
               </button>
 
               {statuses.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                   {statuses.map((s) => (
-                    <span key={s} className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80">
+                    <span
+                      key={s}
+                      className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
+                    >
                       {s}
-                      <button className="ml-2 w-3 h-3 grid place-items-center" aria-label="remove" onClick={() => setStatuses((prev)=> prev.filter((x)=> x!==s))}>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="stroke-primary-80" />
+                      <button
+                        className="ml-2 w-3 h-3 grid place-items-center"
+                        aria-label="remove"
+                        onClick={() =>
+                          setStatuses((prev) => prev.filter((x) => x !== s))
+                        }
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 9L9 3M3 3L9 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="stroke-primary-80"
+                          />
                         </svg>
                       </button>
                     </span>
@@ -122,9 +214,28 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
                   {statusOptions.map((opt) => {
                     const checked = statuses.includes(opt);
                     return (
-                      <label key={opt} className="flex items-center gap-3 h-10 px-1">
-                        <Checkbox checked={checked} onChange={(next)=> setStatuses((prev)=> next ? [...prev, opt] : prev.filter((x)=> x!==opt))} ariaLabel={opt} />
-                        <span className="text-[14px] text-neutral-90">{opt}</span>
+                      <label
+                        key={opt}
+                        className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer ${
+                          checked
+                            ? "border-2 border-primary-40 bg-primary-10/30"
+                            : "border-border bg-card"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onChange={(next) =>
+                            setStatuses((prev) =>
+                              next
+                                ? [...prev, opt]
+                                : prev.filter((x) => x !== opt)
+                            )
+                          }
+                          ariaLabel={opt}
+                        />
+                        <span className="text-[14px] text-neutral-90">
+                          {opt}
+                        </span>
                       </label>
                     );
                   })}
@@ -134,14 +245,25 @@ export default function ChatFilterModal({ open, defaults, onClose, onApply }: { 
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 flex items-center justify-end gap-3 border-t border-neutral-30">
-            <button className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0" onClick={()=>{ setMessenger('all'); setStatuses([]); }}>초기화</button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]" onClick={()=> onApply({ messenger, statuses })}>적용완료</button>
+          <div className="px-7 py-3 flex items-center justify-end gap-3 border-t border-neutral-30">
+            <button
+              className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+              onClick={() => {
+                setMessenger("all");
+                setStatuses([]);
+              }}
+            >
+              초기화
+            </button>
+            <button
+              className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+              onClick={() => onApply({ messenger, statuses })}
+            >
+              적용완료
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-

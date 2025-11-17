@@ -103,7 +103,7 @@ export default function LineIntegrationModal({
       {/* Modal */}
       <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="h-[64px] flex items-center px-7 border-b border-[#E2E2E266]">
+        <div className="h-[64px] flex items-center px-7 border-b border-neutral-30/40">
           <div className="text-[18px] font-semibold leading-[21px] text-[#000]">
             라인 공식 계정 연동
           </div>
@@ -157,7 +157,7 @@ export default function LineIntegrationModal({
             </div>
           </div>
 
-          <div className="w-[60px] h-px bg-[#E2E2E2]" />
+          <div className="w-[60px] h-px bg-neutral-30" />
 
           {/* 2단계 */}
           <div className="flex flex-col items-center gap-[17px]">
@@ -183,7 +183,7 @@ export default function LineIntegrationModal({
             </div>
           </div>
 
-          <div className="w-[60px] h-px bg-[#E2E2E2]" />
+          <div className="w-[60px] h-px bg-neutral-30" />
 
           {/* 3단계 */}
           <div className="flex flex-col items-center gap-[17px]">
@@ -245,7 +245,7 @@ export default function LineIntegrationModal({
                   type="text"
                   value={isLoadingWebhook ? "로딩 중..." : webhookUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card text-center tracking-[-0.02em] leading-[17px]"
+                  className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card tracking-[-0.02em] leading-[17px]"
                 />
                 <button
                   onClick={handleCopyWebhookUrl}
@@ -310,9 +310,9 @@ export default function LineIntegrationModal({
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-[#E2E2E266] px-7 py-4 flex items-center justify-end gap-3">
+        <div className="border-t border-neutral-30 px-7 py-4 flex items-center justify-end gap-3">
           <button
-            className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleClose}
             disabled={isSaving}
           >
@@ -321,7 +321,7 @@ export default function LineIntegrationModal({
 
           {step > 1 && (
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep((step - 1) as 1 | 2 | 3)}
               disabled={isSaving}
             >

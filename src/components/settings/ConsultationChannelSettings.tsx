@@ -3,12 +3,26 @@
 import { useState, useEffect } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { MessengerIntegrationService } from "@/services/messengerIntegration";
-import MessengerIntegrationModal from "./MessengerIntegrationModal";
 import LineIntegrationModal from "./LineIntegrationModal";
-import type {
-  Platform,
-  MessengerIntegration,
-} from "@/types/messengerIntegration";
+import TelegramIntegrationModal from "./TelegramIntegrationModal";
+import type { Platform, MessengerIntegration } from "@/types/messengerIntegration";
+const channels = [
+  {
+    id: "instagram" as Platform,
+    name: "Instagram",
+    description: "인스타그램 DM연동",
+  },
+  {
+    id: "telegram" as Platform,
+    name: "Telegram",
+    description: "텔레그램 봇 연동",
+  },
+  {
+    id: "line" as Platform,
+    name: "LINE",
+    description: "라인 공식 계정 연동",
+  },
+];
 
 interface ChannelCardProps {
   name: string;
@@ -298,24 +312,21 @@ export default function ConsultationChannelSettings() {
       </div>
 
       {/* Integration Modals */}
-      {modalPlatform === "line" ? (
+      {modalPlatform === "line" && (
         <LineIntegrationModal
           isOpen={true}
           onClose={() => setModalPlatform(null)}
-          onConfirm={async (data) => {
-            await handleConfirmIntegration(data);
-          }}
+          onConfirm={handleConfirmIntegration}
           projectId={projectId || ""}
         />
-      ) : (
-        modalPlatform && (
-          <MessengerIntegrationModal
-            isOpen={true}
-            onClose={() => setModalPlatform(null)}
-            onConfirm={handleConfirmIntegration}
-            platform={modalPlatform}
-          />
-        )
+      )}
+
+      {modalPlatform === "telegram" && (
+        <TelegramIntegrationModal
+          isOpen={true}
+          onClose={() => setModalPlatform(null)}
+          onConfirm={handleConfirmIntegration}
+        />
       )}
     </div>
   );

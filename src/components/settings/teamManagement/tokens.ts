@@ -20,7 +20,7 @@ export const TOKENS = {
     badge: { w: 66, h: 22 },
   },
   connector: {
-    color: "#E2E2E2",
+    color: "#E2E2E2", // neutral-30 (kept as design token, use border-neutral-30 in JSX)
     width: 1,
     borderRadius: 9999,
   },

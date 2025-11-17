@@ -160,7 +160,7 @@ export default function PaymentMemberTable() {
         <div className="text-[16px] font-semibold text-neutral-90">팀원별 결제 현황</div>
         <button
           aria-label="filter"
-          className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
+          className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
           onClick={() => setOpen(true)}
         >
           <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">

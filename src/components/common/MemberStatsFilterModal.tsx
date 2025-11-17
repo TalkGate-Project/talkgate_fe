@@ -43,8 +43,12 @@ export default function MemberStatsFilterModal({
   teamOptions,
   sortOptions,
 }: Props) {
-  const availableTeamOptions = teamOptions?.length ? teamOptions : FALLBACK_TEAM_OPTIONS;
-  const availableSortOptions = sortOptions?.length ? sortOptions : FALLBACK_SORT_OPTIONS;
+  const availableTeamOptions = teamOptions?.length
+    ? teamOptions
+    : FALLBACK_TEAM_OPTIONS;
+  const availableSortOptions = sortOptions?.length
+    ? sortOptions
+    : FALLBACK_SORT_OPTIONS;
 
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
   const [localSort, setLocalSort] = useState<SortValue>(defaults.sort);
@@ -59,11 +63,32 @@ export default function MemberStatsFilterModal({
   return createPortal(
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]" style={{ width: 480, transform: 'translate(-50%, -50%)' }}>
+      <div
+        className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
+        style={{ width: 480, transform: "translate(-50%, -50%)" }}
+      >
         <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
           <div className="text-[18px] font-semibold">{title}</div>
-          <button onClick={onClose} aria-label="close" className="w-6 h-6 grid place-items-center rounded hover:bg-[#F3F3F3]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18L18 6M6 6L18 18" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <button
+            onClick={onClose}
+            aria-label="close"
+            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-[#F3F3F3]"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 18L18 6M6 6L18 18"
+                stroke="#111827"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </div>
         <div className="px-6 py-4 space-y-6">
@@ -71,7 +96,17 @@ export default function MemberStatsFilterModal({
             <div className="text-[14px] text-[#808080] mb-2">팀별</div>
             <div className="flex flex-wrap gap-2">
               {availableTeamOptions.map((opt) => (
-                <button key={opt.value} onClick={() => setLocalTeam(opt.value)} className={`px-3 h-[28px] rounded-[6px] border ${localTeam===opt.value? 'bg-[#D6FAE8] border-[#51F8A5] text-[#004824]' : 'border-[#E2E2E2] text-[#252525]'}`}>{opt.label}</button>
+                <button
+                  key={opt.value}
+                  onClick={() => setLocalTeam(opt.value)}
+                  className={`cursor-pointer px-3 h-[34px] rounded-[5px] border text-[14px] ${
+                    localTeam === opt.value
+                      ? "border-2 border-primary-40 bg-primary-10/30"
+                      : "border-border bg-card text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
@@ -79,14 +114,24 @@ export default function MemberStatsFilterModal({
             <div className="text-[14px] text-[#808080] mb-2">정렬</div>
             <div className="flex gap-2">
               {availableSortOptions.map((opt) => (
-                <button key={opt.value} onClick={() => setLocalSort(opt.value)} className={`px-3 h-[28px] rounded-[6px] border ${localSort===opt.value? 'bg-[#D6FAE8] border-[#51F8A5] text-[#004824]' : 'border-[#E2E2E2] text-[#252525]'}`}>{opt.label}</button>
+                <button
+                  key={opt.value}
+                  onClick={() => setLocalSort(opt.value)}
+                  className={`cursor-pointer px-3 h-[34px] rounded-[5px] border text-[14px] ${
+                    localSort === opt.value
+                      ? "border-2 border-primary-40 bg-primary-10/30"
+                      : "border-border bg-card text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
         </div>
         <div className="px-6 py-3 flex justify-end gap-2 border-t border-[#E2E2E266]">
           <button
-            className="h-[32px] px-4 rounded-[6px] border border-[#E2E2E2]"
+            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] border border-[#E2E2E2]"
             onClick={() => {
               setLocalTeam(availableTeamOptions[0]?.value ?? "all");
               setLocalSort(availableSortOptions[0]?.value ?? "desc");
@@ -94,12 +139,15 @@ export default function MemberStatsFilterModal({
           >
             초기화
           </button>
-          <button className="h-[32px] px-4 rounded-[6px] bg-[#252525] text-[#D0D0D0]" onClick={() => onApply({ team: localTeam, sort: localSort })}>적용완료</button>
+          <button
+            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] bg-[#252525] text-[#D0D0D0]"
+            onClick={() => onApply({ team: localTeam, sort: localSort })}
+          >
+            적용완료
+          </button>
         </div>
       </div>
     </div>,
     document.body
   );
 }
-
-
