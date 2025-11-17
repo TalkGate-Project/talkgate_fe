@@ -73,7 +73,6 @@ export default function ChatFilterModal({
         className="absolute"
         style={{
           width: 440,
-          height: 336,
           left: "50%",
           top: "50%",
           transform: "translate(-50%, -50%)",
@@ -81,14 +80,14 @@ export default function ChatFilterModal({
       >
         <div className="relative w-full h-full bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
           {/* Header */}
-          <div className="px-6 pt-5 pb-3 flex items-center justify-between">
+          <div className="px-7 pt-6 pb-[30px] flex items-center justify-between">
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">
               필터설정
             </h2>
             <button
               aria-label="close"
               onClick={onClose}
-              className="w-6 h-6 grid place-items-center"
+              className="cursor-pointer w-6 h-6 grid place-items-center"
             >
               <svg
                 width="24"
@@ -99,28 +98,27 @@ export default function ChatFilterModal({
               >
                 <path
                   d="M6 18L18 6M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="stroke-neutral-50"
+                  stroke="#B0B0B0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 />
               </svg>
             </button>
           </div>
 
           {/* Body */}
-          <div className="px-6 space-y-4" style={{ height: 336 - 56 - 64 }}>
+          <div className="px-7 space-y-6 mb-[30px]">
             {/* 메신저 아이콘 */}
             <div>
-              <div className="text-[14px] text-neutral-60 mb-2">메신저</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">메신저</div>
               <div className="flex items-center gap-3">
                 {/* 전체 버튼 */}
                 <button
                   onClick={() => setMessenger("all")}
-                  className={`h-[34px] px-3 rounded-[5px] border text-[14px] ${
+                  className={`cursor-pointer w-[48px] h-[34px] rounded-[5px] border text-[14px] ${
                     messenger === "all"
-                      ? "border-2 border-primary-40 bg-primary-10/30"
+                      ? "border-2 border-primary-40 bg-primary-10/30 font-bold"
                       : "border-border bg-card"
                   }`}
                 >
@@ -132,7 +130,7 @@ export default function ChatFilterModal({
                     <button
                       key={it.key}
                       onClick={() => setMessenger(it.key)}
-                      className={`w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
+                      className={`cursor-pointer w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
                         messenger === it.key
                           ? "border-2 border-primary-40 bg-primary-10/30"
                           : "border-border bg-card"
@@ -147,7 +145,7 @@ export default function ChatFilterModal({
 
             {/* 처리상태 멀티 선택 */}
             <div ref={dropdownRef} className="relative">
-              <div className="text-[14px] text-neutral-60 mb-2">처리상태</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">처리상태</div>
               <button
                 type="button"
                 onClick={() => setStatusOpen((v) => !v)}
@@ -247,9 +245,9 @@ export default function ChatFilterModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 flex items-center justify-end gap-3 border-t border-neutral-30">
+          <div className="px-7 py-3 flex items-center justify-end gap-3 border-t border-neutral-30">
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+              className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
               onClick={() => {
                 setMessenger("all");
                 setStatuses([]);
@@ -258,7 +256,7 @@ export default function ChatFilterModal({
               초기화
             </button>
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+              className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
               onClick={() => onApply({ messenger, statuses })}
             >
               적용완료

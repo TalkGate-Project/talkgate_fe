@@ -48,41 +48,45 @@ export default function CustomerApiSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] shadow-sm p-10 flex flex-col gap-8">
-      <header className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-[24px] font-bold text-foreground">고객등록 API</h1>
+    <div className="bg-card rounded-[14px] shadow-sm p-7 flex flex-col h-full">
+      <header className="space-y-4">
+        <h1 className="text-[24px] font-bold text-foreground">고객등록 API</h1>
+        <div className="space-y-1">
+          <p className="text-[16px] font-semibold text-foreground">API 정보</p>
+          <p className="text-[14px] text-neutral-60">
+            외부 시스템에서 고객 정보를 등록할 수 있는 API 엔드포인트와 인증 키를 관리합니다.
+          </p>
         </div>
-        <p className="text-[16px] font-medium text-neutral-60">
-          외부 시스템에서 고객 정보를 등록할 수 있는 API 엔드포인트와 인증 키를 관리합니다.
-        </p>
       </header>
+      <div className="-mx-7 mt-2 mb-[18px]">
+        <div className="h-px bg-neutral-30/40" />
+      </div>
 
-      <section className="space-y-6">
+      <section className="space-y-5">
         <div className="space-y-2">
-          <h2 className="text-[16px] font-semibold text-foreground">API 엔드포인트</h2>
-          <div className="flex items-center gap-3 bg-neutral-10 rounded-[12px] px-6 py-4">
+          <h2 className="text-[16px] font-semibold text-neutral-60">API 엔드포인트</h2>
+          <div className="flex items-center h-[50px] gap-3 bg-neutral-10 border border-neutral-30/40 rounded-[12px] px-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
             <input
               type="text"
               value={API_ENDPOINT_PLACEHOLDER}
               readOnly
-              className="flex-1 bg-transparent text-[14px] text-foreground font-medium outline-none"
+              className="flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none"
             />
             <button
               onClick={handleCopyEndpoint}
-              className="h-9 px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground hover:bg-neutral-10"
+              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-200 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
             >
               {copyState === "copied" ? "복사됨" : "복사"}
             </button>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-semibold text-foreground">API 키</h2>
+            <h2 className="text-[16px] font-semibold text-neutral-60">API 키</h2>
           </div>
           <div
-            className="flex items-center gap-3 bg-neutral-10 rounded-[12px] px-6 py-4"
+            className="flex items-center h-[50px] gap-3 bg-neutral-10 border border-neutral-30/40 rounded-[12px] px-6 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
             onMouseEnter={() => setShowKey(true)}
             onMouseLeave={() => setShowKey(false)}
           >
@@ -90,18 +94,18 @@ export default function CustomerApiSettings() {
               type="text"
               value={API_KEY_PLACEHOLDER}
               readOnly
-              className={`flex-1 bg-transparent text-[14px] text-foreground font-medium outline-none transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
+              className={`flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <button
                 onClick={handleCopyKey}
-                className="h-9 px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground hover:bg-neutral-10"
+                className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-200 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
               >
                 {keyCopyState === "copied" ? "복사됨" : "복사"}
               </button>
               <button
                 onClick={handleOpenModal}
-                className="h-9 px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90"
+                className="cursor-pointer w-[60px] h-[34px] rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90"
               >
                 재발급
               </button>
