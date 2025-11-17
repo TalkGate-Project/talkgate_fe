@@ -102,7 +102,7 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
             <div
               className={`flex items-center px-6 py-5 gap-4 border border-border rounded-[12px] cursor-move transition-all ${
                 item.isLeader
-                  ? "bg-primary-10 bg-opacity-30"
+                  ? "bg-primary-10/30"
                   : "bg-card"
               } ${isMatch ? "ring-2 ring-secondary-40" : ""} ${
                 isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
@@ -180,7 +180,7 @@ export default function TeamListView({ data, dragHandlers, dragState, tags = [],
             className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
           />
         </div>
-        <button className="cursor-pointer px-4 py-2 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+        <button className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
           검색
         </button>
       </div>

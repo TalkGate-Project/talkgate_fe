@@ -302,7 +302,7 @@ export default function ProfileSettings() {
                   <div
                     className={`flex items-center justify-between h-12 px-5 py-3 rounded-[12px] border border-border cursor-pointer hover:bg-neutral-10 transition-colors ${
                       isCurrentUser 
-                        ? "bg-primary-10 bg-opacity-30" 
+                        ? "bg-primary-10/30" 
                         : "bg-neutral-10"
                     }`}
                     onClick={() => setExpandedMember(isExpanded ? null : orgMember.id)}
