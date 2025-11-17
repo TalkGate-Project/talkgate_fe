@@ -245,7 +245,7 @@ export default function LineIntegrationModal({
                   type="text"
                   value={isLoadingWebhook ? "로딩 중..." : webhookUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card text-center tracking-[-0.02em] leading-[17px]"
+                  className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card tracking-[-0.02em] leading-[17px]"
                 />
                 <button
                   onClick={handleCopyWebhookUrl}
