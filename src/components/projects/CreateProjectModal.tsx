@@ -24,6 +24,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [subdomain, setSubdomain] = useState("");
   const [domainChecking, setDomainChecking] = useState(false);
   const [domainAvailable, setDomainAvailable] = useState<boolean | null>(null);
+  const [lastCheckedSubdomain, setLastCheckedSubdomain] = useState("");
 
   const onPickFile = useCallback(() => fileInputRef.current?.click(), []);
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +39,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       setDomainAvailable(null);
       return;
     }
+    setLastCheckedSubdomain(subdomain);
     try {
       setDomainChecking(true);
       const res = await ProjectsService.checkSubDomainDuplicate(subdomain);
@@ -47,7 +49,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       setDomainAvailable(!isDuplicate);
     } catch {
       setDomainAvailable(false);
-    } finally {
+      } finally {
       setDomainChecking(false);
     }
   }, [subdomain]);
@@ -177,7 +179,11 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           </div>
         </div>
 
-        <p className="mb-[30px] text-body-3 text-center font-medium">프로젝트의 브랜드 아이콘과 이름을 설정해주세요.</p>
+        <p className="mb-[30px] text-body-3 text-center font-medium">
+          {step === 1
+            ? "프로젝트의 브랜드 아이콘과 이름을 설정해주세요."
+            : "프로젝트에서 사용할 서브도메인을 설정해주세요."}
+        </p>
 
         {/* 본문 */}
         <div className="flex-1 px-6 overflow-y-auto">
@@ -221,21 +227,19 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           ) : (
             <div className="space-y-4">
               {/* 안내 문구 */}
-              <div className="text-center text-[14px] font-medium leading-[17px] text-[#000] mb-6">
-                프로젝트에서 사용할 서브 도메인을 설정해주세요.
-              </div>
 
               {/* 서브도메인 설정 섹션 */}
-              <div className="rounded-[5px] bg-[#F8F8F8] px-6 py-3 h-[146px] flex flex-col">
+              <div className="rounded-[5px] bg-[#F8F8F8] px-6 py-3 min-h-[146px] flex flex-col">
                 <div className="text-[14px] font-medium leading-[24px] text-[#000] mb-2">서브도메인 설정</div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1 relative">
                     <input
                       value={subdomain}
-                      onChange={(e) => {
-                        setSubdomain(e.target.value.toLowerCase());
-                        setDomainAvailable(null);
-                      }}
+                    onChange={(e) => {
+                      const nextValue = e.target.value.toLowerCase();
+                      setSubdomain(nextValue);
+                      setDomainAvailable(null);
+                    }}
                       placeholder="myservice"
                       className="w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-[85px] text-[14px] font-medium leading-[17px] text-[#000] bg-white"
                     />
@@ -247,11 +251,26 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] whitespace-nowrap disabled:opacity-50"
                     type="button"
                     onClick={validateSubdomain}
-                    disabled={domainChecking || !subdomain}
+                    disabled={
+                      domainChecking ||
+                      !subdomain ||
+                      subdomain === lastCheckedSubdomain
+                    }
                   >
                     {domainChecking ? "확인 중..." : "중복확인"}
                   </button>
                 </div>
+                {domainAvailable !== null && (
+                  <div
+                    className={`text-[14px] font-medium leading-[24px] ${
+                      domainAvailable ? "text-[#00E272]" : "text-[#D83232]"
+                    }`}
+                  >
+                    {domainAvailable
+                      ? "사용가능한 도메인입니다."
+                      : "이미 도메인이 사용중입니다. 다른 도메인을 입력해주세요."}
+                  </div>
+                )}
                 <div className="text-[14px] font-medium leading-[24px] text-[#808080]">
                   <div>• 영문 소문자, 숫자, 하이픈(-) 사용 가능 (3-30자)</div>
                   <div>• 하이픈(-)으로 시작하거나 끝날 수 없습니다</div>
@@ -282,7 +301,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-[#E2E2E266] px-7 pt-[18px] pb-3 flex items-center justify-end gap-3">
+        <div className="border-t border-neutral-30 px-7 pt-[18px] pb-3 flex items-center justify-end gap-3">
           <button
             className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
             onClick={() => !submitting && onClose()}
