@@ -291,7 +291,14 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                     {(options || []).map((c) => {
                         const checked = selected.includes(c.id);
                         return (
-                            <label key={c.id} className="w-full h-12 px-4 flex items-center gap-3 text-left hover:bg-[#F7F7F7]">
+                            <label
+                                key={c.id}
+                                className={`w-full h-[34px] px-3 flex items-center gap-3 text-left rounded-[5px] border cursor-pointer ${
+                                    checked
+                                        ? "border-2 border-primary-40 bg-primary-10/30"
+                                        : "border-border bg-card hover:bg-neutral-10"
+                                }`}
+                            >
                                 <Checkbox checked={checked} onChange={(next) => {
                                     setSelected((prev) => (next ? [...prev, c.id] : prev.filter((x) => x !== c.id)));
                                 }} ariaLabel={c.name} />
