@@ -55,7 +55,7 @@ export default function RegistrationDetailTable({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <h3 className="text-[18px] font-semibold text-neutral-90">상세 데이터</h3>
         <DateRangePicker
           startDate={startDate}
@@ -63,6 +63,7 @@ export default function RegistrationDetailTable({
           onStartChange={handleStartChange}
           onEndChange={handleEndChange}
           onReset={handleReset}
+          showInlineIcon
         />
       </div>
 

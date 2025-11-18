@@ -133,7 +133,7 @@ function StatsPage() {
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
         {/* Top panel with tabs */}
         <Panel
-          className="rounded-[14px] mb-4"
+          className="rounded-[14px] mb-9"
           title={
             <div className="flex items-end gap-4">
               <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
@@ -145,7 +145,7 @@ function StatsPage() {
               </p>
             </div>
           }
-          bodyClassName="px-7 py-7 border-t border-neutral-30"
+          bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
           <div className="h-[40px] bg-neutral-20 rounded-[8px] px-3 flex items-center">
             <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ function StatsPage() {
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`h-[31px] rounded-[5px] px-8 text-[16px] cursor-pointer ${
+                  className={`h-[30px] rounded-[5px] px-8 text-[16px] cursor-pointer ${
                     active === t.key
                       ? "bg-card text-foreground font-bold"
                       : "text-neutral-60"
@@ -207,7 +207,7 @@ function StatsPage() {
               </div>
             </section>
 
-            <section className="mt-6 surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="mt-9 surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
