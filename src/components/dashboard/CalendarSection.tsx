@@ -243,7 +243,7 @@ export default function CalendarSection() {
                       cell.date.getDate()
                     )}
                   </div>
-                  <div className="mt-auto mb-2 ml-4 mr-2">
+                  <div className="ml-4 mr-2 flex-1 flex flex-col justify-center gap-1 pb-3">
                     {daySchedules.slice(0, 2).map((schedule, idx) => (
                       <div
                         key={idx}
@@ -323,7 +323,7 @@ export default function CalendarSection() {
               </button>
             </div>
             <div className="border-t border-[#E2E2E255] mb-3"></div>
-            <div className="space-y-3 overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 space-y-3">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
