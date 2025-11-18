@@ -1,7 +1,7 @@
 type KpiCardProps = {
   icon?: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
   className?: string;
   loading?: boolean;
 };
