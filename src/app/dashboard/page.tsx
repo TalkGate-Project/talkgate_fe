@@ -20,6 +20,43 @@ import PaymentRateIcon from "@/components/common/icons/PaymentRateIcon";
 import PaymentAmountIcon from "@/components/common/icons/PaymentAmountIcon";
 import { formatCurrencyKR } from "@/utils/format";
 
+function PaymentAmountDisplay({ formattedValue }: { formattedValue: string }) {
+  const segments = formattedValue.split(" ").filter(Boolean);
+  if (segments.length === 0) {
+    return (
+      <span className="inline-flex items-end">
+        <span>0</span>
+        <span className="text-[20px] font-semibold leading-[28px] tracking-[0.5px]">원</span>
+      </span>
+    );
+  }
+
+  const lastIndex = segments.length - 1;
+
+  return (
+    <span className="inline-flex items-end">
+      {segments.map((segment, index) => {
+        const match = segment.match(/^([\d,]+)(.*)$/u);
+        const digits = match?.[1] ?? segment;
+        const suffix = match?.[2] ?? "";
+        const isLast = index === lastIndex;
+        const suffixWithWon = isLast ? `${suffix}원` : suffix;
+        return (
+          <span className="inline-flex items-end" key={`${segment}-${index}`}>
+            {index > 0 && <span className="text-[28px] leading-[34px]"> </span>}
+            <span>{digits}</span>
+            {suffixWithWon && (
+              <span className="text-[20px] font-semibold leading-[28px] tracking-[0.5px]">
+                {suffixWithWon}
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function DashboardContent() {
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
@@ -61,11 +98,16 @@ function DashboardContent() {
     const rawRate = summary.paymentRate ?? 0;
     const normalizedRate = rawRate > 1 ? rawRate : rawRate * 100;
     const paymentAmount = summary.totalPaymentAmount ?? 0;
+    const paymentAmountFormatted = formatCurrencyKR(paymentAmount);
     return [
       { label: "새로 배정된 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
       { label: "전체 배정된 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
       { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%`, icon: <PaymentRateIcon /> },
-      { label: "결제누적액", value: formatCurrencyKR(paymentAmount), icon: <PaymentAmountIcon /> },
+      {
+        label: "결제누적액",
+        value: <PaymentAmountDisplay formattedValue={paymentAmountFormatted} />,
+        icon: <PaymentAmountIcon />,
+      },
     ];
   }, [summary]);
 

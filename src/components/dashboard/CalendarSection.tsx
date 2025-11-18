@@ -14,6 +14,7 @@ import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
 import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -33,10 +34,20 @@ export default function CalendarSection() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const today = new Date();
-  const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [current, setCurrent] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
-  const ym = `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, "0")}`;
-  const montserratStyle = { fontFamily: 'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui' };
+  const [scheduleToRemove, setScheduleToRemove] =
+    useState<WeeklyScheduleItem | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const ym = `${current.getFullYear()}.${String(
+    current.getMonth() + 1
+  ).padStart(2, "0")}`;
+  const montserratStyle = {
+    fontFamily:
+      'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
+  };
 
   const goPrev = () => {
     const y = current.getFullYear();
@@ -49,14 +60,17 @@ export default function CalendarSection() {
     setCurrent(new Date(y, m + 1, 1));
   };
 
-  const cells: CalendarCell[] = useMemo(() => generateMonthCells(current), [current]);
+  const cells: CalendarCell[] = useMemo(
+    () => generateMonthCells(current),
+    [current]
+  );
   const year = current.getFullYear();
   const month = current.getMonth() + 1; // 1-12
-  
+
   // 달력의 행 수 계산 (5줄 또는 6줄)
   const calendarRows = cells.length / 7;
   // 달력 전체 높이 = 요일 헤더(40px + mb-3 = 52px) + (행 수 × 최소 높이 93px)
-  const calendarHeight = 52 + (calendarRows * 93);
+  const calendarHeight = 52 + calendarRows * 93;
 
   const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["dashboard", "schedule", projectId, year, month],
@@ -72,7 +86,8 @@ export default function CalendarSection() {
 
   const schedulesByDay = useMemo(() => {
     const map = new Map<string, WeeklyScheduleItem[]>();
-    const schedules = data?.data.schedules === null ? [] : (data?.data.schedules ?? []);
+    const schedules =
+      data?.data.schedules === null ? [] : data?.data.schedules ?? [];
     for (const item of schedules) {
       const iso = item.scheduleTime;
       if (!iso) continue;
@@ -88,23 +103,62 @@ export default function CalendarSection() {
   }, [data]);
 
   const selectedKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
-  const selectedSchedules = selectedKey ? schedulesByDay.get(selectedKey) ?? [] : [];
+  const selectedSchedules = selectedKey
+    ? schedulesByDay.get(selectedKey) ?? []
+    : [];
   const loading = isLoading && !data;
   const error = isError && !isFetching;
   const [showCreate, setShowCreate] = useState(false);
+
+  const handleRequestRemove = (schedule: WeeklyScheduleItem) => {
+    setScheduleToRemove(schedule);
+  };
+
+  const handleCancelRemove = () => {
+    if (isRemoving) return;
+    setScheduleToRemove(null);
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!projectId || !scheduleToRemove) return;
+    setIsRemoving(true);
+    try {
+      await SchedulesService.remove({
+        projectId,
+        scheduleId: scheduleToRemove.id,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "schedule", projectId, year, month],
+      });
+    } catch (err) {
+      console.error("Failed to remove schedule", err);
+    } finally {
+      setIsRemoving(false);
+      setScheduleToRemove(null);
+    }
+  };
 
   return (
     <Panel
       title={<span className="typo-title-4">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
-          <button onClick={goPrev} className="cursor-pointer w-[36px] h-[36px] grid place-items-center">
+          <button
+            onClick={goPrev}
+            className="cursor-pointer w-[36px] h-[36px] grid place-items-center"
+          >
             <CalendarPrevIcon />
           </button>
-          <div className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]" style={montserratStyle}>
+          <div
+            className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]"
+            style={montserratStyle}
+          >
             {ym}
           </div>
-          <button onClick={goNext} className="cursor-pointer w-[36px] h-[36px] grid place-items-center">
+          <button
+            onClick={goNext}
+            className="cursor-pointer w-[36px] h-[36px] grid place-items-center"
+          >
             <CalendarNextIcon />
           </button>
         </div>
@@ -119,16 +173,25 @@ export default function CalendarSection() {
         <div className="order-2 lg:order-1 lg:w-[912px] flex flex-col">
           {/* Week header bar */}
           <div className="mb-3 bg-neutral-20 rounded-[12px]">
-            <div className="grid" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
+            <div
+              className="grid"
+              style={{ gridTemplateColumns: "repeat(7, 130px)" }}
+            >
               {days.map((d) => (
-                <div key={d} className="h-10 grid place-items-center text-neutral-60 typo-title-4">
+                <div
+                  key={d}
+                  className="h-10 grid place-items-center text-neutral-60 typo-title-4"
+                >
                   {d}
                 </div>
               ))}
             </div>
           </div>
           {/* Days */}
-          <div className="grid gap-0" style={{ gridTemplateColumns: "repeat(7, 130px)" }}>
+          <div
+            className="grid gap-0"
+            style={{ gridTemplateColumns: "repeat(7, 130px)" }}
+          >
             {cells.map((cell, i) => {
               const isPrevMonth = !cell.inCurrent;
               const isSelected =
@@ -140,7 +203,9 @@ export default function CalendarSection() {
                 cell.date.getFullYear() === today.getFullYear() &&
                 cell.date.getMonth() === today.getMonth() &&
                 cell.date.getDate() === today.getDate();
-              const borderClass = isSelected ? "border-2 border-primary-60" : "border border-border";
+              const borderClass = isSelected
+                ? "border-2 border-primary-60"
+                : "border border-border";
               const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
               const daySchedules = schedulesByDay.get(key) ?? [];
@@ -150,7 +215,13 @@ export default function CalendarSection() {
                   onClick={() => {
                     setSelectedDate(cell.date);
                     if (!cell.inCurrent) {
-                      setCurrent(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1));
+                      setCurrent(
+                        new Date(
+                          cell.date.getFullYear(),
+                          cell.date.getMonth(),
+                          1
+                        )
+                      );
                     }
                   }}
                   className={`cursor-pointer relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
@@ -172,18 +243,39 @@ export default function CalendarSection() {
                       cell.date.getDate()
                     )}
                   </div>
-                  <div className="mt-auto mb-2 ml-4 mr-2">
+                  <div className="ml-4 mr-2 flex-1 flex flex-col justify-center gap-1 pb-3">
                     {daySchedules.slice(0, 2).map((schedule, idx) => (
-                      <div key={idx} className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0">
-                        <span className="w-3 h-3 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[idx % COLORS.length] }} />
-                        <span className="truncate font-medium" style={{ maxWidth: 102 }}>
-                          {schedule.description || schedule.customer?.name || "일정"}
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full shrink-0"
+                          style={{
+                            background:
+                              schedule.colorCode || COLORS[idx % COLORS.length],
+                          }}
+                        />
+                        <span
+                          className="truncate font-medium"
+                          style={{ maxWidth: 102 }}
+                        >
+                          {schedule.description ||
+                            schedule.customer?.name ||
+                            "일정"}
                         </span>
                       </div>
                     ))}
                     {daySchedules.length > 2 && (
                       <div className="flex items-center gap-1 text-[10px] text-neutral-60">
-                        그 외 <span className="font-montserrat" style={montserratStyle}>{daySchedules.length - 2}</span>건
+                        그 외{" "}
+                        <span
+                          className="font-montserrat"
+                          style={montserratStyle}
+                        >
+                          {daySchedules.length - 2}
+                        </span>
+                        건
                       </div>
                     )}
                   </div>
@@ -194,18 +286,34 @@ export default function CalendarSection() {
         </div>
 
         {/* Right schedule list */}
-        <aside className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]" style={{ minHeight: `${calendarHeight}px` }}>
+        <aside
+          className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]"
+          style={{ minHeight: `${calendarHeight}px` }}
+        >
           <div className="bg-neutral-10 rounded-[12px] p-7 h-full relative flex flex-col">
             <div className="flex items-center justify-between mb-5 gap-2">
               <div className="typo-title-2">
                 {selectedDate ? (
                   <>
-                    <span className="font-montserrat tracking-[1px]" style={montserratStyle}>{format(selectedDate, "MM.dd")}</span>&nbsp;&nbsp;
+                    <span
+                      className="font-montserrat tracking-[1px]"
+                      style={montserratStyle}
+                    >
+                      {format(selectedDate, "MM.dd")}
+                    </span>
+                    &nbsp;&nbsp;
                     {format(selectedDate, "EEEE", { locale: ko })}
                   </>
                 ) : (
                   "일정"
-                )} ({<span className="font-montserrat" style={montserratStyle}>{selectedSchedules.length}</span>})
+                )}{" "}
+                (
+                {
+                  <span className="font-montserrat" style={montserratStyle}>
+                    {selectedSchedules.length}
+                  </span>
+                }
+                )
               </div>
               <button
                 className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20"
@@ -215,7 +323,7 @@ export default function CalendarSection() {
               </button>
             </div>
             <div className="border-t border-[#E2E2E255] mb-3"></div>
-            <div className="space-y-3 overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 space-y-3">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
@@ -232,18 +340,54 @@ export default function CalendarSection() {
                 </div>
               ) : selectedSchedules.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">
-                  {data?.data.schedules === null ? "일정 데이터가 없습니다." : "선택한 날짜에 일정이 없습니다."}
+                  {data?.data.schedules === null
+                    ? "일정 데이터가 없습니다."
+                    : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (
                 selectedSchedules.map((schedule) => (
-                  <div key={schedule.id} className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0" style={{ maxWidth: 304 }}>
-                    <span className="leading-[1] w-4 h-4 rounded-full shrink-0" style={{ background: schedule.colorCode || COLORS[schedule.id % COLORS.length] }} />
+                  <div
+                    key={schedule.id}
+                    className="relative flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0"
+                    style={{ maxWidth: 304 }}
+                  >
+                    <span
+                      className="leading-[1] w-4 h-4 rounded-full shrink-0"
+                      style={{
+                        background:
+                          schedule.colorCode ||
+                          COLORS[schedule.id % COLORS.length],
+                      }}
+                    />
                     <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
                       {formatTimeFromISO(schedule.scheduleTime)}
                     </span>
                     <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate">
-                      {schedule.description || schedule.customer?.name || "일정"}
+                      {schedule.description ||
+                        schedule.customer?.name ||
+                        "일정"}
                     </span>
+                    <button
+                      type="button"
+                      className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2"
+                      onClick={() => handleRequestRemove(schedule)}
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M4 12L12 4M4 4L12 12"
+                          stroke="#B0B0B0"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 ))
               )}
@@ -257,12 +401,27 @@ export default function CalendarSection() {
           onClose={() => setShowCreate(false)}
           onCreated={() => {
             if (!projectId) return;
-            queryClient.invalidateQueries({ queryKey: ["dashboard", "schedule", projectId, year, month] });
+            queryClient.invalidateQueries({
+              queryKey: ["dashboard", "schedule", projectId, year, month],
+            });
           }}
         />
       )}
+      <ConfirmModal
+        open={Boolean(scheduleToRemove)}
+        title="일정 삭제"
+        headline="일정을 삭제하시겠습니까?"
+        description={`${
+          scheduleToRemove?.description ||
+          scheduleToRemove?.customer?.name ||
+          "선택한 일정"
+        }을 삭제하면 복구할 수 없습니다.`}
+        confirmText="삭제"
+        cancelText="취소"
+        loading={isRemoving}
+        onCancel={handleCancelRemove}
+        onConfirm={handleConfirmRemove}
+      />
     </Panel>
   );
 }
-
-

@@ -16,6 +16,12 @@ export const SchedulesService = {
       headers: { "x-project-id": projectId },
     });
   },
+  remove(input: { projectId: string; scheduleId: number }) {
+    const { projectId, scheduleId } = input;
+    return apiClient.delete<ApiSuccessResponse<null>>(`/v1/schedules/${scheduleId}`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
   create(input: { projectId: string; scheduleTime: string; description: string; colorCode: string }) {
     const { projectId, ...body } = input;
     return apiClient.post<ApiSuccessResponse<WeeklyScheduleItem>>(`/v1/schedules`, body, {

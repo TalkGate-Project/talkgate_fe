@@ -135,7 +135,7 @@ function StatsPage() {
         <Panel
           className="rounded-[14px] mb-4"
           title={
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-4">
               <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
                 통계
               </h1>
