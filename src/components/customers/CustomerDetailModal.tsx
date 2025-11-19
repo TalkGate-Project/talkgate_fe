@@ -41,7 +41,7 @@ export default function CustomerDetailModal({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white px-7 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="고객정보"
     >
       {/* Header */}

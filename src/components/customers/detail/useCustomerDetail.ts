@@ -209,7 +209,8 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
       description: desc,
       paymentDate: new Date(date).toISOString(),
       amount: Number(amount),
-      paymentMethod: method === "카드" ? "creditCard" : method,
+      // UI에서 이미 API 스펙에 맞는 값(creditCard, cash, bankTransfer 등)을 전달
+      paymentMethod: method,
       projectId: (window as any)?.tgSelectedProjectId || "",
     });
     // Optimistic update (missing in original, added for gracefulness)
@@ -222,7 +223,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
           description: desc,
           paymentDate: date, // Keep string or ISO? API expects ISO.
           amount: Number(amount),
-          paymentMethod: method === "카드" ? "creditCard" : method,
+          paymentMethod: method,
           createdAt: new Date().toISOString()
         } as any 
       ]
@@ -245,12 +246,13 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
   };
 
   // Schedule Actions
-  const addSchedule = async (dateIso: string, desc: string) => {
+  const addSchedule = async (dateIso: string, desc: string, colorCode: string) => {
     if (!detail) return;
     await CustomersService.addSchedule({
       customerId: detail.id,
       scheduleTime: dateIso,
       description: desc,
+      colorCode: colorCode?.startsWith("#") ? colorCode.slice(1) : colorCode,
       projectId: (window as any)?.tgSelectedProjectId || "",
     });
     // Optimistic
@@ -262,6 +264,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
                 id: Math.random(),
                 scheduleTime: dateIso,
                 description: desc,
+                colorCode: colorCode?.startsWith("#") ? colorCode.slice(1) : colorCode,
                 createdAt: new Date().toISOString(),
             } as any
         ]

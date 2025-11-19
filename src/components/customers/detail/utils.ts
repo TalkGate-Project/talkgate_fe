@@ -6,7 +6,7 @@ export function formatDetailDate(dt: string) {
     const da = String(d.getDate()).padStart(2, "0");
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${y}. ${m}. ${da} ${hh}:${mm}`;
+    return `${y}. ${m}. ${da}`;
   } catch {
     return dt;
   }
