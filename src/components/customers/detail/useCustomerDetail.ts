@@ -177,12 +177,28 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
   };
 
   const removeMessenger = async (index: number) => {
-    // Original code just splices local array. It doesn't seem to call an API to remove? 
-    // Wait, looking at original line 430: It just does setMessengersLocal(copy). 
-    // It DOES NOT call an API to remove messenger. This seems odd but I will replicate original behavior.
-    const copy = [...messengersLocal];
-    copy.splice(index, 1);
-    setMessengersLocal(copy);
+    const target = messengersLocal[index];
+    if (!target) return;
+
+    // Optimistic update: UI에서 먼저 제거
+    const prevList = messengersLocal;
+    const nextList = [...messengersLocal];
+    nextList.splice(index, 1);
+    setMessengersLocal(nextList);
+
+    // 기존에 저장된 메신저(서버에 id가 있는 경우)만 삭제 API 호출
+    if (target.id) {
+      try {
+        await CustomersService.removeMessenger({
+          messengerId: target.id,
+          projectId: (window as any)?.tgSelectedProjectId || "",
+        });
+      } catch (e) {
+        // 실패 시 롤백
+        setMessengersLocal(prevList);
+        alert("메신저 삭제에 실패했습니다.");
+      }
+    }
   };
 
   // Payment Actions

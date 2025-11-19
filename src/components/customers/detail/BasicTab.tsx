@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
+import ConfirmModal from "@/components/common/ConfirmModal";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
 
@@ -21,6 +22,22 @@ export default function BasicTab({
 }: Props) {
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
   const [newMessengerAccount, setNewMessengerAccount] = useState("");
+  const [messengerToRemoveIndex, setMessengerToRemoveIndex] = useState<number | null>(null);
+
+  const getMessengerLabel = (type: string) => {
+    switch (type) {
+      case "kakaotalk":
+        return "카카오톡";
+      case "telegram":
+        return "텔레그램";
+      case "instagram":
+        return "인스타그램";
+      case "line":
+        return "라인";
+      default:
+        return type;
+    }
+  };
 
   const handleAddMessenger = () => {
     if (!newMessengerAccount.trim()) return;
@@ -208,7 +225,7 @@ export default function BasicTab({
                     )}
                     <button
                       className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black text-white"
-                      onClick={() => onRemoveMessenger(idx)}
+                      onClick={() => setMessengerToRemoveIndex(idx)}
                     >
                       <svg
                         width="12"
@@ -233,6 +250,28 @@ export default function BasicTab({
           )}
         </div>
       </div>
+
+      {/* 메신저 삭제 확인 모달 */}
+      <ConfirmModal
+        open={messengerToRemoveIndex !== null}
+        title="메신저 삭제"
+        headline="메신저를 삭제하시겠습니까?"
+        description={
+          messengerToRemoveIndex !== null && messengers[messengerToRemoveIndex]
+            ? `선택한 메신저 계정 (${getMessengerLabel(
+                messengers[messengerToRemoveIndex].messenger
+              )}, ${messengers[messengerToRemoveIndex].account})을(를) 삭제하면 복구할 수 없습니다.`
+            : "선택한 메신저를 삭제하면 복구할 수 없습니다."
+        }
+        confirmText="삭제"
+        cancelText="취소"
+        onCancel={() => setMessengerToRemoveIndex(null)}
+        onConfirm={() => {
+          if (messengerToRemoveIndex === null) return;
+          onRemoveMessenger(messengerToRemoveIndex);
+          setMessengerToRemoveIndex(null);
+        }}
+      />
     </div>
   );
 }
