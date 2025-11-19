@@ -59,7 +59,7 @@ export interface MyMemberResponse {
 }
 
 // Member Detail (similar to MyMember but for any member)
-export interface MemberDetail extends MyMember {}
+export type MemberDetail = MyMember;
 
 export interface MemberDetailResponse {
   result: boolean;
