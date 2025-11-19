@@ -124,9 +124,9 @@ function NoticeWritePage() {
 
   return (
     <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-      <div className="bg-white rounded-[14px] p-6">
+      <div className="bg-white rounded-[14px] py-[26px]">
         {/* 헤더 영역 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 px-7">
           <div className="flex items-center gap-4">
             <h1 className="text-[24px] font-bold text-[#252525]">
               {isEditMode ? "공지사항 수정" : "공지사항"}
@@ -149,7 +149,7 @@ function NoticeWritePage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleCancel}
-              className="h-[34px] px-3 bg-white border border-[#E2E2E2] text-black rounded-[5px] text-[14px] font-semibold"
+              className="cursor-pointer w-[66px] h-[34px] bg-white border border-[#E2E2E2] text-black rounded-[5px] text-[14px] font-semibold tracking-[-0.02em]"
               disabled={submitting}
             >
               취소
@@ -157,7 +157,7 @@ function NoticeWritePage() {
             <button
               onClick={handleSave}
               disabled={submitting || loading}
-              className="h-[34px] px-3 bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
+              className="cursor-pointer w-[66px] h-[34px] bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60"
             >
               {submitting ? "저장 중..." : isEditMode ? "수정" : "저장"}
             </button>
@@ -165,9 +165,10 @@ function NoticeWritePage() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-[#E2E2E266] mb-6" />
+        <div className="border-t border-neutral-30 mb-8" />
 
-        {error && (
+        <div className="px-7">
+          {error && (
           <div className="mb-6 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[14px] text-[#D83232]">
             {error}
           </div>
@@ -178,8 +179,8 @@ function NoticeWritePage() {
         ) : (
           <>
             {/* 제목 입력 */}
-            <div className="mb-6">
-              <label className="block text-[14px] font-medium text-[#808080] mb-2">
+            <div className="mb-5">
+              <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
                 제목
               </label>
               <input
@@ -188,13 +189,13 @@ function NoticeWritePage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="w-full h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] placeholder:text-[#808080] focus:outline-none focus:border-[#252525] disabled:bg-[#F5F5F5] disabled:text-[#808080]"
+                className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-ink placeholder:text-[#808080] focus:outline-none focus:border-[#252525] disabled:bg-[#F5F5F5] disabled:text-[#808080]"
               />
             </div>
 
             {/* 내용 입력 */}
             <div>
-              <label className="block text-[14px] font-medium text-[#808080] mb-2">
+              <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
                 내용
               </label>
               <textarea
@@ -202,11 +203,12 @@ function NoticeWritePage() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 disabled={submitting}
-                className="w-full h-[407px] px-3 py-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] placeholder:text-[#808080] focus:outline-none focus:border-[#252525] resize-none disabled:bg-[#F5F5F5] disabled:text-[#808080]"
+                className="w-full h-[407px] px-3 py-3 border border-neutral-30 rounded-[5px] text-[14px] text-ink placeholder:text-[#808080] focus:outline-none focus:border-[#252525] resize-none disabled:bg-[#F5F5F5] disabled:text-[#808080]"
               />
             </div>
           </>
         )}
+        </div>
       </div>
     </main>
   );

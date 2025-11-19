@@ -4,17 +4,24 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Notice } from "@/types/notices";
 import TableSkeleton from "@/components/common/TableSkeleton";
+import Pagination from "@/components/common/Pagination";
 
 interface NoticeTableProps {
   notices: Notice[];
   loading?: boolean;
   buildNoticeHref?: (notice: Notice) => string;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function NoticeTable({
   notices,
   loading = false,
   buildNoticeHref,
+  currentPage,
+  totalPages,
+  onPageChange,
 }: NoticeTableProps) {
   const router = useRouter();
 
@@ -36,17 +43,22 @@ export default function NoticeTable({
   };
 
   return (
-    <div className="bg-card rounded-[14px] p-6">
+    <div className="bg-card rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+      {/* Title */}
+      <h2 className="text-[18px] font-semibold text-neutral-90 mb-[30px]">
+        공지사항
+      </h2>
+
       {/* 테이블 헤더 */}
-      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6 mb-0">
-        <div className="w-[90px] text-[16px] font-medium text-neutral-60 text-center">
+      <div className="bg-neutral-20 rounded-[8px] h-[48px] flex items-center px-6 mb-0">
+        <div className="w-[90px] text-[16px] font-bold text-neutral-60 text-center">
           　
         </div>
-        <div className="flex-1 text-[16px] font-medium text-neutral-60">제목</div>
-        <div className="w-[210px] text-[16px] font-medium text-neutral-60 text-left">
+        <div className="flex-1 text-[16px] font-bold text-neutral-60">제목</div>
+        <div className="w-[210px] text-[16px] font-bold text-neutral-60 text-left">
           작성자
         </div>
-        <div className="w-[160px] text-[16px] font-medium text-neutral-60 text-left">
+        <div className="w-[160px] text-[16px] font-bold text-neutral-60 text-left">
           작성일
         </div>
       </div>
@@ -67,16 +79,16 @@ export default function NoticeTable({
                 onClick={() => handleNoticeClick(notice)}
               >
                 {/* 고유번호 영역 */}
-                <div className="w-[90px] text-[14px] font-medium text-foreground opacity-80 text-center">
+                <div className="w-[90px] text-[14px] font-medium text-foreground opacity-80 text-center leading-[1]">
                   {notice.id}
                 </div>
 
                 {/* 제목 영역 */}
-                <div className="flex-1 flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-3 leading-[1]">
                   {/* 중요 태그 */}
                   {notice.important && (
                     <div className="px-3 py-1 bg-danger-10 rounded-[30px]">
-                      <span className="text-[12px] font-medium text-danger-40">
+                      <span className="text-[12px] font-medium text-danger-40 leading-[1]">
                         중요
                       </span>
                     </div>
@@ -88,23 +100,36 @@ export default function NoticeTable({
                 </div>
 
                 {/* 작성자 */}
-                <div className="w-[210px] text-[14px] font-medium text-foreground opacity-80 text-left">
+                <div className="w-[210px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1]">
                   {notice.authorName}
                 </div>
 
                 {/* 작성일 */}
-                <div className="w-[160px] text-[14px] font-medium text-foreground opacity-80 text-left">
+                <div className="w-[160px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1]">
                   {renderDate(notice.createdAt)}
                 </div>
               </div>
 
               {/* 구분선 */}
               {index < notices.length - 1 && (
-                <div className="border-t border-border opacity-50" />
+                <div className="border-t border-neutral-30/40" />
               )}
             </div>
           ))
         )}
+      </div>
+
+      {/* 구분선 */}
+      <div className="border-t border-border opacity-50 my-4" />
+
+      {/* Pagination */}
+      <div className="flex justify-center">
+        <Pagination
+          page={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          disabled={loading}
+        />
       </div>
     </div>
   );
