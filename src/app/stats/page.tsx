@@ -147,7 +147,7 @@ function StatsPage() {
           }
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
-          <div className="h-[40px] bg-neutral-20 rounded-[8px] px-3 flex items-center">
+          <div className="h-[48px] bg-neutral-20 rounded-[8px] px-3 flex items-center">
             <div className="flex items-center gap-2">
               {TAB_ITEMS.map((t) => (
                 <button
@@ -169,12 +169,12 @@ function StatsPage() {
         {/* Apply Tab: 신청통계 */}
         {active === "apply" && (
           <>
-            <section className="surface rounded-[14px] px-7 pt-[19px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90">
                   신청통계
                 </h2>
-                <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
+                <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                   <button
                     className={`cursor-pointer min-h-[31px] rounded-[6px] text-[14px] ${
                       applyMode === "daily"
@@ -207,7 +207,7 @@ function StatsPage() {
               </div>
             </section>
 
-            <section className="mt-9 surface rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="mt-9 surface rounded-[14px] pt-6 px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
@@ -223,12 +223,12 @@ function StatsPage() {
 
         {/* Assign Tab: 배정통계 */}
         {active === "assign" && (
-          <section className="surface rounded-[14px] px-7 pt-[19px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
-            <div className="flex items-center justify-between">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[55px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <div className="flex items-center justify-between h-[48px]">
               <h2 className="text-[18px] font-semibold text-neutral-90">
                 배정통계
               </h2>
-              <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
+              <div className="w-[248px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     assignMode === "team"
@@ -261,12 +261,12 @@ function StatsPage() {
 
         {/* Payment Tab: 결제통계 */}
         {active === "payment" && (
-          <section className="surface rounded-[14px] px-7 pt-[19px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">
                 결제통계
               </h2>
-              <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
+              <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     paymentMode === "team"
@@ -304,10 +304,10 @@ function StatsPage() {
             <h2 className="text-[18px] font-semibold text-neutral-90">
               처리상태통계
             </h2>
-            <div className="mt-2 text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
+            <div className="mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
               상태별 분포
             </div>
-            <div className="mt-4">
+            <div className="mt-[96px]">
               <StatusBarChart />
             </div>
           </section>
@@ -315,9 +315,9 @@ function StatsPage() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="surface rounded-[14px] px-7 pt-[19px] pb-[30px] border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-6 border border-border shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="pt-[11px]">
                 <h2 className="text-[18px] font-semibold text-neutral-90">
                   전체랭킹
                 </h2>
@@ -325,7 +325,7 @@ function StatsPage() {
                   지난달 데이터를 집계하여 랭킹을 산정합니다.
                 </p>
               </div>
-              <div className="w-[240px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2">
+              <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     rankingMode === "team"
@@ -349,11 +349,6 @@ function StatsPage() {
               </div>
             </div>
 
-            <div className="mt-[30px]">
-              <h3 className="text-[16px] font-semibold text-neutral-90">
-                나의 랭킹
-              </h3>
-            </div>
             <MyRankingCard projectId={projectId} mode={rankingMode} />
 
             <div className="mt-6">

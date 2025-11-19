@@ -10,14 +10,8 @@ import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
-// 팀별 색상 (피그마 디자인)
-const TEAM_COLORS = [
-  "#D6FAE8", // 연한 녹색 (A팀)
-  "#FFF5D5", // 연한 노란색 (B팀)
-  "#FFEBEB", // 연한 빨간색 (C팀)
-  "#D3E1FE", // 연한 파란색 (배정되지 않음)
-  "#E2E2E2", // 회색 (기타)
-];
+// 팀별 색상 (피그마 디자인): 번갈아가며 반복 적용
+const BAR_COLORS = ["#ADF6D2", "#FFDE81", "#FC9595", "#7EA5F8"];
 
 export default function AssignBarChart() {
   const [projectId, projectReady] = useSelectedProjectId();
@@ -41,7 +35,7 @@ export default function AssignBarChart() {
     return items.map((item, index) => ({
       name: item.teamName ?? "배정되지 않음",
       value: item.totalAssignedCount,
-      color: TEAM_COLORS[index % TEAM_COLORS.length],
+      color: BAR_COLORS[index % BAR_COLORS.length],
     }));
   }, [data]);
 
@@ -96,17 +90,17 @@ export default function AssignBarChart() {
       <h3 className="mt-5 mb-2 text-[16px] font-semibold text-neutral-90">팀별 배정 현황</h3>
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 10, left: 20 }} barCategoryGap="20%">
+        <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 20, left: 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fill: "var(--neutral-60)", fontSize: 12, fontFamily: "var(--font-montserrat)" }}
+            tick={{ fill: "#000000", fontSize: 12, fontFamily: "var(--font-montserrat)", fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
-            tickMargin={8}
+            tickMargin={30}
           />
           <YAxis hide domain={yDomain} />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={60}>
+          <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={42}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}

@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useStatsMemberRanking } from "@/hooks/useStatsRanking";
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
 import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
+import Pagination from "@/components/common/Pagination";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -34,7 +36,13 @@ function ErrorState() {
 }
 
 export default function TeamMemberRankingList({ projectId }: TeamMemberRankingListProps) {
-  const { rows, isLoading, isError } = useStatsMemberRanking(projectId);
+  const [page, setPage] = useState(1);
+  const limit = 5;
+  const { rows, totalCount, isLoading, isError } = useStatsMemberRanking(projectId, page, limit);
+
+  useEffect(() => {
+    setPage(1);
+  }, [projectId]);
 
   if (!projectId) {
     return <EmptyState message="프로젝트를 먼저 선택해주세요." />;
@@ -52,49 +60,56 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
     return <EmptyState message="표시할 팀원 랭킹 데이터가 없습니다." />;
   }
 
+  const totalPages = Math.ceil(totalCount / limit);
+
   return (
-    <div className="bg-neutral-10 rounded-[12px] p-5">
-      <div className="space-y-3">
-        {rows.map((row) => {
-          const changeRate = row.amountChangeRate ?? "0";
-          const rateValue = Number.parseFloat(changeRate);
-          const badgeColor = Number.isNaN(rateValue)
-            ? "bg-neutral-20 text-neutral-70"
-            : rateValue >= 0
-              ? "bg-primary-10 text-primary-100"
-              : "bg-danger-10 text-danger-60";
-          const badgeLabel = Number.isNaN(rateValue) ? "-" : `${rateValue > 0 ? "+" : ""}${rateValue}%`;
-          
-          return (
-            <div key={`${row.memberId}-${row.memberName}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-              <div className="flex items-center gap-4">
-                {row.rank === 1 ? (
-                  <RankingGoldIcon className="w-[60px] h-[60px]" />
-                ) : row.rank === 2 ? (
-                  <RankingSilverIcon className="w-[60px] h-[60px]" />
-                ) : row.rank === 3 ? (
-                  <RankingBronzeIcon className="w-[60px] h-[60px]" />
-                ) : (
-                  <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
-                    #{row.rank}
+    <div>
+      <div className="bg-neutral-10 rounded-[12px] px-7 py-5">
+        <div className="space-y-3">
+          {rows.map((row) => {
+            const previousAmount = row.previousTotalAmount ?? 0;
+            const diff = row.totalAmount - previousAmount;
+            const badgeLabel = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
+            const badgeColor = "bg-primary-10 text-primary-100";
+            
+            return (
+              <div key={`${row.memberId}-${row.memberName}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+                <div className="flex items-center gap-4">
+                  {row.rank === 1 ? (
+                    <RankingGoldIcon className="w-[60px] h-[60px]" />
+                  ) : row.rank === 2 ? (
+                    <RankingSilverIcon className="w-[60px] h-[60px]" />
+                  ) : row.rank === 3 ? (
+                    <RankingBronzeIcon className="w-[60px] h-[60px]" />
+                  ) : (
+                    <div className="w-[60px] h-[60px] rounded-[12px] bg-neutral-10 grid place-items-center text-[18px] font-bold text-neutral-60">
+                      #{row.rank}
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-[18px] leading-[21px] font-bold text-neutral-90 flex items-center gap-2">
+                      {row.memberName}
+                      <div className="text-[14px] leading-[16px] font-medium text-neutral-60 border-l border-neutral-30 pl-3">
+                        {typeof row.previousRank === "number" ? `전 순위 ${row.previousRank}` : "전 순위 정보 없음"}
+                      </div>
+                    </div>
+                    <div className="mt-3 leading-[1] text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
                   </div>
-                )}
-                <div>
-                  <div className="text-[18px] font-bold text-neutral-90 flex items-center gap-2">
-                    {row.memberName}
-                    <span className="text-[14px] font-medium text-neutral-60">
-                      {typeof row.previousRank === "number" ? `전 순위 ${row.previousRank}` : "전 순위 정보 없음"}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
+                </div>
+                <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
+                  {badgeLabel}
                 </div>
               </div>
-              <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
-                {badgeLabel}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

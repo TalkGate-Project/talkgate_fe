@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
 import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
+import DateRangePicker from "@/components/common/DateRangePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type {
@@ -174,22 +175,19 @@ export default function PaymentMemberTable() {
           </svg>
         </button>
       </div>
-      {/* Date range pickers */}
-      <div className="flex items-center gap-2">
-        <input
-          type="date"
-          className="h-[34px] rounded-[5px] border border-border px-2 text-[14px]"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <span className="text-neutral-60">-</span>
-        <input
-          type="date"
-          className="h-[34px] rounded-[5px] border border-border px-2 text-[14px]"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-      </div>
+      {/* Date range picker */}
+      <DateRangePicker
+        startDate={startDate ? new Date(startDate) : null}
+        endDate={endDate ? new Date(endDate) : null}
+        onStartChange={(date) => setStartDate(date ? formatDate(date) : "")}
+        onEndChange={(date) => setEndDate(date ? formatDate(date) : "")}
+        onReset={() => {
+          const r = getDefaultRange();
+          setStartDate(r.startDate);
+          setEndDate(r.endDate);
+        }}
+        showInlineIcon
+      />
     </div>
   );
 
@@ -197,7 +195,7 @@ export default function PaymentMemberTable() {
     return (
       <div className="mt-1">
         {Header}
-        <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
+        <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-[30px]">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
         </div>
       </div>
@@ -208,7 +206,7 @@ export default function PaymentMemberTable() {
     return (
       <div className="mt-1">
         {Header}
-        <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
+        <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-[30px] text-[14px] text-neutral-60">
           프로젝트를 먼저 선택해주세요.
         </div>
       </div>
@@ -216,9 +214,9 @@ export default function PaymentMemberTable() {
   }
 
   return (
-    <div className="mt-1">
+    <div className="">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-6 text-[16px] text-neutral-60 font-medium">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-[30px] text-[16px] text-neutral-60 font-medium">
         <div>이름</div>
         <div>팀</div>
         <div>결제금액</div>
@@ -239,7 +237,7 @@ export default function PaymentMemberTable() {
         {!showSkeleton && !showError && rows.map((row, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid grid-cols-4 items-center px-6">
+            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid grid-cols-4 items-center px-[30px]">
               <div className="text-[14px] text-neutral-90 opacity-80">{row.memberName}</div>
               <div className="flex items-center gap-2 text-[14px] text-neutral-90">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />
@@ -305,7 +303,7 @@ function SkeletonRows({ columns, rows }: { columns: number; rows: number }) {
       {Array.from({ length: rows }).map((_, rowIdx) => (
         <div
           key={rowIdx}
-          className="h-[56px] grid items-center px-6"
+          className="h-[56px] grid items-center px-[30px]"
           style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
         >
           {Array.from({ length: columns }).map((__, colIdx) => (

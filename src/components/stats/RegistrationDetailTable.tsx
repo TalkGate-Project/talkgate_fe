@@ -71,7 +71,7 @@ export default function RegistrationDetailTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-neutral-20 h-[40px]">
-              <th className="text-left px-4 text-[16px] font-medium text-neutral-60 rounded-l-[8px]">날짜</th>
+              <th className="text-left px-4 pl-[30px] text-[16px] font-medium text-neutral-60 rounded-l-[8px]">날짜</th>
               <th className="text-left px-4 text-[16px] font-medium text-neutral-60">신청 건수</th>
               <th className="text-left px-4 text-[16px] font-medium text-neutral-60">직접입력</th>
               <th className="text-left px-4 text-[16px] font-medium text-neutral-60">엑셀 업로드</th>
@@ -106,9 +106,9 @@ export default function RegistrationDetailTable({
                 </td>
               </tr>
             ) : (
-              rows.map((row) => (
-                <tr key={row.id} className="border-b border-[#E2E2E266]">
-                  <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
+              rows.map((row, index) => (
+                <tr key={row.id} className={`border-b ${index === rows.length - 1 ? "border-[#E2E2E2]" : "border-[#E2E2E266]"}`}>
+                  <td className="px-4 py-3 pl-[30px] text-[14px] font-medium text-[#252525] opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
                   <td className="px-4 py-3 text-[14px] font-semibold text-[#252525] opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
@@ -122,7 +122,7 @@ export default function RegistrationDetailTable({
 
       {/* Pagination */}
       {hasProject && rows.length > 0 && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <Pagination
             page={currentPage}
             totalPages={totalPages}

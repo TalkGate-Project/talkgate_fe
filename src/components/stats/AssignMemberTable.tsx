@@ -135,11 +135,11 @@ export default function AssignMemberTable() {
   const showEmpty = !showSkeleton && !showError && (memberPayload?.data === null || rows.length === 0);
 
   const Header = (
-    <div className="mb-3 flex items-center gap-2">
+    <div className="mb-5 flex items-center gap-3">
       <div className="text-[16px] font-semibold text-neutral-90">팀원별 배정 현황</div>
       <button
         aria-label="filter"
-        className="w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
+        className="cursor-pointer w-[26px] h-[26px] grid place-items-center font-medium rounded-[6px] border border-border text-neutral-60"
         onClick={() => setOpen(true)}
       >
         <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -157,7 +157,7 @@ export default function AssignMemberTable() {
 
   if (waitingForProject) {
     return (
-      <div className="mt-5">
+      <div className="mt-4">
         {Header}
         <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
@@ -168,7 +168,7 @@ export default function AssignMemberTable() {
 
   if (missingProject) {
     return (
-      <div className="mt-5">
+      <div className="mt-4">
         {Header}
         <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
           프로젝트를 먼저 선택해주세요.
@@ -178,14 +178,14 @@ export default function AssignMemberTable() {
   }
 
   return (
-    <div className="mt-5">
+    <div className="mt-4">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-3 items-center px-6 text-[16px] text-neutral-60 font-medium">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-3 items-center px-[30px] text-[16px] text-neutral-60 font-medium">
         <div>이름</div>
         <div>팀</div>
         <div>배정 건수</div>
       </div>
-      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card">
+      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card border-b border-[#E2E2E2]">
         {showSkeleton && <SkeletonRows columns={3} rows={PAGE_SIZE} />}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
@@ -200,7 +200,7 @@ export default function AssignMemberTable() {
         {!showSkeleton && !showError && rows.map((r, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${r.memberId}-${r.memberName}`} className="h-[56px] grid grid-cols-3 items-center px-6">
+            <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid grid-cols-3 items-center px-[30px]">
               <div className="text-[14px] text-neutral-90 opacity-80">{r.memberName}</div>
               <div className="flex items-center gap-2 text-[14px] text-neutral-90">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />

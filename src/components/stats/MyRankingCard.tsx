@@ -30,11 +30,11 @@ export default function MyRankingCard({ projectId, mode }: Props) {
   const payload: any = (query.data as any)?.data || null;
 
   // Don't render anything if no project, loading, error, or no data
-  if (!enabled || query.isLoading || query.isError || !payload) {
+  if (!enabled || query.isLoading || query.isError || !payload || !payload.rank) {
     return null;
   }
 
-  const rank: number = payload.rank ?? 0;
+  const rank: number = payload.rank;
   const name: string = mode === "team" ? payload.teamName ?? "소속없음" : payload.memberName ?? "이름없음";
   const teamName: string | null = mode === "member" ? payload.teamName ?? null : null;
   const amount: number = payload.totalAmount ?? 0;
@@ -45,33 +45,38 @@ export default function MyRankingCard({ projectId, mode }: Props) {
   const badgeLabel = Number.isNaN(changeRate) ? "-" : `${changeRate > 0 ? "+" : ""}${changeRate}%`;
 
   return (
-    <div className="mt-4 rounded-[12px] bg-neutral-10 border border-primary-60 p-5">
-      <div className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-        <div className="flex items-center gap-4">
-          {rank === 1 ? (
-            <RankingGoldIcon className="w-[60px] h-[60px]" />
-          ) : rank === 2 ? (
-            <RankingSilverIcon className="w-[60px] h-[60px]" />
-          ) : rank === 3 ? (
-            <RankingBronzeIcon className="w-[60px] h-[60px]" />
-          ) : (
-            <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
-              #{rank || "-"}
+    <>
+      <div className="mt-[30px]">
+        <h3 className="text-[16px] font-semibold text-neutral-90">나의 랭킹</h3>
+      </div>
+      <div className="mt-4 rounded-[12px] bg-neutral-10 border border-primary-60 p-5">
+        <div className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
+          <div className="flex items-center gap-4">
+            {rank === 1 ? (
+              <RankingGoldIcon className="w-[60px] h-[60px]" />
+            ) : rank === 2 ? (
+              <RankingSilverIcon className="w-[60px] h-[60px]" />
+            ) : rank === 3 ? (
+              <RankingBronzeIcon className="w-[60px] h-[60px]" />
+            ) : (
+              <div className="w-[60px] h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[18px] font-bold text-neutral-60">
+                #{rank || "-"}
+              </div>
+            )}
+            <div>
+              <div className="text-[18px] font-bold text-primary-80">
+                {name}
+                {teamName && <span className="text-neutral-60 font-medium"> | {teamName}</span>}
+              </div>
+              <div className="mt-1 text-[14px] font-medium text-neutral-90">₩ {NUMBER_FORMATTER.format(amount)}원</div>
             </div>
-          )}
-          <div>
-            <div className="text-[18px] font-bold text-primary-80">
-              {name}
-              {teamName && <span className="text-neutral-60 font-medium"> | {teamName}</span>}
-            </div>
-            <div className="mt-1 text-[14px] font-medium text-neutral-90">₩ {NUMBER_FORMATTER.format(amount)}원</div>
+          </div>
+          <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
+            {badgeLabel}
           </div>
         </div>
-        <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
-          {badgeLabel}
-        </div>
       </div>
-    </div>
+    </>
   );
 }
 
