@@ -96,13 +96,12 @@ function DashboardContent() {
       ];
     }
     const rawRate = summary.paymentRate ?? 0;
-    const normalizedRate = rawRate > 1 ? rawRate : rawRate * 100;
     const paymentAmount = summary.totalPaymentAmount ?? 0;
     const paymentAmountFormatted = formatCurrencyKR(paymentAmount);
     return [
       { label: "새로 배정된 고객", value: summary.recentlyAssignedCustomers.toLocaleString("ko-KR"), icon: <RecentCustomersIcon /> },
       { label: "전체 배정된 고객", value: summary.totalAssignedCustomers.toLocaleString("ko-KR"), icon: <TotalCustomersIcon /> },
-      { label: "결제율", value: `${Math.round(normalizedRate * 10) / 10}%`, icon: <PaymentRateIcon /> },
+      { label: "결제율", value: `${rawRate}%`, icon: <PaymentRateIcon /> },
       {
         label: "결제누적액",
         value: <PaymentAmountDisplay formattedValue={paymentAmountFormatted} />,

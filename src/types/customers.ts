@@ -2,6 +2,8 @@
 
 export type RecentNote = {
   id: number;
+  memberId?: number | null;
+  memberName?: string | null;
   categoryId: number;
   note: string;
   createdAt: string;

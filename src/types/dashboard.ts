@@ -1,16 +1,20 @@
 import type { ApiSuccessResponse } from "./common";
+import type { RecentNote } from "./customers";
 
 export type RecentlyAssignedCustomer = {
   id: number;
   name: string;
-  contact1?: string;
-  contact2?: string;
-  applicationRoute?: string;
-  mediaCompany?: string;
-  site?: string;
-  assignedAt?: string;
-  assignedTeamName?: string;
-  assignedMemberName?: string;
+  contact1?: string | null;
+  contact2?: string | null;
+  applicationRoute?: string | null;
+  mediaCompany?: string | null;
+  site?: string | null;
+  assignedAt?: string | null;
+  assignedTeamName?: string | null;
+  assignedMemberName?: string | null;
+  applicationDate?: string | null;
+  createdAt?: string | null;
+  recentNotes?: RecentNote[] | null;
   messengers?: Array<{
     messenger: string;
     account: string;
@@ -19,10 +23,11 @@ export type RecentlyAssignedCustomer = {
 };
 
 export type RecentlyAssignedCustomersResponse = ApiSuccessResponse<{
-  data: RecentlyAssignedCustomer[] | null; // null when no data
-  totalCount: number;
-  page?: number;
-  limit?: number;
+  customers: RecentlyAssignedCustomer[] | null;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages?: number;
 }>;
 
 export type WeeklyScheduleItem = {

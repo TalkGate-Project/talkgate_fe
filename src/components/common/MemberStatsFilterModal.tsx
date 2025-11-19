@@ -43,12 +43,9 @@ export default function MemberStatsFilterModal({
   teamOptions,
   sortOptions,
 }: Props) {
-  const availableTeamOptions = teamOptions?.length
-    ? teamOptions
-    : FALLBACK_TEAM_OPTIONS;
-  const availableSortOptions = sortOptions?.length
-    ? sortOptions
-    : FALLBACK_SORT_OPTIONS;
+  const availableTeamOptions = teamOptions?.length ? teamOptions : FALLBACK_TEAM_OPTIONS;
+  const availableSortOptions = sortOptions?.length ? sortOptions : FALLBACK_SORT_OPTIONS;
+  const teamDotColors = ["var(--primary-40)", "var(--warning-20)", "var(--danger-20)", "var(--secondary-20)"];
 
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
   const [localSort, setLocalSort] = useState<SortValue>(defaults.sort);
@@ -64,15 +61,16 @@ export default function MemberStatsFilterModal({
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div
-        className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
+        className="absolute left-1/2 top-1/2 bg-card rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
         style={{ width: 480, transform: "translate(-50%, -50%)" }}
       >
-        <div className="px-6 py-4 flex items-center justify-between border-b border-[#E2E2E266]">
-          <div className="text-[18px] font-semibold">{title}</div>
+        {/* Header */}
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="text-[18px] font-semibold text-foreground">{title}</div>
           <button
             onClick={onClose}
             aria-label="close"
-            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-[#F3F3F3]"
+            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10"
           >
             <svg
               width="20"
@@ -83,7 +81,7 @@ export default function MemberStatsFilterModal({
             >
               <path
                 d="M6 18L18 6M6 6L18 18"
-                stroke="#111827"
+                stroke="var(--neutral-50)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -91,27 +89,34 @@ export default function MemberStatsFilterModal({
             </svg>
           </button>
         </div>
+        {/* Body */}
         <div className="px-6 py-4 space-y-6">
           <div>
-            <div className="text-[14px] text-[#808080] mb-2">팀별</div>
+            <div className="text-[14px] text-neutral-60 mb-3">팀별</div>
             <div className="flex flex-wrap gap-2">
-              {availableTeamOptions.map((opt) => (
+            {availableTeamOptions.map((opt, index) => (
                 <button
                   key={opt.value}
                   onClick={() => setLocalTeam(opt.value)}
-                  className={`cursor-pointer px-3 h-[34px] rounded-[5px] border text-[14px] ${
+                className={`cursor-pointer px-3 h-[34px] rounded-[5px] border flex items-center gap-2 text-[14px] ${
                     localTeam === opt.value
-                      ? "border-2 border-primary-40 bg-primary-10/30"
-                      : "border-border bg-card text-foreground"
+                    ? "border-2 border-primary-40 bg-primary-10/30 text-foreground font-bold"
+                    : "border-border bg-card text-foreground"
                   }`}
                 >
-                  {opt.label}
+                {opt.value !== "all" && (
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: teamDotColors[index % teamDotColors.length] }}
+                  />
+                )}
+                <span>{opt.label}</span>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <div className="text-[14px] text-[#808080] mb-2">정렬</div>
+            <div className="text-[14px] text-neutral-60 mb-3">정렬</div>
             <div className="flex gap-2">
               {availableSortOptions.map((opt) => (
                 <button
@@ -119,7 +124,7 @@ export default function MemberStatsFilterModal({
                   onClick={() => setLocalSort(opt.value)}
                   className={`cursor-pointer px-3 h-[34px] rounded-[5px] border text-[14px] ${
                     localSort === opt.value
-                      ? "border-2 border-primary-40 bg-primary-10/30"
+                      ? "border-2 border-primary-40 bg-primary-10/30 text-foreground font-bold"
                       : "border-border bg-card text-foreground"
                   }`}
                 >
@@ -129,9 +134,10 @@ export default function MemberStatsFilterModal({
             </div>
           </div>
         </div>
-        <div className="px-6 py-3 flex justify-end gap-2 border-t border-[#E2E2E266]">
+        {/* Footer */}
+        <div className="px-6 py-3 flex justify-end gap-2 border-t border-border">
           <button
-            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] border border-[#E2E2E2]"
+            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] border border-border text-foreground bg-card"
             onClick={() => {
               setLocalTeam(availableTeamOptions[0]?.value ?? "all");
               setLocalSort(availableSortOptions[0]?.value ?? "desc");
@@ -140,7 +146,7 @@ export default function MemberStatsFilterModal({
             초기화
           </button>
           <button
-            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] bg-[#252525] text-[#D0D0D0]"
+            className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] bg-[#252525] text-neutral-0"
             onClick={() => onApply({ team: localTeam, sort: localSort })}
           >
             적용완료

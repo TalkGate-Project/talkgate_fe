@@ -159,6 +159,8 @@ export type RankingMemberRecord = {
   id: number;
   memberId: number;
   memberName: string;
+  teamId: number | null;
+  teamName: string | null;
   totalAmount: number;
   rank: number;
   previousRank: number | null;
@@ -204,6 +206,8 @@ export type RankingMyRecord = {
   id: number;
   memberId: number;
   memberName: string;
+  teamId: number | null;
+  teamName: string | null;
   totalAmount: number;
   rank: number;
   previousRank: number | null;

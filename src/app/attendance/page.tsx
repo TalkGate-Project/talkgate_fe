@@ -5,7 +5,9 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import Pagination from "@/components/common/Pagination";
-import AttendanceFilterModal, { AttendanceFilterState } from "@/components/attendance/AttendanceFilterModal";
+import AttendanceFilterModal, {
+  AttendanceFilterState,
+} from "@/components/attendance/AttendanceFilterModal";
 import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
 import { AttendanceService } from "@/services/attendance";
 import { getSelectedProjectId } from "@/lib/project";
@@ -18,17 +20,20 @@ function AttendancePageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isAttendanceMenuEnabled, attendanceReady] = useAttendanceMenu();
-  
+
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [totalPages, setTotalPages] = useState(1);
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<AttendanceFilterState>({
-    team: 'all',
-    position: 'all'
+    team: "all",
+    position: "all",
   });
   const [isEmployeeModalOpen, setEmployeeModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<AttendanceRecord | null>(null);
+  const [selectedEmployee, setSelectedEmployee] =
+    useState<AttendanceRecord | null>(null);
   const [rows, setRows] = useState<AttendanceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +58,7 @@ function AttendancePageContent() {
   // 근태 메뉴 사용 여부 체크
   useEffect(() => {
     if (!attendanceReady) return;
-    
+
     if (!isAttendanceMenuEnabled) {
       // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
       alert("근태 메뉴는 현재 비활성화되어 있습니다.");
@@ -86,22 +91,22 @@ function AttendancePageContent() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
     const weekday = weekdays[date.getDay()];
-    
+
     return `${year} - ${month} - ${day} (${weekday})`;
   };
 
-  const navigateDate = (direction: 'prev' | 'next') => {
+  const navigateDate = (direction: "prev" | "next") => {
     const date = new Date(selectedDate);
-    if (direction === 'prev') {
+    if (direction === "prev") {
       date.setDate(date.getDate() - 1);
     } else {
       date.setDate(date.getDate() + 1);
     }
-    setSelectedDate(date.toISOString().split('T')[0]);
+    setSelectedDate(date.toISOString().split("T")[0]);
     // 날짜 변경 시 페이지를 1로 리셋
     persistQuery({ page: 1 });
   };
@@ -115,8 +120,9 @@ function AttendancePageContent() {
   // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
   const filteredData = useMemo(() => {
     return rows.filter((r) => {
-      const teamMatch = filters.team === 'all' || r.teamName === filters.team;
-      const positionMatch = filters.position === 'all' || String(r.role) === filters.position;
+      const teamMatch = filters.team === "all" || r.teamName === filters.team;
+      const positionMatch =
+        filters.position === "all" || String(r.role) === filters.position;
       return teamMatch && positionMatch;
     });
   }, [filters, rows]);
@@ -125,7 +131,12 @@ function AttendancePageContent() {
     if (!projectId) return;
     setLoading(true);
     setError(null);
-    AttendanceService.list({ projectId, date: selectedDate, page: currentPage, limit })
+    AttendanceService.list({
+      projectId,
+      date: selectedDate,
+      page: currentPage,
+      limit,
+    })
       .then((res) => {
         const response = res.data as any;
         if (response?.result && response?.data) {
@@ -136,15 +147,18 @@ function AttendancePageContent() {
           setTotalPages(1);
         }
       })
-      .catch((e: any) => setError(e?.data?.message || e?.message || "불러오지 못했습니다"))
+      .catch((e: any) =>
+        setError(e?.data?.message || e?.message || "불러오지 못했습니다")
+      )
       .finally(() => setLoading(false));
   }, [projectId, selectedDate, currentPage, limit]);
 
   function formatHm(iso?: string | null) {
     if (!iso) return "-";
     const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
+
   function computeWorkTime(att?: string | null, leave?: string | null) {
     if (!att || !leave) return "";
     const diffMs = new Date(leave).getTime() - new Date(att).getTime();
@@ -157,7 +171,7 @@ function AttendancePageContent() {
 
   const handleEmployeeClick = (employee: AttendanceItem) => {
     const mapped: AttendanceRecord = {
-      id: employee.id,
+      id: employee.memberId, // Use memberId instead of attendance record id
       name: employee.memberName,
       team: employee.teamName,
       position: String(employee.role),
@@ -187,124 +201,166 @@ function AttendancePageContent() {
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
         {/* Top panel: title + date selector */}
         <Panel
-          className="rounded-[14px] mb-4"
+          className="rounded-[14px] mb-9"
           title={
             <div className="flex items-end gap-3">
-              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">근태</h1>
+              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
+                근태
+              </h1>
               <span className="w-px h-4 bg-neutral-60 opacity-60" />
-              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">직원들의 출퇴근 현황을 확인하고 관리하세요</p>
+              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
+                직원들의 출퇴근 현황을 확인하고 관리하세요
+              </p>
             </div>
           }
           bodyClassName="px-7 py-[30px]  border-t border-neutral-30"
         >
-        {/* Date selector */}
-        <div className="flex justify-center w-full">
-          <div className="w-full h-[40px] bg-neutral-20 rounded-[8px] px-3 flex justify-center items-center gap-3">
-            {/* Previous button */}
-            <button
-              onClick={() => navigateDate('prev')}
-              className="w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="var(--neutral-50)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            
-            {/* Date display */}
-            <div className="px-8 py-[4px] bg-card rounded-[5px]">
-              <span className="text-[16px] font-bold text-foreground">
-                {formatDate(selectedDate)}
-              </span>
+          {/* Date selector */}
+          <div className="flex justify-center w-full">
+            <div className="w-full h-[48px] bg-neutral-20 rounded-[8px] px-3 flex justify-center items-center gap-3">
+              {/* Previous button */}
+              <button
+                onClick={() => navigateDate("prev")}
+                className="cursor-pointer w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="var(--neutral-50)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {/* Date display */}
+              <div className="px-8 py-[4px] bg-card rounded-[5px]">
+                <span className="text-[16px] font-bold text-foreground">
+                  {formatDate(selectedDate)}
+                </span>
+              </div>
+
+              {/* Next button */}
+              <button
+                onClick={() => navigateDate("next")}
+                className="cursor-pointer w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M9 18L15 12L9 6"
+                    stroke="var(--neutral-50)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
             </div>
-            
-            {/* Next button */}
-            <button
-              onClick={() => navigateDate('next')}
-              className="w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M9 18L15 12L9 6"
-                  stroke="var(--neutral-50)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
           </div>
-        </div>
-      </Panel>
+        </Panel>
 
         {/* Bottom area: attendance table */}
-        <div className="bg-card rounded-[14px] p-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+        <div className="bg-card rounded-[14px] p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
           {/* 헤더 영역 */}
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-[18px] font-semibold text-neutral-90">출퇴근 현황</h2>
-            <button 
+            <h2 className="text-[18px] font-semibold text-neutral-90">
+              출퇴근 현황
+            </h2>
+            <button
               onClick={() => setFilterOpen(true)}
-              className="w-6 h-6 border border-border rounded-[5px] flex items-center justify-center hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer w-6 h-6 border border-border rounded-[5px] flex items-center justify-center hover:bg-neutral-10 transition-colors"
             >
-              <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z" stroke="var(--neutral-50)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 26 26"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
+                  stroke="var(--neutral-50)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>
 
           {/* 테이블 헤더 */}
-          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6">
-            <div className="flex-1 text-[16px] font-medium text-neutral-60">이름</div>
-            <div className="w-[120px] text-[16px] font-medium text-neutral-60 text-center">팀</div>
-            <div className="w-[80px] text-[16px] font-medium text-neutral-60 text-center">직급</div>
-            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">출근시간</div>
-            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">퇴근시간</div>
-            <div className="w-[100px] text-[16px] font-medium text-neutral-60 text-center">근무시간</div>
+          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-[30px]">
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              이름
+            </div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              팀
+            </div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              직급
+            </div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              출근시간
+            </div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              퇴근시간
+            </div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">
+              근무시간
+            </div>
           </div>
 
           {/* 테이블 본문 */}
           <div>
             {loading ? (
-              <TableSkeleton rows={8} columns={["flex", 120, 80, 100, 100, 100]} />
+              <TableSkeleton
+                rows={8}
+                columns={["flex", 120, 80, 100, 100, 100]}
+              />
             ) : error ? (
-              <div className="py-12 text-center text-[14px] text-danger-40">{error}</div>
+              <div className="py-12 text-center text-[14px] text-danger-40">
+                {error}
+              </div>
             ) : filteredData.length === 0 ? (
-              <div className="py-12 text-center text-[14px] text-neutral-60">근태 데이터가 없습니다.</div>
+              <div className="py-12 text-center text-[14px] text-neutral-60">
+                근태 데이터가 없습니다.
+              </div>
             ) : (
               filteredData.map((record, index) => (
                 <div key={record.memberId || index}>
                   <div
-                    className="flex items-center py-4 px-6 hover:bg-neutral-10 cursor-pointer transition-colors"
+                    className="flex items-center py-4 px-[30px] hover:bg-neutral-10 cursor-pointer transition-colors"
                     onClick={() => handleEmployeeClick(record)}
                   >
                     {/* 이름 */}
                     <div className="flex-1 text-[14px] font-medium text-neutral-90 opacity-80">
-                      {record.memberName || '-'}
+                      {record.memberName || "-"}
                     </div>
                     {/* 팀 */}
-                    <div className="w-[120px] text-[14px] font-medium text-neutral-90 opacity-80 text-center">
-                      {record.teamName || '-'}
+                    <div className="flex-1 text-[14px] font-medium text-neutral-90 opacity-80">
+                      {record.teamName || "-"}
                     </div>
                     {/* 직급 */}
-                    <div className="w-[80px] text-[14px] font-medium text-neutral-90 opacity-80 text-center">
-                      {record.role === 'leader' ? '리더' : record.role === 'member' ? '멤버' : record.role || '-'}
+                    <div className="flex-1 text-[14px] font-medium text-neutral-90 opacity-80">
+                      {record.role === "leader"
+                        ? "리더"
+                        : record.role === "member"
+                        ? "멤버"
+                        : record.role || "-"}
                     </div>
                     {/* 출근시간 */}
-                    <div className="w-[100px] text-[14px] font-medium text-neutral-90 opacity-80 text-center">
+                    <div className="flex-1 text-[14px] font-medium text-neutral-90 opacity-80">
                       {formatHm(record.attendanceAt)}
                     </div>
                     {/* 퇴근시간 */}
-                    <div className="w-[100px] text-[14px] font-medium text-neutral-90 opacity-80 text-center">
+                    <div className="flex-1 text-[14px] font-medium text-neutral-90 opacity-80">
                       {formatHm(record.leaveAt)}
                     </div>
                     {/* 근무시간 */}
-                    <div className="w-[100px] text-[14px] font-semibold text-neutral-90 opacity-80 text-center">
-                      {computeWorkTime(record.attendanceAt, record.leaveAt) || '-'}
+                    <div className="flex-1 text-[14px] font-semibold text-neutral-90 opacity-80">
+                      {computeWorkTime(record.attendanceAt, record.leaveAt) ||
+                        "-"}
                     </div>
                   </div>
 
@@ -333,14 +389,14 @@ function AttendancePageContent() {
 
         {/* Filter Modal */}
         <AttendanceFilterModal
-        open={isFilterOpen}
-        onClose={() => setFilterOpen(false)}
-        onApply={(newFilters) => {
-          setFilters(newFilters);
-          setFilterOpen(false);
-        }}
-        defaults={filters}
-      />
+          open={isFilterOpen}
+          onClose={() => setFilterOpen(false)}
+          onApply={(newFilters) => {
+            setFilters(newFilters);
+            setFilterOpen(false);
+          }}
+          defaults={filters}
+        />
 
         {/* Employee Info Modal */}
         <EmployeeInfoModal
@@ -358,13 +414,15 @@ function AttendancePageContent() {
 
 export default function AttendancePage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-        <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
-          <div className="text-neutral-60">불러오는 중...</div>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+          <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
+            <div className="text-neutral-60">불러오는 중...</div>
+          </div>
+        </main>
+      }
+    >
       <AttendancePageContent />
     </Suspense>
   );

@@ -58,6 +58,14 @@ export interface MyMemberResponse {
   data: MyMember;
 }
 
+// Member Detail (similar to MyMember but for any member)
+export interface MemberDetail extends MyMember {}
+
+export interface MemberDetailResponse {
+  result: boolean;
+  data: MemberDetail;
+}
+
 // 프로필 업데이트 요청 타입
 export interface UpdateProfilePayload {
   name?: string;

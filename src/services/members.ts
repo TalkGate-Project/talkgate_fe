@@ -3,6 +3,7 @@ import type { MemberTreeResponse } from "@/types/membersTree";
 import type { 
   MyMember, 
   MyMemberResponse, 
+  MemberDetailResponse,
   UpdateProfilePayload, 
   UpdateProfileResponse,
   MemberListResponse,
@@ -33,7 +34,7 @@ export const MembersService = {
     return apiClient.patch<UpdateProfileResponse>(`/v1/members`, payload, headers ? { headers } : undefined);
   },
   detail(memberId: string | number) {
-    return apiClient.get<Member>(`/v1/members/${memberId}`);
+    return apiClient.get<MemberDetailResponse>(`/v1/members/${memberId}`);
   },
 
   // Invitations
@@ -59,5 +60,3 @@ export const MembersService = {
     return apiClient.get<MemberTreeResponse>(`/v1/members-tree/tree`);
   },
 };
-
-

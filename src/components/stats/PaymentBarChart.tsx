@@ -50,6 +50,7 @@ export default function PaymentBarChart() {
 
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
+    console.log(data);
     return records
       .filter((record): record is CustomerPaymentTeamRecord => Boolean(record))
       .map((record) => ({
@@ -129,10 +130,13 @@ export default function PaymentBarChart() {
     );
   }
 
-  if (data?.data.data === null || !chartData.length) {
+  const rawRecords = data?.data.data;
+  const hasRecords = Array.isArray(rawRecords) && rawRecords.length > 0;
+
+  if (!hasRecords || !chartData.length) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
-        {data?.data.data === null ? "결제 통계 데이터가 없습니다." : "표시할 결제 통계가 없습니다."}
+        {rawRecords === null || rawRecords === undefined ? "결제 통계 데이터가 없습니다." : "표시할 결제 통계가 없습니다."}
       </div>
     );
   }
