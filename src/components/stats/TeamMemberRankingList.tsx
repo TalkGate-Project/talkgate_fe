@@ -74,7 +74,7 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
             
             return (
               <div key={`${row.memberId}-${row.memberName}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-10">
                   {row.rank === 1 ? (
                     <RankingGoldIcon className="w-[60px] h-[60px]" />
                   ) : row.rank === 2 ? (
@@ -89,9 +89,11 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
                   <div>
                     <div className="text-[18px] leading-[21px] font-bold text-neutral-90 flex items-center gap-2">
                       {row.memberName}
-                      <div className="text-[14px] leading-[16px] font-medium text-neutral-60 border-l border-neutral-30 pl-3">
-                        {typeof row.previousRank === "number" ? `전 순위 ${row.previousRank}` : "전 순위 정보 없음"}
-                      </div>
+                      {row.teamName && (
+                        <div className="text-[14px] leading-[16px] font-medium text-neutral-60 border-l border-neutral-30 pl-3">
+                          {row.teamName}
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3 leading-[1] text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
                   </div>

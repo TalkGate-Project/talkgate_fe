@@ -38,11 +38,10 @@ export default function MyRankingCard({ projectId, mode }: Props) {
   const name: string = mode === "team" ? payload.teamName ?? "소속없음" : payload.memberName ?? "이름없음";
   const teamName: string | null = mode === "member" ? payload.teamName ?? null : null;
   const amount: number = payload.totalAmount ?? 0;
-  const changeRateStr: string | null = payload.amountChangeRate ?? null;
-  const changeRate = changeRateStr ? Number.parseFloat(changeRateStr) : NaN;
-  const badgeColor =
-    Number.isNaN(changeRate) ? "bg-neutral-20 text-neutral-70" : changeRate >= 0 ? "bg-primary-10 text-primary-100" : "bg-danger-10 text-danger-60";
-  const badgeLabel = Number.isNaN(changeRate) ? "-" : `${changeRate > 0 ? "+" : ""}${changeRate}%`;
+  const previousAmount: number = payload.previousTotalAmount ?? 0;
+  const diff = amount - previousAmount;
+  const badgeColor = "bg-primary-10 text-primary-100";
+  const badgeLabel = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
 
   return (
     <>

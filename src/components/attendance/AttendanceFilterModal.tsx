@@ -35,7 +35,7 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
       <div className="absolute left-1/2 top-1/2 bg-card rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]" style={{ width: 480, transform: 'translate(-50%, -50%)' }}>
         <div className="px-7 py-4 flex items-center justify-between">
           <div className="text-[18px] font-semibold text-foreground">필터설정</div>
-          <button onClick={onClose} aria-label="close" className="w-6 h-6 grid place-items-center rounded hover:bg-neutral-10">
+          <button onClick={onClose} aria-label="close" className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 18L18 6M6 6L18 18" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
