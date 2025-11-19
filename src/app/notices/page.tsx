@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import NoticeSearchPanel from "@/components/notice/NoticeSearchPanel";
 import NoticeTable from "@/components/notice/NoticeTable";
-import Pagination from "@/components/common/Pagination";
 import { getSelectedProjectId } from "@/lib/project";
 import { useNoticeQueryParams } from "@/hooks/useNoticeQueryParams";
 import { useNoticeList } from "@/hooks/useNoticeList";
@@ -74,27 +73,20 @@ function NoticePageContent() {
         />
 
         {/* 공지사항 목록 테이블 */}
-        <div className="mt-4">
+        <div className="mt-9">
           <NoticeTable
             notices={notices ?? []}
             loading={loading}
             buildNoticeHref={(notice) => buildDetailUrl(notice.id)}
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
           {errorMessage && (
             <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
               {errorMessage}
             </div>
           )}
-        </div>
-
-        {/* 페이지네이션 */}
-        <div className="flex justify-center mt-4">
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            disabled={loading}
-          />
         </div>
       </div>
     </main>

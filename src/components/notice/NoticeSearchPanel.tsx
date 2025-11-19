@@ -16,7 +16,7 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
     <Panel
       className="rounded-[14px]"
       title={
-        <div className="flex items-end gap-3">
+        <div className="flex items-end gap-4">
           <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">공지사항</h1>
           <span className="w-px h-4 bg-neutral-60 opacity-60" />
           <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
@@ -42,12 +42,12 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
                   onSearch();
                 }
               }}
-              className="w-[296px] h-[34px] px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 placeholder:text-neutral-60 bg-card focus:outline-none focus:border-neutral-90"
+              className="w-[296px] h-[34px] px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 placeholder:text-neutral-60 bg-card focus:outline-none focus:border-neutral-90"
             />
           </div>
           <button 
             onClick={onSearch}
-            className="cursor-pointer w-[66px] h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            className="cursor-pointer w-[66px] h-[34px] px-3 bg-neutral-90 text-neutral-20 rounded-[5px] text-[14px] font-semibold"
           >
             검색
           </button>
