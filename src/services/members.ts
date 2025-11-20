@@ -51,7 +51,7 @@ export const MembersService = {
     return apiClient.post<void>(`/v1/members/invitations/accept`, payload);
   },
   resendInvitation(invitationId: number) {
-    return apiClient.post<void>(`/v1/members/invitations/${invitationId}/resend`, {});
+    return apiClient.post<void>(`/v1/members/invitations/resend`, { invitationId });
   },
   verifyInvitation(payload: Record<string, unknown>) {
     return apiClient.post<void>(`/v1/members/invitations/verify`, payload);

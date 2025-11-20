@@ -159,6 +159,65 @@ export default function TeamManagementSettings() {
     };
   }, [pendingMove, teamMembers]);
 
+  // ==========================================================================================
+  // 검색 기능 관련 상태 및 핸들러
+  // ==========================================================================================
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedForSearch, setExpandedForSearch] = useState<Set<string>>(new Set());
+
+  const lowerSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+
+  // 검색어에 매칭되는 멤버 ID 집합
+  const matchingIds = useMemo(() => {
+    if (!lowerSearch) return new Set<string>();
+    return new Set(
+      flattenedMembers
+        .filter((member) =>
+          member.name.toLowerCase().includes(lowerSearch) ||
+          (member.department ? member.department.toLowerCase().includes(lowerSearch) : false)
+        )
+        .map((member) => member.id)
+    );
+  }, [flattenedMembers, lowerSearch]);
+
+  // 검색 결과에 따른 확장 상태 업데이트
+  const ensureExpandedForMatches = useCallback(
+    (items: TeamMember[], parents: string[] = []) => {
+      if (!lowerSearch) return;
+      const next = new Set<string>();
+      const walk = (nodes: TeamMember[], chain: string[] = []) => {
+        nodes.forEach((node) => {
+          const nextChain = [...chain, node.id];
+          if (matchingIds.has(node.id)) {
+            nextChain.slice(0, -1).forEach((id) => next.add(id));
+          }
+          if (node.children && node.children.length) {
+            walk(node.children, nextChain);
+          }
+        });
+      };
+      walk(items, parents);
+      setExpandedForSearch(next);
+    },
+    [lowerSearch, matchingIds]
+  );
+
+  // 검색어 변경 핸들러
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (!value) {
+      setExpandedForSearch(new Set());
+    } else {
+      ensureExpandedForMatches(teamMembers);
+    }
+  };
+
+  useEffect(() => {
+    if (lowerSearch) {
+      ensureExpandedForMatches(teamMembers);
+    }
+  }, [teamMembers, lowerSearch, ensureExpandedForMatches]);
+
   const confirmMove = useCallback(async () => {
     if (!pendingMove) return;
     try {
@@ -183,7 +242,7 @@ export default function TeamManagementSettings() {
   const uniqueDepartments = useMemo(() => {
     const set = new Set<string>();
     flattenedMembers.forEach((member) => {
-      if (member.department) set.add(member.department);
+      if (member.department && member.department !== "팀원") set.add(member.department);
     });
     return Array.from(set);
   }, [flattenedMembers]);
@@ -226,15 +285,55 @@ export default function TeamManagementSettings() {
   }
 
   return (
-    <div className="w-full h-full bg-card rounded-[14px] p-8 overflow-hidden">
+    <div className="w-full h-full bg-card rounded-[14px] py-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
-      <div className="w-full h-px bg-border mb-6" />
+      <div className="mx-7 h-px bg-neutral-30 mb-3" />
+
+      {/* 검색 및 태그 영역 (스크롤되지 않는 상단 고정 영역) */}
+      {viewMode === "list" && (
+        <div className="px-7 mb-[30px] flex-shrink-0">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="직원 및 팀 이름을 검색하세요"
+                className="w-full max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+              />
+            </div>
+            <button className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+              검색
+            </button>
+          </div>
+          {uniqueDepartments.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {uniqueDepartments.map((tag) => (
+                <div key={tag} className="px-3 py-1 bg-neutral-30 rounded-[30px] leading-[1] max-h-[22px]">
+                  <span className="text-[12px] font-medium text-neutral-70 leading-[1]">{tag}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 스크롤 가능한 리스트 영역 */}
       {viewMode === "list" ? (
-        <div className="max-h-[600px] overflow-y-auto pr-2">
-          <TeamListView data={teamMembers} dragHandlers={dragHandlers} dragState={dragState} tags={uniqueDepartments} onMemberClick={handleMemberClick} />
+        <div className="flex-1 px-7 overflow-y-auto min-h-0 max-h-[538px]">
+          <TeamListView
+            data={teamMembers}
+            dragHandlers={dragHandlers}
+            dragState={dragState}
+            tags={[]} // 태그는 상단으로 이동했으므로 빈 배열 전달
+            onMemberClick={handleMemberClick}
+            searchTerm={searchTerm} // 검색어 전달
+            matchingIds={matchingIds} // 매칭 ID 전달
+            expandedForSearch={expandedForSearch} // 검색 확장 상태 전달
+          />
         </div>
       ) : (
-        <div className="-mx-8 -mb-8 overflow-x-auto overflow-y-hidden pb-8">
+        <div className="flex-1 px-7 -mx-8 -mb-8 overflow-x-auto overflow-y-hidden pb-8">
           <TeamTreeView data={teamMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />
         </div>
       )}

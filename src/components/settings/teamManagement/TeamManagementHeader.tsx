@@ -7,14 +7,14 @@ type Props = {
 
 export default function TeamManagementHeader({ viewMode, onChange }: Props) {
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="">
+      <div className="flex justify-between items-center mb-6 px-7">
         <h1 className="font-bold text-[24px] leading-[20px] text-foreground">
           팀관리
         </h1>
       </div>
-      <div className="w-full h-px bg-border mb-6 opacity-50" />
-      <div className="flex justify-between items-center mb-6">
+      <div className="w-full h-px bg-neutral-30 mb-6 opacity-70" />
+      <div className="flex justify-between items-center mb-3 px-7">
         <div>
           <h2 className="font-semibold mb-2 text-[16px] leading-[19px] text-foreground tracking-[0.2px]">
             조직도 정보
