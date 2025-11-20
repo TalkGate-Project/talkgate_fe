@@ -48,33 +48,37 @@ export default function CustomerApiSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] shadow-sm p-7 flex flex-col h-full">
-      <header className="space-y-4">
-        <h1 className="text-[24px] font-bold text-foreground">고객등록 API</h1>
+    <div className="bg-card rounded-[14px] py-7 flex flex-col h-full">
+      <h1 className="text-[24px] font-bold text-foreground px-7 leading-[1]">고객등록 API</h1>
+
+      {/* divider */}
+      <div className="w-full h-[1px] bg-neutral-30 opacity-70 mt-7"></div>
+
+      <header className="space-y-4 px-7 pt-[30px]">
         <div className="space-y-1">
-          <p className="text-[16px] font-semibold text-foreground">API 정보</p>
+          <p className="text-[16px] font-semibold text-foreground leading-[1]">API 정보</p>
           <p className="text-[14px] text-neutral-60">
             외부 시스템에서 고객 정보를 등록할 수 있는 API 엔드포인트와 인증 키를 관리합니다.
           </p>
         </div>
+        {/* divider */}
+        <div className="w-full h-[1px] bg-neutral-30 opacity-50"></div>
       </header>
-      <div className="-mx-7 mt-2 mb-[18px]">
-        <div className="h-px bg-neutral-30/40" />
-      </div>
+      
 
-      <section className="space-y-5">
+      <section className="space-y-5 px-7 pt-[18px]">
         <div className="space-y-2">
-          <h2 className="text-[16px] font-semibold text-neutral-60">API 엔드포인트</h2>
-          <div className="flex items-center h-[50px] gap-3 bg-neutral-10 border border-neutral-30/40 rounded-[12px] px-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+          <h2 className="text-[14px] font-medium text-neutral-60 leading-[1]">API 엔드포인트</h2>
+          <div className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[12px] px-6">
             <input
               type="text"
               value={API_ENDPOINT_PLACEHOLDER}
               readOnly
-              className="flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none"
+              className="flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em]"
             />
             <button
               onClick={handleCopyEndpoint}
-              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-200 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
+              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
             >
               {copyState === "copied" ? "복사됨" : "복사"}
             </button>
@@ -83,10 +87,10 @@ export default function CustomerApiSettings() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-semibold text-neutral-60">API 키</h2>
+            <h2 className="text-[14px] font-medium text-neutral-60 leading-[1]">API 키</h2>
           </div>
           <div
-            className="flex items-center h-[50px] gap-3 bg-neutral-10 border border-neutral-30/40 rounded-[12px] px-6 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+            className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[12px] px-6 py-4"
             onMouseEnter={() => setShowKey(true)}
             onMouseLeave={() => setShowKey(false)}
           >
@@ -94,12 +98,12 @@ export default function CustomerApiSettings() {
               type="text"
               value={API_KEY_PLACEHOLDER}
               readOnly
-              className={`flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
+              className={`flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
             />
             <div className="flex items-center gap-4">
               <button
                 onClick={handleCopyKey}
-                className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-200 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
+                className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
               >
                 {keyCopyState === "copied" ? "복사됨" : "복사"}
               </button>
