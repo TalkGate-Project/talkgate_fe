@@ -42,7 +42,7 @@ function ChannelCard({
   onDisconnect,
 }: ChannelCardProps) {
   return (
-    <div className="flex items-center justify-between p-6 border border-border rounded-[12px] min-h-[132px]">
+    <div className="flex items-center justify-between px-6 py-5 border border-neutral-30 rounded-[12px] min-h-[132px]">
       {/* Left Content - Icon and Text */}
       <div className="flex items-center">
         {/* Text Content */}
@@ -280,24 +280,24 @@ export default function ConsultationChannelSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] p-6">
+    <div className="bg-card rounded-[14px] pt-7 pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between px-7 mb-8">
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           상담 채널 연동
         </h1>
         <div className="flex items-center px-3 py-1 bg-primary-10 rounded-[30px]">
-          <span className="text-[12px] font-medium text-primary-80 opacity-80">
+          <span className="text-[12px] font-medium text-primary-80 opacity-80 leading-[1]">
             연결된 채널 : {connectedCount}개
           </span>
         </div>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-border opacity-50 mb-12"></div>
+      <div className="w-full h-[1px] bg-neutral-30 opacity-70 mb-[30px]"></div>
 
       {/* Channel Cards Grid */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-6 px-7">
         {channels.map((channel) => (
           <ChannelCard
             key={channel.id}
