@@ -112,9 +112,9 @@ export default function BatchRegistrationHistorySettings() {
 
     return (
       <>
-        <div className="flex items-center h-12 gap-3">
+        <div className="flex items-center h-12 gap-3 pl-10">
           {/* 파일명 */}
-          <div className="w-[189px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0 truncate" title={record.fileName}>
+          <div className="w-[150px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0 truncate" title={record.fileName}>
             {record.fileName}
           </div>
 
