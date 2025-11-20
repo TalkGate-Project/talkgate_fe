@@ -112,6 +112,15 @@ export function useChatController({ projectId, status = "all", platform }: Param
     const onReady = () => {
       setConnected(true);
       setSocketError(null);
+      
+      // 서버 준비 완료 시 대화 목록 요청
+      socket.emit("getConversations", {
+        limit: 20,
+        status: status === "all" ? undefined : status,
+        platform,
+      });
+      lastConvCursorRequestedRef.current = undefined;
+      convLoadingRef.current = true;
     };
 
     const onConnectError = (err: any) => {
@@ -282,14 +291,6 @@ export function useChatController({ projectId, status = "all", platform }: Param
     socket.on("messageResult", onMessageResult as any);
     socket.on("newMessage", onNewMessage as any);
     socket.on("messagesMarkedRead", onMessagesMarkedRead as any);
-
-    socket.emit("getConversations", {
-      limit: 20,
-      status: status === "all" ? undefined : status,
-      platform,
-    });
-    lastConvCursorRequestedRef.current = undefined;
-    convLoadingRef.current = true;
 
     // 클린업: 이벤트 리스너 제거 및 소켓 연결 해제
     return () => {
