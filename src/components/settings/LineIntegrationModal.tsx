@@ -109,7 +109,7 @@ export default function LineIntegrationModal({
           </div>
           <button
             aria-label="close"
-            className="ml-auto w-6 h-6 grid place-items-center hover:opacity-70 transition-opacity"
+            className="cursor-pointer ml-auto w-6 h-6 grid place-items-center hover:opacity-70 transition-opacity"
             onClick={handleClose}
             disabled={isSaving}
           >
@@ -132,9 +132,9 @@ export default function LineIntegrationModal({
         </div>
 
         {/* 단계 인디케이터 */}
-        <div className="flex items-center justify-center gap-[30px] mt-8 mb-8">
+        <div className="flex justify-center gap-[30px] mt-8 mb-8">
           {/* 1단계 */}
-          <div className="flex flex-col items-center gap-[17px]">
+          <div className="flex flex-col items-center gap-2">
             <div
               className={`w-9 h-9 rounded-full grid place-items-center ${
                 step >= 1 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
@@ -157,10 +157,10 @@ export default function LineIntegrationModal({
             </div>
           </div>
 
-          <div className="w-[60px] h-px bg-neutral-30" />
+          <div className="w-[60px] h-px bg-neutral-30 translate-y-4" />
 
           {/* 2단계 */}
-          <div className="flex flex-col items-center gap-[17px]">
+          <div className="flex flex-col items-center gap-2">
             <div
               className={`w-9 h-9 rounded-full grid place-items-center ${
                 step >= 2 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
@@ -183,10 +183,10 @@ export default function LineIntegrationModal({
             </div>
           </div>
 
-          <div className="w-[60px] h-px bg-neutral-30" />
+          <div className="w-[60px] h-px bg-neutral-30 translate-y-4" />
 
           {/* 3단계 */}
-          <div className="flex flex-col items-center gap-[17px]">
+          <div className="flex flex-col items-center gap-2">
             <div
               className={`w-9 h-9 rounded-full grid place-items-center ${
                 step >= 3 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
@@ -211,9 +211,9 @@ export default function LineIntegrationModal({
         </div>
 
         {/* 본문 */}
-        <div className="flex-1 px-7 pb-4 overflow-y-auto">
+        <div className="flex-1 px-7 pb-[30px] overflow-y-auto">
           {step === 1 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] p-6">
+            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
               <h3 className="text-[14px] font-medium text-foreground mb-4 leading-6">
                 1단계: LINE Official Account Manager 설정
               </h3>
@@ -228,24 +228,24 @@ export default function LineIntegrationModal({
           )}
 
           {step === 2 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] p-6">
+            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
               {/* 제목 */}
-              <h3 className="text-[14px] font-medium text-foreground mb-3 leading-6">
+              <h3 className="text-[14px] font-medium text-foreground mb-2 leading-6">
                 2단계: 웹훅 URL 등록
               </h3>
 
               {/* 설명 */}
-              <div className="text-[14px] font-medium text-neutral-60 mb-4 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 mb-2 leading-6">
                 아래 웹훅 URL을 LINE Official Account Manager의 Webhook URL에 등록해주세요
               </div>
 
               {/* 웹훅 URL 입력 필드 + 복사 버튼 */}
-              <div className="flex gap-3 mb-6">
+              <div className="flex gap-3 mb-2">
                 <input
                   type="text"
                   value={isLoadingWebhook ? "로딩 중..." : webhookUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card tracking-[-0.02em] leading-[17px]"
+                  className="flex-1 px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 bg-card tracking-[-0.02em] leading-[17px]"
                 />
                 <button
                   onClick={handleCopyWebhookUrl}
@@ -258,7 +258,7 @@ export default function LineIntegrationModal({
 
               {/* 등록 방법 안내 */}
               <div className="text-[14px] font-medium text-neutral-60 leading-6">
-                <div className="mb-2">등록 방법:</div>
+                <div>등록 방법:</div>
                 <div>1. LINE Official Account Manager에서 설정 → Messaging API메뉴로 이동</div>
                 <div>2. Webhook URL 필드에 위 URL을 입력하고 저장 버튼을 클릭합니다.</div>
                 <div>3. 등록이 완료되면 다음 단계로 진행합니다.</div>
@@ -267,18 +267,18 @@ export default function LineIntegrationModal({
           )}
 
           {step === 3 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] p-6">
-              <h3 className="text-[14px] font-medium text-foreground mb-3 leading-6">
+            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
+              <h3 className="text-[14px] font-medium text-foreground mb-2 leading-6">
                 3단계: 인증 정보 입력
               </h3>
 
-              <div className="text-[14px] font-medium text-neutral-60 mb-6 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 mb-3 leading-6">
                 설정 - Messaging API 메뉴에서 Channel ID와 Channel Secret을 확인하여 입력해주세요.
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-[14px] font-medium text-foreground mb-2">
+                  <label className="block text-[14px] font-medium text-neutral-60 mb-2">
                     Channel ID
                   </label>
                   <input
@@ -286,13 +286,13 @@ export default function LineIntegrationModal({
                     value={channelId}
                     onChange={(e) => setChannelId(e.target.value)}
                     placeholder="1234567890"
-                    className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 border border-neutral-30 font-medium text-neutral-60 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
                     disabled={isSaving}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[14px] font-medium text-foreground mb-2">
+                  <label className="block text-[14px] font-medium text-neutral-60 mb-2">
                     Channel Secret
                   </label>
                   <input
@@ -300,7 +300,7 @@ export default function LineIntegrationModal({
                     value={channelSecret}
                     onChange={(e) => setChannelSecret(e.target.value)}
                     placeholder="abdcefghijklmnopqrstuvwxyz1234567890"
-                    className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 border border-neutral-30 font-medium text-neutral-60 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
                     disabled={isSaving}
                   />
                 </div>
@@ -310,9 +310,9 @@ export default function LineIntegrationModal({
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-neutral-30 px-7 py-4 flex items-center justify-end gap-3">
+        <div className="border-t border-neutral-30 px-7 py-3 flex items-center justify-end gap-3">
           <button
-            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleClose}
             disabled={isSaving}
           >
@@ -321,7 +321,7 @@ export default function LineIntegrationModal({
 
           {step > 1 && (
             <button
-              className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep((step - 1) as 1 | 2 | 3)}
               disabled={isSaving}
             >
@@ -331,7 +331,7 @@ export default function LineIntegrationModal({
 
           {step < 3 ? (
             <button
-              className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep((step + 1) as 1 | 2 | 3)}
               disabled={!canGoNext() || isSaving}
             >
@@ -339,7 +339,7 @@ export default function LineIntegrationModal({
             </button>
           ) : (
             <button
-              className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
               disabled={!canGoNext() || isSaving}
             >

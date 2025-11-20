@@ -2,6 +2,8 @@ import { apiClient } from "@/lib/apiClient";
 import type {
   ConversationActionResponse,
   UnconnectedCustomersResponse,
+  AiAssistantListResponse,
+  AiAssistantAskResponse,
 } from "@/types/conversations";
 
 export const ConversationsService = {
@@ -31,6 +33,40 @@ export const ConversationsService = {
       query: { search, page, limit },
       headers: { "x-project-id": projectId },
     });
+  },
+
+  // ============================================
+  // AI 상담 도우미
+  // ============================================
+  listAiAssistant(params: {
+    conversationId: number | string;
+    projectId: string;
+    limit?: number;
+    cursor?: number;
+  }) {
+    const { conversationId, projectId, limit = 20, cursor } = params;
+    return apiClient.get<AiAssistantListResponse>(
+      `/v1/conversations/${conversationId}/ai-assistant`,
+      {
+        query: { limit, cursor },
+        headers: { "x-project-id": projectId },
+      }
+    );
+  },
+
+  askAiAssistant(params: {
+    conversationId: number | string;
+    projectId: string;
+    prompt: string;
+  }) {
+    const { conversationId, projectId, prompt } = params;
+    return apiClient.post<AiAssistantAskResponse>(
+      `/v1/conversations/${conversationId}/ai-assistant`,
+      { prompt },
+      {
+        headers: { "x-project-id": projectId },
+      }
+    );
   },
 };
 

@@ -8,10 +8,10 @@ interface InviteMemberModalProps {
   onInvite: (email: string, role: "subAdmin" | "member") => void;
 }
 
-export default function InviteMemberModal({ 
-  isOpen, 
-  onClose, 
-  onInvite 
+export default function InviteMemberModal({
+  isOpen,
+  onClose,
+  onInvite,
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"subAdmin" | "member">("member");
@@ -34,33 +34,42 @@ export default function InviteMemberModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/30"
-        onClick={handleClose}
-      />
-      
+      <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
+
       {/* Modal */}
-      <div className="relative w-[400px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[440px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
+          className="cursor-pointer absolute top-5 right-6 w-6 h-6 flex items-center justify-center"
         >
-          <svg className="w-4 h-4 border-2 border-[#B0B0B0]" viewBox="0 0 24 24">
-            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 18L18 6M6 6L18 18"
+              stroke="#B0B0B0"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="px-7 py-6">
           {/* Header */}
-          <div className="text-[18px] font-semibold text-[#252525] mb-6">
+          <div className="text-[18px] font-semibold text-foreground mb-[30px] leading-[1]">
             멤버 초대
           </div>
 
           {/* Email Input */}
-          <div className="mb-6">
-            <label className="block text-[14px] font-medium text-[#252525] mb-2">
+          <div className="mb-5">
+            <label className="block text-[14px] font-medium text-neutral-60 mb-2">
               이메일 주소
             </label>
             <input
@@ -73,47 +82,63 @@ export default function InviteMemberModal({
           </div>
 
           {/* Role Selection */}
-          <div className="mb-8">
-            <label className="block text-[14px] font-medium text-[#252525] mb-2">
+          <div className="mb-[6px]">
+            <label className="block text-[14px] font-medium text-neutral-60 mb-2">
               역할
             </label>
             <div className="relative">
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value as "subAdmin" | "member")}
+                onChange={(e) =>
+                  setRole(e.target.value as "subAdmin" | "member")
+                }
                 className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] focus:outline-none focus:border-[#252525] appearance-none"
               >
                 <option value="member">멤버</option>
                 <option value="subAdmin">부관리자</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-4 h-4 text-[#B0B0B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 text-[#B0B0B0]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
           </div>
+        </div>
 
+        {/* divider */}
+        <div className="w-full h-[1px] bg-neutral-30 opacity-70"></div>
+
+        {/* footer */}
+        <div className="flex justify-end gap-3 px-7 py-3">
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={handleClose}
-              className="px-4 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
-            >
-              취소
-            </button>
-            <button
-              onClick={handleInvite}
-              disabled={!email.trim()}
-              className={`px-4 py-2 rounded-[5px] text-[14px] font-semibold ${
-                email.trim()
-                  ? "bg-[#252525] text-[#D0D0D0] hover:bg-[#333333]"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              초대 보내기
-            </button>
-          </div>
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleInvite}
+            disabled={!email.trim()}
+            className={`px-4 py-2 rounded-[5px] text-[14px] font-semibold ${
+              email.trim()
+                ? "bg-[#252525] text-[#D0D0D0] hover:bg-[#333333]"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            초대 보내기
+          </button>
         </div>
       </div>
     </div>

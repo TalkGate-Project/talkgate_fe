@@ -164,17 +164,20 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] shadow-sm p-6">
+    <div className="bg-card rounded-[14px] shadow-sm py-[26px]">
       {/* 헤더 */}
-      <div className="mb-6">
+      <div className="px-7 mb-6">
         <h1 className="text-[24px] font-bold text-foreground mb-2">프로필</h1>
-        <div className="w-full h-[1px] bg-border opacity-50"></div>
+        
       </div>
 
+      {/* Divider */}
+      <div className="w-full h-[1px] bg-neutral-30 opacity-60"></div>
+
       {/* 프로필 정보 섹션 */}
-      <div className="mb-8">
+      <div className="mb-5 pt-[26px]">
         {/* 프로필 정보 헤더 */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between px-7 mb-3">
           <div>
             <h2 className="text-[16px] font-semibold text-foreground mb-2">프로필 정보</h2>
             <p className="text-[14px] text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
@@ -182,7 +185,7 @@ export default function ProfileSettings() {
           {!isEditMode ? (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="cursor-pointer px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
             >
               프로필 수정
             </button>
@@ -191,7 +194,7 @@ export default function ProfileSettings() {
               <button 
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="cursor-pointer px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 취소
               </button>
@@ -206,10 +209,10 @@ export default function ProfileSettings() {
           )}
         </div>
         
-        <div className="w-full h-[1px] bg-border mb-6"></div>
+        <div className="mx-7 h-[1px] bg-neutral-30 mb-[30px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-[54px]">
           <div className="relative">
             <label 
               htmlFor="profile-image-upload"
@@ -239,7 +242,7 @@ export default function ProfileSettings() {
         </div>
 
         {/* 입력 필드들 - 2열 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[790px] mx-auto">
           {/* 이름 */}
           <div>
             <label className="block text-[14px] font-medium text-neutral-60 mb-2">이름</label>
@@ -248,7 +251,7 @@ export default function ProfileSettings() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!isEditMode || isSaving}
-              className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -262,7 +265,7 @@ export default function ProfileSettings() {
               type="email"
               value={email}
               disabled={true}
-              className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-neutral-10 cursor-not-allowed"
+              className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 bg-neutral-10 cursor-not-allowed"
               readOnly
             />
           </div>
@@ -275,16 +278,15 @@ export default function ProfileSettings() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={!isEditMode || isSaving}
-              className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
       {/* 조직정보 섹션 */}
-      <div>
-        <h2 className="text-[16px] font-semibold text-foreground mb-2">조직정보</h2>
-        <p className="text-[14px] text-neutral-60 mb-4">프로젝트 내 조직 구조를 확인할 수 있습니다.</p>
+      <div className="max-w-[790px] mx-auto pr-[22px]">
+        <h2 className="text-[14px] font-medium text-neutral-60 mb-2">조직정보</h2>
         
         {/* 조직 멤버 목록 - 컨테이너 너비의 절반 */}
         <div className="w-1/2 space-y-3">

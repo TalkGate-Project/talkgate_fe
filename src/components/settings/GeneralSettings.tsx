@@ -326,15 +326,16 @@ export default function GeneralSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* 일반설정 - 프로젝트 이름 */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <h1 className="text-[24px] font-bold text-neutral-90 mb-8 leading-[20px]">일반설정</h1>
+      <div className="bg-card rounded-[14px] shadow-sm py-7">
+        <h1 className="text-[24px] font-bold text-neutral-90 mb-[30px] leading-[20px] px-7">일반설정</h1>
         
-        <div className="border-t border-border mb-6"></div>
-        
-        <h3 className="text-[16px] font-semibold text-foreground mb-4 tracking-[0.2px]">프로젝트 이름</h3>
-        <div className="flex gap-3">
+        <div className="border-t border-neutral-30 mb-6"></div>
+        <h3 className="text-[16px] font-semibold text-foreground mb-3 tracking-[0.2px] leading-[1] px-7">프로젝트 이름</h3>
+        <div className="border-t border-neutral-30 mb-3 mx-7"></div>
+        <h6 className="text-[14px] text-neutral-60 font-medium mb-2 tracking-[0.2px] leading-[1] px-7">이름</h6>
+        <div className="flex gap-3 px-7">
           <input
             type="text"
             value={serviceName}
@@ -354,16 +355,16 @@ export default function GeneralSettings() {
       </div>
 
       {/* 브랜드 아이콘 및 도메인 */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <h3 className="text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">브랜드 아이콘 및 도메인</h3>
-        <p className="text-[14px] text-neutral-60 mb-6 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
+      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+        <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">브랜드 아이콘 및 도메인</h3>
+        <p className="text-[14px] text-neutral-60 font-medium mb-3 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
         
-        <div className="border-t border-border mb-6"></div>
+        <div className="border-t border-neutral-30 mb-3"></div>
 
         {/* 서브 도메인 */}
-        <div className="mb-6">
-          <label className="text-[14px] text-neutral-60 mb-2 block tracking-[0.2px]">서브 도메인</label>
-          <div className="flex gap-3 mb-4">
+        <div className="mb-3">
+          <label className="text-[14px] text-neutral-60 font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
+          <div className="flex gap-3 mb-2">
             <div className="flex-1 flex items-center px-3 py-2 border border-border rounded-[5px] bg-card">
               <input
                 type="text"
@@ -373,7 +374,7 @@ export default function GeneralSettings() {
                 placeholder="myservice"
                 disabled={isSaving}
               />
-              <span className="text-[14px] text-foreground ml-2 tracking-[-0.02em]">.talkgate.im</span>
+              <span className="text-[14px] text-ink font-medium ml-2 tracking-[-0.02em]">.talkgate.im</span>
             </div>
             <button 
               onClick={handleUpdateSubdomain}
@@ -383,7 +384,7 @@ export default function GeneralSettings() {
               {isSaving ? "변경중..." : "이름변경"}
             </button>
           </div>
-          <ul className="text-[14px] text-neutral-60 space-y-1 leading-6">
+          <ul className="text-[14px] text-neutral-60 font-medium space-y-1 leading-6">
             <li>• 영문 소문자, 숫자, 하이픈(-) 사용 가능 (3-30자)</li>
             <li>• 하이픈(-)으로 시작하거나 끝날 수 없습니다.</li>
           </ul>
@@ -391,7 +392,7 @@ export default function GeneralSettings() {
 
         {/* 브랜드 아이콘 */}
         <div>
-          <label className="text-[14px] text-neutral-60 mb-4 block tracking-[0.2px]">브랜드 아이콘</label>
+          <label className="text-[14px] text-neutral-60 mb-3 block font-medium tracking-[0.2px]">브랜드 아이콘</label>
           <div className="flex items-center justify-center">
             <div className="relative">
               <label 
@@ -419,7 +420,7 @@ export default function GeneralSettings() {
               {brandIcon && !isSaving && (
                 <button
                   onClick={handleRemoveBrandIcon}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-foreground border-2 border-border rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                  className="cursor-pointer absolute -top-2 -right-2 w-5 h-5 bg-foreground border-2 border-border rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 3L9 9M9 3L3 9" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -428,7 +429,7 @@ export default function GeneralSettings() {
               )}
             </div>
           </div>
-          <p className="text-[14px] text-neutral-60 text-center mt-4 leading-6">
+          <p className="text-[14px] text-neutral-60 font-medium text-center mt-2 leading-6">
             • PNG, JPG, WEBP파일 (최대 5MB)
             • 정사각형 이미지 권장
           </p>
@@ -436,44 +437,44 @@ export default function GeneralSettings() {
       </div>
 
       {/* 처리상태 관리 */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <h3 className="text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">처리상태 관리</h3>
-        <p className="text-[14px] text-neutral-60 mb-6 tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
+      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+        <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">처리상태 관리</h3>
+        <p className="text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
         
-        <div className="border-t border-border mb-6"></div>
+        <div className="border-t border-neutral-30 mb-3"></div>
         
-        <div className="flex gap-3 mb-4">
+        <div className="flex gap-3 mb-2">
           <input
             type="text"
             value={newStatusName}
             onChange={(e) => setNewStatusName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddStatus()}
-            className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-neutral-60 bg-card focus:outline-none focus:border-foreground tracking-[-0.02em]"
+            className="flex-1 px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 bg-card focus:outline-none focus:border-foreground tracking-[-0.02em]"
             placeholder="새 상태 이름을 입력하세요"
           />
           <button 
             onClick={handleAddStatus}
-            className="cursor-pointer px-3 py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px]"
+            className="cursor-pointer w-[48px] h-[34px] py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px]"
           >
             추가
           </button>
         </div>
 
         {/* 상태 목록 */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {statuses.map((status) => (
             <div key={status.id} className="flex items-center justify-between py-2 px-6 bg-neutral-10 rounded-[5px] h-[50px]">
               <span className="text-[16px] font-semibold text-foreground leading-[19px]">{status.name}</span>
               <div className="flex gap-3">
                 <button
                   onClick={() => handleModifyStatus(status.id, status.name)}
-                  className="cursor-pointer px-3 py-1.5 text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
+                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
                 >
                   수정
                 </button>
                 <button
                   onClick={() => handleDeleteStatus(status.id)}
-                  className="cursor-pointer px-3 py-1.5 text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
+                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
                 >
                   삭제
                 </button>
@@ -484,11 +485,11 @@ export default function GeneralSettings() {
       </div>
 
       {/* 프로젝트 기능 */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <h3 className="text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">프로젝트 기능</h3>
-        <p className="text-[14px] text-neutral-60 mb-6 tracking-[0.2px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
+      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+        <h3 className="text-[16px] font-semibold text-foreground mb-[10px] tracking-[0.2px] leading-[1]">프로젝트 기능</h3>
+        <p className="text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
         
-        <div className="border-t border-border mb-6"></div>
+        <div className="border-t border-border mb-3"></div>
         
         <div className="flex items-center justify-between py-3 px-6 bg-[rgba(214,250,232,0.3)] rounded-[5px] h-[48px]">
           <span className="text-[16px] font-semibold text-foreground leading-[19px]">근태 메뉴 사용</span>
@@ -506,17 +507,17 @@ export default function GeneralSettings() {
 
       {/* 프로젝트 삭제 */}
       <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <div className="flex items-center gap-3 mb-1">
-          <h3 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px]">프로젝트 삭제</h3>
-          <span className="px-3 py-1 bg-danger-10 text-[12px] font-medium text-danger-40 rounded-[30px] h-[22px] leading-[14px] opacity-80">
+        <div className="flex items-center gap-3 mb-[6px]">
+          <h3 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">프로젝트 삭제</h3>
+          <span className="w-[44px] bg-danger-10 text-[12px] font-medium text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">
             주의
           </span>
         </div>
-        <p className="text-[14px] text-danger-40 mb-6 tracking-[0.2px]">
+        <p className="text-[14px] text-danger-40 font-medium mb-3 tracking-[0.2px] leading-[1]">
           프로젝트를 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
         </p>
         
-        <div className="border-t border-border mb-6"></div>
+        <div className="border-t border-border mb-3"></div>
         
         <div className="flex items-center justify-between py-3 px-6 bg-[rgba(255,235,235,0.5)] rounded-[5px] h-[48px]">
           <span className="text-[16px] font-semibold text-danger-40 leading-[19px]">프로젝트 삭제</span>

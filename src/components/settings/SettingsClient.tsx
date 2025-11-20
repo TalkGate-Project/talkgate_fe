@@ -68,7 +68,7 @@ export default function SettingsClient() {
   const ActiveComponent = TAB_COMPONENTS[activeTab];
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-8">
       {/* 사이드바 */}
       <SettingsSidebar 
         activeTab={activeTab} 

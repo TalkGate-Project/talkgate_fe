@@ -77,7 +77,7 @@ export default function TelegramIntegrationModal({
             <p className="text-[14px] font-medium text-foreground mb-2">
               텔레그램 봇 토큰 설정
             </p>
-            <p className="text-[14px] text-neutral-60 leading-6">
+            <p className="text-[14px] font-medium text-neutral-60 leading-6">
               봇 토큰을 얻는 방법
               <br />
               &nbsp;1. 텔레그램에서 @BotFather를 검색하여 대화를 시작합니다.
@@ -100,7 +100,7 @@ export default function TelegramIntegrationModal({
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
                 placeholder="1234567890:ABCdefGhIJKLMnopQRStuvWxYZ"
-                className="w-full px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full px-3 py-2 border border-neutral-30 font-medium rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
                 disabled={isSaving}
               />
             </div>

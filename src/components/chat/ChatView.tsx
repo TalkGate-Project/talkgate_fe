@@ -271,7 +271,7 @@ export default function ChatView({ projectId }: Props) {
         loadOlderMessages={loadOlderMessages}
       />
 
-      <ChatRightSidebar />
+      <ChatRightSidebar projectId={projectId} conversationId={activeId} />
 
       {/* 이모지 피커 */}
       <EmojiPicker
