@@ -49,7 +49,7 @@ export default function ServiceDeleteModal({
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
+          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
         >
           <svg
             width="24"
@@ -61,22 +61,22 @@ export default function ServiceDeleteModal({
             <path
               d="M6 18L18 6M6 6L18 18"
               stroke="#B0B0B0"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </button>
 
         {/* Content */}
-        <div className="p-8 h-full flex flex-col">
+        <div className="px-7 py-6 h-full flex flex-col">
           {/* Header */}
-          <div className="text-[#D83232] text-[18px] font-semibold mb-8">
+          <div className="text-[#D83232] text-[18px] font-semibold mb-[30px]">
             프로젝트 삭제확인
           </div>
 
           {/* Warning Icon */}
-          <div className="cursor-pointer flex justify-center mb-4">
+          <div className="flex justify-center mb-4">
             <svg
               width="40"
               height="40"
@@ -100,12 +100,13 @@ export default function ServiceDeleteModal({
               정말로 프로젝트를 삭제하시겠습니까?
             </div>
             <div className="text-[#000000] text-[14px] font-medium">
-              이 작업은 되돌릴 수 없으며, 다음 데이터가 영구적으로 삭제됩니다
+              이 작업은 <span className="font-bold">되돌릴 수 없으며,</span>{" "}
+              다음 데이터가 영구적으로 삭제됩니다
             </div>
           </div>
 
           {/* Data to be Deleted List */}
-          <div className="bg-[#F8F8F8] rounded-[5px] p-6 mb-6">
+          <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3 mb-5">
             <div className="text-[#000000] text-[14px] font-medium leading-6">
               • 모든 상담 기록 및 메시지
               <br />
@@ -119,8 +120,8 @@ export default function ServiceDeleteModal({
           </div>
 
           {/* Confirmation Input */}
-          <div className="bg-[#F8F8F8] rounded-[5px] p-6 mb-6">
-            <div className="text-[#000000] text-[14px] font-medium mb-3">
+          <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
+            <div className="text-[#000000] text-[14px] leading-[24px] font-medium mb-2">
               프로젝트 삭제를 확인하려면 아래에 이름 "{serviceName}"을 정확히
               입력하세요.
             </div>
@@ -129,33 +130,33 @@ export default function ServiceDeleteModal({
               value={inputValue}
               onChange={handleInputChange}
               placeholder={serviceName}
-              className="w-full px-3 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-medium text-foreground focus:outline-none focus:border-[#D83232]"
+              className="w-full px-3 h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-medium text-foreground focus:outline-none focus:border-[#D83232]"
             />
           </div>
+        </div>
 
-          {/* Divider */}
-          <div className="w-full h-[1px] bg-[#E2E2E266] mb-6"></div>
+        {/* Divider */}
+        <div className="w-full h-[1px] bg-[#E2E2E266]"></div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={handleClose}
-              className="cursor-pointer px-3 py-1.5 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
-            >
-              취소
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={!isConfirmed}
-              className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
-                isConfirmed
-                  ? "bg-[#D83232] text-white hover:bg-[#C02828] cursor-pointer"
-                  : "bg-[#B0B0B0] text-[#808080] cursor-not-allowed"
-              }`}
-            >
-              프로젝트 삭제
-            </button>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 px-7 py-3">
+          <button
+            onClick={handleClose}
+            className="cursor-pointer px-3 py-1.5 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!isConfirmed}
+            className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
+              isConfirmed
+                ? "bg-[#D83232] text-white hover:bg-[#C02828] cursor-pointer"
+                : "bg-[#B0B0B0] text-[#808080] cursor-not-allowed"
+            }`}
+          >
+            프로젝트 삭제
+          </button>
         </div>
       </div>
     </div>

@@ -67,10 +67,10 @@ const SIDEBAR_ITEMS = [
 
 export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
   return (
-    <div className="w-[280px] max-h-[530px] bg-card rounded-[14px] shadow-sm py-6">
+    <div className="w-[280px] max-h-[530px] bg-card rounded-[14px] shadow-sm pt-7 pb-5">
       {/* 헤더 */}
-      <div className="px-7 pb-8 mb-1 border-b border-neutral-30/40">
-        <h2 className="text-[18px] font-bold text-foreground mb-1">프로젝트 설정</h2>
+      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
+        <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
         <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
       </div>
 

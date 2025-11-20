@@ -144,4 +144,24 @@ export type UnconnectedCustomersResponse = ApiSuccessResponse<{
   total: number;
 }>;
 
+// ============================================
+// AI 상담 도우미 (Conversations AI Assistant)
+// ============================================
+
+export type AiAssistantMessage = {
+  id: number;
+  prompt: string;
+  response: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AiAssistantListResponse = ApiSuccessResponse<{
+  conversations: AiAssistantMessage[];
+  nextCursor?: number;
+  hasMore: boolean;
+}>;
+
+export type AiAssistantAskResponse = ApiSuccessResponse<AiAssistantMessage>;
+
 
