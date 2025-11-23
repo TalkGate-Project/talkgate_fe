@@ -179,23 +179,18 @@ export default function Header() {
             onClick={() => router.push("/notifications")}
             className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity"
           >
-            <svg
-              className=""
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
-            >
-              <path
-                d="M14.857 17.657H9.143c-.94 0-1.714-.761-1.714-1.7 0-.36.12-.711.343-.997l.386-.494a3.43 3.43 0 00.705-2.08V9.9c0-2.318 1.88-4.2 4.2-4.2s4.2 1.882 4.2 4.2v2.486c0 .741.244 1.461.694 2.051l.386.494c.223.286.343.637.343.997 0 .939-.774 1.7-1.714 1.7z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path 
+                d="M15 17H20L18.5951 15.5951C18.2141 15.2141 18 14.6973 18 14.1585V11C18 8.38757 16.3304 6.16509 14 5.34142V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V5.34142C7.66962 6.16509 6 8.38757 6 11V14.1585C6 14.6973 5.78595 15.2141 5.40493 15.5951L4 17H9M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9" 
+                stroke="white" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
               />
             </svg>
+
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
+              <span className="absolute top-1 right-1 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
             )}
           </button>
 
