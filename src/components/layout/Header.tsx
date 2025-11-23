@@ -30,6 +30,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
+  const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -180,12 +181,12 @@ export default function Header() {
             className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path 
-                d="M15 17H20L18.5951 15.5951C18.2141 15.2141 18 14.6973 18 14.1585V11C18 8.38757 16.3304 6.16509 14 5.34142V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V5.34142C7.66962 6.16509 6 8.38757 6 11V14.1585C6 14.6973 5.78595 15.2141 5.40493 15.5951L4 17H9M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9" 
-                stroke="white" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+              <path
+                d="M15 17H20L18.5951 15.5951C18.2141 15.2141 18 14.6973 18 14.1585V11C18 8.38757 16.3304 6.16509 14 5.34142V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V5.34142C7.66962 6.16509 6 8.38757 6 11V14.1585C6 14.6973 5.78595 15.2141 5.40493 15.5951L4 17H9M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
 
@@ -241,7 +242,7 @@ export default function Header() {
                 <div className="flex flex-col gap-1">
                   {/* 개인 설정 */}
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                    className={`cursor-pointer flex items-center h-[52px] gap-4 px-7 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
                       }`}
                     onMouseEnter={() => setIsProfileHovered(true)}
                     onMouseLeave={() => setIsProfileHovered(false)}
@@ -250,10 +251,11 @@ export default function Header() {
                       router.push("/my-settings");
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke={isProfileHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke={isProfileHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10.3246 4.31731C10.751 2.5609 13.249 2.5609 13.6754 4.31731C13.9508 5.45193 15.2507 5.99038 16.2478 5.38285C17.7913 4.44239 19.5576 6.2087 18.6172 7.75218C18.0096 8.74925 18.5481 10.0492 19.6827 10.3246C21.4391 10.751 21.4391 13.249 19.6827 13.6754C18.5481 13.9508 18.0096 15.2507 18.6172 16.2478C19.5576 17.7913 17.7913 19.5576 16.2478 18.6172C15.2507 18.0096 13.9508 18.5481 13.6754 19.6827C13.249 21.4391 10.751 21.4391 10.3246 19.6827C10.0492 18.5481 8.74926 18.0096 7.75219 18.6172C6.2087 19.5576 4.44239 17.7913 5.38285 16.2478C5.99038 15.2507 5.45193 13.9508 4.31731 13.6754C2.5609 13.249 2.5609 10.751 4.31731 10.3246C5.45193 10.0492 5.99037 8.74926 5.38285 7.75218C4.44239 6.2087 6.2087 4.44239 7.75219 5.38285C8.74926 5.99037 10.0492 5.45193 10.3246 4.31731Z" stroke={isProfileHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" stroke={isProfileHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
+
                     <span className={`text-[16px] tracking-[-0.02em] ${isProfileHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
                       }`}>
                       개인설정
@@ -262,7 +264,7 @@ export default function Header() {
 
                   {/* 프로젝트 선택 */}
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                    className={`cursor-pointer flex items-center h-[52px] gap-4 px-7 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
                       }`}
                     onMouseEnter={() => setIsProjectSelectHovered(true)}
                     onMouseLeave={() => setIsProjectSelectHovered(false)}
@@ -271,10 +273,12 @@ export default function Header() {
                       router.push("/projects");
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V7C20 7.55228 19.5523 8 19 8H5C4.44772 8 4 7.55228 4 7V5Z" stroke={isProjectSelectHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M4 13C4 12.4477 4.44772 12 5 12H11C11.5523 12 12 12.4477 12 13V19C12 19.5523 11.5523 20 11 20H5C4.44772 20 4 19.5523 4 19V13Z" stroke={isProjectSelectHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M16 13C16 12.4477 16.4477 12 17 12H19C19.5523 12 20 12.4477 20 13V19C20 19.5523 19.5523 20 19 20H17C16.4477 20 16 19.5523 16 19V13Z" stroke={isProjectSelectHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
+
                     <span className={`text-[16px] tracking-[-0.02em] ${isProjectSelectHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
                       }`}>
                       프로젝트 선택
@@ -283,7 +287,10 @@ export default function Header() {
 
                   {/* 로그아웃 */}
                   <button
-                    className="cursor-pointer flex items-center gap-4 px-7 py-3 hover:bg-gray-50 transition-colors"
+                    className={`cursor-pointer flex items-center h-[52px] gap-4 px-7 transition-colors ${isLogoutHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                      }`}
+                    onMouseEnter={() => setIsLogoutHovered(true)}
+                    onMouseLeave={() => setIsLogoutHovered(false)}
                     onClick={() => {
                       clearTokens();
                       clearSelectedProjectId();
@@ -293,9 +300,10 @@ export default function Header() {
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke={isLogoutHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-[16px] font-medium text-[#808080] tracking-[-0.02em]">
+                    <span className={`text-[16px] tracking-[-0.02em] ${isLogoutHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
+                      }`}>
                       로그아웃
                     </span>
                   </button>
