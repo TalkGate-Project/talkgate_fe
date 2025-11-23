@@ -94,6 +94,7 @@ export default function AssignedCustomersTable() {
                   <th
                     key={label}
                     className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${index === 0 ? "rounded-l-[8px]" : index === HEADER_LABELS.length - 1 ? "rounded-r-[8px]" : ""}`}
+                    style={index === HEADER_LABELS.length - 1 ? { width: "130px", paddingLeft: "34px" } : undefined}
                   >
                     {label}
                   </th>

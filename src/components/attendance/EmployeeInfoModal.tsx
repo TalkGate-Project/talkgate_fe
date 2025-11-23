@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { AttendanceRecord } from "@/data/mockAttendanceData";
 import DatePicker from "@/components/common/DatePicker";
 import MailIcon from "@/components/common/icons/MailIcon";
@@ -10,6 +12,7 @@ import LockClosedDangerIcon from "@/components/common/icons/LockClosedDangerIcon
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import TrashIcon from "@/components/common/icons/TrashIcon";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
+import { HRService } from "@/services/hr";
 
 type Props = {
   open: boolean;
@@ -18,7 +21,9 @@ type Props = {
 };
 
 export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
-  const { member, isLoading } = useMemberDetail(employee?.id ?? null);
+  const queryClient = useQueryClient();
+  const memberId = employee?.id ?? null;
+  const { member, isLoading } = useMemberDetail(memberId);
 
   const [formData, setFormData] = useState({
     realName: "",
@@ -26,6 +31,8 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
     address: "",
     specialNote: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (member) {
@@ -37,6 +44,68 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
       });
     }
   }, [member]);
+
+  const handleSaveHrData = async () => {
+    if (!memberId) return;
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await HRService.updateMemberData(memberId, {
+        realName: formData.realName,
+        birth: formData.birthDate ? format(formData.birthDate, "yyyy-MM-dd") : "",
+        address: formData.address,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      alert("관리자 정보가 저장되었습니다.");
+      onClose();
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "저장에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!memberId) return;
+    if (!formData.specialNote.trim()) {
+      alert("특이사항 내용을 입력해주세요.");
+      return;
+    }
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await HRService.addMemberNote(memberId, {
+        note: formData.specialNote,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      setFormData((prev) => ({ ...prev, specialNote: "" }));
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "특이사항 추가에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRemoveNote = async (noteId: number) => {
+    if (!memberId) return;
+    if (!confirm("이 특이사항을 삭제하시겠습니까?")) return;
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await HRService.removeMemberNote(memberId, noteId);
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "특이사항 삭제에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!open || !employee || typeof document === "undefined") return null;
 
@@ -241,7 +310,11 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                           }
                           className="flex-1 h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card"
                         />
-                        <button className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+                        <button
+                          className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+                          onClick={handleSaveHrData}
+                          disabled={isSubmitting}
+                        >
                           저장
                         </button>
                       </div>
@@ -315,7 +388,11 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                               {new Date(note.createdAt).toLocaleString()}
                             </span>
                           </div>
-                          <button className="w-5 h-5 cursor-pointer">
+                          <button 
+                            className="w-5 h-5 cursor-pointer"
+                            onClick={() => handleRemoveNote(note.id)}
+                            disabled={isSubmitting}
+                          >
                             <TrashIcon />
                           </button>
                         </div>
@@ -342,9 +419,18 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                           specialNote: e.target.value,
                         }))
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                          handleAddNote();
+                        }
+                      }}
                       className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
                     />
-                    <button className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+                    <button 
+                      className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+                      onClick={handleAddNote}
+                      disabled={isSubmitting}
+                    >
                       저장
                     </button>
                   </div>

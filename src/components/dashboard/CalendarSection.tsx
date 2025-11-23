@@ -267,8 +267,8 @@ export default function CalendarSection() {
                       </div>
                     ))}
                     {daySchedules.length > 2 && (
-                      <div className="flex items-center gap-1 text-[10px] text-neutral-60">
-                        그 외{" "}
+                      <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60">
+                        그 외&nbsp;
                         <span
                           className="font-montserrat"
                           style={montserratStyle}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
+import { AttendanceService } from "@/services/attendance";
 import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
@@ -16,9 +17,18 @@ type GreetingBannerProps = {
 export default function GreetingBanner({ userName, todayQuote, loading }: GreetingBannerProps) {
   const gradient = "linear-gradient(90deg, var(--neutral-0) 65%, color-mix(in srgb, var(--primary-20) 35%, transparent))";
   const displayName = userName ? `${userName}님` : "팀원님";
-  const [now] = useState(() => new Date());
+  const [now, setNow] = useState(() => new Date());
   const [projectId, projectReady] = useSelectedProjectId();
+  const queryClient = useQueryClient();
   
+  // Update clock every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formattedNow = useMemo(() => {
     return new Intl.DateTimeFormat("ko-KR", {
       year: "numeric",
@@ -27,22 +37,30 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
       hour: "numeric",
       minute: "2-digit",
       second: "2-digit",
+      hour12: false, 
     })
       .format(now)
-      .replace(".", ".");
+      .replace(/\./g, ".") // Ensure consistent format if needed, though ko-KR usually does yyyy. mm. dd.
   }, [now]);
+  
+  // Format for "2025.09.19 오후 3:04:26" style as in screenshot
+  const formattedDateString = useMemo(() => {
+     const datePart = now.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+     const timePart = now.toLocaleTimeString("ko-KR", { hour12: true, hour: "numeric", minute: "2-digit", second: "2-digit" });
+     return `${datePart} ${timePart}`;
+  }, [now]);
+
 
   // 프로젝트 목록 조회
   const { data: projectsData } = useQuery<ProjectSummary[]>({
     queryKey: ["projects", "list"],
     queryFn: async () => {
       const res = await ProjectsService.list();
-      // API 응답 구조에 따라 안전하게 배열 추출
       const payload: any = (res as any)?.data;
       const list = Array.isArray(payload) ? payload : payload?.data;
       return Array.isArray(list) ? list : [];
     },
-    staleTime: 5 * 60 * 1000, // 5분간 캐시
+    staleTime: 5 * 60 * 1000,
     enabled: projectReady,
   });
 
@@ -54,6 +72,68 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   const projectName = currentProject?.name || "프로젝트";
   const projectLogoUrl = currentProject?.logoUrl;
+
+  // Attendance Logic
+  const { data: myStatusData } = useQuery({
+    queryKey: ["attendance", "myStatus", projectId],
+    queryFn: () => AttendanceService.myStatus(String(projectId)),
+    enabled: !!projectId && projectReady,
+  });
+
+  const isCheckedIn = myStatusData?.data?.data?.isCheckedIn ?? false;
+  const attendanceAt = myStatusData?.data?.data?.todayAttendance?.attendanceAt;
+
+  const checkInMutation = useMutation({
+    mutationFn: () => AttendanceService.checkIn(String(projectId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    },
+  });
+
+  const checkOutMutation = useMutation({
+    mutationFn: () => AttendanceService.checkOut(String(projectId)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    },
+  });
+
+  const handleToggleAttendance = () => {
+    if (!projectId) return;
+    if (isCheckedIn) {
+      if (confirm("퇴근하시겠습니까?")) {
+        checkOutMutation.mutate();
+      }
+    } else {
+      checkInMutation.mutate();
+    }
+  };
+
+  // Timer for attendance duration
+  const [elapsedTime, setElapsedTime] = useState<string>("");
+
+  useEffect(() => {
+    if (isCheckedIn && attendanceAt) {
+      const updateTimer = () => {
+        const start = new Date(attendanceAt).getTime();
+        const current = new Date().getTime();
+        const diff = current - start;
+        
+        if (diff >= 0) {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          setElapsedTime(`${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`);
+        }
+      };
+      
+      updateTimer(); // Initial call
+      const interval = setInterval(updateTimer, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setElapsedTime("");
+    }
+  }, [isCheckedIn, attendanceAt]);
+
 
   return (
     <section
@@ -115,18 +195,46 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         <div className="flex flex-col items-end gap-3 justify-between h-full">
           <div></div>
           <div className="flex items-center gap-3">
-            <button className="h-[34px] px-3 rounded-[5px] border border-neutral-50 bg-neutral-0 text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
-              ● 퇴근상태
-            </button>
-            <button className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-40">
-              퇴근하기
-            </button>
+            {isCheckedIn ? (
+                // Checked In State
+                <div className="flex items-center gap-3">
+                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-20 bg-white flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div>
+                        <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
+                            근무중 {elapsedTime}
+                        </span>
+                    </div>
+                    <button 
+                        onClick={handleToggleAttendance}
+                        disabled={checkOutMutation.isPending}
+                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 transition-colors"
+                    >
+                        {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
+                    </button>
+                </div>
+            ) : (
+                // Checked Out State (Default)
+                <>
+                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-50 bg-neutral-0 flex items-center justify-center">
+                         <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
+                           ● 퇴근상태
+                         </span>
+                    </div>
+                    <button 
+                        onClick={handleToggleAttendance}
+                        disabled={checkInMutation.isPending}
+                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 transition-colors"
+                    >
+                        {checkInMutation.isPending ? "처리중..." : "출근하기"}
+                    </button>
+                </>
+            )}
           </div>
           <div className="text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-5 w-44 animate-pulse rounded bg-neutral-20" />
             ) : (
-              formattedNow
+              formattedDateString
             )}
           </div>
         </div>
@@ -134,5 +242,3 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
     </section>
   );
 }
-
-

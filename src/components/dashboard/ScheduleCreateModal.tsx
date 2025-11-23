@@ -27,9 +27,41 @@ const COLOR_PALETTE = [
 export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }: Props) {
   const [projectId] = useSelectedProjectId();
   const [current, setCurrent] = useState<Date>(() => defaultDate ? new Date(defaultDate) : new Date());
-  const [ampm, setAmpm] = useState<"오전" | "오후">("오전");
-  const [hour, setHour] = useState("");
-  const [minute, setMinute] = useState("");
+
+  const getInitialTimeState = () => {
+    const now = new Date();
+    let h = now.getHours();
+    let m = now.getMinutes();
+
+    // 10분 단위 올림
+    m = Math.ceil(m / 10) * 10;
+
+    if (m === 60) {
+      m = 0;
+      h += 1;
+    }
+
+    if (h >= 24) {
+      h = 0;
+    }
+
+    const isPm = h >= 12;
+    const ampmVal = isPm ? "오후" : "오전";
+    let hourVal = h > 12 ? h - 12 : h;
+    if (hourVal === 0) hourVal = 12;
+
+    return {
+      ampm: ampmVal as "오전" | "오후",
+      hour: String(hourVal).padStart(2, "0"),
+      minute: String(m).padStart(2, "0"),
+    };
+  };
+
+  const [initialTime] = useState(getInitialTimeState);
+
+  const [ampm, setAmpm] = useState<"오전" | "오후">(initialTime.ampm);
+  const [hour, setHour] = useState(initialTime.hour);
+  const [minute, setMinute] = useState(initialTime.minute);
   const [desc, setDesc] = useState("");
   const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +69,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
   const yearMonthLabel = useMemo(() => format(current, "yyyy - MM (EEE)") as string, [current]);
 
   const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => String(i === 0 ? 12 : i).padStart(2, "0")), []);
-  const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")), []);
+  const minutes = useMemo(() => Array.from({ length: 6 }, (_, i) => String(i * 10).padStart(2, "0")), []);
 
   const buildIso = (): string => {
     const base = new Date(current);

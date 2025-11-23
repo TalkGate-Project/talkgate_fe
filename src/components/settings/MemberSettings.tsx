@@ -248,8 +248,8 @@ export default function MemberSettings() {
 
       <div className="px-7">
         {/* Table Header */}
-        <div className="bg-neutral-20 rounded-[12px] px-10 py-3 ">
-          <div className="flex items-center">
+        <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center">
+          <div className="flex items-center w-full">
             <div className="w-[280px] min-w-[280px] flex-none text-[16px] font-bold text-neutral-60 text-left">
               멤버
             </div>

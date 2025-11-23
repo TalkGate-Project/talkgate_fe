@@ -69,7 +69,7 @@ export default function CustomerApiSettings() {
       <section className="space-y-5 px-7 pt-[18px]">
         <div className="space-y-2">
           <h2 className="text-[14px] font-medium text-neutral-60 leading-[1]">API 엔드포인트</h2>
-          <div className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[12px] px-6">
+          <div className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[5px] px-6">
             <input
               type="text"
               value={API_ENDPOINT_PLACEHOLDER}
@@ -90,7 +90,7 @@ export default function CustomerApiSettings() {
             <h2 className="text-[14px] font-medium text-neutral-60 leading-[1]">API 키</h2>
           </div>
           <div
-            className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[12px] px-6 py-4"
+            className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[5px] px-6 py-4"
             onMouseEnter={() => setShowKey(true)}
             onMouseLeave={() => setShowKey(false)}
           >

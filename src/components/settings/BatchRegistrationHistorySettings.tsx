@@ -198,7 +198,7 @@ export default function BatchRegistrationHistorySettings() {
       <div className="mx-7 h-px bg-neutral-30 mb-6"></div>
 
       {/* Table Header */}
-      <div className="mx-7 bg-neutral-20 rounded-[12px] px-10 h-12 flex items-center gap-3">
+      <div className="mx-7 bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center gap-3">
         <div className="w-[162px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
           파일명
         </div>

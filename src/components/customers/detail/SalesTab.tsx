@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
@@ -107,6 +109,26 @@ export default function SalesTab({
     setScheduleDate(null);
     setScheduleTime(null);
     setScheduleDesc("");
+  };
+
+  const formatScheduleTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return "";
+      return format(date, "yyyy. MM. dd a hh : mm", { locale: ko });
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const formatCreatedAt = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      if (isNaN(date.getTime())) return "";
+      return format(date, "yyyy. MM. dd HH:mm", { locale: ko });
+    } catch (e) {
+      return "";
+    }
   };
 
   return (
@@ -377,12 +399,12 @@ export default function SalesTab({
               key={sc.id}
               className="bg-neutral-10 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]"
             >
-              <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] text-[#10B981] text-[12px]">
-                {formatDetailDate(sc.scheduleTime)}
+              <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] text-[#10B981] text-[12px] whitespace-nowrap">
+                {formatScheduleTime(sc.scheduleTime)}
               </span>
-              <span className="text-[#111827]">{sc.description}</span>
-              <span className="ml-auto text-neutral-60">
-                {formatDetailDate(sc.createdAt)}
+              <span className="text-[#111827] flex-1 truncate">{sc.description}</span>
+              <span className="ml-auto text-neutral-60 whitespace-nowrap">
+                {formatCreatedAt(sc.createdAt)}
               </span>
               <button
                 className="cursor-pointer ml-2 w-5 h-5 grid place-items-center rounded-full bg-[#000] text-white text-[16px] leading-[1]"

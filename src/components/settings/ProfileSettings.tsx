@@ -23,11 +23,11 @@ export default function ProfileSettings() {
   // UI 상태
   const [isSaving, setIsSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [expandedMember, setExpandedMember] = useState<number | null>(null);
+  const [isOrgExpanded, setIsOrgExpanded] = useState(true); // Default expanded per screenshot? Or collapsed? Screenshot shows root expanded.
   const [mounted, setMounted] = useState(false);
   
-  // 조직 트리를 평탄화하여 목록으로 변환
-  const [organizationMembers, setOrganizationMembers] = useState<OrganizationTreeNode[]>([]);
+  // Root node of the organization tree
+  const [orgRoot, setOrgRoot] = useState<OrganizationTreeNode | null>(null);
 
   // 클라이언트 마운트 감지
   useEffect(() => {
@@ -39,24 +39,14 @@ export default function ProfileSettings() {
     if (member) {
       setName(member.name || "");
       setOriginalName(member.name || "");
-      setEmail(member.email || ""); // 읽기 전용
+      setEmail(member.email || "");
       setPhone(member.phone || "");
       setOriginalPhone(member.phone || "");
       setProfileImageUrl(member.profileImageUrl || null);
       setOriginalProfileImageUrl(member.profileImageUrl || null);
       
-      // 조직 트리 평탄화
       if (member.organizationTree) {
-        const flattenTree = (node: OrganizationTreeNode): OrganizationTreeNode[] => {
-          const result: OrganizationTreeNode[] = [node];
-          if (node.descendants && node.descendants.length > 0) {
-            node.descendants.forEach(child => {
-              result.push(...flattenTree(child));
-            });
-          }
-          return result;
-        };
-        setOrganizationMembers(flattenTree(member.organizationTree));
+        setOrgRoot(member.organizationTree);
       }
     }
   }, [member]);
@@ -66,13 +56,11 @@ export default function ProfileSettings() {
     const file = e.target.files?.[0];
     if (!file || !projectId) return;
     
-    // 파일 크기 체크 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert("파일 크기는 5MB를 초과할 수 없습니다.");
       return;
     }
     
-    // 파일 타입 체크
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       alert("PNG, JPG, WEBP 파일만 업로드 가능합니다.");
       return;
@@ -80,20 +68,14 @@ export default function ProfileSettings() {
     
     setIsSaving(true);
     try {
-      // 1. Presigned URL 발급
       const presignResponse = await AssetsService.presignProfileImage({
         fileName: file.name,
         fileType: file.type,
       });
       
       const { uploadUrl, fileUrl } = presignResponse.data.data;
-      
-      // 2. S3에 업로드
       await AssetsService.uploadToS3(uploadUrl, file, file.type);
-      
-      // 3. 프로필 이미지 URL 업데이트
       setProfileImageUrl(fileUrl);
-      
       alert("프로필 이미지가 업로드되었습니다.");
     } catch (error) {
       console.error("Failed to upload profile image:", error);
@@ -151,7 +133,6 @@ export default function ProfileSettings() {
     setIsEditMode(false);
   };
 
-  // Hydration 에러 방지를 위해 클라이언트에서만 렌더링
   if (!mounted || loading) {
     return (
       <div className="bg-card rounded-[14px] shadow-sm p-6">
@@ -163,29 +144,122 @@ export default function ProfileSettings() {
     );
   }
 
+  // 렌더링 로직
+  const renderOrgNode = (node: OrganizationTreeNode, isRoot: boolean = false) => {
+    const hasChildren = node.descendants && node.descendants.length > 0;
+    
+    // Root (Leader) Style
+    // background: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)), #FFFFFF; -> This is basically a light green tint
+    // height: 48px
+    // padding: 20px 24px -> Actually flex container is 48px height.
+    
+    // Child (Member) Style
+    // background: #F8F8F8;
+    
+    // Avatar styles
+    // Root: bg-[#00B55B] (Primary-80), text-[#D6FAE8] (Primary-10)
+    // Child: bg-[#808080] (Light-60), text-[#FFFFFF] (Light-0)
+    
+    const containerBaseClass = "flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-[#E2E2E2] mb-[8px]";
+    const rootBgClass = "bg-[#F2FDF8]"; // Approximate hex for rgba(214, 250, 232, 0.3) on white, or just use style prop for exact match
+    const childBgClass = "bg-[#F8F8F8]";
+    
+    const containerStyle = isRoot 
+      ? { background: "linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)), #FFFFFF" }
+      : { background: "#F8F8F8" };
+
+    const avatarBgClass = isRoot ? "bg-[#00B55B]" : "bg-[#808080]";
+    const avatarTextClass = isRoot ? "text-[#D6FAE8]" : "text-[#FFFFFF]";
+    
+    // Team badge for Root
+    // bg-[#D3E1FE] text-[#4D82F3]
+    
+    return (
+        <div className="w-full">
+            <div className={containerBaseClass} style={containerStyle}>
+                <div className="flex items-center gap-[16px]">
+                     {/* Avatar */}
+                     <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center ${avatarBgClass} flex-shrink-0`}>
+                        {node.profileImageUrl ? (
+                            <img src={node.profileImageUrl} alt={node.name} className="w-full h-full rounded-full object-cover"/>
+                        ) : (
+                             <span className={`text-[14px] font-semibold ${avatarTextClass}`}>
+                                 {node.name.charAt(0)}
+                             </span>
+                        )}
+                     </div>
+                     
+                     {/* Name */}
+                     <span className="text-[16px] font-semibold text-[#000000] leading-[24px]">
+                         {node.name}
+                     </span>
+                     
+                     {/* Team Badge (Only for Root/Leader in the example) */}
+                     {isRoot && node.teamName && (
+                         <div className="flex items-center justify-center px-[12px] py-[4px] bg-[#D3E1FE] rounded-[30px] h-[22px]">
+                             <span className="text-[12px] font-medium text-[#4D82F3] opacity-80 leading-[14px]">
+                                 {node.teamName}
+                             </span>
+                         </div>
+                     )}
+                </div>
+
+                {/* Toggle Arrow (Only for Root) */}
+                {isRoot && hasChildren && (
+                    <button 
+                        onClick={() => setIsOrgExpanded(!isOrgExpanded)}
+                        className="w-[24px] h-[24px] flex items-center justify-center cursor-pointer"
+                    >
+                         <svg 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`transform transition-transform ${isOrgExpanded ? "" : "rotate-180"}`} // CSS snippet says matrix(1, 0, 0, -1) which is flip Y, or rotate 180. Arrow usually points down when expanded? Or up? The snippet shows "cheveron-down" with transform.
+                        >
+                             <path d="M6 9L12 15L18 9" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                         </svg>
+                    </button>
+                )}
+            </div>
+            
+            {/* Children (Descendants) - No indentation in visual, just stacked below */}
+            {isRoot && isOrgExpanded && hasChildren && (
+                <div className="flex flex-col gap-[8px]">
+                    {node.descendants!.map(child => (
+                        <div key={child.id}>
+                            {renderOrgNode(child, false)}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+  };
+
   return (
-    <div className="bg-card rounded-[14px] shadow-sm py-[26px]">
+    <div className="bg-white rounded-[14px] shadow-sm py-[26px] min-h-[728px] relative">
       {/* 헤더 */}
-      <div className="px-7 mb-6">
-        <h1 className="text-[24px] font-bold text-foreground mb-2">프로필</h1>
-        
+      <div className="px-7 mb-6 flex items-center justify-between">
+         <h1 className="text-[24px] font-bold text-[#252525] leading-[20px]">프로필</h1>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30 opacity-60"></div>
+      <div className="w-full h-[1px] bg-[#E2E2E2] opacity-50 mb-[26px]"></div>
 
       {/* 프로필 정보 섹션 */}
-      <div className="mb-5 pt-[26px]">
+      <div className="mb-5">
         {/* 프로필 정보 헤더 */}
-        <div className="flex items-center justify-between px-7 mb-3">
+        <div className="flex items-center justify-between px-7 mb-[26px]">
           <div>
-            <h2 className="text-[16px] font-semibold text-foreground mb-2">프로필 정보</h2>
-            <p className="text-[14px] text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
+            <h2 className="text-[16px] font-semibold text-black mb-[6px]">프로필 정보</h2>
+            <p className="text-[14px] text-[#808080]">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
           </div>
           {!isEditMode ? (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="cursor-pointer px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-black hover:bg-neutral-10 transition-colors h-[34px]"
             >
               프로필 수정
             </button>
@@ -194,14 +268,14 @@ export default function ProfileSettings() {
               <button 
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="cursor-pointer px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-black hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
               >
                 취소
               </button>
               <button 
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="cursor-pointer px-3 py-2 bg-neutral-90 text-neutral-20 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
               >
                 {isSaving ? "저장 중..." : "저장"}
               </button>
@@ -209,20 +283,20 @@ export default function ProfileSettings() {
           )}
         </div>
         
-        <div className="mx-7 h-[1px] bg-neutral-30 mb-[30px]"></div>
+        <div className="mx-7 h-[1px] bg-[#E2E2E2] mb-[54px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
         <div className="flex justify-center mb-[54px]">
-          <div className="relative">
+          <div className="relative flex flex-col items-center gap-[24px]">
             <label 
               htmlFor="profile-image-upload"
-              className={`block w-20 h-20 rounded-full overflow-hidden ${isEditMode ? "cursor-pointer" : "cursor-default"} ${isSaving ? "opacity-50" : ""}`}
+              className={`block w-[80px] h-[80px] rounded-full overflow-hidden ${isEditMode ? "cursor-pointer" : "cursor-default"} ${isSaving ? "opacity-50" : ""}`}
             >
               {profileImageUrl ? (
                 <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-neutral-60 flex items-center justify-center">
-                  <span className="text-[28px] font-semibold text-neutral-0">
+                <div className="w-full h-full bg-[#808080] flex items-center justify-center">
+                  <span className="text-[28px] font-semibold text-white leading-[33px] tracking-[-0.02em]">
                     {name ? name.charAt(0) : "?"}
                   </span>
                 </div>
@@ -242,10 +316,10 @@ export default function ProfileSettings() {
         </div>
 
         {/* 입력 필드들 - 2열 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[790px] mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-[20px] max-w-[792px] mx-auto px-4">
           {/* 이름 */}
-          <div>
-            <label className="block text-[14px] font-medium text-neutral-60 mb-2">이름</label>
+          <div className="relative">
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">이름</label>
             <input
               type="text"
               value={name}
@@ -256,10 +330,9 @@ export default function ProfileSettings() {
           </div>
 
           {/* 이메일 (읽기 전용) */}
-          <div>
-            <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <div className="relative">
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">
               이메일
-              <span className="ml-2 text-[12px] text-neutral-50">(수정 불가)</span>
             </label>
             <input
               type="email"
@@ -271,8 +344,8 @@ export default function ProfileSettings() {
           </div>
 
           {/* 연락처 */}
-          <div>
-            <label className="block text-[14px] font-medium text-neutral-60 mb-2">연락처</label>
+          <div className="relative mt-[25px]">
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">연락처</label>
             <input
               type="tel"
               value={phone}
@@ -285,98 +358,18 @@ export default function ProfileSettings() {
       </div>
 
       {/* 조직정보 섹션 */}
-      <div className="max-w-[790px] mx-auto pr-[22px]">
-        <h2 className="text-[14px] font-medium text-neutral-60 mb-2">조직정보</h2>
+      <div className="max-w-[792px] mx-auto px-4 mt-[45px]">
+        <h2 className="text-[14px] font-medium text-[#808080] mb-[10px]">조직정보</h2>
         
-        {/* 조직 멤버 목록 - 컨테이너 너비의 절반 */}
-        <div className="w-1/2 space-y-3">
-          {organizationMembers.length === 0 ? (
-            <div className="text-[14px] text-neutral-60 py-4 text-center">
-              조직 정보가 없습니다.
-            </div>
-          ) : (
-            organizationMembers.map((orgMember) => {
-              const isCurrentUser = orgMember.id === member?.id;
-              const isExpanded = expandedMember === orgMember.id;
-              
-              return (
-                <div key={orgMember.id}>
-                  <div
-                    className={`flex items-center justify-between h-12 px-5 py-3 rounded-[12px] border border-border cursor-pointer hover:bg-neutral-10 transition-colors ${
-                      isCurrentUser 
-                        ? "bg-primary-10/30" 
-                        : "bg-neutral-10"
-                    }`}
-                    onClick={() => setExpandedMember(isExpanded ? null : orgMember.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* 아바타 */}
-                      {orgMember.profileImageUrl ? (
-                        <img 
-                          src={orgMember.profileImageUrl} 
-                          alt={orgMember.name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          isCurrentUser ? "bg-primary-80" : "bg-neutral-60"
-                        }`}>
-                          <span className="text-[14px] font-semibold text-neutral-0">
-                            {orgMember.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* 이름 */}
-                      <span className="text-[16px] font-semibold text-foreground">
-                        {orgMember.name}
-                      </span>
-                      
-                      {/* 역할 태그 */}
-                      <span className={`px-3 py-1 text-[12px] font-medium rounded-[30px] ${
-                        orgMember.role === "leader" 
-                          ? "bg-secondary-10 text-secondary-40" 
-                          : "bg-neutral-20 text-neutral-60"
-                      }`}>
-                        {orgMember.role === "leader" ? "리더" : "멤버"}
-                      </span>
-                      
-                      {/* 팀 이름 */}
-                      {orgMember.teamName && (
-                        <span className="px-3 py-1 bg-neutral-20 text-neutral-60 text-[12px] font-medium rounded-[30px]">
-                          {orgMember.teamName}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* 드롭다운 아이콘 */}
-                    <div className={`w-6 h-6 flex items-center justify-center transition-transform ${isExpanded ? "rotate-180" : ""}`}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M6 9L12 15L18 9"
-                          stroke="var(--neutral-50)"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  {/* 확장된 상세 정보 */}
-                  {isExpanded && (
-                    <div className="mt-2 ml-12 p-4 bg-neutral-10 rounded-[8px] text-[14px]">
-                      <div className="space-y-2">
-                        <div><span className="font-semibold text-neutral-60">이메일:</span> {orgMember.email}</div>
-                        <div><span className="font-semibold text-neutral-60">팀:</span> {orgMember.teamName}</div>
-                        <div><span className="font-semibold text-neutral-60">역할:</span> {orgMember.role === "leader" ? "리더" : "멤버"}</div>
-                      </div>
-                    </div>
-                  )}
+        {/* 조직 트리 렌더링 */}
+        <div className="w-full md:w-1/2">
+            {orgRoot ? (
+                renderOrgNode(orgRoot, true)
+            ) : (
+                <div className="w-full h-[48px] px-[24px] rounded-[12px] border border-[#E2E2E2] bg-white flex items-center text-[14px] text-[#808080]">
+                    조직 정보가 없습니다.
                 </div>
-              );
-            })
-          )}
+            )}
         </div>
       </div>
     </div>
