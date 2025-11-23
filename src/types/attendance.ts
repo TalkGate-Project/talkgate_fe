@@ -25,7 +25,7 @@ export type MyStatusResponse = {
   result: true;
   data: {
     isCheckedIn: boolean;
-    todayAttendance: Record<string, unknown> | null;
+    todayAttendance: AttendanceItem | null;
   };
 };
 
