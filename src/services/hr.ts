@@ -1,15 +1,34 @@
 import { apiClient } from "@/lib/apiClient";
+import type { HrData, HrNote } from "@/types/members";
+
+export type UpdateHrDataPayload = {
+  realName: string;
+  birth: string;
+  address: string;
+};
+
+export type AddHrNotePayload = {
+  note: string;
+};
+
+export type HrDataResponse = {
+  result: boolean;
+  data: HrData;
+};
+
+export type HrNoteResponse = {
+  result: boolean;
+  data: HrNote;
+};
 
 export const HRService = {
-  updateMemberData(memberId: string, payload: Record<string, unknown>) {
-    return apiClient.put<void>(`/v1/members/${memberId}/hr/data`, payload);
+  updateMemberData(memberId: number, payload: UpdateHrDataPayload) {
+    return apiClient.put<HrDataResponse>(`/v1/members/${memberId}/hr/data`, payload);
   },
-  addMemberNote(memberId: string, payload: Record<string, unknown>) {
-    return apiClient.post<void>(`/v1/members/${memberId}/hr/notes`, payload);
+  addMemberNote(memberId: number, payload: AddHrNotePayload) {
+    return apiClient.post<HrNoteResponse>(`/v1/members/${memberId}/hr/notes`, payload);
   },
-  removeMemberNote(memberId: string, noteId: string) {
+  removeMemberNote(memberId: number, noteId: number) {
     return apiClient.delete<void>(`/v1/members/${memberId}/hr/notes/${noteId}`);
   },
 };
-
-

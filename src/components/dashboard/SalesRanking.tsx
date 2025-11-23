@@ -98,7 +98,7 @@ export default function SalesRanking() {
           <ol>
             {rows.map((item) => (
               <li key={`${mode}-${item.rank}-${item.name}`} className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pl-3">
                   <span
                     className={`grid place-items-center w-6 h-6 rounded-full text-[14px] font-montserrat ${
                       item.rank <= 3 ? "bg-neutral-90 text-neutral-0" : "bg-neutral-20 text-neutral-60"
@@ -109,12 +109,14 @@ export default function SalesRanking() {
                   <span className="typo-title-4 text-foreground opacity-90">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="typo-body-3 text-foreground opacity-90 font-montserrat">{item.amountLabel}</span>
-                  <span
+                  <span className="typo-body-3 text-foreground opacity-90 font-montserrat leading-[1] pr-[18px]">
+                    {item.amountLabel}원
+                  </span>
+                  {/* <span
                     className={`px-2 py-1 rounded-[5px] typo-caption-2 leading-none bg-neutral-20 text-neutral-60`}
                   >
                     <span className="font-montserrat">{item.changeLabel}</span>
-                  </span>
+                  </span> */}
                 </div>
               </li>
             ))}

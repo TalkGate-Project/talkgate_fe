@@ -309,7 +309,7 @@ export default function TeamManagementSettings() {
           {uniqueDepartments.length > 0 && (
             <div className="flex gap-2 flex-wrap">
               {uniqueDepartments.map((tag) => (
-                <div key={tag} className="px-3 py-1 bg-neutral-30 rounded-[30px] leading-[1] max-h-[22px]">
+                <div key={tag} className="px-3 py-1 bg-neutral-30 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center">
                   <span className="text-[12px] font-medium text-neutral-70 leading-[1]">{tag}</span>
                 </div>
               ))}
