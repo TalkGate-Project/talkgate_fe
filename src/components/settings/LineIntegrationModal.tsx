@@ -93,6 +93,12 @@ export default function LineIntegrationModal({
     return false;
   };
 
+  // Step indicator click handler
+  const handleStepClick = (targetStep: 1 | 2 | 3) => {
+    if (isSaving) return;
+    setStep(targetStep);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -134,14 +140,17 @@ export default function LineIntegrationModal({
         {/* 단계 인디케이터 */}
         <div className="flex justify-center gap-[30px] mt-8 mb-8">
           {/* 1단계 */}
-          <div className="flex flex-col items-center gap-2">
+          <div 
+            className="flex flex-col items-center gap-2 cursor-pointer"
+            onClick={() => handleStepClick(1)}
+          >
             <div
-              className={`w-9 h-9 rounded-full grid place-items-center ${
+              className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
                 step >= 1 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
               }`}
             >
               <span
-                className={`text-[18px] font-semibold leading-[21px] ${
+                className={`text-[18px] font-semibold leading-[21px] transition-colors ${
                   step >= 1 ? "text-[#00B55B]" : "text-[#808080]"
                 }`}
               >
@@ -149,7 +158,7 @@ export default function LineIntegrationModal({
               </span>
             </div>
             <div
-              className={`text-[14px] font-medium leading-[17px] ${
+              className={`text-[14px] font-medium leading-[17px] transition-colors ${
                 step >= 1 ? "text-[#00B55B]" : "text-[#808080]"
               }`}
             >
@@ -160,14 +169,17 @@ export default function LineIntegrationModal({
           <div className="w-[60px] h-px bg-neutral-30 translate-y-4" />
 
           {/* 2단계 */}
-          <div className="flex flex-col items-center gap-2">
+          <div 
+            className="flex flex-col items-center gap-2 cursor-pointer"
+            onClick={() => handleStepClick(2)}
+          >
             <div
-              className={`w-9 h-9 rounded-full grid place-items-center ${
+              className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
                 step >= 2 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
               }`}
             >
               <span
-                className={`text-[18px] font-semibold leading-[21px] ${
+                className={`text-[18px] font-semibold leading-[21px] transition-colors ${
                   step >= 2 ? "text-[#00B55B]" : "text-[#808080]"
                 }`}
               >
@@ -175,7 +187,7 @@ export default function LineIntegrationModal({
               </span>
             </div>
             <div
-              className={`text-[14px] font-medium leading-[17px] ${
+              className={`text-[14px] font-medium leading-[17px] transition-colors ${
                 step >= 2 ? "text-[#00B55B]" : "text-[#808080]"
               }`}
             >
@@ -186,14 +198,17 @@ export default function LineIntegrationModal({
           <div className="w-[60px] h-px bg-neutral-30 translate-y-4" />
 
           {/* 3단계 */}
-          <div className="flex flex-col items-center gap-2">
+          <div 
+            className="flex flex-col items-center gap-2 cursor-pointer"
+            onClick={() => handleStepClick(3)}
+          >
             <div
-              className={`w-9 h-9 rounded-full grid place-items-center ${
+              className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
                 step >= 3 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
               }`}
             >
               <span
-                className={`text-[18px] font-semibold leading-[21px] ${
+                className={`text-[18px] font-semibold leading-[21px] transition-colors ${
                   step >= 3 ? "text-[#00B55B]" : "text-[#808080]"
                 }`}
               >
@@ -201,7 +216,7 @@ export default function LineIntegrationModal({
               </span>
             </div>
             <div
-              className={`text-[14px] font-medium leading-[17px] ${
+              className={`text-[14px] font-medium leading-[17px] transition-colors ${
                 step >= 3 ? "text-[#00B55B]" : "text-[#808080]"
               }`}
             >
