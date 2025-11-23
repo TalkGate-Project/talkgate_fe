@@ -35,7 +35,7 @@ export default function ApiKeyRegenerateModal({
           </h2>
           <button
             onClick={onClose}
-            className="w-6 h-6 flex items-center justify-center text-neutral-50 hover:text-neutral-70 transition-colors"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-50 hover:text-neutral-70 transition-colors"
             aria-label="닫기"
           >
             <svg
@@ -57,9 +57,9 @@ export default function ApiKeyRegenerateModal({
         </div>
 
         {/* Content */}
-        <div className="px-7 pb-7">
+        <div className="px-7">
           {/* Warning Icon */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <svg
               width="40"
               height="40"
@@ -90,7 +90,7 @@ export default function ApiKeyRegenerateModal({
 
           {/* Consequences Box */}
           <div className="bg-neutral-10 rounded-[5px] px-6 py-3 mb-6">
-            <ul className="space-y-2 text-[14px] font-medium text-foreground leading-[24px]">
+            <ul className="text-[14px] font-medium text-foreground leading-[24px]">
               <li className="flex items-start gap-2">
                 <span className="mt-1">•</span>
                 <span>기존 API 키는 즉시 사용 불가능해집니다</span>
@@ -106,24 +106,27 @@ export default function ApiKeyRegenerateModal({
             </ul>
           </div>
 
-          {/* Divider */}
-          <div className="w-full h-px bg-neutral-30 mb-4" />
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors"
-            >
-              취소
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-20 tracking-[-0.02em] hover:opacity-90 transition-opacity"
-            >
-              재발급
-            </button>
-          </div>
+        </div>
+        {/* content 끝 */}
+
+        {/* Divider */}
+        <div className="w-full h-px bg-neutral-30" />
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 px-7 py-3">
+          <button
+            onClick={onClose}
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-20 tracking-[-0.02em] hover:opacity-90 transition-opacity"
+          >
+            계정 재발급
+          </button>
         </div>
       </div>
     </>
