@@ -11,142 +11,154 @@ import loginBgImg from "@/assets/images/auth/login_bg.png";
 // 3D 봉투 애니메이션 컴포넌트
 function EnvelopeAnimation({ 
   isOpen, 
-  onOpen, 
   inviteInfo, 
   onAccept, 
   onDecline 
 }: {
   isOpen: boolean;
-  onOpen: () => void;
   inviteInfo: any;
   onAccept: () => void;
   onDecline: () => void;
 }) {
+  // 뚜껑 애니메이션 설정
+  const flapVariants = {
+    closed: {
+      rotateX: 0,
+      zIndex: 40, // 닫혀있을 땐 가장 위
+      transition: { 
+        rotateX: { duration: 0.8, ease: "easeInOut" },
+        zIndex: { delay: 0.1 } // 닫힐 땐 즉시 앞으로 (약간 딜레이 줘서 뚫림 방지)
+      }
+    },
+    open: {
+      rotateX: 180,
+      zIndex: 11, // 다 열리면 카드(20) 뒤, 바닥(10) 앞으로 보냄
+      transition: { 
+        rotateX: { duration: 0.8, ease: "easeInOut" },
+        zIndex: { delay: 0.8 } // 회전이 끝나는 시점에 z-index 변경
+      }
+    }
+  };
+
+  // 카드 애니메이션 설정
+  const cardVariants = {
+    closed: {
+      y: 100, // 닫혀있을 땐 봉투 깊숙이 숨김 (0 -> 100)
+      transition: { duration: 0.5 }
+    },
+    open: {
+      y: -220, 
+      transition: { 
+        delay: 0.9, 
+        duration: 1.0, 
+        ease: "easeInOut" 
+      }
+    }
+  };
+
   return (
-    <div className="relative" style={{ perspective: "1000px" }}>
+    <div className="relative" style={{ perspective: "1500px" }}>
       {/* 봉투 컨테이너 */}
-      <div className="relative w-[622px] h-[620px] mx-auto">
-        {/* 1) 봉투 바닥(뒤쪽): 단색 화이트 10% 오퍼시티 */}
+      <div 
+        className="relative w-[622px] h-[400px] mx-auto mt-[100px]"
+        // 위쪽은 넉넉하게(-500px) 보여주고, 아래/좌/우는 컨테이너 크기에 딱 맞춰 자름(0px)
+        style={{ clipPath: "inset(-500px -50px 0px -50px)" }} 
+      >
+        
+        {/* 1. 봉투의 바깥, 바닥 (Back) - z-index: 10 */}
         <div
-          className="absolute bottom-0 w-full h-[520px] rounded-b-[12px] shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+          className="absolute bottom-0 left-0 w-full h-full rounded-[12px] shadow-2xl"
           style={{
-            backgroundColor: "#7B7F84", // 불투명 고정 색상
-            border: "1px solid rgba(255,255,255,0.08)",
+            backgroundColor: "#2A2A2A", 
             zIndex: 10,
           }}
         />
 
-        {/* 3) 봉투 덮개: 단색 화이트 10% 오퍼시티, 삼각형 (최상단 레이어) */}
+        {/* 2. 봉투의 내용물 (Card) - z-index: 20 */}
         <motion.div
-          className="absolute top-[96px] w-full h-[252px] cursor-pointer"
-          style={{
-            backgroundColor: "#5D5D5D", // 뚜껑 겉면 색상(접힌 상태의 역삼각형)
-            clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-            transformOrigin: "top center",
-            border: "none",
-            borderBottom: "none",
-            // 카드(20)보다 뒤, 바닥(10)보다는 앞
-            zIndex: 12,
+          className="absolute left-0 right-0 mx-auto w-[580px]"
+          style={{ 
+            zIndex: 20,
+            bottom: "10px", 
           }}
-          animate={{ rotateX: isOpen ? -118 : 0 }}
-          transition={{ duration: 1.0, ease: [0.25, 0.46, 0.45, 0.94] }}
-          onClick={onOpen}
+          variants={cardVariants}
+          initial="closed"
+          animate={isOpen ? "open" : "closed"}
         >
-          {/* 상단 워드마크 위치 보정 */}
-          <div className="absolute top-9 left-1/2 -translate-x-1/2 text-white/80 text-3xl font-semibold tracking-tight">
-            Talkgate
+          <div
+            className="w-full min-h-[420px] rounded-[12px] px-10 py-9 flex flex-col items-center text-center relative"
+            style={{
+              background: "#000000",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+             {/* 카드 내용 */}
+            <div className="text-white text-[40px] leading-none font-bold mb-6">Talkgate</div>
+            <div className="text-white/95 mb-5 flex-1">
+              <div className="text-[18px] mb-2">
+                <span className="font-semibold">"{inviteInfo?.projectName || "프로젝트"}"</span>에 초대되었습니다.
+              </div>
+              <div className="text-[14px] text-white/70 mb-2">
+                {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+              <div className="text-[12px] text-white/50">본 초대는 7일 후 자동 만료됩니다.</div>
+            </div>
+
+            <div className="flex flex-col items-center gap-3 w-full mt-auto">
+              <button
+                className="w-full h-[48px] rounded-[8px] bg-white text-[#0F0F0F] text-[16px] font-bold hover:bg-white/90 transition-colors"
+                onClick={onAccept}
+              >
+                프로젝트 가입하기
+              </button>
+              <button
+                className="text-white/40 hover:text-white/70 text-[13px] transition-colors"
+                onClick={onDecline}
+              >
+                거절
+              </button>
+            </div>
           </div>
         </motion.div>
 
-        {/* 2) 초대장 내용물: 중앙 카드 */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ zIndex: 20 }}
-              initial={{ y: 80, opacity: 0, scale: 0.95 }}
-              animate={{ y: -130, opacity: 1, scale: 1 }}
-              exit={{ y: 80, opacity: 0, scale: 0.95 }}
-              transition={{ delay: 0.7, duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-            >
-              <div
-                className="w-[520px] min-h-[420px] rounded-[12px] px-10 py-9 flex flex-col items-center text-center"
-                style={{
-                  background: "linear-gradient(180deg, rgba(20,20,20,0.98) 0%, rgba(12,12,12,0.98) 100%)",
-                  boxShadow: "0 24px 40px rgba(0,0,0,0.45)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <div className="text-white text-[40px] leading-none font-bold mb-6">Talkgate</div>
-                <div className="text-white/95 mb-5">
-                  <div className="text-[18px] mb-2">
-                    <span className="font-semibold">"{inviteInfo?.projectName || "프로젝트"}"</span>에 초대되었습니다.
-                  </div>
-                  <div className="text-[14px] text-white/70 mb-2">
-                    {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
-                  <div className="text-[12px] text-white/50">본 초대는 7일 후 자동 만료됩니다.</div>
-                </div>
+        {/* 3. 봉투의 바깥, 겉으로 보이게 될 부분 (Front Body/Pocket) - z-index: 30 */}
+        <div 
+          className="absolute bottom-0 left-0 w-full h-full pointer-events-none rounded-b-[12px] overflow-hidden"
+          style={{ zIndex: 30 }}
+        >
+           <div 
+             className="w-full h-full"
+             style={{
+               backgroundColor: "#333333",
+               clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)",
+               boxShadow: "inset 0 10px 20px rgba(0,0,0,0.2)"
+             }}
+           />
+        </div>
 
-                <div className="flex flex-col items-center gap-3">
-                  <button
-                    className="px-7 h-[40px] rounded-[8px] bg-white text-[#0F0F0F] text-[15px] font-semibold hover:bg-white/90 transition-colors"
-                    onClick={onAccept}
-                  >
-                    프로젝트 가입하기
-                  </button>
-                  <button
-                    className="px-4 h-[32px] text-white/60 hover:text-white/85 text-[13px] transition-colors"
-                    onClick={onDecline}
-                  >
-                    거절
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* 4. 열리고 접힐 봉투 뚜껑 부분 (Flap) */}
+        <motion.div
+          className="absolute top-0 left-0 w-full h-[200px]"
+          style={{
+            transformOrigin: "top",
+          }}
+          variants={flapVariants}
+          initial="closed"
+          animate={isOpen ? "open" : "closed"}
+        >
+          {/* 뚜껑 모양 Placeholder (역삼각형) */}
+          <div 
+            className="w-full h-full"
+            style={{
+               backgroundColor: "#3A3A3A", 
+               clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+               borderTopLeftRadius: "12px",
+               borderTopRightRadius: "12px",
+            }}
+          />
+        </motion.div>
 
-        {/* 3) 앞면(겉면): 직사각형 + 두 개의 직각삼각형 조합. 객체 opacity는 사용하지 않음 */}
-        {(() => {
-          // 투명도 없는 고정 색상으로 내용물이 비치지 않도록 처리
-          const envelopeColor = "#7B7F84";
-          const borderColor = "rgba(255,255,255,0.08)";
-          const baseHeight = 160; // 받침 직사각형 높이(상단 역삼각형과 맞닿도록 상향)
-          const triHeight = 160; // 삼각형 높이(상단 각도와 시각적으로 맞추기 위해 증가)
-          const halfWidth = 311; // 컨테이너 절반 (622px / 2)
-          return (
-            <div className="absolute bottom-0 left-0 w-full pointer-events-none" style={{ height: baseHeight + triHeight, zIndex: 30 }}>
-              {/* 받침 직사각형 */}
-              <div
-                className="absolute left-0 bottom-0 w-full"
-                style={{ height: baseHeight, backgroundColor: envelopeColor }}
-              />
-              {/* 좌측 직각삼각형 (왼쪽 하단이 직각) */}
-              <div
-                className="absolute left-0"
-                style={{
-                  bottom: baseHeight,
-                  width: 0,
-                  height: 0,
-                  borderRight: `${halfWidth}px solid transparent`,
-                  borderBottom: `${triHeight}px solid ${envelopeColor}`,
-                }}
-              />
-              {/* 우측 직각삼각형 (오른쪽 하단이 직각) */}
-              <div
-                className="absolute right-0"
-                style={{
-                  bottom: baseHeight,
-                  width: 0,
-                  height: 0,
-                  borderLeft: `${halfWidth}px solid transparent`,
-                  borderBottom: `${triHeight}px solid ${envelopeColor}`,
-                }}
-              />
-            </div>
-          );
-        })()}
       </div>
     </div>
   );
@@ -192,6 +204,16 @@ function InviteLanding() {
     };
   }, [token, router]);
 
+  // 토큰이 유효하고 로딩이 끝나면 자동으로 봉투 열기
+  useEffect(() => {
+    if (!loading && isTokenValid) {
+      const timer = setTimeout(() => {
+        setIsEnvelopeOpen(true);
+      }, 500); // 0.5초 후 오픈
+      return () => clearTimeout(timer);
+    }
+  }, [loading, isTokenValid]);
+
   async function onAccept() {
     try {
       const effectiveToken = token || getPendingInviteToken();
@@ -219,7 +241,7 @@ function InviteLanding() {
 
   return (
     <main
-      className="min-h-screen relative flex items-center justify-center"
+      className="min-h-screen relative flex items-center justify-center overflow-hidden"
       style={{
         // 로그인 페이지와 동일한 톤의 그라데이션 배경
         backgroundImage: `url('${loginBgImg.src}')`,
@@ -238,23 +260,10 @@ function InviteLanding() {
             {/* 3D 봉투 애니메이션 컴포넌트 */}
             <EnvelopeAnimation
               isOpen={isEnvelopeOpen}
-              onOpen={() => setIsEnvelopeOpen(true)}
               inviteInfo={inviteInfo}
               onAccept={onAccept}
               onDecline={onDecline}
             />
-
-            {/* 봉투가 열리지 않았을 때 안내 메시지 */}
-            {!isEnvelopeOpen && (
-              <motion.div
-                className="mt-8 text-center text-white text-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-              >
-                봉투를 클릭하여 초대 내용을 확인하세요
-              </motion.div>
-            )}
           </div>
         ) : null}
       </div>
