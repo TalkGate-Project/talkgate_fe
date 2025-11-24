@@ -79,18 +79,6 @@ export default function CustomersActions({
         onChange={handleExcelUpload}
       />
       <button
-        className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        엑셀 업로드
-      </button>
-      <button
-        className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
-        onClick={handleExcelDownload}
-      >
-        엑셀 다운로드
-      </button>
-      <button
         className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
         onClick={onCreateOpen}
       >
@@ -102,6 +90,24 @@ export default function CustomersActions({
       >
         일괄배정
       </button>
+      <button
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+      >
+        문자전송
+      </button>
+      <button
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        엑셀 업로드
+      </button>
+      <button
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+        onClick={handleExcelDownload}
+      >
+        엑셀 다운로드
+      </button>
+      
     </div>
   );
 }
