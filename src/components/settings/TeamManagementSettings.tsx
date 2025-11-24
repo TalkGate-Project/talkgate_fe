@@ -299,7 +299,7 @@ export default function TeamManagementSettings() {
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full min-w-[280px] max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
               />
             </div>
             <button className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">

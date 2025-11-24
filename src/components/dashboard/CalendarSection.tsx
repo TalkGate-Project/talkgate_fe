@@ -15,6 +15,7 @@ import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import MonthPicker from "@/components/common/MonthPicker";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -149,11 +150,13 @@ export default function CalendarSection() {
           >
             <CalendarPrevIcon />
           </button>
-          <div
-            className="px-3 h-[34px] grid place-items-center text-foreground font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px]"
-            style={montserratStyle}
-          >
-            {ym}
+          <div className="w-[110px]">
+            <MonthPicker
+              value={current}
+              onChange={(date) => date && setCurrent(date)}
+              dateFormat="yyyy.MM"
+              className="font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px] text-center border-none bg-transparent h-[34px] p-0 cursor-pointer text-foreground focus:ring-0"
+            />
           </div>
           <button
             onClick={goNext}

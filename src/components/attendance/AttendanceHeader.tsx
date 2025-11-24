@@ -1,14 +1,17 @@
 import Panel from "@/components/common/Panel";
 import { formatDate } from "@/utils/attendance";
+import DatePicker from "@/components/common/DatePicker";
 
 interface AttendanceHeaderProps {
   selectedDate: string;
   onNavigateDate: (direction: "prev" | "next") => void;
+  onDateChange: (date: Date) => void;
 }
 
 export default function AttendanceHeader({
   selectedDate,
   onNavigateDate,
+  onDateChange,
 }: AttendanceHeaderProps) {
   return (
     <Panel
@@ -47,9 +50,12 @@ export default function AttendanceHeader({
 
           {/* Date display */}
           <div className="px-8 py-[4px] bg-card rounded-[5px]">
-            <span className="text-[16px] font-bold text-foreground">
-              {formatDate(selectedDate)}
-            </span>
+            <DatePicker
+              value={new Date(selectedDate)}
+              onChange={(d) => d && onDateChange(d)}
+              dateFormat="yyyy - MM - dd (EEE)"
+              className="text-center font-bold text-[16px] text-foreground border-none bg-transparent h-auto p-0 cursor-pointer w-full focus:ring-0"
+            />
           </div>
 
           {/* Next button */}

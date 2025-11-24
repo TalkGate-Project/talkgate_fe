@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
-import { ko } from "date-fns/locale";
-import { generateMonthCells } from "@/utils/calendar";
 import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
 import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 
-type DatePickerProps = {
+type MonthPickerProps = {
 	value: Date | null;
 	onChange: (date: Date | null) => void;
 	placeholder?: string;
@@ -17,15 +15,14 @@ type DatePickerProps = {
     dateFormat?: string;
 };
 
-const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
-
-export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd" } = props;
+export default function MonthPicker(props: MonthPickerProps) {
+	const { value, onChange, placeholder = "연도 . 월", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM" } = props;
 
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"month" | "year">("month");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
-	const [view, setView] = useState<Date>(new Date(initial.getFullYear(), initial.getMonth(), 1));
+	// view tracks the currently displayed year
+	const [viewYear, setViewYear] = useState<number>(initial.getFullYear());
 	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 12); // 24-year page
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
@@ -36,7 +33,7 @@ export default function DatePicker(props: DatePickerProps) {
 	const closeAndReset = useCallback(() => {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
-		setView(new Date(base.getFullYear(), base.getMonth(), 1));
+		setViewYear(base.getFullYear());
 		setYearStart(base.getFullYear() - 12);
 		setMode("month");
 	}, [value]);
@@ -60,7 +57,7 @@ export default function DatePicker(props: DatePickerProps) {
 		};
 	}, [open, closeAndReset]);
 
-	// Anchor the panel under the input (floating over modals)
+	// Anchor the panel under the input
 	useEffect(() => {
 		if (!open) return;
 		function update() {
@@ -69,20 +66,16 @@ export default function DatePicker(props: DatePickerProps) {
 			if (!el) return;
 			
 			const r = el.getBoundingClientRect();
-			const panelHeight = panel?.offsetHeight || 400; // Default estimate 400px
+			const panelHeight = panel?.offsetHeight || 300;
 			const viewportHeight = window.innerHeight;
 			
-			// Calculate if there's enough space below the input
 			const spaceBelow = viewportHeight - r.bottom;
 			const spaceAbove = r.top;
 			
-			// If not enough space below but enough space above, position above
 			let top: number;
 			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-				// Position above input
 				top = r.top - panelHeight - 8;
 			} else {
-				// Position below input (default)
 				top = r.bottom + 8;
 			}
 			
@@ -92,7 +85,6 @@ export default function DatePicker(props: DatePickerProps) {
 			});
 		}
 		
-		// Initial update after a small delay to ensure panel is rendered
 		const timer = setTimeout(update, 0);
 		update();
 		
@@ -106,35 +98,26 @@ export default function DatePicker(props: DatePickerProps) {
 	}, [open]);
 
 	useEffect(() => {
-		// Keep view in sync when external value changes while closed
 		if (!open) {
 			const base = value ? new Date(value) : new Date();
-			setView(new Date(base.getFullYear(), base.getMonth(), 1));
+			setViewYear(base.getFullYear());
 			setYearStart(base.getFullYear() - 12);
 			setMode("month");
 		}
 	}, [value, open]);
-
-	const label = useMemo(() => {
-		const y = view.getFullYear();
-		const m = view.getMonth() + 1;
-		return `${m}월 ${y}`;
-	}, [view]);
 
 	function openPicker() {
 		if (disabled) return;
 		setOpen(true);
 		setMode("month");
 		const base = value ? new Date(value) : new Date();
-		setView(new Date(base.getFullYear(), base.getMonth(), 1));
+		setViewYear(base.getFullYear());
 		setYearStart(base.getFullYear() - 12);
 	}
 
-
-
 	function goPrev() {
 		if (mode === "month") {
-			setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1));
+			setViewYear((y) => y - 1);
 		} else {
 			setYearStart((s) => s - 24);
 		}
@@ -142,23 +125,22 @@ export default function DatePicker(props: DatePickerProps) {
 
 	function goNext() {
 		if (mode === "month") {
-			setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1));
+			setViewYear((y) => y + 1);
 		} else {
 			setYearStart((s) => s + 24);
 		}
 	}
 
-	function onSelectDay(d: Date) {
-		onChange(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+	function onSelectMonth(monthIndex: number) {
+		const newDate = new Date(viewYear, monthIndex, 1);
+		onChange(newDate);
 		closeAndReset();
 	}
 
 	function onSelectYear(y: number) {
-		setView((v) => new Date(y, v.getMonth(), 1));
+		setViewYear(y);
 		setMode("month");
 	}
-
-	const monthCells = useMemo(() => generateMonthCells(view), [view]);
 
 	return (
 		<div ref={rootRef} className="relative w-full">
@@ -168,7 +150,7 @@ export default function DatePicker(props: DatePickerProps) {
 				disabled={disabled}
 				onClick={openPicker}
 				onFocus={openPicker}
-				value={value ? format(value, dateFormat, { locale: ko }) : ""}
+				value={value ? format(value, dateFormat) : ""}
 				placeholder={placeholder}
 				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 cursor-pointer ${className}`}
 			/>
@@ -195,7 +177,7 @@ export default function DatePicker(props: DatePickerProps) {
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
-									setYearStart(view.getFullYear() - 12);
+									setYearStart(viewYear - 12);
 								} else {
 									setMode("month");
 								}
@@ -203,7 +185,7 @@ export default function DatePicker(props: DatePickerProps) {
 							aria-label="연도 선택 토글"
 							style={{ fontFamily: "var(--font-montserrat)" }}
 						>
-							{label}
+							{mode === "month" ? `${viewYear}` : `${yearStart} - ${yearStart + 23}`}
 						</button>
 						<button
 							type="button"
@@ -217,65 +199,56 @@ export default function DatePicker(props: DatePickerProps) {
 
 					{/* Body */}
 					{mode === "month" ? (
-						<div>
-							{/* Weekday header */}
-							<div className="grid grid-cols-7 gap-y-2 mb-2">
-								{DAYS.map((d) => (
-									<div key={d} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080]">
-										{d}
-									</div>
-								))}
-							</div>
-							{/* Dates */}
-							<div className="grid grid-cols-7 gap-y-1">
-								{monthCells.map(({ date, inCurrent }) => {
-									const isSelected =
-										value &&
-										date.getFullYear() === value.getFullYear() &&
-										date.getMonth() === value.getMonth() &&
-										date.getDate() === value.getDate();
-									
-									// Check if date is disabled based on min/max
-									const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-									const minDateOnly = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
-									const maxDateOnly = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
-									
-									const isDisabled = 
-										(minDateOnly && dateOnly < minDateOnly) ||
-										(maxDateOnly && dateOnly > maxDateOnly);
-									
-									const baseCls =
-										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
-									const textCls = inCurrent ? "text-[#252525]" : "text-[#B0B0B0]";
-									const selectedCls = isSelected ? "bg-[#D6FAE8]" : "hover:bg-neutral-20";
-									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
-									
-									return (
-										<button
-											key={date.toISOString() + inCurrent}
-											type="button"
-											className={`${baseCls} ${textCls} ${isDisabled ? disabledCls : selectedCls} ${disabledCls}`}
-											onClick={() => !isDisabled && onSelectDay(date)}
-											disabled={isDisabled || undefined}
-											style={{ fontFamily: "var(--font-montserrat)" }}
-										>
-											{date.getDate()}
-										</button>
-									);
-								})}
-							</div>
+						<div className="grid grid-cols-3 gap-2">
+							{Array.from({ length: 12 }).map((_, i) => {
+								const isSelected =
+									value &&
+									value.getFullYear() === viewYear &&
+									value.getMonth() === i;
+								
+								// Check min/max
+								const currentMonthDate = new Date(viewYear, i, 1);
+                                // For disabling, we check if the entire month is out of range
+                                // But usually checking the 1st of month is enough, or checking if the month end/start overlaps
+                                // Simple check: 
+                                const min = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), 1) : null;
+                                const max = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), 1) : null;
+                                
+                                const isDisabled = 
+                                    (min && currentMonthDate < min) ||
+                                    (max && currentMonthDate > max);
+
+								return (
+									<button
+										key={i}
+										type="button"
+										onClick={() => !isDisabled && onSelectMonth(i)}
+										className={`h-10 rounded-[6px] text-[14px] flex items-center justify-center transition-colors
+                                            ${isSelected ? "bg-[#D6FAE8] text-[#252525]" : "text-[#252525] hover:bg-neutral-20"}
+                                            ${isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
+                                        `}
+										style={{ fontFamily: "var(--font-montserrat)" }}
+                                        disabled={isDisabled}
+									>
+										{i + 1}월
+									</button>
+								);
+							})}
 						</div>
 					) : (
 						<div>
 							<div className="grid grid-cols-4 gap-2">
 								{Array.from({ length: 24 }).map((_, idx) => {
 									const y = yearStart + idx;
+                                    const isSelected = value && value.getFullYear() === y;
 									return (
 										<button
 											key={y}
 											type="button"
 											onClick={() => onSelectYear(y)}
-											className="h-8 rounded-[6px] text-[14px] text-[#252525] hover:bg-neutral-20"
+											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center hover:bg-neutral-20
+                                                ${isSelected ? "bg-[#D6FAE8] text-[#252525]" : "text-[#252525]"}
+                                            `}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{y}
@@ -291,5 +264,4 @@ export default function DatePicker(props: DatePickerProps) {
 		</div>
 	);
 }
-
 

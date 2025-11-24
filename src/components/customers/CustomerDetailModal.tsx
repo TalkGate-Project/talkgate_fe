@@ -41,11 +41,11 @@ export default function CustomerDetailModal({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)] flex flex-col h-[85vh] md:h-[90vh] lg:h-[616px] xl:h-[616px]"
       ariaLabel="고객정보"
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-none">
         <h2 className="text-[18px] font-semibold text-[#111827]">고객정보</h2>
         <button
           aria-label="close"
@@ -70,13 +70,14 @@ export default function CustomerDetailModal({
         </button>
       </div>
 
-      {loading && (
-        <div className="py-16 text-center text-neutral-60">불러오는 중...</div>
-      )}
+      <div className="flex-1 overflow-y-auto min-h-0 -mx-2 px-2 custom-scrollbar">
+        {loading && (
+          <div className="py-16 text-center text-neutral-60">불러오는 중...</div>
+        )}
 
-      {!loading && detail && (
-        <div className="mt-[30px] grid grid-cols-12 gap-6">
-          {/* Left: form and tabs */}
+        {!loading && detail && (
+          <div className="mt-[30px] grid grid-cols-12 gap-6 pb-2">
+            {/* Left: form and tabs */}
           <div className="col-span-12 lg:col-span-8 max-w-[792px]">
             {/* Tabs */}
             <div className="flex gap-6 border-b border-neutral-30">
@@ -168,6 +169,7 @@ export default function CustomerDetailModal({
           </div>
         </div>
       )}
+      </div>
     </BaseModal>
   );
 }
