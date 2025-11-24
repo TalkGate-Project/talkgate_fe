@@ -214,9 +214,9 @@ export default function MonthPicker(props: MonthPickerProps) {
                                 const min = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), 1) : null;
                                 const max = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), 1) : null;
                                 
-                                const isDisabled = 
-                                    (min && currentMonthDate < min) ||
-                                    (max && currentMonthDate > max);
+                                const isBeforeMin = min ? currentMonthDate < min : false;
+                                const isAfterMax = max ? currentMonthDate > max : false;
+                                const isDisabled = isBeforeMin || isAfterMax;
 
 								return (
 									<button
