@@ -65,9 +65,9 @@ export default function ChatLeftSidebar({
   };
 
   return (
-    <div className="max-w-[286px]">
-      <div className="w-[286px] h-[840px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden">
-        <div className="px-7 pt-[26px] pb-[18px] flex items-center justify-between">
+    <div className="max-w-[286px] h-full">
+      <div className="w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] overflow-hidden flex flex-col">
+        <div className="px-7 pt-[26px] pb-[18px] flex items-center justify-between shrink-0">
           <h2 className="text-[16px] font-bold text-neutral-90">상담 채팅</h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
@@ -157,7 +157,7 @@ export default function ChatLeftSidebar({
         {/* List/Album */}
         {viewMode === "list" ? (
           <div
-            className="mt-3 h-[calc(840px-170px)] overflow-auto"
+            className="mt-3 flex-1 overflow-auto min-h-0"
             ref={convScrollRef}
             onScroll={onConversationsScroll}
           >
@@ -245,7 +245,7 @@ export default function ChatLeftSidebar({
             )}
           </div>
         ) : (
-          <div className="mt-4 h-[calc(840px-170px)] overflow-auto px-4">
+          <div className="mt-4 flex-1 overflow-auto px-4 min-h-0">
             <div className="grid grid-cols-3 gap-3">
               {filteredConversations.length === 0 ? (
                 <div className="col-span-3 h-full flex items-center justify-center text-neutral-60 text-[14px]">

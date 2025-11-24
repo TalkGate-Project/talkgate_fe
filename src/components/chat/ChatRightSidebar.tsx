@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConversationsService } from "@/services/conversations";
 import type { AiAssistantMessage } from "@/types/conversations";
 import SendIcon from "./icons/SendIcon";
@@ -18,8 +18,16 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<number | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
 
   const hasActiveConversation = useMemo(() => !!conversationId, [conversationId]);
+
+  // 스크롤 하단 고정
+  const scrollToBottom = useCallback(() => {
+    if (messagesScrollRef.current) {
+      messagesScrollRef.current.scrollTop = messagesScrollRef.current.scrollHeight;
+    }
+  }, []);
 
   // 대화방 변경 시 AI 도우미 대화 목록 조회
   useEffect(() => {
@@ -46,9 +54,14 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         const payload = res.data as any;
         const data = payload?.data;
         const items = (data?.conversations ?? []) as AiAssistantMessage[];
-        setMessages(items);
+        
+        // items는 보통 최신순(내림차순)으로 옴 -> 렌더링은 오래된순(오름차순)으로 할 것이므로 뒤집음
+        // 백엔드 응답이 [최신, ..., 오래된] 이라고 가정
+        setMessages(items.reverse());
         setNextCursor(data?.nextCursor);
         setHasMore(Boolean(data?.hasMore));
+        // 초기 로드 후 스크롤 바닥으로
+        setTimeout(scrollToBottom, 100);
       } catch (err: any) {
         if (cancelled) return;
         const msg =
@@ -66,10 +79,15 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [conversationId, projectId]);
+  }, [conversationId, projectId, scrollToBottom]);
 
   const loadMore = useCallback(async () => {
     if (!conversationId || !hasMore || loading) return;
+    // 현재 스크롤 위치 저장
+    const scrollContainer = messagesScrollRef.current;
+    const prevScrollHeight = scrollContainer?.scrollHeight ?? 0;
+    const prevScrollTop = scrollContainer?.scrollTop ?? 0;
+
     try {
       const res = await ConversationsService.listAiAssistant({
         conversationId,
@@ -80,16 +98,24 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       const payload = res.data as any;
       const data = payload?.data;
       const items = (data?.conversations ?? []) as AiAssistantMessage[];
+      
       setMessages((prev) => {
         const existingIds = new Set(prev.map((m) => m.id));
-        const merged = [...prev];
-        for (const it of items) {
-          if (!existingIds.has(it.id)) merged.push(it);
-        }
-        return merged;
+        // items (최신->오래된) reverse -> (오래된->최신)
+        // 이전 메시지들이므로 앞에 붙임
+        const olderMessages = items.reverse().filter(it => !existingIds.has(it.id));
+        return [...olderMessages, ...prev];
       });
       setNextCursor(data?.nextCursor);
       setHasMore(Boolean(data?.hasMore));
+
+      // 스크롤 위치 복원 (새로운 아이템 높이만큼 아래로)
+      requestAnimationFrame(() => {
+        if (scrollContainer) {
+          const newScrollHeight = scrollContainer.scrollHeight;
+          scrollContainer.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
+        }
+      });
     } catch (err: any) {
       const msg =
         err?.data?.message ||
@@ -113,9 +139,11 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       const payload = res.data as any;
       const data = payload?.data as AiAssistantMessage | undefined;
       if (data) {
-        // 최신 순(가장 최근이 위) 유지
-        setMessages((prev) => [data, ...prev]);
+        // 새 메시지를 뒤에 추가 (오래된 -> 최신)
+        setMessages((prev) => [...prev, data]);
         setInput("");
+        // 전송 후 스크롤 바닥으로
+        setTimeout(scrollToBottom, 100);
       }
     } catch (err: any) {
       const msg =
@@ -126,10 +154,10 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
     } finally {
       setSending(false);
     }
-  }, [conversationId, input, projectId, sending]);
+  }, [conversationId, input, projectId, sending, scrollToBottom]);
 
   return (
-    <div className="max-w-[286px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+    <div className="max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
       <div className="px-4 py-4.5 flex items-center justify-between border-b border-border dark:border-neutral-30">
         <div className="flex items-center gap-2">
           <h3 className="text-[20px] font-bold">AI상담도우미</h3>
@@ -144,7 +172,10 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-4 space-y-3">
+      <div
+        className="flex-1 overflow-auto p-4 space-y-3"
+        ref={messagesScrollRef}
+      >
         {!hasActiveConversation ? (
           <div className="text-[13px] leading-[20px] text-neutral-60">
             왼쪽에서 상담 채팅을 선택하면 AI 상담 도우미를 사용할 수 있습니다.
@@ -165,7 +196,28 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
             )}
 
             {loading && messages.length === 0 ? (
-              <div className="text-[13px] text-neutral-60">불러오는 중입니다...</div>
+              <div className="flex justify-center py-4">
+                <svg
+                  className="animate-spin h-6 w-6 text-primary-60"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
             ) : messages.length === 0 ? (
               <div className="text-[13px] text-neutral-60">
                 아직 AI 상담 도우미와의 대화가 없습니다. 첫 질문을 남겨보세요.
@@ -176,7 +228,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                   <button
                     type="button"
                     onClick={loadMore}
-                    className="cursor-pointer text-[12px] text-primary-80 underline mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="cursor-pointer text-[12px] text-primary-80 underline mb-2 disabled:opacity-50 disabled:cursor-not-allowed block mx-auto"
                     disabled={loading}
                   >
                     이전 AI 상담 내역 더 보기

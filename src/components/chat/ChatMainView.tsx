@@ -30,6 +30,7 @@ type Props = {
   emojiButtonRef: React.RefObject<HTMLButtonElement | null>;
   emojiPickerOpen: boolean;
   loadOlderMessages: () => void;
+  isMessagesLoading: boolean;
 };
 
 export default function ChatMainView({
@@ -51,6 +52,7 @@ export default function ChatMainView({
   emojiButtonRef,
   emojiPickerOpen,
   loadOlderMessages,
+  isMessagesLoading,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
@@ -99,7 +101,7 @@ export default function ChatMainView({
   }, []);
 
   // 백엔드가 메시지를 보내는 순서를 그대로 사용하되, 렌더링 시 역순으로 표시
-  // (백엔드 순서: [오래된, ..., 최신] → 렌더링: [최신, ..., 오래된])
+  // (백엔드 응답: [최신, ..., 오래된] -> 렌더링: [오래된, ..., 최신] (위에서 아래로))
   const displayMessages = [...messages].reverse();
 
   const onMessagesScroll = useCallback(() => {
@@ -138,8 +140,8 @@ export default function ChatMainView({
   }, [messages.length, activeConversation, displayMessages]);
 
   return (
-    <div className="max-w-[688px] flex justify-center">
-      <div className="min-w-[688px] h-[840px] rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+    <div className="max-w-[688px] flex justify-center h-full">
+      <div className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
         {/* Header */}
         <div className="px-7 py-[15px] flex items-center justify-between border-b border-[#E2E2E266]">
           <div className="flex items-center gap-4">
@@ -199,6 +201,30 @@ export default function ChatMainView({
             ref={messagesScrollRef}
             onScroll={onMessagesScroll}
           >
+            {isMessagesLoading && (
+              <div className="flex justify-center py-4">
+                <svg
+                  className="animate-spin h-6 w-6 text-primary-60"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            )}
             {banner && (
               <div
                 className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${

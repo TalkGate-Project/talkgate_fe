@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import BaseModal from "@/components/common/BaseModal";
+import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
 
@@ -129,35 +130,14 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
             </button>
           </div>
           {/* Date selector row */}
-          <div className="flex items-center justify-center gap-3">
-              <button
-                aria-label="prev"
-                onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1))}
-                className="cursor-pointer flex-shrink-0"
-              >
-                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" fill="white"/>
-                  <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" stroke="#E2E2E2"/>
-                  <path d="M21 24.8076L14 17.8076L21 10.8076" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <div className="flex-1 h-[34px] bg-white border border-[#E2E2E2] rounded-[5px] flex items-center justify-center px-8">
-                <span className="font-pretendard font-bold text-[16px] leading-[19px] text-[#252525]">
-                  {format(current, "yyyy - MM - dd (E)", { locale: ko })}
-                </span>
-              </div>
-              <button
-                aria-label="next"
-                onClick={() => setCurrent((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))}
-                className="cursor-pointer flex-shrink-0"
-              >
-                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" fill="white"/>
-                  <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" stroke="#E2E2E2"/>
-                  <path d="M15 24.8076L22 17.8076L15 10.8076" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
+          <div className="w-full">
+            <DatePicker
+                value={current}
+                onChange={(d) => d && setCurrent(d)}
+                dateFormat="yyyy - MM - dd (EEE)"
+                className="text-center font-pretendard font-bold text-[16px] leading-[19px] text-[#252525]"
+            />
+          </div>
         </div>
 
         {/* Body */}

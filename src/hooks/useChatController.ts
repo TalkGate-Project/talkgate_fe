@@ -50,6 +50,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // 메시지 관리
   // ============================================
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isMessagesLoading, setIsMessagesLoading] = useState<boolean>(false);
   const [msgCursor, setMsgCursor] = useState<number | undefined>(undefined);
   const [msgHasMore, setMsgHasMore] = useState<boolean>(false);
   const msgLoadingRef = useRef(false);
@@ -199,17 +200,18 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setMsgCursor(nextCursor);
       setMsgHasMore(hasMore);
       msgLoadingRef.current = false;
+      setIsMessagesLoading(false);
       lastMsgCursorRequestedRef.current = undefined;
 
       if (requestedCursor) {
-        // 페이징: 기존 메시지 앞에 이전 메시지 추가 (백엔드가 오래된 메시지부터 보내는 것으로 가정)
+        // 페이징: 기존 메시지 뒤에 이전 메시지 추가 (백엔드가 최신->오래된 순으로 보냄)
         setMessages((prev) => {
           const existingIds = new Set(prev.map((m) => m.id));
-          const merged = [...msgs.filter((m) => !existingIds.has(m.id)), ...prev];
-          return merged;
+          const newMessages = msgs.filter((m) => !existingIds.has(m.id));
+          return [...prev, ...newMessages];
         });
       } else {
-        // 초기 로드: 전체 교체 (백엔드 순서 그대로 사용)
+        // 초기 로드: 전체 교체 (백엔드 순서 그대로 사용: 최신 -> 오래된)
         setMessages(msgs);
       }
     };
@@ -325,6 +327,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     socket.emit("markMessagesRead", { conversationId: activeId });
     lastMsgCursorRequestedRef.current = undefined;
     msgLoadingRef.current = true;
+    setIsMessagesLoading(true);
   }, [activeId]);
 
   useEffect(() => {
@@ -346,9 +349,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
       const tempMessageId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       tempIdSetRef.current.add(tempMessageId);
       const now = new Date().toISOString();
-      // Optimistic UI: 즉시 메시지 추가 (뒤에 추가하여 최신 메시지가 아래로)
+      // Optimistic UI: 즉시 메시지 추가 (앞에 추가하여 최신 메시지가 위로 - 추후 렌더링 시 reverse됨)
+      const tempIdNum = Date.now(); // number 타입의 임시 ID 사용
       const tempMessage = {
-        id: Number.NEGATIVE_INFINITY, // 충돌하지 않는 임시 ID
+        id: tempIdNum, // number 타입이어야 함
         conversationId: activeId,
         type: "text",
         direction: "outgoing",
@@ -360,7 +364,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         tempMessageId,
       } as any;
       
-      setMessages((prev) => [...prev, tempMessage]);
+      setMessages((prev) => [tempMessage, ...prev]);
       // Optimistic UI: 대화 목록 순서 업데이트 (최신 메시지가 있는 대화를 맨 위로)
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
@@ -368,7 +372,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
         const updated: Conversation = {
           ...target,
           lastMessage: {
-            id: Number.NEGATIVE_INFINITY as any,
+            id: tempIdNum as any,
             conversationId: activeId,
             type: "text",
             direction: "outgoing",
@@ -466,9 +470,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
       const messageType = detectMessageType(file);
       setAttachmentUploading(true);
 
-      // Optimistic UI: 즉시 메시지 추가 (뒤에 추가하여 최신 메시지가 아래로)
+      // Optimistic UI: 즉시 메시지 추가 (앞에 추가하여 최신 메시지가 위로 - 추후 렌더링 시 reverse됨)
+      const tempIdNum = Date.now();
       const tempMessage = {
-        id: Number.NEGATIVE_INFINITY,
+        id: tempIdNum,
         conversationId: activeId,
         type: messageType,
         direction: "outgoing",
@@ -484,14 +489,14 @@ export function useChatController({ projectId, status = "all", platform }: Param
         tempMessageId,
       } as any;
       
-      setMessages((prev) => [...prev, tempMessage]);
+      setMessages((prev) => [tempMessage, ...prev]);
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
         if (!target) return prev;
         const updated: Conversation = {
           ...target,
           lastMessage: {
-            id: Number.NEGATIVE_INFINITY as any,
+            id: tempIdNum as any,
             conversationId: activeId,
             type: messageType as any,
             direction: "outgoing",
@@ -578,6 +583,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     notify: showBanner,
     attachmentUploading,
     sendAttachment,
+    isMessagesLoading,
     // 페이징
     conversationsPage: { hasMore: convHasMore },
     messagesPage: { hasMore: msgHasMore },

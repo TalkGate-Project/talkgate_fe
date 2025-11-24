@@ -35,6 +35,12 @@ export default function ChatInputBar({
         <input
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              onSend();
+            }
+          }}
           className="flex-1 h-[44px] rounded-[8px] px-4 text-[14px] outline-none disabled:cursor-not-allowed"
           placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
           disabled={disabled}

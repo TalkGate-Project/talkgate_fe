@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { format } from "date-fns";
 import AttendanceFilterModal, {
   AttendanceFilterState,
 } from "@/components/attendance/AttendanceFilterModal";
@@ -148,6 +149,10 @@ function AttendancePageContent() {
         <AttendanceHeader
           selectedDate={selectedDate}
           onNavigateDate={handleNavigateDate}
+          onDateChange={(d) => {
+            setSelectedDate(format(d, "yyyy-MM-dd"));
+            persistQuery({ page: 1 });
+          }}
         />
 
         {/* Bottom area: attendance table */}

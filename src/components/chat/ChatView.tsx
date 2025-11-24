@@ -89,6 +89,7 @@ export default function ChatView({ projectId }: Props) {
     loadOlderMessages,
     attachmentUploading,
     sendAttachment,
+    isMessagesLoading,
   } = useChatController({ projectId, status: statusFilter, platform });
 
   useEffect(() => {
@@ -236,7 +237,7 @@ export default function ChatView({ projectId }: Props) {
   }, [activeId]);
 
   return (
-    <div className="flex gap-8">
+    <div className="flex gap-8 h-full">
       <ChatLeftSidebar
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
@@ -269,6 +270,7 @@ export default function ChatView({ projectId }: Props) {
         emojiButtonRef={emojiButtonRef}
         emojiPickerOpen={emojiPickerOpen}
         loadOlderMessages={loadOlderMessages}
+        isMessagesLoading={isMessagesLoading}
       />
 
       <ChatRightSidebar projectId={projectId} conversationId={activeId} />
