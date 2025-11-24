@@ -145,7 +145,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           <div className="text-[18px] font-semibold leading-[1] text-[#000] mt-[24px] mb-[35px]">새 프로젝트 생성</div>
           <button
             aria-label="close"
-            className="ml-auto w-6 h-6 grid place-items-center"
+            className="cursor-pointer ml-auto w-6 h-6 grid place-items-center"
             onClick={() => !submitting && onClose()}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -207,7 +207,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="mt-2 text-center text-[14px] text-[#808080]">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
+                <div className="mt-2 text-center text-[14px] font-medium text-[#808080]">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
                 <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={onFileChange} />
               </div>
 
