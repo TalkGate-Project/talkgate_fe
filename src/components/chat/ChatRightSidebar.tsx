@@ -163,17 +163,10 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
           <h3 className="text-[20px] font-bold">AI상담도우미</h3>
           <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
         </div>
-        <button
-          className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
-          type="button"
-          disabled={!hasActiveConversation}
-        >
-          완료
-        </button>
       </div>
 
       <div
-        className="flex-1 overflow-auto p-4 space-y-3"
+        className="flex-1 overflow-auto p-4 space-y-3 max-[1439px]:min-h-[200px] max-[1439px]:max-h-[360px]"
         ref={messagesScrollRef}
       >
         {!hasActiveConversation ? (
@@ -264,7 +257,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
             className="flex-1 h-[40px] px-3 text-[14px] outline-none bg-transparent border-0 disabled:cursor-not-allowed"
             placeholder={
               hasActiveConversation
-                ? "AI 도우미에게 물어볼 내용을 입력하세요."
+                ? "메세지를 입력하세요."
                 : "상담 채팅을 먼저 선택해주세요."
             }
             value={input}
