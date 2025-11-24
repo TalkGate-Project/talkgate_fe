@@ -251,8 +251,10 @@ export default function ConsultationPanel({
                     >
                       {categoryName}
                     </div>
-                    {/* Note: Original code hardcoded '홍길동', using customerName as fallback or generic */}
-                    <span>{customerName}</span>
+                    {/* 노트를 작성한 담당자 이름이 우선, 없으면 고객 이름을 표시 */}
+                    <span className="text-[12px] text-neutral-80">
+                      {n.memberName || customerName}
+                    </span>
                   </div>
                   <div className="text-neutral-60 flex gap-x-3 items-center justify-end">
                     <span className="text-right">

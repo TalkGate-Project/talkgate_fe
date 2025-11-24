@@ -112,11 +112,11 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[440px] h-[426px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
+      containerClassName="relative w-[440px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
       ariaLabel="일정 추가"
     >
         {/* Header */}
-        <div className="px-6 pt-6">
+        <div className="px-7 pt-6">
           <div className="flex items-center justify-between mb-6">
             <div className="text-[18px] font-semibold leading-[21px] text-[#000000]">일정 추가</div>
             <button
@@ -141,7 +141,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
         </div>
 
         {/* Body */}
-        <div className="px-6 pt-4">
+        <div className="px-7 pt-4">
           {/* Time row */}
           <div className="mb-2 text-[14px] font-medium tracking-[0.2px] text-neutral-60">시간</div>
           <div className="flex items-center gap-3">
@@ -237,7 +237,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
         <div className="mt-6 border-t border-[#E2E2E266]" />
 
         {/* Footer */}
-        <div className="absolute bottom-6 right-6 flex items-center gap-3">
+        <div className="bottom-6 right-6 flex items-center justify-end gap-3 px-7 py-3">
           <button
             onClick={() => !submitting && onClose()}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] bg-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#000000]"

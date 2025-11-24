@@ -198,16 +198,16 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
             {isCheckedIn ? (
                 // Checked In State
                 <div className="flex items-center gap-3">
-                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-20 bg-white flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div>
+                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center gap-2">
+                        {/* <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div> */}
                         <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
-                            근무중 {elapsedTime}
+                          🕑 근무중 {elapsedTime}
                         </span>
                     </div>
                     <button 
                         onClick={handleToggleAttendance}
                         disabled={checkOutMutation.isPending}
-                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 transition-colors"
+                        className="h-[34px] px-3 rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
                         {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
                     </button>
@@ -215,7 +215,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
             ) : (
                 // Checked Out State (Default)
                 <>
-                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-50 bg-neutral-0 flex items-center justify-center">
+                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center justify-center">
                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
                            ● 퇴근상태
                          </span>
@@ -223,7 +223,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                     <button 
                         onClick={handleToggleAttendance}
                         disabled={checkInMutation.isPending}
-                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 transition-colors"
+                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
                         {checkInMutation.isPending ? "처리중..." : "출근하기"}
                     </button>

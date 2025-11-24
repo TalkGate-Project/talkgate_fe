@@ -165,7 +165,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center"
+							className="w-6 h-6 flex items-center justify-center cursor-pointer"
 							onClick={goPrev}
 							aria-label="이전"
 						>
@@ -173,7 +173,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 						</button>
 						<button
 							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
@@ -189,7 +189,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 						</button>
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center"
+							className="w-6 h-6 flex items-center justify-center cursor-pointer"
 							onClick={goNext}
 							aria-label="다음"
 						>
@@ -246,7 +246,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 											key={y}
 											type="button"
 											onClick={() => onSelectYear(y)}
-											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center hover:bg-neutral-20
+											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center hover:bg-neutral-20 cursor-pointer
                                                 ${isSelected ? "bg-[#D6FAE8] text-[#252525]" : "text-[#252525]"}
                                             `}
 											style={{ fontFamily: "var(--font-montserrat)" }}

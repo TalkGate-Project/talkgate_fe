@@ -7,6 +7,7 @@ import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import NotificationBell from "./NotificationBell";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -31,7 +32,6 @@ export default function Header() {
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -53,20 +53,6 @@ export default function Header() {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
-
-  // 읽지 않은 알림 수 불러오기
-  useEffect(() => {
-    const loadUnreadCount = async () => {
-      try {
-        // 임시 데이터 - 실제로는 API 호출 예정
-        const mockUnreadCount = 2; // 예시로 2개
-        setUnreadCount(mockUnreadCount);
-      } catch (error) {
-        console.error("Failed to load unread count:", error);
-      }
-    };
-    loadUnreadCount();
   }, []);
 
   useEffect(() => {
@@ -175,25 +161,8 @@ export default function Header() {
           ) : (
             <span className="relative block w-6 h-6" aria-hidden />
           )}
-          {/* 알림 아이콘 (읽지 않은 알림 표시) */}
-          <button
-            onClick={() => router.push("/notifications")}
-            className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M15 17H20L18.5951 15.5951C18.2141 15.2141 18 14.6973 18 14.1585V11C18 8.38757 16.3304 6.16509 14 5.34142V5C14 3.89543 13.1046 3 12 3C10.8954 3 10 3.89543 10 5V5.34142C7.66962 6.16509 6 8.38757 6 11V14.1585C6 14.6973 5.78595 15.2141 5.40493 15.5951L4 17H9M15 17V18C15 19.6569 13.6569 21 12 21C10.3431 21 9 19.6569 9 18V17M15 17H9"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]" />
-            )}
-          </button>
+          {/* 알림 아이콘 + 플로팅 */}
+          <NotificationBell />
 
           {/* 아바타 및 드롭다운 */}
           <div className="relative" ref={menuRef}>

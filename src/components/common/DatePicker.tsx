@@ -183,7 +183,7 @@ export default function DatePicker(props: DatePickerProps) {
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center"
+							className="w-6 h-6 flex items-center justify-center cursor-pointer"
 							onClick={goPrev}
 							aria-label="이전"
 						>
@@ -191,7 +191,7 @@ export default function DatePicker(props: DatePickerProps) {
 						</button>
 						<button
 							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
@@ -207,7 +207,7 @@ export default function DatePicker(props: DatePickerProps) {
 						</button>
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center"
+							className="w-6 h-6 flex items-center justify-center cursor-pointer"
 							onClick={goNext}
 							aria-label="다음"
 						>
@@ -250,8 +250,8 @@ export default function DatePicker(props: DatePickerProps) {
 									const selectedCls = isSelected ? "bg-[#D6FAE8]" : "hover:bg-neutral-20";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
-									return (
-										<button
+										return (
+											<button
 											key={date.toISOString() + inCurrent}
 											type="button"
 											className={`${baseCls} ${textCls} ${isDisabled ? disabledCls : selectedCls} ${disabledCls}`}
@@ -275,7 +275,7 @@ export default function DatePicker(props: DatePickerProps) {
 											key={y}
 											type="button"
 											onClick={() => onSelectYear(y)}
-											className="h-8 rounded-[6px] text-[14px] text-[#252525] hover:bg-neutral-20"
+											className="h-8 rounded-[6px] text-[14px] text-[#252525] hover:bg-neutral-20 cursor-pointer"
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{y}
