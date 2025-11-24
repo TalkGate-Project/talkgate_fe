@@ -177,7 +177,7 @@ function LabeledSelect({ label, options, placeholder, value, onChange, freeText 
 
 function Pill({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
-        <div className="flex items-center gap-2 px-2.5 h-[22px] rounded-full bg-[#D6FAE8]">
+        <div className="flex items-center gap-2 px-2.5 h-[22px] rounded-full bg-[#D6FAE8] shrink-0 whitespace-nowrap">
             <span className="text-[12px] leading-[14px] font-medium text-[#00B55B] opacity-80">{label}</span>
             <button aria-label="remove" onClick={onRemove} className="w-3 h-3 grid place-items-center">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -260,7 +260,7 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                         return next;
                     });
                 }}
-                className="w-full border border-[#E2E2E2] rounded-[5px] h-[34px] px-3 relative text-left flex items-center justify-between"
+                className="w-full border border-[#E2E2E2] rounded-[5px] h-[34px] px-3 relative text-left flex items-center justify-between bg-white"
             >
                 <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] opacity-80">{summaryLabel}</span>
                 <svg className="pointer-events-none" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -270,14 +270,16 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
 
             {/* Selected pills - ensure dropdown overlays them when open */}
             {selected.length > 0 && (
-                <div className={`flex items-center gap-2 mt-2 ${open ? "relative z-20" : ""}`}>
-                    {selected.map((id) => {
-                        const c = options.find((o) => o.id === id);
-                        if (!c) return null;
-                        return <Pill key={id} label={c.name} onRemove={() => {
-                            setSelected((prev) => prev.filter((x) => x !== id));
-                        }} />;
-                    })}
+                <div className="w-[384px] mt-2 overflow-x-auto no-scrollbar">
+                    <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
+                        {selected.map((id) => {
+                            const c = options.find((o) => o.id === id);
+                            if (!c) return null;
+                            return <Pill key={id} label={c.name} onRemove={() => {
+                                setSelected((prev) => prev.filter((x) => x !== id));
+                            }} />;
+                        })}
+                    </div>
                 </div>
             )}
 
@@ -293,10 +295,10 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                         return (
                             <label
                                 key={c.id}
-                                className={`w-full h-[34px] px-3 flex items-center gap-3 text-left rounded-[5px] border cursor-pointer ${
+                                className={`w-full h-[48px] px-6 flex items-center gap-3 text-left rounded-[5px] cursor-pointer ${
                                     checked
-                                        ? "border-2 border-primary-40 bg-primary-10/30"
-                                        : "border-border bg-card hover:bg-neutral-10"
+                                        ? "bg-primary-10/30"
+                                        : "bg-card hover:bg-neutral-10"
                                 }`}
                             >
                                 <Checkbox checked={checked} onChange={(next) => {
