@@ -29,7 +29,7 @@ const SIDEBAR_ITEMS = [
 
 export default function MySettingsSidebar({ activeTab, onTabChange }: MySettingsSidebarProps) {
   return (
-    <div className="w-[280px] max-h-[280px] bg-card rounded-[14px] shadow-sm p-6">
+    <div className="w-[280px] max-h-[280px] bg-card rounded-[14px] p-6">
       {/* 헤더 */}
       <div className="mb-8">
         <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>

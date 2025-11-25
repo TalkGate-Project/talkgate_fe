@@ -192,6 +192,7 @@ function CustomersPage() {
         onClose={() => setAssignOpen(false)}
         selectedCustomerIds={selectedIds}
         onAssign={handleAssign}
+        projectId={projectId!}
       />
 
       <CustomerDetailModal open={detailId !== null} onClose={() => setDetailId(null)} customerId={detailId} />

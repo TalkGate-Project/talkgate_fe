@@ -330,7 +330,6 @@ export default function GeneralSettings() {
       {/* 일반설정 - 프로젝트 이름 */}
       <div className="bg-card rounded-[14px] shadow-sm py-7">
         <h1 className="text-[24px] font-bold text-neutral-90 mb-[30px] leading-[20px] px-7">일반설정</h1>
-        
         <div className="border-t border-neutral-30 mb-6"></div>
         <h3 className="text-[16px] font-semibold text-foreground mb-3 tracking-[0.2px] leading-[1] px-7">프로젝트 이름</h3>
         <div className="border-t border-neutral-30 mb-3 mx-7"></div>

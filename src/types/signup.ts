@@ -5,17 +5,15 @@ export type CheckEmailInput = {
 };
 
 export type CheckEmailOutput = {
-  available: true;
+  available: boolean;
 };
 
 export type RegisterInput = {
   email: string;
   password: string;
-  name: string;
-  phone: string;
-  code?: string;
   agreeTerms: boolean;
   agreePrivacy: boolean;
+  invitationToken?: string;
 };
 
 export type RegisterOutput = {

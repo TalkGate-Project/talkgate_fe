@@ -45,7 +45,7 @@ export default function TeamListView({
 
   const renderItems = useCallback(
     (items: TeamMember[]) =>
-      items.map((item) => {
+      items.map((item, index) => {
         const hasChildren = Boolean(item.children && item.children.length);
         const isExpanded = currentExpanded.has(item.id);
         const indent = (item.level ?? 0) * 24;
@@ -59,7 +59,11 @@ export default function TeamListView({
               <>
                 <div
                   className="absolute left-0 top-0 bottom-0 w-px bg-border"
-                  style={{ left: `${indent - 12}px` }}
+                  style={{ 
+                    left: `${indent - 12}px`,
+                    // 첫 번째 아이템은 상단 여백(mt-2)만큼 선을 위로 올려서 연결
+                    top: index === 0 ? -8 : 0 
+                  }}
                 />
                 <div
                   className="absolute h-px bg-border"
@@ -68,7 +72,7 @@ export default function TeamListView({
               </>
             )}
             <div
-              className={`h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all ${
+              className={`h-[60px] flex items-center px-6 gap-4 border border-neutral-30 rounded-[12px] cursor-move transition-all ${
                 item.isLeader
                   ? "bg-primary-10/30"
                   : "bg-card"
@@ -127,7 +131,7 @@ export default function TeamListView({
               )}
             </div>
             {hasChildren && isExpanded && item.children && (
-              <div>{renderItems(item.children)}</div>
+              <div className="mt-2">{renderItems(item.children)}</div>
             )}
           </div>
         );
