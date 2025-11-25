@@ -112,8 +112,10 @@ export const CustomersService = {
   },
   // 일정 추가/삭제
   addSchedule(input: AddCustomerScheduleInput) {
-    const { projectId, ...body } = input;
-    return apiClient.post<BasicSuccessResponse>(`/v1/customers/schedules`, body, {
+    const { projectId, colorCode, ...rest } = input;
+    // colorCode에 # 접두사 보장
+    const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
+    return apiClient.post<BasicSuccessResponse>(`/v1/customers/schedules`, { ...rest, colorCode: normalizedColorCode }, {
       headers: { "x-project-id": projectId },
     });
   },

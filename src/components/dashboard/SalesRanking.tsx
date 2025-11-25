@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
@@ -8,9 +8,53 @@ import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { RankingMemberResponse, RankingTeamResponse } from "@/types/statistics";
-import { useSalesRankingData, type RankingMode } from "@/hooks/useSalesRankingData";
+import { useSalesRankingData, type RankingMode, type RankingRow } from "@/hooks/useSalesRankingData";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
-import MemberDetailModal from "@/components/members/MemberDetailModal";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
+import { flattenTeamData } from "@/hooks/useTeamTree";
+import type { TeamMember } from "@/data/mockTeamData";
+import type { MemberTreeNode } from "@/types/membersTree";
+
+const ROLE_LABEL: Record<string, string> = {
+  leader: "리더",
+  member: "팀원",
+};
+
+function initialFromName(name: string): string {
+  if (!name) return "?";
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  return trimmed.charAt(0);
+}
+
+function transformMembers(
+  nodes: MemberTreeNode[] | undefined,
+  teamNameByLeader: Map<number, string>,
+  parentId?: string,
+  level: number = 0
+): TeamMember[] {
+  if (!nodes) return [];
+  return nodes.map((node) => {
+    const id = String(node.id);
+    const teamName = teamNameByLeader.get(node.id) ?? "";
+    const department = teamName || ROLE_LABEL[node.role] || node.role;
+    const isLeader = teamNameByLeader.has(node.id) || node.role === "leader";
+    const children = transformMembers(node.descendants, teamNameByLeader, id, level + 1);
+    return {
+      id,
+      name: node.name,
+      avatar: initialFromName(node.name),
+      role: department,
+      department,
+      isLeader,
+      level,
+      parentId,
+      children,
+      isExpanded: true,
+    };
+  });
+}
 
 export default function SalesRanking() {
   const router = useRouter();
@@ -19,7 +63,36 @@ export default function SalesRanking() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const [mode, setMode] = useState<RankingMode>("team");
-  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+
+  // 조직도 데이터 가져오기
+  const { data: treeData } = useMembersTree(projectId);
+  const { data: teamsData } = useTeams(projectId);
+
+  const teamNameByLeader = useMemo(() => {
+    const map = new Map<number, string>();
+    (teamsData ?? []).forEach((team) => {
+      map.set(team.leaderMemberId, team.name);
+    });
+    return map;
+  }, [teamsData]);
+
+  const teamMembers = useMemo(() => transformMembers(treeData, teamNameByLeader), [treeData, teamNameByLeader]);
+  const flattenedMembers = useMemo(() => flattenTeamData(teamMembers), [teamMembers]);
+
+  const selectedMember = useMemo(
+    () => (selectedMemberId ? flattenedMembers.find((member) => member.id === selectedMemberId) ?? null : null),
+    [flattenedMembers, selectedMemberId]
+  );
+
+  const handleRowClick = useCallback((item: RankingRow) => {
+    if (!item.memberId) return;
+    setSelectedMemberId(String(item.memberId));
+  }, []);
+
+  const closeMemberModal = useCallback(() => {
+    setSelectedMemberId(null);
+  }, []);
 
   const teamQuery = useQuery<RankingTeamResponse>({
     queryKey: ["dashboard", "ranking", "team", projectId],
@@ -102,7 +175,7 @@ export default function SalesRanking() {
               <li
                 key={`${mode}-${item.rank}-${item.name}`}
                 className="flex items-center justify-between py-4 border-b border-border last:border-b-0 cursor-pointer hover:bg-neutral-10 transition-colors rounded-lg px-1"
-                onClick={() => item.memberId && setSelectedMemberId(item.memberId)}
+                onClick={() => handleRowClick(item)}
               >
                 <div className="flex items-center gap-2 pl-3">
                   <span
@@ -129,11 +202,14 @@ export default function SalesRanking() {
           </ol>
         )}
       </div>
-      <MemberDetailModal
-        open={selectedMemberId !== null}
-        onClose={() => setSelectedMemberId(null)}
-        memberId={selectedMemberId}
-      />
+      {selectedMember && (
+        <TeamMemberInfoModal
+          open={Boolean(selectedMember)}
+          member={selectedMember}
+          onClose={closeMemberModal}
+          projectId={projectId}
+        />
+      )}
     </Panel>
   );
 }

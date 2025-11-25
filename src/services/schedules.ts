@@ -23,8 +23,10 @@ export const SchedulesService = {
     });
   },
   create(input: { projectId: string; scheduleTime: string; description: string; colorCode: string }) {
-    const { projectId, ...body } = input;
-    return apiClient.post<ApiSuccessResponse<WeeklyScheduleItem>>(`/v1/schedules`, body, {
+    const { projectId, colorCode, ...rest } = input;
+    // colorCode에 # 접두사 보장
+    const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
+    return apiClient.post<ApiSuccessResponse<WeeklyScheduleItem>>(`/v1/schedules`, { ...rest, colorCode: normalizedColorCode }, {
       headers: { "x-project-id": projectId },
     });
   },

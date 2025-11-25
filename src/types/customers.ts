@@ -285,7 +285,7 @@ export type AddCustomerScheduleInput = {
   customerId: number;
   scheduleTime: string; // ISO
   description: string;
-  /** 6자리 HEX (예: "00E272"), '#' 제외 */
+  /** 6자리 HEX (예: "#00E272"), '#' 포함 */
   colorCode: string;
   projectId: string; // header
 };

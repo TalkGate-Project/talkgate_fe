@@ -248,14 +248,16 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
   // Schedule Actions
   const addSchedule = async (dateIso: string, desc: string, colorCode: string) => {
     if (!detail) return;
+    // colorCode에 # 접두사 보장은 서비스 레이어(CustomersService.addSchedule)에서 처리
     await CustomersService.addSchedule({
       customerId: detail.id,
       scheduleTime: dateIso,
       description: desc,
-      colorCode: colorCode?.startsWith("#") ? colorCode.slice(1) : colorCode,
+      colorCode,
       projectId: (window as any)?.tgSelectedProjectId || "",
     });
-    // Optimistic
+    // Optimistic - 로컬 상태에도 # 포함된 형태로 저장
+    const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
     setDetail(prev => prev ? ({
         ...prev,
         schedules: [
@@ -264,7 +266,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
                 id: Math.random(),
                 scheduleTime: dateIso,
                 description: desc,
-                colorCode: colorCode?.startsWith("#") ? colorCode.slice(1) : colorCode,
+                colorCode: normalizedColorCode,
                 createdAt: new Date().toISOString(),
             } as any
         ]
