@@ -2,13 +2,54 @@ import { useState } from "react";
 import { AuthService } from "@/services/auth";
 
 type ProfileStepProps = {
+  email: string;
+  password: string;
   onComplete: () => void;
   onSkip: () => void;
 };
 
-export function ProfileStep({ onComplete, onSkip }: ProfileStepProps) {
+export function ProfileStep({
+  email,
+  password,
+  onComplete,
+  onSkip,
+}: ProfileStepProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // 1. 먼저 로그인 수행
+      await AuthService.login({ email, password });
+      // 2. 로그인 성공 후 프로필 업데이트
+      await AuthService.updateProfile({
+        name: name || undefined,
+        phone: phone || undefined,
+      });
+      onComplete();
+    } catch {
+      // 로그인 또는 프로필 업데이트 실패 시에도 완료 처리
+      onComplete();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    setIsSubmitting(true);
+    try {
+      // 건너뛰기 시에도 로그인은 수행
+      await AuthService.login({ email, password });
+      onSkip();
+    } catch {
+      // 로그인 실패 시에도 완료 처리
+      onSkip();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     // 프로필 입력 단계 폼 영역 시작
@@ -16,17 +57,7 @@ export function ProfileStep({ onComplete, onSkip }: ProfileStepProps) {
       className="mt-8 w-full space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
-        AuthService.updateProfile({
-          name: name || undefined,
-          phone: phone || undefined,
-        })
-          .then(() => {
-            onComplete();
-          })
-          .catch(() => {
-            // 실패 시에도 일단 플로우를 진행 (대시보드로 이동)
-            onComplete();
-          });
+        handleSubmit();
       }}
     >
       {/* 안내 문구 영역 시작 */}
@@ -65,14 +96,16 @@ export function ProfileStep({ onComplete, onSkip }: ProfileStepProps) {
       <div className="mt-[30px] flex gap-5">
         <button
           type="button"
-          className="cursor-pointer w-full h-[40px] px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]"
-          onClick={onSkip}
+          className="cursor-pointer w-full h-[40px] px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleSkip}
+          disabled={isSubmitting}
         >
           건너뛰기
         </button>
         <button
           type="submit"
-          className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
+          className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
         >
           시작하기
         </button>
