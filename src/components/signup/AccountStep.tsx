@@ -154,12 +154,12 @@ export function AccountStep({ onSuccess }: AccountStepProps) {
         </div>
       </div>
       {emailDuplicate && (
-        <div className="mt-3 text-[14px] text-[#FF5A5A]">
+        <div className="mt-3 mb-3 text-[14px] text-[#FF5A5A]">
           이미 사용 중인 이메일입니다.
         </div>
       )}
       {emailChecked && !emailDuplicate && email === verifiedEmail && (
-        <div className="mt-3 text-[14px] text-[#00E272]">
+        <div className="mt-3 mb-3 text-[14px] text-[#00E272]">
           사용 가능한 이메일입니다.
         </div>
       )}

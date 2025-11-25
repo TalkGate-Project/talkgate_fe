@@ -103,13 +103,14 @@ export default function SignupPage() {
           {step === "verify" && (
             <VerifyStep
               email={accountEmail}
-              password={accountPassword}
               onSuccess={() => setStep("profile")}
             />
           )}
 
           {step === "profile" && (
             <ProfileStep
+              email={accountEmail}
+              password={accountPassword}
               onComplete={handleProfileComplete}
               onSkip={handleProfileSkip}
             />
@@ -118,20 +119,6 @@ export default function SignupPage() {
           {step === "done" && <DoneStep onGoLogin={handleGoLogin} />}
           {/* 단계별 회원가입 폼 영역 끝 */}
 
-          {/* 하단 링크 영역 시작 */}
-          {step === "account" && (
-            <div className="mt-6 text-[13px] text-[#BFBFBF]">
-              이미 계정이 있으신가요?{" "}
-              <button
-                type="button"
-                className="underline underline-offset-2 hover:text-white"
-                onClick={handleGoLogin}
-              >
-                로그인 화면으로
-              </button>
-            </div>
-          )}
-          {/* 하단 링크 영역 끝 */}
         </div>
         {/* 우측 카드 콘텐츠 컬럼 영역 끝 */}
       </div>

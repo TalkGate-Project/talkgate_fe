@@ -4,11 +4,10 @@ import { AuthService } from "@/services/auth";
 
 type VerifyStepProps = {
   email: string;
-  password: string;
   onSuccess: () => void;
 };
 
-export function VerifyStep({ email, password, onSuccess }: VerifyStepProps) {
+export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
   const [code, setCode] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -29,16 +28,11 @@ export function VerifyStep({ email, password, onSuccess }: VerifyStepProps) {
       onSubmit={(e) => {
         e.preventDefault();
         setInvalid(false);
+        // 이메일 인증 코드 검증만 수행
         SignupService.verifyEmailCode(email, code).then((res) => {
           if (res.success) {
-            // 이메일 인증 성공 후 로그인 및 다음 단계로 이동
-            AuthService.login({ email, password })
-              .then(() => {
-                onSuccess();
-              })
-              .catch(() => {
-                onSuccess();
-              });
+            // 인증 성공 시 다음 단계로 이동 (로그인은 ProfileStep에서 처리)
+            onSuccess();
           } else {
             setInvalid(true);
           }
