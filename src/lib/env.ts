@@ -59,6 +59,14 @@ function getWebSocketUrl(baseUrl: string, namespace: string): string {
 //   );
 const apiBaseUrl = "https://api-dev.talkgate.im";
 
+// Next.js는 NEXT_PUBLIC_ 환경 변수를 빌드 시점에 인라인합니다.
+// 중요: 동적 접근 (process.env[key])은 인라인되지 않으므로, 정적으로 접근해야 합니다.
+
+// 정적으로 환경 변수 읽기 (Next.js가 빌드 시점에 인라인)
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || undefined;
+const kakaoRestApiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
+const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
+
 export const env: AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
   NEXT_PUBLIC_API_TIMEOUT_MS: readNumber("NEXT_PUBLIC_API_TIMEOUT_MS", 10000),
@@ -68,9 +76,9 @@ export const env: AppEnv = {
   //   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "notification"),
   NEXT_PUBLIC_WS_CHAT_BASE_URL: getWebSocketUrl(apiBaseUrl, "chat"),
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: getWebSocketUrl(apiBaseUrl, "notification"),
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID: readOptionalString("NEXT_PUBLIC_GOOGLE_CLIENT_ID"),
-  NEXT_PUBLIC_KAKAO_REST_API_KEY: readOptionalString("NEXT_PUBLIC_KAKAO_REST_API_KEY"),
-  NEXT_PUBLIC_NAVER_CLIENT_ID: readOptionalString("NEXT_PUBLIC_NAVER_CLIENT_ID"),
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: googleClientId,
+  NEXT_PUBLIC_KAKAO_REST_API_KEY: kakaoRestApiKey,
+  NEXT_PUBLIC_NAVER_CLIENT_ID: naverClientId,
 };
 
 
