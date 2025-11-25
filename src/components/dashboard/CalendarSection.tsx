@@ -207,7 +207,7 @@ export default function CalendarSection() {
                 cell.date.getMonth() === today.getMonth() &&
                 cell.date.getDate() === today.getDate();
               const borderClass = isSelected
-                ? "border-2 border-primary-60"
+                ? "border border-primary-60"
                 : "border border-border";
               const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
@@ -351,7 +351,7 @@ export default function CalendarSection() {
                 selectedSchedules.map((schedule) => (
                   <div
                     key={schedule.id}
-                    className="relative flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0"
+                    className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0"
                     style={{ maxWidth: 304 }}
                   >
                     <span
@@ -365,14 +365,14 @@ export default function CalendarSection() {
                     <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
                       {formatTimeFromISO(schedule.scheduleTime)}
                     </span>
-                    <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate">
+                    <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate pr-2">
                       {schedule.description ||
                         schedule.customer?.name ||
                         "일정"}
                     </span>
                     <button
                       type="button"
-                      className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2"
+                      className="cursor-pointer shrink-0"
                       onClick={() => handleRequestRemove(schedule)}
                     >
                       <svg
@@ -414,11 +414,7 @@ export default function CalendarSection() {
         open={Boolean(scheduleToRemove)}
         title="일정 삭제"
         headline="일정을 삭제하시겠습니까?"
-        description={`${
-          scheduleToRemove?.description ||
-          scheduleToRemove?.customer?.name ||
-          "선택한 일정"
-        }을 삭제하면 복구할 수 없습니다.`}
+        description="삭제하면 복구할 수 없습니다."
         confirmText="삭제"
         cancelText="취소"
         loading={isRemoving}

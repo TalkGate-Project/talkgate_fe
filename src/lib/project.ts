@@ -8,15 +8,22 @@ function isBrowser(): boolean {
 }
 
 function cookieAttrs(): string {
+  const maxAge = 60 * 60 * 24 * 30; // 30일
   if (process.env.NODE_ENV === "production") {
-    return ["Path=/", "SameSite=None", "Secure"].join("; ");
+    const attrs = ["Path=/", "SameSite=None", "Secure", `Max-Age=${maxAge}`].join("; ");
+    console.log("[Project] 🔐 Production 프로젝트 쿠키 속성:", attrs);
+    return attrs;
   }
-  return ["Path=/", "SameSite=Lax"].join("; ");
+  const attrs = ["Path=/", "SameSite=Lax", `Max-Age=${maxAge}`].join("; ");
+  console.log("[Project] 🔧 Development 프로젝트 쿠키 속성:", attrs);
+  return attrs;
 }
 
 export function setSelectedProjectId(projectId: string | number) {
   if (!isBrowser()) return;
+  console.log("[Project] 📁 setSelectedProjectId 호출:", projectId);
   document.cookie = `${COOKIE_KEY}=${encodeURIComponent(String(projectId))}; ${cookieAttrs()}`;
+  console.log("[Project] ✅ 프로젝트 ID 쿠키 저장 완료");
   try {
     (window as any).tgSelectedProjectId = String(projectId);
     window.dispatchEvent(

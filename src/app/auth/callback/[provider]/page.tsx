@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
+import { setRememberMePreference, getRememberMePreference } from "@/lib/token";
 
 function OAuthCallbackPage() {
   const router = useRouter();
@@ -27,19 +28,33 @@ function OAuthCallbackPage() {
     let mounted = true;
     async function exchange() {
       try {
+        console.log("[OAuth] 🚀 소셜 로그인 시작", { provider, code: code?.slice(0, 20) + "...", callbackUrl });
+        
         if (!code || !provider) throw new Error("missing code or provider");
+        
+        // 🔧 소셜 로그인은 기본적으로 자동 로그인(Remember Me) 활성화
+        console.log("[OAuth] 📌 Remember Me 설정 전:", getRememberMePreference());
+        setRememberMePreference(true);
+        console.log("[OAuth] ✅ Remember Me 설정 후:", getRememberMePreference());
+        
         if (provider === "google") {
+          console.log("[OAuth] 🔵 Google 로그인 API 호출 중...");
           await AuthService.loginGoogle({ code, callbackUrl });
         } else if (provider === "kakao") {
+          console.log("[OAuth] 🟡 Kakao 로그인 API 호출 중...");
           await AuthService.loginKakao({ code, callbackUrl });
         } else if (provider === "naver") {
+          console.log("[OAuth] 🟢 Naver 로그인 API 호출 중...");
           await AuthService.loginNaver({ code, callbackUrl });
         } else {
           throw new Error("unsupported provider");
         }
+        
+        console.log("[OAuth] ✅ 소셜 로그인 성공! 대시보드로 이동합니다.");
         if (mounted) router.replace("/dashboard");
       } catch (e: any) {
-        console.error("소셜 로그인 오류:", e);
+        console.error("[OAuth] ❌ 소셜 로그인 오류:", e);
+        console.error("[OAuth] 오류 상세:", { status: e?.status, data: e?.data, message: e?.message });
         // 상세한 에러 메시지 표시 (개발 환경에서 디버깅용)
         const errorMessage = e?.data?.message || e?.message || "알 수 없는 오류";
         const errorCode = e?.data?.code || e?.status || "";
