@@ -66,7 +66,7 @@ export default function NoticeSection() {
             <div 
               key={n.id} 
               onClick={() => router.push(`/notice/${n.id}`)}
-              className="cursor-pointer flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer px-[10px] flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
             >
               <div className="flex items-center gap-3">
                 {n.important && (
