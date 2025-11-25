@@ -16,6 +16,7 @@ import ScheduleCreateModal from "@/components/dashboard/ScheduleCreateModal";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import MonthPicker from "@/components/common/MonthPicker";
+import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -42,6 +43,7 @@ export default function CalendarSection() {
   const [scheduleToRemove, setScheduleToRemove] =
     useState<WeeklyScheduleItem | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const ym = `${current.getFullYear()}.${String(
     current.getMonth() + 1
   ).padStart(2, "0")}`;
@@ -348,51 +350,58 @@ export default function CalendarSection() {
                     : "선택한 날짜에 일정이 없습니다."}
                 </div>
               ) : (
-                selectedSchedules.map((schedule) => (
-                  <div
-                    key={schedule.id}
-                    className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0"
-                    style={{ maxWidth: 304 }}
-                  >
-                    <span
-                      className="leading-[1] w-4 h-4 rounded-full shrink-0"
-                      style={{
-                        background:
-                          schedule.colorCode ||
-                          COLORS[schedule.id % COLORS.length],
-                      }}
-                    />
-                    <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
-                      {formatTimeFromISO(schedule.scheduleTime)}
-                    </span>
-                    <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate pr-2">
-                      {schedule.description ||
-                        schedule.customer?.name ||
-                        "일정"}
-                    </span>
-                    <button
-                      type="button"
-                      className="cursor-pointer shrink-0"
-                      onClick={() => handleRequestRemove(schedule)}
+                selectedSchedules.map((schedule) => {
+                  const hasCustomer = schedule.customer && schedule.customer.id;
+                  return (
+                    <div
+                      key={schedule.id}
+                      className={`flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 ${hasCustomer ? "cursor-pointer hover:bg-neutral-10 transition-colors" : ""}`}
+                      style={{ maxWidth: 304 }}
+                      onClick={hasCustomer ? () => setSelectedCustomerId(schedule.customer!.id) : undefined}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                      <span
+                        className="leading-[1] w-4 h-4 rounded-full shrink-0"
+                        style={{
+                          background:
+                            schedule.colorCode ||
+                            COLORS[schedule.id % COLORS.length],
+                        }}
+                      />
+                      <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
+                        {formatTimeFromISO(schedule.scheduleTime)}
+                      </span>
+                      <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate pr-2">
+                        {schedule.description ||
+                          schedule.customer?.name ||
+                          "일정"}
+                      </span>
+                      <button
+                        type="button"
+                        className="cursor-pointer shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRequestRemove(schedule);
+                        }}
                       >
-                        <path
-                          d="M4 12L12 4M4 4L12 12"
-                          stroke="#B0B0B0"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                ))
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M4 12L12 4M4 4L12 12"
+                            stroke="#B0B0B0"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
@@ -420,6 +429,11 @@ export default function CalendarSection() {
         loading={isRemoving}
         onCancel={handleCancelRemove}
         onConfirm={handleConfirmRemove}
+      />
+      <CustomerDetailModal
+        open={selectedCustomerId !== null}
+        onClose={() => setSelectedCustomerId(null)}
+        customerId={selectedCustomerId}
       />
     </Panel>
   );
