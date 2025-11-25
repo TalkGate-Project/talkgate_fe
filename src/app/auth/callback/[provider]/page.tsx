@@ -39,7 +39,13 @@ function OAuthCallbackPage() {
         }
         if (mounted) router.replace("/dashboard");
       } catch (e: any) {
-        if (mounted) setError("로그인에 실패했습니다. 다시 시도해주세요.");
+        console.error("소셜 로그인 오류:", e);
+        // 상세한 에러 메시지 표시 (개발 환경에서 디버깅용)
+        const errorMessage = e?.data?.message || e?.message || "알 수 없는 오류";
+        const errorCode = e?.data?.code || e?.status || "";
+        if (mounted) {
+          setError(`로그인에 실패했습니다. ${errorCode ? `(${errorCode})` : ""} ${errorMessage}`);
+        }
       }
     }
     exchange();
@@ -49,12 +55,24 @@ function OAuthCallbackPage() {
   }, [code, provider, callbackUrl, router]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
+    <main className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
       <div className="text-center text-white">
-        <div className="text-lg">소셜 로그인 처리 중...</div>
-        {error ? (
-          <div className="mt-2 text-red-400">{error}</div>
-        ) : null}
+        {!error ? (
+          <>
+            <div className="text-lg">소셜 로그인 처리 중...</div>
+            <div className="mt-4 animate-spin inline-block w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
+          </>
+        ) : (
+          <>
+            <div className="text-red-400 mb-4">{error}</div>
+            <button
+              onClick={() => router.replace("/login")}
+              className="px-4 py-2 bg-[#252525] text-[#D0D0D0] rounded-[5px] hover:bg-[#353535] transition-colors"
+            >
+              로그인 페이지로 돌아가기
+            </button>
+          </>
+        )}
       </div>
     </main>
   );
