@@ -28,12 +28,12 @@ export const SignupService = {
   },
 
   register(input: RegisterInput): Promise<RegisterOutput> {
-    const body: any = {
+    const body = {
       email: input.email,
       password: input.password,
-      isAllowTerms: Boolean(input.agreeTerms),
-      isAllowPrivacy: Boolean(input.agreePrivacy),
-      // Optional invitationToken is not present in our form; left undefined
+      isAllowTerms: input.agreeTerms,
+      isAllowPrivacy: input.agreePrivacy,
+      invitationToken: input.invitationToken,
     };
     return apiClient
       .post<any>("/v1/auth/signup", body)
