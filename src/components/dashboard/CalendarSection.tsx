@@ -370,7 +370,7 @@ export default function CalendarSection() {
                       <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
                         {formatTimeFromISO(schedule.scheduleTime)}
                       </span>
-                      <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 truncate pr-2">
+                      <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
                         {schedule.description ||
                           schedule.customer?.name ||
                           "일정"}
