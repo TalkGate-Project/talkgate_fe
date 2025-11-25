@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { MembersService } from "@/services/members";
 import { savePendingInviteToken, getPendingInviteToken, clearPendingInviteToken } from "@/lib/invite";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
@@ -25,35 +25,35 @@ function EnvelopeAnimation({
     closed: {
       rotateX: 0,
       zIndex: 40, // 닫혀있을 땐 가장 위
-      transition: { 
-        rotateX: { duration: 0.8, ease: "easeInOut" },
-        zIndex: { delay: 0.1 } // 닫힐 땐 즉시 앞으로 (약간 딜레이 줘서 뚫림 방지)
-      }
+      transition: {
+        rotateX: { duration: 0.8, ease: easeInOut },
+        zIndex: { delay: 0.1 }, // 닫힐 땐 즉시 앞으로 (약간 딜레이 줘서 뚫림 방지)
+      },
     },
     open: {
       rotateX: 180,
       zIndex: 11, // 다 열리면 카드(20) 뒤, 바닥(10) 앞으로 보냄
-      transition: { 
-        rotateX: { duration: 0.8, ease: "easeInOut" },
-        zIndex: { delay: 0.8 } // 회전이 끝나는 시점에 z-index 변경
-      }
-    }
+      transition: {
+        rotateX: { duration: 0.8, ease: easeInOut },
+        zIndex: { delay: 0.8 }, // 회전이 끝나는 시점에 z-index 변경
+      },
+    },
   };
 
   // 카드 애니메이션 설정
   const cardVariants = {
     closed: {
       y: 100, // 닫혀있을 땐 봉투 깊숙이 숨김 (0 -> 100)
-      transition: { duration: 0.5 }
+      transition: { duration: 0.5 },
     },
     open: {
-      y: -220, 
-      transition: { 
-        delay: 0.9, 
-        duration: 1.0, 
-        ease: "easeInOut" 
-      }
-    }
+      y: -220,
+      transition: {
+        delay: 0.9,
+        duration: 1.0,
+        ease: easeInOut,
+      },
+    },
   };
 
   return (
