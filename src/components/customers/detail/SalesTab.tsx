@@ -104,7 +104,7 @@ export default function SalesTab({
     onAddSchedule(
       dateIso,
       scheduleDesc,
-      scheduleColor.startsWith("#") ? scheduleColor.slice(1) : scheduleColor
+      scheduleColor
     );
     setScheduleDate(null);
     setScheduleTime(null);

@@ -25,34 +25,80 @@ import type {
   TwoFactorLoginOutput,
 } from "@/types/auth";
 
+/**
+ * 로그인 응답에서 토큰과 사용자 정보를 추출하는 헬퍼 함수
+ * 두 가지 응답 형식을 모두 지원:
+ * 1. { result, data: { accessToken, refreshToken, user } } - 래핑된 형식
+ * 2. { accessToken, refreshToken, user } - 직접 형식
+ */
+function extractLoginData(resData: any): {
+  accessToken?: string;
+  refreshToken?: string;
+  user?: any;
+  projectId?: string | number;
+} {
+  console.log("[AuthService] 🔍 원본 응답 데이터 구조 분석:", {
+    type: typeof resData,
+    keys: resData ? Object.keys(resData) : [],
+    hasResult: 'result' in (resData || {}),
+    hasData: 'data' in (resData || {}),
+    hasAccessToken: 'accessToken' in (resData || {}),
+  });
+  console.log("[AuthService] 📦 원본 응답 데이터:", JSON.stringify(resData, null, 2));
+
+  // Case 1: { result, data: { accessToken, ... } } 형식
+  if (resData?.data?.accessToken || resData?.data?.refreshToken) {
+    console.log("[AuthService] ✅ 래핑된 응답 형식 감지 (result/data 구조)");
+    return {
+      accessToken: resData.data.accessToken,
+      refreshToken: resData.data.refreshToken,
+      user: resData.data.user,
+      projectId: resData.data.projectId ?? resData.data.defaultProjectId ?? resData.data.user?.defaultProjectId ?? resData.data.user?.projectId,
+    };
+  }
+
+  // Case 2: { accessToken, ... } 형식 (직접)
+  if (resData?.accessToken || resData?.refreshToken) {
+    console.log("[AuthService] ✅ 직접 응답 형식 감지 (accessToken 직접 포함)");
+    return {
+      accessToken: resData.accessToken,
+      refreshToken: resData.refreshToken,
+      user: resData.user,
+      projectId: resData.projectId ?? resData.defaultProjectId ?? resData.user?.defaultProjectId ?? resData.user?.projectId,
+    };
+  }
+
+  console.log("[AuthService] ⚠️ 토큰을 찾을 수 없음 - 알 수 없는 응답 형식");
+  return {};
+}
+
 export const AuthService = {
   // Social login
   loginGoogle(input: SocialLoginInput) {
     console.log("[AuthService] 🔵 loginGoogle 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/google", input).then((res) => {
       console.log("[AuthService] 📥 Google API 응답 수신:", { status: res.status, ok: res.ok });
-      // Expecting { result, data: { accessToken, refreshToken, user, projectId? } }
-      const anyRes: any = res.data as any;
-      console.log("[AuthService] 📊 응답 데이터:", {
-        hasAccessToken: !!anyRes?.data?.accessToken,
-        hasRefreshToken: !!anyRes?.data?.refreshToken,
-        hasUser: !!anyRes?.data?.user,
-        projectId: anyRes?.data?.projectId,
-        defaultProjectId: anyRes?.data?.defaultProjectId,
+      
+      const extracted = extractLoginData(res.data);
+      console.log("[AuthService] 📊 추출된 데이터:", {
+        hasAccessToken: !!extracted.accessToken,
+        hasRefreshToken: !!extracted.refreshToken,
+        hasUser: !!extracted.user,
+        projectId: extracted.projectId,
       });
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+
+      if (extracted.accessToken || extracted.refreshToken) {
         console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
+      } else {
+        console.error("[AuthService] ❌ 토큰 추출 실패! 응답에 accessToken/refreshToken이 없습니다.");
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
@@ -60,27 +106,27 @@ export const AuthService = {
     console.log("[AuthService] 🟡 loginKakao 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/kakao", input).then((res) => {
       console.log("[AuthService] 📥 Kakao API 응답 수신:", { status: res.status, ok: res.ok });
-      const anyRes: any = res.data as any;
-      console.log("[AuthService] 📊 응답 데이터:", {
-        hasAccessToken: !!anyRes?.data?.accessToken,
-        hasRefreshToken: !!anyRes?.data?.refreshToken,
-        hasUser: !!anyRes?.data?.user,
-        projectId: anyRes?.data?.projectId,
-        defaultProjectId: anyRes?.data?.defaultProjectId,
+      
+      const extracted = extractLoginData(res.data);
+      console.log("[AuthService] 📊 추출된 데이터:", {
+        hasAccessToken: !!extracted.accessToken,
+        hasRefreshToken: !!extracted.refreshToken,
+        hasUser: !!extracted.user,
+        projectId: extracted.projectId,
       });
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+
+      if (extracted.accessToken || extracted.refreshToken) {
         console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
+      } else {
+        console.error("[AuthService] ❌ 토큰 추출 실패! 응답에 accessToken/refreshToken이 없습니다.");
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
@@ -88,46 +134,55 @@ export const AuthService = {
     console.log("[AuthService] 🟢 loginNaver 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/naver", input).then((res) => {
       console.log("[AuthService] 📥 Naver API 응답 수신:", { status: res.status, ok: res.ok });
-      const anyRes: any = res.data as any;
-      console.log("[AuthService] 📊 응답 데이터:", {
-        hasAccessToken: !!anyRes?.data?.accessToken,
-        hasRefreshToken: !!anyRes?.data?.refreshToken,
-        hasUser: !!anyRes?.data?.user,
-        projectId: anyRes?.data?.projectId,
-        defaultProjectId: anyRes?.data?.defaultProjectId,
+      
+      const extracted = extractLoginData(res.data);
+      console.log("[AuthService] 📊 추출된 데이터:", {
+        hasAccessToken: !!extracted.accessToken,
+        hasRefreshToken: !!extracted.refreshToken,
+        hasUser: !!extracted.user,
+        projectId: extracted.projectId,
       });
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+
+      if (extracted.accessToken || extracted.refreshToken) {
         console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
+      } else {
+        console.error("[AuthService] ❌ 토큰 추출 실패! 응답에 accessToken/refreshToken이 없습니다.");
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
 
   // Email/password
   login(input: LoginInput) {
+    console.log("[AuthService] 📧 login 호출 (이메일/비밀번호)");
     return apiClient.post<LoginOutput>("/v1/auth/login", input).then((res) => {
-      const anyRes: any = res.data as any;
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      console.log("[AuthService] 📥 Login API 응답 수신:", { status: res.status, ok: res.ok });
+      
+      const extracted = extractLoginData(res.data);
+      console.log("[AuthService] 📊 추출된 데이터:", {
+        hasAccessToken: !!extracted.accessToken,
+        hasRefreshToken: !!extracted.refreshToken,
+        hasUser: !!extracted.user,
+        projectId: extracted.projectId,
+      });
+
+      if (extracted.accessToken || extracted.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
@@ -136,11 +191,14 @@ export const AuthService = {
   },
 
   refresh() {
-    // In case the client-side interceptor isn't used directly
+    console.log("[AuthService] 🔄 refresh 호출");
     return apiClient.post<unknown>("/v1/auth/refresh").then((res) => {
-      const anyRes: any = res.data as any;
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      console.log("[AuthService] 📥 Refresh API 응답 수신:", { status: res.status, ok: res.ok });
+      
+      const extracted = extractLoginData(res.data);
+      if (extracted.accessToken || extracted.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 갱신 시작...");
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
       }
       return res;
     });
@@ -149,19 +207,21 @@ export const AuthService = {
     return apiClient.post<unknown>("/v1/auth/terms");
   },
   verifyEmail(input: { token: string }) {
+    console.log("[AuthService] ✉️ verifyEmail 호출");
     return apiClient.post<unknown>("/v1/auth/verify-email", input).then((res) => {
-      const anyRes: any = res.data as any;
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      console.log("[AuthService] 📥 VerifyEmail API 응답 수신:", { status: res.status, ok: res.ok });
+      
+      const extracted = extractLoginData(res.data);
+      if (extracted.accessToken || extracted.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
@@ -204,19 +264,21 @@ export const AuthService = {
     return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { body: input });
   },
   twoFactorLogin(input: TwoFactorLoginInput) {
+    console.log("[AuthService] 🔐 twoFactorLogin 호출");
     return apiClient.post<TwoFactorLoginOutput>("/v1/auth/two-factor/login", input).then((res) => {
-      const anyRes: any = res.data as any;
-      if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
-        setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
+      console.log("[AuthService] 📥 TwoFactorLogin API 응답 수신:", { status: res.status, ok: res.ok });
+      
+      const extracted = extractLoginData(res.data);
+      if (extracted.accessToken || extracted.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
+        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
       }
-      try {
-        const pid = anyRes?.data?.projectId
-          ?? anyRes?.data?.defaultProjectId
-          ?? anyRes?.data?.user?.defaultProjectId
-          ?? anyRes?.data?.user?.projectId
-          ?? null;
-        if (pid != null) setSelectedProjectId(pid);
-      } catch {}
+
+      if (extracted.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
+        setSelectedProjectId(extracted.projectId);
+      }
+
       return res;
     });
   },
