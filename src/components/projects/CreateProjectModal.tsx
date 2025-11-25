@@ -10,6 +10,9 @@ type Props = {
   onCreated: () => void;
 };
 
+// 서브도메인 형식 검증 패턴 (영문 소문자, 숫자, 하이픈만 허용)
+const SUBDOMAIN_PATTERN = /^[a-z0-9-]+$/;
+
 export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -24,6 +27,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [subdomain, setSubdomain] = useState("");
   const [domainChecking, setDomainChecking] = useState(false);
   const [domainAvailable, setDomainAvailable] = useState<boolean | null>(null);
+  const [domainError, setDomainError] = useState<string | null>(null); // 상세 에러 메시지
   const [lastCheckedSubdomain, setLastCheckedSubdomain] = useState("");
 
   const onPickFile = useCallback(() => fileInputRef.current?.click(), []);
@@ -34,11 +38,42 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     else setIconPreview(null);
   }, []);
 
+  // 서브도메인 형식 검증 (영문 소문자, 숫자, 하이픈만 허용, 3-30자)
+  const isValidSubdomainFormat = useMemo(() => {
+    if (!subdomain) return false;
+    if (subdomain.length < 3 || subdomain.length > 30) return false;
+    if (!SUBDOMAIN_PATTERN.test(subdomain)) return false;
+    if (subdomain.startsWith("-") || subdomain.endsWith("-")) return false;
+    return true;
+  }, [subdomain]);
+
   const validateSubdomain = useCallback(async () => {
+    setDomainError(null);
+    
     if (!subdomain || subdomain.length < 3) {
       setDomainAvailable(null);
       return;
     }
+
+    // 프론트엔드 형식 검증
+    if (!SUBDOMAIN_PATTERN.test(subdomain)) {
+      setDomainAvailable(false);
+      setDomainError("영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.");
+      return;
+    }
+
+    if (subdomain.startsWith("-") || subdomain.endsWith("-")) {
+      setDomainAvailable(false);
+      setDomainError("하이픈(-)으로 시작하거나 끝날 수 없습니다.");
+      return;
+    }
+
+    if (subdomain.length > 30) {
+      setDomainAvailable(false);
+      setDomainError("서브도메인은 30자를 초과할 수 없습니다.");
+      return;
+    }
+
     setLastCheckedSubdomain(subdomain);
     try {
       setDomainChecking(true);
@@ -47,9 +82,21 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       const duplicateInfo = payload?.data;
       const isDuplicate = Boolean(duplicateInfo?.isDuplicate);
       setDomainAvailable(!isDuplicate);
-    } catch {
+      if (isDuplicate) {
+        setDomainError("이미 사용 중인 도메인입니다. 다른 도메인을 입력해주세요.");
+      }
+    } catch (err: any) {
       setDomainAvailable(false);
-      } finally {
+      // API 에러 메시지 파싱
+      const message = err?.data?.message || err?.message || "";
+      if (message.includes("regular expression") || message.includes("match")) {
+        setDomainError("영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.");
+      } else if (message) {
+        setDomainError(message);
+      } else {
+        setDomainError("도메인 확인 중 오류가 발생했습니다.");
+      }
+    } finally {
       setDomainChecking(false);
     }
   }, [subdomain]);
@@ -79,7 +126,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     return mimeTypes[extension || ""] || "image/jpeg"; // 기본값
   }, []);
 
-  async function handleSubmit() {
+  async function handleSubmit(options?: { skipSubdomain?: boolean }) {
     if (submitting) return;
     setSubmitting(true);
     try {
@@ -115,9 +162,12 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         }
       }
 
+      // 건너뛰기 옵션이 true면 서브도메인을 전송하지 않음
+      const subDomainValue = options?.skipSubdomain ? undefined : (subdomain || undefined);
+
       await ProjectsService.create({
         name: projectName.trim(),
-        subDomain: subdomain || undefined,
+        subDomain: subDomainValue,
         logoUrl,
         useAttendanceMenu: false,
       });
@@ -132,8 +182,11 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   }
 
   const handleSkip = () => {
+    // 건너뛰기 시 서브도메인 입력값 초기화 및 서브도메인 없이 생성
     setSubdomain("");
-    handleSubmit();
+    setDomainAvailable(null);
+    setDomainError(null);
+    handleSubmit({ skipSubdomain: true });
   };
 
   return (
@@ -239,6 +292,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       const nextValue = e.target.value.toLowerCase();
                       setSubdomain(nextValue);
                       setDomainAvailable(null);
+                      setDomainError(null);
                     }}
                       placeholder="myservice"
                       className="w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-[85px] text-[14px] font-medium leading-[17px] text-[#000] bg-white"
@@ -268,7 +322,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                   >
                     {domainAvailable
                       ? "사용가능한 도메인입니다."
-                      : "이미 도메인이 사용중입니다. 다른 도메인을 입력해주세요."}
+                      : domainError || "도메인을 사용할 수 없습니다."}
                   </div>
                 )}
                 <div className="text-[14px] font-medium leading-[24px] text-[#808080]">
@@ -329,7 +383,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           ) : (
             <button
               className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
               disabled={submitting || !canGoNext}
             >
               {submitting ? "생성 중..." : "확인"}

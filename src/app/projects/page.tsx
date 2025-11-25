@@ -50,7 +50,7 @@ export default function ProjectsPage() {
           프로젝트 선택
         </h1>
         <p className="text-[18px] leading-[21px] text-[#808080] text-center">
-          관리할 서비스를 선택하거나 새로운 서비스를 생성하세요
+          관리할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요
         </p>
 
         {/* Projects row */}
