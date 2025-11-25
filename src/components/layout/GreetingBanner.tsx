@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
 import { AttendanceService } from "@/services/attendance";
+import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
@@ -20,6 +21,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   const [now, setNow] = useState(() => new Date());
   const [projectId, projectReady] = useSelectedProjectId();
   const queryClient = useQueryClient();
+  const [isAttendanceMenuEnabled] = useAttendanceMenu();
   
   // Update clock every second
   useEffect(() => {
@@ -72,6 +74,10 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   const projectName = currentProject?.name || "프로젝트";
   const projectLogoUrl = currentProject?.logoUrl;
+  const currentRole = currentProject?.role;
+  
+  // 출퇴근 버튼 표시 여부: useAttendanceMenu가 true이고, admin/subAdmin이 아닐 때만 표시
+  const showAttendanceButton = isAttendanceMenuEnabled && currentRole !== "admin" && currentRole !== "subAdmin";
 
   // Attendance Logic
   const { data: myStatusData } = useQuery({
@@ -194,42 +200,44 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         {/* Right: actions + timestamp */}
         <div className="flex flex-col items-end gap-3 justify-between h-full">
           <div></div>
-          <div className="flex items-center gap-3">
-            {isCheckedIn ? (
-                // Checked In State
-                <div className="flex items-center gap-3">
-                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center gap-2">
-                        {/* <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div> */}
-                        <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
-                          🕑 근무중 {elapsedTime}
-                        </span>
-                    </div>
-                    <button 
-                        onClick={handleToggleAttendance}
-                        disabled={checkOutMutation.isPending}
-                        className="h-[34px] px-3 rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
-                    </button>
-                </div>
-            ) : (
-                // Checked Out State (Default)
-                <>
-                    <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center justify-center">
-                         <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
-                           ● 퇴근상태
-                         </span>
-                    </div>
-                    <button 
-                        onClick={handleToggleAttendance}
-                        disabled={checkInMutation.isPending}
-                        className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {checkInMutation.isPending ? "처리중..." : "출근하기"}
-                    </button>
-                </>
-            )}
-          </div>
+          {showAttendanceButton && (
+            <div className="flex items-center gap-3">
+              {isCheckedIn ? (
+                  // Checked In State
+                  <div className="flex items-center gap-3">
+                      <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center gap-2">
+                          {/* <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div> */}
+                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
+                            🕑 근무중 {elapsedTime}
+                          </span>
+                      </div>
+                      <button 
+                          onClick={handleToggleAttendance}
+                          disabled={checkOutMutation.isPending}
+                          className="h-[34px] px-3 rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                          {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
+                      </button>
+                  </div>
+              ) : (
+                  // Checked Out State (Default)
+                  <>
+                      <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center justify-center">
+                           <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
+                             ● 퇴근상태
+                           </span>
+                      </div>
+                      <button 
+                          onClick={handleToggleAttendance}
+                          disabled={checkInMutation.isPending}
+                          className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                          {checkInMutation.isPending ? "처리중..." : "출근하기"}
+                      </button>
+                  </>
+              )}
+            </div>
+          )}
           <div className="text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-5 w-44 animate-pulse rounded bg-neutral-20" />

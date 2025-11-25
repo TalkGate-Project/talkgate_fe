@@ -183,6 +183,7 @@ export type RankingTeamRecord = {
   id: number;
   teamId: number | null;
   teamName: string | null;
+  leaderMemberId: number | null;
   totalAmount: number;
   totalCount: number;
   rank: number;

@@ -16,6 +16,7 @@ export type ProjectSummary = Project & {
   memberCount?: number;
   assignedCustomerCount?: number;
   todayScheduleCount?: number;
+  role?: "admin" | "subAdmin" | "leader" | "member";
 };
 
 export type CreateProjectPayload = {

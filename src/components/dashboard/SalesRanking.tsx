@@ -10,6 +10,7 @@ import { StatisticsService } from "@/services/statistics";
 import type { RankingMemberResponse, RankingTeamResponse } from "@/types/statistics";
 import { useSalesRankingData, type RankingMode } from "@/hooks/useSalesRankingData";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
+import MemberDetailModal from "@/components/members/MemberDetailModal";
 
 export default function SalesRanking() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function SalesRanking() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const [mode, setMode] = useState<RankingMode>("team");
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
   const teamQuery = useQuery<RankingTeamResponse>({
     queryKey: ["dashboard", "ranking", "team", projectId],
@@ -97,7 +99,11 @@ export default function SalesRanking() {
         ) : (
           <ol>
             {rows.map((item) => (
-              <li key={`${mode}-${item.rank}-${item.name}`} className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
+              <li
+                key={`${mode}-${item.rank}-${item.name}`}
+                className="flex items-center justify-between py-4 border-b border-border last:border-b-0 cursor-pointer hover:bg-neutral-10 transition-colors rounded-lg px-1"
+                onClick={() => item.memberId && setSelectedMemberId(item.memberId)}
+              >
                 <div className="flex items-center gap-2 pl-3">
                   <span
                     className={`grid place-items-center w-6 h-6 rounded-full text-[14px] font-montserrat ${
@@ -123,6 +129,11 @@ export default function SalesRanking() {
           </ol>
         )}
       </div>
+      <MemberDetailModal
+        open={selectedMemberId !== null}
+        onClose={() => setSelectedMemberId(null)}
+        memberId={selectedMemberId}
+      />
     </Panel>
   );
 }

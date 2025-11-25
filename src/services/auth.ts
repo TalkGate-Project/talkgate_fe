@@ -28,10 +28,20 @@ import type {
 export const AuthService = {
   // Social login
   loginGoogle(input: SocialLoginInput) {
+    console.log("[AuthService] 🔵 loginGoogle 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/google", input).then((res) => {
+      console.log("[AuthService] 📥 Google API 응답 수신:", { status: res.status, ok: res.ok });
       // Expecting { result, data: { accessToken, refreshToken, user, projectId? } }
       const anyRes: any = res.data as any;
+      console.log("[AuthService] 📊 응답 데이터:", {
+        hasAccessToken: !!anyRes?.data?.accessToken,
+        hasRefreshToken: !!anyRes?.data?.refreshToken,
+        hasUser: !!anyRes?.data?.user,
+        projectId: anyRes?.data?.projectId,
+        defaultProjectId: anyRes?.data?.defaultProjectId,
+      });
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
       try {
@@ -40,15 +50,26 @@ export const AuthService = {
           ?? anyRes?.data?.user?.defaultProjectId
           ?? anyRes?.data?.user?.projectId
           ?? null;
+        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
         if (pid != null) setSelectedProjectId(pid);
       } catch {}
       return res;
     });
   },
   loginKakao(input: SocialLoginInput) {
+    console.log("[AuthService] 🟡 loginKakao 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/kakao", input).then((res) => {
+      console.log("[AuthService] 📥 Kakao API 응답 수신:", { status: res.status, ok: res.ok });
       const anyRes: any = res.data as any;
+      console.log("[AuthService] 📊 응답 데이터:", {
+        hasAccessToken: !!anyRes?.data?.accessToken,
+        hasRefreshToken: !!anyRes?.data?.refreshToken,
+        hasUser: !!anyRes?.data?.user,
+        projectId: anyRes?.data?.projectId,
+        defaultProjectId: anyRes?.data?.defaultProjectId,
+      });
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
       try {
@@ -57,15 +78,26 @@ export const AuthService = {
           ?? anyRes?.data?.user?.defaultProjectId
           ?? anyRes?.data?.user?.projectId
           ?? null;
+        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
         if (pid != null) setSelectedProjectId(pid);
       } catch {}
       return res;
     });
   },
   loginNaver(input: SocialLoginInput) {
+    console.log("[AuthService] 🟢 loginNaver 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
     return apiClient.post<LoginOutput>("/v1/auth/naver", input).then((res) => {
+      console.log("[AuthService] 📥 Naver API 응답 수신:", { status: res.status, ok: res.ok });
       const anyRes: any = res.data as any;
+      console.log("[AuthService] 📊 응답 데이터:", {
+        hasAccessToken: !!anyRes?.data?.accessToken,
+        hasRefreshToken: !!anyRes?.data?.refreshToken,
+        hasUser: !!anyRes?.data?.user,
+        projectId: anyRes?.data?.projectId,
+        defaultProjectId: anyRes?.data?.defaultProjectId,
+      });
       if (anyRes?.data?.accessToken || anyRes?.data?.refreshToken) {
+        console.log("[AuthService] 🔑 토큰 저장 시작...");
         setTokens({ accessToken: anyRes.data.accessToken, refreshToken: anyRes.data.refreshToken });
       }
       try {
@@ -74,6 +106,7 @@ export const AuthService = {
           ?? anyRes?.data?.user?.defaultProjectId
           ?? anyRes?.data?.user?.projectId
           ?? null;
+        console.log("[AuthService] 📁 추출된 프로젝트 ID:", pid);
         if (pid != null) setSelectedProjectId(pid);
       } catch {}
       return res;

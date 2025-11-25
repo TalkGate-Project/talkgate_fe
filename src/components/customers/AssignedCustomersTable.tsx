@@ -11,6 +11,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { RecentlyAssignedCustomer, RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 import Pagination from "@/components/common/Pagination";
+import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 
 const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", "정보"];
 const ROW_LIMIT = 10;
@@ -22,6 +23,7 @@ export default function AssignedCustomersTable() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const [page, setPage] = useState(1);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
 
   useEffect(() => {
     setPage(1);
@@ -118,7 +120,10 @@ export default function AssignedCustomersTable() {
                     <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">{site}</td>
                     <td className="px-6 h-[58px] align-middle text-neutral-90">{assignedLabel}</td>
                     <td className="px-6 h-[58px] align-middle">
-                      <button className="inline-flex h-[34px] w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-10">
+                      <button
+                        onClick={() => setSelectedCustomerId(customer.id)}
+                        className="cursor-pointer inline-flex h-[34px] w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-10 hover:bg-neutral-80 transition-colors"
+                      >
                         고객정보
                       </button>
                     </td>
@@ -138,6 +143,11 @@ export default function AssignedCustomersTable() {
           className="justify-center"
         />
       </div>
+      <CustomerDetailModal
+        open={selectedCustomerId !== null}
+        onClose={() => setSelectedCustomerId(null)}
+        customerId={selectedCustomerId}
+      />
     </Panel>
   );
 }

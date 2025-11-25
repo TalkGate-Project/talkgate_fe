@@ -16,6 +16,7 @@ export type RankingRow = {
   amountLabel: string;
   changeLabel: string;
   changePositive: boolean;
+  memberId: number | null;
 };
 
 export function useSalesRankingData({
@@ -48,6 +49,7 @@ export function useSalesRankingData({
         changePositive: item.previousTotalAmount !== null && item.previousTotalAmount !== undefined
           ? item.totalAmount >= item.previousTotalAmount
           : true,
+        memberId: item.leaderMemberId ?? null,
       }));
     }
     const payload = memberQuery.data?.data;
@@ -61,6 +63,7 @@ export function useSalesRankingData({
       changePositive: item.previousTotalAmount !== null && item.previousTotalAmount !== undefined
         ? item.totalAmount >= item.previousTotalAmount
         : true,
+      memberId: item.memberId,
     }));
   }, [mode, teamQuery.data, memberQuery.data]);
 
