@@ -15,6 +15,32 @@ type Props = {
   expandedForSearch?: Set<string>;
 };
 
+// 매칭되는 노드와 그 자손들의 ID를 수집
+function collectMatchingAndDescendants(items: TeamMember[], matchingIds: Set<string>): Set<string> {
+  const result = new Set<string>();
+  
+  const collectDescendants = (node: TeamMember) => {
+    result.add(node.id);
+    if (node.children) {
+      node.children.forEach(collectDescendants);
+    }
+  };
+  
+  const walk = (nodes: TeamMember[]) => {
+    nodes.forEach((node) => {
+      if (matchingIds.has(node.id)) {
+        collectDescendants(node);
+      }
+      if (node.children) {
+        walk(node.children);
+      }
+    });
+  };
+  
+  walk(items);
+  return result;
+}
+
 export default function TeamListView({
   data,
   dragHandlers,
@@ -33,6 +59,14 @@ export default function TeamListView({
     return expandedItems;
   }, [searchTerm, expandedForSearch, expandedItems]);
 
+  // 검색 중일 때 표시해야 할 노드들 (매칭 + 조상 + 자손)
+  const visibleIds = useMemo(() => {
+    if (!searchTerm || matchingIds.size === 0) return null; // null이면 모두 표시
+    const matchingAndDescendants = collectMatchingAndDescendants(data, matchingIds);
+    // expandedForSearch = 조상들, matchingAndDescendants = 매칭 노드 + 자손들
+    return new Set([...expandedForSearch, ...matchingAndDescendants]);
+  }, [searchTerm, matchingIds, expandedForSearch, data]);
+
   const toggleExpand = useCallback((id: string) => {
     if (searchTerm) return; // 검색 중에는 토글 비활성화 (또는 필요시 별도 처리)
     setExpandedItems((prev) => {
@@ -44,12 +78,21 @@ export default function TeamListView({
   }, [searchTerm]);
 
   const renderItems = useCallback(
-    (items: TeamMember[]) =>
-      items.map((item, index) => {
+    (items: TeamMember[], parentIndex: number = 0) => {
+      // 검색 중일 때 visibleIds에 포함된 아이템만 필터링
+      const filteredItems = visibleIds 
+        ? items.filter((item) => visibleIds.has(item.id))
+        : items;
+      
+      return filteredItems.map((item, index) => {
         const hasChildren = Boolean(item.children && item.children.length);
+        // 자식들 중 표시될 것이 있는지 확인
+        const visibleChildren = visibleIds && item.children
+          ? item.children.filter((child) => visibleIds.has(child.id))
+          : item.children;
+        const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
         const isExpanded = currentExpanded.has(item.id);
         const indent = (item.level ?? 0) * 24;
-        const isMatch = matchingIds.has(item.id);
         const isDragOver = dragState.dragOverItemId === item.id;
         const isDragging = dragState.draggedItemId === item.id;
 
@@ -76,9 +119,7 @@ export default function TeamListView({
                 item.isLeader
                   ? "bg-primary-10/30"
                   : "bg-card"
-              } ${isMatch ? "ring-2 ring-secondary-40" : ""} ${
-                isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""
-              } ${isDragging ? "opacity-50" : ""}`}
+              } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
               style={{ marginLeft: `${indent}px` }}
               draggable
               onDragStart={(e) => dragHandlers.handleDragStart(e, item)}
@@ -87,7 +128,7 @@ export default function TeamListView({
               onDrop={(e) => dragHandlers.handleDrop(e, item.id)}
               onDragEnd={dragHandlers.handleDragEnd}
             >
-              {hasChildren && (
+              {hasVisibleChildren && (
                 <button
                   onClick={() => toggleExpand(item.id)}
                   className={`w-6 h-6 flex items-center justify-center border border-border rounded-[5px] hover:bg-neutral-10 transition-colors ${
@@ -130,13 +171,14 @@ export default function TeamListView({
                 </div>
               )}
             </div>
-            {hasChildren && isExpanded && item.children && (
-              <div className="mt-2">{renderItems(item.children)}</div>
+            {hasVisibleChildren && isExpanded && item.children && (
+              <div className="mt-2">{renderItems(item.children, index)}</div>
             )}
           </div>
         );
-      }),
-    [dragHandlers, dragState, currentExpanded, matchingIds, onMemberClick, toggleExpand]
+      });
+    },
+    [dragHandlers, dragState, currentExpanded, onMemberClick, toggleExpand, visibleIds]
   );
 
   return (

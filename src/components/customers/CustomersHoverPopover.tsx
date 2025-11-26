@@ -1,9 +1,12 @@
 import { RecentNote } from "@/types/customers";
 import { formatDateTime } from "@/utils/datetime";
+import { getBadgeStyle } from "@/utils/categoryBadge";
+import { CustomerNoteCategory } from "@/services/customerNoteCategories";
 
 type CustomersHoverPopoverProps = {
   name: string;
   notes: RecentNote[];
+  categories: CustomerNoteCategory[];
   top: number;
   left: number;
   onMouseEnter: () => void;
@@ -13,6 +16,7 @@ type CustomersHoverPopoverProps = {
 export default function CustomersHoverPopover({
   name,
   notes,
+  categories,
   top,
   left,
   onMouseEnter,
@@ -31,17 +35,32 @@ export default function CustomersHoverPopover({
         </div>
         {notes.length > 0 ? (
           <div className="px-5 pb-5 space-y-3">
-            {notes.slice(0, 2).map((n) => (
-              <div key={n.id} className="bg-neutral-10 rounded-[12px] p-4">
-                <div className="flex items-center justify-between text-neutral-60 text-[14px]">
-                  <span className="inline-flex items-center h-[22px] rounded-[30px] bg-secondary-10 px-3 text-[12px] text-secondary-40 opacity-80">
-                    메모
-                  </span>
-                  <span>{formatDateTime(n.createdAt)}</span>
+            {notes.slice(0, 2).map((n) => {
+              const category = categories.find((c) => c.id === n.categoryId);
+              const categoryName = category?.name || "일반";
+              const badgeStyle = getBadgeStyle(categoryName, n.categoryId || 0);
+
+              return (
+                <div key={n.id} className="bg-neutral-10 rounded-[12px] p-4">
+                  <div className="flex items-center justify-between text-neutral-60 text-[14px]">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] ${badgeStyle.bg} ${badgeStyle.text}`}
+                      >
+                        {categoryName}
+                      </span>
+                      {n.memberName && (
+                        <span className="text-[12px] text-neutral-80">
+                          {n.memberName}
+                        </span>
+                      )}
+                    </div>
+                    <span>{formatDateTime(n.createdAt)}</span>
+                  </div>
+                  <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
                 </div>
-                <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="px-5 pb-6 text-[14px] text-neutral-70">최근 상담 내용이 없습니다</div>

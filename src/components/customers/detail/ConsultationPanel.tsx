@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
 import { CustomerDetail } from "@/types/customers";
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 type Props = {
   customerName: string;
@@ -13,51 +14,6 @@ type Props = {
   onRemoveNote: (id: number) => void;
   customerId: number;
 };
-
-// Define the 5 badge styles based on the user's request
-const BADGE_STYLES = [
-  { bg: "bg-[#FFEBEB]", text: "text-[#D83232]" }, // 1. Red (부재, etc.)
-  { bg: "bg-[#FFF5D5]", text: "text-[#976400]" }, // 2. Yellow (재상담, etc.)
-  { bg: "bg-[#E2E2E2]", text: "text-[#595959]" }, // 3. Gray (AS요청, etc.)
-  { bg: "bg-[#D3E1FE]", text: "text-[#4D82F3]" }, // 4. Blue (무료방안내, etc.)
-  { bg: "bg-[#D6FAE8]", text: "text-[#00B55B]" }, // 5. Green (결제완료, etc.)
-];
-
-function getBadgeStyle(name: string, id: number) {
-  // Normalize name for matching
-  const n = name.trim();
-
-  // 1. Red (부재)
-  if (n.includes("부재") || n.includes("중요") || n.includes("긴급") || n.includes("에러") || n.includes("실패") || n.includes("취소")) {
-    return BADGE_STYLES[0];
-  }
-
-  // 2. Yellow (재상담)
-  if (n.includes("재상담") || n.includes("주의") || n.includes("경고") || n.includes("보류") || n.includes("대기")) {
-    return BADGE_STYLES[1];
-  }
-
-  // 3. Gray (AS요청)
-  // Note: "AS요청" contains "요청" which might trigger Green if checked later, so checking "AS" first or "AS요청" specifically.
-  if (n.includes("AS") || n.includes("보통") || n.includes("일반") || n.includes("기타")) {
-    return BADGE_STYLES[2];
-  }
-
-  // 4. Blue (무료방안내)
-  if (n.includes("방안내") || n.includes("안내") || n.includes("양호") || n.includes("승인")) {
-    return BADGE_STYLES[3];
-  }
-
-  // 5. Green (결제완료)
-  // "요청" is ambiguous but typically Green/Blue. Putting "요청" here unless it's AS.
-  if (n.includes("결제") || n.includes("완료") || n.includes("성공") || n.includes("해결") || n.includes("필요") || n.includes("요청") || n.includes("문의")) {
-    return BADGE_STYLES[4];
-  }
-
-  // Fallback: Deterministic mapping by ID
-  if (!id) return BADGE_STYLES[2]; // Default to Gray
-  return BADGE_STYLES[id % BADGE_STYLES.length];
-}
 
 export default function ConsultationPanel({
   customerName,

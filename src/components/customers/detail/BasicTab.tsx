@@ -50,14 +50,14 @@ export default function BasicTab({
       {/* Name */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[12px] text-[#6B7280]">이름</span>
-          <span className="text-[12px] text-danger-40">*</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">이름</span>
+          <span className="text-[14px] text-danger-40 font-medium">*</span>
         </div>
         <div>
           <input
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
             placeholder="고객 이름을 입력하세요"
           />
         </div>
@@ -66,12 +66,12 @@ export default function BasicTab({
       {/* Contact 1 */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[12px] text-[#6B7280]">연락처1</span>
-          <span className="text-[12px] text-danger-40">*</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">연락처1</span>
+          <span className="text-[14px] text-danger-40 font-medium">*</span>
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
           <div>
-            <SelectField className="h-[34px]">
+            <SelectField className="h-[34px] font-medium text-[14px]">
               <option>휴대폰</option>
               <option>집</option>
               <option>회사</option>
@@ -81,7 +81,7 @@ export default function BasicTab({
             <input
               value={form.contact1}
               onChange={(e) => setForm((prev) => ({ ...prev, contact1: e.target.value }))}
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
               placeholder="010-1234-5678"
             />
           </div>
@@ -91,11 +91,11 @@ export default function BasicTab({
       {/* Contact 2 */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[12px] text-[#6B7280]">연락처2</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">연락처2</span>
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
           <div>
-            <SelectField className="h-[34px]">
+            <SelectField className="h-[34px] font-medium text-[14px]">
               <option>선택사항</option>
               <option>집</option>
               <option>회사</option>
@@ -105,7 +105,7 @@ export default function BasicTab({
             <input
               value={form.contact2}
               onChange={(e) => setForm((prev) => ({ ...prev, contact2: e.target.value }))}
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
               placeholder="선택 입력"
             />
           </div>
@@ -115,7 +115,7 @@ export default function BasicTab({
       {/* Resident ID */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[12px] text-[#6B7280]">주민등록번호</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">주민등록번호</span>
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div>
@@ -124,7 +124,7 @@ export default function BasicTab({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, residentFront: e.target.value }))
               }
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
               placeholder="123456"
             />
           </div>
@@ -135,7 +135,7 @@ export default function BasicTab({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, residentBack: e.target.value }))
               }
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
               placeholder="*******"
             />
           </div>
@@ -145,13 +145,13 @@ export default function BasicTab({
       {/* Job */}
       <div>
         <div className="mb-1">
-          <span className="text-[12px] text-[#6B7280]">직업</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">직업</span>
         </div>
         <div>
           <input
             value={form.job}
             onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
             placeholder="직업"
           />
         </div>
@@ -160,7 +160,7 @@ export default function BasicTab({
       {/* Age Range */}
       <div>
         <div className="mb-1">
-          <span className="text-[12px] text-[#6B7280]">연령</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">연령</span>
         </div>
         <div>
           <input
@@ -168,7 +168,7 @@ export default function BasicTab({
             onChange={(e) =>
               setForm((prev) => ({ ...prev, ageRange: e.target.value }))
             }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
             placeholder="연령"
           />
         </div>
@@ -176,7 +176,7 @@ export default function BasicTab({
 
       {/* Messenger Accounts */}
       <div className="md:col-span-2">
-        <div className="text-[14px] font-semibold text-ink mb-3">메신저 계정</div>
+        <div className="text-[16px] font-semibold text-neutral-90 mb-3">메신저 계정</div>
         <div className="border-b border-[#E2E2E2] mb-3" />
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
@@ -184,7 +184,7 @@ export default function BasicTab({
               <SelectField
                 value={newMessengerType}
                 onChange={(e) => setNewMessengerType(e.target.value)}
-                className="h-[36px] rounded-[6px]"
+                className="h-[34px] rounded-[5px] font-medium text-[14px]"
               >
                 <option value="kakaotalk">카카오톡</option>
                 <option value="telegram">텔레그램</option>
@@ -196,11 +196,11 @@ export default function BasicTab({
               value={newMessengerAccount}
               onChange={(e) => setNewMessengerAccount(e.target.value)}
               placeholder="계정 ID를 입력하세요"
-              className="flex-1 h-[36px] rounded-[6px] border border-[#E5E7EB] px-3"
+              className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
             />
             <button
               type="button"
-              className="h-[36px] px-3 rounded-[6px] bg-neutral-90 text-neutral-40"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold"
               onClick={handleAddMessenger}
             >
               추가

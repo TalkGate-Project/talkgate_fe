@@ -6,6 +6,7 @@ import { useMe } from "@/hooks/useMe";
 import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/data/mockTeamData";
+import { flattenTeamData } from "@/hooks/useTeamTree";
 
 export type AssignCustomersModalProps = {
   open: boolean;
@@ -54,15 +55,47 @@ function transformMembers(
   });
 }
 
+// 매칭되는 노드와 그 자손들의 ID를 수집
+function collectMatchingAndDescendants(items: TeamMember[], matchingIds: Set<string>): Set<string> {
+  const result = new Set<string>();
+  
+  const collectDescendants = (node: TeamMember) => {
+    result.add(node.id);
+    if (node.children) {
+      node.children.forEach(collectDescendants);
+    }
+  };
+  
+  const walk = (nodes: TeamMember[]) => {
+    nodes.forEach((node) => {
+      if (matchingIds.has(node.id)) {
+        collectDescendants(node);
+      }
+      if (node.children) {
+        walk(node.children);
+      }
+    });
+  };
+  
+  walk(items);
+  return result;
+}
+
 // Internal component for rendering the hierarchical list
 function HierarchicalTeamList({
   items,
   selectedId,
   onSelect,
+  searchTerm = "",
+  matchingIds = new Set(),
+  expandedForSearch = new Set(),
 }: {
   items: TeamMember[];
   selectedId: number | null;
   onSelect: (id: number) => void;
+  searchTerm?: string;
+  matchingIds?: Set<string>;
+  expandedForSearch?: Set<string>;
 }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -79,19 +112,43 @@ function HierarchicalTeamList({
     setExpandedItems(allIds);
   }, [items]);
 
-  const toggleExpand = (id: string) => {
+  // 검색어 유무에 따라 확장 상태 결정
+  const currentExpanded = useMemo(() => {
+    if (searchTerm) return expandedForSearch;
+    return expandedItems;
+  }, [searchTerm, expandedForSearch, expandedItems]);
+
+  // 검색 중일 때 표시해야 할 노드들 (매칭 + 조상 + 자손)
+  const visibleIds = useMemo(() => {
+    if (!searchTerm || matchingIds.size === 0) return null;
+    const matchingAndDescendants = collectMatchingAndDescendants(items, matchingIds);
+    return new Set([...expandedForSearch, ...matchingAndDescendants]);
+  }, [searchTerm, matchingIds, expandedForSearch, items]);
+
+  const toggleExpand = useCallback((id: string) => {
+    if (searchTerm) return;
     setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, [searchTerm]);
 
-  const renderItems = (nodes: TeamMember[]) => {
-    return nodes.map((item, index) => {
+  const renderItems = useCallback((nodes: TeamMember[]) => {
+    // 검색 중일 때 visibleIds에 포함된 아이템만 필터링
+    const filteredItems = visibleIds 
+      ? nodes.filter((item) => visibleIds.has(item.id))
+      : nodes;
+
+    return filteredItems.map((item, index) => {
       const hasChildren = Boolean(item.children && item.children.length);
-      const isExpanded = expandedItems.has(item.id);
+      // 자식들 중 표시될 것이 있는지 확인
+      const visibleChildren = visibleIds && item.children
+        ? item.children.filter((child) => visibleIds.has(child.id))
+        : item.children;
+      const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
+      const isExpanded = currentExpanded.has(item.id);
       const indent = (item.level ?? 0) * 24;
       const isSelected = selectedId === Number(item.id);
 
@@ -114,7 +171,7 @@ function HierarchicalTeamList({
             </>
           )}
           <div
-            className={`h-[60px] flex items-center px-6 gap-4 border rounded-[12px] cursor-pointer transition-all ${
+            className={`h-[52px] flex items-center px-6 gap-4 border rounded-[12px] cursor-pointer transition-all ${
               item.isLeader ? "bg-primary-10/30" : "bg-white"
             } ${
               isSelected
@@ -124,13 +181,13 @@ function HierarchicalTeamList({
             style={{ marginLeft: `${indent}px` }}
             onClick={() => onSelect(Number(item.id))}
           >
-            {hasChildren ? (
+            {hasVisibleChildren ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleExpand(item.id);
                 }}
-                className={`w-6 h-6 flex items-center justify-center border border-border rounded-[5px] hover:bg-neutral-10 transition-colors ${
+                className={`cursor-pointer w-6 h-6 flex items-center justify-center border border-border rounded-[5px] hover:bg-neutral-10 transition-colors ${
                   isExpanded ? "" : "rotate-[-90deg]"
                 }`}
               >
@@ -145,7 +202,7 @@ function HierarchicalTeamList({
                 </svg>
               </button>
             ) : (
-              <div className="w-6 h-6" /> /* Placeholder for alignment */
+              <></>
             )}
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-neutral-0 text-[14px] font-semibold ${
@@ -165,13 +222,13 @@ function HierarchicalTeamList({
               </div>
             )}
           </div>
-          {hasChildren && isExpanded && item.children && (
+          {hasVisibleChildren && isExpanded && item.children && (
             <div className="mt-2">{renderItems(item.children)}</div>
           )}
         </div>
       );
     });
-  };
+  }, [visibleIds, currentExpanded, selectedId, onSelect, toggleExpand]);
 
   return <div>{renderItems(items)}</div>;
 }
@@ -184,6 +241,14 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
 
   const { data: treeData, isLoading: treeLoading } = useMembersTree(projectId);
   const { data: teamsData } = useTeams(projectId);
+
+  // ==========================================================================================
+  // 검색 기능 관련 상태 및 핸들러
+  // ==========================================================================================
+  const [inputValue, setInputValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedForSearch, setExpandedForSearch] = useState<Set<string>>(new Set());
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
 
   const teamNameByLeader = useMemo(() => {
     const map = new Map<number, string>();
@@ -198,16 +263,106 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     [treeData, teamNameByLeader]
   );
 
-  // Ensure self is in the list if not present (though tree usually contains all members)
-  // The tree API might return all members. If the user is not in the tree, we might want to add them.
-  // However, for now, let's assume the tree covers the organization.
-  // Note: The original implementation added self if missing. We can keep that logic if needed,
-  // but adding to a hierarchical tree is complex without knowing where to put them.
-  // We'll stick to what the tree returns for consistency with Settings page.
+  const flattenedMembers = useMemo(() => flattenTeamData(teamMembers), [teamMembers]);
+
+  // 모든 팀(department) 목록 - teamsData에서 가져옴
+  const allDepartments = useMemo(() => {
+    if (!teamsData) return [];
+    return teamsData.map((team) => team.name);
+  }, [teamsData]);
+
+  const lowerSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+
+  // 검색어에 매칭되는 멤버 ID 집합
+  const matchingIds = useMemo(() => {
+    if (!lowerSearch) return new Set<string>();
+    return new Set(
+      flattenedMembers
+        .filter((member) =>
+          member.name.toLowerCase().includes(lowerSearch) ||
+          (member.department ? member.department.toLowerCase().includes(lowerSearch) : false)
+        )
+        .map((member) => member.id)
+    );
+  }, [flattenedMembers, lowerSearch]);
+
+  // 검색 결과에 따른 확장 상태 업데이트
+  const ensureExpandedForMatches = useCallback(
+    (items: TeamMember[]) => {
+      if (!lowerSearch) return;
+      const next = new Set<string>();
+      const walk = (nodes: TeamMember[], chain: string[] = []) => {
+        nodes.forEach((node) => {
+          const nextChain = [...chain, node.id];
+          if (matchingIds.has(node.id)) {
+            nextChain.slice(0, -1).forEach((id) => next.add(id));
+          }
+          if (node.children && node.children.length) {
+            walk(node.children, nextChain);
+          }
+        });
+      };
+      walk(items);
+      setExpandedForSearch(next);
+    },
+    [lowerSearch, matchingIds]
+  );
+
+  // searchTerm이 변경될 때만 확장 상태 업데이트
+  useEffect(() => {
+    if (lowerSearch) {
+      ensureExpandedForMatches(teamMembers);
+    } else {
+      setExpandedForSearch(new Set());
+    }
+  }, [lowerSearch, ensureExpandedForMatches, teamMembers]);
+
+  // 검색 실행 핸들러 (버튼 클릭 시에만 호출)
+  const executeSearch = useCallback(() => {
+    const value = inputValue.trim();
+    setSearchTerm(value);
+    if (!value) {
+      setExpandedForSearch(new Set());
+    }
+  }, [inputValue]);
+
+  // 부서 필터링된 멤버 데이터
+  const filteredByDepartment = useMemo(() => {
+    if (!selectedDepartment) return teamMembers;
+    
+    const filterTree = (items: TeamMember[]): TeamMember[] => {
+      return items
+        .map((item) => {
+          const isMatch = item.department === selectedDepartment;
+          const filteredChildren = item.children ? filterTree(item.children) : [];
+          
+          if (isMatch || filteredChildren.length > 0) {
+            return {
+              ...item,
+              children: isMatch ? item.children : filteredChildren,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean) as TeamMember[];
+    };
+    
+    return filterTree(teamMembers);
+  }, [teamMembers, selectedDepartment]);
+
+  // 부서 태그 클릭 핸들러
+  const handleDepartmentClick = useCallback((dept: string) => {
+    setSelectedDepartment((prev) => (prev === dept ? null : dept));
+  }, []);
 
   useEffect(() => {
     if (open) {
       setTargetId(null);
+      // 모달 열릴 때 검색 상태 초기화
+      setInputValue("");
+      setSearchTerm("");
+      setSelectedDepartment(null);
+      setExpandedForSearch(new Set());
     }
   }, [open]);
 
@@ -258,6 +413,52 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         <div className="text-[16px] font-semibold text-neutral-90 mb-3 flex-shrink-0">
           팀원 배정
         </div>
+        
+        {/* 검색 및 태그 영역 */}
+        <div className="mb-4 flex-shrink-0">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    executeSearch();
+                  }
+                }}
+                placeholder="직원 및 팀 이름을 검색하세요"
+                className="w-full max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={executeSearch}
+              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            >
+              검색
+            </button>
+          </div>
+          {allDepartments.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-30 scrollbar-track-transparent pb-1">
+              {allDepartments.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => handleDepartmentClick(tag)}
+                  className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
+                    selectedDepartment === tag
+                      ? "bg-primary-80 text-neutral-0"
+                      : "bg-neutral-30 text-neutral-70 hover:bg-neutral-40"
+                  }`}
+                >
+                  <span className="text-[12px] font-medium leading-[1] whitespace-nowrap">{tag}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex-1 overflow-auto pr-2">
           {isLoading ? (
             <div className="text-center text-neutral-60 py-10">
@@ -265,9 +466,12 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
             </div>
           ) : (
             <HierarchicalTeamList
-              items={teamMembers}
+              items={filteredByDepartment}
               selectedId={targetId}
               onSelect={setTargetId}
+              searchTerm={searchTerm}
+              matchingIds={matchingIds}
+              expandedForSearch={expandedForSearch}
             />
           )}
         </div>

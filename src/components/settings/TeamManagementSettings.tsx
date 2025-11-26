@@ -162,8 +162,10 @@ export default function TeamManagementSettings() {
   // ==========================================================================================
   // 검색 기능 관련 상태 및 핸들러
   // ==========================================================================================
-  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState(""); // 입력 필드 값 (실시간)
+  const [searchTerm, setSearchTerm] = useState(""); // 실제 검색어 (버튼 클릭 시에만 업데이트)
   const [expandedForSearch, setExpandedForSearch] = useState<Set<string>>(new Set());
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
 
   const lowerSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
@@ -202,21 +204,23 @@ export default function TeamManagementSettings() {
     [lowerSearch, matchingIds]
   );
 
-  // 검색어 변경 핸들러
-  const handleSearchChange = (value: string) => {
+  // 검색 실행 핸들러 (버튼 클릭 시에만 호출)
+  const executeSearch = useCallback(() => {
+    const value = inputValue.trim();
     setSearchTerm(value);
     if (!value) {
       setExpandedForSearch(new Set());
-    } else {
-      ensureExpandedForMatches(teamMembers);
     }
-  };
+  }, [inputValue]);
 
+  // searchTerm이 변경될 때만 확장 상태 업데이트
   useEffect(() => {
     if (lowerSearch) {
       ensureExpandedForMatches(teamMembers);
+    } else {
+      setExpandedForSearch(new Set());
     }
-  }, [teamMembers, lowerSearch, ensureExpandedForMatches]);
+  }, [lowerSearch, ensureExpandedForMatches, teamMembers]);
 
   const confirmMove = useCallback(async () => {
     if (!pendingMove) return;
@@ -239,13 +243,42 @@ export default function TeamManagementSettings() {
     setDragOverItemId(null);
   };
 
-  const uniqueDepartments = useMemo(() => {
-    const set = new Set<string>();
-    flattenedMembers.forEach((member) => {
-      if (member.department && member.department !== "팀원") set.add(member.department);
-    });
-    return Array.from(set);
-  }, [flattenedMembers]);
+  // 모든 팀(department) 목록 - teamsData에서 가져옴
+  const allDepartments = useMemo(() => {
+    if (!teamsData) return [];
+    return teamsData.map((team) => team.name);
+  }, [teamsData]);
+
+  // 부서 필터링된 멤버 데이터
+  const filteredByDepartment = useMemo(() => {
+    if (!selectedDepartment) return teamMembers;
+    
+    // 선택된 부서에 속하는 멤버와 그 자손들만 필터링
+    const filterTree = (items: TeamMember[]): TeamMember[] => {
+      return items
+        .map((item) => {
+          const isMatch = item.department === selectedDepartment;
+          const filteredChildren = item.children ? filterTree(item.children) : [];
+          
+          // 본인이 매칭되거나 자손 중 매칭되는 것이 있으면 포함
+          if (isMatch || filteredChildren.length > 0) {
+            return {
+              ...item,
+              children: isMatch ? item.children : filteredChildren,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean) as TeamMember[];
+    };
+    
+    return filterTree(teamMembers);
+  }, [teamMembers, selectedDepartment]);
+
+  // 부서 태그 클릭 핸들러
+  const handleDepartmentClick = useCallback((dept: string) => {
+    setSelectedDepartment((prev) => (prev === dept ? null : dept));
+  }, []);
 
   const selectedMember = useMemo(
     () => (selectedMemberId ? flattenedMembers.find((member) => member.id === selectedMemberId) ?? null : null),
@@ -296,22 +329,40 @@ export default function TeamManagementSettings() {
             <div className="relative">
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    executeSearch();
+                  }
+                }}
                 placeholder="직원 및 팀 이름을 검색하세요"
                 className="w-full min-w-[280px] max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
               />
             </div>
-            <button className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold">
+            <button
+              type="button"
+              onClick={executeSearch}
+              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            >
               검색
             </button>
           </div>
-          {uniqueDepartments.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {uniqueDepartments.map((tag) => (
-                <div key={tag} className="px-3 py-1 bg-neutral-30 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center">
-                  <span className="text-[12px] font-medium text-neutral-70 leading-[1]">{tag}</span>
-                </div>
+          {allDepartments.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-30 scrollbar-track-transparent pb-1">
+              {allDepartments.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => handleDepartmentClick(tag)}
+                  className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
+                    selectedDepartment === tag
+                      ? "bg-primary-80 text-neutral-0"
+                      : "bg-neutral-30 text-neutral-70 hover:bg-neutral-40"
+                  }`}
+                >
+                  <span className="text-[12px] font-medium leading-[1] whitespace-nowrap">{tag}</span>
+                </button>
               ))}
             </div>
           )}
@@ -322,7 +373,7 @@ export default function TeamManagementSettings() {
       {viewMode === "list" ? (
         <div className="flex-1 px-7 overflow-y-auto min-h-0 max-h-[538px]">
           <TeamListView
-            data={teamMembers}
+            data={filteredByDepartment}
             dragHandlers={dragHandlers}
             dragState={dragState}
             tags={[]} // 태그는 상단으로 이동했으므로 빈 배열 전달

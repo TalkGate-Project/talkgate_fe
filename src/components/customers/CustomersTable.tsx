@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CustomerListItem, RecentNote } from "@/types/customers";
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
+import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -33,6 +34,19 @@ export default function CustomersTable({
   } | null>(null);
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    CustomerNoteCategoriesService.list()
+      .then((res) => {
+        // res.data = { result: true, data: [...categories] }
+        setCategories((res.data as any)?.data ?? []);
+      })
+      .catch(() => {
+        // silently fail
+      });
+  }, []);
 
   const handleMouseEnter = (e: React.MouseEvent, customer: CustomerListItem) => {
     if (hoverHideRef.current) {
@@ -204,6 +218,7 @@ export default function CustomersTable({
         <CustomersHoverPopover
           name={hoverInfo.name}
           notes={hoverInfo.notes}
+          categories={categories}
           top={hoverInfo.top}
           left={hoverInfo.left}
           onMouseEnter={handlePopoverMouseEnter}
