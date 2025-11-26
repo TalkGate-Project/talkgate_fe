@@ -37,6 +37,15 @@ export interface TeamChangeLog {
   createdAt: string;
 }
 
+export type MemberRole = "admin" | "subAdmin" | "leader" | "member";
+
+export interface TeamInfo {
+  id: number;
+  name: string;
+  leaderMemberId: number;
+  leaderMemberName: string;
+}
+
 export interface MyMember {
   id: number;
   userId: number;
@@ -45,6 +54,8 @@ export interface MyMember {
   email: string;
   phone: string;
   profileImageUrl: string;
+  role: MemberRole;
+  teamInfo: TeamInfo | null;
   organizationTree: OrganizationTreeNode;
   hrData: HrData;
   hrNotes: HrNote[];
@@ -97,7 +108,7 @@ export interface MemberListItem {
   email?: string; // API 응답에 없을 수 있음
   phone: string | null;
   profileImageUrl: string | null;
-  role?: "admin" | "subAdmin" | "leader" | "member"; // API 응답에 없을 수 있음
+  role?: MemberRole; // API 응답에 없을 수 있음
   teamName?: string; // API 응답에 없을 수 있음
   createdAt: string;
   updatedAt: string;
@@ -128,7 +139,7 @@ export interface InviteMemberResponse {
     id: number;
     projectId: number;
     projectName: string;
-    role: "admin" | "subAdmin" | "leader" | "member";
+    role: MemberRole;
     email: string;
     token: string;
     expiresAt: string;
@@ -143,7 +154,7 @@ export interface InvitationListItem {
   id: number;
   projectId: number;
   projectName: string;
-  role: "admin" | "subAdmin" | "leader" | "member";
+  role: MemberRole;
   email: string;
   token: string;
   expiresAt: string;

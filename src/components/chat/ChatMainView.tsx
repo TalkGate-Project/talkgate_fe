@@ -8,8 +8,8 @@ import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
 import PlatformIcon from "./icons/PlatformIcon";
 import Image from "next/image";
-import DefaultProfile from "@/assets/images/common/default_profile.png";
 import TgsSticker from "./TgsSticker";
+import ConversationAvatar from "./ConversationAvatar";
 
 type Props = {
   activeConversation: Conversation | null;
@@ -147,7 +147,11 @@ export default function ChatMainView({
           <div className="flex items-center gap-4">
             {activeConversation ? (
               <>
-                <div className="w-10 h-10 rounded-full bg-neutral-20" />
+                <ConversationAvatar
+                  name={activeConversation.name}
+                  profileUrl={activeConversation.profileUrl}
+                  size="md"
+                />
                 <div>
                   <div className="flex items-center leading-[24px] gap-2">
                     <span className="text-[20px] font-bold text-ink">
@@ -166,10 +170,9 @@ export default function ChatMainView({
               <EmptyUserIcon />
             )}
           </div>
-          {/* TODO: [고객 연동 UI] 연동 버튼 및 고객정보 버튼 표시 조건
-              - activeConversation.customerId가 서버에서 정상적으로 반환되어야 UI가 올바르게 표시됨
-              - 현재는 linkCustomer API 호출 후 로컬 상태만 업데이트하므로 페이지 새로고침 시 초기화될 수 있음
-              - 관련 이슈: #62, #63
+          {/* 연동 버튼 및 고객정보 버튼 - customerId 유무에 따라 표시
+              - 대화방 선택 시 getConversationById로 customerId 포함된 상세 정보 조회
+              - linkCustomer API 호출 후 로컬 상태 즉시 업데이트 (Optimistic UI)
           */}
           <div className="flex items-center gap-2">
             <button
@@ -266,26 +269,12 @@ export default function ChatMainView({
                 }`}
               >
                 {/* 상대방 메시지일 때만 프로필 이미지 표시 */}
-                {m.direction === "incoming" && (
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    {activeConversation?.profileUrl ? (
-                      <Image
-                        src={activeConversation.profileUrl}
-                        alt={activeConversation.name}
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Image
-                        src={DefaultProfile.src}
-                        alt="기본 프로필"
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
+                {m.direction === "incoming" && activeConversation && (
+                  <ConversationAvatar
+                    name={activeConversation.name}
+                    profileUrl={activeConversation.profileUrl}
+                    size="md"
+                  />
                 )}
                 <div
                   className={`max-w-[75%] rounded-[16px] ${

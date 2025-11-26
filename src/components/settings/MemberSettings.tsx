@@ -3,11 +3,14 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSelectedProjectId } from "@/lib/project";
+import { useMyMember } from "@/hooks/useMyMember";
+import { hasAdminAccess } from "@/utils/permissions";
 import { MembersService } from "@/services/members";
 import type { MemberListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -19,11 +22,14 @@ const ROLE_LABELS: Record<string, string> = {
 function MemberRow({
   member,
   onDelete,
+  canDelete,
 }: {
   member: MemberListItem;
   onDelete: (id: number) => void;
+  /** 현재 사용자가 삭제 권한이 있는지 (admin/subAdmin) */
+  canDelete: boolean;
 }) {
-  const isAdmin = member.role === "admin";
+  const isTargetAdmin = member.role === "admin";
   const avatar = member.name ? member.name[0] : "?";
   const joinDate = new Date(member.createdAt)
     .toLocaleDateString("ko-KR", {
@@ -34,6 +40,11 @@ function MemberRow({
     .replace(/\. /g, "-")
     .replace(".", "");
 
+  // 삭제 버튼 표시 조건:
+  // 1. 현재 사용자가 admin/subAdmin이어야 함 (canDelete)
+  // 2. 삭제 대상이 admin이 아니어야 함 (admin은 삭제 불가)
+  const showDeleteButton = canDelete && !isTargetAdmin;
+
   return (
     <>
       <div className="flex items-center py-3 px-10 h-[80px]">
@@ -42,7 +53,7 @@ function MemberRow({
           {/* Avatar */}
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] flex-shrink-0 ${
-              isAdmin ? "bg-primary-80" : "bg-neutral-60"
+              isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
             }`}
           >
             {avatar}
@@ -54,7 +65,7 @@ function MemberRow({
               <span className="text-[16px] font-semibold text-neutral-90 truncate">
                 {member.name}
               </span>
-              {isAdmin && (
+              {isTargetAdmin && (
                 <span className="px-2 py-1 bg-primary-10 text-primary-80 text-[12px] font-medium rounded-[5px] flex-shrink-0">
                   Admin
                 </span>
@@ -85,9 +96,9 @@ function MemberRow({
           {joinDate}
         </div>
 
-        {/* Delete Button - admin만 삭제 버튼 숨김 */}
+        {/* Delete Button - admin/subAdmin만 볼 수 있고, 대상이 admin이 아닐 때만 표시 */}
         <div className="flex items-center justify-end w-[80px] min-w-[80px] flex-none pr-[60px]">
-          {!isAdmin && (
+          {showDeleteButton && (
             <button
               onClick={() => onDelete(member.id)}
               className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded transition-colors"
@@ -124,6 +135,7 @@ export default function MemberSettings() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MemberListItem | null>(
     null
   );
@@ -132,6 +144,14 @@ export default function MemberSettings() {
     const id = getSelectedProjectId();
     setProjectId(id);
   }, []);
+
+  // 현재 사용자 정보 조회
+  const { member: myMember } = useMyMember(projectId);
+  const myRole = myMember?.role;
+  
+  // 권한 체크
+  const isAdminOrSubAdmin = hasAdminAccess(myRole);
+  const canLeaveProject = !isAdminOrSubAdmin && myRole !== undefined;
 
   // 멤버 목록 조회
   const { data: membersData, isLoading } = useQuery({
@@ -228,6 +248,17 @@ export default function MemberSettings() {
     );
   }
 
+  // 프로젝트 탈퇴 핸들러
+  const handleLeaveProject = () => {
+    setIsLeaveModalOpen(true);
+  };
+
+  const handleLeaveConfirm = () => {
+    // TODO: 프로젝트 탈퇴 API 호출
+    alert("프로젝트 탈퇴 기능은 준비 중입니다.");
+    setIsLeaveModalOpen(false);
+  };
+
   return (
     <div className="bg-card rounded-[14px] py-7">
       {/* Header */}
@@ -235,12 +266,29 @@ export default function MemberSettings() {
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           팀 멤버 관리
         </h1>
-        <button
-          onClick={handleInviteMember}
-          className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
-        >
-          멤버초대
-        </button>
+        
+        {/* 버튼 영역 - 권한에 따라 다른 버튼 표시 */}
+        <div className="flex items-center gap-3">
+          {/* 프로젝트 탈퇴 버튼 - leader/member만 표시 */}
+          {canLeaveProject && (
+            <button
+              onClick={handleLeaveProject}
+              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
+            >
+              프로젝트 탈퇴
+            </button>
+          )}
+          
+          {/* 멤버초대 버튼 - admin/subAdmin만 표시 */}
+          {isAdminOrSubAdmin && (
+            <button
+              onClick={handleInviteMember}
+              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
+            >
+              멤버초대
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Divider */}
@@ -278,6 +326,7 @@ export default function MemberSettings() {
                 key={member.id}
                 member={member}
                 onDelete={handleDelete}
+                canDelete={isAdminOrSubAdmin}
               />
             ))
           )}
@@ -306,6 +355,17 @@ export default function MemberSettings() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         member={selectedMember}
+      />
+
+      {/* Leave Project Modal */}
+      <ConfirmModal
+        open={isLeaveModalOpen}
+        onCancel={() => setIsLeaveModalOpen(false)}
+        onConfirm={handleLeaveConfirm}
+        title="프로젝트 탈퇴"
+        description="정말로 이 프로젝트에서 탈퇴하시겠습니까? 탈퇴 후에는 다시 초대를 받아야 합니다."
+        confirmText="탈퇴"
+        cancelText="취소"
       />
     </div>
   );

@@ -42,11 +42,9 @@ export type Conversation = {
   memberId: number;
   /**
    * 연동된 고객 ID
-   * TODO: [고객 연동 UI] 서버에서 conversationsList, conversation 소켓 이벤트에
-   * 이 필드를 포함하여 반환해야 연동 버튼 UI가 정상 동작함
-   * - 현재 linkCustomer REST API로 연동 후 로컬 상태만 업데이트 중
-   * - 페이지 새로고침 시 서버 응답에 customerId가 없으면 연동 상태 초기화됨
-   * - 관련 이슈: #62, #63
+   * - getConversationById (단일 대화방 조회) 응답에 포함됨
+   * - conversationsList (목록 조회)에서는 포함되지 않을 수 있음
+   * - 대화방 선택 시 getConversationById로 상세 정보 조회하여 동기화
    */
   customerId?: number;
   platform: string;
