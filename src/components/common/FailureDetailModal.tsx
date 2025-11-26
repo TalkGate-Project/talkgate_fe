@@ -214,16 +214,7 @@ export default function FailureDetailModal({
                   onClick={onClose}
                   className="cursor-pointer px-3 py-[6px] h-[34px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#000000] hover:bg-gray-50 transition-colors"
                 >
-                  취소
-                </button>
-                <button
-                  onClick={() => {
-                    console.log("배정하기");
-                    // TODO: Implement assignment logic
-                  }}
-                  className="cursor-pointer px-3 py-[6px] h-[34px] bg-[#252525] rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#EDEDED] hover:bg-[#404040] transition-colors"
-                >
-                  배정하기
+                  닫기
                 </button>
               </div>
             </>

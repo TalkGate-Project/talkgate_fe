@@ -8,8 +8,8 @@ import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
 import PlatformIcon from "./icons/PlatformIcon";
 import Image from "next/image";
-import DefaultProfile from "@/assets/images/common/default_profile.png";
 import TgsSticker from "./TgsSticker";
+import ConversationAvatar from "./ConversationAvatar";
 
 type Props = {
   activeConversation: Conversation | null;
@@ -147,7 +147,11 @@ export default function ChatMainView({
           <div className="flex items-center gap-4">
             {activeConversation ? (
               <>
-                <div className="w-10 h-10 rounded-full bg-neutral-20" />
+                <ConversationAvatar
+                  name={activeConversation.name}
+                  profileUrl={activeConversation.profileUrl}
+                  size="md"
+                />
                 <div>
                   <div className="flex items-center leading-[24px] gap-2">
                     <span className="text-[20px] font-bold text-ink">
@@ -265,26 +269,12 @@ export default function ChatMainView({
                 }`}
               >
                 {/* 상대방 메시지일 때만 프로필 이미지 표시 */}
-                {m.direction === "incoming" && (
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    {activeConversation?.profileUrl ? (
-                      <Image
-                        src={activeConversation.profileUrl}
-                        alt={activeConversation.name}
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Image
-                        src={DefaultProfile.src}
-                        alt="기본 프로필"
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
+                {m.direction === "incoming" && activeConversation && (
+                  <ConversationAvatar
+                    name={activeConversation.name}
+                    profileUrl={activeConversation.profileUrl}
+                    size="md"
+                  />
                 )}
                 <div
                   className={`max-w-[75%] rounded-[16px] ${

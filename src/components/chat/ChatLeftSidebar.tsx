@@ -8,6 +8,7 @@ import FilterIcon from "./icons/FilterIcon";
 import ListViewIcon from "./icons/ListViewIcon";
 import AlbumViewIcon from "./icons/AlbumViewIcon";
 import PlatformIcon from "./icons/PlatformIcon";
+import ConversationAvatar from "./ConversationAvatar";
 
 type Props = {
   statusFilter: "all" | "active" | "closed";
@@ -229,9 +230,11 @@ export default function ChatLeftSidebar({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-primary-10 grid place-items-center text-primary-60 text-[14px] font-semibold shrink-0">
-                          {c.name?.[0] || "?"}
-                        </div>
+                        <ConversationAvatar
+                          name={c.name}
+                          profileUrl={c.profileUrl}
+                          size="sm"
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[16px] font-semibold text-ink truncate leading-[20px]">
@@ -278,7 +281,7 @@ export default function ChatLeftSidebar({
                   <button
                     key={c.id}
                     onClick={() => handleConversationClick(c)}
-                    className={`cursor-pointer relative h-[72px] rounded-[8px] border flex flex-col ${
+                    className={`cursor-pointer relative h-[88px] rounded-[8px] border flex flex-col items-center justify-center gap-1 ${
                       activeId === c.id
                         ? "border-primary-60"
                         : "border-border"
@@ -291,12 +294,17 @@ export default function ChatLeftSidebar({
                         </span>
                       ) : null}
                     </div>
-                    <div className="px-3 pt-2 text-left flex-1">
-                      <div className="text-[14px] font-semibold text-ink truncate">
+                    <ConversationAvatar
+                      name={c.name}
+                      profileUrl={c.profileUrl}
+                      size="sm"
+                    />
+                    <div className="px-2 text-center w-full">
+                      <div className="text-[12px] font-semibold text-ink truncate">
                         {c.name}
                       </div>
                     </div>
-                    <div className="px-3 pb-2 flex justify-center">
+                    <div className="flex justify-center">
                       <PlatformIcon platform={c.platform} />
                     </div>
                   </button>
