@@ -16,6 +16,8 @@ type CustomersTableProps = {
   onCustomerClick: (customerId: number) => void;
 };
 
+const UI_SCALE_STORAGE_KEY = "tg-ui-scale-mode";
+
 export default function CustomersTable({
   customers,
   loading,
@@ -35,6 +37,37 @@ export default function CustomersTable({
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const [isCompactMode, setIsCompactMode] = useState(false);
+
+  // Check compact mode on mount and listen for storage changes
+  useEffect(() => {
+    const checkCompactMode = () => {
+      try {
+        const mode = window.localStorage.getItem(UI_SCALE_STORAGE_KEY);
+        setIsCompactMode(mode === "compact");
+      } catch {
+        setIsCompactMode(false);
+      }
+    };
+
+    checkCompactMode();
+
+    // Listen for storage changes (when user toggles mode)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === UI_SCALE_STORAGE_KEY) {
+        checkCompactMode();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    // Also check periodically for same-tab changes
+    const interval = setInterval(checkCompactMode, 500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -49,6 +82,9 @@ export default function CustomersTable({
   }, []);
 
   const handleMouseEnter = (e: React.MouseEvent, customer: CustomerListItem) => {
+    // 컴팩트 모드에서는 zoom/scale로 인해 팝오버 위치가 어긋나므로 표시하지 않음
+    if (isCompactMode) return;
+
     if (hoverHideRef.current) {
       clearTimeout(hoverHideRef.current);
       hoverHideRef.current = null;
