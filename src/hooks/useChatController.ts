@@ -92,10 +92,30 @@ export function useChatController({ projectId, status = "all", platform }: Param
     const socket = talkgateSocket.connect(projectId);
     socketRef.current = socket;
 
-    // 소켓이 이미 연결되어 있으면 상태를 즉시 업데이트
+    // status/platform 변경 시 상태 초기화
+    setConversations([]);
+    setConvCursor(undefined);
+    setConvHasMore(false);
+    convLoadingRef.current = false;
+    lastConvCursorRequestedRef.current = undefined;
+
+    // 초기 데이터 요청 함수
+    const requestInitialConversations = () => {
+      socket.emit("getConversations", {
+        limit: 20,
+        status: status === "all" ? undefined : status,
+        platform,
+      });
+      lastConvCursorRequestedRef.current = undefined;
+      convLoadingRef.current = true;
+    };
+
+    // 소켓이 이미 연결되어 있으면 상태를 즉시 업데이트하고 데이터 요청
     if (socket.connected) {
       setConnected(true);
       setSocketError(null);
+      // 이미 연결된 상태에서 status/platform이 변경된 경우 즉시 데이터 요청
+      requestInitialConversations();
     }
 
     // 페이지 새로고침/닫기 시 소켓 정리
@@ -115,13 +135,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setSocketError(null);
       
       // 서버 준비 완료 시 대화 목록 요청
-      socket.emit("getConversations", {
-        limit: 20,
-        status: status === "all" ? undefined : status,
-        platform,
-      });
-      lastConvCursorRequestedRef.current = undefined;
-      convLoadingRef.current = true;
+      requestInitialConversations();
     };
 
     const onConnectError = (err: any) => {
@@ -157,12 +171,17 @@ export function useChatController({ projectId, status = "all", platform }: Param
     // - 관련 이슈: #62 고객정보가 연동되었는데 버튼 UI가 변경되지 않음
     const onConversationsList = (payload: ConversationsListEvent) => {
       const items = payload?.conversations ?? [];
+      const currentCursor = (payload as any)?.cursor as number | undefined;
       const nextCursor = (payload as any)?.nextCursor as number | undefined;
-      const hasMore = Boolean((payload as any)?.hasMore);
+      let hasMore = Boolean((payload as any)?.hasMore);
       const requestedCursor = lastConvCursorRequestedRef.current;
 
-      setConvCursor(nextCursor);
-      setConvHasMore(hasMore);
+      // 방어 로직: cursor와 nextCursor가 같으면 무한 루프 방지
+      // TODO: [백엔드 버그] cursor === nextCursor인 경우 발생 - 백엔드에서 수정 필요
+      if (currentCursor !== undefined && nextCursor !== undefined && currentCursor === nextCursor) {
+        hasMore = false;
+      }
+
       convLoadingRef.current = false;
       lastConvCursorRequestedRef.current = undefined;
 
@@ -171,12 +190,28 @@ export function useChatController({ projectId, status = "all", platform }: Param
         setConversations((prev) => {
           const existingIds = new Set(prev.map((c) => c.id));
           const merged = [...prev];
-          for (const it of items) if (!existingIds.has(it.id)) merged.push(it);
+          let addedCount = 0;
+          for (const it of items) {
+            if (!existingIds.has(it.id)) {
+              merged.push(it);
+              addedCount++;
+            }
+          }
+          // 방어 로직: 새로 추가된 항목이 없으면 hasMore를 false로 처리
+          if (addedCount === 0) {
+            setConvHasMore(false);
+            setConvCursor(undefined);
+          } else {
+            setConvCursor(nextCursor);
+            setConvHasMore(hasMore);
+          }
           return merged;
         });
       } else {
         // 초기 로드/새로고침: 전체 교체
         setConversations(items);
+        setConvCursor(nextCursor);
+        setConvHasMore(hasMore);
         // 초기 로드 시에만 선택 상태 검증 (선택된 대화방이 새 목록에 없으면 선택 해제)
         const current = activeIdRef.current;
         if (current && !items.some((c) => c.id === current)) {
