@@ -337,7 +337,7 @@ export default function TeamManagementSettings() {
                   }
                 }}
                 placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full min-w-[280px] max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full min-w-[280px] max-w-[294px] px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
               />
             </div>
             <button

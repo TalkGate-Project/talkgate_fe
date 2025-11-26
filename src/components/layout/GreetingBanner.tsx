@@ -4,9 +4,11 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMyMember } from "@/hooks/useMyMember";
 import { ProjectsService } from "@/services/projects";
 import { AttendanceService } from "@/services/attendance";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import { shouldShowAttendanceButton } from "@/utils/permissions";
 import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
@@ -22,6 +24,10 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   const [projectId, projectReady] = useSelectedProjectId();
   const queryClient = useQueryClient();
   const [isAttendanceMenuEnabled] = useAttendanceMenu();
+  
+  // 현재 사용자의 멤버 정보 (role 포함)
+  const { member: myMember } = useMyMember(projectId);
+  const currentRole = myMember?.role;
   
   // Update clock every second
   useEffect(() => {
@@ -74,10 +80,9 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   const projectName = currentProject?.name || "프로젝트";
   const projectLogoUrl = currentProject?.logoUrl;
-  const currentRole = currentProject?.role;
   
   // 출퇴근 버튼 표시 여부: useAttendanceMenu가 true이고, admin/subAdmin이 아닐 때만 표시
-  const showAttendanceButton = isAttendanceMenuEnabled && currentRole !== "admin" && currentRole !== "subAdmin";
+  const showAttendance = isAttendanceMenuEnabled && shouldShowAttendanceButton(currentRole);
 
   // Attendance Logic
   const { data: myStatusData } = useQuery({
@@ -200,7 +205,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         {/* Right: actions + timestamp */}
         <div className="flex flex-col items-end gap-3 justify-between h-full">
           <div></div>
-          {showAttendanceButton && (
+          {showAttendance && (
             <div className="flex items-center gap-3">
               {isCheckedIn ? (
                   // Checked In State

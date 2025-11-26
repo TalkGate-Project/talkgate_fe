@@ -1,6 +1,7 @@
 // Projects domain types
 
 import type { ApiSuccess } from "./common";
+import type { MemberRole } from "./members";
 
 export type Project = {
   id: number;
@@ -16,7 +17,7 @@ export type ProjectSummary = Project & {
   memberCount?: number;
   assignedCustomerCount?: number;
   todayScheduleCount?: number;
-  role?: "admin" | "subAdmin" | "leader" | "member";
+  role?: MemberRole;
 };
 
 export type CreateProjectPayload = {
