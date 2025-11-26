@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/auth";
-import { buildOAuthAuthorizeUrl } from "@/lib/oauth";
+import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
@@ -198,10 +198,7 @@ export default function LoginPage() {
               aria-label="kakao"
               className="cursor-pointer w-11 h-11 rounded-full"
               style={{ background: "#FEE500" }}
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("kakao");
-                window.location.href = url;
-              }}
+              onClick={() => initiateSocialLogin("kakao")}
             >
               <img src="/kakao.png" alt="" />
             </button>
@@ -209,20 +206,14 @@ export default function LoginPage() {
               aria-label="naver"
               className="cursor-pointer w-11 h-11 rounded-full"
               style={{ background: "#03C75A" }}
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("naver");
-                window.location.href = url;
-              }}
+              onClick={() => initiateSocialLogin("naver")}
             >
               <img src="/naver.png" alt="" />
             </button>
             <button
               aria-label="google"
               className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
-              onClick={() => {
-                const url = buildOAuthAuthorizeUrl("google");
-                window.location.href = url;
-              }}
+              onClick={() => initiateSocialLogin("google")}
             >
               <img src="/google.png" alt="" />
             </button>

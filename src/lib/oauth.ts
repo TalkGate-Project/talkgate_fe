@@ -1,6 +1,11 @@
 "use client";
 
 import { env } from "./env";
+import {
+  cleanupSessionBeforeLogin,
+  startOAuthFlow,
+  debugLog,
+} from "./auth-utils";
 
 export type OAuthProvider = "google" | "kakao" | "naver";
 
@@ -9,6 +14,9 @@ function getCurrentOrigin(): string {
   return window.location.origin;
 }
 
+/**
+ * OAuth 제공자의 인증 URL을 생성합니다.
+ */
 export function buildOAuthAuthorizeUrl(provider: OAuthProvider): string {
   const origin = getCurrentOrigin();
   const redirectUri = `${origin}/auth/callback/${provider}`;
@@ -38,6 +46,49 @@ export function buildOAuthAuthorizeUrl(provider: OAuthProvider): string {
 export function getCallbackUrl(provider: OAuthProvider): string {
   const origin = getCurrentOrigin();
   return `${origin}/auth/callback/${provider}`;
+}
+
+/**
+ * 소셜 로그인을 시작합니다.
+ * 기존 세션을 정리하고 OAuth 제공자로 리디렉션합니다.
+ * 
+ * @param provider - OAuth 제공자 (google, kakao, naver)
+ * @returns 리디렉션이 수행되므로 이 함수는 반환되지 않습니다.
+ */
+export function initiateSocialLogin(provider: OAuthProvider): void {
+  if (typeof window === "undefined") return;
+
+  debugLog(`🔑 소셜 로그인 초기화: ${provider}`);
+
+  // 1. 기존 세션 데이터 정리 (토큰, 프로젝트 ID 등)
+  cleanupSessionBeforeLogin();
+
+  // 2. 디버그 플로우 시작 (sessionStorage에 로깅)
+  startOAuthFlow(provider);
+
+  // 3. OAuth URL 생성
+  const url = buildOAuthAuthorizeUrl(provider);
+
+  // 4. 환경변수 유효성 검증
+  const clientIdMap: Record<OAuthProvider, string | undefined> = {
+    google: env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    kakao: env.NEXT_PUBLIC_KAKAO_REST_API_KEY,
+    naver: env.NEXT_PUBLIC_NAVER_CLIENT_ID,
+  };
+
+  const clientId = clientIdMap[provider];
+  if (!clientId) {
+    const errorMsg = `❌ ${provider.toUpperCase()} Client ID가 설정되지 않았습니다. 환경변수를 확인하세요.`;
+    debugLog(errorMsg);
+    console.error(`[OAuth] ${errorMsg}`);
+    alert(`소셜 로그인 설정 오류: ${provider} Client ID가 누락되었습니다.`);
+    return;
+  }
+
+  debugLog(`🔗 리디렉션 URL 생성 완료`, { url: url.substring(0, 100) + "..." });
+
+  // 5. OAuth 제공자로 리디렉션
+  window.location.href = url;
 }
 
 
