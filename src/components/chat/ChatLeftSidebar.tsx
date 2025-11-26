@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/lib/realtime";
 import ChatFilterModal from "./ChatFilterModal";
@@ -20,6 +20,7 @@ type Props = {
   activeId: number | null;
   onSelectConversation: (id: number) => void;
   loadMoreConversations: () => void;
+  hasMoreConversations?: boolean;
 };
 
 export default function ChatLeftSidebar({
@@ -33,6 +34,7 @@ export default function ChatLeftSidebar({
   activeId,
   onSelectConversation,
   loadMoreConversations,
+  hasMoreConversations = true,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +47,26 @@ export default function ChatLeftSidebar({
       loadMoreConversations();
     }
   }, [loadMoreConversations]);
+
+  // 스크롤이 없을 때 화면에 빈 공간이 남아있으면 추가 대화방 로드
+  useEffect(() => {
+    const el = convScrollRef.current;
+    if (!el || !hasMoreConversations) return;
+
+    // DOM 업데이트 후 체크
+    const checkAndLoadMore = () => {
+      const el = convScrollRef.current;
+      if (!el) return;
+      // 스크롤이 필요 없는 상태 (컨텐츠가 컨테이너보다 작음)인데 더 로드할 수 있으면 로드
+      if (el.scrollHeight <= el.clientHeight && hasMoreConversations) {
+        loadMoreConversations();
+      }
+    };
+
+    // 초기 체크와 대화 목록 변경 시 체크
+    const timeoutId = setTimeout(checkAndLoadMore, 100);
+    return () => clearTimeout(timeoutId);
+  }, [conversations.length, hasMoreConversations, loadMoreConversations]);
 
   // Filtered conversations according to status
   const filteredConversations = useMemo(() => {

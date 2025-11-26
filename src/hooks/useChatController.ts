@@ -149,6 +149,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
     };
 
     // 대화 목록 관련 이벤트 핸들러
+    // TODO: [고객 연동 UI] 서버에서 conversationsList 이벤트 응답에 customerId 필드를 포함하는지 확인 필요
+    // - 현재 Conversation 타입에 customerId?: number 가 정의되어 있음
+    // - 고객 연동 시 linkCustomer REST API 호출 후 로컬에서만 customerId를 업데이트하고 있음
+    // - 페이지 새로고침 시 서버 응답에 customerId가 포함되지 않으면 연동 버튼 UI가 초기화됨
+    // - 해결 방안: 백엔드에서 conversationsList, conversation 이벤트에 customerId 포함 요청
+    // - 관련 이슈: #62 고객정보가 연동되었는데 버튼 UI가 변경되지 않음
     const onConversationsList = (payload: ConversationsListEvent) => {
       const items = payload?.conversations ?? [];
       const nextCursor = (payload as any)?.nextCursor as number | undefined;
@@ -161,7 +167,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       lastConvCursorRequestedRef.current = undefined;
 
       if (requestedCursor) {
-        // 페이징: 기존 목록에 추가
+        // 페이징: 기존 목록에 추가 (activeId는 건드리지 않음 - 기존 선택 유지)
         setConversations((prev) => {
           const existingIds = new Set(prev.map((c) => c.id));
           const merged = [...prev];
@@ -171,15 +177,17 @@ export function useChatController({ projectId, status = "all", platform }: Param
       } else {
         // 초기 로드/새로고침: 전체 교체
         setConversations(items);
-      }
-      // 대화 목록이 변경되어도 자동 선택하지 않음; 현재 선택이 유효하면 유지
-      const current = activeIdRef.current;
-      if (current && !items.some((c) => c.id === current)) {
-        setActiveId(null);
+        // 초기 로드 시에만 선택 상태 검증 (선택된 대화방이 새 목록에 없으면 선택 해제)
+        const current = activeIdRef.current;
+        if (current && !items.some((c) => c.id === current)) {
+          setActiveId(null);
+        }
       }
     };
 
     // 대화 업데이트 이벤트 핸들러
+    // TODO: [고객 연동 UI] conversation 이벤트에도 customerId가 포함되어야 연동 상태가 실시간으로 반영됨
+    // - linkCustomer API 호출 후 서버에서 conversation 이벤트를 emit해야 다른 클라이언트도 연동 상태 확인 가능
     const onConversation = (payload: ConversationEvent) => {
       if (!payload?.conversation) return;
       setConversations((prev) => {
@@ -400,6 +408,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   // 고객 연동 액션
   // ============================================
+  // TODO: [고객 연동 UI] 현재 로컬 상태만 업데이트하고 있음
+  // - 서버에서 conversationsList/conversation 소켓 이벤트에 customerId가 포함되면
+  //   이 로컬 업데이트 로직은 optimistic UI로 유지하고, 서버 응답으로 최종 동기화됨
+  // - 페이지 새로고침 시에도 연동 상태가 유지되려면 백엔드에서 customerId 반환 필요
   const linkCustomerToConversation = useCallback(
     async (customerId: number) => {
       if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
@@ -410,6 +422,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
           customerId,
         });
         if (!response.data?.result) throw new Error("고객 연동에 실패했습니다.");
+        // Optimistic UI: 로컬 상태 즉시 업데이트 (서버에서 customerId 반환 시 덮어쓰기됨)
         setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, customerId } : c)));
         showBanner("success", "고객 연동이 완료되었습니다.");
       } catch (err: any) {
@@ -428,10 +441,6 @@ export function useChatController({ projectId, status = "all", platform }: Param
     if (!activeId) {
       showBanner("error", "대화방을 먼저 선택해주세요.");
       return;
-    }
-    if (typeof window !== "undefined") {
-      const confirmed = window.confirm("현재 상담을 완료 처리하시겠습니까?");
-      if (!confirmed) return;
     }
     try {
       const response = await ConversationsService.close({

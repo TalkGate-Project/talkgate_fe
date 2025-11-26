@@ -271,6 +271,7 @@ export default function ChatView({ projectId }: Props) {
         activeId={activeId}
         onSelectConversation={setActiveId}
         loadMoreConversations={loadMoreConversations}
+        hasMoreConversations={conversationsPage.hasMore}
       />
 
       <ChatMainView
