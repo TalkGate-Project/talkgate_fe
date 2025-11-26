@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { AuthService } from "@/services/auth";
+import { apiClient } from "@/lib/apiClient";
+import { setTokens } from "@/lib/token";
+import type { SignupTokens } from "@/types/signup";
+import type { UpdateProfileInput } from "@/types/auth";
 
 type ProfileStepProps = {
-  email: string;
-  password: string;
+  tokens: SignupTokens;
   onComplete: () => void;
   onSkip: () => void;
 };
 
 export function ProfileStep({
-  email,
-  password,
+  tokens,
   onComplete,
   onSkip,
 }: ProfileStepProps) {
@@ -18,19 +19,34 @@ export function ProfileStep({
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 토큰을 쿠키에 저장하고 대시보드로 이동하는 공통 함수
+  const saveTokensAndNavigate = () => {
+    setTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // 1. 먼저 로그인 수행
-      await AuthService.login({ email, password });
-      // 2. 로그인 성공 후 프로필 업데이트
-      await AuthService.updateProfile({
-        name: name || undefined,
-        phone: phone || undefined,
+      // 로그인 없이 전달받은 토큰을 헤더에 직접 태워서 프로필 업데이트
+      const profileData: UpdateProfileInput = {};
+      if (name) profileData.name = name;
+      if (phone) profileData.phone = phone;
+
+      await apiClient.patch("/v1/auth/profile", profileData, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
       });
+      
+      // 프로필 업데이트 성공 후 토큰 저장
+      saveTokensAndNavigate();
       onComplete();
     } catch {
-      // 로그인 또는 프로필 업데이트 실패 시에도 완료 처리
+      // 프로필 업데이트 실패 시에도 토큰 저장 후 완료 처리
+      saveTokensAndNavigate();
       onComplete();
     } finally {
       setIsSubmitting(false);
@@ -40,11 +56,8 @@ export function ProfileStep({
   const handleSkip = async () => {
     setIsSubmitting(true);
     try {
-      // 건너뛰기 시에도 로그인은 수행
-      await AuthService.login({ email, password });
-      onSkip();
-    } catch {
-      // 로그인 실패 시에도 완료 처리
+      // 건너뛰기 시에는 프로필 업데이트 없이 토큰만 저장
+      saveTokensAndNavigate();
       onSkip();
     } finally {
       setIsSubmitting(false);
