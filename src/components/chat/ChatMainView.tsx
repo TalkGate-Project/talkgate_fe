@@ -166,10 +166,9 @@ export default function ChatMainView({
               <EmptyUserIcon />
             )}
           </div>
-          {/* TODO: [고객 연동 UI] 연동 버튼 및 고객정보 버튼 표시 조건
-              - activeConversation.customerId가 서버에서 정상적으로 반환되어야 UI가 올바르게 표시됨
-              - 현재는 linkCustomer API 호출 후 로컬 상태만 업데이트하므로 페이지 새로고침 시 초기화될 수 있음
-              - 관련 이슈: #62, #63
+          {/* 연동 버튼 및 고객정보 버튼 - customerId 유무에 따라 표시
+              - 대화방 선택 시 getConversationById로 customerId 포함된 상세 정보 조회
+              - linkCustomer API 호출 후 로컬 상태 즉시 업데이트 (Optimistic UI)
           */}
           <div className="flex items-center gap-2">
             <button

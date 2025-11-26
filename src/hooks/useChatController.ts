@@ -163,12 +163,8 @@ export function useChatController({ projectId, status = "all", platform }: Param
     };
 
     // 대화 목록 관련 이벤트 핸들러
-    // TODO: [고객 연동 UI] 서버에서 conversationsList 이벤트 응답에 customerId 필드를 포함하는지 확인 필요
-    // - 현재 Conversation 타입에 customerId?: number 가 정의되어 있음
-    // - 고객 연동 시 linkCustomer REST API 호출 후 로컬에서만 customerId를 업데이트하고 있음
-    // - 페이지 새로고침 시 서버 응답에 customerId가 포함되지 않으면 연동 버튼 UI가 초기화됨
-    // - 해결 방안: 백엔드에서 conversationsList, conversation 이벤트에 customerId 포함 요청
-    // - 관련 이슈: #62 고객정보가 연동되었는데 버튼 UI가 변경되지 않음
+    // - conversationsList는 목록 조회용 (customerId가 포함되지 않을 수 있음)
+    // - 개별 대화방 선택 시 getConversationById로 상세 정보(customerId 포함) 조회
     const onConversationsList = (payload: ConversationsListEvent) => {
       const items = payload?.conversations ?? [];
       const currentCursor = (payload as any)?.cursor as number | undefined;
@@ -220,15 +216,17 @@ export function useChatController({ projectId, status = "all", platform }: Param
       }
     };
 
-    // 대화 업데이트 이벤트 핸들러
-    // TODO: [고객 연동 UI] conversation 이벤트에도 customerId가 포함되어야 연동 상태가 실시간으로 반영됨
-    // - linkCustomer API 호출 후 서버에서 conversation 이벤트를 emit해야 다른 클라이언트도 연동 상태 확인 가능
+    // 대화 조회/업데이트 이벤트 핸들러
+    // - getConversationById 호출 시 응답으로 사용됨 (단일 대화방 조회)
+    // - 서버에서 대화방 업데이트 푸시 시에도 사용됨
+    // - customerId 등 상세 정보가 포함되어 고객 연동 상태가 반영됨
     const onConversation = (payload: ConversationEvent) => {
       if (!payload?.conversation) return;
+      const updatedConversation = payload.conversation;
       setConversations((prev) => {
-        const exists = prev.find((c) => c.id === payload.conversation.id);
-        if (!exists) return [payload.conversation, ...prev];
-        return prev.map((c) => (c.id === payload.conversation.id ? payload.conversation : c));
+        const exists = prev.find((c) => c.id === updatedConversation.id);
+        if (!exists) return [updatedConversation, ...prev];
+        return prev.map((c) => (c.id === updatedConversation.id ? updatedConversation : c));
       });
     };
 
@@ -360,12 +358,15 @@ export function useChatController({ projectId, status = "all", platform }: Param
   }, [projectId, status, platform]); // showBanner 제거하여 불필요한 재연결 방지
 
   // ============================================
-  // 활성 대화 변경 시 메시지 로드
+  // 활성 대화 변경 시 메시지 및 대화방 상세 로드
   // ============================================
   useEffect(() => {
     if (!activeId) return;
     const socket = socketRef.current;
     if (!socket) return;
+    // 단일 대화방 조회 (customerId 등 상세 정보 포함)
+    socket.emit("getConversationById", { id: activeId });
+    // 메시지 목록 조회
     socket.emit("getMessages", { conversationId: activeId, limit: 50 });
     socket.emit("markMessagesRead", { conversationId: activeId });
     lastMsgCursorRequestedRef.current = undefined;
@@ -443,10 +444,8 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   // 고객 연동 액션
   // ============================================
-  // TODO: [고객 연동 UI] 현재 로컬 상태만 업데이트하고 있음
-  // - 서버에서 conversationsList/conversation 소켓 이벤트에 customerId가 포함되면
-  //   이 로컬 업데이트 로직은 optimistic UI로 유지하고, 서버 응답으로 최종 동기화됨
-  // - 페이지 새로고침 시에도 연동 상태가 유지되려면 백엔드에서 customerId 반환 필요
+  // - linkCustomer API 호출 후 로컬 상태를 즉시 업데이트 (Optimistic UI)
+  // - 이후 대화방 재선택 시 getConversationById로 서버에서 customerId 포함된 정보 동기화
   const linkCustomerToConversation = useCallback(
     async (customerId: number) => {
       if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
