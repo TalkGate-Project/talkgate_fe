@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CustomerListItem, RecentNote } from "@/types/customers";
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
+import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -14,6 +15,8 @@ type CustomersTableProps = {
   allSelectedOnPage: boolean;
   onCustomerClick: (customerId: number) => void;
 };
+
+const UI_SCALE_STORAGE_KEY = "tg-ui-scale-mode";
 
 export default function CustomersTable({
   customers,
@@ -33,8 +36,55 @@ export default function CustomersTable({
   } | null>(null);
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const [isCompactMode, setIsCompactMode] = useState(false);
+
+  // Check compact mode on mount and listen for storage changes
+  useEffect(() => {
+    const checkCompactMode = () => {
+      try {
+        const mode = window.localStorage.getItem(UI_SCALE_STORAGE_KEY);
+        setIsCompactMode(mode === "compact");
+      } catch {
+        setIsCompactMode(false);
+      }
+    };
+
+    checkCompactMode();
+
+    // Listen for storage changes (when user toggles mode)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === UI_SCALE_STORAGE_KEY) {
+        checkCompactMode();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    // Also check periodically for same-tab changes
+    const interval = setInterval(checkCompactMode, 500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    CustomerNoteCategoriesService.list()
+      .then((res) => {
+        // res.data = { result: true, data: [...categories] }
+        setCategories((res.data as any)?.data ?? []);
+      })
+      .catch(() => {
+        // silently fail
+      });
+  }, []);
 
   const handleMouseEnter = (e: React.MouseEvent, customer: CustomerListItem) => {
+    // 컴팩트 모드에서는 zoom/scale로 인해 팝오버 위치가 어긋나므로 표시하지 않음
+    if (isCompactMode) return;
+
     if (hoverHideRef.current) {
       clearTimeout(hoverHideRef.current);
       hoverHideRef.current = null;
@@ -204,6 +254,7 @@ export default function CustomersTable({
         <CustomersHoverPopover
           name={hoverInfo.name}
           notes={hoverInfo.notes}
+          categories={categories}
           top={hoverInfo.top}
           left={hoverInfo.left}
           onMouseEnter={handlePopoverMouseEnter}

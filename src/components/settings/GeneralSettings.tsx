@@ -339,7 +339,7 @@ export default function GeneralSettings() {
             type="text"
             value={serviceName}
             onChange={(e) => setServiceName(e.target.value)}
-            className="flex-1 px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+            className="flex-1 px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
             placeholder="이름"
             disabled={isSaving}
           />
@@ -364,7 +364,7 @@ export default function GeneralSettings() {
         <div className="mb-3">
           <label className="text-[14px] text-neutral-60 font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
           <div className="flex gap-3 mb-2">
-            <div className="flex-1 flex items-center px-3 py-2 border border-border rounded-[5px] bg-card">
+            <div className="flex-1 flex items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
               <input
                 type="text"
                 value={subdomain}
@@ -396,7 +396,7 @@ export default function GeneralSettings() {
             <div className="relative">
               <label 
                 htmlFor="brand-icon-upload"
-                className={`block w-20 h-20 border border-dashed border-border rounded-xl cursor-pointer overflow-hidden bg-card hover:bg-neutral-10 transition-colors ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`block w-20 h-20 border border-dashed border-neutral-30 rounded-xl cursor-pointer overflow-hidden bg-card hover:bg-neutral-10 transition-colors ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {brandIcon ? (
                   <img src={brandIcon} alt="Brand Icon" className="w-full h-full object-cover" />
@@ -419,7 +419,7 @@ export default function GeneralSettings() {
               {brandIcon && !isSaving && (
                 <button
                   onClick={handleRemoveBrandIcon}
-                  className="cursor-pointer absolute -top-2 -right-2 w-5 h-5 bg-foreground border-2 border-border rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                  className="cursor-pointer absolute -top-2 -right-2 w-5 h-5 bg-foreground border-2 border-neutral-30 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 3L9 9M9 3L3 9" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
@@ -467,13 +467,13 @@ export default function GeneralSettings() {
               <div className="flex gap-3">
                 <button
                   onClick={() => handleModifyStatus(status.id, status.name)}
-                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
+                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-neutral-30 rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
                 >
                   수정
                 </button>
                 <button
                   onClick={() => handleDeleteStatus(status.id)}
-                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-border rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
+                  className="cursor-pointer w-[48px] h-[34px] text-[14px] font-semibold text-foreground bg-card border border-neutral-30 rounded-[5px] hover:bg-neutral-10 transition-colors tracking-[-0.02em] leading-[17px]"
                 >
                   삭제
                 </button>
@@ -488,7 +488,7 @@ export default function GeneralSettings() {
         <h3 className="text-[16px] font-semibold text-foreground mb-[10px] tracking-[0.2px] leading-[1]">프로젝트 기능</h3>
         <p className="text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
         
-        <div className="border-t border-border mb-3"></div>
+        <div className="border-t border-neutral-30 mb-3"></div>
         
         <div className="flex items-center justify-between py-3 px-6 bg-[rgba(214,250,232,0.3)] rounded-[5px] h-[48px]">
           <span className="text-[16px] font-semibold text-foreground leading-[19px]">근태 메뉴 사용</span>
@@ -516,7 +516,7 @@ export default function GeneralSettings() {
           프로젝트를 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
         </p>
         
-        <div className="border-t border-border mb-3"></div>
+        <div className="border-t border-neutral-30 mb-3"></div>
         
         <div className="flex items-center justify-between py-3 px-6 bg-[rgba(255,235,235,0.5)] rounded-[5px] h-[48px]">
           <span className="text-[16px] font-semibold text-danger-40 leading-[19px]">프로젝트 삭제</span>

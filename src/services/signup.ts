@@ -1,10 +1,13 @@
-// Mocked signup flow service to be replaced with real API calls later.
+// Signup flow service
 import { apiClient } from "@/lib/apiClient";
 import type {
   CheckEmailInput,
   CheckEmailOutput,
   RegisterInput,
   RegisterOutput,
+  VerifyEmailInput,
+  VerifyEmailOutput,
+  SignupTokens,
 } from "@/types/signup";
 
 export const SignupService = {
@@ -22,9 +25,29 @@ export const SignupService = {
     return Promise.resolve({ success: true });
   },
 
-  verifyEmailCode(email: string, code: string): Promise<{ success: boolean }> {
-    // Replace with: return apiClient.post('/v1/auth/signup/verify-email-code', { email, code }).then(r=>r.data)
-    return Promise.resolve({ success: code === '000000' ? false : true });
+  /**
+   * 이메일 인증 코드 검증
+   * 성공 시 accessToken과 refreshToken을 반환
+   * 이 토큰은 쿠키에 저장하지 않고 state로 관리하여 프로필 업데이트에 사용
+   */
+  verifyEmailCode(
+    input: VerifyEmailInput
+  ): Promise<{ success: true; tokens: SignupTokens }> {
+    return apiClient
+      .post<VerifyEmailOutput>("/v1/auth/verify-email", {
+        email: input.email,
+        otp: input.otp,
+      })
+      .then((res) => {
+        const data = (res.data as any)?.data ?? res.data;
+        return {
+          success: true as const,
+          tokens: {
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+          },
+        };
+      });
   },
 
   register(input: RegisterInput): Promise<RegisterOutput> {

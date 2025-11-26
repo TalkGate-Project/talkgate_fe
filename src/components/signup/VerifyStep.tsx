@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { SignupService } from "@/services/signup";
 import { AuthService } from "@/services/auth";
+import type { SignupTokens } from "@/types/signup";
 
 type VerifyStepProps = {
   email: string;
-  onSuccess: () => void;
+  onSuccess: (tokens: SignupTokens) => void;
 };
 
 export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
   const [code, setCode] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -25,18 +27,25 @@ export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
     // 이메일 인증 단계 폼 영역 시작
     <form
       className="mt-8 w-full"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
         setInvalid(false);
-        // 이메일 인증 코드 검증만 수행
-        SignupService.verifyEmailCode(email, code).then((res) => {
-          if (res.success) {
-            // 인증 성공 시 다음 단계로 이동 (로그인은 ProfileStep에서 처리)
-            onSuccess();
-          } else {
-            setInvalid(true);
-          }
-        });
+        setIsSubmitting(true);
+        try {
+          // 이메일 인증 코드 검증 - 성공 시 토큰 반환
+          const res = await SignupService.verifyEmailCode({
+            email,
+            otp: code,
+          });
+          // 인증 성공 시 토큰과 함께 다음 단계로 이동
+          // 토큰은 쿠키에 저장하지 않고 state로 관리
+          onSuccess(res.tokens);
+        } catch {
+          setInvalid(true);
+        } finally {
+          setIsSubmitting(false);
+        }
       }}
     >
       {/* 안내 문구 영역 시작 */}
@@ -95,9 +104,10 @@ export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
       {/* 다음 버튼 영역 시작 */}
       <button
         type="submit"
-        className="w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold"
+        className="w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isSubmitting}
       >
-        다음
+        {isSubmitting ? "확인 중..." : "다음"}
       </button>
       {/* 다음 버튼 영역 끝 */}
     </form>

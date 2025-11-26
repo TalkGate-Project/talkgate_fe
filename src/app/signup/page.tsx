@@ -11,12 +11,15 @@ import { VerifyStep } from "@/components/signup/VerifyStep";
 import { ProfileStep } from "@/components/signup/ProfileStep";
 import { DoneStep } from "@/components/signup/DoneStep";
 import type { SignupStep } from "@/components/signup/steps";
+import type { SignupTokens } from "@/types/signup";
 
 export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState<SignupStep>("account");
   const [accountEmail, setAccountEmail] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
+  // 이메일 인증 성공 시 받은 토큰 (쿠키에 저장하지 않고 state로 관리)
+  const [signupTokens, setSignupTokens] = useState<SignupTokens | null>(null);
 
   useEffect(() => {
     document.title = "TalkGate - 회원가입";
@@ -33,6 +36,12 @@ export default function SignupPage() {
     setAccountEmail(params.email);
     setAccountPassword(params.password);
     setStep("verify");
+  };
+
+  // 이메일 인증 성공 시 토큰을 받아서 저장
+  const handleVerifySuccess = (tokens: SignupTokens) => {
+    setSignupTokens(tokens);
+    setStep("profile");
   };
 
   const handleProfileComplete = () => {
@@ -103,14 +112,13 @@ export default function SignupPage() {
           {step === "verify" && (
             <VerifyStep
               email={accountEmail}
-              onSuccess={() => setStep("profile")}
+              onSuccess={handleVerifySuccess}
             />
           )}
 
-          {step === "profile" && (
+          {step === "profile" && signupTokens && (
             <ProfileStep
-              email={accountEmail}
-              password={accountPassword}
+              tokens={signupTokens}
               onComplete={handleProfileComplete}
               onSkip={handleProfileSkip}
             />
