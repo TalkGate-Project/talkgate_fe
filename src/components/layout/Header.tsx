@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { clearTokens } from "@/lib/token";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
@@ -167,37 +168,67 @@ export default function Header() {
           {/* 아바타 및 드롭다운 */}
           <div className="relative" ref={menuRef}>
             <button
-              className="cursor-pointer w-8 h-8 rounded-full bg-[#808080] grid place-items-center"
+              className="cursor-pointer w-8 h-8 rounded-full overflow-hidden grid place-items-center"
               onClick={() => setOpen((v) => !v)}
             >
-              <span className="text-white text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
-                {user?.name ? user.name.charAt(0) : "김"}
-              </span>
+              {user?.profileImageUrl ? (
+                <Image
+                  src={user.profileImageUrl}
+                  alt={user.name || "프로필"}
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#808080] grid place-items-center">
+                  <span className="text-white text-[14px] font-semibold tracking-[-0.02em]">
+                    {user?.name ? user.name.charAt(0) : "김"}
+                  </span>
+                </div>
+              )}
             </button>
             {open && (
               <div className="absolute right-0 top-[65px] w-[360px] bg-white rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] py-5 z-50">
-                {/* 사용자 정보 영역 */}
+                {/* 사용자 정보 영역 (프로젝트 선택됨 - 3줄) */}
                 <div className="flex flex-col gap-3 px-6 mb-3">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     {/* 아바타 */}
-                    <div className="w-12 h-12 rounded-full bg-[#808080] flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-[18px] font-semibold leading-5 text-center tracking-[-0.02em]">
-                        {user?.name ? user.name.charAt(0) : "김"}
-                      </span>
-                    </div>
+                    {user?.profileImageUrl ? (
+                      <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <Image
+                          src={user.profileImageUrl}
+                          alt={user.name || "프로필"}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-primary-60 flex-shrink-0 flex items-center justify-center">
+                        <span className="text-white text-[18px] font-semibold tracking-[-0.02em]">
+                          {user?.name ? user.name.charAt(0) : "김"}
+                        </span>
+                      </div>
+                    )}
 
                     {/* 사용자 상세 정보 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="text-[16px] font-semibold leading-5 text-[#000000] tracking-[0.2px]">
-                          {user?.email || "user@kakao.com"}
+                    <div className="flex-1 min-w-0 flex flex-col gap-[8px]">
+                      {/* 첫째 줄: 멤버이름 | 팀명 */}
+                      <div className="flex items-center gap-2">
+                        <div className="text-[16px] font-semibold leading-[20px] text-[#000000] tracking-[0.2px]">
+                          {user?.name || "김직원"}
                         </div>
                         <div className="w-px h-4 bg-[#808080]"></div>
-                        <div className="text-[14px] font-medium leading-5 text-[#808080]">
-                          A팀
+                        <div className="text-[14px] font-medium leading-[20px] text-[#808080]">
+                          {user?.teamName || "-"}
                         </div>
                       </div>
-                      <div className="text-[14px] font-medium leading-5 text-[#808080]">
+                      {/* 둘째 줄: 이메일 */}
+                      <div className="text-[14px] font-medium leading-[20px] text-[#000000]">
+                        {user?.email || "user@kakao.com"}
+                      </div>
+                      {/* 셋째 줄: UID */}
+                      <div className="text-[14px] font-medium leading-[20px] text-[#808080]">
                         UID : {user?.id || "12345"}
                       </div>
                     </div>
@@ -285,5 +316,6 @@ export default function Header() {
     </header>
   );
 }
+
 
 

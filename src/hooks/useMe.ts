@@ -8,6 +8,7 @@ export type MeUser = {
   email?: string;
   name?: string;
   profileImageUrl?: string;
+  teamName?: string;
 };
 
 type MeResponse = {

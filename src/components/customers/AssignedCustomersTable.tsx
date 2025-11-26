@@ -13,7 +13,7 @@ import type { RecentlyAssignedCustomer, RecentlyAssignedCustomersResponse } from
 import Pagination from "@/components/common/Pagination";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 
-const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", "정보"];
+const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", ""];
 const ROW_LIMIT = 10;
 
 export default function AssignedCustomersTable() {
@@ -89,14 +89,13 @@ export default function AssignedCustomersTable() {
             최근에 배정된 고객이 없습니다.
           </div>
         ) : (
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead>
               <tr className="bg-neutral-20 text-neutral-60">
                 {HEADER_LABELS.map((label, index) => (
                   <th
                     key={label}
-                    className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${index === 0 ? "rounded-l-[8px]" : index === HEADER_LABELS.length - 1 ? "rounded-r-[8px]" : ""}`}
-                    style={index === HEADER_LABELS.length - 1 ? { width: "130px", paddingLeft: "34px" } : undefined}
+                    className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${index === 0 ? "rounded-l-[8px]" : index === HEADER_LABELS.length - 1 ? "rounded-r-[8px] w-[90px]" : ""}`}
                   >
                     {label}
                   </th>
@@ -119,12 +118,15 @@ export default function AssignedCustomersTable() {
                     <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">{media}</td>
                     <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">{site}</td>
                     <td className="px-6 h-[58px] align-middle text-neutral-90">{assignedLabel}</td>
-                    <td className="px-6 h-[58px] align-middle">
+                    <td className="pl-6 w-[90px] h-[58px] align-middle">
                       <button
                         onClick={() => setSelectedCustomerId(customer.id)}
-                        className="cursor-pointer inline-flex h-[34px] w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-10 hover:bg-neutral-80 transition-colors"
+                        className="cursor-pointer inline-flex items-center w-[90px]"
                       >
-                        고객정보
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 5L16 12L9 19" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
                       </button>
                     </td>
                   </tr>

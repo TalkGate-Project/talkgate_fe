@@ -535,11 +535,9 @@ export default function ChatMainView({
 
                   {/* 타임스탬프 */}
                   <div
-                    className={`mt-2 text-[12px] ${
-                      m.direction === "outgoing"
-                        ? "text-neutral-50"
-                        : "text-neutral-60"
-                    } ${m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""}`}
+                    className={`mt-2 text-[12px] text-[#B0B0B0] ${
+                      m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""
+                    }`}
                   >
                     {formatMessageTime(m.sentAt || m.createdAt)}
                   </div>
