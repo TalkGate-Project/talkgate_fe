@@ -166,14 +166,23 @@ export default function ChatMainView({
               <EmptyUserIcon />
             )}
           </div>
+          {/* TODO: [고객 연동 UI] 연동 버튼 및 고객정보 버튼 표시 조건
+              - activeConversation.customerId가 서버에서 정상적으로 반환되어야 UI가 올바르게 표시됨
+              - 현재는 linkCustomer API 호출 후 로컬 상태만 업데이트하므로 페이지 새로고침 시 초기화될 수 있음
+              - 관련 이슈: #62, #63
+          */}
           <div className="flex items-center gap-2">
             <button
-              className="cursor-pointer h-[34px] px-1.5 rounded-[5px] border border-border text-neutral-0 text-[14px] font-semibold disabled:bg-primary-20 disabled:text-neutral-0 disabled:opacity-60 disabled:cursor-not-allowed"
+              className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${
+                activeConversation?.customerId
+                  ? "bg-primary-10 border-primary-80"
+                  : "border-border"
+              }`}
               onClick={onOpenLinkFlow}
             >
-              <LinkIcon />
+              <LinkIcon color={activeConversation?.customerId ? "#00B55B" : "#B0B0B0"} />
             </button>
-            {activeConversation && (
+            {activeConversation && activeConversation.customerId && (
               <button 
                 onClick={onOpenCustomerDetail}
                 className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"

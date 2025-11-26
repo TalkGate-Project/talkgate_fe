@@ -1,4 +1,8 @@
-export default function LinkIcon() {
+type Props = {
+  color?: string;
+};
+
+export default function LinkIcon({ color = "#B0B0B0" }: Props) {
   return (
     <svg
       width="20"
@@ -9,7 +13,7 @@ export default function LinkIcon() {
     >
       <path
         d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
-        stroke="#B0B0B0"
+        stroke={color}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
