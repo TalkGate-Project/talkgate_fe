@@ -22,6 +22,19 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
 
   const hasActiveConversation = useMemo(() => !!conversationId, [conversationId]);
 
+  const formatMessageTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const ampm = hours >= 12 ? "오후" : "오전";
+    const hour12 = hours % 12 || 12;
+    
+    return `${month}. ${day}. ${ampm} ${hour12}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
   // 스크롤 하단 고정
   const scrollToBottom = useCallback(() => {
     if (messagesScrollRef.current) {
@@ -175,10 +188,11 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
           </div>
         ) : (
           <>
-            <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-tl-none px-5 py-4">
-              <div className="text-[13px] leading-[20px]">
-                AI 상담 도우미와의 대화 내역입니다. 상담 중 모르는 내용이 있으면
-                아래 입력창에 질문을 남겨보세요.
+            <div className="flex justify-start">
+              <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
+                <div className="text-[13px] leading-[20px]">
+                  AI 상담 도우미 연결되었습니다. 무엇을 도와드릴까요?
+                </div>
               </div>
             </div>
 
@@ -227,19 +241,29 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                     이전 AI 상담 내역 더 보기
                   </button>
                 )}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {messages.map((m) => (
-                    <div key={m.id} className="space-y-2">
-                      <div className="max-w-[85%] ml-auto bg-neutral-90 text-neutral-0 rounded-[16px] rounded-br-none px-4 py-3">
-                        <div className="text-[12px] text-neutral-40 mb-1">나의 질문</div>
-                        <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
-                          {m.prompt}
+                    <div key={m.id} className="space-y-3">
+                      {/* 나의 질문 (outgoing) */}
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] bg-neutral-90 text-neutral-0 rounded-[16px] rounded-br-none px-4 py-3">
+                          <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
+                            {m.prompt}
+                          </div>
+                          <div className="mt-2 text-[12px] text-[#B0B0B0]">
+                            {formatMessageTime(m.createdAt)}
+                          </div>
                         </div>
                       </div>
-                      <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-tl-none px-4 py-3">
-                        <div className="text-[12px] text-neutral-60 mb-1">AI 답변</div>
-                        <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
-                          {m.response}
+                      {/* AI 답변 (incoming) */}
+                      <div className="flex justify-start">
+                        <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
+                          <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
+                            {m.response}
+                          </div>
+                          <div className="mt-2 text-[12px] text-[#B0B0B0]">
+                            {formatMessageTime(m.updatedAt || m.createdAt)}
+                          </div>
                         </div>
                       </div>
                     </div>
