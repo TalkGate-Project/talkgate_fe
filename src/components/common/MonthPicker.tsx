@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
-import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
-import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 
 type MonthPickerProps = {
 	value: Date | null;
@@ -23,7 +21,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
 	// view tracks the currently displayed year
 	const [viewYear, setViewYear] = useState<number>(initial.getFullYear());
-	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 12); // 24-year page
+	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 20); // 40-year page with scroll
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const inputRef = useRef<HTMLInputElement | null>(null);
@@ -34,7 +32,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setViewYear(base.getFullYear());
-		setYearStart(base.getFullYear() - 12);
+		setYearStart(base.getFullYear() - 20);
 		setMode("month");
 	}, [value]);
 
@@ -101,7 +99,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 		if (!open) {
 			const base = value ? new Date(value) : new Date();
 			setViewYear(base.getFullYear());
-			setYearStart(base.getFullYear() - 12);
+			setYearStart(base.getFullYear() - 20);
 			setMode("month");
 		}
 	}, [value, open]);
@@ -112,14 +110,14 @@ export default function MonthPicker(props: MonthPickerProps) {
 		setMode("month");
 		const base = value ? new Date(value) : new Date();
 		setViewYear(base.getFullYear());
-		setYearStart(base.getFullYear() - 12);
+		setYearStart(base.getFullYear() - 20);
 	}
 
 	function goPrev() {
 		if (mode === "month") {
 			setViewYear((y) => y - 1);
 		} else {
-			setYearStart((s) => s - 24);
+			setYearStart((s) => s - 40);
 		}
 	}
 
@@ -127,7 +125,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 		if (mode === "month") {
 			setViewYear((y) => y + 1);
 		} else {
-			setYearStart((s) => s + 24);
+			setYearStart((s) => s + 40);
 		}
 	}
 
@@ -165,19 +163,11 @@ export default function MonthPicker(props: MonthPickerProps) {
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center cursor-pointer"
-							onClick={goPrev}
-							aria-label="이전"
-						>
-							<CalendarPrevIcon className="w-6 h-6" />
-						</button>
-						<button
-							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1 cursor-pointer"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] font-medium text-[#252525] flex items-center gap-2 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
-									setYearStart(viewYear - 12);
+									setYearStart(viewYear - 20);
 								} else {
 									setMode("month");
 								}
@@ -185,16 +175,47 @@ export default function MonthPicker(props: MonthPickerProps) {
 							aria-label="연도 선택 토글"
 							style={{ fontFamily: "var(--font-montserrat)" }}
 						>
-							{mode === "month" ? `${viewYear}` : `${yearStart} - ${yearStart + 23}`}
+							{mode === "month" ? `${viewYear}` : `${yearStart} - ${yearStart + 39}`}
+							{/* 토글 화살표 아이콘 */}
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 16 16"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className={`transition-transform ${mode === "year" ? "rotate-180" : ""}`}
+							>
+								<path
+									d="M4 6L8 10L12 6"
+									stroke="#808080"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
 						</button>
-						<button
-							type="button"
-							className="w-6 h-6 flex items-center justify-center cursor-pointer"
-							onClick={goNext}
-							aria-label="다음"
-						>
-							<CalendarNextIcon className="w-6 h-6" />
-						</button>
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								onClick={goPrev}
+								aria-label="이전"
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								</svg>
+							</button>
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								onClick={goNext}
+								aria-label="다음"
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								</svg>
+							</button>
+						</div>
 					</div>
 
 					{/* Body */}
@@ -236,19 +257,22 @@ export default function MonthPicker(props: MonthPickerProps) {
 							})}
 						</div>
 					) : (
-						<div>
+						<div className="max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
-								{Array.from({ length: 24 }).map((_, idx) => {
+								{Array.from({ length: 40 }).map((_, idx) => {
 									const y = yearStart + idx;
-                                    const isSelected = value && value.getFullYear() === y;
+									const isCurrentYear = viewYear === y;
+									const isSelected = value && value.getFullYear() === y;
 									return (
 										<button
 											key={y}
 											type="button"
 											onClick={() => onSelectYear(y)}
-											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center hover:bg-neutral-20 cursor-pointer
-                                                ${isSelected ? "bg-[#D6FAE8] text-[#252525]" : "text-[#252525]"}
-                                            `}
+											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center cursor-pointer ${
+												isSelected || isCurrentYear
+													? "bg-[#D6FAE8] text-[#252525] font-medium"
+													: "text-[#252525] hover:bg-neutral-20"
+											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{y}

@@ -3,8 +3,6 @@ import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { generateMonthCells } from "@/utils/calendar";
-import CalendarPrevIcon from "@/components/common/icons/CalendarPrevIcon";
-import CalendarNextIcon from "@/components/common/icons/CalendarNextIcon";
 
 type DatePickerProps = {
 	value: Date | null;
@@ -26,7 +24,7 @@ export default function DatePicker(props: DatePickerProps) {
 	const [mode, setMode] = useState<"month" | "year">("month");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
 	const [view, setView] = useState<Date>(new Date(initial.getFullYear(), initial.getMonth(), 1));
-	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 12); // 24-year page
+	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 20); // 40-year page with scroll
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const inputRef = useRef<HTMLInputElement | null>(null);
@@ -37,7 +35,7 @@ export default function DatePicker(props: DatePickerProps) {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		setYearStart(base.getFullYear() - 12);
+		setYearStart(base.getFullYear() - 20);
 		setMode("month");
 	}, [value]);
 
@@ -110,7 +108,7 @@ export default function DatePicker(props: DatePickerProps) {
 		if (!open) {
 			const base = value ? new Date(value) : new Date();
 			setView(new Date(base.getFullYear(), base.getMonth(), 1));
-			setYearStart(base.getFullYear() - 12);
+			setYearStart(base.getFullYear() - 20);
 			setMode("month");
 		}
 	}, [value, open]);
@@ -127,7 +125,7 @@ export default function DatePicker(props: DatePickerProps) {
 		setMode("month");
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		setYearStart(base.getFullYear() - 12);
+		setYearStart(base.getFullYear() - 20);
 	}
 
 
@@ -136,7 +134,7 @@ export default function DatePicker(props: DatePickerProps) {
 		if (mode === "month") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1));
 		} else {
-			setYearStart((s) => s - 24);
+			setYearStart((s) => s - 40);
 		}
 	}
 
@@ -144,7 +142,7 @@ export default function DatePicker(props: DatePickerProps) {
 		if (mode === "month") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1));
 		} else {
-			setYearStart((s) => s + 24);
+			setYearStart((s) => s + 40);
 		}
 	}
 
@@ -183,19 +181,11 @@ export default function DatePicker(props: DatePickerProps) {
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="w-6 h-6 flex items-center justify-center cursor-pointer"
-							onClick={goPrev}
-							aria-label="이전"
-						>
-							<CalendarPrevIcon className="w-6 h-6" />
-						</button>
-						<button
-							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] text-[#252525] flex items-center gap-1 cursor-pointer"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] font-medium text-[#252525] flex items-center gap-2 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
-									setYearStart(view.getFullYear() - 12);
+									setYearStart(view.getFullYear() - 20);
 								} else {
 									setMode("month");
 								}
@@ -204,15 +194,46 @@ export default function DatePicker(props: DatePickerProps) {
 							style={{ fontFamily: "var(--font-montserrat)" }}
 						>
 							{label}
+							{/* 토글 화살표 아이콘 */}
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 16 16"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+								className={`transition-transform ${mode === "year" ? "rotate-180" : ""}`}
+							>
+								<path
+									d="M4 6L8 10L12 6"
+									stroke="#808080"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
 						</button>
-						<button
-							type="button"
-							className="w-6 h-6 flex items-center justify-center cursor-pointer"
-							onClick={goNext}
-							aria-label="다음"
-						>
-							<CalendarNextIcon className="w-6 h-6" />
-						</button>
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								onClick={goPrev}
+								aria-label="이전"
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								</svg>
+							</button>
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								onClick={goNext}
+								aria-label="다음"
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+								</svg>
+							</button>
+						</div>
 					</div>
 
 					{/* Body */}
@@ -266,16 +287,21 @@ export default function DatePicker(props: DatePickerProps) {
 							</div>
 						</div>
 					) : (
-						<div>
+						<div className="max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
-								{Array.from({ length: 24 }).map((_, idx) => {
+								{Array.from({ length: 40 }).map((_, idx) => {
 									const y = yearStart + idx;
+									const isCurrentYear = view.getFullYear() === y;
 									return (
 										<button
 											key={y}
 											type="button"
 											onClick={() => onSelectYear(y)}
-											className="h-8 rounded-[6px] text-[14px] text-[#252525] hover:bg-neutral-20 cursor-pointer"
+											className={`h-8 rounded-[6px] text-[14px] cursor-pointer ${
+												isCurrentYear 
+													? "bg-[#D6FAE8] text-[#252525] font-medium" 
+													: "text-[#252525] hover:bg-neutral-20"
+											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{y}
