@@ -364,14 +364,14 @@ export default function GeneralSettings() {
 
         {/* 서브 도메인 */}
         <div className="mb-3">
-          <label className="text-[14px] text-neutral-60 font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
+          <label className="text-[14px] text-ink font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
           <div className="flex gap-3 mb-2">
             <div className="flex-1 flex items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
               <input
                 type="text"
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value)}
-                className="flex-1 text-[14px] text-neutral-60 bg-transparent focus:outline-none tracking-[-0.02em]"
+                className="flex-1 text-[14px] text-ink bg-transparent focus:outline-none tracking-[-0.02em]"
                 placeholder="myservice"
                 disabled={isSaving}
               />
@@ -393,7 +393,7 @@ export default function GeneralSettings() {
 
         {/* 브랜드 아이콘 */}
         <div>
-          <label className="text-[14px] text-neutral-60 mb-3 block font-medium tracking-[0.2px]">브랜드 아이콘</label>
+          <label className="text-[14px] text-ink mb-3 block font-medium tracking-[0.2px]">브랜드 아이콘</label>
           <div className="flex items-center justify-center">
             <div className="relative">
               <label 
