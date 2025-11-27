@@ -28,6 +28,7 @@ export default function CustomerDetailModal({
     messengersLocal,
     form,
     setForm,
+    hasChanges,
     actions,
   } = useCustomerDetail(customerId, open);
 
@@ -153,16 +154,24 @@ export default function CustomerDetailModal({
           {/* Footer */}
           <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-neutral-30">
             <button
-              className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 text-body-3"
+              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 text-body-3 ${
+                hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+              }`}
               onClick={actions.resetForm}
+              disabled={!hasChanges}
             >
               초기화
             </button>
             <button
-              className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-40 text-body-3"
+              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${
+                hasChanges
+                  ? "cursor-pointer bg-neutral-90 text-neutral-40"
+                  : "cursor-not-allowed bg-neutral-40 text-neutral-60"
+              }`}
               onClick={() => {
                 actions.saveForm().then(() => onClose()).catch(() => alert("저장에 실패했습니다."));
               }}
+              disabled={!hasChanges}
             >
               적용완료
             </button>

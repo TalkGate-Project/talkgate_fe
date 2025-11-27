@@ -50,7 +50,6 @@ export default function PaymentBarChart() {
 
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
-    console.log(data);
     return records
       .filter((record): record is CustomerPaymentTeamRecord => Boolean(record))
       .map((record) => ({
@@ -98,34 +97,65 @@ export default function PaymentBarChart() {
     );
   };
 
+  // Header (subtitle + 날짜 선택 영역) - 항상 표시
+  const Header = (
+    <div className="mb-3 flex items-center justify-between">
+      <h3 className="text-[16px] font-semibold text-neutral-90">팀별 결제 현황</h3>
+      <DateRangePicker
+        startDate={startDate}
+        endDate={endDate}
+        onStartChange={setStartDate}
+        onEndChange={setEndDate}
+        onReset={() => {
+          const r = getDefaultRange();
+          setStartDate(new Date(r.startDate));
+          setEndDate(new Date(r.endDate));
+        }}
+        showInlineIcon
+      />
+    </div>
+  );
+
   if (waitingForProject) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+      <div className="w-full">
+        {Header}
+        <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        </div>
       </div>
     );
   }
 
   if (missingProject) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
-        프로젝트를 먼저 선택해주세요.
+      <div className="w-full">
+        {Header}
+        <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
+          프로젝트를 먼저 선택해주세요.
+        </div>
       </div>
     );
   }
 
   if (isLoading && !data) {
     return (
-      <div className="flex h-[320px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+      <div className="w-full">
+        {Header}
+        <div className="flex h-[320px] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        </div>
       </div>
     );
   }
 
   if (isError && !isFetching) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
-        결제 통계를 불러오는 중 문제가 발생했습니다.
+      <div className="w-full">
+        {Header}
+        <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
+          결제 통계를 불러오는 중 문제가 발생했습니다.
+        </div>
       </div>
     );
   }
@@ -135,28 +165,18 @@ export default function PaymentBarChart() {
 
   if (!hasRecords || !chartData.length) {
     return (
-      <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
-        {rawRecords === null || rawRecords === undefined ? "결제 통계 데이터가 없습니다." : "표시할 결제 통계가 없습니다."}
+      <div className="w-full">
+        {Header}
+        <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
+          {rawRecords === null || rawRecords === undefined ? "결제 통계 데이터가 없습니다." : "표시할 결제 통계가 없습니다."}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="w-full">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-[16px] font-semibold text-neutral-90">팀별 결제 현황</h3>
-        <DateRangePicker
-          startDate={startDate}
-          endDate={endDate}
-          onStartChange={setStartDate}
-          onEndChange={setEndDate}
-          onReset={() => {
-            const r = getDefaultRange();
-            setStartDate(new Date(r.startDate));
-            setEndDate(new Date(r.endDate));
-          }}
-        />
-      </div>
+      {Header}
       <div className="h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 56 }}>

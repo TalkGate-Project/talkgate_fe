@@ -8,6 +8,7 @@ import FilterModal from "@/components/common/FilterModal";
 import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
+import { SmsModal } from "@/components/customers/sms";
 import { CustomersService } from "@/services/customers";
 import { getSelectedProjectId } from "@/lib/project";
 import { useRouter } from "next/navigation";
@@ -77,6 +78,7 @@ function CustomersPage() {
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isAssignOpen, setAssignOpen] = useState(false);
   const [isCreateOpen, setCreateOpen] = useState(false);
+  const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
   // 팀/멤버 목록 상태
@@ -199,6 +201,7 @@ function CustomersPage() {
             onUploadSuccess={refetch}
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
+            onSmsOpen={() => setSmsOpen(true)}
           />
         }
         headerClassName="px-7 py-6"
@@ -247,6 +250,12 @@ function CustomersPage() {
         open={isCreateOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={refetch}
+      />
+
+      <SmsModal
+        open={isSmsOpen}
+        onClose={() => setSmsOpen(false)}
+        customers={customers.filter((c) => selectedIds.includes(c.id))}
       />
       </div>
     </main>
