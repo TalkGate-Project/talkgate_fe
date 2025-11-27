@@ -10,6 +10,7 @@ type CustomersActionsProps = {
   onUploadSuccess: () => void;
   onAssignOpen: () => void;
   onCreateOpen: () => void;
+  onSmsOpen: () => void;
 };
 
 export default function CustomersActions({
@@ -19,6 +20,7 @@ export default function CustomersActions({
   onUploadSuccess,
   onAssignOpen,
   onCreateOpen,
+  onSmsOpen,
 }: CustomersActionsProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -93,6 +95,7 @@ export default function CustomersActions({
       </button>
       <button
         className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={onSmsOpen}
         disabled={selectedIds.length === 0}
       >
         문자전송

@@ -1,66 +1,48 @@
 import { useState, useEffect, useCallback } from "react";
 import { CustomersService } from "@/services/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
-import { CustomerDetail } from "@/types/customers";
-import dayjs from "dayjs";
+import type { CustomerDetail } from "@/types/customers";
+import { useCustomerForm } from "./useCustomerForm";
+import { useCustomerActions } from "./useCustomerActions";
+import type { NoteCategory } from "./types";
 
-export type CustomerFormState = {
-  name: string;
-  contact1: string;
-  contact2: string;
-  residentFront: string;
-  residentBack: string;
-  ageRange: string;
-  job: string;
-  applicationRoute: string;
-  site: string;
-  mediaCompany: string;
-  applicationDate: string;
-  assignedMemberName: string;
-  assignedTeamName: string;
-  specialNotes: string;
-  investmentInfo: string;
-  investmentProfitLoss: string;
-  investmentRiskLevel: string;
-};
-
-export const INITIAL_FORM_STATE: CustomerFormState = {
-  name: "",
-  contact1: "",
-  contact2: "",
-  residentFront: "",
-  residentBack: "",
-  ageRange: "",
-  job: "",
-  applicationRoute: "",
-  site: "",
-  mediaCompany: "",
-  applicationDate: "",
-  assignedMemberName: "",
-  assignedTeamName: "",
-  specialNotes: "",
-  investmentInfo: "",
-  investmentProfitLoss: "",
-  investmentRiskLevel: "",
-};
+// Re-export types for backward compatibility
+export type { CustomerFormState } from "./types";
+export { INITIAL_FORM_STATE } from "./types";
 
 export function useCustomerDetail(customerId: number | null, open: boolean) {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
-  const [categories, setCategories] = useState<{ id: number; name: string; color?: string }[]>([]);
-  
-  // Local lists that might be edited separately from the main detail object in the original code,
-  // but here we will try to keep them in sync with `detail` or manage them locally if they are purely optimistic.
-  // The original code had `messengersLocal`. We can keep that or just modify `detail.messengers`.
-  // To be consistent with "graceful" refactoring, we will maintain `detail` as the source of truth for lists
-  // where possible, but `messengers` had a specific separate state in the original code.
-  const [messengersLocal, setMessengersLocal] = useState<
-    { id?: number; messenger: string; account: string; createdAt?: string }[]
-  >([]);
+  const [categories, setCategories] = useState<NoteCategory[]>([]);
 
-  const [form, setForm] = useState<CustomerFormState>(INITIAL_FORM_STATE);
+  // Form 상태 관리
+  const {
+    form,
+    setForm,
+    originalForm,
+    hasChanges,
+    messengersLocal,
+    setMessengersLocal,
+    initializeForm,
+    resetForm: resetFormState,
+    getChangedFields,
+    commitForm,
+  } = useCustomerForm();
 
-  // Fetch Logic
+  // CRUD 액션들
+  const actions = useCustomerActions({
+    detail,
+    setDetail,
+    messengersLocal,
+    setMessengersLocal,
+    getChangedFields,
+    commitForm,
+  });
+
+  // =========================================================================
+  // Data Fetching
+  // =========================================================================
+
   const fetchDetail = useCallback(async () => {
     if (!customerId) return;
     setLoading(true);
@@ -72,42 +54,19 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
       setDetail(d);
 
       if (d) {
-        setMessengersLocal(d.messengers || []);
-        // applicationDate를 KST로 변환하고 YYYY-MM-DD HH:mm 형식으로 포맷
-        const formattedApplicationDate = d.applicationDate
-          ? dayjs(d.applicationDate).format("YYYY-MM-DD HH:mm")
-          : "";
-        setForm({
-          name: d.name || "",
-          contact1: d.contact1 || "",
-          contact2: d.contact2 || "",
-          residentFront: d.residentId?.slice(0, 6) || "",
-          residentBack: d.residentId?.slice(6) || "",
-          ageRange: d.ageRange || "",
-          job: d.job || "",
-          applicationRoute: d.applicationRoute || "",
-          site: d.site || "",
-          mediaCompany: d.mediaCompany || "",
-          applicationDate: formattedApplicationDate,
-          assignedMemberName: d.assignedMemberName || "",
-          assignedTeamName: d.assignedTeamName || "",
-          specialNotes: d.specialNotes || "",
-          investmentInfo: d.investmentInfo || "",
-          investmentProfitLoss: d.investmentProfitLoss || "",
-          investmentRiskLevel: d.investmentRistLevel || "",
-        });
+        initializeForm(d);
       }
     } catch (err) {
       setDetail(null);
     } finally {
       setLoading(false);
     }
-  }, [customerId]);
+  }, [customerId, initializeForm]);
 
   const fetchCategories = useCallback(async () => {
     try {
       const res = await CustomerNoteCategoriesService.list();
-      setCategories(((res as any).data?.data || []) as any);
+      setCategories(((res as any).data?.data || []) as NoteCategory[]);
     } catch {
       setCategories([]);
     }
@@ -120,225 +79,17 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     }
   }, [open, customerId, fetchDetail, fetchCategories]);
 
-  // Actions
-  const resetForm = () => {
-    if (!detail) return;
-    // applicationDate를 KST로 변환하고 YYYY-MM-DD HH:mm 형식으로 포맷
-    const formattedApplicationDate = detail.applicationDate
-      ? dayjs(detail.applicationDate).format("YYYY-MM-DD HH:mm")
-      : "";
-    setForm({
-      name: detail.name || "",
-      contact1: detail.contact1 || "",
-      contact2: detail.contact2 || "",
-      residentFront: detail.residentId?.slice(0, 6) || "",
-      residentBack: detail.residentId?.slice(6) || "",
-      ageRange: detail.ageRange || "",
-      job: detail.job || "",
-      applicationRoute: detail.applicationRoute || "",
-      site: detail.site || "",
-      mediaCompany: detail.mediaCompany || "",
-      applicationDate: formattedApplicationDate,
-      assignedMemberName: detail.assignedMemberName || "",
-      assignedTeamName: detail.assignedTeamName || "",
-      specialNotes: detail.specialNotes || "",
-      investmentInfo: detail.investmentInfo || "",
-      investmentProfitLoss: detail.investmentProfitLoss || "",
-      investmentRiskLevel: detail.investmentRistLevel || "",
-    });
-    setMessengersLocal(detail.messengers || []);
-  };
+  // =========================================================================
+  // Reset Form (wrapper)
+  // =========================================================================
 
-  const saveForm = async () => {
-    if (!detail) return;
-    // 주민등록번호 앞자리와 뒷자리를 합쳐서 하나의 값으로 전송 (구분자 없이)
-    const residentId =
-      form.residentFront || form.residentBack
-        ? `${form.residentFront}${form.residentBack}`
-        : undefined;
+  const resetForm = useCallback(() => {
+    resetFormState(detail);
+  }, [resetFormState, detail]);
 
-    await CustomersService.update(String(detail.id), {
-      ...form,
-      residentId,
-      investmentRistLevel: form.investmentRiskLevel || undefined,
-      projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-  };
-
-  // Messenger Actions
-  const addMessenger = async (type: string, account: string) => {
-    if (!detail) return;
-    const toAdd = {
-      messenger: type,
-      account: account,
-      createdAt: new Date().toISOString(),
-    };
-    setMessengersLocal((prev) => [...prev, toAdd]);
-    try {
-      await CustomersService.addMessenger({
-        customerId: detail.id,
-        messenger: type,
-        account: account,
-        projectId: (window as any)?.tgSelectedProjectId || "",
-      });
-    } catch {
-      // rollback if needed, but original code doesn't
-    }
-  };
-
-  const removeMessenger = async (index: number) => {
-    const target = messengersLocal[index];
-    if (!target) return;
-
-    // Optimistic update: UI에서 먼저 제거
-    const prevList = messengersLocal;
-    const nextList = [...messengersLocal];
-    nextList.splice(index, 1);
-    setMessengersLocal(nextList);
-
-    // 기존에 저장된 메신저(서버에 id가 있는 경우)만 삭제 API 호출
-    if (target.id) {
-      try {
-        await CustomersService.removeMessenger({
-          messengerId: target.id,
-          projectId: (window as any)?.tgSelectedProjectId || "",
-        });
-      } catch (e) {
-        // 실패 시 롤백
-        setMessengersLocal(prevList);
-        alert("메신저 삭제에 실패했습니다.");
-      }
-    }
-  };
-
-  // Payment Actions
-  const addPayment = async (date: string, amount: string, method: string, desc: string) => {
-    if (!detail) return;
-    await CustomersService.addPaymentHistory({
-      customerId: detail.id,
-      description: desc,
-      paymentDate: new Date(date).toISOString(),
-      amount: Number(amount),
-      // UI에서 이미 API 스펙에 맞는 값(creditCard, cash, bankTransfer 등)을 전달
-      paymentMethod: method,
-      projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    // Optimistic update (missing in original, added for gracefulness)
-    setDetail(prev => prev ? ({
-      ...prev,
-      paymentHistories: [
-        ...(prev.paymentHistories || []),
-        {
-          id: Math.random(), // Temp ID
-          description: desc,
-          paymentDate: date, // Keep string or ISO? API expects ISO.
-          amount: Number(amount),
-          paymentMethod: method,
-          createdAt: new Date().toISOString()
-        } as any 
-      ]
-    }) : prev);
-  };
-
-  const removePayment = async (id: number) => {
-    await CustomersService.removePaymentHistory({
-      paymentHistoryId: id,
-      projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    setDetail((prev) =>
-      prev
-        ? {
-            ...prev,
-            paymentHistories: prev.paymentHistories.filter((x) => x.id !== id),
-          }
-        : prev
-    );
-  };
-
-  // Schedule Actions
-  const addSchedule = async (dateIso: string, desc: string, colorCode: string) => {
-    if (!detail) return;
-    // colorCode에 # 접두사 보장은 서비스 레이어(CustomersService.addSchedule)에서 처리
-    await CustomersService.addSchedule({
-      customerId: detail.id,
-      scheduleTime: dateIso,
-      description: desc,
-      colorCode,
-      projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    // Optimistic - 로컬 상태에도 # 포함된 형태로 저장
-    const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
-    setDetail(prev => prev ? ({
-        ...prev,
-        schedules: [
-            ...(prev.schedules || []),
-            {
-                id: Math.random(),
-                scheduleTime: dateIso,
-                description: desc,
-                colorCode: normalizedColorCode,
-                createdAt: new Date().toISOString(),
-            } as any
-        ]
-    }) : prev);
-  };
-
-  const removeSchedule = async (id: number) => {
-    await CustomersService.removeSchedule({
-        scheduleId: id,
-        projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    setDetail((prev) =>
-      prev
-        ? {
-            ...prev,
-            schedules: prev.schedules.filter((x) => x.id !== id),
-          }
-        : prev
-    );
-  };
-
-  // Note Actions
-  const addNote = async (categoryId: number | undefined, note: string) => {
-    if (!detail) return;
-    await CustomersService.addNote({
-        customerId: detail.id,
-        categoryId: categoryId || 0,
-        note,
-        projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    setDetail((prev) =>
-      prev
-        ? {
-            ...prev,
-            notes: [
-              {
-                id: Math.random(),
-                categoryId: categoryId || 0,
-                note,
-                createdAt: new Date().toISOString(),
-              },
-              ...prev.notes,
-            ],
-          }
-        : prev
-    );
-  };
-
-  const removeNote = async (id: number) => {
-    await CustomersService.removeNote({
-        noteId: id,
-        projectId: (window as any)?.tgSelectedProjectId || "",
-    });
-    setDetail((prev) =>
-      prev
-        ? {
-            ...prev,
-            notes: prev.notes.filter((x) => x.id !== id),
-          }
-        : prev
-    );
-  };
+  // =========================================================================
+  // Return
+  // =========================================================================
 
   return {
     loading,
@@ -347,18 +98,11 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     messengersLocal,
     form,
     setForm,
+    originalForm,
+    hasChanges,
     actions: {
       resetForm,
-      saveForm,
-      addMessenger,
-      removeMessenger,
-      addPayment,
-      removePayment,
-      addSchedule,
-      removeSchedule,
-      addNote,
-      removeNote,
+      ...actions,
     },
   };
 }
-
