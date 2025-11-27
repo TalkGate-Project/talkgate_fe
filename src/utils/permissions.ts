@@ -1,4 +1,4 @@
-import type { MemberRole } from "@/types/members";
+import type { MemberRole, MyMember } from "@/types/members";
 
 /**
  * 총관리자(admin) 권한 확인
@@ -22,11 +22,22 @@ export const isMember = (role?: MemberRole | null): boolean => role === "member"
 
 /**
  * 관리자 권한 확인 (admin 또는 subAdmin)
- * - 일반 설정 탭 접근 권한
- * - 프로젝트 설정 변경 권한
+ * - 대부분의 프로젝트 설정 변경 권한
  */
 export const hasAdminAccess = (role?: MemberRole | null): boolean =>
   role === "admin" || role === "subAdmin";
+
+/**
+ * 일반 설정 탭 접근 권한
+ *
+ * - **총관리자(admin)만** 접근 가능
+ * - my 멤버 정보가 없거나, 역할이 명확하지 않은 경우에도 차단
+ *   (백엔드에서 내려주는 my API 데이터에 의존해 조금 더 보수적으로 체크)
+ */
+export const canAccessGeneralSettings = (member: MyMember | null | undefined): boolean => {
+  if (!member) return false;
+  return member.role === "admin";
+};
 
 /**
  * 리더 이상 권한 확인 (admin, subAdmin, leader)

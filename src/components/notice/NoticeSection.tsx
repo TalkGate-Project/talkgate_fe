@@ -63,20 +63,28 @@ export default function NoticeSection() {
       ) : (
         <div className="divide-y divide-[var(--border)]/60 border-t border-[var(--border)]/60">
           {notices.map((n) => (
-            <div 
-              key={n.id} 
+            <div
+              key={n.id}
               onClick={() => router.push(`/notice/${n.id}`)}
               className="cursor-pointer px-[10px] flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 {n.important && (
-                  <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">중요</span>
+                  <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">
+                    중요
+                  </span>
                 )}
-                <span className="typo-body-2 text-foreground opacity-80">{n.title}</span>
+                <span className="typo-body-2 text-foreground opacity-80 truncate">
+                  {n.title}
+                </span>
               </div>
-              <div className="flex items-center gap-12">
-                <span className="typo-body-2 text-foreground opacity-80">{n.authorName ?? "-"}</span>
-                <span className="typo-body-2 text-foreground opacity-80">{formatNoticeTime(n.createdAt)}</span>
+              <div className="flex items-center gap-8 flex-none pl-4">
+                <span className="typo-body-2 text-foreground opacity-80 w-[120px] shrink-0 text-right truncate">
+                  {n.authorName ?? "-"}
+                </span>
+                <span className="typo-body-2 text-foreground opacity-80 w-[110px] shrink-0 text-right">
+                  {formatNoticeTime(n.createdAt)}
+                </span>
               </div>
             </div>
           ))}

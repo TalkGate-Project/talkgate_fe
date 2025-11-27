@@ -3,8 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
-import { hasAdminAccess } from "@/utils/permissions";
-import type { MemberRole } from "@/types/members";
+import { hasAdminAccess, isAdmin } from "@/utils/permissions";
+import type { MemberRole, MyMember } from "@/types/members";
 import SettingsSidebar from "./SettingsSidebar";
 import GeneralSettings from "./GeneralSettings";
 import ProfileSettings from "./ProfileSettings";
@@ -14,16 +14,20 @@ import InvitedMemberSettings from "./InvitedMemberSettings";
 import TeamManagementSettings from "./TeamManagementSettings";
 import BatchRegistrationHistorySettings from "./BatchRegistrationHistorySettings";
 import CustomerApiSettings from "./customer-api/CustomerApiSettings";
+import SenderNumberSettings from "./SenderNumberSettings";
+import SmsHistorySettings from "./SmsHistorySettings";
 
 type SettingsTab =
   | "general"
   | "profile"
   | "consultation-channel"
+  | "sender-numbers"
   | "member"
   | "invited-member"
   | "customer-api"
   | "team-management"
-  | "batch-registration";
+  | "batch-registration"
+  | "sms-history";
 
 const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
   general: GeneralSettings,
@@ -34,16 +38,19 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
   "customer-api": CustomerApiSettings,
   "team-management": TeamManagementSettings,
   "batch-registration": BatchRegistrationHistorySettings,
+  "sender-numbers": SenderNumberSettings,
+  "sms-history": SmsHistorySettings,
 };
 
 // 권한이 필요한 탭 목록 (admin/subAdmin만 접근 가능)
 const ADMIN_ONLY_TABS: SettingsTab[] = [
-  "general",
   "consultation-channel",
   "member",
   "customer-api",
   "invited-member",
   "batch-registration",
+  "sender-numbers",
+  "sms-history",
 ];
 
 // 유효한 탭인지 확인하는 함수
@@ -54,12 +61,20 @@ function isValidTab(tab: string | null): tab is SettingsTab {
 
 // 권한에 따른 기본 탭 반환
 function getDefaultTab(role: MemberRole | undefined): SettingsTab {
-  // admin/subAdmin은 general, 그 외는 profile
-  return hasAdminAccess(role) ? "general" : "profile";
+  // admin만 general, 그 외는 profile
+  return isAdmin(role) ? "general" : "profile";
 }
 
 // 해당 탭에 접근 가능한지 확인
-function canAccessTab(tab: SettingsTab, role: MemberRole | undefined): boolean {
+function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): boolean {
+  const role = member?.role;
+
+  // 일반 탭은 **총관리자(admin)**만, my API 데이터가 없는 경우에도 차단
+  if (tab === "general") {
+    if (!member) return false;
+    return isAdmin(role);
+  }
+
   if (ADMIN_ONLY_TABS.includes(tab)) {
     return hasAdminAccess(role);
   }
@@ -86,14 +101,14 @@ export default function SettingsClient() {
     // 유효하지 않은 탭이거나 권한이 없는 탭이면 기본 탭으로 리디렉션
     const shouldRedirect = 
       (tabParam && !isValidTab(tabParam)) || 
-      (isValidTab(tabParam) && !canAccessTab(tabParam, currentRole));
+      (isValidTab(tabParam) && !canAccessTab(tabParam, member));
     
     if (shouldRedirect) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", defaultTab);
       router.replace(`/settings?${params.toString()}`);
     }
-  }, [tabParam, searchParams, router, currentRole, loading, defaultTab]);
+  }, [tabParam, searchParams, router, member, loading, defaultTab]);
 
   // 탭 변경 함수
   const handleTabChange = useCallback((tab: SettingsTab) => {
