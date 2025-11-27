@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import Panel from "@/components/common/Panel";
 import { useCustomersList } from "@/hooks/useCustomersList";
 import { CustomerListItem } from "@/types/customers";
@@ -18,6 +18,9 @@ import FilterChips from "@/components/customers/FilterChips";
 import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
+import { MembersTreeService } from "@/services/membersTree";
+import { MembersService } from "@/services/members";
+import type { MemberListItem } from "@/types/members";
 
 function CustomersPage() {
   const router = useRouter();
@@ -76,6 +79,43 @@ function CustomersPage() {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
+  // 팀/멤버 목록 상태
+  const [teams, setTeams] = useState<{ id: number; name: string; leaderMemberId: number; leaderMemberName: string }[]>([]);
+  const [members, setMembers] = useState<MemberListItem[]>([]);
+
+  // 팀/멤버 목록 fetch
+  useEffect(() => {
+    if (!projectId) return;
+    
+    // 팀 목록 가져오기
+    MembersTreeService.fetchTeams(projectId)
+      .then((teamsList) => {
+        setTeams(teamsList || []);
+      })
+      .catch(() => {
+        setTeams([]);
+      });
+
+    // 멤버 목록 가져오기
+    MembersService.list()
+      .then((res) => {
+        const membersList = (res.data as any)?.data?.members || (res.data as any)?.members || [];
+        setMembers(membersList);
+      })
+      .catch(() => {
+        setMembers([]);
+      });
+  }, [projectId]);
+
+  // 팀/멤버 옵션 생성
+  const teamOptions = useMemo(() => {
+    return teams.map((t) => ({ label: t.name, value: t.id }));
+  }, [teams]);
+
+  const memberOptions = useMemo(() => {
+    return members.map((m) => ({ label: m.name, value: m.id }));
+  }, [members]);
+
   const handleSelectAll = () => {
     toggleSelectAll(customers);
   };
@@ -92,9 +132,13 @@ function CustomersPage() {
   };
 
   const handleFilterApply = (values: any) => {
-    setFilters((prev) => ({ ...prev, ...values }));
+    // 기존 필터(이름, 핸드폰번호 등)와 모달에서 설정한 필터를 병합
+    const mergedFilters = { ...filters, ...values };
+    setFilters(mergedFilters);
     setFilterOpen(false);
     setPage(1);
+    // URL에 필터 적용하여 검색 실행
+    applyFilters(mergedFilters);
   };
 
   const handleAssign = async (targetId: number) => {
@@ -134,7 +178,7 @@ function CustomersPage() {
           filters={filters}
           onFilterChange={setFilters}
           onFilterOpen={() => setFilterOpen(true)}
-          onSearch={applyFilters}
+          onSearch={() => applyFilters(filters)}
         />
         <FilterChips
           filters={filters}
@@ -185,6 +229,8 @@ function CustomersPage() {
         onClose={() => setFilterOpen(false)}
         defaults={filters}
         onApply={handleFilterApply}
+        teamOptions={teamOptions}
+        memberOptions={memberOptions}
       />
 
       <AssignCustomersModal

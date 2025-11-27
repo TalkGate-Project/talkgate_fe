@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
+import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 
 type FilterChipsProps = {
   filters: CustomerFilters;
@@ -7,19 +9,28 @@ type FilterChipsProps = {
   onRemoveDateRange: (type: "application" | "assigned") => void;
 };
 
+// 날짜를 YYYY. MM. DD 형식으로 포맷 (점 뒤에 공백 추가)
+function formatDateForChip(dateStr: string): string {
+  if (!dateStr) return "";
+  // YYYY-MM-DD 형식을 YYYY. MM. DD로 변환
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  return `${parts[0]}. ${parts[1]}. ${parts[2]}`;
+}
+
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <div className="inline-flex items-center gap-2 px-3 h-[34px] rounded-[30px] bg-neutral-20">
-      <span className="text-[14px] text-neutral-90">{label}</span>
+    <div className="inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-[#E2E2E2] bg-white">
+      <span className="text-[14px] font-medium text-black opacity-80">{label}</span>
       <button
         aria-label="remove"
         onClick={onRemove}
-        className="w-4 h-4 grid place-items-center text-neutral-90"
+        className="cursor-pointer w-4 h-4 grid place-items-center"
       >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M3 9L9 3M3 3L9 9"
-            stroke="currentColor"
+            d="M4 12L12 4M4 4L12 12"
+            stroke="#808080"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -36,6 +47,26 @@ export default function FilterChips({
   onRemoveCategory,
   onRemoveDateRange,
 }: FilterChipsProps) {
+  // 카테고리 목록을 가져와서 이름을 표시하기 위한 상태
+  const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+
+  useEffect(() => {
+    CustomerNoteCategoriesService.list()
+      .then((res) => {
+        const arr = (res.data as any)?.data ?? (res.data as any);
+        setCategories(Array.isArray(arr) ? arr : []);
+      })
+      .catch(() => {
+        setCategories([]);
+      });
+  }, []);
+
+  // 카테고리 ID로 이름 찾기
+  const getCategoryName = (id: number): string => {
+    const category = categories.find((c) => c.id === id);
+    return category?.name || `카테고리 ${id}`;
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {filters.teamId && (
@@ -54,17 +85,17 @@ export default function FilterChips({
       {Array.isArray(filters.categoryIds) &&
         filters.categoryIds.length > 0 &&
         filters.categoryIds.map((id) => (
-          <Chip key={id} label={`카테고리 ${id}`} onRemove={() => onRemoveCategory(id)} />
+          <Chip key={id} label={getCategoryName(id)} onRemove={() => onRemoveCategory(id)} />
         ))}
       {(filters.applicationDateFrom || filters.applicationDateTo) && (
         <Chip
-          label={`${filters.applicationDateFrom || ""} - ${filters.applicationDateTo || ""}`}
+          label={`${formatDateForChip(filters.applicationDateFrom || "")} - ${formatDateForChip(filters.applicationDateTo || "")}`}
           onRemove={() => onRemoveDateRange("application")}
         />
       )}
       {(filters.assignedAtFrom || filters.assignedAtTo) && (
         <Chip
-          label={`${filters.assignedAtFrom || ""} - ${filters.assignedAtTo || ""}`}
+          label={`${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
           onRemove={() => onRemoveDateRange("assigned")}
         />
       )}

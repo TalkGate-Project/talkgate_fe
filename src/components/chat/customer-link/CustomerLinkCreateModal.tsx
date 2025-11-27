@@ -123,7 +123,8 @@ export default function CustomerLinkCreateModal({
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
-        residentId: residentId1 && residentId2 ? `${residentId1}-${residentId2}` : undefined,
+        // 주민등록번호 앞자리와 뒷자리를 합쳐서 하나의 값으로 전송 (구분자 없이)
+        residentId: residentId1 || residentId2 ? `${residentId1}${residentId2}` : undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,
         messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
