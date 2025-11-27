@@ -224,9 +224,9 @@ export default function InvitedMemberSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] py-7 min-h-[70dvh]">
+    <div className="bg-card rounded-[14px] pb-7 min-h-[70dvh]">
       {/* Header */}
-      <div className="flex items-center justify-between px-7 mb-7">
+      <div className="flex items-center justify-between px-7 h-[76px]">
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           초대중인 멤버
         </h1>

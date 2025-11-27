@@ -164,8 +164,8 @@ export default function BatchRegistrationHistorySettings() {
 
   if (isLoading) {
     return (
-      <div className="bg-card rounded-[14px] py-7">
-        <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
+      <div className="bg-card rounded-[14px] pb-7">
+        <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
           일괄 등록 이력
         </h1>
         <div className="flex items-center justify-center h-64">
@@ -176,9 +176,9 @@ export default function BatchRegistrationHistorySettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] py-7">
+    <div className="bg-card rounded-[14px] pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
         일괄 등록 이력
       </h1>
 

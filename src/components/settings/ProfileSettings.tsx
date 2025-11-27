@@ -239,9 +239,9 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-white rounded-[14px] shadow-sm py-[26px] min-h-[728px] relative">
+    <div className="bg-white rounded-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
       {/* 헤더 */}
-      <div className="px-7 mb-6 flex items-center justify-between">
+      <div className="px-7 flex items-center justify-between h-[76px]">
          <h1 className="text-[24px] font-bold text-[#252525] leading-[20px]">프로필</h1>
       </div>
 

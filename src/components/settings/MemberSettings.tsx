@@ -254,15 +254,16 @@ export default function MemberSettings() {
   };
 
   const handleLeaveConfirm = () => {
-    // TODO: 프로젝트 탈퇴 API 호출
-    alert("프로젝트 탈퇴 기능은 준비 중입니다.");
+    // TODO: 프로젝트 탈퇴 API 연동
+    // - 현재 프로젝트에서 내 멤버십(leader/member) 해제
+    // - 성공 시 프로젝트 목록 또는 대시보드 등으로 리다이렉트 처리
     setIsLeaveModalOpen(false);
   };
 
   return (
-    <div className="bg-card rounded-[14px] py-7">
+    <div className="bg-card rounded-[14px] pb-7">
       {/* Header */}
-      <div className="flex items-center justify-between px-7 mb-8">
+      <div className="flex items-center justify-between px-7 h-[76px]">
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           팀 멤버 관리
         </h1>
@@ -363,8 +364,11 @@ export default function MemberSettings() {
         onCancel={() => setIsLeaveModalOpen(false)}
         onConfirm={handleLeaveConfirm}
         title="프로젝트 탈퇴"
-        description="정말로 이 프로젝트에서 탈퇴하시겠습니까? 탈퇴 후에는 다시 초대를 받아야 합니다."
-        confirmText="탈퇴"
+        headline="정말로 프로젝트를 탈퇴하시겠습니까?"
+        description={
+          "탈퇴 시 본 프로젝트에 대한 모든 접근 권한이 상실되며,\n재참여는 관리자의 승인을 통해서만 가능합니다."
+        }
+        confirmText="탈퇴하기"
         cancelText="취소"
       />
     </div>

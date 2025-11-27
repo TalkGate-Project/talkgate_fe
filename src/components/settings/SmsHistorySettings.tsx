@@ -8,9 +8,9 @@ export default function SmsHistorySettings() {
   const showProjectMissing = ready && !projectId;
 
   return (
-    <div className="bg-card rounded-[14px] py-7">
+    <div className="bg-card rounded-[14px] pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-2">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
         문자 발송 이력
       </h1>
       <p className="px-7 text-[14px] font-medium text-neutral-60 mb-6 leading-5">
