@@ -56,99 +56,93 @@ export default function ConsultationPanel({
 
   return (
     <div className="col-span-12 lg:col-span-4">
-      {/* Conversation Card */}
-      <div className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
-            {hasConversation && conversation!.profileUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={conversation!.profileUrl as string}
-                alt={conversation!.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[18px] font-semibold text-foreground">
-                {(conversation?.name || customerName || "홍").charAt(0)}
+      {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
+      {hasConversation && (
+        <div className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
+              {conversation!.profileUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={conversation!.profileUrl as string}
+                  alt={conversation!.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[18px] font-semibold text-foreground">
+                  {(conversation?.name || customerName || "홍").charAt(0)}
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="text-[16px] font-semibold text-foreground truncate">
+                {conversation!.name || `${customerName}님과의 채팅`}
               </div>
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="text-[16px] font-semibold text-foreground truncate">
-              {hasConversation
-                ? conversation!.name || `${customerName}님과의 채팅`
-                : `${customerName || "홍길동"}님과의 채팅`}
-            </div>
-            <div className="mt-1 flex items-center gap-2 text-[14px] text-neutral-60">
-              {hasConversation && conversation!.platform === "instagram" && (
-                <span className="w-4 h-4 inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/icons/platform/instagram.png"
-                    alt="Instagram"
-                    className="w-full h-full object-contain"
-                  />
-                </span>
-              )}
-              {hasConversation && conversation!.platform === "telegram" && (
-                <span className="w-4 h-4 inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/icons/platform/telegram.png"
-                    alt="Telegram"
-                    className="w-full h-full object-contain"
-                  />
-                </span>
-              )}
-              {hasConversation && conversation!.platform === "line" && (
-                <span className="w-4 h-4 inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/icons/platform/line.png"
-                    alt="Line"
-                    className="w-full h-full object-contain"
-                  />
-                </span>
-              )}
-              <span className="truncate">{platformLabel}</span>
+              <div className="mt-1 flex items-center gap-2 text-[14px] text-neutral-60">
+                {conversation!.platform === "instagram" && (
+                  <span className="w-4 h-4 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/icons/platform/instagram.png"
+                      alt="Instagram"
+                      className="w-full h-full object-contain"
+                    />
+                  </span>
+                )}
+                {conversation!.platform === "telegram" && (
+                  <span className="w-4 h-4 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/icons/platform/telegram.png"
+                      alt="Telegram"
+                      className="w-full h-full object-contain"
+                    />
+                  </span>
+                )}
+                {conversation!.platform === "line" && (
+                  <span className="w-4 h-4 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/icons/platform/line.png"
+                      alt="Line"
+                      className="w-full h-full object-contain"
+                    />
+                  </span>
+                )}
+                <span className="truncate">{platformLabel}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <button
-          type="button"
-          disabled={!hasConversation}
-          className={`flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border ${
-            hasConversation
-              ? "bg-primary-10 border-primary-80 cursor-pointer"
-              : "bg-neutral-10 border-neutral-30 cursor-not-allowed"
-          }`}
-          onClick={() => {
-            if (!hasConversation) return;
-            const c = conversation!;
-            const params = new URLSearchParams();
-            params.set("conversationId", String(c.id));
-            params.set("platform", c.platform);
-            params.set("customerId", String(customerId));
-            router.push(`/consult?${params.toString()}`);
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+          <button
+            type="button"
+            className="flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border bg-primary-10 border-primary-80 cursor-pointer"
+            onClick={() => {
+              const c = conversation!;
+              const params = new URLSearchParams();
+              params.set("conversationId", String(c.id));
+              params.set("platform", c.platform);
+              params.set("customerId", String(customerId));
+              router.push(`/consult?${params.toString()}`);
+            }}
           >
-            <path
-              d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
-              stroke={hasConversation ? "#00B55B" : "#B0B0B0"}
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
+                stroke="#00B55B"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Consultation Notes */}
       <div className="text-[16px] font-semibold text-neutral-90 mb-3">

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { CustomersService } from "@/services/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 import { CustomerDetail } from "@/types/customers";
+import dayjs from "dayjs";
 
 export type CustomerFormState = {
   name: string;
@@ -72,18 +73,22 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
 
       if (d) {
         setMessengersLocal(d.messengers || []);
+        // applicationDate를 KST로 변환하고 YYYY-MM-DD HH:mm 형식으로 포맷
+        const formattedApplicationDate = d.applicationDate
+          ? dayjs(d.applicationDate).format("YYYY-MM-DD HH:mm")
+          : "";
         setForm({
           name: d.name || "",
           contact1: d.contact1 || "",
           contact2: d.contact2 || "",
-          residentFront: d.residentId?.split("-")[0] || "",
-          residentBack: d.residentId?.split("-")[1] || "",
+          residentFront: d.residentId?.slice(0, 6) || "",
+          residentBack: d.residentId?.slice(6) || "",
           ageRange: d.ageRange || "",
           job: d.job || "",
           applicationRoute: d.applicationRoute || "",
           site: d.site || "",
           mediaCompany: d.mediaCompany || "",
-          applicationDate: d.applicationDate || "",
+          applicationDate: formattedApplicationDate,
           assignedMemberName: d.assignedMemberName || "",
           assignedTeamName: d.assignedTeamName || "",
           specialNotes: d.specialNotes || "",
@@ -118,18 +123,22 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
   // Actions
   const resetForm = () => {
     if (!detail) return;
+    // applicationDate를 KST로 변환하고 YYYY-MM-DD HH:mm 형식으로 포맷
+    const formattedApplicationDate = detail.applicationDate
+      ? dayjs(detail.applicationDate).format("YYYY-MM-DD HH:mm")
+      : "";
     setForm({
       name: detail.name || "",
       contact1: detail.contact1 || "",
       contact2: detail.contact2 || "",
-      residentFront: detail.residentId?.split("-")[0] || "",
-      residentBack: detail.residentId?.split("-")[1] || "",
+      residentFront: detail.residentId?.slice(0, 6) || "",
+      residentBack: detail.residentId?.slice(6) || "",
       ageRange: detail.ageRange || "",
       job: detail.job || "",
       applicationRoute: detail.applicationRoute || "",
       site: detail.site || "",
       mediaCompany: detail.mediaCompany || "",
-      applicationDate: detail.applicationDate || "",
+      applicationDate: formattedApplicationDate,
       assignedMemberName: detail.assignedMemberName || "",
       assignedTeamName: detail.assignedTeamName || "",
       specialNotes: detail.specialNotes || "",
@@ -142,9 +151,10 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
 
   const saveForm = async () => {
     if (!detail) return;
+    // 주민등록번호 앞자리와 뒷자리를 합쳐서 하나의 값으로 전송 (구분자 없이)
     const residentId =
       form.residentFront || form.residentBack
-        ? `${form.residentFront}-${form.residentBack}`
+        ? `${form.residentFront}${form.residentBack}`
         : undefined;
 
     await CustomersService.update(String(detail.id), {

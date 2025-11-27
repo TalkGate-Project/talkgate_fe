@@ -210,26 +210,26 @@ export default function CustomersTable({
                       className="cursor-pointer text-inherit"
                       onClick={() => onCustomerClick(c.id)}
                     >
-                      {c.name}
+                      {c.name || "-"}
                     </button>
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.applicationRoute}
+                    {c.applicationRoute || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.mediaCompany}
+                    {c.mediaCompany || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.site}
+                    {c.site || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.assignedTeamName}
+                    {c.assignedTeamName || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.assignedMemberName}
+                    {c.assignedMemberName || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    카테고리
+                    -
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {formatDateTime(c.applicationDate || c.createdAt)}
