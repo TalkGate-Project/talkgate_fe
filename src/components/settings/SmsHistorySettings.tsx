@@ -39,22 +39,22 @@ export default function SmsHistorySettings() {
 
           {/* Table header skeleton */}
           <div className="bg-[#EDEDED] rounded-[8px] px-6 h-[40px] flex items-center gap-3 mb-4">
-            <div className="w-[180px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[180px] text-[14px] font-medium text-neutral-60">
               발송 일시
             </div>
-            <div className="w-[140px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[140px] text-[14px] font-medium text-neutral-60">
               발신번호
             </div>
-            <div className="w-[160px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[160px] text-[14px] font-medium text-neutral-60">
               수신자
             </div>
-            <div className="w-[120px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[120px] text-[14px] font-medium text-neutral-60">
               유형
             </div>
-            <div className="w-[120px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[120px] text-[14px] font-medium text-neutral-60">
               상태
             </div>
-            <div className="flex-1 text-[14px] font-semibold text-neutral-60">
+            <div className="flex-1 text-[14px] font-medium text-neutral-60">
               내용
             </div>
           </div>

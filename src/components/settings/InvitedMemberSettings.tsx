@@ -241,23 +241,23 @@ export default function InvitedMemberSettings() {
         <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center">
           <div className="flex items-center w-full">
             {/* Email - 가장 넓게 */}
-            <div className="flex-[2] text-[16px] font-bold text-neutral-60 text-left">
+            <div className="flex-[2] text-[16px] font-medium text-neutral-60 text-left">
               이메일
             </div>
             {/* Invitation Date - 중간 크기 */}
-            <div className="flex-[1] text-[16px] font-bold text-neutral-60 text-left">
+            <div className="flex-[1] text-[16px] font-medium text-neutral-60 text-left">
               초대일시
             </div>
             {/* Expiration Date - 중간 크기 */}
-            <div className="flex-[1] text-[16px] font-bold text-neutral-60 text-left">
+            <div className="flex-[1] text-[16px] font-medium text-neutral-60 text-left">
               만료일시
             </div>
             {/* Send/Resend Button Column - 가장 작게 */}
-            <div className="flex-[0.5] text-[16px] font-bold text-neutral-60">
+            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60">
               {/* Empty header for send button column */}
             </div>
             {/* Delete Button Column - 가장 작게 */}
-            <div className="flex-[0.5] text-[16px] font-bold text-neutral-60">
+            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60">
               {/* Empty header for delete button column */}
             </div>
           </div>

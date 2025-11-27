@@ -29,16 +29,16 @@ export default function SenderNumberSettings() {
         <div className="px-7">
           {/* Table header skeleton */}
           <div className="bg-[#EDEDED] rounded-[8px] px-6 h-[40px] flex items-center gap-3 mb-4">
-            <div className="w-[180px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[180px] text-[14px] font-medium text-neutral-60">
               발신번호
             </div>
-            <div className="w-[120px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[120px] text-[14px] font-medium text-neutral-60">
               별칭
             </div>
-            <div className="w-[140px] text-[14px] font-semibold text-neutral-60">
+            <div className="w-[140px] text-[14px] font-medium text-neutral-60">
               상태
             </div>
-            <div className="flex-1 text-[14px] font-semibold text-neutral-60">
+            <div className="flex-1 text-[14px] font-medium text-neutral-60">
               등록 일시
             </div>
           </div>
