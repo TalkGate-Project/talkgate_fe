@@ -77,7 +77,7 @@ export default function TeamManagementSettings() {
   const [draggedItem, setDraggedItem] = useState<TeamMember | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -280,13 +280,8 @@ export default function TeamManagementSettings() {
     setSelectedDepartment((prev) => (prev === dept ? null : dept));
   }, []);
 
-  const selectedMember = useMemo(
-    () => (selectedMemberId ? flattenedMembers.find((member) => member.id === selectedMemberId) ?? null : null),
-    [flattenedMembers, selectedMemberId]
-  );
-
   const handleMemberClick = useCallback((member: TeamMember) => {
-    setSelectedMemberId(member.id);
+    setSelectedMemberId(Number(member.id));
   }, []);
 
   const closeMemberModal = useCallback(() => {
@@ -438,8 +433,8 @@ export default function TeamManagementSettings() {
         </div>
       )}
 
-      {selectedMember && (
-        <TeamMemberInfoModal open={Boolean(selectedMember)} member={selectedMember} onClose={closeMemberModal} projectId={projectId} />
+      {selectedMemberId && (
+        <TeamMemberInfoModal open={Boolean(selectedMemberId)} memberId={selectedMemberId} onClose={closeMemberModal} projectId={projectId} />
       )}
     </div>
   );
