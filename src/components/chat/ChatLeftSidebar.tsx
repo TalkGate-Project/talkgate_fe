@@ -9,6 +9,7 @@ import ListViewIcon from "./icons/ListViewIcon";
 import AlbumViewIcon from "./icons/AlbumViewIcon";
 import PlatformIcon from "./icons/PlatformIcon";
 import ConversationAvatar from "./ConversationAvatar";
+import Tooltip from "@/components/common/Tooltip";
 
 type Props = {
   statusFilter: "all" | "active" | "closed";
@@ -278,36 +279,32 @@ export default function ChatLeftSidebar({
                 </div>
               ) : (
                 filteredConversations.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => handleConversationClick(c)}
-                    className={`cursor-pointer relative h-[88px] rounded-[8px] border flex flex-col items-center justify-center gap-1 ${
-                      activeId === c.id
-                        ? "border-primary-60"
-                        : "border-border"
-                    } bg-card hover:bg-neutral-10`}
-                  >
-                    <div className="absolute -top-1 -right-1">
-                      {c.unreadCount ? (
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
-                          {c.unreadCount}
-                        </span>
-                      ) : null}
-                    </div>
-                    <ConversationAvatar
-                      name={c.name}
-                      profileUrl={c.profileUrl}
-                      size="sm"
-                    />
-                    <div className="px-2 text-center w-full">
-                      <div className="text-[12px] font-semibold text-ink truncate">
-                        {c.name}
+                  <Tooltip key={c.id} content={c.name} position="top" className="w-full h-full block">
+                    <button
+                      onClick={() => handleConversationClick(c)}
+                      className={`cursor-pointer w-full relative h-[72px] rounded-[8px] border flex flex-col items-center justify-center gap-2 ${
+                        activeId === c.id
+                          ? "border-primary-60"
+                          : "border-border"
+                      } bg-card hover:bg-neutral-10`}
+                    >
+                      <div className="absolute -top-1 -right-1">
+                        {c.unreadCount ? (
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
+                            {c.unreadCount}
+                          </span>
+                        ) : null}
                       </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <PlatformIcon platform={c.platform} />
-                    </div>
-                  </button>
+                      <div className="px-2 text-center w-full">
+                        <div className="text-[12px] font-semibold text-ink truncate">
+                          {c.name}
+                        </div>
+                      </div>
+                      <div className="flex justify-center">
+                        <PlatformIcon platform={c.platform} />
+                      </div>
+                    </button>
+                  </Tooltip>
                 ))
               )}
             </div>

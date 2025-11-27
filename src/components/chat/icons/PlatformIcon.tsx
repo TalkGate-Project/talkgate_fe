@@ -23,7 +23,7 @@ export default function PlatformIcon({ platform }: Props) {
   }
 
   return (
-    <div className="w-full h-full rounded flex items-center justify-center">
+    <div className="w-5 h-5 rounded flex items-center justify-center">
       <img src={iconPath} alt={platform} className="w-full h-full object-contain" />
     </div>
   );
