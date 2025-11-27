@@ -448,7 +448,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                   onClick={() => handleDepartmentClick(tag)}
                   className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
                     selectedDepartment === tag
-                      ? "bg-primary-80 text-neutral-0"
+                      ? "bg-secondary-40 text-neutral-0"
                       : "bg-neutral-30 text-neutral-70 hover:bg-neutral-40"
                   }`}
                 >

@@ -413,8 +413,13 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
         if (!target) return prev;
+        
+        // 상담 완료된 상태에서 메시지를 보내면 다시 활성화됨 (Optimistic UI)
+        const isReopening = target.status === "closed";
+
         const updated: Conversation = {
           ...target,
+          status: isReopening ? "active" : target.status,
           lastMessage: {
             id: tempIdNum as any,
             conversationId: activeId,
@@ -536,8 +541,13 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setConversations((prev) => {
         const target = prev.find((c) => c.id === activeId);
         if (!target) return prev;
+
+        // 상담 완료된 상태에서 파일을 보내면 다시 활성화됨 (Optimistic UI)
+        const isReopening = target.status === "closed";
+
         const updated: Conversation = {
           ...target,
+          status: isReopening ? "active" : target.status,
           lastMessage: {
             id: tempIdNum as any,
             conversationId: activeId,
