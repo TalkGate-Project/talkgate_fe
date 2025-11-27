@@ -132,7 +132,7 @@ export default function ChatLeftSidebar({
         />
         {/* Tabs */}
         <div className="px-5">
-          <div className="grid grid-cols-3 gap-2 bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-3 py-2">
+          <div className="grid grid-cols-3 gap-2 bg-neutral-20 dark:bg-neutral-20 rounded-[12px] px-3 py-2">
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "all"
