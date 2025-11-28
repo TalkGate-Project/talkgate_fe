@@ -110,7 +110,7 @@ export default function LiteHeader() {
               onClick={() => setOpen((v) => !v)}
             >
               {user?.profileImageUrl ? (
-                <Image
+                <img
                   src={user.profileImageUrl}
                   alt={user.name || "프로필"}
                   width={32}
@@ -133,7 +133,7 @@ export default function LiteHeader() {
                     {/* 아바타 */}
                     {user?.profileImageUrl ? (
                       <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                        <Image
+                        <img
                           src={user.profileImageUrl}
                           alt={user.name || "프로필"}
                           width={48}
