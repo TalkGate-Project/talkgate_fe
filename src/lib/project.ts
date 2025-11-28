@@ -2,21 +2,47 @@
 
 const COOKIE_KEY = "tg_selected_project_id";
 const ATTENDANCE_STORAGE_KEY = "tg_use_attendance_menu";
+const MAIN_DOMAIN = "talkgate.im";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
 }
 
+/**
+ * 쿠키 도메인을 반환합니다.
+ * 모든 서브도메인에서 쿠키를 공유하기 위해 루트 도메인을 반환합니다.
+ */
+function getCookieDomain(): string | undefined {
+  if (!isBrowser()) return undefined;
+  
+  const host = window.location.hostname;
+  
+  // localhost의 경우 domain 설정하지 않음
+  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost")) {
+    return undefined;
+  }
+  
+  // 프로덕션: .talkgate.im으로 설정 (앞에 점을 붙여서 모든 서브도메인 포함)
+  return `.${MAIN_DOMAIN}`;
+}
+
 function cookieAttrs(): string {
   const maxAge = 60 * 60 * 24 * 30; // 30일
+  const domain = getCookieDomain();
+  const domainAttr = domain ? `Domain=${domain}` : "";
+  
   if (process.env.NODE_ENV === "production") {
-    const attrs = ["Path=/", "SameSite=None", "Secure", `Max-Age=${maxAge}`].join("; ");
-    console.log("[Project] 🔐 Production 프로젝트 쿠키 속성:", attrs);
-    return attrs;
+    const attrs = ["Path=/", "SameSite=None", "Secure", `Max-Age=${maxAge}`];
+    if (domainAttr) attrs.push(domainAttr);
+    const result = attrs.join("; ");
+    console.log("[Project] 🔐 Production 프로젝트 쿠키 속성:", result);
+    return result;
   }
-  const attrs = ["Path=/", "SameSite=Lax", `Max-Age=${maxAge}`].join("; ");
-  console.log("[Project] 🔧 Development 프로젝트 쿠키 속성:", attrs);
-  return attrs;
+  const attrs = ["Path=/", "SameSite=Lax", `Max-Age=${maxAge}`];
+  if (domainAttr) attrs.push(domainAttr);
+  const result = attrs.join("; ");
+  console.log("[Project] 🔧 Development 프로젝트 쿠키 속성:", result);
+  return result;
 }
 
 export function setSelectedProjectId(projectId: string | number) {
