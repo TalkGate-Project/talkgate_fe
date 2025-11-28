@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
@@ -9,7 +9,7 @@ import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
 
-export default function ProjectsPage() {
+function ProjectsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -24,12 +24,14 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     document.title = "TalkGate - 프로젝트";
-    
+
     // 서브도메인 에러 확인
     const error = searchParams.get("error");
     const subdomain = searchParams.get("subdomain");
     if (error === "invalid_subdomain" && subdomain) {
-      setSubdomainError(`'${subdomain}' 서브도메인에 해당하는 프로젝트를 찾을 수 없습니다.`);
+      setSubdomainError(
+        `'${subdomain}' 서브도메인에 해당하는 프로젝트를 찾을 수 없습니다.`
+      );
       // URL에서 에러 파라미터 제거 (히스토리 정리)
       const url = new URL(window.location.href);
       url.searchParams.delete("error");
@@ -66,26 +68,49 @@ export default function ProjectsPage() {
         <p className="text-[18px] leading-[21px] text-[#808080] text-center">
           관리할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요
         </p>
-        
+
         {/* 서브도메인 에러 알림 */}
         {subdomainError && (
           <div className="mt-6 mx-auto max-w-[688px] p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="w-5 h-5 text-red-500 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
               <div className="flex-1">
-                <p className="text-[14px] text-red-700 dark:text-red-300">{subdomainError}</p>
+                <p className="text-[14px] text-red-700 dark:text-red-300">
+                  {subdomainError}
+                </p>
                 <p className="text-[12px] text-red-500 dark:text-red-400 mt-1">
-                  아래에서 접근 가능한 프로젝트를 선택하거나 관리자에게 문의하세요.
+                  아래에서 접근 가능한 프로젝트를 선택하거나 관리자에게
+                  문의하세요.
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setSubdomainError(null)}
                 className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -227,5 +252,13 @@ export default function ProjectsPage() {
         />
       )}
     </main>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectsContent />
+    </Suspense>
   );
 }
