@@ -7,6 +7,8 @@ type FilterChipsProps = {
   onRemove: (key: keyof CustomerFilters) => void;
   onRemoveCategory: (id: number) => void;
   onRemoveDateRange: (type: "application" | "assigned") => void;
+  teamOptions?: { label: string; value: number }[];
+  memberOptions?: { label: string; value: number }[];
 };
 
 // 날짜를 YYYY. MM. DD 형식으로 포맷 (점 뒤에 공백 추가)
@@ -46,6 +48,8 @@ export default function FilterChips({
   onRemove,
   onRemoveCategory,
   onRemoveDateRange,
+  teamOptions = [],
+  memberOptions = [],
 }: FilterChipsProps) {
   // 카테고리 목록을 가져와서 이름을 표시하기 위한 상태
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
@@ -67,13 +71,25 @@ export default function FilterChips({
     return category?.name || `카테고리 ${id}`;
   };
 
+  // 팀 ID로 이름 찾기
+  const getTeamName = (id: number): string => {
+    const team = teamOptions.find((t) => t.value === id);
+    return team?.label || `팀 ${id}`;
+  };
+
+  // 담당자 ID로 이름 찾기
+  const getMemberName = (id: number): string => {
+    const member = memberOptions.find((m) => m.value === id);
+    return member?.label || `담당자 ${id}`;
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {filters.teamId && (
-        <Chip label={`팀 ${filters.teamId}`} onRemove={() => onRemove("teamId")} />
+        <Chip label={`팀 ${getTeamName(filters.teamId)}`} onRemove={() => onRemove("teamId")} />
       )}
       {filters.memberId && (
-        <Chip label={`담당자 ${filters.memberId}`} onRemove={() => onRemove("memberId")} />
+        <Chip label={`담당자 ${getMemberName(filters.memberId)}`} onRemove={() => onRemove("memberId")} />
       )}
       {filters.applicationRoute && (
         <Chip label={filters.applicationRoute} onRemove={() => onRemove("applicationRoute")} />

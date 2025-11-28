@@ -187,6 +187,8 @@ function CustomersPage() {
           onRemove={removeFilterAndApply}
           onRemoveCategory={removeCategoryFilterAndApply}
           onRemoveDateRange={removeDateRangeFilterAndApply}
+          teamOptions={teamOptions}
+          memberOptions={memberOptions}
         />
       </Panel>
 
