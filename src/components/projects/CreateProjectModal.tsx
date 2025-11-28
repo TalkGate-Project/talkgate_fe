@@ -105,7 +105,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const canGoNext =
     step === 1
       ? projectName.trim().length > 0
-      : Boolean(subdomain && domainAvailable !== false);
+      : Boolean(subdomain && domainAvailable === true);
 
   // 파일 타입을 정확히 감지하는 헬퍼 함수
   const getFileType = useCallback((file: File): string => {

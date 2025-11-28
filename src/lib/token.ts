@@ -8,15 +8,39 @@ export type Tokens = { accessToken?: string | null; refreshToken?: string | null
 const ACCESS_COOKIE = "tg_access_token";
 const REFRESH_COOKIE = "tg_refresh_token";
 const REMEMBER_KEY = "tg_auto_login"; // localStorage flag for persistent login
+const MAIN_DOMAIN = "talkgate.im";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
 }
 
+/**
+ * 쿠키 도메인을 반환합니다.
+ * 모든 서브도메인에서 쿠키를 공유하기 위해 루트 도메인을 반환합니다.
+ */
+function getCookieDomain(): string | undefined {
+  if (!isBrowser()) return undefined;
+  
+  const host = window.location.hostname;
+  
+  // localhost의 경우 domain 설정하지 않음 (브라우저가 자동 처리)
+  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost")) {
+    return undefined;
+  }
+  
+  // 프로덕션: .talkgate.im으로 설정 (앞에 점을 붙여서 모든 서브도메인 포함)
+  return `.${MAIN_DOMAIN}`;
+}
+
 function buildCookieAttributes(persistent: boolean): string {
   console.log("[Token] 🍪 buildCookieAttributes 호출:", { persistent, env: process.env.NODE_ENV });
   
-  const attrs: string[] = ["Path=/", "SameSite=Lax"]; // sensible defaults for dev
+  const domain = getCookieDomain();
+  const domainAttr = domain ? `Domain=${domain}` : "";
+  
+  const attrs: string[] = ["Path=/", "SameSite=Lax"];
+  if (domainAttr) attrs.push(domainAttr);
+  
   if (persistent) {
     // 30 days
     attrs.push(`Max-Age=${60 * 60 * 24 * 30}`);
@@ -26,8 +50,8 @@ function buildCookieAttributes(persistent: boolean): string {
   }
   if (process.env.NODE_ENV === "production") {
     // For cross-site scenarios in prod, set None; Secure as needed
-    // If app and API are same-site, Lax is fine; keeping None; Secure allows broader usage
-    const base = ["Path=/", "SameSite=None", "Secure"] as string[];
+    const base = ["Path=/", "SameSite=None", "Secure"];
+    if (domainAttr) base.push(domainAttr);
     if (persistent) base.push(`Max-Age=${60 * 60 * 24 * 30}`);
     console.log("[Token] 🔐 Production 쿠키 속성:", base.join("; "));
     return base.join("; ");
