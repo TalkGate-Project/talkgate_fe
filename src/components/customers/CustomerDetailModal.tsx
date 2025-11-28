@@ -149,6 +149,7 @@ export default function CustomerDetailModal({
             categories={categories}
             onAddNote={actions.addNote}
             onRemoveNote={actions.removeNote}
+            onUnlinkConversation={actions.unlinkConversation}
           />
 
           {/* Footer */}

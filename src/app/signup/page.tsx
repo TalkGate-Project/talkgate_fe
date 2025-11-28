@@ -45,12 +45,12 @@ export default function SignupPage() {
   };
 
   const handleProfileComplete = () => {
-    router.replace("/dashboard");
+    router.replace("/projects");
     setStep("done");
   };
 
   const handleProfileSkip = () => {
-    router.replace("/dashboard");
+    router.replace("/projects");
     setStep("done");
   };
 

@@ -12,6 +12,7 @@ import CustomerLinkModeModal from "./customer-link/CustomerLinkModeModal";
 import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal";
 import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 
 type Props = { projectId: number };
 
@@ -32,6 +33,8 @@ export default function ChatView({ projectId }: Props) {
     null | "mode" | "existing" | "create"
   >(null);
   const [customerDetailOpen, setCustomerDetailOpen] = useState(false);
+  const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const [input, setInput] = useState("");
 
@@ -85,6 +88,7 @@ export default function ChatView({ projectId }: Props) {
     banner,
     send,
     linkCustomerToConversation,
+    unlinkCustomerFromConversation,
     closeConversation,
     notify,
     conversationsPage,
@@ -131,6 +135,24 @@ export default function ChatView({ projectId }: Props) {
   const closeLinkFlow = useCallback(() => {
     setLinkStep(null);
   }, []);
+
+  const openUnlinkModal = useCallback(() => {
+    if (!activeConversation?.customerId) {
+      notify("error", "연동된 고객 정보가 없습니다.");
+      return;
+    }
+    setUnlinkModalOpen(true);
+  }, [activeConversation, notify]);
+
+  const handleConfirmUnlink = useCallback(async () => {
+    setUnlinking(true);
+    try {
+      await unlinkCustomerFromConversation();
+      setUnlinkModalOpen(false);
+    } finally {
+      setUnlinking(false);
+    }
+  }, [unlinkCustomerFromConversation]);
 
   const handleLinkAndClose = useCallback(
     async (customerId: number) => {
@@ -284,6 +306,7 @@ export default function ChatView({ projectId }: Props) {
         setInput={setInput}
         onSend={onSend}
         onOpenLinkFlow={openLinkFlow}
+        onOpenUnlinkModal={openUnlinkModal}
         onOpenCustomerDetail={openCustomerDetail}
         onCloseConversation={closeConversation}
         attachmentUploading={attachmentUploading}
@@ -460,6 +483,23 @@ export default function ChatView({ projectId }: Props) {
         onClose={() => setCustomerDetailOpen(false)}
         customerId={activeConversation?.customerId || null}
       />
+
+      {/* 연동 끊기 확인 모달 */}
+      {activeConversation && (
+        <UnlinkConversationModal
+          open={unlinkModalOpen}
+          onClose={() => setUnlinkModalOpen(false)}
+          onConfirm={handleConfirmUnlink}
+          conversation={{
+            id: activeConversation.id,
+            name: activeConversation.name,
+            platform: activeConversation.platform as "instagram" | "telegram" | "line" | "kakao",
+            platformConversationId: activeConversation.platformConversationId,
+            profileUrl: activeConversation.profileUrl,
+          }}
+          loading={unlinking}
+        />
+      )}
     </div>
   );
 }

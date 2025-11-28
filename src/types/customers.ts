@@ -138,6 +138,7 @@ export type CustomerDetail = {
     platform: "line" | "telegram" | "instagram" | "kakaotalk";
     name: string;
     profileUrl?: string | null;
+    platformConversationId?: string;
   } | null;
   paymentHistories: CustomerPaymentHistory[];
   schedules: CustomerSchedule[];
