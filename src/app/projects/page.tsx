@@ -61,9 +61,7 @@ export default function ProjectsPage() {
             </div>
           )}
           {!loading && projects.length === 0 && (
-            <div className="col-span-full text-center text-[#808080]">
-              표시할 프로젝트가 없습니다.
-            </div>
+            <div className="col-span-full text-center text-[#808080]"></div>
           )}
           {projects.map((p: any) => (
             <div
