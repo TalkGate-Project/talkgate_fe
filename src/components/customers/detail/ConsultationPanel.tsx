@@ -15,6 +15,8 @@ type Props = {
   onRemoveNote: (id: number) => void;
   customerId: number;
   onUnlinkConversation?: () => void;
+  /** 왼쪽 패널 높이에 맞춰 오른쪽 패널 높이 제한 */
+  maxHeight?: number | null;
 };
 
 export default function ConsultationPanel({
@@ -26,6 +28,7 @@ export default function ConsultationPanel({
   onRemoveNote,
   customerId,
   onUnlinkConversation,
+  maxHeight,
 }: Props) {
   const router = useRouter();
   const [noteCategoryId, setNoteCategoryId] = useState<number | "">("");
@@ -86,12 +89,18 @@ export default function ConsultationPanel({
     }
   };
 
+  // 오른쪽 패널 스타일: 왼쪽 높이를 기준으로 제한
+  const panelStyle = maxHeight ? { maxHeight: `${maxHeight}px` } : undefined;
+
   return (
-    <div className="col-span-12 lg:col-span-4">
+    <div 
+      className="col-span-12 lg:col-span-4 flex flex-col overflow-hidden"
+      style={panelStyle}
+    >
       {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
       {hasConversation && (
         <div 
-          className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] transition-colors"
+          className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] transition-colors flex-shrink-0"
           onClick={handleNavigateToChat}
         >
           <div className="flex items-center gap-4 min-w-0">
@@ -178,13 +187,13 @@ export default function ConsultationPanel({
       )}
 
       {/* Consultation Notes */}
-      <div className="text-[16px] font-semibold text-neutral-90 mb-3">
-        상담 내용 기록
-      </div>
-      <div className="border-b border-[#E2E2E2] mb-2" />
-      <div className="">
-        <p className="text-body-3 text-neutral-60 mb-2">상담 카테고리</p>
-        <div className="flex gap-2 mb-5">
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="text-[16px] font-semibold text-neutral-90 mb-3 flex-shrink-0">
+          상담 내용 기록
+        </div>
+        <div className="border-b border-[#E2E2E2] mb-2 flex-shrink-0" />
+        <p className="text-body-3 text-neutral-60 mb-2 flex-shrink-0">상담 카테고리</p>
+        <div className="flex gap-2 mb-3 flex-shrink-0">
           <SelectField
             value={noteCategoryId as any}
             onChange={(e) =>
@@ -215,7 +224,7 @@ export default function ConsultationPanel({
 
         <div
           ref={scrollRef}
-          className="space-y-3 overflow-auto pr-1 border border-[#E2E2E2] rounded-[5px] max-h-[210px] p-5"
+          className="flex-1 min-h-0 space-y-3 overflow-auto pr-1 border border-[#E2E2E2] rounded-[5px] p-5"
         >
           {notes?.map((n) => {
             const category = categories.find((c) => c.id === n.categoryId);

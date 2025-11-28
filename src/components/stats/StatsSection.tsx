@@ -164,17 +164,44 @@ export default function StatsSection() {
               <YAxis hide domain={[domainMin, domainMax]} />
               <Tooltip
                 cursor={{ stroke: "var(--primary-60)" }}
-                formatter={(value, _name, payload) => {
-                  const entry = (payload?.payload as { count?: number }) ?? {};
-                  const count = entry.count ?? 0;
-                  return [`${formatCurrencyKR(Number(value ?? 0))}원`, `결제액 (${count.toLocaleString()}건)`];
-                }}
-                labelFormatter={(label) => `${label}`}
-                contentStyle={{
-                  borderRadius: 8,
-                  backgroundColor: "var(--card)",
-                  border: `1px solid var(--border)`,
-                  color: "var(--foreground)",
+                offset={-40}
+                content={({ active, payload }) => {
+                  if (!active || !payload || payload.length === 0) return null;
+                  const value = payload[0]?.value;
+                  const formatted = formatCurrencyKR(Number(value ?? 0));
+                  return (
+                    <div
+                      style={{
+                        position: 'relative',
+                        background: '#E2E2E2',
+                        borderRadius: 5,
+                        padding: '5px 10px',
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: '#474747',
+                        textAlign: 'center',
+                        minWidth: 60,
+                        transform: 'translateY(-20px)',
+                      }}
+                    >
+                      {formatted}원
+                      {/* pointer */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: -6,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 0,
+                          height: 0,
+                          borderLeft: '6px solid transparent',
+                          borderRight: '6px solid transparent',
+                          borderTop: '6px solid #E2E2E2',
+                        }}
+                      />
+                    </div>
+                  );
                 }}
               />
               <Area

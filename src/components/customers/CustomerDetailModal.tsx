@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
@@ -20,6 +20,22 @@ export default function CustomerDetailModal({
   customerId,
 }: CustomerDetailModalProps) {
   const [tab, setTab] = useState<"basic" | "data" | "sales">("basic");
+  const leftPanelRef = useRef<HTMLDivElement>(null);
+  const [leftHeight, setLeftHeight] = useState<number | null>(null);
+
+  // 왼쪽 패널 높이 측정
+  useLayoutEffect(() => {
+    if (!leftPanelRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setLeftHeight(entry.contentRect.height);
+      }
+    });
+
+    observer.observe(leftPanelRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const {
     loading,
@@ -79,7 +95,7 @@ export default function CustomerDetailModal({
         {!loading && detail && (
           <div className="mt-[30px] grid grid-cols-12 gap-6 pb-2">
             {/* Left: form and tabs */}
-          <div className="col-span-12 lg:col-span-8 max-w-[792px]">
+          <div ref={leftPanelRef} className="col-span-12 lg:col-span-8 max-w-[792px]">
             {/* Tabs */}
             <div className="flex gap-6 border-b border-neutral-30">
               <button
@@ -150,6 +166,7 @@ export default function CustomerDetailModal({
             onAddNote={actions.addNote}
             onRemoveNote={actions.removeNote}
             onUnlinkConversation={actions.unlinkConversation}
+            maxHeight={leftHeight}
           />
 
           {/* Footer */}

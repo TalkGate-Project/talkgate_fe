@@ -102,7 +102,7 @@ export default function UnlinkConversationModal({
 
         {/* Warning Message */}
         <p className="text-center text-[18px] font-medium text-danger-40 tracking-[-0.02em] mb-[30px]">
-          {conversation.name}님과의 채팅과의 연동을 끊으시겠습니까?
+          {conversation.name}님과의 연동을 끊으시겠습니까?
         </p>
 
         {/* Conversation Info Card */}

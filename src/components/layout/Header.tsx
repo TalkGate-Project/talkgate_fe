@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { clearTokens } from "@/lib/token";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 import { useEffect, useRef, useState } from "react";
@@ -29,6 +30,7 @@ const THEME_STORAGE_KEY = "talkgate-theme";
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
@@ -295,6 +297,8 @@ export default function Header() {
                       clearTokens();
                       clearSelectedProjectId();
                       clearUseAttendanceMenu();
+                      // 로그아웃 시 모든 캐시 초기화 (이전 유저 정보 제거)
+                      queryClient.clear();
                       setOpen(false);
                       router.replace("/login");
                     }}
