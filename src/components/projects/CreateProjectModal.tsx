@@ -382,7 +382,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             </button>
           ) : (
             <button
-              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] min-w-[50px] px-2 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => handleSubmit()}
               disabled={submitting || !canGoNext}
             >
