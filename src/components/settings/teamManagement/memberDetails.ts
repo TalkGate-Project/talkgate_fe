@@ -1,4 +1,4 @@
-import { TeamMember } from "@/data/mockTeamData";
+import { TeamMember } from "@/types/teams";
 
 export type TeamHistoryEntry = {
   id: string;

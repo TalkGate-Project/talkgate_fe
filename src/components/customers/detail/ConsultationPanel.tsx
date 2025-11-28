@@ -281,7 +281,7 @@ export default function ConsultationPanel({
           conversation={{
             id: conversation.id,
             name: conversation.name || `${customerName}님과의 채팅`,
-            platform: conversation.platform,
+            platform: conversation.platform as "line" | "telegram" | "instagram" | "kakao",
             platformConversationId: conversation.platformConversationId,
             profileUrl: conversation.profileUrl,
           }}

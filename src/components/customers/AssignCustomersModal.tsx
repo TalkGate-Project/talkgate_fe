@@ -5,7 +5,7 @@ import BaseModal from "@/components/common/BaseModal";
 import { useMe } from "@/hooks/useMe";
 import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
-import { TeamMember } from "@/data/mockTeamData";
+import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
 
 export type AssignCustomersModalProps = {

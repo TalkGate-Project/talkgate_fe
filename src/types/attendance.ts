@@ -10,6 +10,17 @@ export type AttendanceItem = {
   leaveAt: string | null;
 };
 
+// UI용 확장/변환 타입 (기존 mockAttendanceData에서 사용)
+export interface AttendanceRecord {
+  id: number;
+  name: string;
+  team: string;
+  position: string;
+  clockIn: string;
+  clockOut: string;
+  workTime: string;
+}
+
 export type AttendanceListResponse = {
   result: true;
   data: {
@@ -28,4 +39,3 @@ export type MyStatusResponse = {
     todayAttendance: AttendanceItem | null;
   };
 };
-

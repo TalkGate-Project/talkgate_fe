@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { DragEvent, MouseEvent, WheelEvent, ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { TeamMember } from "@/data/mockTeamData";
+import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState } from "@/hooks/useTeamTree";
 import { TOKENS } from "./tokens";
 
