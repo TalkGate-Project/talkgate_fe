@@ -29,6 +29,15 @@ function OAuthCallbackPage() {
 
   useEffect(() => {
     document.title = "TalkGate - 로그인 중";
+
+    // 컴팩트 모드(zoom: 0.8) 사용 시, body 컨텐츠가 줄어들면서 하단에 흰 여백이 생길 수 있음
+    // 이를 방지하기 위해 body 자체의 배경색을 페이지 배경색과 동일하게 설정
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = "#1a1a1a";
+
+    return () => {
+      document.body.style.backgroundColor = originalBg;
+    };
   }, []);
 
   // OAuth 에러 파라미터 처리 (예: 사용자가 취소한 경우)

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { clearTokens } from "@/lib/token";
 import { clearSelectedProjectId } from "@/lib/project";
@@ -12,6 +13,7 @@ const THEME_STORAGE_KEY = "talkgate-theme";
 
 export default function LiteHeader() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
@@ -203,6 +205,8 @@ export default function LiteHeader() {
                     onClick={() => {
                       clearTokens();
                       clearSelectedProjectId();
+                      // 로그아웃 시 모든 캐시 초기화 (이전 유저 정보 제거)
+                      queryClient.clear();
                       setOpen(false);
                       router.replace("/login");
                     }}

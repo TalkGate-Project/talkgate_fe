@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import { setTokens } from "@/lib/token";
 import type { SignupTokens } from "@/types/signup";
@@ -15,16 +16,19 @@ export function ProfileStep({
   onComplete,
   onSkip,
 }: ProfileStepProps) {
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 토큰을 쿠키에 저장하고 대시보드로 이동하는 공통 함수
-  const saveTokensAndNavigate = () => {
+  // 토큰을 쿠키에 저장하고 React Query 캐시를 무효화하는 공통 함수
+  const saveTokensAndInvalidateCache = async () => {
     setTokens({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     });
+    // 이전 유저 정보 캐시를 제거하고 새 유저 정보로 갱신
+    await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
   };
 
   const handleSubmit = async () => {
@@ -41,12 +45,12 @@ export function ProfileStep({
         },
       });
       
-      // 프로필 업데이트 성공 후 토큰 저장
-      saveTokensAndNavigate();
+      // 프로필 업데이트 성공 후 토큰 저장 및 캐시 무효화
+      await saveTokensAndInvalidateCache();
       onComplete();
     } catch {
-      // 프로필 업데이트 실패 시에도 토큰 저장 후 완료 처리
-      saveTokensAndNavigate();
+      // 프로필 업데이트 실패 시에도 토큰 저장 및 캐시 무효화 후 완료 처리
+      await saveTokensAndInvalidateCache();
       onComplete();
     } finally {
       setIsSubmitting(false);
@@ -56,8 +60,8 @@ export function ProfileStep({
   const handleSkip = async () => {
     setIsSubmitting(true);
     try {
-      // 건너뛰기 시에는 프로필 업데이트 없이 토큰만 저장
-      saveTokensAndNavigate();
+      // 건너뛰기 시에는 프로필 업데이트 없이 토큰만 저장 및 캐시 무효화
+      await saveTokensAndInvalidateCache();
       onSkip();
     } finally {
       setIsSubmitting(false);
