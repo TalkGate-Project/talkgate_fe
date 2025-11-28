@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState, flattenTeamData } from "@/hooks/useTeamTree";
+import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "./tokens";
 
 type Props = {
   data: TeamMember[];
@@ -92,25 +93,31 @@ export default function TeamListView({
           : item.children;
         const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
         const isExpanded = currentExpanded.has(item.id);
-        const indent = (item.level ?? 0) * 24;
+        const level = item.level ?? 0;
+        const indent = getIndent(level);
+        const connectorLeft = getConnectorLeft(level);
         const isDragOver = dragState.dragOverItemId === item.id;
         const isDragging = dragState.draggedItemId === item.id;
 
         return (
           <div key={item.id} className="relative mb-2">
-            {item.level > 0 && (
+            {level > 0 && (
               <>
                 <div
                   className="absolute left-0 top-0 bottom-0 w-px bg-border"
                   style={{ 
-                    left: `${indent - 12}px`,
+                    left: `${connectorLeft}px`,
                     // 첫 번째 아이템은 상단 여백(mt-2)만큼 선을 위로 올려서 연결
-                    top: index === 0 ? -8 : 0 
+                    top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0 
                   }}
                 />
                 <div
                   className="absolute h-px bg-border"
-                  style={{ left: `${indent - 12}px`, top: 34, width: 12 }}
+                  style={{ 
+                    left: `${connectorLeft}px`, 
+                    top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
+                    width: HIERARCHY_LIST_TOKENS.connector.horizontalWidth 
+                  }}
                 />
               </>
             )}

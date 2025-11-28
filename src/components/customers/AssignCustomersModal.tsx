@@ -7,6 +7,7 @@ import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
+import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
 
 export type AssignCustomersModalProps = {
   open: boolean;
@@ -149,24 +150,30 @@ function HierarchicalTeamList({
         : item.children;
       const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
       const isExpanded = currentExpanded.has(item.id);
-      const indent = (item.level ?? 0) * 24;
+      const level = item.level ?? 0;
+      const indent = getIndent(level);
+      const connectorLeft = getConnectorLeft(level);
       const isSelected = selectedId === Number(item.id);
 
       return (
         <div key={item.id} className="relative mb-2">
-          {item.level > 0 && (
+          {level > 0 && (
             <>
               <div
                 className="absolute left-0 top-0 bottom-0 w-px bg-border"
                 style={{
-                  left: `${indent - 12}px`,
+                  left: `${connectorLeft}px`,
                   // Match the visual style from TeamListView
-                  top: index === 0 ? -8 : 0,
+                  top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0,
                 }}
               />
               <div
                 className="absolute h-px bg-border"
-                style={{ left: `${indent - 12}px`, top: 34, width: 12 }}
+                style={{ 
+                  left: `${connectorLeft}px`, 
+                  top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
+                  width: HIERARCHY_LIST_TOKENS.connector.horizontalWidth 
+                }}
               />
             </>
           )}
