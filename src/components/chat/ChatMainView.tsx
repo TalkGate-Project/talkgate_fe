@@ -21,6 +21,7 @@ type Props = {
   setInput: (value: string) => void;
   onSend: () => void;
   onOpenLinkFlow: () => void;
+  onOpenUnlinkModal: () => void;
   onOpenCustomerDetail: () => void;
   onCloseConversation: () => void;
   attachmentUploading: boolean;
@@ -43,6 +44,7 @@ export default function ChatMainView({
   setInput,
   onSend,
   onOpenLinkFlow,
+  onOpenUnlinkModal,
   onOpenCustomerDetail,
   onCloseConversation,
   attachmentUploading,
@@ -181,7 +183,7 @@ export default function ChatMainView({
                   ? "bg-primary-10 border-primary-80"
                   : "border-border"
               }`}
-              onClick={onOpenLinkFlow}
+              onClick={activeConversation?.customerId ? onOpenUnlinkModal : onOpenLinkFlow}
             >
               <LinkIcon color={activeConversation?.customerId ? "#00B55B" : "#B0B0B0"} />
             </button>

@@ -4,6 +4,7 @@ import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
 import { CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 
 type Props = {
   customerName: string;
@@ -13,6 +14,7 @@ type Props = {
   onAddNote: (categoryId: number | undefined, note: string) => void;
   onRemoveNote: (id: number) => void;
   customerId: number;
+  onUnlinkConversation?: () => void;
 };
 
 export default function ConsultationPanel({
@@ -23,11 +25,14 @@ export default function ConsultationPanel({
   onAddNote,
   onRemoveNote,
   customerId,
+  onUnlinkConversation,
 }: Props) {
   const router = useRouter();
   const [noteCategoryId, setNoteCategoryId] = useState<number | "">("");
   const [noteInput, setNoteInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
 
   // Scroll to bottom when notes change
   useLayoutEffect(() => {
@@ -54,11 +59,41 @@ export default function ConsultationPanel({
       : "카카오톡"
     : "연결된 채팅방이 없습니다";
 
+  const handleNavigateToChat = () => {
+    if (!conversation) return;
+    const params = new URLSearchParams();
+    params.set("conversationId", String(conversation.id));
+    params.set("platform", conversation.platform);
+    params.set("customerId", String(customerId));
+    router.push(`/consult?${params.toString()}`);
+  };
+
+  const handleOpenUnlinkModal = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+    if (!onUnlinkConversation || unlinking) return;
+    setUnlinkModalOpen(true);
+  };
+
+  const handleConfirmUnlink = async () => {
+    if (!onUnlinkConversation || unlinking) return;
+    
+    setUnlinking(true);
+    try {
+      await onUnlinkConversation();
+      setUnlinkModalOpen(false);
+    } finally {
+      setUnlinking(false);
+    }
+  };
+
   return (
     <div className="col-span-12 lg:col-span-4">
       {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
       {hasConversation && (
-        <div className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4">
+        <div 
+          className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] transition-colors"
+          onClick={handleNavigateToChat}
+        >
           <div className="flex items-center gap-4 min-w-0">
             <div className="w-12 h-12 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
               {conversation!.profileUrl ? (
@@ -113,34 +148,32 @@ export default function ConsultationPanel({
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            className="flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border bg-primary-10 border-primary-80 cursor-pointer"
-            onClick={() => {
-              const c = conversation!;
-              const params = new URLSearchParams();
-              params.set("conversationId", String(c.id));
-              params.set("platform", c.platform);
-              params.set("customerId", String(customerId));
-              router.push(`/consult?${params.toString()}`);
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* 연동 끊기 버튼 */}
+          {onUnlinkConversation && (
+            <button
+              type="button"
+              className="flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border bg-primary-10 border-primary-80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleOpenUnlinkModal}
+              disabled={unlinking}
+              aria-label="연동 끊기"
             >
-              <path
-                d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
-                stroke="#00B55B"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
+                  stroke="#00B55B"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </div>
       )}
 
@@ -238,6 +271,23 @@ export default function ConsultationPanel({
           })}
         </div>
       </div>
+
+      {/* 연동 끊기 확인 모달 */}
+      {conversation && (
+        <UnlinkConversationModal
+          open={unlinkModalOpen}
+          onClose={() => setUnlinkModalOpen(false)}
+          onConfirm={handleConfirmUnlink}
+          conversation={{
+            id: conversation.id,
+            name: conversation.name || `${customerName}님과의 채팅`,
+            platform: conversation.platform,
+            platformConversationId: conversation.platformConversationId,
+            profileUrl: conversation.profileUrl,
+          }}
+          loading={unlinking}
+        />
+      )}
     </div>
   );
 }

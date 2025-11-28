@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { CustomersService } from "@/services/customers";
+import { ConversationsService } from "@/services/conversations";
 import type { CustomerDetail, UpdateCustomerInput } from "@/types/customers";
 import type { MessengerLocal } from "./types";
 
@@ -34,6 +35,7 @@ type CustomerActions = {
   removeSchedule: (id: number) => Promise<void>;
   addNote: (categoryId: number | undefined, note: string) => Promise<void>;
   removeNote: (id: number) => Promise<void>;
+  unlinkConversation: () => Promise<void>;
 };
 
 // ============================================================================
@@ -302,6 +304,32 @@ export function useCustomerActions({
     [setDetail]
   );
 
+  // =========================================================================
+  // Conversation Actions
+  // =========================================================================
+
+  const unlinkConversation = useCallback(async () => {
+    if (!detail?.conversation?.id) return;
+
+    const conversationId = detail.conversation.id;
+    const projectId = getProjectId();
+
+    await ConversationsService.unlinkCustomer({
+      conversationId,
+      projectId,
+    });
+
+    // Optimistic update: conversation을 null로 설정
+    setDetail((prev) =>
+      prev
+        ? {
+            ...prev,
+            conversation: null,
+          }
+        : prev
+    );
+  }, [detail, setDetail]);
+
   return {
     saveForm,
     addMessenger,
@@ -312,6 +340,7 @@ export function useCustomerActions({
     removeSchedule,
     addNote,
     removeNote,
+    unlinkConversation,
   };
 }
 

@@ -82,9 +82,6 @@ export default function CustomersTable({
   }, []);
 
   const handleMouseEnter = (e: React.MouseEvent, customer: CustomerListItem) => {
-    // 컴팩트 모드에서는 zoom/scale로 인해 팝오버 위치가 어긋나므로 표시하지 않음
-    if (isCompactMode) return;
-
     if (hoverHideRef.current) {
       clearTimeout(hoverHideRef.current);
       hoverHideRef.current = null;
@@ -92,19 +89,48 @@ export default function CustomersTable({
     const { clientX, clientY } = e;
     const notes = Array.isArray(customer.recentNotes) ? customer.recentNotes : [];
     setHoveredId(customer.id);
+    
+    // 컴팩트 모드일 때 위치 보정 (zoom 0.8 대응)
+    const zoom = isCompactMode ? 0.8 : 1;
+    // 컴팩트 모드일 때 조금 더 여유를 둠
+    const offsetX = isCompactMode ? 20 : 12;
+    const offsetY = isCompactMode ? 20 : 12;
+
+    const adjustedX = (clientX + offsetX) / zoom;
+    const adjustedY = (clientY + offsetY) / zoom;
+
+    // window.innerWidth도 줌 레벨에 따라 달라질 수 있으므로 안전하게 처리
+    // (크롬 등에서는 zoom 시 innerWidth가 늘어남)
+    const maxLeft = (window.innerWidth / (isCompactMode ? 1 : 1)) - 400;
+
     setHoverInfo({
       name: customer.name,
       notes,
-      top: clientY + 12,
-      left: Math.min(clientX + 12, window.innerWidth - 400),
+      top: adjustedY,
+      left: Math.min(adjustedX, maxLeft),
     });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!hoverInfo) return;
     const { clientX, clientY } = e;
+
+    const zoom = isCompactMode ? 0.8 : 1;
+    const offsetX = isCompactMode ? 20 : 12;
+    const offsetY = isCompactMode ? 20 : 12;
+
+    const adjustedX = (clientX + offsetX) / zoom;
+    const adjustedY = (clientY + offsetY) / zoom;
+    const maxLeft = (window.innerWidth / (isCompactMode ? 1 : 1)) - 400;
+
     setHoverInfo((prev) =>
-      prev ? { ...prev, top: clientY + 12, left: Math.min(clientX + 12, window.innerWidth - 400) } : prev
+      prev
+        ? {
+            ...prev,
+            top: adjustedY,
+            left: Math.min(adjustedX, maxLeft),
+          }
+        : prev
     );
   };
 

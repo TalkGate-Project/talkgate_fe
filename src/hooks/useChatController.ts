@@ -474,6 +474,27 @@ export function useChatController({ projectId, status = "all", platform }: Param
   );
 
   // ============================================
+  // 고객 연동 해제 액션
+  // ============================================
+  const unlinkCustomerFromConversation = useCallback(async () => {
+    if (!activeId) throw new Error("대화방이 선택되지 않았습니다.");
+    try {
+      const response = await ConversationsService.unlinkCustomer({
+        conversationId: activeId,
+        projectId: String(projectId),
+      });
+      if (!response.data?.result) throw new Error("고객 연동 해제에 실패했습니다.");
+      // Optimistic UI: 로컬 상태 즉시 업데이트
+      setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, customerId: undefined } : c)));
+      showBanner("success", "고객 연동이 해제되었습니다.");
+    } catch (err: any) {
+      const message = err?.data?.message || err?.message || "고객 연동 해제에 실패했습니다.";
+      showBanner("error", message);
+      throw new Error(message);
+    }
+  }, [activeId, projectId, showBanner]);
+
+  // ============================================
   // 상담 완료 액션
   // ============================================
   const closeConversation = useCallback(async () => {
@@ -632,6 +653,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     banner,
     send,
     linkCustomerToConversation,
+    unlinkCustomerFromConversation,
     closeConversation,
     notify: showBanner,
     attachmentUploading,

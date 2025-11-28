@@ -31,7 +31,7 @@ export default function LoginPage() {
     // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()
       .then(() => {
-        if (mounted) router.replace("/dashboard");
+        if (mounted) router.replace("/projects");
       })
       .catch(() => {
         if (mounted) setChecking(false);
