@@ -166,10 +166,10 @@ export default function ProjectsPage() {
               </svg>
             </div>
             <div className="mt-5 text-[16px] font-semibold text-[#252525]">
-              새 서비스 생성
+              새 프로젝트 생성
             </div>
             <div className="mt-2 text-[16px] font-medium text-[#808080]">
-              새로운 고객관리 서비스를 만들어보세요
+              새로운 고객관리 프로젝트를 만들어보세요
             </div>
           </div>
         </div>

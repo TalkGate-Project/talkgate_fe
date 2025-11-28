@@ -7,7 +7,7 @@ import TeamListView from "./teamManagement/TeamListView";
 import TeamTreeView from "./teamManagement/TeamTreeView";
 import TeamMemberInfoModal from "./teamManagement/TeamMemberInfoModal";
 import { DragHandlers, DragState, flattenTeamData, isDescendant } from "@/hooks/useTeamTree";
-import { TeamMember } from "@/data/mockTeamData";
+import { TeamMember } from "@/types/teams";
 import { MemberTreeNode } from "@/types/membersTree";
 import { getSelectedProjectId } from "@/lib/project";
 import { useMembersTree, useTeams, useMoveTeamMutation } from "@/hooks/useMembersTree";

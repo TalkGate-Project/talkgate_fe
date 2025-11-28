@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { TeamMember } from "@/data/mockTeamData";
+import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState, flattenTeamData } from "@/hooks/useTeamTree";
 
 type Props = {

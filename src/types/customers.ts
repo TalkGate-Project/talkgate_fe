@@ -135,7 +135,7 @@ export type CustomerDetail = {
   investmentRistLevel?: string;
   conversation?: {
     id: number;
-    platform: "line" | "telegram" | "instagram" | "kakaotalk";
+    platform: string;
     name: string;
     profileUrl?: string | null;
     platformConversationId?: string;

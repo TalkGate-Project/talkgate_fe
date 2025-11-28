@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { AttendanceRecord } from "@/data/mockAttendanceData";
+import { AttendanceRecord } from "@/types/attendance";
 import DatePicker from "@/components/common/DatePicker";
 import MailIcon from "@/components/common/icons/MailIcon";
 import PhoneIcon from "@/components/common/icons/PhoneIcon";

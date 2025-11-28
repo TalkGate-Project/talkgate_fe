@@ -11,7 +11,7 @@ import AttendanceHeader from "@/components/attendance/AttendanceHeader";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import { getSelectedProjectId } from "@/lib/project";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
-import type { AttendanceRecord } from "@/data/mockAttendanceData";
+import type { AttendanceRecord } from "@/types/attendance";
 import { AttendanceItem } from "@/types/attendance";
 import { useAttendanceList } from "@/hooks/useAttendanceList";
 import { useAttendanceDate } from "@/hooks/useAttendanceDate";
