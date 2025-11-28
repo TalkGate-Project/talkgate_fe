@@ -328,8 +328,10 @@ export default function GeneralSettings() {
   return (
     <div className="space-y-8">
       {/* 일반설정 - 프로젝트 이름 */}
-      <div className="bg-card rounded-[14px] shadow-sm py-7">
-        <h1 className="text-[24px] font-bold text-neutral-90 mb-[30px] leading-[20px] px-7">일반설정</h1>
+      <div className="bg-card rounded-[14px] shadow-sm pb-7">
+        <h1 className="text-[24px] font-bold text-neutral-90 leading-[20px] px-7 h-[76px] flex items-center">
+          일반설정
+        </h1>
         <div className="border-t border-neutral-30 mb-6"></div>
         <h3 className="text-[16px] font-semibold text-foreground mb-3 tracking-[0.2px] leading-[1] px-7">프로젝트 이름</h3>
         <div className="border-t border-neutral-30 mb-3 mx-7"></div>
@@ -362,14 +364,14 @@ export default function GeneralSettings() {
 
         {/* 서브 도메인 */}
         <div className="mb-3">
-          <label className="text-[14px] text-neutral-60 font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
+          <label className="text-[14px] text-ink font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
           <div className="flex gap-3 mb-2">
             <div className="flex-1 flex items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
               <input
                 type="text"
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value)}
-                className="flex-1 text-[14px] text-neutral-60 bg-transparent focus:outline-none tracking-[-0.02em]"
+                className="flex-1 text-[14px] text-ink bg-transparent focus:outline-none tracking-[-0.02em]"
                 placeholder="myservice"
                 disabled={isSaving}
               />
@@ -391,7 +393,7 @@ export default function GeneralSettings() {
 
         {/* 브랜드 아이콘 */}
         <div>
-          <label className="text-[14px] text-neutral-60 mb-3 block font-medium tracking-[0.2px]">브랜드 아이콘</label>
+          <label className="text-[14px] text-ink mb-3 block font-medium tracking-[0.2px]">브랜드 아이콘</label>
           <div className="flex items-center justify-center">
             <div className="relative">
               <label 

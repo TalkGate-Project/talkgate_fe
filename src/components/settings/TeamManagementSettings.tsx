@@ -77,7 +77,7 @@ export default function TeamManagementSettings() {
   const [draggedItem, setDraggedItem] = useState<TeamMember | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -280,13 +280,8 @@ export default function TeamManagementSettings() {
     setSelectedDepartment((prev) => (prev === dept ? null : dept));
   }, []);
 
-  const selectedMember = useMemo(
-    () => (selectedMemberId ? flattenedMembers.find((member) => member.id === selectedMemberId) ?? null : null),
-    [flattenedMembers, selectedMemberId]
-  );
-
   const handleMemberClick = useCallback((member: TeamMember) => {
-    setSelectedMemberId(member.id);
+    setSelectedMemberId(Number(member.id));
   }, []);
 
   const closeMemberModal = useCallback(() => {
@@ -318,7 +313,7 @@ export default function TeamManagementSettings() {
   }
 
   return (
-    <div className="w-full h-full bg-card rounded-[14px] py-7 overflow-hidden flex flex-col">
+    <div className="w-full h-full bg-card rounded-[14px] pb-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
       <div className="mx-7 h-px bg-neutral-30 mb-3" />
 
@@ -357,7 +352,7 @@ export default function TeamManagementSettings() {
                   onClick={() => handleDepartmentClick(tag)}
                   className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
                     selectedDepartment === tag
-                      ? "bg-primary-80 text-neutral-0"
+                      ? "bg-secondary-40 text-neutral-0"
                       : "bg-neutral-30 text-neutral-70 hover:bg-neutral-40"
                   }`}
                 >
@@ -438,8 +433,8 @@ export default function TeamManagementSettings() {
         </div>
       )}
 
-      {selectedMember && (
-        <TeamMemberInfoModal open={Boolean(selectedMember)} member={selectedMember} onClose={closeMemberModal} projectId={projectId} />
+      {selectedMemberId && (
+        <TeamMemberInfoModal open={Boolean(selectedMemberId)} memberId={selectedMemberId} onClose={closeMemberModal} projectId={projectId} />
       )}
     </div>
   );

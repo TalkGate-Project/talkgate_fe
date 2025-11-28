@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { TeamMember } from "@/data/mockTeamData";
-import { TOKENS } from "./tokens";
-import { MemberDetail, SpecialNote, getMemberDetail } from "./memberDetails";
+import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useCreateTeamMutation } from "@/hooks/useMembersTree";
+import type { MemberDetail, HrNote, TeamChangeLog, OrganizationTreeNode } from "@/types/members";
 
 type Props = {
   open: boolean;
-  member: TeamMember;
+  memberId: number;
   onClose: () => void;
   projectId: string | number | null;
 };
@@ -17,7 +16,7 @@ type Props = {
 type TabKey = "organization" | "manager";
 
 type OrgNode = {
-  id: string;
+  id: number;
   name: string;
   avatar: string;
   role: "leader" | "member" | string;
@@ -56,41 +55,87 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function initialFromName(name: string): string {
+  if (!name) return "?";
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  return trimmed.charAt(0);
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).replace(/\. /g, ". ");
+}
+
+function formatDateTime(dateString: string): string {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).replace(/\. /g, ". ");
+}
+
+function flattenOrgTree(node: OrganizationTreeNode | undefined): OrgNode[] {
+  if (!node) return [];
+  const result: OrgNode[] = [];
+  
+  // 본인 추가
+  result.push({
+    id: node.id,
+    name: node.name,
+    avatar: initialFromName(node.name),
+    role: node.role,
+    department: node.teamName,
+  });
+  
+  // descendants 추가
+  (node.descendants ?? []).forEach((child) => {
+    result.push({
+      id: child.id,
+      name: child.name,
+      avatar: initialFromName(child.name),
+      role: child.role,
+      department: child.teamName,
+    });
+  });
+  
+  return result;
+}
+
 export default function TeamMemberInfoModal({
   open,
-  member,
+  memberId,
   onClose,
   projectId,
 }: Props) {
   const [tab, setTab] = useState<TabKey>("organization");
-  const [notes, setNotes] = useState<SpecialNote[]>([]);
+  const [localNotes, setLocalNotes] = useState<HrNote[]>([]);
   const [noteInput, setNoteInput] = useState("");
-  const [teamNodes, setTeamNodes] = useState<OrgNode[]>([]);
   const [teamCreateMode, setTeamCreateMode] = useState(false);
   const [teamNameDraft, setTeamNameDraft] = useState("");
   const createTeam = useCreateTeamMutation(projectId);
 
-  const detail: MemberDetail = useMemo(() => getMemberDetail(member), [member]);
+  // API로 멤버 상세 정보 가져오기
+  const { member, isLoading, isError } = useMemberDetail(open ? memberId : null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !member) return;
     setTab("organization");
-    setNotes(detail.notes);
+    setLocalNotes(member.hrNotes ?? []);
     setNoteInput("");
     setTeamCreateMode(false);
     setTeamNameDraft("");
-  }, [detail, open]);
-
-  useEffect(() => {
-    const initialNodes = (member.children ?? []).map((child) => ({
-      id: child.id,
-      name: child.name,
-      avatar: child.avatar,
-      role: child.isLeader ? "leader" : "member",
-      department: child.department,
-    }));
-    setTeamNodes(initialNodes);
-  }, [member]);
+  }, [member, open]);
 
   if (!open || typeof document === "undefined") {
     return null;
@@ -99,24 +144,29 @@ export default function TeamMemberInfoModal({
   const handleAddNote = () => {
     const trimmed = noteInput.trim();
     if (!trimmed) return;
-    const newNote: SpecialNote = {
-      id: `note-${Date.now()}`,
-      author: "관리자",
-      timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
-      text: trimmed,
+    // TODO: API 호출로 특이사항 추가
+    const newNote: HrNote = {
+      id: Date.now(),
+      memberId: memberId,
+      note: trimmed,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    setNotes((prev) => [newNote, ...prev]);
+    setLocalNotes((prev) => [newNote, ...prev]);
     setNoteInput("");
   };
 
   const handleReset = () => {
-    setNotes(detail.notes);
+    setLocalNotes(member?.hrNotes ?? []);
     setNoteInput("");
     setTab("organization");
   };
 
-  const isLeader = member.isLeader;
+  const isLeader = member?.role === "leader" || member?.role === "admin" || member?.role === "subAdmin";
   const canCreateTeam = !isLeader;
+  
+  // 조직도 노드 계산
+  const teamNodes = flattenOrgTree(member?.organizationTree);
 
   const organizationContent = (
     <section className="border border-[#E2E2E2] rounded-[12px] p-5 space-y-5">
@@ -147,7 +197,7 @@ export default function TeamMemberInfoModal({
                   if (!trimmed || createTeam.isPending) return;
                   try {
                     await createTeam.mutateAsync({
-                      memberId: Number(member.id),
+                      memberId: memberId,
                       teamName: trimmed,
                     });
                     setTeamCreateMode(false);
@@ -190,20 +240,8 @@ export default function TeamMemberInfoModal({
           조직도
         </span>
         <div className="space-y-2">
-          {(
-            [
-              {
-                id: member.id,
-                name: member.name,
-                avatar: member.avatar,
-                role: "leader" as const,
-                department: member.department,
-              },
-              ...teamNodes.filter((node) => node.id !== member.id),
-            ] as OrgNode[]
-          ).map((node) => {
-            const isNodeLeader =
-              node.role === "leader" || node.id === member.id;
+          {teamNodes.map((node) => {
+            const isNodeLeader = node.role === "leader" || node.id === memberId;
             return (
               <div
                 key={node.id}
@@ -234,6 +272,16 @@ export default function TeamMemberInfoModal({
     </section>
   );
 
+  const roleLabel = (role: string) => {
+    switch (role) {
+      case "admin": return "관리자";
+      case "subAdmin": return "부관리자";
+      case "leader": return "팀장";
+      case "member": return "팀원";
+      default: return role;
+    }
+  };
+
   const managerContent = (
     <div className="border border-[#E2E2E2] rounded-[12px] p-7">
       {/* 프로필 정보 Section */}
@@ -259,7 +307,7 @@ export default function TeamMemberInfoModal({
                 이름
               </span>
               <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {detail.profile.name}
+                {member?.hrData?.realName || member?.name || "-"}
               </span>
             </div>
             <div className="flex items-center">
@@ -267,7 +315,7 @@ export default function TeamMemberInfoModal({
                 직책
               </span>
               <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {detail.profile.title}
+                {roleLabel(member?.role ?? "")}
               </span>
             </div>
             <div className="flex items-center">
@@ -275,7 +323,7 @@ export default function TeamMemberInfoModal({
                 생년월일
               </span>
               <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {detail.profile.birthDate}
+                {member?.hrData?.birth || "-"}
               </span>
             </div>
             <div className="flex items-center">
@@ -283,7 +331,7 @@ export default function TeamMemberInfoModal({
                 입사일
               </span>
               <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {detail.profile.joinDate}
+                {member?.createdAt ? formatDate(member.createdAt) : "-"}
               </span>
             </div>
             <div className="col-span-2 flex items-center">
@@ -291,7 +339,7 @@ export default function TeamMemberInfoModal({
                 주소
               </span>
               <span className="flex-1 text-[14px] font-medium text-[#252525] leading-6">
-                {detail.profile.address}
+                {member?.hrData?.address || "-"}
               </span>
             </div>
           </div>
@@ -307,46 +355,49 @@ export default function TeamMemberInfoModal({
         </div>
         <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
         <div className="space-y-3">
-          {detail.teamHistory.map((history) => (
-            <div
-              key={history.id}
-              className="bg-[#F8F8F8] rounded-[12px] p-4 flex items-center gap-4"
-            >
-              <span className="text-[14px] text-[#808080] whitespace-nowrap">
-                {history.date}
-              </span>
-              <Badge label={history.from} variant="neutral" />
-              {history.to && (
-                <>
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9 18L15 12L9 6"
-                      stroke="#B0B0B0"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+          {(member?.teamChangeLogs ?? []).length > 0 ? (
+            member?.teamChangeLogs.map((history) => (
+              <div
+                key={history.id}
+                className="bg-[#F8F8F8] rounded-[12px] p-4 flex items-center gap-4"
+              >
+                <span className="text-[14px] text-[#808080] whitespace-nowrap">
+                  {formatDate(history.createdAt)}
+                </span>
+                <Badge label={history.previousTeamName || "미배정"} variant="neutral" />
+                {history.newTeamName && (
+                  <>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 18L15 12L9 6"
+                        stroke="#B0B0B0"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <Badge
+                      label={history.newTeamName}
+                      variant="primary"
                     />
-                  </svg>
-                  <Badge
-                    label={history.to}
-                    variant={
-                      history.action === "팀이동" ? "primary" : "secondary"
-                    }
-                  />
-                </>
-              )}
-              <span className="text-[14px] text-[#000000]">{history.role}</span>
-              <span className="ml-auto text-[14px] text-[#808080]">
-                {history.action}
-              </span>
+                  </>
+                )}
+                <span className="ml-auto text-[14px] text-[#808080]">
+                  {history.type === "teamMove" ? "팀이동" : history.type}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-3 bg-[#F8F8F8] rounded-[12px] text-[14px] text-[#808080]">
+              팀 변경 이력이 없습니다.
             </div>
-          ))}
+          )}
         </div>
       </section>
 
@@ -358,19 +409,18 @@ export default function TeamMemberInfoModal({
           </span>
         </div>
         <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
-        {notes.length > 0 ? (
+        {localNotes.length > 0 ? (
           <div className="space-y-3 mb-4">
-            {notes.map((note) => (
+            {localNotes.map((note) => (
               <div key={note.id} className="bg-[#F8F8F8] rounded-[12px] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-[14px] text-[#000000]">
-                    <span>{note.author}</span>
-                    <span className="text-[#808080]">{note.timestamp}</span>
+                    <span className="text-[#808080]">{formatDateTime(note.createdAt)}</span>
                   </div>
                   <button
                     className="cursor-pointer w-5 h-5 text-[#B0B0B0] hover:text-[#808080]"
                     onClick={() =>
-                      setNotes((prev) =>
+                      setLocalNotes((prev) =>
                         prev.filter((item) => item.id !== note.id)
                       )
                     }
@@ -393,7 +443,7 @@ export default function TeamMemberInfoModal({
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#000000]">{note.text}</p>
+                <p className="text-[14px] text-[#000000]">{note.note}</p>
               </div>
             ))}
           </div>
@@ -421,6 +471,54 @@ export default function TeamMemberInfoModal({
       </section>
     </div>
   );
+
+  // 로딩 상태
+  if (isLoading) {
+    return createPortal(
+      <div className="fixed inset-0 z-[100]">
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div
+          className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col items-center justify-center"
+          style={{
+            width: 904,
+            height: 400,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <p className="mt-4 text-[14px] text-[#808080]">직원 정보를 불러오는 중...</p>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // 에러 상태
+  if (isError || !member) {
+    return createPortal(
+      <div className="fixed inset-0 z-[100]">
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div
+          className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col items-center justify-center"
+          style={{
+            width: 904,
+            height: 400,
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <p className="text-[14px] text-[#808080]">직원 정보를 불러오는 중 오류가 발생했습니다.</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-4 h-[34px] px-4 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0]"
+          >
+            닫기
+          </button>
+        </div>
+      </div>,
+      document.body
+    );
+  }
 
   return createPortal(
     <div className="fixed inset-0 z-[100]">
@@ -467,7 +565,7 @@ export default function TeamMemberInfoModal({
             <div className="bg-[#F8F8F8] rounded-[12px] p-4">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-[#808080] text-white flex items-center justify-center text-[18px] font-semibold">
-                  {member.avatar}
+                  {initialFromName(member.name)}
                 </div>
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3">
@@ -475,8 +573,8 @@ export default function TeamMemberInfoModal({
                       {member.name}
                     </span>
                     <Badge
-                      label={detail.position}
-                      variant={member.isLeader ? "primary" : "neutral"}
+                      label={roleLabel(member.role)}
+                      variant={isLeader ? "primary" : "neutral"}
                     />
                   </div>
                   <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#808080]">
@@ -503,7 +601,7 @@ export default function TeamMemberInfoModal({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{detail.email}</span>
+                      <span>{member.email || "-"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <svg
@@ -521,17 +619,16 @@ export default function TeamMemberInfoModal({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{detail.phone}</span>
+                      <span>{member.phone || "-"}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {detail.tags.map((tag) => (
+                    {member.teamInfo && (
                       <Badge
-                        key={`basic-${tag}`}
-                        label={tag}
+                        label={member.teamInfo.name}
                         variant="secondary"
                       />
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

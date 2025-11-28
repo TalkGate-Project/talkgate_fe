@@ -204,7 +204,7 @@ export default function Header() {
                         />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-primary-60 flex-shrink-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-neutral-60 flex-shrink-0 flex items-center justify-center">
                         <span className="text-white text-[18px] font-semibold tracking-[-0.02em]">
                           {user?.name ? user.name.charAt(0) : "김"}
                         </span>

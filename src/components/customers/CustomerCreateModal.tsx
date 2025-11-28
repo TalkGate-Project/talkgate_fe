@@ -437,7 +437,7 @@ export default function CustomerCreateModal({
                 <button
                   type="button"
                   onClick={handleAddMessenger}
-                  className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
                 >
                   추가
                 </button>
@@ -454,7 +454,7 @@ export default function CustomerCreateModal({
                       <button
                         type="button"
                         onClick={() => handleRemoveMessenger(index)}
-                        className="text-neutral-60 hover:text-ink"
+                        className="cursor-pointer text-neutral-60 hover:text-ink"
                       >
                         <svg
                           width="12"
@@ -560,7 +560,7 @@ export default function CustomerCreateModal({
             type="button"
             onClick={handleReset}
             disabled={submitting}
-            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink bg-white disabled:opacity-60"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink bg-white disabled:opacity-60"
           >
             초기화
           </button>
@@ -568,9 +568,9 @@ export default function CustomerCreateModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !projectId}
-            className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
           >
-            적용완료
+            등록
           </button>
         </div>
       </div>

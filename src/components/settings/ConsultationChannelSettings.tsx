@@ -280,9 +280,9 @@ export default function ConsultationChannelSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] pt-7 pb-32">
+    <div className="bg-card rounded-[14px] pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between px-7 mb-8">
+      <div className="flex items-center justify-between px-7 h-[76px]">
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           상담 채널 연동
         </h1>

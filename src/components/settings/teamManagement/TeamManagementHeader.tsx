@@ -8,7 +8,7 @@ type Props = {
 export default function TeamManagementHeader({ viewMode, onChange }: Props) {
   return (
     <div className="">
-      <div className="flex justify-between items-center mb-6 px-7">
+      <div className="flex justify-between items-center px-7 h-[76px]">
         <h1 className="font-bold text-[24px] leading-[20px] text-foreground">
           팀관리
         </h1>

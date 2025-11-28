@@ -164,8 +164,8 @@ export default function BatchRegistrationHistorySettings() {
 
   if (isLoading) {
     return (
-      <div className="bg-card rounded-[14px] py-7">
-        <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
+      <div className="bg-card rounded-[14px] pb-7">
+        <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
           일괄 등록 이력
         </h1>
         <div className="flex items-center justify-center h-64">
@@ -176,9 +176,9 @@ export default function BatchRegistrationHistorySettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] py-7">
+    <div className="bg-card rounded-[14px] pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 mb-7">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
         일괄 등록 이력
       </h1>
 
@@ -199,25 +199,25 @@ export default function BatchRegistrationHistorySettings() {
 
       {/* Table Header */}
       <div className="mx-7 bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center gap-3">
-        <div className="w-[162px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[162px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
           파일명
         </div>
-        <div className="w-[60px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[60px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
           업로더
         </div>
-        <div className="w-[120px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[120px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
           전체 고객 수
         </div>
-        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
           성공
         </div>
-        <div className="w-[60px] text-right text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0 mr-6">
+        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0 mr-6">
           실패
         </div>
-        <div className="w-[105px] text-[16px] font-bold text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[105px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
           상태
         </div>
-        <div className="flex-1 text-[16px] font-bold text-neutral-60 leading-[19px] min-w-0">
+        <div className="flex-1 text-[16px] font-medium text-neutral-60 leading-[19px] min-w-0">
           업로드 일시
         </div>
       </div>
