@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence, easeInOut } from "framer-motion";
+import { motion, easeInOut } from "framer-motion";
 import { MembersService } from "@/services/members";
 import { savePendingInviteToken, getPendingInviteToken, clearPendingInviteToken } from "@/lib/invite";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
@@ -237,32 +237,22 @@ function InviteLanding() {
   }, [loading, isTokenValid]);
 
   async function onAccept() {
-    try {
-      const effectiveToken = token || getPendingInviteToken();
-      if (!effectiveToken) throw new Error("유효하지 않은 초대 토큰입니다.");
-      
-      // 개발용 토큰인 경우 백엔드 호출 스킵
-      if (effectiveToken === DEV_TOKEN) {
-        console.log("[DEV MODE] 초대 수락 버튼 클릭 - 실제 API 호출은 스킵됨");
-        alert("[개발 모드] 초대 수락이 시뮬레이션되었습니다.");
-        router.replace("/projects");
-        return;
-      }
-
-      await MembersService.acceptInvitation({ token: effectiveToken });
-      clearPendingInviteToken();
-      router.replace("/projects");
-    } catch (e: any) {
-      const status = e?.status;
-      if (status === 401 || status === 403) {
-        // 인증 필요: 초대 토큰 보관 후 로그인으로 이동
-        const effectiveToken = token || getPendingInviteToken();
-        if (effectiveToken) savePendingInviteToken(effectiveToken);
-        router.replace("/login");
-        return;
-      }
-      alert(e?.data?.message || e?.message || "초대를 수락할 수 없습니다.");
+    const effectiveToken = token || getPendingInviteToken();
+    if (!effectiveToken) {
+      alert("유효하지 않은 초대 토큰입니다.");
+      return;
     }
+    
+    // 개발용 토큰인 경우
+    if (effectiveToken === DEV_TOKEN) {
+      console.log("[DEV MODE] 초대 수락 - 회원가입 페이지로 이동");
+      router.replace(`/signup?invite=${effectiveToken}`);
+      return;
+    }
+
+    // 초대 토큰을 localStorage에 저장하고 회원가입 페이지로 이동
+    savePendingInviteToken(effectiveToken);
+    router.replace(`/signup?invite=${effectiveToken}`);
   }
 
   function onDecline() {

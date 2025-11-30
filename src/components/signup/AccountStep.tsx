@@ -6,9 +6,10 @@ import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 
 type AccountStepProps = {
   onSuccess: (params: { email: string; password: string }) => void;
+  invitationToken?: string;
 };
 
-export function AccountStep({ onSuccess }: AccountStepProps) {
+export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -71,6 +72,7 @@ export function AccountStep({ onSuccess }: AccountStepProps) {
           password,
           agreeTerms,
           agreePrivacy,
+          invitationToken,
         }).then((res) => {
           if (res.success) {
             onSuccess({ email, password });
