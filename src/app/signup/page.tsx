@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
-import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
-import loginBgImg from "@/assets/images/auth/login_bg.png";
-import loginCardImg from "@/assets/images/auth/login_card.png";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import AuthLayout from "@/components/auth/AuthLayout";
 import { AccountStep } from "@/components/signup/AccountStep";
 import { VerifyStep } from "@/components/signup/VerifyStep";
 import { ProfileStep } from "@/components/signup/ProfileStep";
@@ -13,17 +10,21 @@ import { DoneStep } from "@/components/signup/DoneStep";
 import type { SignupStep } from "@/components/signup/steps";
 import type { SignupTokens } from "@/types/signup";
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<SignupStep>("account");
   const [accountEmail, setAccountEmail] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
   // 이메일 인증 성공 시 받은 토큰 (쿠키에 저장하지 않고 state로 관리)
   const [signupTokens, setSignupTokens] = useState<SignupTokens | null>(null);
 
+  // URL에서 초대 토큰 가져오기
+  const invitationToken = useMemo(() => searchParams.get("invite") || undefined, [searchParams]);
+
   useEffect(() => {
-    document.title = "TalkGate - 회원가입";
-  }, []);
+    document.title = invitationToken ? "TalkGate - 초대 회원가입" : "TalkGate - 회원가입";
+  }, [invitationToken]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -59,79 +60,58 @@ export default function SignupPage() {
   };
 
   return (
-    // 메인 레이아웃 영역 시작
-    <main
-      className="min-h-screen relative"
-      style={{
-        backgroundImage: `url('${loginBgImg.src}')`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+    <AuthLayout 
+      ariaLabel="signup-area"
+      cardPaddingTopRatio={0.488}
+      cardContentWidthRatio={0.646}
     >
-      {/* 좌측 브랜드 영역 (로그인과 동일 레이아웃 유지) 시작 */}
-      <div className="absolute left-0 top-0 h-screen w-[58vw] hidden lg:flex items-center pointer-events-none select-none">
-        <div className="pl-[10vw] text-white flex flex-col items-center">
-          <TalkGateLogoLarge />
-          <div className="mt-4 text-white text-[32px] leading-[38px] font-medium">
-            “Your Gateway to Smarter Sales”
-          </div>
+      <h1 className="sr-only">회원가입</h1>
+
+      {/* 초대 회원가입 안내 */}
+      {invitationToken && step === "account" && (
+        <div className="mb-4 p-3 rounded-lg bg-[#1a3a2a] border border-[#00E272]/30">
+          <p className="text-[#00E272] text-[14px] text-center">
+            프로젝트 초대를 통한 회원가입입니다
+          </p>
         </div>
-      </div>
-      {/* 좌측 브랜드 영역 (로그인과 동일 레이아웃 유지) 끝 */}
+      )}
 
-      {/* 우측 카드 영역 시작 */}
-      <div
-        className="
-          absolute top-0 h-screen flex justify-center w-[594px]
-          md:left-1/2 md:-translate-x-1/2
-          lg:left-auto lg:translate-x-0 lg:right-[8vw]
-          xl:right-[12vw]
-        "
-        style={{
-          backgroundImage: `url('${loginCardImg.src}')`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          backgroundSize: "594px auto",
-        }}
-      >
-        {/* 우측 카드 콘텐츠 컬럼 영역 시작 */}
-        <div
-          className="mx-auto flex flex-col items-center pt-[290px] w-[384px]"
-          aria-label="signup-area"
-        >
-          {/* 워드마크 로고 (로그인 페이지와 동일) */}
-          <TalkGateLogoWordmark />
-          <h1 className="sr-only">회원가입</h1>
+      {/* 단계별 회원가입 폼 영역 */}
+      {step === "account" && (
+        <AccountStep 
+          onSuccess={handleAccountSuccess} 
+          invitationToken={invitationToken}
+        />
+      )}
 
-          {/* 단계별 회원가입 폼 영역 시작 */}
-          {step === "account" && (
-            <AccountStep onSuccess={handleAccountSuccess} />
-          )}
+      {step === "verify" && (
+        <VerifyStep
+          email={accountEmail}
+          onSuccess={handleVerifySuccess}
+        />
+      )}
 
-          {step === "verify" && (
-            <VerifyStep
-              email={accountEmail}
-              onSuccess={handleVerifySuccess}
-            />
-          )}
+      {step === "profile" && signupTokens && (
+        <ProfileStep
+          tokens={signupTokens}
+          onComplete={handleProfileComplete}
+          onSkip={handleProfileSkip}
+        />
+      )}
 
-          {step === "profile" && signupTokens && (
-            <ProfileStep
-              tokens={signupTokens}
-              onComplete={handleProfileComplete}
-              onSkip={handleProfileSkip}
-            />
-          )}
+      {step === "done" && <DoneStep onGoLogin={handleGoLogin} />}
+    </AuthLayout>
+  );
+}
 
-          {step === "done" && <DoneStep onGoLogin={handleGoLogin} />}
-          {/* 단계별 회원가입 폼 영역 끝 */}
-
-        </div>
-        {/* 우측 카드 콘텐츠 컬럼 영역 끝 */}
-      </div>
-      {/* 우측 카드 영역 끝 */}
-    </main>
-    // 메인 레이아웃 영역 끝
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout ariaLabel="signup-area" cardPaddingTopRatio={0.488} cardContentWidthRatio={0.646}>
+        <div className="text-center text-white text-xl">로딩 중...</div>
+      </AuthLayout>
+    }>
+      <SignupContent />
+    </Suspense>
   );
 }
