@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { ko } from "date-fns/locale";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
@@ -130,13 +130,44 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
             </button>
           </div>
           {/* Date selector row */}
-          <div className="w-full">
-            <DatePicker
-                value={current}
-                onChange={(d) => d && setCurrent(d)}
-                dateFormat="yyyy - MM - dd (EEE)"
-                className="text-center font-pretendard font-bold text-[16px] leading-[19px] text-[#252525]"
-            />
+          <div className="flex items-center gap-2">
+            {/* 이전 날짜 버튼 */}
+            <button
+              type="button"
+              onClick={() => setCurrent((prev) => subDays(prev, 1))}
+              className="cursor-pointer flex-shrink-0"
+              aria-label="이전 날짜"
+            >
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" fill="white"/>
+                <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" stroke="#E2E2E2"/>
+                <path d="M21 24.8076L14 17.8076L21 10.8076" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            
+            {/* DatePicker */}
+            <div className="flex-1">
+              <DatePicker
+                  value={current}
+                  onChange={(d) => d && setCurrent(d)}
+                  dateFormat="yyyy - MM - dd (EEE)"
+                  className="text-center font-pretendard font-bold text-[16px] leading-[19px] text-[#252525]"
+              />
+            </div>
+            
+            {/* 다음 날짜 버튼 */}
+            <button
+              type="button"
+              onClick={() => setCurrent((prev) => addDays(prev, 1))}
+              className="cursor-pointer flex-shrink-0"
+              aria-label="다음 날짜"
+            >
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" fill="white"/>
+                <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" stroke="#E2E2E2"/>
+                <path d="M15 24.8076L22 17.8076L15 10.8076" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
 
