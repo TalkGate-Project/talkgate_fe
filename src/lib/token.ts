@@ -2,61 +2,40 @@
 
 // Simple token manager storing tokens in browser cookies (client-side)
 // NOTE: Tokens in non-HttpOnly cookies can be read by JS. Use only as required for this app's policy.
+// NOTE: 상세한 쿠키 보안 설정(HttpOnly, Secure 등)은 백엔드에서 Set-Cookie 헤더로 처리하는 것이 바람직합니다.
 
 export type Tokens = { accessToken?: string | null; refreshToken?: string | null };
 
 const ACCESS_COOKIE = "tg_access_token";
 const REFRESH_COOKIE = "tg_refresh_token";
 const REMEMBER_KEY = "tg_auto_login"; // localStorage flag for persistent login
-const MAIN_DOMAIN = "talkgate.im";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
 }
 
 /**
- * 쿠키 도메인을 반환합니다.
- * 모든 서브도메인에서 쿠키를 공유하기 위해 루트 도메인을 반환합니다.
+ * 쿠키 속성을 생성합니다.
+ * 도메인은 명시하지 않고 Path=/만 사용하여 현재 도메인에 자동 설정되도록 합니다.
+ * (브라우저가 현재 호스트를 기준으로 자동 처리)
  */
-function getCookieDomain(): string | undefined {
-  if (!isBrowser()) return undefined;
-  
-  const host = window.location.hostname;
-  
-  // localhost의 경우 domain 설정하지 않음 (브라우저가 자동 처리)
-  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost")) {
-    return undefined;
-  }
-  
-  // 프로덕션: .talkgate.im으로 설정 (앞에 점을 붙여서 모든 서브도메인 포함)
-  return `.${MAIN_DOMAIN}`;
-}
-
 function buildCookieAttributes(persistent: boolean): string {
-  console.log("[Token] 🍪 buildCookieAttributes 호출:", { persistent, env: process.env.NODE_ENV });
-  
-  const domain = getCookieDomain();
-  const domainAttr = domain ? `Domain=${domain}` : "";
-  
-  const attrs: string[] = ["Path=/", "SameSite=Lax"];
-  if (domainAttr) attrs.push(domainAttr);
+  const attrs: string[] = ["Path=/"];
   
   if (persistent) {
     // 30 days
     attrs.push(`Max-Age=${60 * 60 * 24 * 30}`);
-    console.log("[Token] ✅ Max-Age 30일 설정됨 (영구 쿠키)");
+  }
+  
+  // HTTPS 환경에서는 SameSite=None; Secure 사용 (크로스 사이트 요청 지원)
+  // HTTP 환경(localhost)에서는 SameSite=Lax 사용
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    attrs.push("SameSite=None");
+    attrs.push("Secure");
   } else {
-    console.log("[Token] ⚠️ Max-Age 미설정 (세션 쿠키 - 브라우저 종료 시 삭제됨)");
+    attrs.push("SameSite=Lax");
   }
-  if (process.env.NODE_ENV === "production") {
-    // For cross-site scenarios in prod, set None; Secure as needed
-    const base = ["Path=/", "SameSite=None", "Secure"];
-    if (domainAttr) base.push(domainAttr);
-    if (persistent) base.push(`Max-Age=${60 * 60 * 24 * 30}`);
-    console.log("[Token] 🔐 Production 쿠키 속성:", base.join("; "));
-    return base.join("; ");
-  }
-  console.log("[Token] 🔧 Development 쿠키 속성:", attrs.join("; "));
+  
   return attrs.join("; ");
 }
 
@@ -84,83 +63,36 @@ export function getRememberMePreference(): boolean {
 export function setTokens(tokens: Tokens): void {
   if (!isBrowser()) return;
   
-  console.log("[Token] 🔑 setTokens 호출됨");
-  console.log("[Token] 📊 토큰 정보:", {
-    hasAccessToken: !!tokens.accessToken,
-    hasRefreshToken: !!tokens.refreshToken,
-    accessTokenPreview: tokens.accessToken ? tokens.accessToken.slice(0, 20) + "..." : null,
-  });
-  
   const rememberMe = getRememberMePreference();
-  console.log("[Token] 🔄 Remember Me 설정 확인:", rememberMe);
-  
   const attrs = buildCookieAttributes(rememberMe);
-  console.log("[Token] 🍪 최종 쿠키 속성:", attrs);
   
   if (tokens.accessToken !== undefined) {
     if (tokens.accessToken) {
       document.cookie = `${ACCESS_COOKIE}=${encodeURIComponent(tokens.accessToken)}; ${attrs}`;
-      console.log("[Token] ✅ Access Token 쿠키 저장 완료");
     } else {
-      document.cookie = `${ACCESS_COOKIE}=; Max-Age=0; ${attrs}`;
-      console.log("[Token] 🗑️ Access Token 쿠키 삭제");
+      // 삭제 시에는 Max-Age=0, Path=/만 사용
+      document.cookie = `${ACCESS_COOKIE}=; Max-Age=0; Path=/`;
     }
   }
   if (tokens.refreshToken !== undefined) {
     if (tokens.refreshToken) {
       document.cookie = `${REFRESH_COOKIE}=${encodeURIComponent(tokens.refreshToken)}; ${attrs}`;
-      console.log("[Token] ✅ Refresh Token 쿠키 저장 완료");
     } else {
-      document.cookie = `${REFRESH_COOKIE}=; Max-Age=0; ${attrs}`;
-      console.log("[Token] 🗑️ Refresh Token 쿠키 삭제");
+      document.cookie = `${REFRESH_COOKIE}=; Max-Age=0; Path=/`;
     }
   }
-  
-  // 저장 후 쿠키 상태 확인
-  console.log("[Token] 📋 현재 쿠키 상태:", document.cookie);
 }
 
 /**
- * 모든 가능한 도메인 패턴에서 쿠키를 삭제합니다.
- * 서브도메인에서 설정된 쿠키도 확실히 삭제하기 위해 여러 패턴을 시도합니다.
+ * 토큰 쿠키를 삭제합니다.
+ * Path=/만 사용하여 현재 도메인의 쿠키를 삭제합니다.
  */
 export function clearTokens(): void {
   if (!isBrowser()) return;
   
-  console.log("[Token] 🗑️ clearTokens 호출 - 모든 도메인 패턴에서 쿠키 삭제 시도");
-  
-  const host = window.location.hostname;
-  
-  // 삭제할 도메인 패턴들 (우선순위 순)
-  const domainsToTry: (string | undefined)[] = [
-    undefined,                    // 현재 호스트 (도메인 속성 없음)
-    `.${MAIN_DOMAIN}`,           // .talkgate.im (루트 도메인)
-    MAIN_DOMAIN,                 // talkgate.im
-  ];
-  
-  // 현재 호스트가 서브도메인인 경우 해당 도메인도 추가
-  if (host !== "localhost" && host !== "127.0.0.1" && host.endsWith(`.${MAIN_DOMAIN}`)) {
-    domainsToTry.push(host);
-    domainsToTry.push(`.${host}`);
-  }
-  
-  // 각 쿠키에 대해 모든 도메인 패턴으로 삭제 시도
-  [ACCESS_COOKIE, REFRESH_COOKIE].forEach((cookieName) => {
-    domainsToTry.forEach((domain) => {
-      const domainAttr = domain ? `Domain=${domain};` : "";
-      // Path=/만 사용하여 삭제 (다른 속성은 삭제에 영향 없음)
-      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr}`;
-      // Secure 속성이 있었을 수 있으므로 Secure도 포함하여 삭제
-      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} Secure;`;
-      // SameSite=None과 함께 삭제 시도
-      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} SameSite=None; Secure;`;
-      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} SameSite=Lax;`;
-    });
-    console.log(`[Token] ✅ ${cookieName} 쿠키 삭제 시도 완료`);
-  });
-  
-  // 삭제 후 상태 확인
-  console.log("[Token] 📋 삭제 후 쿠키 상태:", document.cookie);
+  // 간단하게 Max-Age=0, Path=/로 삭제
+  document.cookie = `${ACCESS_COOKIE}=; Max-Age=0; Path=/`;
+  document.cookie = `${REFRESH_COOKIE}=; Max-Age=0; Path=/`;
 }
 
 export function getAccessToken(): string | null {

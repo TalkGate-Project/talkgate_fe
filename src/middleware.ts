@@ -2,29 +2,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 // 보호가 필요한 경로에만 미들웨어를 적용해 404/공개 페이지에서는 리디렉션이 발생하지 않도록 합니다.
+// NOTE: 쿠키 도메인은 명시하지 않고 Path=/만 사용하여 현재 도메인에 자동 설정되도록 합니다.
 
 // 메인 도메인 목록 (서브도메인 제외 대상)
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
 // 예약된 서브도메인 (프로젝트 서브도메인으로 취급하지 않음)
 const RESERVED_SUBDOMAINS = ["www", "api", "api-dev", "dev", "staging", "admin"];
-// 쿠키 공유를 위한 루트 도메인
-const COOKIE_DOMAIN = ".talkgate.im";
-
-/**
- * 쿠키 도메인을 반환합니다.
- * 모든 서브도메인에서 쿠키를 공유하기 위해 루트 도메인을 반환합니다.
- */
-function getCookieDomainFromHost(host: string): string | undefined {
-  const hostWithoutPort = host.split(":")[0];
-  
-  // localhost의 경우 domain 설정하지 않음
-  if (hostWithoutPort === "localhost" || hostWithoutPort === "127.0.0.1" || hostWithoutPort.endsWith(".localhost")) {
-    return undefined;
-  }
-  
-  // 프로덕션: .talkgate.im으로 설정
-  return COOKIE_DOMAIN;
-}
 
 /**
  * 호스트에서 서브도메인을 추출합니다.
@@ -156,18 +139,16 @@ export async function middleware(req: NextRequest) {
       if (!currentProjectId || currentProjectId !== subdomainProjectId) {
         const response = NextResponse.next();
         
-        // 쿠키 설정 (30일 유효, 도메인 공유)
+        // 쿠키 설정 (30일 유효, 도메인은 명시하지 않음 - 현재 도메인에 자동 설정)
         const maxAge = 60 * 60 * 24 * 30;
-        const cookieDomain = getCookieDomainFromHost(host);
+        const isSecure = req.nextUrl.protocol === "https:";
         response.cookies.set("tg_selected_project_id", subdomainProjectId, {
           path: "/",
           maxAge,
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-          secure: process.env.NODE_ENV === "production",
-          ...(cookieDomain && { domain: cookieDomain }),
+          sameSite: isSecure ? "none" : "lax",
+          secure: isSecure,
         });
         
-        console.log(`[Middleware] 서브도메인 기반 프로젝트 설정: ${subdomain} → ${subdomainProjectId} (domain: ${cookieDomain || "default"})`);
         return response;
       }
       
