@@ -66,9 +66,40 @@ export function getSelectedProjectId(): string | null {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
+/**
+ * 모든 가능한 도메인 패턴에서 프로젝트 ID 쿠키를 삭제합니다.
+ */
 export function clearSelectedProjectId() {
   if (!isBrowser()) return;
-  document.cookie = `${COOKIE_KEY}=; Max-Age=0; ${cookieAttrs()}`;
+  
+  console.log("[Project] 🗑️ clearSelectedProjectId 호출 - 모든 도메인 패턴에서 쿠키 삭제 시도");
+  
+  const host = window.location.hostname;
+  
+  // 삭제할 도메인 패턴들
+  const domainsToTry: (string | undefined)[] = [
+    undefined,                    // 현재 호스트 (도메인 속성 없음)
+    `.${MAIN_DOMAIN}`,           // .talkgate.im (루트 도메인)
+    MAIN_DOMAIN,                 // talkgate.im
+  ];
+  
+  // 현재 호스트가 서브도메인인 경우 해당 도메인도 추가
+  if (host !== "localhost" && host !== "127.0.0.1" && host.endsWith(`.${MAIN_DOMAIN}`)) {
+    domainsToTry.push(host);
+    domainsToTry.push(`.${host}`);
+  }
+  
+  // 모든 도메인 패턴으로 삭제 시도
+  domainsToTry.forEach((domain) => {
+    const domainAttr = domain ? `Domain=${domain};` : "";
+    document.cookie = `${COOKIE_KEY}=; Max-Age=0; Path=/; ${domainAttr}`;
+    document.cookie = `${COOKIE_KEY}=; Max-Age=0; Path=/; ${domainAttr} Secure;`;
+    document.cookie = `${COOKIE_KEY}=; Max-Age=0; Path=/; ${domainAttr} SameSite=None; Secure;`;
+    document.cookie = `${COOKIE_KEY}=; Max-Age=0; Path=/; ${domainAttr} SameSite=Lax;`;
+  });
+  
+  console.log("[Project] ✅ 프로젝트 ID 쿠키 삭제 시도 완료");
+  
   try {
     window.dispatchEvent(
       new CustomEvent("tg:selected-project-change", {

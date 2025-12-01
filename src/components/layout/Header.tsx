@@ -294,13 +294,18 @@ export default function Header() {
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
                     onClick={() => {
+                      console.log("[Header] 🚪 로그아웃 버튼 클릭");
+                      // 1. 쿠키 정리 (모든 도메인 패턴)
                       clearTokens();
                       clearSelectedProjectId();
                       clearUseAttendanceMenu();
-                      // 로그아웃 시 모든 캐시 초기화 (이전 유저 정보 제거)
+                      // 2. React Query 캐시 초기화
                       queryClient.clear();
                       setOpen(false);
-                      router.replace("/login");
+                      // 3. 완전한 페이지 새로고침으로 로그인 페이지 이동
+                      // router.replace 대신 location.href 사용하여 쿠키가 확실히 삭제된 후 이동
+                      console.log("[Header] ✅ 로그아웃 완료 - 로그인 페이지로 이동");
+                      window.location.href = "/login";
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
