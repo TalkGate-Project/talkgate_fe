@@ -110,7 +110,7 @@ export default function ProfileTab() {
       <div className="flex flex-col items-center justify-center mb-8 gap-3">
         <div className="w-[100px] h-[100px] rounded-full bg-neutral-60 flex items-center justify-center overflow-hidden relative">
           {user?.profileImageUrl ? (
-            <Image
+            <img
               src={user.profileImageUrl}
               alt="Profile"
               width={100}

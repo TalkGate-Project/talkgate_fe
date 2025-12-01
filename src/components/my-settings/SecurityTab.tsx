@@ -1,162 +1,113 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useMe } from "@/hooks/useMe";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DeleteAccountModal from "./DeleteAccountModal";
-
-interface ToggleProps {
-  enabled: boolean;
-  onChange: (enabled: boolean) => void;
-}
-
-function Toggle({ enabled, onChange }: ToggleProps) {
-  return (
-    <button
-      onClick={() => onChange(!enabled)}
-      className={`cursor-pointer w-10 h-6 rounded-full transition-colors flex items-center p-0.5 ${
-        enabled ? "bg-primary-60" : "bg-neutral-30"
-      }`}
-    >
-      <div
-        className={`w-4 h-4 rounded-full bg-neutral-0 transition-transform ${
-          enabled ? "translate-x-4" : "translate-x-0"
-        }`}
-      />
-    </button>
-  );
-}
+import TwoFactorSetupModal from "./TwoFactorSetupModal";
+import TwoFactorDisableModal from "./TwoFactorDisableModal";
 
 export default function SecurityTab() {
   const { user, refetch } = useMe();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [showSetup, setShowSetup] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
+  const [showSetupModal, setShowSetupModal] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
   const [showChangePwModal, setShowChangePwModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [secretCode, setSecretCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 사용자의 2FA 상태 확인 (user 데이터에서 가져올 수 있다면)
+  // 사용자의 2FA 상태 확인
   useEffect(() => {
     if (user) {
-      const userAny = user as any;
-      // 백엔드에서 user 객체에 twoFactorEnabled 필드가 있다고 가정
-      if (userAny.twoFactorEnabled || userAny.isTwoFactorEnabled) {
-        setTwoFactorEnabled(true);
-      }
+      setTwoFactorEnabled(user.twoFactorEnabled ?? false);
     }
   }, [user]);
 
-  const handleToggleTwoFactor = async (enabled: boolean) => {
-    if (enabled) {
-      // 2FA 활성화 시도 - QR 코드 생성
-      try {
-        setLoading(true);
-        const { AuthService } = await import("@/services/auth");
-        const response = await AuthService.twoFactorSetup();
-        const data = (response.data as any)?.data;
-        
-        if (data) {
-          setQrCodeDataUrl(data.qrCodeDataUrl);
-          setSecretCode(data.secret);
-          setTwoFactorEnabled(true);
-          setShowSetup(true);
-        }
-      } catch (e: any) {
-        const errorCode = e?.response?.data?.code;
-        if (errorCode === "TWO_FACTOR_ALREADY_ENABLED") {
-          alert("2단계 인증이 이미 활성화되어 있습니다.");
-          setTwoFactorEnabled(true);
-        } else {
-          alert(e?.response?.data?.message || "2FA 설정에 실패했습니다.");
-          setTwoFactorEnabled(false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // 2FA 비활성화는 별도 프로세스 필요 (이메일 인증 코드 + TOTP)
-      const confirmed = confirm(
-        "2단계 인증을 비활성화하시겠습니까?\n이메일 인증 코드와 TOTP 코드가 필요합니다."
-      );
-      if (!confirmed) {
-        setTwoFactorEnabled(true);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const { AuthService } = await import("@/services/auth");
-        
-        // 1. 이메일 인증 코드 발송
-        await AuthService.twoFactorDisableSendCode();
-        const emailCode = prompt("이메일로 전송된 인증 코드를 입력하세요:");
-        if (!emailCode) {
-          setTwoFactorEnabled(true);
-          setLoading(false);
-          return;
-        }
-
-        // 2. TOTP 코드 입력
-        const totpCode = prompt("인증 앱의 6자리 코드를 입력하세요:");
-        if (!totpCode) {
-          setTwoFactorEnabled(true);
-          setLoading(false);
-          return;
-        }
-
-        // 3. 2FA 비활성화
-        await AuthService.twoFactorDisable({ emailCode, totpCode });
-        alert("2단계 인증이 비활성화되었습니다.");
-        setTwoFactorEnabled(false);
-        setShowSetup(false);
-        await refetch();
-      } catch (e: any) {
-        const errorCode = e?.response?.data?.code;
-        if (errorCode === "TWO_FACTOR_NOT_ENABLED") {
-          alert("2단계 인증이 활성화되어 있지 않습니다.");
-          setTwoFactorEnabled(false);
-        } else if (errorCode === "INVALID_TWO_FACTOR_CODE") {
-          alert("잘못된 인증 코드입니다.");
-          setTwoFactorEnabled(true);
-        } else {
-          alert(e?.response?.data?.message || "2FA 비활성화에 실패했습니다.");
-          setTwoFactorEnabled(true);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(secretCode);
-    alert("시크릿 코드가 복사되었습니다.");
-  };
-
-  const handleVerify = async () => {
-    if (!verificationCode || verificationCode.length !== 6) {
-      alert("6자리 인증 코드를 입력하세요.");
-      return;
-    }
-
+  // 2FA 설정 시작 (연결하기 버튼 클릭)
+  const handleStartSetup = async () => {
     try {
       setLoading(true);
       const { AuthService } = await import("@/services/auth");
-      await AuthService.twoFactorEnable({ totpCode: verificationCode });
+      const response = await AuthService.twoFactorSetup();
+      const data = (response.data as any)?.data;
+
+      if (data) {
+        setQrCodeDataUrl(data.qrCodeDataUrl);
+        setSecretCode(data.secret);
+        setShowSetupModal(true);
+      }
+    } catch (e: any) {
+      const errorCode = e?.response?.data?.code;
+      if (errorCode === "TWO_FACTOR_ALREADY_ENABLED") {
+        alert("2단계 인증이 이미 활성화되어 있습니다.");
+        setTwoFactorEnabled(true);
+      } else {
+        alert(e?.response?.data?.message || "2FA 설정에 실패했습니다.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2FA 인증 코드 확인 및 활성화
+  const handleVerifySetup = async (totpCode: string) => {
+    try {
+      setLoading(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.twoFactorEnable({ totpCode });
       alert("2단계 인증이 성공적으로 활성화되었습니다!");
-      setShowSetup(false);
-      setVerificationCode("");
-      await refetch(); // 사용자 정보 업데이트
+      setShowSetupModal(false);
+      setTwoFactorEnabled(true);
+      await refetch();
     } catch (e: any) {
       const errorCode = e?.response?.data?.code;
       if (errorCode === "INVALID_TWO_FACTOR_CODE") {
         alert("잘못된 인증 코드입니다. 다시 시도해주세요.");
       } else {
         alert(e?.response?.data?.message || "인증에 실패했습니다.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2FA 해제 - 이메일 코드 발송
+  const handleSendDisableCode = async () => {
+    try {
+      setLoading(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.twoFactorDisableSendCode();
+      alert("인증 코드가 이메일로 발송되었습니다.");
+    } catch (e: any) {
+      alert(e?.response?.data?.message || "인증 코드 발송에 실패했습니다.");
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2FA 해제 완료
+  const handleDisable = async (emailCode: string) => {
+    try {
+      setLoading(true);
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.twoFactorDisable({ emailCode, totpCode: "" });
+      alert("2단계 인증이 해제되었습니다.");
+      setShowDisableModal(false);
+      setTwoFactorEnabled(false);
+      await refetch();
+    } catch (e: any) {
+      const errorCode = e?.response?.data?.code;
+      if (errorCode === "TWO_FACTOR_NOT_ENABLED") {
+        alert("2단계 인증이 활성화되어 있지 않습니다.");
+        setTwoFactorEnabled(false);
+        setShowDisableModal(false);
+      } else if (errorCode === "INVALID_TWO_FACTOR_CODE") {
+        alert("잘못된 인증 코드입니다.");
+      } else {
+        alert(e?.response?.data?.message || "2FA 해제에 실패했습니다.");
       }
     } finally {
       setLoading(false);
@@ -211,113 +162,24 @@ export default function SecurityTab() {
                 로그인 시 추가 보안 인증을 사용합니다.
               </div>
             </div>
-            <Toggle
-              enabled={twoFactorEnabled}
-              onChange={handleToggleTwoFactor}
-            />
+            {twoFactorEnabled ? (
+              <button
+                onClick={() => setShowDisableModal(true)}
+                className="px-4 py-2 bg-neutral-90 text-white text-[14px] font-semibold rounded-[8px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                disabled={loading}
+              >
+                연결해제
+              </button>
+            ) : (
+              <button
+                onClick={handleStartSetup}
+                className="px-4 py-2 bg-neutral-90 text-white text-[14px] font-semibold rounded-[8px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                disabled={loading}
+              >
+                {loading ? "로딩 중..." : "연결하기"}
+              </button>
+            )}
           </div>
-
-          {/* Divider */}
-          {twoFactorEnabled && <div className="w-full border-b border-[#E2E2E266] my-4"></div>}
-
-          {/* Setup Steps (shown when enabled) */}
-          {twoFactorEnabled && showSetup && (
-            <div className="space-y-8">
-            {/* Step 1: QR Code */}
-            <div>
-              <div className="text-[16px] font-semibold text-foreground mb-1">
-                1단계: 인증 앱 설정
-              </div>
-              <div className="text-[14px] font-medium text-neutral-60 mb-4">
-                Google Authenticator, Authy 등의 인증 앱으로 아래 QR 코드를 스캔하세요.
-              </div>
-
-              {/* QR Code Container */}
-              <div className="w-full bg-neutral-10 rounded-[12px] p-4 mb-4 flex items-center justify-start">
-                <div className="w-[200px] h-[200px] flex items-center justify-center relative">
-                  {qrCodeDataUrl ? (
-                    <Image 
-                      src={qrCodeDataUrl} 
-                      alt="QR Code" 
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="text-neutral-60">QR 코드를 불러오는 중...</div>
-                  )}
-                </div>
-
-                {/* Manual Input */}
-                <div className="flex items-start gap-4 mb-4">
-                  <div>
-                    <div className="text-[14px] font-medium text-neutral-60 mb-2">
-                      수동 입력 코드
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={secretCode}
-                        readOnly
-                        className="px-3 py-2 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
-                      />
-                      <button
-                        onClick={handleCopy}
-                        className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors"
-                      >
-                        복사
-                      </button>
-                    </div>
-                    <div className="text-[14px] font-medium text-neutral-60 mt-2">
-                      QR 코드를 스캔할 수 없는 경우 위 코드를 수동으로 입력하세요.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2: Verification */}
-            <div>
-              <div className="text-[16px] font-semibold text-foreground mb-1">
-                2단계: 인증 코드 입력
-              </div>
-              <div className="text-[14px] font-medium text-neutral-60 mb-4">
-                인증 앱에서 생성된 6자리 코드를 입력하세요.
-              </div>
-
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="______"
-                  maxLength={6}
-                  className="w-[137px] px-3 py-2 border border-border rounded-[5px] text-[14px] text-center tracking-[0.2em] text-foreground bg-card"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setShowSetup(false);
-                      setTwoFactorEnabled(false);
-                      setVerificationCode("");
-                    }}
-                    className="px-3 py-2 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
-                    disabled={loading}
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={handleVerify}
-                    className="px-3 py-2 bg-neutral-90 text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors disabled:opacity-50"
-                    disabled={loading || verificationCode.length !== 6}
-                  >
-                    {loading ? "인증 중..." : "인증"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          )}
         </div>
       </div>
 
@@ -379,6 +241,22 @@ export default function SecurityTab() {
       </div>
 
       {/* Modals */}
+      <TwoFactorSetupModal
+        isOpen={showSetupModal}
+        onClose={() => setShowSetupModal(false)}
+        qrCodeDataUrl={qrCodeDataUrl}
+        secretCode={secretCode}
+        onVerify={handleVerifySetup}
+        loading={loading}
+      />
+      <TwoFactorDisableModal
+        isOpen={showDisableModal}
+        onClose={() => setShowDisableModal(false)}
+        email={user?.email || ""}
+        onSendCode={handleSendDisableCode}
+        onDisable={handleDisable}
+        loading={loading}
+      />
       <ChangePasswordModal
         isOpen={showChangePwModal}
         onClose={() => setShowChangePwModal(false)}
