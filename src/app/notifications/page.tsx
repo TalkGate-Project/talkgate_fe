@@ -175,27 +175,29 @@ export function NotificationsPage() {
       <div className="mx-auto max-w-[1324px] px-6 pt-9 pb-24">
         {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
         <section className="bg-card rounded-[14px]">
-          <div className="px-7 pt-6 pb-5">
+          <div className="px-7 py-7">
             <div className="flex items-center gap-4">
-              <h1 className="text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">알림</h1>
+              <h1 className="text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
               <div className="w-px h-4 bg-neutral-60" />
-              <p className="text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">모든 알림을 확인하고 관리하세요</p>
+              <p className="text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
             </div>
-
+          </div>
+          <div className="h-px bg-border" />
+          <div className="px-7 py-[30px]">
             {/* 세그먼트 컨트롤 */}
-            <div className="mt-6 inline-flex items-center p-1.5 gap-2 bg-neutral-20 rounded-[12px]">
+            <div className="inline-flex items-center px-3 h-[48px] gap-2 bg-neutral-20 rounded-[12px]">
               <button
                 onClick={() => setShowUnreadOnly(false)}
-                className={`h-[31px] px-8 rounded-[5px] text-[14px] tracking-[-0.02em] ${
-                  !showUnreadOnly ? "bg-card font-semibold text-foreground" : "font-medium text-neutral-60"
+                className={`cursor-pointer h-[31px] px-8 rounded-[5px] text-[16px] tracking-[-0.02em] ${
+                  !showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-neutral-60"
                 }`}
               >
                 전체 ({counts.all})
               </button>
               <button
                 onClick={() => setShowUnreadOnly(true)}
-                className={`h-[31px] px-8 rounded-[5px] text-[14px] tracking-[-0.02em] ${
-                  showUnreadOnly ? "bg-card font-semibold text-foreground" : "font-medium text-foreground opacity-80"
+                className={`cursor-pointer h-[31px] px-8 rounded-[5px] text-[16px] tracking-[-0.02em] ${
+                  showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-foreground opacity-80"
                 }`}
               >
                 미읽음 ({counts.unread})
@@ -210,7 +212,7 @@ export function NotificationsPage() {
         {/* 하단 컨테이너: 탭 + 목록 */}
         <section className="bg-card rounded-[14px]">
           {/* 탭 */}
-          <div className="px-7 py-4 flex items-center justify-between border-b border-border">
+          <div className="px-7 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {(["all", "notice", "customer", "system", "security"] as NotificationCategory[]).map((category) => {
                 const isActive = activeCategory === category;
@@ -221,7 +223,7 @@ export function NotificationsPage() {
                     className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border ${
                       isActive
                         ? "bg-notification-unread border-2 border-notification-unread font-semibold text-foreground"
-                        : "border-border font-medium text-foreground opacity-80"
+                        : "border-neutral-30 font-medium text-foreground opacity-80"
                     }`}
                   >
                     {categoryLabels[category]} {category !== "all" && counts[category]}
@@ -231,14 +233,14 @@ export function NotificationsPage() {
             </div>
             <button
               onClick={handleMarkAllAsRead}
-              className="h-[34px] px-3 rounded-[5px] bg-card border border-border text-foreground text-[14px] font-semibold"
+              className="h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold"
             >
               모두 읽음 처리
             </button>
           </div>
 
           {/* 리스트 */}
-          <div className="px-7 py-6">
+          <div className="px-7 pt-1 pb-6">
             {loading ? (
               <div className="text-center py-12 text-neutral-60">불러오는 중...</div>
             ) : filteredNotifications.length === 0 ? (
@@ -252,7 +254,7 @@ export function NotificationsPage() {
                     className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border cursor-pointer transition-colors ${
                       !notification.read
                         ? "bg-notification-unread border-notification-unread hover:opacity-90"
-                        : "bg-card border-border hover:bg-neutral-10"
+                        : "bg-card border-neutral-30 hover:bg-neutral-10"
                     }`}
                   >
                     <div className="w-6 h-6 flex items-center justify-center">

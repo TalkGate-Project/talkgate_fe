@@ -210,7 +210,7 @@ export default function StatsSection() {
                 stroke="var(--primary-60)"
                 strokeWidth={3}
                 fill="url(#dashboardWeekly)"
-                dot={{ r: 5, fill: "var(--primary-60)", stroke: "var(--primary-60)", strokeWidth: 0 }}
+                dot={{ r: 5, fill: "var(--primary-60)", stroke: "var(--primary-60)", strokeWidth: 0, opacity: 0.9 }}
                 activeDot={{ r: 7 }}
               >
                 {/** Labels shown only on hover or for max value. Max point adds a separate black '최고점수' bubble above */}

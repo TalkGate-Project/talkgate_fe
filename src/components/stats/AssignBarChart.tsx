@@ -88,7 +88,7 @@ export default function AssignBarChart() {
   return (
     <>
       <h3 className="mt-5 mb-2 text-[16px] font-semibold text-neutral-90">팀별 배정 현황</h3>
-      <div className="h-[300px]">
+      <div className="h-[300px] mt-[94px]">
         <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 20, left: 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
