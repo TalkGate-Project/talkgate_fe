@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/lib/realtime";
 import ChatFilterModal from "./ChatFilterModal";
@@ -40,6 +40,7 @@ export default function ChatLeftSidebar({
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const convScrollRef = useRef<HTMLDivElement | null>(null);
 
   const onConversationsScroll = useCallback(() => {
@@ -70,13 +71,24 @@ export default function ChatLeftSidebar({
     return () => clearTimeout(timeoutId);
   }, [conversations.length, hasMoreConversations, loadMoreConversations]);
 
-  // Filtered conversations according to status
+  // Filtered conversations according to status and unread
   const filteredConversations = useMemo(() => {
-    if (statusFilter === "all") return conversations;
-    return conversations.filter(
-      (c) => c.status === (statusFilter === "active" ? "active" : "closed")
-    );
-  }, [conversations, statusFilter]);
+    let result = conversations;
+    
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter(
+        (c) => c.status === (statusFilter === "active" ? "active" : "closed")
+      );
+    }
+    
+    // Unread filter
+    if (unreadOnly) {
+      result = result.filter((c) => (c.unreadCount || 0) > 0);
+    }
+    
+    return result;
+  }, [conversations, statusFilter, unreadOnly]);
 
   const handleConversationClick = (c: Conversation) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -168,14 +180,17 @@ export default function ChatLeftSidebar({
             <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-primary-10 text-primary-80 text-[12px]">
               총 {filteredConversations.length}건
             </span>
-            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-neutral-20 text-neutral-70 text-[12px]">
+            <button
+              onClick={() => setUnreadOnly(!unreadOnly)}
+              className={`cursor-pointer inline-flex items-center px-1 h-[18px] rounded-[6px] text-[12px] transition-colors ${
+                unreadOnly
+                  ? "bg-primary-60 text-white font-medium"
+                  : "bg-neutral-20 text-neutral-70 hover:bg-neutral-30"
+              }`}
+            >
               미읽음{" "}
-              {filteredConversations.reduce(
-                (a, c) => a + (c.unreadCount || 0),
-                0
-              )}
-              건
-            </span>
+              {conversations.reduce((a, c) => a + (c.unreadCount || 0), 0)}건
+            </button>
           </div>
         </div>
         {/* List/Album */}

@@ -317,7 +317,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                 {domainAvailable !== null && (
                   <div
                     className={`text-[14px] font-medium leading-[24px] ${
-                      domainAvailable ? "text-[#00E272]" : "text-[#D83232]"
+                      domainAvailable ? "text-[#00B55B]" : "text-[#D83232]"
                     }`}
                   >
                     {domainAvailable

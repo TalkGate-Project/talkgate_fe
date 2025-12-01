@@ -9,6 +9,7 @@ export type MeUser = {
   name?: string;
   profileImageUrl?: string;
   teamName?: string;
+  twoFactorEnabled?: boolean;
 };
 
 type MeResponse = {
