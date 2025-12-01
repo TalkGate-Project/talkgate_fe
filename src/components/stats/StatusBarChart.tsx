@@ -53,6 +53,12 @@ export default function StatusBarChart() {
     });
   }, [data]);
 
+  // Y축 도메인 계산 (최댓값에 14% 여유 추가)
+  const yDomain = useMemo(() => {
+    const maxValue = Math.max(...chartData.map(d => d.value), 0);
+    return [0, Math.ceil(maxValue * 1.14)];
+  }, [chartData]);
+
   // X축: 라벨 + 하단 퍼센트(소수 1자리, 예: 11.9%)
   const renderXAxisTick = (props: any) => {
     const { x, y, payload } = props;
@@ -131,7 +137,7 @@ export default function StatusBarChart() {
   return (
     <div className="w-full h-[320px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 56 }} barCategoryGap="20%">
+        <BarChart data={chartData} margin={{ top: 30, right: 16, left: 0, bottom: 56 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="label"
@@ -141,7 +147,7 @@ export default function StatusBarChart() {
             tick={renderXAxisTick}
           />
           {/* 왼쪽 축 라벨 제거 */}
-          <YAxis hide />
+          <YAxis hide domain={yDomain} />
           <Tooltip
             cursor={{ fill: "rgba(0,0,0,0.04)" }}
             content={({ active, payload }) => {

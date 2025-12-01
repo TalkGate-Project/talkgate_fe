@@ -132,6 +132,7 @@ export default function TeamMemberInfoModal({
   const [noteInput, setNoteInput] = useState("");
   const [teamCreateMode, setTeamCreateMode] = useState(false);
   const [teamNameDraft, setTeamNameDraft] = useState("");
+  const [profileEditMode, setProfileEditMode] = useState(false);
   const createTeam = useCreateTeamMutation(projectId);
 
   // API로 멤버 상세 정보 가져오기
@@ -146,6 +147,7 @@ export default function TeamMemberInfoModal({
     setNoteInput("");
     setTeamCreateMode(false);
     setTeamNameDraft("");
+    setProfileEditMode(false);
   }, [member, open]);
 
   if (!open || typeof document === "undefined") {
@@ -171,6 +173,7 @@ export default function TeamMemberInfoModal({
     setLocalNotes(member?.hrNotes ?? []);
     setNoteInput("");
     setTab("organization");
+    setProfileEditMode(false);
   };
 
   const isLeader =
@@ -309,14 +312,35 @@ export default function TeamMemberInfoModal({
           <span className="text-[16px] font-semibold text-[#000000]">
             프로필 정보
           </span>
-          <div className="flex items-center gap-2">
-            <button className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]">
-              취소
+          {profileEditMode ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setProfileEditMode(false)}
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // TODO: 저장 로직 구현
+                  setProfileEditMode(false);
+                }}
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#EDEDED]"
+              >
+                저장
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setProfileEditMode(true)}
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]"
+            >
+              수정
             </button>
-            <button className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#EDEDED]">
-              저장
-            </button>
-          </div>
+          )}
         </div>
         <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
         <div className="bg-[#F8F8F8] rounded-[12px] p-4">
