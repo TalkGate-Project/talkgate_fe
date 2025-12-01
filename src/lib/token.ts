@@ -120,8 +120,47 @@ export function setTokens(tokens: Tokens): void {
   console.log("[Token] 📋 현재 쿠키 상태:", document.cookie);
 }
 
+/**
+ * 모든 가능한 도메인 패턴에서 쿠키를 삭제합니다.
+ * 서브도메인에서 설정된 쿠키도 확실히 삭제하기 위해 여러 패턴을 시도합니다.
+ */
 export function clearTokens(): void {
-  setTokens({ accessToken: null, refreshToken: null });
+  if (!isBrowser()) return;
+  
+  console.log("[Token] 🗑️ clearTokens 호출 - 모든 도메인 패턴에서 쿠키 삭제 시도");
+  
+  const host = window.location.hostname;
+  
+  // 삭제할 도메인 패턴들 (우선순위 순)
+  const domainsToTry: (string | undefined)[] = [
+    undefined,                    // 현재 호스트 (도메인 속성 없음)
+    `.${MAIN_DOMAIN}`,           // .talkgate.im (루트 도메인)
+    MAIN_DOMAIN,                 // talkgate.im
+  ];
+  
+  // 현재 호스트가 서브도메인인 경우 해당 도메인도 추가
+  if (host !== "localhost" && host !== "127.0.0.1" && host.endsWith(`.${MAIN_DOMAIN}`)) {
+    domainsToTry.push(host);
+    domainsToTry.push(`.${host}`);
+  }
+  
+  // 각 쿠키에 대해 모든 도메인 패턴으로 삭제 시도
+  [ACCESS_COOKIE, REFRESH_COOKIE].forEach((cookieName) => {
+    domainsToTry.forEach((domain) => {
+      const domainAttr = domain ? `Domain=${domain};` : "";
+      // Path=/만 사용하여 삭제 (다른 속성은 삭제에 영향 없음)
+      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr}`;
+      // Secure 속성이 있었을 수 있으므로 Secure도 포함하여 삭제
+      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} Secure;`;
+      // SameSite=None과 함께 삭제 시도
+      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} SameSite=None; Secure;`;
+      document.cookie = `${cookieName}=; Max-Age=0; Path=/; ${domainAttr} SameSite=Lax;`;
+    });
+    console.log(`[Token] ✅ ${cookieName} 쿠키 삭제 시도 완료`);
+  });
+  
+  // 삭제 후 상태 확인
+  console.log("[Token] 📋 삭제 후 쿠키 상태:", document.cookie);
 }
 
 export function getAccessToken(): string | null {

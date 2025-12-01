@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
-import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
+import { getRememberMePreference, setRememberMePreference, clearTokens } from "@/lib/token";
+import { getSelectedProjectId } from "@/lib/project";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -28,10 +29,25 @@ export default function LoginPage() {
     // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()
       .then(() => {
-        if (mounted) router.replace("/projects");
+        if (mounted) {
+          // 이미 인증된 상태: 프로젝트가 선택되어 있으면 대시보드로, 아니면 프로젝트 선택으로
+          const projectId = getSelectedProjectId();
+          if (projectId) {
+            console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 있음 → 대시보드로 이동");
+            router.replace("/dashboard");
+          } else {
+            console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+            router.replace("/projects");
+          }
+        }
       })
-      .catch(() => {
-        if (mounted) setChecking(false);
+      .catch((err) => {
+        if (mounted) {
+          // 인증 실패: 잔존 쿠키가 있을 수 있으므로 명시적으로 정리
+          console.log("[LoginPage] ⚠️ 인증 확인 실패 - 쿠키 정리 후 로그인 폼 표시", err);
+          clearTokens();
+          setChecking(false);
+        }
       });
     return () => {
       mounted = false;
@@ -57,8 +73,15 @@ export default function LoginPage() {
                 // Navigate to 2FA login page with the token
                 router.push(`/login/two-factor?token=${data.twoFactorToken}`);
               } else {
-                // Normal login success
-                router.replace("/projects");
+                // Normal login success - 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
+                const projectId = getSelectedProjectId();
+                if (projectId) {
+                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
+                  router.replace("/dashboard");
+                } else {
+                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+                  router.replace("/projects");
+                }
               }
             })
             .catch((err: any) => {
