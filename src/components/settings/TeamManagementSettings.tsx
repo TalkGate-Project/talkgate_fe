@@ -6,6 +6,7 @@ import TeamManagementHeader from "./teamManagement/TeamManagementHeader";
 import TeamListView from "./teamManagement/TeamListView";
 import TeamTreeView from "./teamManagement/TeamTreeView";
 import TeamMemberInfoModal from "./teamManagement/TeamMemberInfoModal";
+import UnassignedMembersList from "./teamManagement/UnassignedMembersList";
 import { DragHandlers, DragState, flattenTeamData, isDescendant } from "@/hooks/useTeamTree";
 import { TeamMember } from "@/types/teams";
 import { MemberTreeNode } from "@/types/membersTree";
@@ -33,7 +34,7 @@ function transformMembers(
   if (!nodes) return [];
   return nodes.map((node) => {
     const id = String(node.id);
-    const teamName = teamNameByLeader.get(node.id) ?? "";
+    const teamName = node.teamName || teamNameByLeader.get(node.id) || "";
     const department = teamName || ROLE_LABEL[node.role] || node.role;
     const isLeader = teamNameByLeader.has(node.id) || node.role === "leader";
     const children = transformMembers(node.descendants, teamNameByLeader, id, level + 1);
@@ -50,6 +51,17 @@ function transformMembers(
       isExpanded: true,
     };
   });
+}
+
+// 멤버가 팀에 속해있는지 확인 (팀에 속함, 리더, 또는 하위 멤버가 있음)
+function isAssignedMember(node: MemberTreeNode, teamNameByLeader: Map<number, string>): boolean {
+  // 팀 이름이 있으면 배정됨
+  if (node.teamName) return true;
+  // 리더이면 배정됨
+  if (node.role === "leader" || teamNameByLeader.has(node.id)) return true;
+  // 하위 멤버가 있으면 배정됨
+  if (node.descendants && node.descendants.length > 0) return true;
+  return false;
 }
 
 type ViewMode = "list" | "tree";
@@ -100,7 +112,27 @@ export default function TeamManagementSettings() {
     return map;
   }, [teamsData]);
 
+  // 배정된 멤버와 미배정 멤버를 분리
+  const { assignedTreeData, unassignedTreeData } = useMemo(() => {
+    if (!treeData) return { assignedTreeData: [], unassignedTreeData: [] };
+    
+    const assigned: MemberTreeNode[] = [];
+    const unassigned: MemberTreeNode[] = [];
+    
+    treeData.forEach((node) => {
+      if (isAssignedMember(node, teamNameByLeader)) {
+        assigned.push(node);
+      } else {
+        unassigned.push(node);
+      }
+    });
+    
+    return { assignedTreeData: assigned, unassignedTreeData: unassigned };
+  }, [treeData, teamNameByLeader]);
+
   const teamMembers = useMemo(() => transformMembers(treeData, teamNameByLeader), [treeData, teamNameByLeader]);
+  const assignedMembers = useMemo(() => transformMembers(assignedTreeData, teamNameByLeader), [assignedTreeData, teamNameByLeader]);
+  const unassignedMembers = useMemo(() => transformMembers(unassignedTreeData, teamNameByLeader), [unassignedTreeData, teamNameByLeader]);
   const flattenedMembers = useMemo(() => flattenTeamData(teamMembers), [teamMembers]);
 
   const canDrag = !moveMutation.isPending;
@@ -379,8 +411,25 @@ export default function TeamManagementSettings() {
           />
         </div>
       ) : (
-        <div className="flex-1 px-7 -mx-8 -mb-8 overflow-x-auto overflow-y-hidden pb-8">
-          <TeamTreeView data={teamMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />
+        <div className="flex-1 px-7 overflow-hidden flex gap-4">
+          {/* 트리 뷰 영역 */}
+          <div className="flex-shrink-0 overflow-x-auto overflow-y-auto max-h-[600px]">
+            <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />
+          </div>
+          
+          {/* 미배정 멤버 리스트 영역 */}
+          {unassignedMembers.length > 0 && (
+            <div className="flex-shrink-0 w-[190px] rounded-[12px] bg-neutral-10/50 overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-y-auto max-h-[520px]">
+                <UnassignedMembersList 
+                  data={unassignedMembers} 
+                  dragHandlers={dragHandlers} 
+                  dragState={dragState} 
+                  onMemberClick={handleMemberClick} 
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

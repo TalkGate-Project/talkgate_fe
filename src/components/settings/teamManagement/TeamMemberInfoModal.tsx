@@ -43,7 +43,7 @@ function Badge({
   const tone = styles[variant ?? "secondary"];
   return (
     <span
-      className="px-3 py-1 rounded-[30px] text-[12px] font-medium"
+      className="px-3 py-1 rounded-[30px] text-[12px] font-medium leading-[1]"
       style={{ background: tone.background, color: tone.color, opacity: 0.8 }}
     >
       {label}
@@ -616,12 +616,12 @@ export default function TeamMemberInfoModal({
             <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
             <div className="bg-[#F8F8F8] rounded-[12px] p-4 h-full min-h-[72px]">
               <div className="flex items-start gap-4 h-full">
-                <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[94px]" : "min-h-[72px]"} flex items-center justify-center`}>
+                <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[84px]" : "min-h-[72px]"} flex items-center justify-center`}>
                   <div className="w-12 h-12 rounded-full bg-[#00B55B] text-white flex items-center justify-center text-[18px] font-semibold">
                     {initialFromName(member.name)}
                   </div>
                 </div>
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="text-[18px] font-semibold text-[#000000]">
                       {member.name}

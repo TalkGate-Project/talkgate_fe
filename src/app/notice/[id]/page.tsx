@@ -169,7 +169,7 @@ export default function NoticeDetailPage() {
             <h1 className="text-[24px] font-bold text-foreground">
               {notice.title}
             </h1>
-            <div className="w-6 h-6 flex items-center justify-center">
+            {/* <div className="w-6 h-6 flex items-center justify-center">
               <svg
                 width="20"
                 height="20"
@@ -185,7 +185,7 @@ export default function NoticeDetailPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-            </div>
+            </div> */}
           </div>
           {canEdit && (
             <div className="flex items-center gap-3">
@@ -262,9 +262,9 @@ export default function NoticeDetailPage() {
                 <path
                   d="M11.1914 21L18.1914 14L25.1914 21"
                   stroke="#B0B0B0"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

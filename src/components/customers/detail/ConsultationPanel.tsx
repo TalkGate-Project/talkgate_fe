@@ -224,7 +224,7 @@ export default function ConsultationPanel({
 
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 space-y-3 overflow-auto pr-1 border border-[#E2E2E2] rounded-[5px] p-5"
+          className="flex-1 min-h-0 space-y-3 overflow-auto border border-[#E2E2E2] rounded-[5px] p-5"
         >
           {notes?.map((n) => {
             const category = categories.find((c) => c.id === n.categoryId);
