@@ -14,7 +14,7 @@ type Props = {
 
 // 두 가지 스타일만 지원
 const variantClasses: Record<AvatarVariant, string> = {
-  primary: "bg-primary-10 text-primary-60", // #D6FAE8 배경, 녹색 텍스트
+  primary: "bg-primary-10 text-primary-60 dark:bg-[#D6FAE833]", // #D6FAE8 배경, 녹색 텍스트 (다크모드: #D6FAE833)
   gray: "bg-neutral-20 text-neutral-60",    // 회색 배경, 회색 텍스트
 };
 

@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useCreateTeamMutation } from "@/hooks/useMembersTree";
-import type { MemberDetail, HrNote, TeamChangeLog, OrganizationTreeNode } from "@/types/members";
+import type {
+  MemberDetail,
+  HrNote,
+  TeamChangeLog,
+  OrganizationTreeNode,
+} from "@/types/members";
 
 type Props = {
   open: boolean;
@@ -65,30 +70,34 @@ function initialFromName(name: string): string {
 function formatDate(dateString: string): string {
   if (!dateString) return "-";
   const date = new Date(dateString);
-  return date.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).replace(/\. /g, ". ");
+  return date
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\. /g, ". ");
 }
 
 function formatDateTime(dateString: string): string {
   if (!dateString) return "-";
   const date = new Date(dateString);
-  return date.toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).replace(/\. /g, ". ");
+  return date
+    .toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+    .replace(/\. /g, ". ");
 }
 
 function flattenOrgTree(node: OrganizationTreeNode | undefined): OrgNode[] {
   if (!node) return [];
   const result: OrgNode[] = [];
-  
+
   // 본인 추가
   result.push({
     id: node.id,
@@ -97,7 +106,7 @@ function flattenOrgTree(node: OrganizationTreeNode | undefined): OrgNode[] {
     role: node.role,
     department: node.teamName,
   });
-  
+
   // descendants 추가
   (node.descendants ?? []).forEach((child) => {
     result.push({
@@ -108,7 +117,7 @@ function flattenOrgTree(node: OrganizationTreeNode | undefined): OrgNode[] {
       department: child.teamName,
     });
   });
-  
+
   return result;
 }
 
@@ -126,7 +135,9 @@ export default function TeamMemberInfoModal({
   const createTeam = useCreateTeamMutation(projectId);
 
   // API로 멤버 상세 정보 가져오기
-  const { member, isLoading, isError } = useMemberDetail(open ? memberId : null);
+  const { member, isLoading, isError } = useMemberDetail(
+    open ? memberId : null
+  );
 
   useEffect(() => {
     if (!open || !member) return;
@@ -162,9 +173,12 @@ export default function TeamMemberInfoModal({
     setTab("organization");
   };
 
-  const isLeader = member?.role === "leader" || member?.role === "admin" || member?.role === "subAdmin";
+  const isLeader =
+    member?.role === "leader" ||
+    member?.role === "admin" ||
+    member?.role === "subAdmin";
   const canCreateTeam = !isLeader;
-  
+
   // 조직도 노드 계산
   const teamNodes = flattenOrgTree(member?.organizationTree);
 
@@ -274,11 +288,16 @@ export default function TeamMemberInfoModal({
 
   const roleLabel = (role: string) => {
     switch (role) {
-      case "admin": return "관리자";
-      case "subAdmin": return "부관리자";
-      case "leader": return "팀장";
-      case "member": return "팀원";
-      default: return role;
+      case "admin":
+        return "관리자";
+      case "subAdmin":
+        return "부관리자";
+      case "leader":
+        return "팀장";
+      case "member":
+        return "팀원";
+      default:
+        return role;
     }
   };
 
@@ -364,7 +383,10 @@ export default function TeamMemberInfoModal({
                 <span className="text-[14px] text-[#808080] whitespace-nowrap">
                   {formatDate(history.createdAt)}
                 </span>
-                <Badge label={history.previousTeamName || "미배정"} variant="neutral" />
+                <Badge
+                  label={history.previousTeamName || "미배정"}
+                  variant="neutral"
+                />
                 {history.newTeamName && (
                   <>
                     <svg
@@ -382,10 +404,7 @@ export default function TeamMemberInfoModal({
                         strokeLinejoin="round"
                       />
                     </svg>
-                    <Badge
-                      label={history.newTeamName}
-                      variant="primary"
-                    />
+                    <Badge label={history.newTeamName} variant="primary" />
                   </>
                 )}
                 <span className="ml-auto text-[14px] text-[#808080]">
@@ -415,7 +434,9 @@ export default function TeamMemberInfoModal({
               <div key={note.id} className="bg-[#F8F8F8] rounded-[12px] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-[14px] text-[#000000]">
-                    <span className="text-[#808080]">{formatDateTime(note.createdAt)}</span>
+                    <span className="text-[#808080]">
+                      {formatDateTime(note.createdAt)}
+                    </span>
                   </div>
                   <button
                     className="cursor-pointer w-5 h-5 text-[#B0B0B0] hover:text-[#808080]"
@@ -486,7 +507,9 @@ export default function TeamMemberInfoModal({
           }}
         >
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
-          <p className="mt-4 text-[14px] text-[#808080]">직원 정보를 불러오는 중...</p>
+          <p className="mt-4 text-[14px] text-[#808080]">
+            직원 정보를 불러오는 중...
+          </p>
         </div>
       </div>,
       document.body
@@ -506,7 +529,9 @@ export default function TeamMemberInfoModal({
             transform: "translate(-50%, -50%)",
           }}
         >
-          <p className="text-[14px] text-[#808080]">직원 정보를 불러오는 중 오류가 발생했습니다.</p>
+          <p className="text-[14px] text-[#808080]">
+            직원 정보를 불러오는 중 오류가 발생했습니다.
+          </p>
           <button
             type="button"
             onClick={onClose}
@@ -531,8 +556,10 @@ export default function TeamMemberInfoModal({
           transform: "translate(-50%, -50%)",
         }}
       >
-        <header className="px-6 py-4 border-b border-[#E2E2E266] flex items-center justify-between">
-          <h1 className="text-[18px] font-semibold text-[#000000]">직원정보</h1>
+        <header className="px-6 pt-4 pb-[10px] flex items-center justify-between">
+          <h1 className="text-[18px] font-semibold leading-[1] text-[#000000]">
+            직원정보
+          </h1>
           <button
             type="button"
             onClick={onClose}
@@ -559,13 +586,16 @@ export default function TeamMemberInfoModal({
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <section className="mb-8">
-            <h2 className="text-[16px] font-semibold text-[#000000] mb-4">
+            <h2 className="text-[16px] font-semibold leading-[1] text-[#000000] mb-3">
               기본 정보
             </h2>
-            <div className="bg-[#F8F8F8] rounded-[12px] p-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#808080] text-white flex items-center justify-center text-[18px] font-semibold">
-                  {initialFromName(member.name)}
+            <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
+            <div className="bg-[#F8F8F8] rounded-[12px] p-4 h-full min-h-[72px]">
+              <div className="flex items-start gap-4 h-full">
+                <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[94px]" : "min-h-[72px]"} flex items-center justify-center`}>
+                  <div className="w-12 h-12 rounded-full bg-[#00B55B] text-white flex items-center justify-center text-[18px] font-semibold">
+                    {initialFromName(member.name)}
+                  </div>
                 </div>
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3">
@@ -624,10 +654,7 @@ export default function TeamMemberInfoModal({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {member.teamInfo && (
-                      <Badge
-                        label={member.teamInfo.name}
-                        variant="secondary"
-                      />
+                      <Badge label={member.teamInfo.name} variant="secondary" />
                     )}
                   </div>
                 </div>
