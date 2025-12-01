@@ -328,7 +328,7 @@ export default function CalendarSection() {
               </button>
             </div>
             <div className="border-t border-[#E2E2E255] mb-3"></div>
-            <div className="overflow-y-auto flex-1 space-y-3">
+            <div className="overflow-y-auto flex-1 space-y-3 max-h-[490px]">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />

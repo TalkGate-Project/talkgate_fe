@@ -101,11 +101,12 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             </div>
             <button
               type="button"
+              title={item.name}
               onClick={(e) => {
                 e.stopPropagation();
                 onMemberClick(item);
               }}
-              className="font-semibold text-left text-[16px] leading-6 tracking-[0.2px] text-foreground hover:underline focus:underline"
+              className="font-semibold text-left text-[16px] leading-6 tracking-[0.2px] text-foreground hover:underline focus:underline truncate max-w-[120px]"
             >
               {item.name}
             </button>
@@ -206,7 +207,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                           />
                         )}
                         <div
-                          className={`flex items-center px-6 gap-4 border rounded-[12px] bg-white transition-all ${
+                          className={`flex items-center px-6 gap-4 border rounded-[12px] bg-neutral-10 transition-all ${
                             memberDragOver ? "ring-2 ring-blue-400 bg-blue-50" : ""
                           } ${memberDragging ? "opacity-50" : ""}`}
                           style={{
@@ -226,11 +227,12 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                           </div>
                           <button
                             type="button"
+                            title={member.name}
                             onClick={(e) => {
                               e.stopPropagation();
                               onMemberClick(member);
                             }}
-                            className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline"
+                            className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline truncate max-w-[120px]"
                           >
                             {member.name}
                           </button>
@@ -255,7 +257,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   return (
     <div
-      className="relative min-h-[500px] max-w-[950px] overflow-x-auto overflow-y-visible"
+      className="relative min-h-[500px] max-w-[712px] overflow-x-auto overflow-y-visible"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

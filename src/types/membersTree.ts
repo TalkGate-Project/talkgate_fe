@@ -2,6 +2,8 @@ export interface MemberTreeNode {
   id: number;
   role: string;
   name: string;
+  email?: string;
+  teamName?: string;
   profileImageUrl: string | null;
   descendants: MemberTreeNode[];
 }
