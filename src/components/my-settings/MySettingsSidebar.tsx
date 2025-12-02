@@ -1,8 +1,9 @@
 import ProfileIcon from "./icons/ProfileIcon";
 import NotificationIcon from "./icons/NotificationIcon";
+import BillingIcon from "./icons/BillingIcon";
 import SecurityIcon from "./icons/SecurityIcon";
 
-type MySettingsTab = "profile" | "notification" | "security";
+type MySettingsTab = "profile" | "notification" | "billing" | "security";
 
 interface MySettingsSidebarProps {
   activeTab: MySettingsTab;
@@ -21,6 +22,11 @@ const SIDEBAR_ITEMS = [
     icon: NotificationIcon,
   },
   {
+    key: "billing" as const,
+    label: "결제관리",
+    icon: BillingIcon,
+  },
+  {
     key: "security" as const,
     label: "보안",
     icon: SecurityIcon,
@@ -29,7 +35,7 @@ const SIDEBAR_ITEMS = [
 
 export default function MySettingsSidebar({ activeTab, onTabChange }: MySettingsSidebarProps) {
   return (
-    <div className="w-[280px] max-h-[280px] bg-card rounded-[14px] p-6">
+    <div className="w-[280px] max-h-[320px] bg-card rounded-[14px] p-6">
       {/* 헤더 */}
       <div className="mb-8">
         <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>

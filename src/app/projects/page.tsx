@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
+import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
@@ -15,6 +16,7 @@ function ProjectsContent() {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [subscribeProject, setSubscribeProject] = useState<any | null>(null);
   const [subdomainError, setSubdomainError] = useState<string | null>(null);
   const montserratStyle = {
     fontFamily:
@@ -138,8 +140,8 @@ function ProjectsContent() {
                 router.push(`/projects/${p.id}/dashboard`);
               }}
             >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   {p.logoUrl ? (
                     <img
                       src={p.logoUrl}
@@ -154,10 +156,19 @@ function ProjectsContent() {
                   <div className="text-[18px] font-semibold text-[#000] truncate">
                     {p.name}
                   </div>
+                  <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70">
+                    멤버 {p.memberCount ?? 0}명
+                  </div>
                 </div>
-                <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70 traslate-y-[-2px]">
-                  멤버 {p.memberCount ?? 0}명
-                </div>
+                <button
+                  className="cursor-pointer h-[32px] px-4 rounded-[6px] bg-[#252525] text-white text-[13px] font-semibold hover:bg-[#3a3a3a] transition-colors flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSubscribeProject(p);
+                  }}
+                >
+                  구독하기
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-6 mt-5">
                 <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
@@ -248,6 +259,28 @@ function ProjectsContent() {
             const list = Array.isArray(payload) ? payload : payload?.data;
             setProjects(Array.isArray(list) ? list : []);
             setShowCreate(false);
+          }}
+        />
+      )}
+
+      {/* Subscribe Modal */}
+      {subscribeProject && (
+        <SubscribeProjectModal
+          project={{
+            id: subscribeProject.id,
+            name: subscribeProject.name,
+            logoUrl: subscribeProject.logoUrl,
+            memberCount: subscribeProject.memberCount,
+          }}
+          onClose={() => setSubscribeProject(null)}
+          onSubscribe={async (projectId) => {
+            // TODO: 구독 API 호출 로직 구현
+            console.log("Subscribe to project:", projectId);
+            // 구독 성공 후 프로젝트 목록 새로고침 필요 시
+            // const res = await ProjectsService.list();
+            // const payload: any = (res as any)?.data;
+            // const list = Array.isArray(payload) ? payload : payload?.data;
+            // setProjects(Array.isArray(list) ? list : []);
           }}
         />
       )}

@@ -4,21 +4,31 @@ import type {
   ContentType,
   SendMethod,
   ImageFileWithPreview,
+  SenderNumberOption,
 } from "./types";
 import { MAX_IMAGES, SMS_BYTE_LIMIT, getByteLength } from "./types";
+import { SmsService } from "@/services/sms";
+import type { CustomerListItem } from "@/types/customers";
 
 export function useSmsForm() {
-  // 폼 상태
-  const [senderNumber, setSenderNumber] = useState("010-1234-5678");
+  // 폼 상태 - 발신번호는 "source-id" 형식의 복합 키로 관리
+  const [selectedSenderKey, setSelectedSenderKey] = useState<string | null>(null);
   const [contentType, setContentType] = useState<ContentType>("informational");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [imageFiles, setImageFiles] = useState<ImageFileWithPreview[]>([]);
-  const [sendMethod, setSendMethod] = useState<SendMethod>("scheduled");
+  const [sendMethod, setSendMethod] = useState<SendMethod>("immediate");
   
   // 예약발송 날짜/시간
   const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
   const [scheduledTime, setScheduledTime] = useState<string | null>(null);
+
+  // 발신번호 목록
+  const [senderNumbers, setSenderNumbers] = useState<SenderNumberOption[]>([]);
+  const [loadingSenders, setLoadingSenders] = useState(false);
+
+  // 발송 상태
+  const [sending, setSending] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageFilesRef = useRef<ImageFileWithPreview[]>([]);
@@ -36,6 +46,70 @@ export function useSmsForm() {
       });
     };
   }, []);
+
+  // 발신번호 목록 로드
+  const loadSenderNumbers = useCallback(async () => {
+    setLoadingSenders(true);
+    try {
+      const [memberRes, projectRes] = await Promise.all([
+        SmsService.getMemberSenderNumbers({ page: 1, limit: 100 }),
+        SmsService.getProjectSenderNumbers({ page: 1, limit: 100 }),
+      ]);
+
+      const options: SenderNumberOption[] = [];
+
+      // 멤버 발신번호 추가
+      const memberData = (memberRes.data as any)?.data ?? memberRes.data;
+      if (memberData?.numbers) {
+        memberData.numbers.forEach((num: any) => {
+          options.push({
+            id: num.id,
+            phoneNumber: num.phoneNumber,
+            source: "member",
+          });
+        });
+      }
+
+      // 프로젝트 발신번호 추가 (승인된 것만)
+      const projectData = (projectRes.data as any)?.data ?? projectRes.data;
+      if (projectData?.numbers) {
+        projectData.numbers
+          .filter((num: any) => num.status === "verified")
+          .forEach((num: any) => {
+            options.push({
+              id: num.id,
+              phoneNumber: num.number,
+              source: "project",
+              status: num.status,
+            });
+          });
+      }
+
+      setSenderNumbers(options);
+
+      // 첫 번째 번호를 기본 선택 (source-id 형식)
+      if (options.length > 0) {
+        setSelectedSenderKey(`${options[0].source}-${options[0].id}`);
+      }
+    } catch (error) {
+      console.error("발신번호 목록 로드 실패:", error);
+    } finally {
+      setLoadingSenders(false);
+    }
+  }, []);
+
+  // 선택된 발신번호 변경 (source-id 형식의 키 사용)
+  const handleSenderChange = useCallback((key: string) => {
+    setSelectedSenderKey(key);
+  }, []);
+
+  // 선택된 발신번호 객체 (source-id 형식으로 파싱)
+  const selectedSender = useMemo(() => {
+    if (!selectedSenderKey) return null;
+    const [source, idStr] = selectedSenderKey.split("-");
+    const id = Number(idStr);
+    return senderNumbers.find((s) => s.source === source && s.id === id) ?? null;
+  }, [senderNumbers, selectedSenderKey]);
 
   // 메시지 타입 자동 결정
   const messageType: MessageType = useMemo(() => {
@@ -99,25 +173,102 @@ export function useSmsForm() {
     });
   }, []);
 
-  // 폼 초기화
+  // 폼 초기화 (ref를 사용하여 의존성 제거)
   const handleReset = useCallback(() => {
-    setSenderNumber("010-1234-5678");
     setContentType("informational");
     setTitle("");
     setBody("");
-    // 이미지 미리보기 URL 정리
-    imageFiles.forEach((img) => {
+    // 이미지 미리보기 URL 정리 (ref 사용으로 의존성 제거)
+    imageFilesRef.current.forEach((img) => {
       URL.revokeObjectURL(img.previewUrl);
     });
     setImageFiles([]);
-    setSendMethod("scheduled");
+    setSendMethod("immediate");
     setScheduledDate(null);
     setScheduledTime(null);
-  }, [imageFiles]);
+  }, []);
+
+  // SMS 발송
+  const handleSend = useCallback(
+    async (
+      customers: CustomerListItem[],
+      imageUrls?: string[]
+    ): Promise<{ success: boolean; message?: string }> => {
+      if (!selectedSender) {
+        return { success: false, message: "발신번호를 선택해주세요." };
+      }
+
+      if (!body.trim()) {
+        return { success: false, message: "본문을 입력해주세요." };
+      }
+
+      if (customers.length === 0) {
+        return { success: false, message: "수신자를 선택해주세요." };
+      }
+
+      // 예약발송인데 날짜/시간이 없는 경우
+      if (sendMethod === "scheduled" && (!scheduledDate || !scheduledTime)) {
+        return { success: false, message: "예약 발송 시간을 선택해주세요." };
+      }
+
+      setSending(true);
+
+      try {
+        // scheduledAt 계산 (필수 필드 - 즉시 발송 시 현재 시간, 예약 발송 시 지정된 시간)
+        let scheduledAt: string;
+        if (sendMethod === "scheduled" && scheduledDate && scheduledTime) {
+          const [hours, minutes] = scheduledTime.split(":").map(Number);
+          const scheduled = new Date(scheduledDate);
+          scheduled.setHours(hours, minutes, 0, 0);
+          scheduledAt = scheduled.toISOString();
+        } else {
+          // 즉시 발송: 현재 시간
+          scheduledAt = new Date().toISOString();
+        }
+
+        const response = await SmsService.send({
+          assignmentType: "ids",
+          customerIds: customers.map((c) => c.id),
+          senderNumberType: selectedSender.source,
+          senderNumberId: selectedSender.id,
+          advertisementType: contentType,
+          title: title.trim() || undefined,
+          content: body,
+          scheduledAt,
+          imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
+        });
+
+        const data = (response.data as any)?.data ?? response.data;
+        
+        if (response.data?.result || data?.smsHistoryId) {
+          return {
+            success: true,
+            message: `${data.totalRecipients || customers.length}명에게 문자 발송이 요청되었습니다.`,
+          };
+        } else {
+          return {
+            success: false,
+            message: "문자 발송에 실패했습니다.",
+          };
+        }
+      } catch (error: any) {
+        console.error("SMS 발송 실패:", error);
+        const errorMessage =
+          error?.data?.message || error?.message || "문자 발송 중 오류가 발생했습니다.";
+        return { success: false, message: errorMessage };
+      } finally {
+        setSending(false);
+      }
+    },
+    [selectedSender, contentType, title, body, sendMethod, scheduledDate, scheduledTime]
+  );
 
   return {
     // 상태
-    senderNumber,
+    selectedSenderKey,
+    selectedSender,
+    senderNumbers,
+    loadingSenders,
     contentType,
     title,
     body,
@@ -126,9 +277,10 @@ export function useSmsForm() {
     messageType,
     scheduledDate,
     scheduledTime,
+    sending,
 
     // 세터
-    setSenderNumber,
+    handleSenderChange,
     setContentType,
     setTitle,
     setBody,
@@ -136,14 +288,19 @@ export function useSmsForm() {
     setScheduledDate,
     setScheduledTime,
 
+    // 발신번호 로드
+    loadSenderNumbers,
+
     // 파일 관련
     fileInputRef,
     handleFileSelect,
     handleFileChange,
     handleRemoveFile,
 
+    // 발송
+    handleSend,
+
     // 기타
     handleReset,
   };
 }
-
