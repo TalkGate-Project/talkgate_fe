@@ -1,8 +1,10 @@
 import type { CustomerListItem } from "@/types/customers";
+import type { MemberSenderNumber, ProjectSenderNumber } from "@/types/sms";
 
 export type MessageType = "SMS" | "LMS" | "MMS";
 export type ContentType = "advertising" | "informational";
 export type SendMethod = "immediate" | "scheduled";
+export type SenderNumberSource = "project" | "member";
 
 export type ImageFileWithPreview = {
   file: File;
@@ -14,6 +16,7 @@ export type SmsModalProps = {
   open: boolean;
   onClose: () => void;
   customers: CustomerListItem[];
+  onSuccess?: () => void;
 };
 
 export type SmsFormState = {
@@ -25,11 +28,19 @@ export type SmsFormState = {
   sendMethod: SendMethod;
 };
 
+// 통합 발신번호 타입 (UI에서 사용)
+export type SenderNumberOption = {
+  id: number;
+  phoneNumber: string;
+  source: SenderNumberSource;
+  status?: string; // project sender number에만 있음
+};
+
 export const MAX_IMAGES = 3;
 export const SMS_BYTE_LIMIT = 90;
 
-// 예시 발신번호 목록 (추후 API에서 가져올 수 있음)
-export const SENDER_NUMBERS = ["010-1234-5678", "02-1234-5678", "1588-1234"];
+// Re-export for convenience
+export type { MemberSenderNumber, ProjectSenderNumber };
 
 // SMS 바이트 계산 (한글 2바이트, 영문/숫자 1바이트)
 export function getByteLength(text: string): number {

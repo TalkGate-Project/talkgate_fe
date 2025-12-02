@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
@@ -8,12 +8,16 @@ import type { CustomerListItem } from "@/types/customers";
 import { useSmsForm } from "./useSmsForm";
 import PhonePreview from "./PhonePreview";
 import RadioButton from "./RadioButton";
-import { MAX_IMAGES, SENDER_NUMBERS } from "./types";
+import { MAX_IMAGES } from "./types";
 import type { SmsModalProps } from "./types";
+import { AssetsService } from "@/services/assets";
 
-export default function SmsModal({ open, onClose, customers }: SmsModalProps) {
+export default function SmsModal({ open, onClose, customers, onSuccess }: SmsModalProps) {
   const {
-    senderNumber,
+    selectedSenderKey,
+    selectedSender,
+    senderNumbers,
+    loadingSenders,
     contentType,
     title,
     body,
@@ -22,18 +26,38 @@ export default function SmsModal({ open, onClose, customers }: SmsModalProps) {
     messageType,
     scheduledDate,
     scheduledTime,
-    setSenderNumber,
+    sending,
+    handleSenderChange,
     setContentType,
     setTitle,
     setBody,
     setSendMethod,
     setScheduledDate,
     setScheduledTime,
+    loadSenderNumbers,
     fileInputRef,
     handleFileSelect,
     handleFileChange,
     handleRemoveFile,
+    handleSend,
+    handleReset,
   } = useSmsForm();
+
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const prevOpenRef = useRef(open);
+
+  // 모달이 열릴 때 발신번호 목록 로드, 닫힐 때 폼 초기화
+  useEffect(() => {
+    // 열릴 때
+    if (open && !prevOpenRef.current) {
+      loadSenderNumbers();
+    }
+    // 닫힐 때 (true -> false)
+    if (!open && prevOpenRef.current) {
+      handleReset();
+    }
+    prevOpenRef.current = open;
+  }, [open, loadSenderNumbers, handleReset]);
 
   // 미리보기 표시용 수신자 번호 (첫 번째 고객)
   const previewRecipient = customers[0]?.contact1 || "010-0000-0000";
@@ -45,6 +69,65 @@ export default function SmsModal({ open, onClose, customers }: SmsModalProps) {
     const remaining = customers.length - maxDisplay;
     return { displayed, remaining };
   }, [customers]);
+
+  // 발송 버튼 활성화 조건
+  const canSend = useMemo(() => {
+    if (!selectedSender) return false;
+    if (!body.trim()) return false;
+    if (customers.length === 0) return false;
+    if (sendMethod === "scheduled" && (!scheduledDate || !scheduledTime)) return false;
+    return true;
+  }, [selectedSender, body, customers.length, sendMethod, scheduledDate, scheduledTime]);
+
+  // 발송 처리
+  const handleSubmit = async () => {
+    if (!canSend || sending || uploadingImages) return;
+
+    try {
+      // 이미지 업로드 처리
+      let imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        setUploadingImages(true);
+        try {
+          // 이미지 업로드 (presigned URL 사용)
+          for (const img of imageFiles) {
+            const fileType = img.file.type || "image/jpeg";
+            const presignedRes = await AssetsService.presignAttachment({
+              filename: img.file.name,
+              contentType: fileType,
+            });
+            const presignedData = (presignedRes.data as any)?.data ?? presignedRes.data;
+            
+            if (presignedData?.uploadUrl) {
+              await AssetsService.uploadToS3(presignedData.uploadUrl, img.file, fileType);
+              if (presignedData.fileUrl) {
+                imageUrls.push(presignedData.fileUrl);
+              }
+            }
+          }
+        } catch (uploadError) {
+          console.error("이미지 업로드 실패:", uploadError);
+          alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+          return;
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+
+      const result = await handleSend(customers, imageUrls);
+      
+      if (result.success) {
+        alert(result.message || "문자 발송이 완료되었습니다.");
+        onSuccess?.();
+        onClose();
+      } else {
+        alert(result.message || "문자 발송에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("발송 처리 중 오류:", error);
+      alert("문자 발송 중 오류가 발생했습니다.");
+    }
+  };
 
   if (!open) return null;
 
@@ -92,31 +175,46 @@ export default function SmsModal({ open, onClose, customers }: SmsModalProps) {
                 발신번호
               </label>
               <div className="relative">
-                <select
-                  value={senderNumber}
-                  onChange={(e) => setSenderNumber(e.target.value)}
-                  className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink appearance-none bg-white pr-10 outline-none focus:border-neutral-60"
-                >
-                  {SENDER_NUMBERS.map((num) => (
-                    <option key={num} value={num}>
-                      {num}
-                    </option>
-                  ))}
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  width="10"
-                  height="8"
-                  viewBox="0 0 10 8"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
-                    fill="currentColor"
-                    className="fill-ink"
-                  />
-                </svg>
+                {loadingSenders ? (
+                  <div className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 flex items-center bg-neutral-10">
+                    발신번호 로딩 중...
+                  </div>
+                ) : senderNumbers.length === 0 ? (
+                  <div className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 flex items-center bg-neutral-10">
+                    등록된 발신번호가 없습니다
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={selectedSenderKey ?? ""}
+                      onChange={(e) => handleSenderChange(e.target.value)}
+                      className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink appearance-none bg-white pr-10 outline-none focus:border-neutral-60"
+                    >
+                      {senderNumbers.map((num) => {
+                        const key = `${num.source}-${num.id}`;
+                        return (
+                          <option key={key} value={key}>
+                            {num.phoneNumber} ({num.source === "project" ? "공통" : "개인"})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <svg
+                      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      width="10"
+                      height="8"
+                      viewBox="0 0 10 8"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
+                        fill="currentColor"
+                        className="fill-ink"
+                      />
+                    </svg>
+                  </>
+                )}
               </div>
             </div>
 
@@ -425,23 +523,24 @@ export default function SmsModal({ open, onClose, customers }: SmsModalProps) {
           >
             취소
           </button>
-          {/* 
-            TODO: 문자 전송 API 연동 필요
-            - API 엔드포인트가 준비되면 아래 버튼을 활성화하고 실제 발송 로직 구현
-            - 필요한 데이터: senderNumber, customers (수신자 목록), contentType, title, body, imageFiles, sendMethod
-            - 예약발송의 경우 scheduledTime 파라미터 추가 필요
-          */}
           <button
             type="button"
-            disabled
-            className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-40 cursor-not-allowed opacity-50"
-            title="문자 전송 API 연동 후 활성화됩니다"
+            onClick={handleSubmit}
+            disabled={!canSend || sending || uploadingImages}
+            className={`h-[34px] px-3 rounded-[5px] text-[14px] font-semibold transition-colors ${
+              canSend && !sending && !uploadingImages
+                ? "bg-neutral-90 text-white hover:bg-neutral-80 cursor-pointer"
+                : "bg-neutral-90 text-neutral-40 cursor-not-allowed opacity-50"
+            }`}
           >
-            발송요청
+            {sending
+              ? "발송 중..."
+              : uploadingImages
+              ? "이미지 업로드 중..."
+              : "발송요청"}
           </button>
         </div>
       </div>
     </BaseModal>
   );
 }
-

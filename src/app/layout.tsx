@@ -7,6 +7,7 @@ import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({
@@ -60,13 +61,15 @@ export default function RootLayout({
       <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
         <ErrorFeedbackModalProvider>
           <ReactQueryProvider>
-            <NotificationProvider>
-              <ConditionalHeader />
-              {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
-              <UiScaleToggle />
-              {/* No fixed padding; header component inserts spacer only when visible */}
-              <div>{children}</div>
-            </NotificationProvider>
+            <DemoModeProvider>
+              <NotificationProvider>
+                <ConditionalHeader />
+                {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
+                <UiScaleToggle />
+                {/* No fixed padding; header component inserts spacer only when visible */}
+                <div>{children}</div>
+              </NotificationProvider>
+            </DemoModeProvider>
           </ReactQueryProvider>
         </ErrorFeedbackModalProvider>
       </body>

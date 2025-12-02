@@ -5,13 +5,15 @@ import { useCallback, useEffect } from "react";
 import MySettingsSidebar from "./MySettingsSidebar";
 import ProfileTab from "./ProfileTab";
 import NotificationTab from "./NotificationTab";
+import BillingTab from "./BillingTab";
 import SecurityTab from "./SecurityTab";
 
-type MySettingsTab = "profile" | "notification" | "security";
+type MySettingsTab = "profile" | "notification" | "billing" | "security";
 
 const TAB_COMPONENTS = {
   profile: ProfileTab,
   notification: NotificationTab,
+  billing: BillingTab,
   security: SecurityTab,
 };
 

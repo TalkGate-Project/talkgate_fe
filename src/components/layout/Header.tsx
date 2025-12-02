@@ -34,6 +34,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
+  const [isPaymentHovered, setIsPaymentHovered] = useState(false);
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -284,6 +285,27 @@ export default function Header() {
                     <span className={`text-[16px] tracking-[-0.02em] ${isProjectSelectHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
                       }`}>
                       프로젝트 선택
+                    </span>
+                  </button>
+
+                  {/* 결제관리 */}
+                  <button
+                    className={`cursor-pointer flex items-center h-[52px] gap-4 px-7 transition-colors ${isPaymentHovered ? "bg-[rgba(214,250,232,0.3)]" : ""
+                      }`}
+                    onMouseEnter={() => setIsPaymentHovered(true)}
+                    onMouseLeave={() => setIsPaymentHovered(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      router.push("/my-settings?tab=billing");
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" stroke={isPaymentHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+
+                    <span className={`text-[16px] tracking-[-0.02em] ${isPaymentHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"
+                      }`}>
+                      결제관리
                     </span>
                   </button>
 
