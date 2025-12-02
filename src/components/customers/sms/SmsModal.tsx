@@ -85,7 +85,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
 
     try {
       // 이미지 업로드 처리
-      let imageUrls: string[] = [];
+      const imageUrls: string[] = [];
       if (imageFiles.length > 0) {
         setUploadingImages(true);
         try {
@@ -93,8 +93,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
           for (const img of imageFiles) {
             const fileType = img.file.type || "image/jpeg";
             const presignedRes = await AssetsService.presignAttachment({
-              filename: img.file.name,
-              contentType: fileType,
+              fileName: img.file.name,
+              fileType: fileType,
             });
             const presignedData = (presignedRes.data as any)?.data ?? presignedRes.data;
             
