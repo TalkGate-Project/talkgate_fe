@@ -1,17 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, addDays, subDays } from "date-fns";
 import { ko } from "date-fns/locale";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
+import type { WeeklyScheduleItem } from "@/types/dashboard";
 
 type Props = {
   defaultDate?: Date | null;
   onClose: () => void;
   onCreated?: () => void;
+  editSchedule?: WeeklyScheduleItem | null;
 };
 
 const COLOR_PALETTE = [
@@ -25,22 +27,38 @@ const COLOR_PALETTE = [
   "#FC9595", // danger-20
 ];
 
-export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }: Props) {
+export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, editSchedule }: Props) {
   const [projectId] = useSelectedProjectId();
-  const [current, setCurrent] = useState<Date>(() => defaultDate ? new Date(defaultDate) : new Date());
+  const isEditMode = Boolean(editSchedule);
+  
+  const getInitialDate = () => {
+    if (editSchedule?.scheduleTime) {
+      return new Date(editSchedule.scheduleTime);
+    }
+    return defaultDate ? new Date(defaultDate) : new Date();
+  };
+
+  const [current, setCurrent] = useState<Date>(getInitialDate);
 
   const getInitialTimeState = () => {
-    const now = new Date();
-    let h = now.getHours();
-    let m = now.getMinutes();
-
-    // 10분 단위 올림
-    m = Math.ceil(m / 10) * 10;
-
-    if (m === 60) {
-      m = 0;
-      h += 1;
+    let sourceDate: Date;
+    
+    if (editSchedule?.scheduleTime) {
+      sourceDate = new Date(editSchedule.scheduleTime);
+    } else {
+      sourceDate = new Date();
+      // 10분 단위 올림
+      let m = sourceDate.getMinutes();
+      m = Math.ceil(m / 10) * 10;
+      if (m === 60) {
+        m = 0;
+        sourceDate.setHours(sourceDate.getHours() + 1);
+      }
+      sourceDate.setMinutes(m);
     }
+
+    let h = sourceDate.getHours();
+    const m = sourceDate.getMinutes();
 
     if (h >= 24) {
       h = 0;
@@ -63,9 +81,17 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
   const [ampm, setAmpm] = useState<"오전" | "오후">(initialTime.ampm);
   const [hour, setHour] = useState(initialTime.hour);
   const [minute, setMinute] = useState(initialTime.minute);
-  const [desc, setDesc] = useState("");
-  const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
+  const [desc, setDesc] = useState(editSchedule?.description || "");
+  const [color, setColor] = useState<string>(editSchedule?.colorCode || COLOR_PALETTE[0]);
   const [submitting, setSubmitting] = useState(false);
+
+  // editSchedule가 변경되면 current 날짜를 업데이트
+  useEffect(() => {
+    if (editSchedule?.scheduleTime) {
+      const date = new Date(editSchedule.scheduleTime);
+      setCurrent(date);
+    }
+  }, [editSchedule]);
 
   const yearMonthLabel = useMemo(() => format(current, "yyyy - MM (EEE)") as string, [current]);
 
@@ -93,16 +119,26 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
     }
     setSubmitting(true);
     try {
-      await SchedulesService.create({
-        projectId,
-        scheduleTime: buildIso(),
-        description: desc.trim(),
-        colorCode: color,
-      });
+      if (isEditMode && editSchedule) {
+        await SchedulesService.update({
+          projectId,
+          scheduleId: editSchedule.id,
+          scheduleTime: buildIso(),
+          description: desc.trim(),
+          colorCode: color,
+        });
+      } else {
+        await SchedulesService.create({
+          projectId,
+          scheduleTime: buildIso(),
+          description: desc.trim(),
+          colorCode: color,
+        });
+      }
       onCreated?.();
       onClose();
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || "일정 추가에 실패했습니다.");
+      alert(e?.data?.message || e?.message || `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`);
     } finally {
       setSubmitting(false);
     }
@@ -113,12 +149,12 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
       containerClassName="relative w-[440px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
-      ariaLabel="일정 추가"
+      ariaLabel={isEditMode ? "일정 수정" : "일정 추가"}
     >
         {/* Header */}
         <div className="px-7 pt-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="text-[18px] font-semibold leading-[21px] text-[#000000]">일정 추가</div>
+            <div className="text-[18px] font-semibold leading-[21px] text-[#000000]">{isEditMode ? "일정 수정" : "일정 추가"}</div>
             <button
               aria-label="close"
               onClick={() => !submitting && onClose()}
@@ -180,7 +216,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               <select
                 value={ampm}
                 onChange={(e) => setAmpm(e.target.value as any)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 cursor-pointer bg-white"
+                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-[#000000] cursor-pointer bg-white"
                 style={{ lineHeight: '17px' }}
               >
                 <option>오전</option>
@@ -196,7 +232,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               <select
                 value={hour}
                 onChange={(e) => setHour(e.target.value)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 cursor-pointer bg-white"
+                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-[#000000] cursor-pointer bg-white"
                 style={{ lineHeight: '17px' }}
               >
                 <option value="" disabled hidden>
@@ -216,7 +252,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               <select
                 value={minute}
                 onChange={(e) => setMinute(e.target.value)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 cursor-pointer bg-white"
+                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-[#000000] cursor-pointer bg-white"
                 style={{ lineHeight: '17px' }}
               >
                 <option value="" disabled hidden>
@@ -241,7 +277,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               placeholder="내용을 입력하세요"
-              className="w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 placeholder:text-neutral-60"
+              className="w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] font-medium tracking-[-0.02em] text-[#000000] placeholder:text-neutral-60"
               style={{ lineHeight: '17px' }}
             />
           </div>
@@ -280,7 +316,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated }:
             disabled={submitting || !projectId}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#EDEDED] disabled:opacity-60"
           >
-            일정 추가
+            {isEditMode ? "일정 수정" : "일정 추가"}
           </button>
         </div>
     </BaseModal>

@@ -165,7 +165,7 @@ export default function SecurityTab() {
             {twoFactorEnabled ? (
               <button
                 onClick={() => setShowDisableModal(true)}
-                className="px-4 py-2 bg-neutral-90 text-white text-[14px] font-semibold rounded-[8px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-[72px] h-[34px] bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 연결해제
@@ -173,7 +173,7 @@ export default function SecurityTab() {
             ) : (
               <button
                 onClick={handleStartSetup}
-                className="px-4 py-2 bg-neutral-90 text-white text-[14px] font-semibold rounded-[8px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-[72px] h-[34px] bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "로딩 중..." : "연결하기"}
