@@ -55,23 +55,16 @@ function DeleteButton({
       aria-label="삭제"
     >
       <svg
-        width="18"
-        height="18"
-        viewBox="0 0 18 18"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M2.25 4.5H3.75H15.75"
+          d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
           stroke="#B0B0B0"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M6 4.5V3C6 2.60218 6.15804 2.22064 6.43934 1.93934C6.72064 1.65804 7.10218 1.5 7.5 1.5H10.5C10.8978 1.5 11.2794 1.65804 11.5607 1.93934C11.842 2.22064 12 2.60218 12 3V4.5M14.25 4.5V15C14.25 15.3978 14.092 15.7794 13.8107 16.0607C13.5294 16.342 13.1478 16.5 12.75 16.5H5.25C4.85218 16.5 4.47064 16.342 4.18934 16.0607C3.90804 15.7794 3.75 15.3978 3.75 15V4.5H14.25Z"
-          stroke="#B0B0B0"
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -113,7 +106,9 @@ export default function SenderNumberSettings() {
   const [projectId, ready] = useSelectedProjectId();
 
   // 프로젝트 발신번호 (공통)
-  const [projectNumbers, setProjectNumbers] = useState<ProjectSenderNumber[]>([]);
+  const [projectNumbers, setProjectNumbers] = useState<ProjectSenderNumber[]>(
+    []
+  );
   const [loadingProject, setLoadingProject] = useState(false);
 
   // 멤버 발신번호 (개인)
@@ -127,7 +122,10 @@ export default function SenderNumberSettings() {
     if (!projectId) return;
     setLoadingProject(true);
     try {
-      const res = await SmsService.getProjectSenderNumbers({ page: 1, limit: 100 });
+      const res = await SmsService.getProjectSenderNumbers({
+        page: 1,
+        limit: 100,
+      });
       const data = (res.data as any)?.data ?? res.data;
       setProjectNumbers(data?.numbers ?? []);
     } catch (error) {
@@ -143,7 +141,10 @@ export default function SenderNumberSettings() {
     if (!projectId) return;
     setLoadingMember(true);
     try {
-      const res = await SmsService.getMemberSenderNumbers({ page: 1, limit: 100 });
+      const res = await SmsService.getMemberSenderNumbers({
+        page: 1,
+        limit: 100,
+      });
       const data = (res.data as any)?.data ?? res.data;
       setMemberNumbers(data?.numbers ?? []);
     } catch (error) {
@@ -190,13 +191,16 @@ export default function SenderNumberSettings() {
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).replace(/\. /g, "-").replace(".", "");
+      return date
+        .toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+        .replace(/\. /g, "-")
+        .replace(".", "");
     } catch {
       return dateStr;
     }
@@ -205,7 +209,7 @@ export default function SenderNumberSettings() {
   return (
     <div className="bg-card rounded-[14px] pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center border-b border-[#E2E2E2]">
         발신번호 등록
       </h1>
 
@@ -214,10 +218,10 @@ export default function SenderNumberSettings() {
           프로젝트를 먼저 선택해주세요.
         </div>
       ) : (
-        <div className="px-7">
+        <div className="px-7 pt-[23px]">
           {/* 공통 발신번호 섹션 */}
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 border-b border-[#E2E2E2] pb-3">
               <h2 className="text-[16px] font-semibold text-neutral-90">
                 공통 발신번호
               </h2>
@@ -251,7 +255,7 @@ export default function SenderNumberSettings() {
                 등록된 공통 발신번호가 없습니다.
               </div>
             ) : (
-              <div className="divide-y divide-neutral-20">
+              <div className="divide-y divide-[#E2E2E266]">
                 {projectNumbers.map((num) => (
                   <div
                     key={num.id}
@@ -261,7 +265,9 @@ export default function SenderNumberSettings() {
                       {num.number}
                     </div>
                     <div className="w-[120px] flex items-center">
-                      <StatusBadge status={num.status as ProjectSenderNumberStatus} />
+                      <StatusBadge
+                        status={num.status as ProjectSenderNumberStatus}
+                      />
                       {num.status === "rejected" && (
                         <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
                       )}
@@ -282,7 +288,7 @@ export default function SenderNumberSettings() {
 
           {/* 개인 발신번호 섹션 */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 border-b border-[#E2E2E2] pb-3">
               <h2 className="text-[16px] font-semibold text-neutral-90">
                 개인 발신번호
               </h2>
@@ -316,7 +322,7 @@ export default function SenderNumberSettings() {
                 등록된 개인 발신번호가 없습니다.
               </div>
             ) : (
-              <div className="divide-y divide-neutral-20">
+              <div className="divide-y divide-[#E2E2E266]">
                 {memberNumbers.map((num) => (
                   <div
                     key={num.id}

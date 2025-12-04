@@ -112,6 +112,7 @@ export default function CalendarSection() {
   const loading = isLoading && !data;
   const error = isError && !isFetching;
   const [showCreate, setShowCreate] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<WeeklyScheduleItem | null>(null);
 
   const handleRequestRemove = (schedule: WeeklyScheduleItem) => {
     setScheduleToRemove(schedule);
@@ -355,9 +356,15 @@ export default function CalendarSection() {
                   return (
                     <div
                       key={schedule.id}
-                      className={`flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 ${hasCustomer ? "cursor-pointer hover:bg-neutral-10 transition-colors" : ""}`}
+                      className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 cursor-pointer hover:bg-neutral-10 transition-colors"
                       style={{ maxWidth: 304 }}
-                      onClick={hasCustomer ? () => setSelectedCustomerId(schedule.customer!.id) : undefined}
+                      onClick={() => {
+                        if (hasCustomer) {
+                          setSelectedCustomerId(schedule.customer!.id);
+                        } else {
+                          setEditingSchedule(schedule);
+                        }
+                      }}
                     >
                       <span
                         className="leading-[1] w-4 h-4 rounded-full shrink-0"
@@ -411,6 +418,18 @@ export default function CalendarSection() {
         <ScheduleCreateModal
           defaultDate={selectedDate ?? current}
           onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            if (!projectId) return;
+            queryClient.invalidateQueries({
+              queryKey: ["dashboard", "schedule", projectId, year, month],
+            });
+          }}
+        />
+      )}
+      {editingSchedule && (
+        <ScheduleCreateModal
+          editSchedule={editingSchedule}
+          onClose={() => setEditingSchedule(null)}
           onCreated={() => {
             if (!projectId) return;
             queryClient.invalidateQueries({

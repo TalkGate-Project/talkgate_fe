@@ -79,7 +79,7 @@ export default function NoticeSection() {
                 </span>
               </div>
               <div className="flex items-center gap-8 flex-none pl-4">
-                <span className="typo-body-2 text-foreground opacity-80 w-[120px] shrink-0 text-right truncate">
+                <span className="typo-body-2 text-foreground opacity-80 w-[120px] shrink-0 text-left truncate">
                   {n.authorName ?? "-"}
                 </span>
                 <span className="typo-body-2 text-foreground opacity-80 w-[110px] shrink-0 text-right">

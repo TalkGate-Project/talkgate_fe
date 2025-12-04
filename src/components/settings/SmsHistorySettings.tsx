@@ -463,7 +463,7 @@ export default function SmsHistorySettings() {
                   문자 발송 이력이 없습니다.
                 </div>
               ) : (
-                <div className="divide-y divide-neutral-20 min-w-[900px]">
+                <div className="divide-y divide-[#E2E2E266] min-w-[900px]">
                   {histories.map((history) => (
                     <div
                       key={history.id}

@@ -35,9 +35,9 @@ const SIDEBAR_ITEMS = [
 
 export default function MySettingsSidebar({ activeTab, onTabChange }: MySettingsSidebarProps) {
   return (
-    <div className="w-[280px] max-h-[320px] bg-card rounded-[14px] p-6">
+    <div className="w-[280px] max-h-[362px] bg-card rounded-[14px]">
       {/* 헤더 */}
-      <div className="mb-8">
+      <div className="mb-2 border-b border-[#E2E2E255] p-7">
         <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
         <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
       </div>
@@ -52,9 +52,9 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`cursor-pointer w-full flex items-center gap-3 px-3 py-3 rounded-[8px] text-left transition-colors ${
+              className={`cursor-pointer w-full flex items-center gap-3 px-[30px] py-[14px] text-left transition-colors ${
                 isActive
-                  ? "bg-primary-10/30 text-primary-80"
+                  ? "bg-primary-10/30 text-primary-60"
                   : "text-neutral-70 hover:bg-neutral-10"
               }`}
             >

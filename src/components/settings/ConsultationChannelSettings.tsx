@@ -73,7 +73,7 @@ function ChannelCard({
 
         <button
           onClick={isConnected ? onDisconnect : onConnect}
-          className={`cursor-pointer flex items-center justify-center px-4 py-2 rounded-[5px] text-[14px] font-semibold ${
+          className={`cursor-pointer flex items-center justify-center w-[72px] h-[34px] rounded-[5px] text-[14px] font-semibold ${
             isConnected
               ? "bg-card border border-border text-foreground hover:bg-neutral-10"
               : "bg-neutral-90 text-neutral-0 hover:opacity-90"
