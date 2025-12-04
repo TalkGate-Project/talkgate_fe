@@ -5,6 +5,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SmsService } from "@/services/sms";
 import type { SmsHistory, SmsStatus, SmsMessageType } from "@/types/sms";
 import DatePicker from "@/components/common/DatePicker";
+import dayjs from "dayjs";
 
 const PAGE_SIZE = 10;
 
@@ -239,14 +240,7 @@ export default function SmsHistorySettings() {
   // 날짜 포맷팅
   const formatDateTime = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).replace(/\. /g, "-").replace(".", "").replace(" ", " ");
+      return dayjs( dateStr ).format("YYYY-MM-DD HH:mm");
     } catch {
       return dateStr;
     }
@@ -263,13 +257,13 @@ export default function SmsHistorySettings() {
   return (
     <div className="bg-card rounded-[14px] pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
+      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center border-b border-[#E2E2E2]">
         문자 발송 이력
       </h1>
 
       <div className="px-7">
         {/* 설명 */}
-        <div className="mb-6">
+        <div className="mb-6 border-b border-[#E2E2E2] pt-[30px] pb-3">
           <h2 className="text-[16px] font-semibold text-neutral-90 mb-1">
             문자 발송 이력
           </h2>
@@ -285,8 +279,7 @@ export default function SmsHistorySettings() {
         ) : (
           <>
             {/* 필터 영역 */}
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              {/* 시작 날짜 */}
+            {/* <div className="flex flex-wrap items-center gap-3 mb-4">
               <div className="relative w-[160px]">
                 <DatePicker
                   value={startDate}
@@ -336,7 +329,6 @@ export default function SmsHistorySettings() {
 
               <span className="text-neutral-60">~</span>
 
-              {/* 종료 날짜 */}
               <div className="relative w-[160px]">
                 <DatePicker
                   value={endDate}
@@ -384,7 +376,6 @@ export default function SmsHistorySettings() {
                 </svg>
               </div>
 
-              {/* 상태 필터 */}
               <div className="relative">
                 <select
                   value={statusFilter}
@@ -411,7 +402,6 @@ export default function SmsHistorySettings() {
                 </svg>
               </div>
 
-              {/* 필터 초기화 */}
               {(startDate || endDate || statusFilter) && (
                 <button
                   type="button"
@@ -421,34 +411,34 @@ export default function SmsHistorySettings() {
                   필터 초기화
                 </button>
               )}
-            </div>
+            </div> */}
 
             {/* 테이블 */}
             <div className="overflow-x-auto">
               {/* 테이블 헤더 */}
-              <div className="bg-[#EDEDED] rounded-[8px] px-4 h-[40px] flex items-center min-w-[900px] mb-1">
-                <div className="w-[140px] text-[14px] font-medium text-neutral-60 text-center">
+              <div className="bg-[#EDEDED] rounded-[8px] px-4 pl-10 h-[40px] flex items-center mb-1">
+                <div className="flex-[2] text-[14px] font-medium text-neutral-60 text-left">
                   발송일시
                 </div>
-                <div className="w-[130px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[2] text-[14px] font-medium text-neutral-60 text-left">
                   발신번호
                 </div>
-                <div className="w-[80px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 text-left">
                   메시지 유형
                 </div>
-                <div className="w-[80px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1] text-[14px] font-medium text-neutral-60 text-left">
                   광고/정보
                 </div>
-                <div className="w-[100px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1.2] text-[14px] font-medium text-neutral-60 text-left">
                   전체 고객 수
                 </div>
-                <div className="w-[80px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1] text-[14px] font-medium text-neutral-60 text-left">
                   성공 수
                 </div>
-                <div className="w-[80px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1] text-[14px] font-medium text-neutral-60 text-left">
                   실패 수
                 </div>
-                <div className="w-[80px] text-[14px] font-medium text-neutral-60 text-center">
+                <div className="flex-[1] text-[14px] font-medium text-neutral-60 text-center">
                   상태
                 </div>
               </div>
@@ -463,34 +453,34 @@ export default function SmsHistorySettings() {
                   문자 발송 이력이 없습니다.
                 </div>
               ) : (
-                <div className="divide-y divide-[#E2E2E266] min-w-[900px]">
+                <div className="divide-y divide-[#E2E2E266]">
                   {histories.map((history) => (
                     <div
                       key={history.id}
-                      className="px-4 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
+                      className="px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
                     >
-                      <div className="w-[140px] text-[14px] text-neutral-90 text-center">
+                      <div className="flex-[2] text-[14px] text-neutral-90 text-left">
                         {formatDateTime(history.scheduledAt || history.createdAt)}
                       </div>
-                      <div className="w-[130px] text-[14px] text-neutral-90 text-center">
+                      <div className="flex-[2] text-[14px] text-neutral-90 text-left">
                         {history.senderPhoneNumber}
                       </div>
-                      <div className="w-[80px] flex justify-center">
+                      <div className="flex-[1.2] flex">
                         <MessageTypeBadge type={history.messageType} />
                       </div>
-                      <div className="w-[80px] text-[14px] text-neutral-60 text-center">
+                      <div className="flex-[1] text-[14px] text-neutral-60 text-left">
                         {history.advertisementType === "informational" ? "정보성" : "광고성"}
                       </div>
-                      <div className="w-[100px] text-[14px] text-neutral-90 text-center">
+                      <div className="flex-[1.2] text-[14px] text-neutral-90 text-left">
                         {history.totalRecipients}
                       </div>
-                      <div className="w-[80px] text-[14px] text-neutral-90 text-center">
+                      <div className="flex-[1] text-[14px] text-neutral-90 text-left">
                         {history.successCount}
                       </div>
-                      <div className="w-[80px] text-[14px] text-neutral-90 text-center">
+                      <div className="flex-[1] text-[14px] text-neutral-90 text-left">
                         {history.failCount}
                       </div>
-                      <div className="w-[80px] flex justify-center">
+                      <div className="flex-[1] flex justify-center">
                         <StatusBadge status={history.status} />
                       </div>
                     </div>

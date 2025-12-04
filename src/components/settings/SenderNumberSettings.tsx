@@ -220,7 +220,7 @@ export default function SenderNumberSettings() {
       ) : (
         <div className="px-7 pt-[23px]">
           {/* 공통 발신번호 섹션 */}
-          <div className="mb-10">
+          <div className="mb-[30px]">
             <div className="flex items-center justify-between mb-4 border-b border-[#E2E2E2] pb-3">
               <h2 className="text-[16px] font-semibold text-neutral-90">
                 공통 발신번호
@@ -235,14 +235,14 @@ export default function SenderNumberSettings() {
             </div>
 
             {/* 테이블 헤더 */}
-            <div className="bg-[#EDEDED] rounded-[8px] px-6 h-[40px] flex items-center mb-1">
+            <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center mb-1">
               <div className="flex-1 text-[14px] font-medium text-neutral-60">
                 발신번호
               </div>
-              <div className="w-[120px] text-[14px] font-medium text-neutral-60">
+              <div className="flex-1 text-[14px] font-medium text-neutral-60">
                 상태
               </div>
-              <div className="w-[60px]"></div>
+              <div className="w-[160px]"></div>
             </div>
 
             {/* 테이블 바디 */}
@@ -259,12 +259,12 @@ export default function SenderNumberSettings() {
                 {projectNumbers.map((num) => (
                   <div
                     key={num.id}
-                    className="px-6 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
+                    className="px-10 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
                   >
                     <div className="flex-1 text-[14px] text-neutral-90">
                       {num.number}
                     </div>
-                    <div className="w-[120px] flex items-center">
+                    <div className="flex-1 flex items-center">
                       <StatusBadge
                         status={num.status as ProjectSenderNumberStatus}
                       />
@@ -272,7 +272,7 @@ export default function SenderNumberSettings() {
                         <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
                       )}
                     </div>
-                    <div className="w-[60px] flex justify-end">
+                    <div className="w-[160px] flex justify-end">
                       <DeleteButton
                         onClick={() => handleDeleteProjectNumber(num.id)}
                       />
@@ -283,8 +283,7 @@ export default function SenderNumberSettings() {
             )}
           </div>
 
-          {/* 구분선 */}
-          <div className="h-px bg-neutral-30 mb-8" />
+
 
           {/* 개인 발신번호 섹션 */}
           <div>
@@ -300,16 +299,16 @@ export default function SenderNumberSettings() {
                 +발신번호 추가
               </button>
             </div>
-
+              
             {/* 테이블 헤더 */}
-            <div className="bg-[#EDEDED] rounded-[8px] px-6 h-[40px] flex items-center mb-1">
+            <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center mb-1">
               <div className="flex-1 text-[14px] font-medium text-neutral-60">
                 발신번호
               </div>
-              <div className="w-[180px] text-[14px] font-medium text-neutral-60">
+              <div className="flex-1 text-[14px] font-medium text-neutral-60">
                 등록일
               </div>
-              <div className="w-[60px]"></div>
+              <div className="w-[160px]"></div>
             </div>
 
             {/* 테이블 바디 */}
@@ -326,15 +325,15 @@ export default function SenderNumberSettings() {
                 {memberNumbers.map((num) => (
                   <div
                     key={num.id}
-                    className="px-6 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
+                    className="px-10 h-[52px] flex items-center hover:bg-neutral-10 transition-colors"
                   >
                     <div className="flex-1 text-[14px] text-neutral-90">
                       {num.phoneNumber}
                     </div>
-                    <div className="w-[180px] text-[14px] text-neutral-60">
+                    <div className="flex-1 text-[14px] text-neutral-60">
                       {formatDate(num.createdAt)}
                     </div>
-                    <div className="w-[60px] flex justify-end">
+                    <div className="w-[160px] flex justify-end">
                       <DeleteButton
                         onClick={() => handleDeleteMemberNumber(num.id)}
                       />
