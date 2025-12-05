@@ -1,10 +1,18 @@
 // SMS domain types
 
 // SMS History types
-export type SmsStatus = "PROCESSING" | "SUCCESS" | "FAILED";
+export type SmsStatus = "pending" | "processing" | "success" | "failed";
 export type SmsMessageType = "SMS" | "LMS" | "MMS";
 export type SmsAdvertisementType = "informational" | "advertising";
 export type SenderNumberType = "project" | "member";
+
+// 상태 라벨 매핑
+export const SMS_STATUS_LABEL: Record<SmsStatus, string> = {
+  pending: "대기중",
+  processing: "처리중",
+  success: "완료",
+  failed: "실패",
+} as const;
 
 // SMS Send types
 export type SendSmsAssignmentType = "ids" | "filter";
