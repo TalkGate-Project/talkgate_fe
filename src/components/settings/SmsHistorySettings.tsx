@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SmsService } from "@/services/sms";
 import type { SmsHistory, SmsStatus, SmsMessageType } from "@/types/sms";
+import { SMS_STATUS_LABEL } from "@/types/sms";
 import DatePicker from "@/components/common/DatePicker";
 import dayjs from "dayjs";
 
@@ -11,25 +12,27 @@ const PAGE_SIZE = 10;
 
 // 상태 뱃지 컴포넌트
 function StatusBadge({ status }: { status: SmsStatus }) {
-  const config = {
-    SUCCESS: {
-      label: "완료",
-      bgColor: "bg-[#DCFCE7]",
-      textColor: "text-[#166534]",
+  const config: Record<SmsStatus, { bgColor: string; textColor: string }> = {
+    pending: {
+      bgColor: "bg-[#F3F4F6]",
+      textColor: "text-[#4B5563]",
     },
-    PROCESSING: {
-      label: "처리중",
+    processing: {
       bgColor: "bg-[#FEF9C3]",
       textColor: "text-[#854D0E]",
     },
-    FAILED: {
-      label: "실패",
+    success: {
+      bgColor: "bg-[#DCFCE7]",
+      textColor: "text-[#166534]",
+    },
+    failed: {
       bgColor: "bg-[#FEE2E2]",
       textColor: "text-[#991B1B]",
     },
   };
 
-  const { label, bgColor, textColor } = config[status] || config.PROCESSING;
+  const label = SMS_STATUS_LABEL[status] || status;
+  const { bgColor, textColor } = config[status] || config.processing;
 
   return (
     <span
@@ -383,9 +386,10 @@ export default function SmsHistorySettings() {
                   className="h-[34px] w-[120px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-ink appearance-none bg-white pr-8 outline-none focus:border-neutral-60"
                 >
                   <option value="">전체 상태</option>
-                  <option value="SUCCESS">완료</option>
-                  <option value="PROCESSING">처리중</option>
-                  <option value="FAILED">실패</option>
+                  <option value="pending">대기중</option>
+                  <option value="processing">처리중</option>
+                  <option value="success">완료</option>
+                  <option value="failed">실패</option>
                 </select>
                 <svg
                   className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
