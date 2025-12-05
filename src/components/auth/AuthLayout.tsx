@@ -118,7 +118,7 @@ export default function AuthLayout({
               height: "100vh",
               backgroundImage: `url('${loginCardImg.src}')`,
               backgroundRepeat: "no-repeat",
-              backgroundPosition: "center top",
+              backgroundPosition: "center -325px",
               backgroundSize: "100% auto",
             }}
           >
@@ -129,7 +129,7 @@ export default function AuthLayout({
             style={{
               width: "384px",
               maxWidth: "calc(100% - 40px)",
-              paddingTop: "var(--card-padding-top, 130px)",
+              paddingTop: "var(--card-padding-top, 310px)",
             }}
           >
             {/* 워드마크 로고 */}
