@@ -143,3 +143,46 @@ export type ProjectSenderNumberListResponse = {
   limit: number;
 };
 
+// Register Member Sender Number types
+export type RegisterMemberSenderNumberInput = {
+  verificationToken: string;
+};
+
+export type RegisterMemberSenderNumberData = {
+  id: number;
+  memberId: number;
+  phoneNumber: string;
+  createdAt: string;
+};
+
+export type RegisterMemberSenderNumberResponse = {
+  result: boolean;
+  data?: RegisterMemberSenderNumberData;
+};
+
+// Register Project Sender Number types
+export type RegisterProjectSenderNumberInput = {
+  number: string;
+  documentImage1: string;
+  documentImage2: string;
+  documentImage3: string;
+  documentImage4: string;
+};
+
+export type RegisterProjectSenderNumberData = {
+  id: number;
+  projectId: number;
+  number: string;
+  status: ProjectSenderNumberStatus;
+  documentImage1: string;
+  documentImage2: string;
+  documentImage3: string;
+  documentImage4: string;
+  createdAt: string;
+};
+
+export type RegisterProjectSenderNumberResponse = {
+  result: boolean;
+  data?: RegisterProjectSenderNumberData;
+};
+

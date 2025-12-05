@@ -6,6 +6,10 @@ import type {
   MemberSenderNumberListResponse,
   ProjectSenderNumberListQuery,
   ProjectSenderNumberListResponse,
+  RegisterMemberSenderNumberInput,
+  RegisterMemberSenderNumberResponse,
+  RegisterProjectSenderNumberInput,
+  RegisterProjectSenderNumberResponse,
   SendSmsInput,
   SendSmsResponse,
 } from "@/types/sms";
@@ -46,6 +50,49 @@ export const SmsService = {
     return apiClient.get<ProjectSenderNumberListResponse>("/v1/sms/sender-numbers/project", {
       query: query as Record<string, string | number | boolean>,
     });
+  },
+
+  /**
+   * 개인 발신번호 등록
+   * 본인인증을 통해 개인 발신번호를 등록합니다.
+   */
+  registerMemberSenderNumber(input: { verificationToken: string }) {
+    return apiClient.post<{
+      result: boolean;
+      data?: {
+        id: number;
+        memberId: number;
+        phoneNumber: string;
+        createdAt: string;
+      };
+    }>("/v1/sms/sender-numbers/member", input);
+  },
+
+  /**
+   * 프로젝트 발신번호 등록
+   * 프로젝트 발신번호를 등록합니다. 관련 서류를 첨부해야 합니다.
+   */
+  registerProjectSenderNumber(input: {
+    number: string;
+    documentImage1: string;
+    documentImage2: string;
+    documentImage3: string;
+    documentImage4: string;
+  }) {
+    return apiClient.post<{
+      result: boolean;
+      data?: {
+        id: number;
+        projectId: number;
+        number: string;
+        status: string;
+        documentImage1: string;
+        documentImage2: string;
+        documentImage3: string;
+        documentImage4: string;
+        createdAt: string;
+      };
+    }>("/v1/sms/sender-numbers/project", input);
   },
 };
 
