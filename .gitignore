@@ -45,3 +45,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cursor AI 대화 중 생성된 이미지
+assets/c__Users_*

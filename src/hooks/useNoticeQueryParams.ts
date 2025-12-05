@@ -8,6 +8,7 @@ export interface NoticeQueryParams {
   page: number;
   limit: number;
   title?: string;
+  important?: boolean;
 }
 
 export interface UseNoticeQueryParamsResult {
@@ -17,10 +18,12 @@ export interface UseNoticeQueryParamsResult {
   limit: number;
   /** 제목 검색어 */
   title?: string;
+  /** 중요 공지만 보기 */
+  important?: boolean;
   /** 쿼리 스트링 (전체) */
   queryString: string;
   /** 쿼리 파라미터 업데이트 */
-  updateQuery: (updates: Record<string, string | number | undefined | null>) => void;
+  updateQuery: (updates: Record<string, string | number | undefined | null | boolean>) => void;
   /** 공지사항 상세 페이지 URL 생성 */
   buildDetailUrl: (noticeId: number) => string;
   /** 공지사항 목록 페이지 URL */
@@ -50,16 +53,21 @@ export function useNoticeQueryParams(): UseNoticeQueryParamsResult {
     return raw.trim() ? raw.trim() : undefined;
   }, [searchParams]);
 
+  const important = useMemo(() => {
+    const raw = searchParams.get("important");
+    return raw === "true" ? true : undefined;
+  }, [searchParams]);
+
   const queryString = useMemo(() => {
     const params = new URLSearchParams(searchParams);
     return params.toString();
   }, [searchParams]);
 
   const updateQuery = useCallback(
-    (updates: Record<string, string | number | undefined | null>) => {
+    (updates: Record<string, string | number | undefined | null | boolean>) => {
       const params = new URLSearchParams(searchParams);
       Object.entries(updates).forEach(([key, value]) => {
-        if (value === undefined || value === null || value === "") {
+        if (value === undefined || value === null || value === "" || value === false) {
           params.delete(key);
         } else {
           params.set(key, String(value));
@@ -92,6 +100,7 @@ export function useNoticeQueryParams(): UseNoticeQueryParamsResult {
     page,
     limit,
     title,
+    important,
     queryString,
     updateQuery,
     buildDetailUrl,

@@ -13,6 +13,8 @@ interface NoticeTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  showImportantOnly?: boolean;
+  onImportantFilterChange?: (checked: boolean) => void;
 }
 
 export default function NoticeTable({
@@ -22,6 +24,8 @@ export default function NoticeTable({
   currentPage,
   totalPages,
   onPageChange,
+  showImportantOnly = false,
+  onImportantFilterChange,
 }: NoticeTableProps) {
   const router = useRouter();
 
@@ -44,10 +48,50 @@ export default function NoticeTable({
 
   return (
     <div className="bg-card rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
-      {/* Title */}
-      <h2 className="text-[18px] font-semibold text-neutral-90 mb-[30px]">
-        공지사항
-      </h2>
+      {/* Title & Filter */}
+      <div className="flex items-center justify-between mb-[30px]">
+        <h2 className="text-[18px] font-semibold text-neutral-90">
+          공지사항
+        </h2>
+        
+        {/* 중요 공지만 보기 체크박스 */}
+        {onImportantFilterChange && (
+          <label className="flex items-center gap-4 cursor-pointer">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={showImportantOnly}
+                onChange={(e) => onImportantFilterChange(e.target.checked)}
+                className="peer sr-only"
+              />
+              <div
+                className="w-6 h-6 border border-[#B0B0B0] rounded-[5px] peer-checked:bg-primary-60 peer-checked:border-primary-60 transition-colors flex items-center justify-center"
+              >
+                {showImportantOnly && (
+                  <svg
+                    width="14"
+                    height="11"
+                    viewBox="0 0 14 11"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 5.5L5 9.5L13 1.5"
+                      stroke="white"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <span className="text-[14px] font-medium text-[#808080] leading-5">
+              중요 공지만 보기
+            </span>
+          </label>
+        )}
+      </div>
 
       {/* 테이블 헤더 */}
       <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6 mb-0">
