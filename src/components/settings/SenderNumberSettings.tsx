@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SmsService } from "@/services/sms";
 import type { ProjectSenderNumber, MemberSenderNumber } from "@/types/sms";
+import SelfAuthenticationModal from "./SelfAuthenticationModal";
+import CommonSenderNumberModal from "./CommonSenderNumberModal";
 
 type ProjectSenderNumberStatus = "verified" | "pending" | "rejected";
 
@@ -115,6 +117,12 @@ export default function SenderNumberSettings() {
   const [memberNumbers, setMemberNumbers] = useState<MemberSenderNumber[]>([]);
   const [loadingMember, setLoadingMember] = useState(false);
 
+  // 모달 상태
+  const [showSelfAuthModal, setShowSelfAuthModal] = useState(false);
+  const [showCommonSenderModal, setShowCommonSenderModal] = useState(false);
+  const [authPurpose, setAuthPurpose] = useState<"personal" | "common">("personal");
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+
   const showProjectMissing = ready && !projectId;
 
   // 프로젝트 발신번호 로드
@@ -176,15 +184,55 @@ export default function SenderNumberSettings() {
     alert("발신번호 삭제 API가 아직 구현되지 않았습니다.");
   };
 
-  // 추가 핸들러 (TODO: 모달 구현)
+  // 공통 발신번호 추가 핸들러
   const handleAddProjectNumber = () => {
-    // TODO: 발신번호 추가 모달 구현
-    alert("발신번호 추가 기능이 아직 구현되지 않았습니다.");
+    // 본인인증이 필요한지 확인
+    if (!isUserAuthenticated) {
+      // 본인인증이 안된 사용자: 본인인증 안내
+      setAuthPurpose("common");
+      setShowSelfAuthModal(true);
+    } else {
+      // 본인인증이 완료된 사용자: 서류 등록 모달 바로 표시
+      setShowCommonSenderModal(true);
+    }
   };
 
+  // 개인 발신번호 추가 핸들러
   const handleAddMemberNumber = () => {
-    // TODO: 발신번호 추가 모달 구현
-    alert("발신번호 추가 기능이 아직 구현되지 않았습니다.");
+    // 항상 본인인증 진행
+    setAuthPurpose("personal");
+    setShowSelfAuthModal(true);
+  };
+
+  // 본인인증 성공 핸들러
+  const handleAuthSuccess = async (verificationToken: string) => {
+    setShowSelfAuthModal(false);
+    setIsUserAuthenticated(true);
+
+    if (authPurpose === "personal") {
+      // 개인 발신번호: 본인인증 완료 시 자동으로 발신번호 추가
+      try {
+        await SmsService.registerMemberSenderNumber({ verificationToken });
+        alert("본인인증이 완료되어 발신번호가 자동으로 추가되었습니다.");
+        loadMemberNumbers(); // 목록 새로고침
+      } catch (error: any) {
+        console.error("개인 발신번호 등록 실패:", error);
+        const errorCode = error?.response?.data?.code;
+        if (errorCode === "ALREADY_EXISTS") {
+          alert("이미 등록된 발신번호입니다.");
+        } else {
+          alert("발신번호 등록에 실패했습니다.");
+        }
+      }
+    } else if (authPurpose === "common") {
+      // 공통 발신번호: 서류 등록 모달 표시
+      setShowCommonSenderModal(true);
+    }
+  };
+
+  // 공통 발신번호 등록 성공 핸들러
+  const handleCommonSenderSuccess = () => {
+    loadProjectNumbers(); // 목록 새로고침
   };
 
   // 날짜 포맷팅
@@ -207,11 +255,27 @@ export default function SenderNumberSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] pb-7">
-      {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center border-b border-[#E2E2E2]">
-        발신번호 등록
-      </h1>
+    <>
+      {/* 본인인증 모달 */}
+      <SelfAuthenticationModal
+        isOpen={showSelfAuthModal}
+        onClose={() => setShowSelfAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+        purpose={authPurpose}
+      />
+
+      {/* 공통 발신번호 추가 모달 */}
+      <CommonSenderNumberModal
+        isOpen={showCommonSenderModal}
+        onClose={() => setShowCommonSenderModal(false)}
+        onSuccess={handleCommonSenderSuccess}
+      />
+
+      <div className="bg-card rounded-[14px] pb-7">
+        {/* Title */}
+        <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center border-b border-[#E2E2E2]">
+          발신번호 등록
+        </h1>
 
       {showProjectMissing ? (
         <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60">
@@ -345,6 +409,7 @@ export default function SenderNumberSettings() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

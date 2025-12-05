@@ -18,6 +18,10 @@ export const AssetsService = {
   presignProjectLogo(input: PresignInput) {
     return apiClient.post<PresignOutput>("/v1/asset/project-logo/presigned-url", input);
   },
+  // 발신번호 등록용 서류 Presigned URL 발급
+  presignSenderNumberDoc(input: PresignInput) {
+    return apiClient.post<PresignOutput>("/v1/asset/sender-number-doc/presigned-url", input);
+  },
   async uploadToS3(uploadUrl: string, file: File, fileType: string) {
     // Presigned URL 사용 시 주의사항:
     // 1. Content-Type은 presigned URL 생성 시 전달한 fileType과 정확히 일치해야 함
