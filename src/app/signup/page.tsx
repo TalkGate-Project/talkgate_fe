@@ -60,11 +60,7 @@ function SignupContent() {
   };
 
   return (
-    <AuthLayout 
-      ariaLabel="signup-area"
-      cardPaddingTopRatio={0.488}
-      cardContentWidthRatio={0.646}
-    >
+    <AuthLayout ariaLabel="signup-area">
       <h1 className="sr-only">회원가입</h1>
 
       {/* 초대 회원가입 안내 */}
@@ -107,7 +103,7 @@ function SignupContent() {
 export default function SignupPage() {
   return (
     <Suspense fallback={
-      <AuthLayout ariaLabel="signup-area" cardPaddingTopRatio={0.488} cardContentWidthRatio={0.646}>
+      <AuthLayout ariaLabel="signup-area">
         <div className="text-center text-white text-xl">로딩 중...</div>
       </AuthLayout>
     }>

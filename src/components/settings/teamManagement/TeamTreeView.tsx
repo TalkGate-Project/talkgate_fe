@@ -14,6 +14,9 @@ type Props = {
   onMemberClick: (member: TeamMember) => void;
 };
 
+// 노드 간 가로 간격
+const HORIZONTAL_GAP = 32;
+
 export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick }: Props) {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -44,21 +47,21 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
     isPanningRef.current = false;
   }, []);
 
-  const renderNode = useCallback(
-    (item: TeamMember): ReactElement => {
-      const leaderChildren = item.children?.filter((child) => child.isLeader) ?? [];
-      const memberChildren = item.children?.filter((child) => !child.isLeader) ?? [];
+  // 노드 카드만 렌더링 (배지 + 카드)
+  const renderNodeCard = useCallback(
+    (item: TeamMember) => {
       const isDragOver = dragState.dragOverItemId === item.id;
       const isDragging = dragState.draggedItemId === item.id;
+      const isLeader = item.isLeader;
 
       return (
-        <div key={item.id} className="relative flex flex-col items-center">
-          {item.isLeader && (
+        <div className="flex flex-col items-center">
+          {/* 팀/부서 배지 (리더일 경우) */}
+          {isLeader && (
             <div
-              className="absolute left-1/2 -translate-x-1/2 flex justify-center items-center px-3 py-1 rounded-[30px] shadow-sm bg-secondary-10"
+              className="flex justify-center items-center px-3 py-1 rounded-[30px] shadow-sm bg-secondary-10 mb-1"
               style={{
-                top: `-${TOKENS.spacing.badgeOffset}px`,
-                width: `${TOKENS.node.badge.w}px`,
+                minWidth: `${TOKENS.node.badge.w}px`,
                 height: `${TOKENS.node.badge.h}px`,
               }}
             >
@@ -71,15 +74,15 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             </div>
           )}
 
+          {/* 노드 카드 */}
           <div
             className={`group relative flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 ${
-              item.isLeader
-                ? "bg-primary-10/30"
-                : "bg-card"
+              isLeader ? "bg-primary-10/30" : "bg-neutral-10"
             } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               minWidth: `${TOKENS.node.leader.w}px`,
               height: `${TOKENS.node.leader.h}px`,
+              borderColor: isLeader ? undefined : TOKENS.colors.light[30],
             }}
             draggable
             onDragStart={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragStart(e, item)}
@@ -90,7 +93,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
           >
             <div
               className={`rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[14px] ${
-                item.isLeader ? "bg-primary-80" : "bg-neutral-60"
+                isLeader ? "bg-primary-80" : "bg-neutral-60"
               }`}
               style={{
                 width: `${TOKENS.node.leader.avatar}px`,
@@ -111,135 +114,81 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               {item.name}
             </button>
           </div>
+        </div>
+      );
+    },
+    [dragHandlers, dragState, onMemberClick]
+  );
 
+  // 트리 노드 렌더링 (재귀) - 모든 자식을 가로로 배치
+  const renderNode = useCallback(
+    (item: TeamMember): ReactElement => {
+      const children = item.children ?? [];
+      const hasChildren = children.length > 0;
+
+      return (
+        <div key={item.id} className="flex flex-col items-center">
+          {/* 현재 노드 카드 */}
+          {renderNodeCard(item)}
+
+          {/* 자식 노드들 */}
           <AnimatePresence initial={false}>
-            {leaderChildren.length > 0 && (
+            {hasChildren && (
               <motion.div
-                key={`${item.id}-leaders`}
-                className="relative"
-                style={{ marginTop: `${TOKENS.spacing.vertical}px` }}
+                key={`${item.id}-children`}
+                className="flex flex-col items-center"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.18 }}
               >
+                {/* 부모에서 내려오는 수직 연결선 */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2"
                   style={{
                     width: `${TOKENS.connector.width}px`,
                     height: `${TOKENS.spacing.vertical}px`,
                     background: TOKENS.connector.color,
-                    borderRadius: TOKENS.connector.borderRadius,
-                    top: 0,
                   }}
                 />
 
-                <div
-                  className="relative flex justify-center gap-8"
-                  style={{ paddingTop: `${TOKENS.spacing.vertical}px` }}
-                >
+                {/* 자식 노드들 컨테이너 */}
+                <div className="relative flex flex-col items-center">
+                  {/* 수평 연결선 (자식이 2개 이상일 때) */}
+                  {children.length > 1 && (
+                    <div
+                      className="absolute"
+                      style={{
+                        height: `${TOKENS.connector.width}px`,
+                        background: TOKENS.connector.color,
+                        top: 0,
+                        // 첫 번째 자식 중앙에서 마지막 자식 중앙까지
+                        // 자식 컨테이너의 첫번째/마지막 자식의 중앙을 기준으로 함
+                        left: `calc(${TOKENS.node.leader.w / 2}px + ${HORIZONTAL_GAP / 2}px)`,
+                        right: `calc(${TOKENS.node.leader.w / 2}px + ${HORIZONTAL_GAP / 2}px)`,
+                      }}
+                    />
+                  )}
+
+                  {/* 자식 노드들 (가로 배치) */}
                   <div
-                    className="absolute top-0"
-                    style={{
-                      left: `${TOKENS.node.leader.w / 2}px`,
-                      right: `${TOKENS.node.leader.w / 2}px`,
-                      height: 1,
-                      background: TOKENS.connector.color,
-                    }}
-                  />
-
-                  {leaderChildren.map((child) => (
-                    <div key={child.id} className="relative flex flex-col items-center" style={{ paddingTop: `${TOKENS.spacing.vertical}px` }}>
-                      <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2"
-                        style={{
-                          width: `${TOKENS.connector.width}px`,
-                          height: `${TOKENS.spacing.vertical}px`,
-                          background: TOKENS.connector.color,
-                          borderRadius: TOKENS.connector.borderRadius,
-                        }}
-                      />
-                      {renderNode(child)}
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {memberChildren.length > 0 && (
-              <motion.div
-                key={`${item.id}-members`}
-                className="relative"
-                style={{ marginTop: `${TOKENS.spacing.vertical}px` }}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <div
-                  className="absolute left-1/2 -translate-x-1/2"
-                  style={{
-                    width: `${TOKENS.connector.width}px`,
-                    height: `${TOKENS.spacing.vertical}px`,
-                    background: TOKENS.connector.color,
-                    borderRadius: TOKENS.connector.borderRadius,
-                    top: 0,
-                  }}
-                />
-
-                <div
-                  className="flex flex-col items-center"
-                  style={{ paddingTop: `${TOKENS.spacing.vertical}px`, gap: `${TOKENS.spacing.vertical}px` }}
-                >
-                  {memberChildren.map((member, index) => {
-                    const memberDragOver = dragState.dragOverItemId === member.id;
-                    const memberDragging = dragState.draggedItemId === member.id;
-                    return (
-                      <div key={member.id} className="flex flex-col items-center">
-                        {index > 0 && (
-                          <div
-                            style={{
-                              width: `${TOKENS.connector.width}px`,
-                              height: `${TOKENS.spacing.vertical}px`,
-                              background: TOKENS.connector.color,
-                              borderRadius: TOKENS.connector.borderRadius,
-                            }}
-                          />
-                        )}
+                    className="flex items-start"
+                    style={{ gap: `${HORIZONTAL_GAP}px` }}
+                  >
+                    {children.map((child) => (
+                      <div key={child.id} className="flex flex-col items-center">
+                        {/* 수평선에서 자식으로 내려오는 수직 연결선 */}
                         <div
-                          className={`flex items-center px-6 gap-4 border rounded-[12px] bg-neutral-10 transition-all ${
-                            memberDragOver ? "ring-2 ring-blue-400 bg-blue-50" : ""
-                          } ${memberDragging ? "opacity-50" : ""}`}
                           style={{
-                            minWidth: `${TOKENS.node.member.w}px`,
-                            height: `${TOKENS.node.member.h}px`,
-                            borderColor: TOKENS.colors.light[30],
+                            width: `${TOKENS.connector.width}px`,
+                            height: `${TOKENS.spacing.vertical}px`,
+                            background: TOKENS.connector.color,
                           }}
-                          draggable
-                          onDragStart={(e) => dragHandlers.handleDragStart(e, member)}
-                          onDragOver={(e) => dragHandlers.handleDragOver(e, member.id)}
-                          onDragLeave={dragHandlers.handleDragLeave}
-                          onDrop={(e) => dragHandlers.handleDrop(e, member.id)}
-                          onDragEnd={dragHandlers.handleDragEnd}
-                        >
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[14px] font-semibold bg-[#808080]">
-                            {member.avatar}
-                          </div>
-                          <button
-                            type="button"
-                            title={member.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onMemberClick(member);
-                            }}
-                            className="text-left text-[16px] font-semibold text-[#000000] hover:underline focus:underline truncate max-w-[120px]"
-                          >
-                            {member.name}
-                          </button>
-                        </div>
+                        />
+                        {/* 자식 노드 (재귀) */}
+                        {renderNode(child)}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -247,7 +196,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         </div>
       );
     },
-    [dragHandlers, dragState, onMemberClick]
+    [renderNodeCard]
   );
 
   const tree = useMemo(
@@ -257,7 +206,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   return (
     <div
-      className="relative min-h-[500px] max-w-[712px] overflow-x-auto overflow-y-visible"
+      className="relative min-h-[500px] max-w-[712px] overflow-auto"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -265,7 +214,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
       role="tree"
       aria-label="조직도 트리"
     >
-      <div className="p-8 inline-block">
+      <div className="p-8 inline-block min-w-max">
         <div
           className="relative"
           style={{
@@ -274,7 +223,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             width: "max-content",
           }}
         >
-          <div className="flex flex-nowrap gap-8 items-start mb-8" style={{ width: "max-content" }}>
+          <div className="flex flex-nowrap gap-16 items-start" style={{ width: "max-content" }}>
             {tree}
           </div>
         </div>
