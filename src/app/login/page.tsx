@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
@@ -11,14 +11,18 @@ import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(getRememberMePreference());
   const [invalid, setInvalid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
+  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
 
   useEffect(() => {
     document.title = "TalkGate - 로그인";
@@ -30,14 +34,21 @@ export default function LoginPage() {
     AuthService.me()
       .then(() => {
         if (mounted) {
-          // 이미 인증된 상태: 프로젝트가 선택되어 있으면 대시보드로, 아니면 프로젝트 선택으로
-          const projectId = getSelectedProjectId();
-          if (projectId) {
-            console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 있음 → 대시보드로 이동");
-            router.replace("/dashboard");
+          // 이미 인증된 상태
+          if (redirectUrl) {
+            // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+            console.log("[LoginPage] ✅ 이미 인증됨 + 리디렉션 URL 있음 →", redirectUrl);
+            window.location.href = redirectUrl;
           } else {
-            console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-            router.replace("/projects");
+            // 프로젝트가 선택되어 있으면 대시보드로, 아니면 프로젝트 선택으로
+            const projectId = getSelectedProjectId();
+            if (projectId) {
+              console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 있음 → 대시보드로 이동");
+              router.replace("/dashboard");
+            } else {
+              console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+              router.replace("/projects");
+            }
           }
         }
       })
@@ -52,7 +63,7 @@ export default function LoginPage() {
     return () => {
       mounted = false;
     };
-  }, [router]);
+  }, [router, redirectUrl]);
 
   if (checking) return null;
 
@@ -70,17 +81,27 @@ export default function LoginPage() {
               const data = (res as any)?.data?.data;
               // Check if this is a 2FA required response
               if (data?.twoFactorToken) {
-                // Navigate to 2FA login page with the token
-                router.push(`/login/two-factor?token=${data.twoFactorToken}`);
+                // Navigate to 2FA login page with the token (리디렉션 URL 유지)
+                const twoFactorUrl = redirectUrl 
+                  ? `/login/two-factor?token=${data.twoFactorToken}&redirectUrl=${encodeURIComponent(redirectUrl)}`
+                  : `/login/two-factor?token=${data.twoFactorToken}`;
+                router.push(twoFactorUrl);
               } else {
-                // Normal login success - 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-                const projectId = getSelectedProjectId();
-                if (projectId) {
-                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
-                  router.replace("/dashboard");
+                // Normal login success
+                if (redirectUrl) {
+                  // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+                  console.log("[LoginPage] ✅ 로그인 성공 + 리디렉션 URL 있음 →", redirectUrl);
+                  window.location.href = redirectUrl;
                 } else {
-                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-                  router.replace("/projects");
+                  // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
+                  const projectId = getSelectedProjectId();
+                  if (projectId) {
+                    console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
+                    router.replace("/dashboard");
+                  } else {
+                    console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+                    router.replace("/projects");
+                  }
                 }
               }
             })
@@ -171,7 +192,13 @@ export default function LoginPage() {
           aria-label="kakao"
           className="cursor-pointer w-11 h-11 rounded-full"
           style={{ background: "#FEE500" }}
-          onClick={() => initiateSocialLogin("kakao")}
+          onClick={() => {
+            // 소셜 로그인 시 리디렉션 URL을 세션 스토리지에 저장
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            initiateSocialLogin("kakao");
+          }}
         >
           <img src="/kakao.png" alt="" />
         </button>
@@ -179,14 +206,24 @@ export default function LoginPage() {
           aria-label="naver"
           className="cursor-pointer w-11 h-11 rounded-full"
           style={{ background: "#03C75A" }}
-          onClick={() => initiateSocialLogin("naver")}
+          onClick={() => {
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            initiateSocialLogin("naver");
+          }}
         >
           <img src="/naver.png" alt="" />
         </button>
         <button
           aria-label="google"
           className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
-          onClick={() => initiateSocialLogin("google")}
+          onClick={() => {
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            initiateSocialLogin("google");
+          }}
         >
           <img src="/google.png" alt="" />
         </button>
@@ -198,11 +235,28 @@ export default function LoginPage() {
         <button
           type="button"
           className="cursor-pointer underline underline-offset-2 text-[#3690EB]"
-          onClick={() => router.push("/signup")}
+          onClick={() => {
+            const signupUrl = redirectUrl 
+              ? `/signup?redirectUrl=${encodeURIComponent(redirectUrl)}`
+              : "/signup";
+            router.push(signupUrl);
+          }}
         >
           회원가입
         </button>
       </div>
     </AuthLayout>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout ariaLabel="login-form-area">
+        <div className="text-center text-white text-xl">로딩 중...</div>
+      </AuthLayout>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

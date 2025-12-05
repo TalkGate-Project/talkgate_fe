@@ -7,7 +7,10 @@ import { NextResponse } from "next/server";
 // 메인 도메인 목록 (서브도메인 제외 대상)
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
 // 예약된 서브도메인 (프로젝트 서브도메인으로 취급하지 않음)
-const RESERVED_SUBDOMAINS = ["www", "api", "api-dev", "dev", "staging", "admin"];
+// app, app-dev: 메인 서비스 애플리케이션
+// api, api-dev: API 서버
+// landing, landing-dev: 랜딩 페이지
+const RESERVED_SUBDOMAINS = ["www", "app", "app-dev", "api", "api-dev", "landing", "landing-dev", "dev", "staging", "admin"];
 
 /**
  * 호스트에서 서브도메인을 추출합니다.
@@ -50,14 +53,45 @@ function extractSubdomain(host: string): string | null {
 }
 
 /**
+ * 현재 환경에 맞는 API 베이스 URL을 반환합니다.
+ */
+function getApiBaseUrl(host: string): string {
+  // 프로덕션 환경 (app.talkgate.im)
+  if (host.includes("app.talkgate.im") && !host.includes("app-dev")) {
+    return "https://api.talkgate.im";
+  }
+  // 개발 환경 (app-dev.talkgate.im, localhost, vercel preview)
+  return "https://api-dev.talkgate.im";
+}
+
+/**
+ * 현재 환경에 맞는 메인 도메인을 반환합니다.
+ */
+function getMainDomain(host: string): string {
+  // localhost 환경
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    return host.replace(/^[^.]+\./, ""); // 서브도메인 제거
+  }
+  
+  // 프로덕션 환경 (app.talkgate.im)
+  if (host.includes("app.talkgate.im") && !host.includes("app-dev")) {
+    return "app.talkgate.im";
+  }
+  
+  // 개발 환경 (app-dev.talkgate.im, vercel preview)
+  return "app-dev.talkgate.im";
+}
+
+/**
  * 서브도메인으로 프로젝트 정보를 조회합니다.
  */
 async function fetchProjectBySubdomain(
   subdomain: string,
-  accessToken?: string
+  accessToken?: string,
+  host?: string
 ): Promise<{ id: number; useAttendanceMenu?: boolean } | null> {
   try {
-    const apiBaseUrl = "https://api-dev.talkgate.im"; // env.ts와 동일하게 설정
+    const apiBaseUrl = getApiBaseUrl(host || "");
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -102,9 +136,7 @@ export async function middleware(req: NextRequest) {
     // 서브도메인에서 접속한 경우 메인 도메인으로 리다이렉트
     if (subdomain) {
       const protocol = req.nextUrl.protocol;
-      const mainDomain = host.includes("localhost") 
-        ? host.replace(`${subdomain}.`, "") // localhost의 경우
-        : "talkgate.im";
+      const mainDomain = getMainDomain(host);
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
     }
     
@@ -125,7 +157,7 @@ export async function middleware(req: NextRequest) {
   
   if (subdomain) {
     const accessToken = req.cookies.get("tg_access_token")?.value;
-    const project = await fetchProjectBySubdomain(subdomain, accessToken);
+    const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
     
     if (project) {
       const subdomainProjectId = String(project.id);
