@@ -42,17 +42,14 @@ export default function SelfAuthenticationModal({
   };
 
   const getMainText = () => {
-    if (purpose === "personal") {
-      return "개인 발신번호 추가를 위해 본인인증을 진행해주세요.";
-    }
-    return "공통 발신번호 추가를 위해 본인인증을 진행해주세요.";
+    return "발신번호 등록을 위해 본인인증을 진행해주세요.";
   };
 
   const getSubText = () => {
     if (purpose === "personal") {
       return "본인인증이 완료되면 자동으로 발신번호에 추가됩니다.";
     }
-    return "본인인증 완료 후 서류 등록 화면이 표시됩니다.";
+    return null; // 공통 발신번호 추가시에는 하단 문구 숨김
   };
 
   return (
@@ -113,10 +110,12 @@ export default function SelfAuthenticationModal({
             {getMainText()}
           </p>
 
-          {/* Sub Text */}
-          <p className="text-[14px] text-[#666666] leading-[1.6] text-center">
-            {getSubText()}
-          </p>
+          {/* Sub Text - 개인 발신번호 추가시에만 표시 */}
+          {getSubText() && (
+            <p className="text-[14px] text-[#666666] leading-[1.6] text-center">
+              {getSubText()}
+            </p>
+          )}
         </div>
 
         {/* Divider */}
