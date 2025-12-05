@@ -85,7 +85,7 @@ function findNodeWithParent(tree: TeamMember[], targetId: string, parent?: TeamM
 export default function TeamManagementSettings() {
   const router = useRouter();
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("tree");
   const [draggedItem, setDraggedItem] = useState<TeamMember | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);

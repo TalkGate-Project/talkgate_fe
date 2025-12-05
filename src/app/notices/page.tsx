@@ -28,12 +28,13 @@ function NoticePageContent() {
     setProjectId(id);
   }, [router]);
 
-  const { page, limit, title, updateQuery, buildDetailUrl } = useNoticeQueryParams();
+  const { page, limit, title, important, updateQuery, buildDetailUrl } = useNoticeQueryParams();
   const { notices, loading, errorMessage, totalPages, data } = useNoticeList({
     projectId,
     page,
     limit,
     title,
+    important,
   });
 
   // 검색어를 URL 파라미터와 동기화
@@ -60,6 +61,10 @@ function NoticePageContent() {
     updateQuery({ page: 1, title: trimmed || undefined });
   };
 
+  const handleImportantFilterChange = (checked: boolean) => {
+    updateQuery({ page: 1, important: checked || undefined });
+  };
+
   if (!projectId) return null;
 
   return (
@@ -81,6 +86,8 @@ function NoticePageContent() {
             currentPage={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
+            showImportantOnly={important ?? false}
+            onImportantFilterChange={handleImportantFilterChange}
           />
           {errorMessage && (
             <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">

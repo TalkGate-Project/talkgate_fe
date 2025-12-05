@@ -21,6 +21,9 @@ function SignupContent() {
 
   // URL에서 초대 토큰 가져오기
   const invitationToken = useMemo(() => searchParams.get("invite") || undefined, [searchParams]);
+  
+  // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
+  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
 
   useEffect(() => {
     document.title = invitationToken ? "TalkGate - 초대 회원가입" : "TalkGate - 회원가입";
@@ -46,17 +49,32 @@ function SignupContent() {
   };
 
   const handleProfileComplete = () => {
-    router.replace("/projects");
+    if (redirectUrl) {
+      // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+      console.log("[SignupPage] ✅ 회원가입 성공 + 리디렉션 URL 있음 →", redirectUrl);
+      window.location.href = redirectUrl;
+    } else {
+      router.replace("/projects");
+    }
     setStep("done");
   };
 
   const handleProfileSkip = () => {
-    router.replace("/projects");
+    if (redirectUrl) {
+      // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+      console.log("[SignupPage] ✅ 회원가입 성공 (스킵) + 리디렉션 URL 있음 →", redirectUrl);
+      window.location.href = redirectUrl;
+    } else {
+      router.replace("/projects");
+    }
     setStep("done");
   };
 
   const handleGoLogin = () => {
-    router.replace("/login");
+    const loginUrl = redirectUrl 
+      ? `/login?redirectUrl=${encodeURIComponent(redirectUrl)}`
+      : "/login";
+    router.replace(loginUrl);
   };
 
   return (

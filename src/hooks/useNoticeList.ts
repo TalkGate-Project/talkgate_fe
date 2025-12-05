@@ -8,6 +8,7 @@ export interface UseNoticeListParams {
   page: number;
   limit: number;
   title?: string;
+  important?: boolean;
 }
 
 export interface UseNoticeListResult {
@@ -31,7 +32,7 @@ export interface UseNoticeListResult {
  * 공지사항 목록을 조회하고 관리하는 훅
  */
 export function useNoticeList(params: UseNoticeListParams): UseNoticeListResult {
-  const { projectId, page, limit, title } = params;
+  const { projectId, page, limit, title, important } = params;
 
   const request = useMemo(() => {
     if (!projectId) return null;
@@ -40,10 +41,11 @@ export function useNoticeList(params: UseNoticeListParams): UseNoticeListResult 
         page,
         limit,
         title: title?.trim() || undefined,
+        important: important || undefined,
       },
       headers: { "x-project-id": projectId },
     } as const;
-  }, [projectId, page, limit, title]);
+  }, [projectId, page, limit, title, important]);
 
   const select = useCallback((raw: unknown): NoticeListData => {
     const response = raw as NoticeListResponse;

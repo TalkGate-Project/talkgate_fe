@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
+import { getSelectedProjectId } from "@/lib/project";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 function TwoFactorLoginContent() {
@@ -13,6 +14,7 @@ function TwoFactorLoginContent() {
   const [errorMessage, setErrorMessage] = useState("");
   
   const twoFactorToken = searchParams.get("token");
+  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
 
   useEffect(() => {
     document.title = "TalkGate - 2단계 인증";
@@ -45,7 +47,23 @@ function TwoFactorLoginContent() {
         twoFactorToken,
         totpCode,
       });
-      router.replace("/projects");
+      
+      // 2FA 인증 성공 후 리디렉션
+      if (redirectUrl) {
+        // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 리디렉션 URL 있음 →", redirectUrl);
+        window.location.href = redirectUrl;
+      } else {
+        // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
+        const projectId = getSelectedProjectId();
+        if (projectId) {
+          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 있음 → 대시보드로 이동");
+          router.replace("/dashboard");
+        } else {
+          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+          router.replace("/projects");
+        }
+      }
     } catch (err: any) {
       const status = err?.status;
       const code = err?.data?.code;
@@ -126,7 +144,12 @@ function TwoFactorLoginContent() {
         <button
           type="button"
           className="cursor-pointer underline underline-offset-2 hover:text-[#3690EB] transition-colors"
-          onClick={() => router.push("/login")}
+          onClick={() => {
+            const loginUrl = redirectUrl 
+              ? `/login?redirectUrl=${encodeURIComponent(redirectUrl)}`
+              : "/login";
+            router.push(loginUrl);
+          }}
         >
           로그인 화면으로 돌아가기
         </button>

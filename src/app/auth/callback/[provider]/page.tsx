@@ -26,6 +26,20 @@ function OAuthCallbackPage() {
   const code = searchParams.get("code");
   const oauthError = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
+  
+  // 세션 스토리지에서 리디렉션 URL 가져오기 (로그인 페이지에서 저장됨)
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedRedirectUrl = sessionStorage.getItem("tg_redirect_url");
+      if (storedRedirectUrl) {
+        setRedirectUrl(storedRedirectUrl);
+        // 사용 후 삭제
+        sessionStorage.removeItem("tg_redirect_url");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     document.title = "TalkGate - 로그인 중";
@@ -115,18 +129,24 @@ function OAuthCallbackPage() {
           return;
         }
         
-        // 일반 로그인 성공 - 프로젝트 ID 확인 후 적절한 페이지로 이동
+        // 일반 로그인 성공
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
         
         debugLog("🎯 리디렉션 결정", {
           hasProjectId: !!projectId,
           projectId,
-          destination: projectId ? "/dashboard" : "/projects",
+          hasRedirectUrl: !!redirectUrl,
+          redirectUrl,
+          destination: redirectUrl || (projectId ? "/dashboard" : "/projects"),
         });
         
         if (mounted) {
-          if (projectId) {
+          if (redirectUrl) {
+            // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+            debugLog("🔗 리디렉션 URL로 이동:", redirectUrl);
+            window.location.href = redirectUrl;
+          } else if (projectId) {
             // 프로젝트 ID가 있으면 대시보드로 이동
             router.replace("/dashboard");
           } else {
