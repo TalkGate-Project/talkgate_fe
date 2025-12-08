@@ -20,7 +20,7 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
   }
 };
 
-export function NotificationsPage() {
+function NotificationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [notifications, setNotifications] = useState<UINotification[]>([]);
