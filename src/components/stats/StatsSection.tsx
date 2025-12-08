@@ -28,15 +28,15 @@ const WEEKS = 6;
 function getWeekLabel(dateString: string): string {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
-  
+
   const month = date.getMonth() + 1; // 1-12
   const dayOfMonth = date.getDate(); // 1-31
   const weekDay = date.getDay(); // 0(일) ~ 6(토)
-  
+
   // 해당 월의 첫날
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
   const firstDayOfWeek = firstDay.getDay(); // 0(일) ~ 6(토)
-  
+
   // 해당 월에서 현재 주의 시작 요일(weekDay)과 같은 요일이 처음 나오는 날짜를 찾기
   let firstOccurrence = 1;
   if (firstDayOfWeek <= weekDay) {
@@ -44,7 +44,7 @@ function getWeekLabel(dateString: string): string {
   } else {
     firstOccurrence = 1 + (7 - firstDayOfWeek + weekDay);
   }
-  
+
   // 첫 번째 발생일부터 현재 날짜까지 몇 주가 지났는지 계산
   let weekNumber;
   if (dayOfMonth < firstOccurrence) {
@@ -56,10 +56,10 @@ function getWeekLabel(dateString: string): string {
   } else {
     weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
   }
-  
+
   const weekNames = ["첫째주", "둘째주", "셋째주", "넷째주", "다섯째주"];
   const weekName = weekNames[weekNumber - 1] || `${weekNumber}째주`;
-  
+
   return `${month}월 ${weekName}`;
 }
 
@@ -70,22 +70,30 @@ export default function StatsSection() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const montserratStyle = { fontFamily: 'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui' };
+  const [showTooltip, setShowTooltip] = useState(false);
+  const montserratStyle = {
+    fontFamily:
+      'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
+  };
 
-  const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentWeeklyResponse>({
-    queryKey: ["dashboard", "weekly-payments", projectId, { weeks: WEEKS }],
-    enabled: hasProject,
-    queryFn: async () => {
-      if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.customerPaymentWeekly({ projectId, weeks: WEEKS });
-      return res.data;
-    },
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previous) => previous,
-  });
+  const { data, isLoading, isError, isFetching } =
+    useQuery<CustomerPaymentWeeklyResponse>({
+      queryKey: ["dashboard", "weekly-payments", projectId, { weeks: WEEKS }],
+      enabled: hasProject,
+      queryFn: async () => {
+        if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+        const res = await StatisticsService.customerPaymentWeekly({
+          projectId,
+          weeks: WEEKS,
+        });
+        return res.data;
+      },
+      staleTime: 5 * 60 * 1000,
+      placeholderData: (previous) => previous,
+    });
 
   const chartData = useMemo(() => {
-    const records = data?.data.data === null ? [] : (data?.data.data ?? []);
+    const records = data?.data.data === null ? [] : data?.data.data ?? [];
     return records
       .map((item) => ({
         label: getWeekLabel(item.weekStartDate),
@@ -104,7 +112,8 @@ export default function StatsSection() {
     const min = Math.min(...values);
     const max = Math.max(...values);
     const span = max - min;
-    const padding = span === 0 ? Math.max(1, Math.round(max * 0.1)) : Math.round(span * 0.15);
+    const padding =
+      span === 0 ? Math.max(1, Math.round(max * 0.1)) : Math.round(span * 0.15);
     const domainMin = Math.max(0, min - padding);
     const domainMax = max + padding;
     const maxIndex = values.findIndex((v) => v === max);
@@ -113,12 +122,99 @@ export default function StatsSection() {
 
   const loading = isLoading && !data;
   const error = isError && !isFetching;
-  const showEmpty = !loading && !error && (data?.data.data === null || chartData.length === 0);
+  const showEmpty =
+    !loading && !error && (data?.data.data === null || chartData.length === 0);
 
   return (
     <Panel
-      title={<span className="typo-title-4">주간 매출 통계</span>}
-      action={<button onClick={() => router.push("/stats?tab=payment")} className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>}
+      title={
+        <div className="flex gap-2 typo-title-4 relative">
+          <span>주간 매출 통계</span>
+          <div
+            className="relative"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="cursor-pointer"
+            >
+              <path
+                d="M10 13.3333V10M10 6.66667H10.0083M17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5C14.1421 17.5 17.5 14.1421 17.5 10Z"
+                stroke="#B0B0B0"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {showTooltip && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "150%",
+                  left: "100%",
+                  transform: "translateX(-17%)",
+                  marginBottom: "8px",
+                  zIndex: 1000,
+                }}
+              >
+                <div
+                  style={{
+                    position: "relative",
+                    width: "209px",
+                    minHeight: "120px",
+                    background: "#00000099",
+                    borderRadius: "5px",
+                    padding: "12px",
+                    fontFamily: "'Nunito Sans', sans-serif",
+                    fontSize: "12px",
+                    lineHeight: "16px",
+                    fontWeight: 500,
+                    color: "#FFFFFF",
+                  }}
+                >
+                  {/* Pointer */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-8px",
+                      left: "20px",
+                      width: 0,
+                      height: 0,
+                      borderLeft: "9px solid transparent",
+                      borderRight: "9px solid transparent",
+                      borderBottom: "8px solid #00000099",
+                    }}
+                  />
+                  <div style={{ marginBottom: "8px", fontWeight: 600 }}>
+                    주간 매출 통계란?
+                  </div>
+                  <div style={{ marginBottom: "4px" }}>
+                    결제 데이터를 주간 단위로 집계하여 최근 n주의 매출 변화를
+                    확인할 수 있는 통계입니다.
+                  </div>
+                  <div>
+                    본인 또는 본인이 관리하는 하위 멤버의 결제 건만 합산되어
+                    표시됩니다.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      }
+      action={
+        <button
+          onClick={() => router.push("/stats?tab=payment")}
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+        >
+          더보기
+        </button>
+      }
       className="rounded-[14px]"
       style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       headerClassName="flex items-center justify-between px-7 pt-[22px]"
@@ -134,18 +230,27 @@ export default function StatsSection() {
         ) : loading ? (
           <ChartSkeleton />
         ) : error ? (
-          <EmptyState message="주간 매출 통계를 불러오는 중 문제가 발생했습니다." error />
+          <EmptyState
+            message="주간 매출 통계를 불러오는 중 문제가 발생했습니다."
+            error
+          />
         ) : showEmpty ? (
-          <EmptyState message={data?.data.data === null ? "주간 매출 통계 데이터가 없습니다." : "표시할 데이터가 없습니다."} />
+          <EmptyState
+            message={
+              data?.data.data === null
+                ? "주간 매출 통계 데이터가 없습니다."
+                : "표시할 데이터가 없습니다."
+            }
+          />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart 
-              data={chartData} 
+            <AreaChart
+              data={chartData}
               margin={{ left: 46, right: 12, top: 42, bottom: 12 }}
               onMouseMove={(state) => {
                 if (state && state.isTooltipActive) {
                   const idx = state.activeTooltipIndex;
-                  setActiveIndex(typeof idx === 'number' ? idx : null);
+                  setActiveIndex(typeof idx === "number" ? idx : null);
                 } else {
                   setActiveIndex(null);
                 }
@@ -153,13 +258,32 @@ export default function StatsSection() {
               onMouseLeave={() => setActiveIndex(null)}
             >
               <defs>
-                <linearGradient id="dashboardWeekly" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="var(--primary-60)" stopOpacity={0.05} />
+                <linearGradient
+                  id="dashboardWeekly"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="var(--primary-60)"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--primary-60)"
+                    stopOpacity={0.05}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-              <XAxis dataKey="label" tickMargin={8} stroke="var(--neutral-50)" tick={{ fill: "var(--neutral-60)", fontSize: 12 }} />
+              <XAxis
+                dataKey="label"
+                tickMargin={8}
+                stroke="var(--neutral-50)"
+                tick={{ fill: "var(--neutral-60)", fontSize: 12 }}
+              />
               {/** Hide Y axis ticks/lines per request, but keep domain to improve contrast */}
               <YAxis hide domain={[domainMin, domainMax]} />
               <Tooltip
@@ -172,32 +296,31 @@ export default function StatsSection() {
                   return (
                     <div
                       style={{
-                        position: 'relative',
-                        background: '#E2E2E2',
+                        position: "relative",
+                        background: "#E2E2E2",
                         borderRadius: 5,
-                        padding: '5px 10px',
-                        fontFamily: 'Montserrat, sans-serif',
+                        padding: "5px 10px",
+                        fontFamily: "Montserrat, sans-serif",
                         fontSize: 12,
                         fontWeight: 500,
-                        color: '#474747',
-                        textAlign: 'center',
+                        color: "#474747",
+                        textAlign: "center",
                         minWidth: 60,
-                        transform: 'translateY(-20px)',
+                        transform: "translateY(-20px)",
                       }}
                     >
-                      {formatted}원
-                      {/* pointer */}
+                      {formatted}원{/* pointer */}
                       <div
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           bottom: -6,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
+                          left: "50%",
+                          transform: "translateX(-50%)",
                           width: 0,
                           height: 0,
-                          borderLeft: '6px solid transparent',
-                          borderRight: '6px solid transparent',
-                          borderTop: '6px solid #E2E2E2',
+                          borderLeft: "6px solid transparent",
+                          borderRight: "6px solid transparent",
+                          borderTop: "6px solid #E2E2E2",
                         }}
                       />
                     </div>
@@ -210,7 +333,13 @@ export default function StatsSection() {
                 stroke="var(--primary-60)"
                 strokeWidth={3}
                 fill="url(#dashboardWeekly)"
-                dot={{ r: 5, fill: "var(--primary-60)", stroke: "var(--primary-60)", strokeWidth: 0, opacity: 0.9 }}
+                dot={{
+                  r: 5,
+                  fill: "var(--primary-60)",
+                  stroke: "var(--primary-60)",
+                  strokeWidth: 0,
+                  opacity: 0.9,
+                }}
                 activeDot={{ r: 7 }}
               >
                 {/** Labels shown only on hover or for max value. Max point adds a separate black '최고점수' bubble above */}
@@ -222,10 +351,10 @@ export default function StatsSection() {
                     if (x == null || y == null) return null;
                     const isMax = index === maxIndex;
                     const isActive = index === activeIndex;
-                    
+
                     // Show label only if it's the max or currently hovered
                     if (!isMax && !isActive) return null;
-                    
+
                     const numeric = formatCurrencyKR(Number(value ?? 0));
                     const unit = "원";
                     const label = `${numeric}${unit}`;
@@ -247,7 +376,14 @@ export default function StatsSection() {
                           fill={"var(--neutral-20)"}
                           stroke={"var(--neutral-20)"}
                         />
-                        <text x={x} y={rectY + 15} textAnchor={"middle"} fill={"var(--foreground)"} fontSize={12} fontWeight={600}>
+                        <text
+                          x={x}
+                          y={rectY + 15}
+                          textAnchor={"middle"}
+                          fill={"var(--foreground)"}
+                          fontSize={12}
+                          fontWeight={600}
+                        >
                           <tspan style={montserratStyle}>{numeric}</tspan>
                           <tspan>{unit}</tspan>
                         </text>
@@ -273,10 +409,21 @@ export default function StatsSection() {
                                   />
                                   {/* pointer */}
                                   <polygon
-                                    points={`${cx - 5},${badgeY + badgeHeight} ${cx + 5},${badgeY + badgeHeight} ${cx},${badgeY + badgeHeight + 6}`}
+                                    points={`${cx - 5},${
+                                      badgeY + badgeHeight
+                                    } ${cx + 5},${badgeY + badgeHeight} ${cx},${
+                                      badgeY + badgeHeight + 6
+                                    }`}
                                     fill={"var(--foreground)"}
                                   />
-                                  <text x={x} y={badgeY + 15} textAnchor="middle" fill={"var(--card)"} fontSize={12} fontWeight={700}>
+                                  <text
+                                    x={x}
+                                    y={badgeY + 15}
+                                    textAnchor="middle"
+                                    fill={"var(--card)"}
+                                    fontSize={12}
+                                    fontWeight={700}
+                                  >
                                     최고점수
                                   </text>
                                 </g>
@@ -308,5 +455,3 @@ function formatDate(value: string) {
 function formatCurrency(value: number) {
   return value.toLocaleString("ko-KR");
 }
-
-
