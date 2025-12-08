@@ -124,11 +124,11 @@ function NoticeWritePage() {
 
   return (
     <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-      <div className="bg-white rounded-[14px] py-[26px]">
+      <div className="bg-card rounded-[14px] py-[26px]">
         {/* 헤더 영역 */}
         <div className="flex items-center justify-between mb-6 px-7">
           <div className="flex items-center gap-4">
-            <h1 className="text-[24px] font-bold text-[#252525]">
+            <h1 className="text-[24px] font-bold text-foreground">
               {isEditMode ? "공지사항 수정" : "공지사항"}
             </h1>
             <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ function NoticeWritePage() {
                 ariaLabel="중요 공지 설정"
                 disabled={submitting}
               />
-              <span className="text-[18px] font-medium text-[#808080]">
+              <span className="text-[18px] font-medium text-neutral-60">
                 이 공지사항을 중요 공지로 설정
               </span>
             </div>
@@ -149,7 +149,7 @@ function NoticeWritePage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleCancel}
-              className="cursor-pointer w-[66px] h-[34px] bg-white border border-[#E2E2E2] text-black rounded-[5px] text-[14px] font-semibold tracking-[-0.02em]"
+              className="cursor-pointer w-[66px] h-[34px] bg-card border border-border text-foreground rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] transition-colors hover:bg-neutral-10"
               disabled={submitting}
             >
               취소
@@ -157,7 +157,7 @@ function NoticeWritePage() {
             <button
               onClick={handleSave}
               disabled={submitting || loading}
-              className="cursor-pointer w-[66px] h-[34px] bg-[#252525] text-[#D0D0D0] rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60"
+              className="cursor-pointer w-[66px] h-[34px] bg-foreground text-card rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 transition-colors hover:opacity-90"
             >
               {submitting ? "저장 중..." : isEditMode ? "수정" : "저장"}
             </button>
@@ -169,13 +169,13 @@ function NoticeWritePage() {
 
         <div className="px-7">
           {error && (
-          <div className="mb-6 rounded-[12px] bg-[#FFEBEB] px-4 py-3 text-[14px] text-[#D83232]">
+          <div className="mb-6 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="py-12 text-center text-[14px] text-[#808080]">공지사항을 불러오는 중입니다...</div>
+          <div className="py-12 text-center text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</div>
         ) : (
           <>
             {/* 제목 입력 */}
@@ -189,7 +189,7 @@ function NoticeWritePage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={submitting}
-                className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-ink placeholder:text-[#808080] focus:outline-none focus:border-[#252525] disabled:bg-[#F5F5F5] disabled:text-[#808080]"
+                className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground disabled:bg-neutral-10 disabled:text-neutral-60"
               />
             </div>
 
@@ -203,7 +203,7 @@ function NoticeWritePage() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 disabled={submitting}
-                className="w-full h-[407px] px-3 py-3 border border-neutral-30 rounded-[5px] text-[14px] text-ink placeholder:text-[#808080] focus:outline-none focus:border-[#252525] resize-none disabled:bg-[#F5F5F5] disabled:text-[#808080]"
+                className="w-full h-[407px] px-3 py-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground resize-none disabled:bg-neutral-10 disabled:text-neutral-60"
               />
             </div>
           </>
@@ -219,8 +219,8 @@ export default function NoticeWritePageWrapper() {
     <Suspense
       fallback={
         <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-          <div className="bg-white rounded-[14px] p-6">
-            <div className="text-center text-[#808080]">불러오는 중...</div>
+          <div className="bg-card rounded-[14px] p-6">
+            <div className="text-center text-neutral-60">불러오는 중...</div>
           </div>
         </main>
       }

@@ -143,9 +143,9 @@ export default function ChatMainView({
 
   return (
     <div className="max-w-[688px] flex justify-center h-full">
-      <div className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 border border-border dark:border-neutral-30 flex flex-col">
+      <div className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col">
         {/* Header */}
-        <div className="px-7 py-[15px] flex items-center justify-between border-b border-[#E2E2E266]">
+        <div className="px-7 py-[15px] flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-4">
             {activeConversation ? (
               <>

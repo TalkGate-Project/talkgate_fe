@@ -21,6 +21,7 @@ export default function CalendarNextIcon({ className = "" }: CalendarNextIconPro
         rx="5.5"
         transform="matrix(-1 0 0 1 36 1)"
         stroke="#E2E2E2"
+        className="calendar-icon-border"
       />
       <path
         d="M14.9999 24.8077L21.9999 17.8077L14.9999 10.8077"
@@ -28,6 +29,7 @@ export default function CalendarNextIcon({ className = "" }: CalendarNextIconPro
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="calendar-icon-arrow"
       />
     </svg>
   );

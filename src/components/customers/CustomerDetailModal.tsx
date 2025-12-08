@@ -58,15 +58,15 @@ export default function CustomerDetailModal({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-white px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)] flex flex-col h-[85vh] md:h-[90vh] lg:h-[616px] xl:h-[616px]"
+      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-0 px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)] flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[546px]"
       ariaLabel="고객정보"
     >
       {/* Header */}
       <div className="flex items-center justify-between flex-none">
-        <h2 className="text-[18px] font-semibold text-[#111827]">고객정보</h2>
+        <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90">고객정보</h2>
         <button
           aria-label="close"
-          className="cursor-pointer w-6 h-6 grid place-items-center text-white"
+          className="cursor-pointer w-6 h-6 grid place-items-center"
           onClick={onClose}
         >
           <svg
@@ -78,7 +78,8 @@ export default function CustomerDetailModal({
           >
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="currentColor"
+              className="text-neutral-60 dark:text-neutral-50"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -89,7 +90,7 @@ export default function CustomerDetailModal({
 
       <div className="flex-1 overflow-y-auto min-h-0 -mx-2 px-2 custom-scrollbar">
         {loading && (
-          <div className="py-16 text-center text-neutral-60">불러오는 중...</div>
+          <div className="py-16 text-center text-neutral-60 dark:text-neutral-60">불러오는 중...</div>
         )}
 
         {!loading && detail && (
@@ -97,12 +98,12 @@ export default function CustomerDetailModal({
             {/* Left: form and tabs */}
           <div ref={leftPanelRef} className="col-span-12 lg:col-span-8 max-w-[792px]">
             {/* Tabs */}
-            <div className="flex gap-6 border-b border-neutral-30">
+            <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">
               <button
                 className={`cursor-pointer pb-3 text-[16px] ${
                   tab === "basic"
-                    ? "font-semibold text-black border-b-2 border-black"
-                    : "text-neutral-60"
+                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                    : "text-neutral-60 dark:text-neutral-60"
                 }`}
                 onClick={() => setTab("basic")}
               >
@@ -111,8 +112,8 @@ export default function CustomerDetailModal({
               <button
                 className={`cursor-pointer pb-3 text-[16px] ${
                   tab === "data"
-                    ? "font-semibold text-black border-b-2 border-black"
-                    : "text-neutral-60"
+                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                    : "text-neutral-60 dark:text-neutral-60"
                 }`}
                 onClick={() => setTab("data")}
               >
@@ -121,8 +122,8 @@ export default function CustomerDetailModal({
               <button
                 className={`cursor-pointer pb-3 text-[16px] ${
                   tab === "sales"
-                    ? "font-semibold text-black border-b-2 border-black"
-                    : "text-neutral-60"
+                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                    : "text-neutral-60 dark:text-neutral-60"
                 }`}
                 onClick={() => setTab("sales")}
               >
@@ -170,9 +171,9 @@ export default function CustomerDetailModal({
           />
 
           {/* Footer */}
-          <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-neutral-30">
+          <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-neutral-30 dark:border-neutral-30">
             <button
-              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 text-body-3 ${
+              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
                 hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
               }`}
               onClick={actions.resetForm}
@@ -183,8 +184,8 @@ export default function CustomerDetailModal({
             <button
               className={`h-[34px] px-4 rounded-[5px] text-body-3 ${
                 hasChanges
-                  ? "cursor-pointer bg-neutral-90 text-neutral-40"
-                  : "cursor-not-allowed bg-neutral-40 text-neutral-60"
+                  ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
+                  : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
               }`}
               onClick={() => {
                 actions.saveForm().then(() => onClose()).catch(() => alert("저장에 실패했습니다."));

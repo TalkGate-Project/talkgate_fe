@@ -110,7 +110,7 @@ export default function SalesRanking() {
             {rows.map((item) => (
               <li
                 key={`${mode}-${item.rank}-${item.name}`}
-                className="flex items-center justify-between py-4 border-b border-border last:border-b-0 cursor-pointer hover:bg-neutral-10 transition-colors rounded-lg px-1"
+                className="flex items-center justify-between py-4 border-b border-[#E2E2E266] dark:border-[#44444466] last:border-b-0 cursor-pointer hover:bg-neutral-10 transition-colors px-1"
                 onClick={() => handleRowClick(item)}
               >
                 <div className="flex items-center gap-2 pl-3">

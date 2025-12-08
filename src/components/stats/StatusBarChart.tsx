@@ -73,7 +73,7 @@ export default function StatusBarChart() {
           y={0}
           dy={14}
           textAnchor="middle"
-          fill="var(--neutral-100)"
+          fill="var(--foreground)"
           fontSize={14}
           fontWeight={500}
         >
@@ -154,7 +154,7 @@ export default function StatusBarChart() {
               if (!active || !payload?.length) return null;
               const p = payload[0].payload as { label: string; value: number };
               return (
-                <div className="rounded-[6px] bg-neutral-90 px-3 py-1 text-[12px] text-neutral-0">
+                <div className="rounded-[6px] bg-card border border-border px-3 py-1 text-[12px] text-foreground shadow-lg">
                   {p.label}: {p.value.toLocaleString()}건
                 </div>
               );

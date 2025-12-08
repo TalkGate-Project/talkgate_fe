@@ -177,15 +177,15 @@ export default function ChatLeftSidebar({
             </button>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex items-center px-1 h-[18px] rounded-[6px] bg-primary-10 text-primary-80 text-[12px]">
+            <span className="inline-flex items-center px-1 h-[18px] rounded-[5px] bg-primary-10 dark:bg-[rgba(214,250,232,0.2)] text-primary-80 dark:text-primary-80 dark:opacity-80 text-[12px]">
               총 {filteredConversations.length}건
             </span>
             <button
               onClick={() => setUnreadOnly(!unreadOnly)}
-              className={`cursor-pointer inline-flex items-center px-1 h-[18px] rounded-[6px] text-[12px] transition-colors ${
+              className={`cursor-pointer inline-flex items-center px-1 h-[18px] rounded-[5px] text-[12px] transition-colors ${
                 unreadOnly
                   ? "bg-primary-60 text-white font-medium"
-                  : "bg-neutral-20 text-neutral-70 hover:bg-neutral-30"
+                  : "bg-neutral-20 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-70 dark:opacity-80 hover:bg-neutral-30"
               }`}
             >
               미읽음{" "}
@@ -297,21 +297,25 @@ export default function ChatLeftSidebar({
                   <Tooltip key={c.id} content={c.name} position="top" className="w-full h-full block">
                     <button
                       onClick={() => handleConversationClick(c)}
-                      className={`cursor-pointer w-full relative h-[72px] rounded-[8px] border flex flex-col items-center justify-center gap-2 ${
+                      className={`cursor-pointer w-full relative h-[72px] rounded-[5px] border flex flex-col items-center justify-center gap-2 ${
                         activeId === c.id
-                          ? "border-primary-60"
+                          ? "border-primary-60 dark:border-neutral-60 bg-card dark:bg-[#333333]"
                           : "border-border"
                       } bg-card hover:bg-neutral-10`}
                     >
                       <div className="absolute -top-1 -right-1">
                         {c.unreadCount ? (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white text-[12px]">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white dark:text-black text-[12px]">
                             {c.unreadCount}
                           </span>
                         ) : null}
                       </div>
                       <div className="px-2 text-center w-full">
-                        <div className="text-[12px] font-semibold text-ink truncate">
+                        <div className={`text-[12px] font-semibold truncate ${
+                          activeId === c.id
+                            ? "text-ink dark:text-neutral-90"
+                            : "text-ink"
+                        }`}>
                           {c.name}
                         </div>
                       </div>
