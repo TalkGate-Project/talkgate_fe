@@ -56,7 +56,7 @@ export default function NoticeTable({
         
         {/* 중요 공지만 보기 체크박스 */}
         {onImportantFilterChange && (
-          <label className="flex items-center gap-4 cursor-pointer">
+          <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
               <input
                 type="checkbox"

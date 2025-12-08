@@ -248,7 +248,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                 {/* 드롭존 */}
                 <div className="mt-2 flex items-center justify-center">
                   <div
-                    className="w-[100px] h-[100px] rounded-[14px] border border-dashed border-[#E2E2E2] bg-white overflow-hidden cursor-pointer grid place-items-center"
+                    className={`w-[100px] h-[100px] rounded-[14px] ${iconPreview ? "border border-dashed border-[#E2E2E2]" : ""} bg-white overflow-hidden cursor-pointer grid place-items-center`}
                     onClick={onPickFile}
                   >
                     {iconPreview ? (

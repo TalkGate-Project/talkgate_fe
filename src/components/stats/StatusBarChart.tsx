@@ -162,7 +162,7 @@ export default function StatusBarChart() {
           />
           <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={42}>
             {chartData.map((entry, index) => (
-              <Cell key={entry.label ?? index} fill={entry.color} />
+              <Cell key={`${entry.label}-${index}`} fill={entry.color} />
             ))}
             <LabelList dataKey="value" position="top" style={{ fill: "var(--neutral-60)", fontSize: 12 }} />
           </Bar>

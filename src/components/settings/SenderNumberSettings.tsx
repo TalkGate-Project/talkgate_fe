@@ -292,7 +292,7 @@ export default function SenderNumberSettings() {
               <button
                 type="button"
                 onClick={handleAddProjectNumber}
-                className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-white hover:bg-neutral-80 transition-colors"
+                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-white hover:bg-neutral-80 transition-colors"
               >
                 +발신번호 추가
               </button>
@@ -358,7 +358,7 @@ export default function SenderNumberSettings() {
               <button
                 type="button"
                 onClick={handleAddMemberNumber}
-                className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-white hover:bg-neutral-80 transition-colors"
+                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-white hover:bg-neutral-80 transition-colors"
               >
                 +발신번호 추가
               </button>
