@@ -82,13 +82,13 @@ function SignupContent() {
       <h1 className="sr-only">회원가입</h1>
 
       {/* 초대 회원가입 안내 */}
-      {invitationToken && step === "account" && (
+      {/* {invitationToken && step === "account" && (
         <div className="mb-4 p-3 rounded-lg bg-[#1a3a2a] border border-[#00E272]/30">
           <p className="text-[#00E272] text-[14px] text-center">
             프로젝트 초대를 통한 회원가입입니다
           </p>
         </div>
-      )}
+      )} */}
 
       {/* 단계별 회원가입 폼 영역 */}
       {step === "account" && (
