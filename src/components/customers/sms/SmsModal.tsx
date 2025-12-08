@@ -135,13 +135,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] rounded-[14px] bg-[#FFFFFF] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
+      containerClassName="relative w-[848px] rounded-[14px] bg-card dark:bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
       ariaLabel="문자 전송"
     >
       <div className="relative w-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-[21px]">문자전송</h2>
+          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90 dark:text-neutral-90">문자전송</h2>
           <button
             aria-label="close"
             onClick={onClose}
@@ -156,7 +156,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
             >
               <path
                 d="M6 18L18 6M6 6L18 18"
-                stroke="#B0B0B0"
+                stroke="currentColor"
+                className="text-neutral-60 dark:text-neutral-50"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -171,16 +172,16 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
           <div className="flex-1 min-w-0 max-w-[384px]">
             {/* 발신번호 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 발신번호
               </label>
               <div className="relative">
                 {loadingSenders ? (
-                  <div className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 flex items-center bg-neutral-10">
+                  <div className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 flex items-center bg-neutral-10 dark:bg-neutral-20">
                     발신번호 로딩 중...
                   </div>
                 ) : senderNumbers.length === 0 ? (
-                  <div className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 flex items-center bg-neutral-10">
+                  <div className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 flex items-center bg-neutral-10 dark:bg-neutral-20">
                     등록된 발신번호가 없습니다
                   </div>
                 ) : (
@@ -188,7 +189,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     <select
                       value={selectedSenderKey ?? ""}
                       onChange={(e) => handleSenderChange(e.target.value)}
-                      className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink appearance-none bg-white pr-10 outline-none focus:border-neutral-60"
+                      className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink dark:text-neutral-90 appearance-none bg-card dark:bg-neutral-10 pr-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
                     >
                       {senderNumbers.map((num) => {
                         const key = `${num.source}-${num.id}`;
@@ -210,7 +211,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                       <path
                         d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
                         fill="currentColor"
-                        className="fill-ink"
+                        className="fill-ink dark:fill-neutral-90"
                       />
                     </svg>
                   </>
@@ -220,14 +221,14 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
 
             {/* 수신자 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 수신자 ({customers.length}명)
               </label>
               <div className="flex flex-wrap gap-2">
                 {displayRecipients.displayed.map((customer) => (
                   <span
                     key={customer.id}
-                    className="inline-flex items-center h-[28px] px-3 bg-neutral-20 rounded-[30px] text-[13px] text-neutral-70"
+                    className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-20 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
                   >
                     {customer.name} {customer.contact1}
                   </span>
@@ -242,7 +243,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
 
             {/* 메시지 유형 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 메시지 유형 (90byte 초과 시 LMS)
               </label>
               <span
@@ -260,7 +261,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
 
             {/* 광고 / 정보 유형 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 광고 / 정보 유형
               </label>
               <div className="flex items-center gap-6">
@@ -274,7 +275,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     className="sr-only"
                   />
                   <RadioButton checked={contentType === "advertising"} />
-                  <span className="text-[14px] text-ink">광고성</span>
+                  <span className="text-[14px] text-ink dark:text-neutral-90">광고성</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -286,14 +287,14 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     className="sr-only"
                   />
                   <RadioButton checked={contentType === "informational"} />
-                  <span className="text-[14px] text-ink">정보성</span>
+                  <span className="text-[14px] text-ink dark:text-neutral-90">정보성</span>
                 </label>
               </div>
             </div>
 
             {/* 제목 (LMS/MMS) */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 제목 (LMS/MMS)
               </label>
               <input
@@ -301,13 +302,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="제목을 입력하세요"
-                className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink placeholder:text-neutral-60 outline-none focus:border-neutral-60"
+                className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-card dark:bg-neutral-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
               />
             </div>
 
             {/* 본문 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 본문
               </label>
               <textarea
@@ -315,13 +316,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="발송할 메시지를 입력하세요"
                 rows={4}
-                className="w-full px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] leading-[1] tracking-[-0.02em] text-ink placeholder:text-neutral-60 outline-none focus:border-neutral-60 resize-none"
+                className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[1] tracking-[-0.02em] text-ink dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-card dark:bg-neutral-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60 resize-none"
               />
             </div>
 
             {/* 이미지 첨부 */}
             <div className="mb-5">
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 이미지 첨부 (선택)
               </label>
               <div className="flex items-center gap-3 flex-wrap">
@@ -342,11 +343,11 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                   파일선택
                 </button>
                 {imageFiles.length === 0 ? (
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60">
                     선택된 파일 없음
                   </span>
                 ) : (
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60">
                     {imageFiles.length}/{MAX_IMAGES}개 선택됨
                   </span>
                 )}
@@ -356,13 +357,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                 <div className="mt-2 flex flex-wrap gap-2">
                   {imageFiles.map((img) => (
                     <div key={img.id} className="flex items-center gap-2">
-                      <span className="text-[13px] text-ink truncate max-w-[250px]">
+                      <span className="text-[13px] text-ink dark:text-neutral-90 truncate max-w-[250px]">
                         {img.file.name}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleRemoveFile(img.id)}
-                        className="cursor-pointer text-neutral-60 hover:text-ink flex-shrink-0"
+                        className="cursor-pointer text-neutral-60 dark:text-neutral-60 hover:text-ink dark:hover:text-neutral-90 flex-shrink-0"
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                           <path
@@ -382,7 +383,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
 
             {/* 발송방식 */}
             <div>
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
                 발송방식
               </label>
               <div className="flex items-center gap-6">
@@ -396,7 +397,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     className="sr-only"
                   />
                   <RadioButton checked={sendMethod === "immediate"} />
-                  <span className="text-[14px] text-ink">즉시발송</span>
+                  <span className="text-[14px] text-ink dark:text-neutral-90">즉시발송</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -408,7 +409,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     className="sr-only"
                   />
                   <RadioButton checked={sendMethod === "scheduled"} />
-                  <span className="text-[14px] text-ink">예약발송</span>
+                  <span className="text-[14px] text-ink dark:text-neutral-90">예약발송</span>
                 </label>
               </div>
 
@@ -435,28 +436,32 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     >
                       <path
                         d="M14.25 3H3.75C2.92157 3 2.25 3.67157 2.25 4.5V15C2.25 15.8284 2.92157 16.5 3.75 16.5H14.25C15.0784 16.5 15.75 15.8284 15.75 15V4.5C15.75 3.67157 15.0784 3 14.25 3Z"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <path
                         d="M12 1.5V4.5"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <path
                         d="M6 1.5V4.5"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <path
                         d="M2.25 7.5H15.75"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -484,14 +489,16 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                     >
                       <path
                         d="M9 16.5C13.1421 16.5 16.5 13.1421 16.5 9C16.5 4.85786 13.1421 1.5 9 1.5C4.85786 1.5 1.5 4.85786 1.5 9C1.5 13.1421 4.85786 16.5 9 16.5Z"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
                       <path
                         d="M9 4.5V9L12 10.5"
-                        stroke="#B0B0B0"
+                        stroke="currentColor"
+                        className="text-neutral-60 dark:text-neutral-50"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -515,11 +522,11 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 px-7 py-4 flex justify-end gap-3">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-7 py-4 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-ink bg-white hover:bg-neutral-10 transition-colors cursor-pointer"
+            className="h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors cursor-pointer"
           >
             취소
           </button>
@@ -529,8 +536,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
             disabled={!canSend || sending || uploadingImages}
             className={`h-[34px] px-3 rounded-[5px] text-[14px] font-semibold transition-colors ${
               canSend && !sending && !uploadingImages
-                ? "bg-neutral-90 text-white hover:bg-neutral-80 cursor-pointer"
-                : "bg-neutral-90 text-neutral-40 cursor-not-allowed opacity-50"
+                ? "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 cursor-pointer"
+                : "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-not-allowed opacity-50"
             }`}
           >
             {sending

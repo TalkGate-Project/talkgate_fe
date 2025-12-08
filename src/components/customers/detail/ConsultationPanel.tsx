@@ -100,11 +100,11 @@ export default function ConsultationPanel({
       {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
       {hasConversation && (
         <div 
-          className="mb-[30px] border border-[#E2E2E2] rounded-[5px] bg-[#F8F8F8] px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] transition-colors flex-shrink-0"
+          className="mb-[30px] border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] bg-[#F8F8F8] dark:bg-neutral-10 px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
           onClick={handleNavigateToChat}
         >
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-12 h-12 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
+            <div className="w-12 h-12 rounded-full bg-neutral-30 dark:bg-neutral-30 overflow-hidden flex-shrink-0">
               {conversation!.profileUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -113,16 +113,16 @@ export default function ConsultationPanel({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[18px] font-semibold text-foreground">
+                <div className="w-full h-full flex items-center justify-center text-[18px] font-semibold text-foreground dark:text-neutral-90">
                   {(conversation?.name || customerName || "홍").charAt(0)}
                 </div>
               )}
             </div>
             <div className="min-w-0">
-              <div className="text-[16px] font-semibold text-foreground truncate">
+              <div className="text-[16px] font-semibold text-foreground dark:text-neutral-90 truncate">
                 {conversation!.name || `${customerName}님과의 채팅`}
               </div>
-              <div className="mt-1 flex items-center gap-2 text-[14px] text-neutral-60">
+              <div className="mt-1 flex items-center gap-2 text-[14px] text-neutral-60 dark:text-neutral-60">
                 {conversation!.platform === "instagram" && (
                   <span className="w-4 h-4 inline-block">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -161,7 +161,7 @@ export default function ConsultationPanel({
           {onUnlinkConversation && (
             <button
               type="button"
-              className="flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border bg-primary-10 border-primary-80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center w-[34px] h-[34px] rounded-[5px] border bg-primary-10 dark:bg-primary-10/30 border-primary-80 dark:border-primary-60 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleOpenUnlinkModal}
               disabled={unlinking}
               aria-label="연동 끊기"
@@ -175,7 +175,8 @@ export default function ConsultationPanel({
               >
                 <path
                   d="M11.5237 8.47631C10.2219 7.17456 8.11139 7.17456 6.80964 8.47631L3.47631 11.8096C2.17456 13.1114 2.17456 15.2219 3.47631 16.5237C4.77806 17.8254 6.88861 17.8254 8.19036 16.5237L9.10832 15.6057M8.47631 11.5237C9.77806 12.8254 11.8886 12.8254 13.1904 11.5237L16.5237 8.19036C17.8254 6.88861 17.8254 4.77806 16.5237 3.47631C15.2219 2.17456 13.1114 2.17456 11.8096 3.47631L10.8933 4.39265"
-                  stroke="#00B55B"
+                  stroke="currentColor"
+                  className="text-primary-80 dark:text-primary-60"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -188,11 +189,11 @@ export default function ConsultationPanel({
 
       {/* Consultation Notes */}
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="text-[16px] font-semibold text-neutral-90 mb-3 flex-shrink-0">
+        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0">
           상담 내용 기록
         </div>
-        <div className="border-b border-[#E2E2E2] mb-2 flex-shrink-0" />
-        <p className="text-body-3 text-neutral-60 mb-2 flex-shrink-0">상담 카테고리</p>
+        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 mb-2 flex-shrink-0" />
+        <p className="text-body-3 text-neutral-60 dark:text-neutral-60 mb-2 flex-shrink-0">상담 카테고리</p>
         <div className="flex gap-2 mb-3 flex-shrink-0">
           <SelectField
             value={noteCategoryId as any}
@@ -212,10 +213,10 @@ export default function ConsultationPanel({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="상담 내용을 입력하세요"
-            className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 text-body-3"
+            className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-neutral-30 px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
           />
           <button
-            className="cursor-pointer w-[48px] h-[34px] text-body-3 rounded-[5px] bg-neutral-90 text-neutral-40"
+            className="cursor-pointer w-[48px] h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
             onClick={handleAddNote}
           >
             추가
@@ -224,7 +225,7 @@ export default function ConsultationPanel({
 
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 space-y-3 overflow-auto border border-[#E2E2E2] rounded-[5px] p-5"
+          className="flex-1 min-h-0 space-y-3 overflow-auto border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] p-5 bg-card dark:bg-neutral-10"
         >
           {notes?.map((n) => {
             const category = categories.find((c) => c.id === n.categoryId);
@@ -234,7 +235,7 @@ export default function ConsultationPanel({
             return (
               <div
                 key={n.id}
-                className="bg-neutral-10 rounded-[12px] px-4 py-3 relative"
+                className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 relative"
               >
                 <div className="flex items-center justify-between gap-2 text-[12px]">
                   <div className="flex items-center gap-x-2">
@@ -244,16 +245,16 @@ export default function ConsultationPanel({
                       {categoryName}
                     </div>
                     {/* 노트를 작성한 담당자 이름이 우선, 없으면 고객 이름을 표시 */}
-                    <span className="text-[12px] text-neutral-80">
+                    <span className="text-[12px] text-neutral-80 dark:text-neutral-70">
                       {n.memberName || customerName}
                     </span>
                   </div>
-                  <div className="text-neutral-60 flex gap-x-3 items-center justify-end">
+                  <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
                     <span className="text-right">
                       {formatDetailDate(n.createdAt)}
                     </span>
                     <button
-                      className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black text-white"
+                      className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
                       onClick={() => onRemoveNote(n.id)}
                     >
                       <svg
@@ -265,7 +266,7 @@ export default function ConsultationPanel({
                       >
                         <path
                           d="M3 9L9 3M3 3L9 9"
-                          stroke="white"
+                          stroke="currentColor"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -274,7 +275,7 @@ export default function ConsultationPanel({
                     </button>
                   </div>
                 </div>
-                <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
+                <div className="mt-2 text-[14px] text-neutral-70 dark:text-neutral-70">{n.note}</div>
               </div>
             );
           })}

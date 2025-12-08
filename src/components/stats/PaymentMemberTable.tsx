@@ -158,7 +158,7 @@ export default function PaymentMemberTable() {
   const Header = (
     <div className="mb-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="text-[16px] font-semibold text-neutral-90">팀원별 결제 현황</div>
+        <div className="text-[16px] font-semibold text-foreground">팀원별 결제 현황</div>
         <button
           aria-label="filter"
           className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
@@ -216,13 +216,13 @@ export default function PaymentMemberTable() {
   return (
     <div className="">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-[30px] text-[16px] text-neutral-60 font-medium">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-[30px] text-[16px] text-neutral-70 font-medium">
         <div>이름</div>
         <div>팀</div>
         <div>결제금액</div>
         <div>결제 건수</div>
       </div>
-      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card">
+      <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card">
         {showSkeleton && <SkeletonRows columns={4} rows={PAGE_SIZE} />}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
@@ -238,13 +238,13 @@ export default function PaymentMemberTable() {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
             <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid grid-cols-4 items-center px-[30px]">
-              <div className="text-[14px] text-neutral-90 opacity-80">{row.memberName}</div>
-              <div className="flex items-center gap-2 text-[14px] text-neutral-90">
+              <div className="text-[14px] text-foreground opacity-80">{row.memberName}</div>
+              <div className="flex items-center gap-2 text-[14px] text-foreground opacity-80">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />
                 {row.teamName ?? "미지정"}
               </div>
-              <div className="text-[14px] text-neutral-90">{formatCurrency(row.totalAmount)}</div>
-              <div className="text-[14px] text-neutral-90">{formatCount(row.paymentCount)}</div>
+              <div className="text-[14px] text-foreground opacity-80">{formatCurrency(row.totalAmount)}</div>
+              <div className="text-[14px] text-foreground opacity-80">{formatCount(row.paymentCount)}</div>
             </div>
           );
         })}
@@ -263,7 +263,7 @@ export default function PaymentMemberTable() {
         {pageNumbers.map((num) => (
           <button
             key={num}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${num === page ? 'bg-[#252525] text-white font-normal' : 'text-[#808080] font-normal'}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${num === page ? 'bg-foreground text-card font-normal' : 'text-neutral-60 font-normal'}`}
             onClick={() => setPage(num)}
           >
             {num}

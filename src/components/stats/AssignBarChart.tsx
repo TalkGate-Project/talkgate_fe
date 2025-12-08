@@ -87,14 +87,14 @@ export default function AssignBarChart() {
 
   return (
     <>
-      <h3 className="mt-5 mb-2 text-[16px] font-semibold text-neutral-90">팀별 배정 현황</h3>
+      <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
       <div className="h-[300px] mt-[94px]">
         <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 20, left: 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fill: "#000000", fontSize: 12, fontFamily: "var(--font-montserrat)", fontWeight: 500 }}
+            tick={{ fill: "var(--foreground)", fontSize: 12, fontFamily: "var(--font-montserrat)", fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
             tickMargin={30}
@@ -109,7 +109,7 @@ export default function AssignBarChart() {
               position="top"
               offset={10}
               style={{
-                fill: "var(--neutral-90)",
+                fill: "var(--foreground)",
                 fontSize: "12px",
                 fontWeight: "500",
                 fontFamily: "var(--font-montserrat)",

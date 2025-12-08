@@ -136,7 +136,7 @@ export default function AssignMemberTable() {
 
   const Header = (
     <div className="mb-5 flex items-center gap-3">
-      <div className="text-[16px] font-semibold text-neutral-90">팀원별 배정 현황</div>
+      <div className="text-[16px] font-semibold text-foreground">팀원별 배정 현황</div>
       <button
         aria-label="filter"
         className="cursor-pointer w-[26px] h-[26px] grid place-items-center font-medium rounded-[6px] border border-border text-neutral-60"
@@ -180,12 +180,12 @@ export default function AssignMemberTable() {
   return (
     <div className="mt-4">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-3 items-center px-[30px] text-[16px] text-neutral-60 font-medium">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-3 items-center px-[30px] text-[16px] text-neutral-70 font-medium">
         <div>이름</div>
         <div>팀</div>
         <div>배정 건수</div>
       </div>
-      <div className="divide-y divide-[#E2E2E2]/40 min-h-[280px] bg-card border-b border-[#E2E2E2]">
+      <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card border-b border-neutral-30/40">
         {showSkeleton && <SkeletonRows columns={3} rows={PAGE_SIZE} />}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
@@ -201,12 +201,12 @@ export default function AssignMemberTable() {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
             <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid grid-cols-3 items-center px-[30px]">
-              <div className="text-[14px] text-neutral-90 opacity-80">{r.memberName}</div>
-              <div className="flex items-center gap-2 text-[14px] text-neutral-90">
+              <div className="text-[14px] text-foreground opacity-80">{r.memberName}</div>
+              <div className="flex items-center gap-2 text-[14px] text-foreground opacity-80">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />
                 {r.teamName ?? "미지정"}
               </div>
-              <div className="text-[14px] text-neutral-90">{formatCount(r.totalAssignedCount)}</div>
+              <div className="text-[14px] text-foreground opacity-80">{formatCount(r.totalAssignedCount)}</div>
             </div>
           );
         })}
@@ -227,8 +227,8 @@ export default function AssignMemberTable() {
             key={num}
             className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
               num === page 
-                ? 'bg-[#252525] text-white font-normal' 
-                : 'text-[#808080] font-normal'
+                ? 'bg-foreground text-card font-normal' 
+                : 'text-neutral-60 font-normal'
             }`}
             onClick={() => setPage(num)}
           >

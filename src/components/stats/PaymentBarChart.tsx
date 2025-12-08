@@ -76,7 +76,7 @@ export default function PaymentBarChart() {
           y={0}
           dy={14}
           textAnchor="middle"
-          fill="var(--neutral-100)"
+          fill="var(--foreground)"
           fontSize={14}
           fontWeight={500}
         >
@@ -100,7 +100,7 @@ export default function PaymentBarChart() {
   // Header (subtitle + 날짜 선택 영역) - 항상 표시
   const Header = (
     <div className="mb-3 flex items-center justify-between">
-      <h3 className="text-[16px] font-semibold text-neutral-90">팀별 결제 현황</h3>
+      <h3 className="text-[16px] font-semibold text-foreground">팀별 결제 현황</h3>
       <DateRangePicker
         startDate={startDate}
         endDate={endDate}
@@ -202,7 +202,7 @@ export default function PaymentBarChart() {
               if (!active || !payload?.length) return null;
               const record = payload[0].payload as { team: string; amount: number; count: number };
               return (
-                <div className="rounded-[6px] bg-neutral-90 px-3 py-1 text-[12px] text-neutral-0">
+                <div className="rounded-[6px] bg-card border border-border px-3 py-1 text-[12px] text-foreground shadow-lg">
                   {NUMBER_FORMATTER.format(record.amount)}원 / {NUMBER_FORMATTER.format(record.count)}건
                 </div>
               );

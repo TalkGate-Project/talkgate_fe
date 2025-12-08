@@ -13,13 +13,22 @@ export default function CalendarPrevIcon({ className = "" }: CalendarPrevIconPro
       className={className}
       aria-hidden
     >
-      <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" stroke="#E2E2E2" />
+      <rect
+        x="0.5"
+        y="0.5"
+        width="35"
+        height="35"
+        rx="5.5"
+        stroke="#E2E2E2"
+        className="calendar-icon-border"
+      />
       <path
         d="M21.0001 24.8077L14.0001 17.8077L21.0001 10.8077"
         stroke="#B0B0B0"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="calendar-icon-arrow"
       />
     </svg>
   );

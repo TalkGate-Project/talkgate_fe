@@ -152,7 +152,7 @@ export default function CustomerCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] h-[523px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      containerClassName="relative w-[848px] h-[523px] rounded-[14px] bg-card dark:bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
       ariaLabel="고객 등록"
     >
       <div className="relative w-full h-full flex flex-col">
@@ -174,7 +174,8 @@ export default function CustomerCreateModal({
             >
               <path
                 d="M6 18L18 6M6 6L18 18"
-                stroke="#B0B0B0"
+                stroke="currentColor"
+                className="text-neutral-50 dark:text-neutral-50"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -190,14 +191,14 @@ export default function CustomerCreateModal({
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               기본 정보
             </h3>
-            <div className="border-t border-neutral-30 pt-4">
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     이름<span className="text-[#FF0000]">*</span>
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={name}
@@ -215,7 +216,7 @@ export default function CustomerCreateModal({
                   </label>
                   <div className="flex gap-3">
                     <div className="w-[106px]">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
                         <select
                           value={contact1Type}
                           onChange={(e) => setContact1Type(e.target.value)}
@@ -244,7 +245,7 @@ export default function CustomerCreateModal({
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={contact1}
@@ -264,7 +265,7 @@ export default function CustomerCreateModal({
                   </label>
                   <div className="flex gap-2">
                     <div className="w-[106px]">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px] relative">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
                         <select
                           value={contact2Type}
                           onChange={(e) => setContact2Type(e.target.value)}
@@ -293,7 +294,7 @@ export default function CustomerCreateModal({
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={contact2}
@@ -313,7 +314,7 @@ export default function CustomerCreateModal({
                   </label>
                   <div className="flex gap-2 items-center">
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={residentId1}
@@ -332,7 +333,7 @@ export default function CustomerCreateModal({
                       -
                     </span>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={residentId2}
@@ -355,7 +356,7 @@ export default function CustomerCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     연령
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={ageRange}
@@ -371,7 +372,7 @@ export default function CustomerCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     직업
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={job}
@@ -390,10 +391,10 @@ export default function CustomerCreateModal({
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               메신저 계정
             </h3>
-            <div className="border-t border-neutral-30 pt-4">
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
               <div className="flex gap-2 mb-3">
                 <div className="w-[106px]">
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[34px] relative">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] relative bg-card dark:bg-neutral-10">
                     <select
                       value={currentMessengerType}
                       onChange={(e) => setCurrentMessengerType(e.target.value)}
@@ -437,7 +438,7 @@ export default function CustomerCreateModal({
                 <button
                   type="button"
                   onClick={handleAddMessenger}
-                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 whitespace-nowrap"
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 whitespace-nowrap"
                 >
                   추가
                 </button>
@@ -447,14 +448,14 @@ export default function CustomerCreateModal({
                   {messengerAccounts.map((acc, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 px-3 py-2 bg-neutral-10 rounded-[5px]"
+                      className="flex items-center gap-3 px-3 py-2 bg-neutral-10 dark:bg-neutral-20 rounded-[5px]"
                     >
                       <MessengerBadge messenger={acc.messenger} />
                       <span className="text-[14px] text-ink flex-1">{acc.account}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveMessenger(index)}
-                        className="cursor-pointer text-neutral-60 hover:text-ink"
+                        className="cursor-pointer text-neutral-60 dark:text-neutral-60 hover:text-ink dark:hover:text-neutral-90"
                       >
                         <svg
                           width="12"
@@ -484,14 +485,14 @@ export default function CustomerCreateModal({
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               데이터 정보
             </h3>
-            <div className="border-t border-neutral-30 pt-4">
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     신청 경로
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={applicationRoute}
@@ -507,7 +508,7 @@ export default function CustomerCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     사이트
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={site}
@@ -523,7 +524,7 @@ export default function CustomerCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     매체사
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] h-[33px]">
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={mediaCompany}
@@ -540,7 +541,7 @@ export default function CustomerCreateModal({
                 <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                   특이사항
                 </label>
-                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 rounded-[5px] min-h-[66px]">
+                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] min-h-[66px] bg-card dark:bg-neutral-10">
                   <textarea
                     value={specialNotes}
                     onChange={(e) => setSpecialNotes(e.target.value)}
@@ -555,12 +556,12 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 px-7 py-3 flex justify-end gap-3">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-7 py-3 flex justify-end gap-3">
           <button
             type="button"
             onClick={handleReset}
             disabled={submitting}
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink bg-white disabled:opacity-60"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 disabled:opacity-60"
           >
             초기화
           </button>
@@ -568,7 +569,7 @@ export default function CustomerCreateModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !projectId}
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 disabled:opacity-60"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
           >
             등록
           </button>

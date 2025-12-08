@@ -211,7 +211,7 @@ export default function CalendarSection() {
                 cell.date.getDate() === today.getDate();
               const borderClass = isSelected
                 ? "border border-primary-60"
-                : "border border-border";
+                : "border border-[#E2E2E266] dark:border-[#33333366]";
               const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
               const daySchedules = schedulesByDay.get(key) ?? [];
@@ -240,8 +240,8 @@ export default function CalendarSection() {
                   >
                     {isToday ? (
                       <div className="relative w-[24px] h-[24px] flex items-center justify-center">
-                        <div className="absolute w-[24px] h-[24px] bg-[#252525] rounded-full" />
-                        <span className="relative text-[#FFFFFF] font-normal">
+                        <div className="absolute w-[24px] h-[24px] bg-[#252525] dark:bg-[#F5F5F5] rounded-full" />
+                        <span className="relative text-[#FFFFFF] dark:text-[#111111] font-normal">
                           {cell.date.getDate()}
                         </span>
                       </div>
@@ -328,7 +328,7 @@ export default function CalendarSection() {
                 일정 추가
               </button>
             </div>
-            <div className="border-t border-[#E2E2E255] mb-3"></div>
+            <div className="border-t border-[#E2E2E255] dark:border-[#44444455] mb-3"></div>
             <div className="overflow-y-auto flex-1 space-y-3 max-h-[490px]">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
@@ -356,7 +356,7 @@ export default function CalendarSection() {
                   return (
                     <div
                       key={schedule.id}
-                      className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 cursor-pointer hover:bg-neutral-10 transition-colors"
+                      className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-0 transition-colors"
                       style={{ maxWidth: 304 }}
                       onClick={() => {
                         if (hasCustomer) {

@@ -179,11 +179,11 @@ function HierarchicalTeamList({
           )}
           <div
             className={`h-[52px] flex items-center px-6 gap-4 border rounded-[12px] cursor-pointer transition-all ${
-              item.isLeader ? "bg-primary-10/30" : "bg-white"
+              item.isLeader ? "bg-primary-10/30 dark:bg-primary-10/20" : "bg-card dark:bg-neutral-10"
             } ${
               isSelected
                 ? "border-[#51F8A5] border-2"
-                : "border-neutral-30 hover:border-primary-60"
+                : "border-neutral-30 dark:border-neutral-30 hover:border-primary-60"
             }`}
             style={{ marginLeft: `${indent}px` }}
             onClick={() => onSelect(Number(item.id))}
@@ -381,12 +381,12 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     <BaseModal
       onClose={() => !loading && onClose()}
       overlayClassName="bg-black/50"
-      containerClassName="relative w-[848px] max-w-[92vw] max-h-[90vh] rounded-[14px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] p-6 flex flex-col"
+      containerClassName="relative w-[848px] max-w-[92vw] max-h-[90vh] rounded-[14px] bg-card dark:bg-neutral-0 shadow-[0_13px_61px_rgba(169,169,169,0.37)] p-6 flex flex-col"
       ariaLabel="고객 배정"
     >
       {/* Header row */}
       <div className="flex items-center justify-between flex-shrink-0">
-        <div className="text-[18px] font-bold text-neutral-90">고객 배정</div>
+        <div className="text-[18px] font-bold text-neutral-90 dark:text-neutral-90">고객 배정</div>
         <div onClick={onClose} className="cursor-pointer">
           <svg
             width="24"
@@ -397,7 +397,8 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           >
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="currentColor"
+              className="text-neutral-50 dark:text-neutral-50"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -406,7 +407,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </div>
       </div>
       <div className="mt-3 flex items-center gap-3 flex-shrink-0">
-        <div className="text-[14px] text-neutral-60">
+        <div className="text-[14px] text-neutral-60 dark:text-neutral-60">
           그룹 혹은 팀원에게 고객을 배정할 수 있습니다.
         </div>
         <span className="inline-flex items-center h-[22px] rounded-[30px] bg-primary-10 px-3 text-[12px] text-primary-80 opacity-80">
@@ -414,10 +415,10 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </span>
       </div>
 
-      <hr className="mt-3 border-neutral-30 flex-shrink-0" />
+      <hr className="mt-3 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
       <div className="mt-[30px] flex-1 overflow-hidden flex flex-col">
-        <div className="text-[16px] font-semibold text-neutral-90 mb-3 flex-shrink-0">
+        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0">
           팀원 배정
         </div>
         
@@ -441,7 +442,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
             <button
               type="button"
               onClick={executeSearch}
-              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold"
             >
               검색
             </button>
@@ -456,7 +457,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                   className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
                     selectedDepartment === tag
                       ? "bg-secondary-40 text-neutral-0"
-                      : "bg-neutral-30 text-neutral-70 hover:bg-neutral-40"
+                      : "bg-neutral-30 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-60 hover:bg-neutral-40 dark:hover:bg-neutral-40"
                   }`}
                 >
                   <span className="text-[12px] font-medium leading-[1] whitespace-nowrap">{tag}</span>
@@ -468,7 +469,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
 
         <div className="flex-1 overflow-auto pr-2">
           {isLoading ? (
-            <div className="text-center text-neutral-60 py-10">
+            <div className="text-center text-neutral-60 dark:text-neutral-60 py-10">
               불러오는 중...
             </div>
           ) : (
@@ -484,10 +485,10 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </div>
       </div>
 
-      <hr className="mt-6 border-neutral-30 flex-shrink-0" />
+      <hr className="mt-6 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
       <div className="mt-4 flex items-center justify-between gap-2 flex-shrink-0">
-        <div className="text-[13px] text-neutral-70">
+        <div className="text-[13px] text-neutral-70 dark:text-neutral-60">
           {/* {targetId ? (
             <>
               배정 대상 ID: <b>{targetId}</b>
@@ -498,14 +499,14 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </div>
         <div className="flex gap-2">
           <button
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] text-neutral-90 bg-neutral-0"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10"
             onClick={onClose}
             disabled={loading}
           >
             취소
           </button>
           <button
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold disabled:opacity-50"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 text-[14px] font-semibold disabled:opacity-50"
             disabled={loading || !targetId}
             onClick={async () => {
               if (!targetId) return;

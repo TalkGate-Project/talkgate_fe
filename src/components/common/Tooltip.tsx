@@ -70,12 +70,12 @@ export default function Tooltip({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15, delay }}
-            className={`absolute z-50 whitespace-nowrap px-2 py-1.5 bg-neutral-80 text-white text-[12px] rounded-md shadow-lg pointer-events-none ${positionStyles[finalPosition]}`}
+            className={`absolute z-50 whitespace-nowrap px-2 py-1.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[12px] rounded-md shadow-lg pointer-events-none ${positionStyles[finalPosition]}`}
           >
             {content}
             {/* Arrow (optional, simplistic) */}
             <div
-              className={`absolute w-2 h-2 bg-neutral-80 rotate-45 ${
+              className={`absolute w-2 h-2 bg-neutral-90 dark:bg-neutral-10 rotate-45 ${
                 finalPosition === "top"
                   ? "bottom-[-4px] left-1/2 -translate-x-1/2"
                   : finalPosition === "bottom"

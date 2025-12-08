@@ -49,8 +49,10 @@ export default function CustomerLinkModeModal({
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <button
               onClick={() => onSelect("create")}
-              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
-              style={{ background: "linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%)" }}
+              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
+              style={{
+                background: "var(--customer-link-create-gradient)",
+              }}
             >
               <svg
                 width="48"
@@ -124,8 +126,10 @@ export default function CustomerLinkModeModal({
 
             <button
               onClick={() => onSelect("existing")}
-              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
-              style={{ background: "linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%)" }}
+              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
+              style={{
+                background: "var(--customer-link-existing-gradient)",
+              }}
             >
               <svg
                 width="48"
