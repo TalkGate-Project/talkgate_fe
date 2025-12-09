@@ -171,6 +171,14 @@ export async function middleware(req: NextRequest) {
     if (project) {
       const subdomainProjectId = String(project.id);
       
+      // 서브도메인이 있는 상태에서 /projects로 접근하는 것은 논리적으로 맞지 않음
+      // 프로젝트가 이미 선택된 상태이므로 대시보드로 리다이렉트
+      if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+        const url = req.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      
       // 현재 선택된 프로젝트와 서브도메인 프로젝트가 다른 경우 로그 출력
       if (currentProjectId && currentProjectId !== subdomainProjectId) {
         console.log(`[Middleware] 프로젝트 전환: ${currentProjectId} → ${subdomainProjectId} (서브도메인: ${subdomain})`);
