@@ -151,10 +151,16 @@ async function handleRequest(
     }
 
     // 401 에러 시 토큰 갱신 시도
+    // 참고: 미들웨어에서 이미 토큰 리프레시를 처리하지만, 
+    // 미들웨어가 처리하지 못한 경우를 대비한 백업 로직입니다.
+    // Route Handler에서는 cookies().set()이 제대로 작동하지 않을 수 있으므로,
+    // NextResponse를 사용하여 쿠키를 설정합니다.
     if (response.status === 401 && accessToken) {
       try {
         const refreshToken = cookieStore.get('tg_refresh_token')?.value;
         if (refreshToken) {
+          console.log('[API Proxy] 🔄 401 에러 발생 - 토큰 리프레시 시도 (백업 로직)');
+          
           const refreshResponse = await fetch(`${apiBaseUrl}/v1/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -167,27 +173,8 @@ async function handleRequest(
             const newRefreshToken = refreshData?.data?.refreshToken;
 
             if (newAccessToken || newRefreshToken) {
-              // 새 토큰을 쿠키에 설정
-              const hostname = request.headers.get('host')?.split(':')[0] || '';
-              const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
-              const isSecure = request.nextUrl.protocol === 'https:';
-
-              const cookieOptions = {
-                httpOnly: true,
-                secure: isSecure,
-                sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-                path: '/',
-                ...(isProduction && { domain: '.talkgate.im' }),
-                maxAge: 60 * 60 * 24 * 30, // 30일
-              };
-
-              if (newAccessToken) {
-                cookieStore.set('tg_access_token', newAccessToken, cookieOptions);
-              }
-              if (newRefreshToken) {
-                cookieStore.set('tg_refresh_token', newRefreshToken, cookieOptions);
-              }
-
+              console.log('[API Proxy] ✅ 토큰 리프레시 성공 - 새 토큰 설정 (백업 로직)');
+              
               // 원래 요청 재시도
               headers['Authorization'] = `Bearer ${newAccessToken || accessToken}`;
               const retryResponse = await fetch(url, {
@@ -206,15 +193,41 @@ async function handleRequest(
                 retryData = await retryResponse.blob();
               }
 
-              return NextResponse.json(retryData, {
+              // NextResponse를 사용하여 쿠키 설정
+              // Route Handler에서는 cookies().set()이 제대로 작동하지 않을 수 있으므로
+              // NextResponse의 cookies API를 사용합니다.
+              const hostname = request.headers.get('host')?.split(':')[0] || '';
+              const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
+              const isSecure = request.nextUrl.protocol === 'https:';
+
+              const cookieOptions = {
+                httpOnly: true,
+                secure: isSecure,
+                sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+                path: '/',
+                ...(isProduction && { domain: '.talkgate.im' }),
+                maxAge: 60 * 60 * 24 * 30, // 30일
+              };
+
+              const apiResponse = NextResponse.json(retryData, {
                 status: retryResponse.status,
                 headers: responseHeaders,
               });
+
+              // NextResponse의 cookies API 사용
+              if (newAccessToken) {
+                apiResponse.cookies.set('tg_access_token', newAccessToken, cookieOptions);
+              }
+              if (newRefreshToken) {
+                apiResponse.cookies.set('tg_refresh_token', newRefreshToken, cookieOptions);
+              }
+
+              return apiResponse;
             }
           }
         }
       } catch (refreshError) {
-        console.error('[API Proxy] 토큰 갱신 실패:', refreshError);
+        console.error('[API Proxy] ❌ 토큰 갱신 실패 (백업 로직):', refreshError);
         // 토큰 갱신 실패 시 원래 에러 응답 반환
       }
     }
