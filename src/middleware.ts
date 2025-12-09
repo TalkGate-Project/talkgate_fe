@@ -110,13 +110,22 @@ async function fetchProjectBySubdomain(
     }
     
     const data = await response.json();
-    // API 응답 형식: { result: true, data: { id, ... } }
-    const project = data?.data;
-    if (project?.id) {
-      console.log(`[Middleware] 서브도메인 프로젝트 발견: ${subdomain} → projectId: ${project.id}`);
-      return { id: project.id, useAttendanceMenu: project.useAttendanceMenu };
+    // API 응답 형식: { result: true, data: 2 } 또는 { result: true, data: { id: 2, ... } }
+    const responseData = data?.data;
+    
+    // data가 숫자인 경우 (프로젝트 ID만 반환)
+    if (typeof responseData === 'number') {
+      console.log(`[Middleware] 서브도메인 프로젝트 발견: ${subdomain} → projectId: ${responseData}`);
+      return { id: responseData };
     }
     
+    // data가 객체인 경우 (프로젝트 객체 반환)
+    if (responseData && typeof responseData === 'object' && responseData.id) {
+      console.log(`[Middleware] 서브도메인 프로젝트 발견: ${subdomain} → projectId: ${responseData.id}`);
+      return { id: responseData.id, useAttendanceMenu: responseData.useAttendanceMenu };
+    }
+    
+    console.log(`[Middleware] 서브도메인 프로젝트 조회 실패: ${subdomain}, 예상치 못한 응답 형식:`, data);
     return null;
   } catch (error) {
     console.error(`[Middleware] 서브도메인 프로젝트 조회 에러:`, error);
@@ -190,13 +199,14 @@ export async function middleware(req: NextRequest) {
       // 서브도메인이 있지만 프로젝트를 찾지 못함 (유효하지 않은 서브도메인 또는 권한 없음)
       console.log(`[Middleware] 유효하지 않은 서브도메인 또는 접근 권한 없음: ${subdomain}`);
       
-      // 유효하지 않은 서브도메인으로 접근 시, 프로젝트 선택 페이지로 리다이렉트
-      // (기존에 다른 프로젝트가 선택되어 있더라도 서브도메인이 우선)
-      const url = req.nextUrl.clone();
-      url.pathname = "/projects";
-      url.searchParams.set("error", "invalid_subdomain");
-      url.searchParams.set("subdomain", subdomain);
-      return NextResponse.redirect(url);
+      // 유효하지 않은 서브도메인으로 접근 시, 메인 도메인의 프로젝트 선택 페이지로 리다이렉트
+      // 같은 서브도메인으로 리다이렉트하면 무한 루프가 발생하므로 메인 도메인으로 이동
+      const protocol = req.nextUrl.protocol;
+      const mainDomain = getMainDomain(host);
+      const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+      redirectUrl.searchParams.set("error", "invalid_subdomain");
+      redirectUrl.searchParams.set("subdomain", subdomain);
+      return NextResponse.redirect(redirectUrl);
     }
   }
   
