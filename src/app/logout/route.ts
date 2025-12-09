@@ -39,6 +39,33 @@ function isProductionDomain(hostname: string): boolean {
 }
 
 /**
+ * 현재 환경에 맞는 메인 도메인을 반환합니다.
+ * 미들웨어와 동일한 로직 사용
+ */
+function getMainDomain(host: string): string {
+  const hostWithoutPort = host.split(':')[0];
+  
+  // localhost 환경
+  if (hostWithoutPort.includes("localhost") || hostWithoutPort.includes("127.0.0.1")) {
+    return host; // 포트 포함하여 반환
+  }
+  
+  // 프로덕션 환경 (app.talkgate.im)
+  if (hostWithoutPort.includes("app.talkgate.im") && !hostWithoutPort.includes("app-dev")) {
+    return "app.talkgate.im";
+  }
+  
+  // 개발 환경 (app-dev.talkgate.im) - 서브도메인 포함
+  // 예: project-bdfj4.app-dev.talkgate.im → app-dev.talkgate.im
+  if (hostWithoutPort.includes("app-dev") || hostWithoutPort.includes("talkgate.im")) {
+    return "app-dev.talkgate.im";
+  }
+  
+  // 기본값
+  return hostWithoutPort;
+}
+
+/**
  * 로그아웃 처리: 인증 쿠키를 삭제합니다.
  * 
  * 프로덕션 환경에서는 Domain 속성이 있는 쿠키와 없는 쿠키를 모두 삭제하여
@@ -60,6 +87,13 @@ async function handleLogout(request: NextRequest) {
     httpOnly: true, // httpOnly 쿠키로 삭제
   };
 
+  // 삭제할 쿠키 목록
+  const cookiesToDelete = [
+    'tg_access_token',
+    'tg_refresh_token',
+    'tg_selected_project_id', // 프로젝트 ID 쿠키도 삭제
+  ];
+
   // 프로덕션 환경에서는 Domain 속성이 있는 쿠키도 삭제
   if (isProduction) {
     const cookieOptionsWithDomain = {
@@ -67,8 +101,9 @@ async function handleLogout(request: NextRequest) {
       domain: '.talkgate.im',
     };
     
-    cookieStore.set('tg_access_token', '', cookieOptionsWithDomain);
-    cookieStore.set('tg_refresh_token', '', cookieOptionsWithDomain);
+    cookiesToDelete.forEach(cookieName => {
+      cookieStore.set(cookieName, '', cookieOptionsWithDomain);
+    });
   }
 
   // Domain 속성이 없는 쿠키도 삭제 (브라우저 호환성)
@@ -77,8 +112,9 @@ async function handleLogout(request: NextRequest) {
     domain: undefined as string | undefined,
   };
   
-  cookieStore.set('tg_access_token', '', cookieOptionsWithoutDomain);
-  cookieStore.set('tg_refresh_token', '', cookieOptionsWithoutDomain);
+  cookiesToDelete.forEach(cookieName => {
+    cookieStore.set(cookieName, '', cookieOptionsWithoutDomain);
+  });
 }
 
 /**
@@ -131,14 +167,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(callback);
     }
 
-    // 콜백 URL이 없는 경우 기본 로그아웃 처리 (홈으로 리다이렉트)
-    console.log('[Logout Route] ✅ 로그아웃 완료 - 홈으로 리다이렉트');
-    return NextResponse.redirect(new URL('/', request.url));
+    // 콜백 URL이 없는 경우 기본 로그아웃 처리
+    // 서브도메인에서 로그아웃 시 메인 도메인의 로그인 페이지로 리다이렉트
+    const currentHost = request.headers.get('host') || '';
+    const protocol = request.nextUrl.protocol;
+    const mainDomain = getMainDomain(currentHost);
+    
+    const loginUrl = `${protocol}//${mainDomain}/login`;
+    console.log('[Logout Route] ✅ 로그아웃 완료 - 로그인 페이지로 리다이렉트:', {
+      from: currentHost,
+      to: loginUrl,
+      mainDomain,
+    });
+    return NextResponse.redirect(new URL(loginUrl));
   } catch (error) {
     console.error('[Logout Route] ❌ 로그아웃 처리 중 에러:', error);
     console.error('[Logout Route] ❌ 에러 스택:', error instanceof Error ? error.stack : 'No stack');
-    // 에러 발생 시에도 홈으로 리다이렉트
-    return NextResponse.redirect(new URL('/', request.url));
+    // 에러 발생 시에도 메인 도메인의 로그인 페이지로 리다이렉트
+    const currentHost = request.headers.get('host') || '';
+    const protocol = request.nextUrl.protocol;
+    const mainDomain = getMainDomain(currentHost);
+    const loginUrl = `${protocol}//${mainDomain}/login`;
+    return NextResponse.redirect(new URL(loginUrl));
   }
 }
 
