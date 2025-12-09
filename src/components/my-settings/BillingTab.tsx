@@ -1,368 +1,468 @@
 "use client";
 
-import { useState } from "react";
-import SubscriptionManagement from "./SubscriptionManagement";
-import Pagination from "@/components/common/Pagination";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import { ProjectsService } from "@/services/projects";
+import type { ProjectSummary } from "@/types/projects";
+import ProjectBillingDetail from "./ProjectBillingDetail";
 import DemoModeToggle from "@/components/common/DemoModeToggle";
-import { useBilling, type BillingInfo } from "@/hooks/useBilling";
-import { useSubscription, usePaymentHistory, type Payment } from "@/hooks/useSubscription";
-
-// 카드사 색상 매핑
-const CARD_COMPANY_COLORS: Record<string, string> = {
-  BC: "#F04452",
-  삼성: "#1428A0",
-  신한: "#0046FF",
-  현대: "#00693E",
-  롯데: "#ED1C24",
-  하나: "#009490",
-  국민: "#FFBC00",
-  농협: "#006747",
-  우리: "#004B9C",
-};
-
-// 카드사 약어 가져오기
-function getCardCompanyAbbr(cardCompany: string): string {
-  if (!cardCompany) return "카드";
-  if (cardCompany.length <= 2) return cardCompany;
-  return cardCompany.replace(/카드$/, "").slice(0, 2);
-}
-
-// 카드사 색상 가져오기
-function getCardCompanyColor(cardCompany: string): string {
-  const abbr = getCardCompanyAbbr(cardCompany);
-  return CARD_COMPANY_COLORS[abbr] || "#808080";
-}
+import { useBilling } from "@/hooks/useBilling";
+import ChangePaymentMethodModal, {
+  type PaymentMethodData,
+} from "./ChangePaymentMethodModal";
 
 // 날짜 포맷팅
 function formatDate(dateString: string | null): string {
   if (!dateString) return "-";
   const date = new Date(dateString);
-  return date.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).replace(/\. /g, ".").replace(/\.$/, "");
+  return date
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\. /g, ".")
+    .replace(/\.$/, "");
 }
 
-// 날짜+시간 포맷팅
-function formatDateTime(dateString: string | null): string {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  const dateStr = formatDate(dateString);
-  const timeStr = date.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  return `${dateStr}  ${timeStr}`;
-}
+type ViewMode = "list" | "detail";
 
-// 금액 포맷팅
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat("ko-KR").format(amount) + "원";
-}
-
-// 결제 상태 한글 변환
-function getPaymentStatusLabel(status: string): string {
-  const statusMap: Record<string, string> = {
-    pending: "대기",
-    completed: "완료",
-    failed: "실패",
-    refunded: "환불",
+interface ProjectWithSubscription extends ProjectSummary {
+  subscription?: {
+    plan: {
+      name: string;
+    };
+    startDate: string;
+    endDate: string;
+    billingCycle: "monthly" | "yearly";
+    isActive: boolean;
   };
-  return statusMap[status] || status;
+  usage?: {
+    memberCount: number;
+    aiUsage: number;
+    smsUsage: number;
+  };
 }
-
-// 결제 상태 색상
-function getPaymentStatusColor(status: string): "green" | "yellow" | "red" {
-  if (status === "completed") return "green";
-  if (status === "pending") return "yellow";
-  return "red";
-}
-
-type ViewMode = "main" | "subscription";
 
 export default function BillingTab() {
-  const [viewMode, setViewMode] = useState<ViewMode>("main");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedProject, setSelectedProject] =
+    useState<ProjectWithSubscription | null>(null);
+  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
 
-  // API 데이터 가져오기
+  // 프로젝트 목록 가져오기
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["projects", "list"],
+    queryFn: async () => {
+      const res = await ProjectsService.list();
+      const payload: any = res.data;
+      const list = Array.isArray(payload) ? payload : payload?.data;
+      return (Array.isArray(list) ? list : []) as ProjectSummary[];
+    },
+  });
+
+  // 결제 수단 정보 가져오기
   const { activeBillingInfo, loading: billingLoading } = useBilling();
-  const { subscription, loading: subscriptionLoading } = useSubscription();
-  const { payments, loading: paymentsLoading } = usePaymentHistory();
 
-  // 페이지네이션
-  const totalPages = Math.max(1, Math.ceil(payments.length / itemsPerPage));
-  const paginatedPayments = payments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // 프로젝트별 구독 정보 가져오기 (임시로 목 데이터 사용)
+  // TODO: 실제 API 연동 필요
+  const projectsWithSubscription: ProjectWithSubscription[] = (
+    projects || []
+  ).map((project) => {
+    // 임시 데이터 - 실제 API 연동 필요
+    const mockSubscription = {
+      plan: { name: project.id % 3 === 0 ? "Premium" : "Basic" },
+      startDate: "2025-11-01",
+      endDate: "2025-12-01",
+      billingCycle: "monthly" as const,
+      isActive: true,
+    };
+    const mockUsage = {
+      memberCount: 261,
+      aiUsage: 50,
+      smsUsage: 30,
+    };
+    return {
+      ...project,
+      subscription: mockSubscription,
+      usage: mockUsage,
+    };
+  });
 
-  if (viewMode === "subscription") {
-    return <SubscriptionManagement onBack={() => setViewMode("main")} />;
+  if (viewMode === "detail" && selectedProject) {
+    return (
+      <ProjectBillingDetail
+        projectId={selectedProject.id}
+        projectName={selectedProject.name}
+        onBack={() => {
+          setViewMode("list");
+          setSelectedProject(null);
+        }}
+      />
+    );
   }
 
-  const isLoading = subscriptionLoading || billingLoading;
-
   return (
-    <div className="space-y-6">
-      {/* 결제관리 + 프로젝트 구독 섹션 (통합 카드) */}
-      <div className="bg-card rounded-[14px]">
+    <div className="bg-card rounded-[14px]">
+      <div className="space-y-6">
         {/* 페이지 제목 */}
-        <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">결제관리</h1>
+        <div className="px-7 pt-7">
+          <h1 className="text-[24px] font-bold text-foreground">구독 관리</h1>
+        </div>
 
         {/* 구분선 */}
-        <div className="border-b border-border opacity-70"></div>
+        <div className="w-full h-[1px] bg-border opacity-70"></div>
 
-        {/* 프로젝트 구독 섹션 */}
-        <div className="px-10 py-[30px]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[18px] font-bold text-foreground">프로젝트 구독</span>
-                {subscription?.isActive && (
-                  <span className="px-2 py-0.5 bg-primary-10 text-primary-80 text-[12px] font-medium rounded-full">
-                    {subscription.plan?.name || "구독중"}
-                  </span>
-                )}
+        <div className="px-7 pb-7 space-y-6">
+          {/* 프로젝트 관리 및 결제 수단 섹션 */}
+          <div className="bg-card rounded-[14px] p-6 border border-neutral-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 프로젝트 관리 */}
+              <div className="flex items-center gap-4">
+                <div className="w-[60px] h-[60px] flex items-center justify-center flex-shrink-0">
+                  <svg
+                    width="60"
+                    height="60"
+                    viewBox="0 0 60 60"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      opacity="0.1"
+                      d="M48 0C54.6273 0.000125631 60 5.37266 60 12V48C59.9999 54.6272 54.6272 59.9999 48 60H12C5.37268 60 0.000147504 54.6273 0 48V12C0 5.37258 5.37258 4.83108e-07 12 0H48Z"
+                      fill="#00E272"
+                    />
+                    <path
+                      opacity="0.587821"
+                      d="M38.0002 24.6663C40.2092 24.6665 42.0002 26.4573 42.0002 28.6663C42.0002 30.8753 40.2092 32.666 38.0002 32.6663C35.7911 32.6663 34.0002 30.8754 34.0002 28.6663C34.0003 26.4572 35.7911 24.6663 38.0002 24.6663ZM26.0002 17.9993C28.9456 17.9995 31.3333 20.3879 31.3333 23.3333C31.3331 26.2786 28.9455 28.6661 26.0002 28.6663C23.0548 28.6663 20.6664 26.2787 20.6663 23.3333C20.6663 20.3877 23.0547 17.9993 26.0002 17.9993Z"
+                      fill="#00E272"
+                    />
+                    <path
+                      d="M25.9772 31.3328C32.361 31.3328 37.606 34.3909 37.9967 40.9333C38.0122 41.1942 37.9968 41.9996 36.9957 41.9998H14.9703C14.6361 41.9998 13.9729 41.2791 14.0006 40.9324C14.5174 34.569 19.6822 31.3329 25.9772 31.3328ZM37.4694 34.0017C42.0105 34.0518 45.7183 36.3468 45.9977 41.199C46.0089 41.3944 45.9978 41.9994 45.275 41.9998H40.1334C40.1333 38.9993 39.1421 36.2297 37.4694 34.0017Z"
+                      fill="#00E272"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-bold text-foreground mb-1">
+                    프로젝트 관리
+                  </h2>
+                  <p className="text-[14px] text-neutral-60">
+                    총 {projectsWithSubscription.length}개 프로젝트 진행중
+                  </p>
+                </div>
+              </div>
+
+              {/* 결제 수단 */}
+              <div className="flex items-center gap-3">
+                {/* 결제 수단 아이콘 */}
+                <div className="w-[60px] h-[60px] flex items-center justify-center flex-shrink-0">
+                  <svg
+                    width="60"
+                    height="60"
+                    viewBox="0 0 60 60"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      opacity="0.1"
+                      d="M48 0C54.6273 0.000125631 60 5.37266 60 12V48C59.9999 54.6272 54.6272 59.9999 48 60H12C5.37268 60 0.000147504 54.6273 0 48V12C0 5.37258 5.37258 4.83108e-07 12 0H48Z"
+                      fill="#00E272"
+                    />
+                    <path
+                      d="M19.4 20C17.5222 20 16 21.5222 16 23.4V30.2C16 32.0778 17.5222 33.6 19.4 33.6L19.4 23.4H36.4C36.4 21.5222 34.8778 20 33 20H19.4Z"
+                      fill="#00E272"
+                    />
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M22.8 30.2C22.8 28.3222 24.3222 26.8 26.2 26.8H39.8C41.6778 26.8 43.2 28.3222 43.2 30.2V37C43.2 38.8778 41.6778 40.4 39.8 40.4H26.2C24.3222 40.4 22.8 38.8778 22.8 37V30.2ZM33 37C34.8778 37 36.4 35.4778 36.4 33.6C36.4 31.7222 34.8778 30.2 33 30.2C31.1222 30.2 29.6 31.7222 29.6 33.6C29.6 35.4778 31.1222 37 33 37Z"
+                      fill="#00E272"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-[16px] font-semibold text-foreground mb-1">
+                    결제 수단
+                  </h2>
+                  {billingLoading ? (
+                    <div className="h-4 w-32 bg-neutral-20 rounded animate-pulse" />
+                  ) : activeBillingInfo ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] text-neutral-60">
+                        카드 결제 ({activeBillingInfo.cardCompany} ****{" "}
+                        {activeBillingInfo.lastFourDigits})
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[14px] text-neutral-60">
+                      등록된 결제 수단이 없습니다
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowPaymentMethodModal(true)}
+                  className="cursor-pointer px-3 py-1.5 border border-neutral-30 text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors flex-shrink-0"
+                >
+                  변경
+                </button>
               </div>
             </div>
-            <button
-              onClick={() => setViewMode("subscription")}
-              className="cursor-pointer px-4 py-2 bg-neutral-90 text-white text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
-            >
-              구독 관리
-            </button>
           </div>
-          {isLoading ? (
-            <div className="h-5 w-60 bg-neutral-20 rounded animate-pulse" />
-          ) : subscription ? (
-            <p className="text-[14px] text-neutral-60">
-              {formatDate(subscription.startDate)} ~ {formatDate(subscription.endDate)} (
-              {subscription.billingCycle === "monthly" ? "월마다" : "연마다"} 결제)
-            </p>
-          ) : (
-            <p className="text-[14px] text-neutral-60">
-              구독 정보가 없습니다
+
+          {/* 프로젝트 카드 그리드 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {isLoading ? (
+              // 로딩 스켈레톤
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-card rounded-[14px] p-6 border border-neutral-20 animate-pulse"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-neutral-20" />
+                    <div className="h-5 w-40 bg-neutral-20 rounded" />
+                  </div>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j}>
+                        <div className="flex justify-between mb-2">
+                          <div className="h-4 w-20 bg-neutral-20 rounded" />
+                          <div className="h-4 w-24 bg-neutral-20 rounded" />
+                        </div>
+                        <div className="h-2 bg-neutral-20 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : projectsWithSubscription.length === 0 ? (
+              <div className="col-span-2 text-center py-12">
+                <p className="text-[16px] text-neutral-60">
+                  프로젝트가 없습니다
+                </p>
+              </div>
+            ) : (
+              projectsWithSubscription.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onMoreClick={() => {
+                    setSelectedProject(project);
+                    setViewMode("detail");
+                  }}
+                />
+              ))
+            )}
+          </div>
+
+          {/* 더미 데이터 모드 토글 */}
+          <DemoModeToggle />
+        </div>
+      </div>
+
+      {/* 결제 수단 변경 모달 */}
+      <ChangePaymentMethodModal
+        isOpen={showPaymentMethodModal}
+        onClose={() => setShowPaymentMethodModal(false)}
+        onConfirm={(data: PaymentMethodData) => {
+          // TODO: API 호출로 결제 수단 변경 처리
+          console.log("결제 수단 변경:", data);
+          setShowPaymentMethodModal(false);
+        }}
+        currentBillingInfo={
+          activeBillingInfo
+            ? {
+                email: "", // TODO: API에서 가져오기
+                cardholderName: "", // TODO: API에서 가져오기
+                cardNumber: `**** **** ${activeBillingInfo.lastFourDigits}`,
+                expiryDate: "", // TODO: API에서 가져오기
+                cvc: "", // TODO: API에서 가져오기
+                country: "대한민국",
+                postalCode: "", // TODO: API에서 가져오기
+              }
+            : undefined
+        }
+      />
+    </div>
+  );
+}
+
+// 프로젝트 카드 컴포넌트
+function ProjectCard({
+  project,
+  onMoreClick,
+}: {
+  project: ProjectWithSubscription;
+  onMoreClick: () => void;
+}) {
+  const subscription = project.subscription;
+  const usage = project.usage;
+
+  // 플랜 태그 색상
+  const planTagColor =
+    subscription?.plan.name === "Premium"
+      ? "bg-primary-10 text-primary-80"
+      : "bg-neutral-20 text-neutral-70";
+
+  // 사용량 비율 계산
+  const memberUsage = usage?.memberCount || 0;
+  const memberLimit = 1000; // 임시 값 - 실제 플랜 정보에서 가져와야 함
+  const memberPercentage = Math.min(100, (memberUsage / memberLimit) * 100);
+
+  const aiUsage = usage?.aiUsage || 0;
+  const aiLimit = 1000; // 임시 값
+  const aiPercentage = Math.min(100, (aiUsage / aiLimit) * 100);
+
+  const smsUsage = usage?.smsUsage || 0;
+  const smsLimit = 1000; // 임시 값
+  const smsPercentage = Math.min(100, (smsUsage / smsLimit) * 100);
+
+  // 프로젝트 아이콘 (임시)
+  const getProjectIcon = () => {
+    if (project.id % 3 === 0) {
+      // 스마트 거래 관리
+      return (
+        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-green-400" />
+        </div>
+      );
+    } else if (project.id % 3 === 1) {
+      // 거래소 텔레마케팅 관리
+      return (
+        <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
+          <span className="text-white text-[16px] font-bold">X</span>
+        </div>
+      );
+    } else {
+      // 프로젝트 컨설팅 관리
+      return null;
+    }
+  };
+
+  return (
+    <div className="bg-card rounded-[14px] p-6 border border-neutral-20">
+      {/* 카드 헤더 */}
+      <div className="flex items-center gap-3 mb-6">
+        {/* 프로젝트 썸네일 */}
+        {project.logoUrl ? (
+          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+            <Image
+              src={project.logoUrl}
+              alt={project.name}
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          getProjectIcon()
+        )}
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[16px] font-bold text-foreground">
+              {project.name}
+            </h3>
+            {subscription?.plan && (
+              <span
+                className={`px-2 py-0.5 ${planTagColor} text-[12px] font-medium rounded-full`}
+              >
+                {subscription.plan.name}
+              </span>
+            )}
+          </div>
+          {subscription && (
+            <p className="text-[12px] text-neutral-60 mt-1">
+              {formatDate(subscription.startDate)} ~{" "}
+              {formatDate(subscription.endDate)} (
+              {subscription.billingCycle === "monthly" ? "월마다" : "연마다"}{" "}
+              결제)
             </p>
           )}
         </div>
       </div>
 
-      {/* 결제정보 섹션 */}
-      <div className="bg-card rounded-[14px] p-6">
-        <div className="mb-6">
-          <h2 className="text-[18px] font-bold text-foreground">결제정보</h2>
-          <p className="text-[14px] text-neutral-60 mt-1">
-            결제 상태 및 처리 내역을 관리합니다.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {/* 구독 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">구독</span>
-            {subscriptionLoading ? (
-              <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
-            ) : subscription ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] text-foreground">프로젝트 구독</span>
-                <span className="px-2 py-0.5 bg-neutral-20 text-neutral-70 text-[12px] font-medium rounded">
-                  {subscription.plan?.name || "-"}
-                </span>
-              </div>
-            ) : (
-              <span className="text-[14px] text-neutral-60">구독 정보 없음</span>
-            )}
-          </div>
-
-          {/* 결제 수단 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">결제 수단</span>
-            <div className="flex items-center gap-3">
-              {billingLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-4 bg-neutral-20 rounded-sm animate-pulse" />
-                  <div className="w-40 h-4 bg-neutral-20 rounded animate-pulse" />
-                </div>
-              ) : activeBillingInfo ? (
-                <PaymentMethodDisplay billingInfo={activeBillingInfo} />
-              ) : (
-                <span className="text-[14px] text-neutral-60">등록된 결제 수단이 없습니다</span>
-              )}
-              <button className="cursor-pointer px-3 py-1.5 border border-neutral-30 text-[13px] text-neutral-70 rounded-[6px] hover:bg-neutral-10 transition-colors">
-                결제 수단 변경
-              </button>
-            </div>
-          </div>
-
-          {/* 이용시작 일시 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">이용시작 일시</span>
-            {subscriptionLoading ? (
-              <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
-            ) : (
-              <span className="text-[14px] text-foreground">
-                {subscription ? formatDateTime(subscription.startDate) : "-"}
-              </span>
-            )}
-          </div>
-
-          {/* 다음 결제 예정일 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">다음 결제 예정일</span>
-            {subscriptionLoading ? (
-              <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
-            ) : (
-              <span className="text-[14px] text-foreground">
-                {subscription?.nextBillingDate ? formatDateTime(subscription.nextBillingDate) : "-"}
-              </span>
-            )}
-          </div>
-
-          {/* 결제 예정 금액 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">결제 예정 금액</span>
-            <div className="flex items-center gap-3">
-              {subscriptionLoading ? (
-                <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
-              ) : (
-                <span className="text-[14px] text-foreground">
-                  {subscription?.plan ? (
-                    <>
-                      <span className="font-bold">
-                        {formatAmount(
-                          subscription.billingCycle === "monthly"
-                            ? subscription.plan.monthlyPrice
-                            : subscription.plan.yearlyPrice
-                        )}
-                      </span>
-                      <span className="text-neutral-60 ml-1">(부가세 포함)</span>
-                    </>
-                  ) : (
-                    "-"
-                  )}
-                </span>
-              )}
-              {subscription?.isActive && (
-                <button className="cursor-pointer px-3 py-1.5 border border-neutral-30 text-[13px] text-neutral-70 rounded-[6px] hover:bg-neutral-10 transition-colors">
-                  구독 취소
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 결제내역 섹션 */}
-      <div className="bg-card rounded-[14px] pb-7">
-        {/* 제목 */}
-        <h2 className="px-7 py-6 text-[18px] font-bold text-foreground">결제내역</h2>
-
-        {/* 구분선 */}
-        <div className="w-full h-[1px] bg-border opacity-70 mb-6"></div>
-
-        {/* 테이블 */}
-        <div className="px-7">
-          {/* 테이블 헤더 */}
-          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6">
-            <div className="flex-[1.5] text-[16px] font-medium text-neutral-60">결제날짜</div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">금액</div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">결제 상태</div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">결제 방법</div>
-          </div>
-
-          {/* 테이블 본문 */}
+      {/* 사용량 정보 */}
+      {subscription && usage && (
+        <div className="space-y-4 mb-6">
+          {/* 멤버 수 */}
           <div>
-            {paymentsLoading ? (
-              // 로딩 스켈레톤
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center px-6 py-4 border-b border-neutral-10">
-                  <div className="flex-[1.5]"><div className="h-4 w-24 bg-neutral-20 rounded animate-pulse" /></div>
-                  <div className="flex-[1]"><div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" /></div>
-                  <div className="flex-[1]"><div className="h-4 w-12 bg-neutral-20 rounded animate-pulse" /></div>
-                  <div className="flex-[1]"><div className="h-4 w-16 bg-neutral-20 rounded animate-pulse" /></div>
-                </div>
-              ))
-            ) : paginatedPayments.length === 0 ? (
-              <div className="py-12 text-center text-[14px] text-neutral-60">
-                결제 내역이 없습니다
-              </div>
-            ) : (
-              paginatedPayments.map((payment) => (
-                <PaymentRow key={payment.id} payment={payment} />
-              ))
-            )}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[14px] text-neutral-60">멤버 수</span>
+              <span className="text-[14px] text-foreground">
+                <span className="font-bold">{memberUsage}명</span>
+                <span className="text-neutral-60"> / {memberLimit}명</span>
+              </span>
+            </div>
+            <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${memberPercentage}%`,
+                  background:
+                    "linear-gradient(90deg, #BDE3FF 1.3%, #9DF0C7 101.52%)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* AI 상담 도우미 토큰 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[14px] text-neutral-60">
+                AI 상담 도우미 토큰
+              </span>
+              <span className="text-[14px] text-foreground">
+                <span className="font-bold">월 {aiUsage}회</span>
+                <span className="text-neutral-60"> / 월 {aiLimit}회</span>
+              </span>
+            </div>
+            <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${aiPercentage}%`,
+                  background:
+                    "linear-gradient(90deg, #BDE3FF 1.3%, #9DF0C7 101.52%)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 문자 전송 횟수 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[14px] text-neutral-60">
+                문자 전송 횟수
+              </span>
+              <span className="text-[14px] text-foreground">
+                <span className="font-bold">월 {smsUsage}회</span>
+                <span className="text-neutral-60"> / 월 {smsLimit}회</span>
+              </span>
+            </div>
+            <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${smsPercentage}%`,
+                  background:
+                    "linear-gradient(90deg, #BDE3FF 1.3%, #9DF0C7 101.52%)",
+                }}
+              />
+            </div>
           </div>
         </div>
+      )}
 
-        {/* 페이지네이션 */}
-        {payments.length > 0 && (
-          <div className="flex justify-center mt-6">
-            <Pagination
-              page={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* 더미 데이터 모드 토글 (결제관리 페이지에서만 표시) */}
-      <DemoModeToggle />
-    </div>
-  );
-}
-
-// 결제 수단 표시 컴포넌트
-function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
-  const cardCompanyAbbr = getCardCompanyAbbr(billingInfo.cardCompany);
-  const cardCompanyColor = getCardCompanyColor(billingInfo.cardCompany);
-
-  return (
-    <div className="flex items-center gap-2">
-      <div
-        className="w-6 h-4 rounded-sm flex items-center justify-center"
-        style={{ backgroundColor: cardCompanyColor }}
-      >
-        <span className="text-white text-[8px] font-bold">{cardCompanyAbbr}</span>
-      </div>
-      <span className="text-[14px] text-foreground">
-        카드 결제 ({billingInfo.cardCompany} **** **** {billingInfo.lastFourDigits})
-      </span>
-    </div>
-  );
-}
-
-// 결제 내역 행 컴포넌트
-function PaymentRow({ payment }: { payment: Payment }) {
-  const statusLabel = getPaymentStatusLabel(payment.status);
-  const statusColor = getPaymentStatusColor(payment.status);
-
-  return (
-    <div className="flex items-center px-6 py-4 border-b border-neutral-10">
-      <div className="flex-[1.5] text-[14px] text-foreground">
-        {formatDate(payment.createdAt)}
-      </div>
-      <div className="flex-[1] text-[14px] text-foreground">
-        {formatAmount(payment.amount)}
-      </div>
-      <div className="flex-[1]">
-        <span
-          className={`px-2 py-1 text-[12px] font-medium rounded ${
-            statusColor === "green"
-              ? "bg-primary-10 text-primary-80"
-              : statusColor === "yellow"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-red-100 text-red-700"
-          }`}
+      {/* 더보기 버튼 */}
+      <div className="flex items-center justify-end">
+        <button
+          onClick={onMoreClick}
+          className="cursor-pointer px-4 py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
         >
-          {statusLabel}
-        </span>
-      </div>
-      <div className="flex-[1] text-[14px] text-foreground">
-        {payment.method || "-"}
+          더보기
+        </button>
       </div>
     </div>
   );
