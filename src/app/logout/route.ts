@@ -43,6 +43,8 @@ function isProductionDomain(hostname: string): boolean {
  * 
  * 프로덕션 환경에서는 Domain 속성이 있는 쿠키와 없는 쿠키를 모두 삭제하여
  * 브라우저 호환성을 보장합니다.
+ * 
+ * 중요: httpOnly 쿠키는 서버에서만 삭제할 수 있습니다.
  */
 async function handleLogout(request: NextRequest) {
   const cookieStore = await cookies();
@@ -50,15 +52,19 @@ async function handleLogout(request: NextRequest) {
   const isProduction = isProductionDomain(hostname);
   const isSecure = request.nextUrl.protocol === 'https:';
 
+  const baseCookieOptions = {
+    maxAge: 0, // 즉시 만료
+    path: '/',
+    secure: isSecure,
+    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    httpOnly: true, // httpOnly 쿠키로 삭제
+  };
+
   // 프로덕션 환경에서는 Domain 속성이 있는 쿠키도 삭제
   if (isProduction) {
     const cookieOptionsWithDomain = {
-      expires: new Date(0),
-      path: '/',
+      ...baseCookieOptions,
       domain: '.talkgate.im',
-      secure: isSecure,
-      sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-      httpOnly: true,
     };
     
     cookieStore.set('tg_access_token', '', cookieOptionsWithDomain);
@@ -67,12 +73,8 @@ async function handleLogout(request: NextRequest) {
 
   // Domain 속성이 없는 쿠키도 삭제 (브라우저 호환성)
   const cookieOptionsWithoutDomain = {
-    expires: new Date(0),
-    path: '/',
+    ...baseCookieOptions,
     domain: undefined as string | undefined,
-    secure: isSecure,
-    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-    httpOnly: true,
   };
   
   cookieStore.set('tg_access_token', '', cookieOptionsWithoutDomain);
@@ -97,20 +99,24 @@ export async function GET(request: NextRequest) {
     const callbackUrl = searchParams.get('callbackUrl');
     const returnUrl = searchParams.get('returnUrl');
 
-    console.log('[Logout] 🚪 로그아웃 요청:', {
+    console.log('[Logout Route] 🚪 로그아웃 요청 시작:', {
       callbackUrl,
       returnUrl,
       host: request.headers.get('host'),
+      protocol: request.nextUrl.protocol,
+      pathname: request.nextUrl.pathname,
     });
 
-    // 로그아웃 처리 (쿠키 삭제)
+    // 서버 사이드에서 쿠키 삭제
     await handleLogout(request);
+    
+    console.log('[Logout Route] 🍪 서버 사이드 쿠키 삭제 완료');
 
     // 콜백 URL이 있으면 검증 후 리다이렉트
     if (callbackUrl) {
       if (!isValidCallbackUrl(callbackUrl)) {
-        console.error('[Logout] ❌ 유효하지 않은 콜백 URL:', callbackUrl);
-        // 콜백 URL이 유효하지 않은 경우 기본 홈으로 리다이렉트
+        console.error('[Logout Route] ❌ 유효하지 않은 콜백 URL:', callbackUrl);
+        // 콜백 URL이 유효하지 않은 경우 홈으로 리다이렉트
         return NextResponse.redirect(new URL('/', request.url));
       }
 
@@ -121,15 +127,16 @@ export async function GET(request: NextRequest) {
       }
       callback.searchParams.set('success', 'true');
 
-      console.log('[Logout] ✅ 로그아웃 완료 - 콜백 URL로 리다이렉트:', callback.toString());
+      console.log('[Logout Route] ✅ 로그아웃 완료 - 콜백 URL로 리다이렉트:', callback.toString());
       return NextResponse.redirect(callback);
     }
 
     // 콜백 URL이 없는 경우 기본 로그아웃 처리 (홈으로 리다이렉트)
-    console.log('[Logout] ✅ 로그아웃 완료 - 홈으로 리다이렉트');
+    console.log('[Logout Route] ✅ 로그아웃 완료 - 홈으로 리다이렉트');
     return NextResponse.redirect(new URL('/', request.url));
   } catch (error) {
-    console.error('[Logout] ❌ 로그아웃 처리 중 에러:', error);
+    console.error('[Logout Route] ❌ 로그아웃 처리 중 에러:', error);
+    console.error('[Logout Route] ❌ 에러 스택:', error instanceof Error ? error.stack : 'No stack');
     // 에러 발생 시에도 홈으로 리다이렉트
     return NextResponse.redirect(new URL('/', request.url));
   }

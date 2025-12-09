@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
-import { getSelectedProjectId } from "@/lib/project";
+import { getSelectedProjectId, setSelectedProjectId } from "@/lib/project";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 function TwoFactorLoginContent() {
@@ -43,10 +43,20 @@ function TwoFactorLoginContent() {
     }
 
     try {
-      await AuthService.twoFactorLogin({
+      console.log("[TwoFactorLogin] 🔑 2FA 로그인 요청 시작");
+      const res = await AuthService.twoFactorLogin({
         twoFactorToken,
         totpCode,
       });
+      
+      console.log("[TwoFactorLogin] 📥 2FA 로그인 응답:", res);
+      const data = (res as any)?.data;
+      
+      // 서버에서 프로젝트 ID를 반환했으면 저장
+      if (data?.projectId != null) {
+        console.log("[TwoFactorLogin] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
+        setSelectedProjectId(data.projectId);
+      }
       
       // 2FA 인증 성공 후 리디렉션
       if (redirectUrl) {
@@ -55,13 +65,20 @@ function TwoFactorLoginContent() {
         window.location.href = redirectUrl;
       } else {
         // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-        const projectId = getSelectedProjectId();
+        const projectId = data?.projectId || getSelectedProjectId();
+        console.log("[TwoFactorLogin] 📊 프로젝트 ID 확인:", { 
+          fromResponse: data?.projectId, 
+          fromCookie: getSelectedProjectId(),
+          final: projectId 
+        });
+        
+        // window.location.href 사용하여 페이지 전체 리로드 (쿠키 설정 보장)
         if (projectId) {
           console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 있음 → 대시보드로 이동");
-          router.replace("/dashboard");
+          window.location.href = "/dashboard";
         } else {
           console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-          router.replace("/projects");
+          window.location.href = "/projects";
         }
       }
     } catch (err: any) {

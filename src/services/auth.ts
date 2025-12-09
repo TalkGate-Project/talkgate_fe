@@ -1,5 +1,4 @@
 import { apiClient } from "@/lib/apiClient";
-import { setTokens } from "@/lib/token";
 import { setSelectedProjectId } from "@/lib/project";
 import type {
   LoginInput,
@@ -137,10 +136,8 @@ function handleSocialLoginResponse(res: any, provider: string): SocialLoginResul
   }
 
   // 일반 로그인 성공
-  if (extracted.accessToken || extracted.refreshToken) {
-    console.log("[AuthService] 🔑 토큰 저장 시작...");
-    setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
-  } else {
+  // 토큰은 서버에서 httpOnly 쿠키로 설정되므로 클라이언트에서 저장 불필요
+  if (!extracted.accessToken && !extracted.refreshToken) {
     console.error("[AuthService] ❌ 토큰 추출 실패! 응답에 accessToken/refreshToken이 없습니다.");
   }
 
@@ -159,49 +156,129 @@ function handleSocialLoginResponse(res: any, provider: string): SocialLoginResul
 export const AuthService = {
   // Social login
   loginGoogle(input: SocialLoginInput): Promise<SocialLoginResult> {
-    console.log("[AuthService] 🔵 loginGoogle 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
-    return apiClient.post<LoginOutput>("/v1/auth/google", input).then((res) => {
-      return handleSocialLoginResponse(res, "Google");
+    console.log("[AuthService] 🔵 loginGoogle 호출 - 서버 API 사용:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
+    return fetch("/api/auth/social/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      credentials: "include",
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw Object.assign(new Error(`Social login failed: ${res.status}`), {
+          status: res.status,
+          data,
+        });
+      }
+
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨
+      if (data.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", data.projectId);
+        setSelectedProjectId(data.projectId);
+      }
+
+      return {
+        success: data.success,
+        requiresTwoFactor: data.requiresTwoFactor || false,
+        twoFactorToken: data.twoFactorToken,
+        response: { ok: true, status: res.status, data },
+      };
     });
   },
   loginKakao(input: SocialLoginInput): Promise<SocialLoginResult> {
-    console.log("[AuthService] 🟡 loginKakao 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
-    return apiClient.post<LoginOutput>("/v1/auth/kakao", input).then((res) => {
-      return handleSocialLoginResponse(res, "Kakao");
+    console.log("[AuthService] 🟡 loginKakao 호출 - 서버 API 사용:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
+    return fetch("/api/auth/social/kakao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      credentials: "include",
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw Object.assign(new Error(`Social login failed: ${res.status}`), {
+          status: res.status,
+          data,
+        });
+      }
+
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨
+      if (data.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", data.projectId);
+        setSelectedProjectId(data.projectId);
+      }
+
+      return {
+        success: data.success,
+        requiresTwoFactor: data.requiresTwoFactor || false,
+        twoFactorToken: data.twoFactorToken,
+        response: { ok: true, status: res.status, data },
+      };
     });
   },
   loginNaver(input: SocialLoginInput): Promise<SocialLoginResult> {
-    console.log("[AuthService] 🟢 loginNaver 호출:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
-    return apiClient.post<LoginOutput>("/v1/auth/naver", input).then((res) => {
-      return handleSocialLoginResponse(res, "Naver");
+    console.log("[AuthService] 🟢 loginNaver 호출 - 서버 API 사용:", { callbackUrl: input.callbackUrl, codePreview: input.code?.slice(0, 20) + "..." });
+    return fetch("/api/auth/social/naver", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      credentials: "include",
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw Object.assign(new Error(`Social login failed: ${res.status}`), {
+          status: res.status,
+          data,
+        });
+      }
+
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨
+      if (data.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", data.projectId);
+        setSelectedProjectId(data.projectId);
+      }
+
+      return {
+        success: data.success,
+        requiresTwoFactor: data.requiresTwoFactor || false,
+        twoFactorToken: data.twoFactorToken,
+        response: { ok: true, status: res.status, data },
+      };
     });
   },
 
   // Email/password
   login(input: LoginInput) {
-    console.log("[AuthService] 📧 login 호출 (이메일/비밀번호)");
-    return apiClient.post<LoginOutput>("/v1/auth/login", input).then((res) => {
-      console.log("[AuthService] 📥 Login API 응답 수신:", { status: res.status, ok: res.ok });
+    console.log("[AuthService] 📧 login 호출 (이메일/비밀번호) - 서버 API 사용");
+    // 서버 API 라우트를 사용하여 쿠키가 서버에서 설정되도록 함
+    return fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      credentials: "include",
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw Object.assign(new Error(`Login failed: ${res.status}`), {
+          status: res.status,
+          data,
+        });
+      }
       
-      const extracted = extractLoginData(res.data);
-      console.log("[AuthService] 📊 추출된 데이터:", {
-        hasAccessToken: !!extracted.accessToken,
-        hasRefreshToken: !!extracted.refreshToken,
-        hasUser: !!extracted.user,
-        projectId: extracted.projectId,
+      console.log("[AuthService] 📥 로그인 응답 수신:", { 
+        hasUser: !!data.user, 
+        projectId: data.projectId,
+        requiresTwoFactor: data.requiresTwoFactor,
+        hasTwoFactorToken: !!data.twoFactorToken,
       });
-
-      if (extracted.accessToken || extracted.refreshToken) {
-        console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
+      
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨
+      if (data.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", data.projectId);
+        setSelectedProjectId(data.projectId);
       }
 
-      if (extracted.projectId != null) {
-        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
-        setSelectedProjectId(extracted.projectId);
-      }
-
-      return res;
+      // apiClient와 동일한 형식으로 반환 ({ ok, status, data })
+      return { ok: true, status: res.status, data };
     });
   },
   signup(input: SignupInput) {
@@ -209,17 +286,10 @@ export const AuthService = {
   },
 
   refresh() {
-    console.log("[AuthService] 🔄 refresh 호출");
-    return apiClient.post<unknown>("/v1/auth/refresh").then((res) => {
-      console.log("[AuthService] 📥 Refresh API 응답 수신:", { status: res.status, ok: res.ok });
-      
-      const extracted = extractLoginData(res.data);
-      if (extracted.accessToken || extracted.refreshToken) {
-        console.log("[AuthService] 🔑 토큰 갱신 시작...");
-        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
-      }
-      return res;
-    });
+    console.log("[AuthService] 🔄 refresh 호출 - 프록시에서 자동 처리됨");
+    // 토큰 갱신은 API 프록시에서 401 응답 시 자동으로 처리됨
+    // 별도 호출이 필요한 경우를 위해 프록시를 통해 호출
+    return apiClient.post<unknown>("/v1/auth/refresh");
   },
   termsAccept() {
     return apiClient.post<unknown>("/v1/auth/terms");
@@ -229,12 +299,8 @@ export const AuthService = {
     return apiClient.post<unknown>("/v1/auth/verify-email", input).then((res) => {
       console.log("[AuthService] 📥 VerifyEmail API 응답 수신:", { status: res.status, ok: res.ok });
       
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨 (프록시에서 처리)
       const extracted = extractLoginData(res.data);
-      if (extracted.accessToken || extracted.refreshToken) {
-        console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
-      }
-
       if (extracted.projectId != null) {
         console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
         setSelectedProjectId(extracted.projectId);
@@ -282,22 +348,38 @@ export const AuthService = {
     return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { body: input });
   },
   twoFactorLogin(input: TwoFactorLoginInput) {
-    console.log("[AuthService] 🔐 twoFactorLogin 호출");
-    return apiClient.post<TwoFactorLoginOutput>("/v1/auth/two-factor/login", input).then((res) => {
-      console.log("[AuthService] 📥 TwoFactorLogin API 응답 수신:", { status: res.status, ok: res.ok });
+    console.log("[AuthService] 🔐 twoFactorLogin 호출 - 서버 API 사용");
+    // 서버 API 라우트를 사용하여 쿠키가 서버에서 설정되도록 함
+    return fetch("/api/auth/two-factor/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        twoFactorToken: input.twoFactorToken,
+        totpCode: input.totpCode, // 백엔드는 totpCode를 기대함
+      }),
+      credentials: "include",
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw Object.assign(new Error(`2FA Login failed: ${res.status}`), {
+          status: res.status,
+          data,
+        });
+      }
       
-      const extracted = extractLoginData(res.data);
-      if (extracted.accessToken || extracted.refreshToken) {
-        console.log("[AuthService] 🔑 토큰 저장 시작...");
-        setTokens({ accessToken: extracted.accessToken, refreshToken: extracted.refreshToken });
+      console.log("[AuthService] 📥 2FA 로그인 응답 수신:", { 
+        hasUser: !!data.user, 
+        projectId: data.projectId,
+      });
+      
+      // 토큰은 서버에서 httpOnly 쿠키로 설정됨
+      if (data.projectId != null) {
+        console.log("[AuthService] 📁 프로젝트 ID 저장:", data.projectId);
+        setSelectedProjectId(data.projectId);
       }
 
-      if (extracted.projectId != null) {
-        console.log("[AuthService] 📁 프로젝트 ID 저장:", extracted.projectId);
-        setSelectedProjectId(extracted.projectId);
-      }
-
-      return res;
+      // apiClient와 동일한 형식으로 반환 ({ ok, status, data })
+      return { ok: true, status: res.status, data };
     });
   },
 };

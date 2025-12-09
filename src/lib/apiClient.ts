@@ -1,5 +1,4 @@
 import { env } from "./env";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token";
 import { getSelectedProjectId, clearSelectedProjectId } from "./project";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -62,12 +61,15 @@ export class ApiClient {
   private refreshInFlight: Promise<void> | null = null;
 
   constructor(options?: ApiClientOptions) {
-    this.baseUrl = options?.baseUrl ?? env.NEXT_PUBLIC_API_BASE_URL;
+    // 서버 API 프록시를 통해 요청하도록 변경 (httpOnly 쿠키 사용)
+    // 프록시가 백엔드 API 경로를 그대로 전달하므로, 백엔드 경로를 그대로 사용
+    const backendUrl = options?.baseUrl ?? env.NEXT_PUBLIC_API_BASE_URL;
+    // 프록시 경로로 변환: https://api-dev.talkgate.im/v1/... -> /api/proxy/v1/...
+    this.baseUrl = backendUrl.replace(/^https?:\/\/[^/]+/, '/api/proxy');
     this.timeoutMs = options?.timeoutMs ?? env.NEXT_PUBLIC_API_TIMEOUT_MS;
     this.getDefaultHeaders = options?.getDefaultHeaders;
-    // Project-wide default: dev => omit (bypass wildcard CORS), prod => include
-    // this.defaultCredentials = process.env.NODE_ENV === "production" ? "include" : "omit";
-    this.defaultCredentials = "omit";
+    // 프록시를 통해 요청하므로 쿠키가 자동으로 포함됨
+    this.defaultCredentials = "include";
   }
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
@@ -76,11 +78,8 @@ export class ApiClient {
     const defaultHeaders = this.getDefaultHeaders ? this.getDefaultHeaders() : {};
     const headers: Record<string, string> = { ...defaultHeaders, ...options.headers };
 
-    // Auto inject Authorization bearer from cookie-managed token when present
-    const token = getAccessToken();
-    if (token && !headers["Authorization"]) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+    // httpOnly 쿠키는 서버에서 자동으로 처리되므로 클라이언트에서는 토큰을 읽을 수 없음
+    // 프록시 서버가 httpOnly 쿠키에서 토큰을 읽어서 Authorization 헤더에 추가함
 
     // Inject selected project header when present (frontend-selected context)
     const projectId = getSelectedProjectId();
@@ -176,32 +175,13 @@ export class ApiClient {
   }
 
   private async refreshTokens(): Promise<void> {
-    if (this.refreshInFlight) return this.refreshInFlight;
-    const doRefresh = async () => {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) throw new Error("Missing refresh token");
-      const res = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-        credentials: this.defaultCredentials,
-      });
-      if (!res.ok) throw new Error(`Refresh failed: ${res.status}`);
-      const payload: any = await res.json();
-      const nextAccess = payload?.data?.accessToken;
-      const nextRefresh = payload?.data?.refreshToken;
-      if (!nextAccess && !nextRefresh) throw new Error("Invalid refresh response");
-      setTokens({ accessToken: nextAccess, refreshToken: nextRefresh });
-    };
-    this.refreshInFlight = doRefresh().finally(() => {
-      this.refreshInFlight = null;
-    });
-    return this.refreshInFlight;
+    // 토큰 갱신은 프록시 서버에서 자동으로 처리됨 (401 응답 시)
+    // 클라이언트에서는 별도 처리 불필요
+    throw new Error("Token refresh is handled by the server proxy");
   }
 
   private handleAutoLogout(): void {
-    // Clear client-side auth footprints and send to login
-    clearTokens();
+    // 서버 사이드 쿠키 관리를 위해 서버 API를 호출하여 로그아웃
     try {
       clearSelectedProjectId();
     } catch {}
@@ -209,7 +189,13 @@ export class ApiClient {
       const pathname = window.location.pathname || "/";
       // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
       if (!isPublicRoute(pathname)) {
-        window.location.replace("/login");
+        // 서버 로그아웃 API 호출
+        fetch("/logout", {
+          method: "GET",
+          credentials: "include",
+        }).finally(() => {
+          window.location.replace("/login");
+        });
       }
     }
   }
