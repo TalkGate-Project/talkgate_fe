@@ -23,7 +23,7 @@ const SIDEBAR_ITEMS = [
   },
   {
     key: "billing" as const,
-    label: "결제관리",
+    label: "구독관리",
     icon: BillingIcon,
   },
   {
