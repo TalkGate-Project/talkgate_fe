@@ -319,6 +319,15 @@ export async function middleware(req: NextRequest) {
   const refreshToken = req.cookies.get("tg_refresh_token")?.value;
   const hasAuthCookie = Boolean(accessToken || refreshToken);
   
+  // 중요: 로그아웃 플래그가 있는 경우 토큰 리프레시를 수행하지 않음
+  // 하지만 미들웨어 matcher에 /login이 없으므로 이 체크는 다른 경로에서 유용할 수 있음
+  // 로그아웃 후 다른 경로로의 요청에서 토큰 리프레시를 방지하기 위함
+  const isLogoutRedirect = req.nextUrl.searchParams.get("logout") === "success";
+  
+  if (isLogoutRedirect) {
+    console.log('[Middleware] 🚪 로그아웃 플래그 감지 - 토큰 리프레시 건너뜀');
+  }
+  
   // 1) 미인증 사용자는 보호 경로 접근 시 메인 도메인의 로그인으로 보냄
   if (!hasAuthCookie) {
     const subdomain = extractSubdomain(host);
@@ -344,7 +353,12 @@ export async function middleware(req: NextRequest) {
   // - 실제 리프레시 API 호출은 토큰이 만료된 경우에만 발생
   // - 대부분의 요청(토큰 유효)에서는 단순한 체크만 수행되므로 오버헤드가 미미함
   // - 토큰이 만료된 경우에만 추가 네트워크 요청 발생
-  if (accessToken && isTokenExpiredOrExpiringSoon(accessToken)) {
+  // 
+  // 중요: 로그아웃 후 리다이렉트인 경우 토큰 리프레시를 수행하지 않음
+  // 로그아웃 Route Handler에서 쿠키 삭제 헤더를 설정했지만,
+  // 브라우저가 리다이렉트를 따라가면서 새로운 요청을 보낼 때
+  // 쿠키 삭제가 완전히 반영되기 전에 미들웨어가 실행될 수 있음
+  if (!isLogoutRedirect && accessToken && isTokenExpiredOrExpiringSoon(accessToken)) {
     console.log('[Middleware] 🔄 액세스 토큰 만료 또는 곧 만료 예정 - 리프레시 시도');
     
     if (!refreshToken) {
