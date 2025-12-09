@@ -7,7 +7,14 @@ export type AppEnv = {
   NEXT_PUBLIC_WS_CHAT_BASE_URL?: string; // WebSocket URL for chat namespace
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL?: string; // WebSocket URL for notification namespace
   NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
-  NEXT_PUBLIC_KAKAO_REST_API_KEY?: string; // Kakao calls it REST API Key
+  /**
+   * Kakao REST API Key (OAuth Client Key)
+   * 
+   * Redirect URI:
+   * - 프로덕션: https://app.talkgate.im/auth/callback/kakao
+   * - 개발: https://app-dev.talkgate.im/auth/callback/kakao, http://localhost:3000/auth/callback/kakao
+   */
+  NEXT_PUBLIC_KAKAO_REST_API_KEY?: string;
   NEXT_PUBLIC_NAVER_CLIENT_ID?: string;
 };
 
