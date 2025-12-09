@@ -10,9 +10,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
+  const resolvedParams = await params;
+  const provider = resolvedParams.provider; // google, kakao, naver
+  
   try {
-    const resolvedParams = await params;
-    const provider = resolvedParams.provider; // google, kakao, naver
     const body = await request.json();
     const { code, callbackUrl } = body;
 
@@ -84,7 +85,7 @@ export async function POST(
       projectId: loginData?.projectId || loginData?.defaultProjectId || loginData?.user?.defaultProjectId,
     });
   } catch (error) {
-    console.error(`[Social Login API] ${params.provider} 에러:`, error);
+    console.error(`[Social Login API] ${provider} 에러:`, error);
     return NextResponse.json(
       { message: '소셜 로그인 처리 중 오류가 발생했습니다.' },
       { status: 500 }
