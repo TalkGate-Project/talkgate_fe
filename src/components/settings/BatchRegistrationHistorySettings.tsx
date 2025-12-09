@@ -198,26 +198,26 @@ export default function BatchRegistrationHistorySettings() {
       <div className="mx-7 h-px bg-neutral-30 mb-6"></div>
 
       {/* Table Header */}
-      <div className="mx-7 bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center gap-3">
-        <div className="w-[162px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
+      <div className="mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center gap-3">
+        <div className="w-[162px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           파일명
         </div>
-        <div className="w-[60px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[60px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           업로더
         </div>
-        <div className="w-[120px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[120px] text-right text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           전체 고객 수
         </div>
-        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           성공
         </div>
-        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0 mr-6">
+        <div className="w-[60px] text-right text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0 mr-6">
           실패
         </div>
-        <div className="w-[105px] text-[16px] font-medium text-neutral-60 leading-[19px] shrink-0">
+        <div className="w-[105px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           상태
         </div>
-        <div className="flex-1 text-[16px] font-medium text-neutral-60 leading-[19px] min-w-0">
+        <div className="flex-1 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] min-w-0">
           업로드 일시
         </div>
       </div>

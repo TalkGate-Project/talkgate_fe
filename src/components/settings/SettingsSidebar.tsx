@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { ProjectsService } from "@/services/projects";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole } from "@/types/members";
 import GeneralIcon from "./icons/GeneralIcon";
@@ -138,6 +140,32 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
   const { member, loading } = useMyMember();
   const currentRole = member?.role;
+  const [projectId] = useSelectedProjectId();
+  const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+
+  // 프로젝트 정보 로드
+  useEffect(() => {
+    const fetchProjectInfo = async () => {
+      if (!projectId) return;
+      
+      try {
+        const projectResponse = await ProjectsService.detailById({
+          "x-project-id": projectId,
+        });
+        
+        if (projectResponse.data?.data) {
+          const project = projectResponse.data.data;
+          setProjectLogoUrl(project.logoUrl || null);
+          setProjectName(project.name || "거래소 텔레마케팅 관리");
+        }
+      } catch (error) {
+        console.error("Failed to fetch project info:", error);
+      }
+    };
+    
+    fetchProjectInfo();
+  }, [projectId]);
 
   // 현재 사용자 권한에 따라 접근 가능한 탭만 필터링
   const visibleItems = useMemo(() => {
@@ -153,7 +181,20 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
       {/* 헤더 */}
       <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
         <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
-        <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
+        <div className="flex items-center gap-3">
+          {projectLogoUrl ? (
+            <img
+              src={projectLogoUrl}
+              alt={`${projectName} 로고`}
+              width={28}
+              height={28}
+              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
+          )}
+          <p className="text-[14px] text-neutral-60">{projectName}</p>
+        </div>
       </div>
 
       {/* 탭 목록 */}
@@ -182,7 +223,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
                 }`}
               >
                 <IconComponent isActive={isActive} />
-                <span className="text-[14px] font-medium">{item.label}</span>
+                <span className="text-[16px] font-medium">{item.label}</span>
               </button>
             );
           })

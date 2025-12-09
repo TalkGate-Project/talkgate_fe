@@ -297,18 +297,18 @@ export default function MemberSettings() {
 
       <div className="px-7">
         {/* Table Header */}
-        <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center">
+        <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center">
           <div className="flex items-center w-full">
-            <div className="w-[280px] min-w-[280px] flex-none text-[16px] font-medium text-neutral-60 text-left">
+            <div className="w-[280px] min-w-[280px] flex-none text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               멤버
             </div>
-            <div className="flex-1 min-w-[120px] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-1 min-w-[120px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               역할
             </div>
-            <div className="flex-1 min-w-[120px] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-1 min-w-[120px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               소속
             </div>
-            <div className="flex-1 min-w-[100px] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-1 min-w-[100px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               가입일
             </div>
             <div className="w-[80px] min-w-[80px] flex-none"></div>

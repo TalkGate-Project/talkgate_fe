@@ -70,7 +70,7 @@ export default function TwoFactorDisableModal({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-[16px] w-full max-w-[480px] shadow-xl">
+      <div className="relative bg-card rounded-[16px] w-full max-w-[480px] shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-4">
           <h2 className="text-[20px] font-bold text-foreground">
@@ -78,7 +78,7 @@ export default function TwoFactorDisableModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-neutral-40 hover:text-neutral-60 transition-colors"
+            className="text-neutral-40 hover:text-neutral-60 transition-colors cursor-pointer"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
@@ -127,16 +127,16 @@ export default function TwoFactorDisableModal({
 
           {/* Input Field */}
           {step === "email" ? (
-            <div className="px-6 h-[58px] bg-[#F8F8F8] flex items-center justify-center">
+            <div className="px-6 h-[58px] bg-muted flex items-center justify-center">
               <input
                 type="text"
                 value={email}
                 readOnly
-                className="w-full h-[34px] px-4 bg-white border border-neutral-20 rounded-[5px] text-[14px] text-neutral-90 bg-neutral-5"
+                className="w-full h-[34px] px-4 bg-card border border-border rounded-[5px] text-[14px] text-foreground"
               />
             </div>
           ) : (
-            <div className="px-6 h-[58px] bg-[#F8F8F8] flex items-center justify-center">
+            <div className="px-6 h-[58px] bg-muted flex items-center justify-center">
               <input
                 ref={inputRef}
                 type="text"
@@ -148,25 +148,25 @@ export default function TwoFactorDisableModal({
                   setCode(value);
                 }}
                 placeholder="인증번호 6자리 입력"
-                className="w-full h-[34px] px-4 bg-white border border-neutral-20 rounded-[5px] text-[14px] text-foreground tracking-[0.3em] font-mono"
+                className="w-full h-[34px] px-4 bg-card border border-border rounded-[5px] text-[14px] text-foreground tracking-[0.3em] font-mono"
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-4 py-3 border-t border-neutral-20">
+        <div className="flex justify-end gap-3 px-4 py-3 border-t border-border">
           {step === "email" ? (
             <>
               <button
                 onClick={onClose}
-                className="h-[34px] px-3 border border-neutral-20 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-5 transition-colors"
+                className="h-[34px] px-3 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
                 취소
               </button>
               <button
                 onClick={handleSendCode}
-                className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50"
+                className="h-[34px] px-3 bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "발송 중..." : "인증번호 발송"}
@@ -176,14 +176,14 @@ export default function TwoFactorDisableModal({
             <>
               <button
                 onClick={handleBack}
-                className="h-[34px] px-3 border border-neutral-20 rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-5 transition-colors"
+                className="h-[34px] px-3 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 뒤로
               </button>
               <button
                 onClick={handleDisable}
-                className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50"
+                className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading || code.length !== 6}
               >
                 {loading ? "처리 중..." : "해제완료"}

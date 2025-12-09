@@ -72,11 +72,11 @@ export default function ChangePasswordModal({
       <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative w-[440px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[440px] bg-card rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
+          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center cursor-pointer"
         >
           <svg
             width="24"
@@ -115,11 +115,11 @@ export default function ChangePasswordModal({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, current: true })}
-                  className="w-full px-3 py-2 pr-12 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   aria-label={showCurrentPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
@@ -142,11 +142,11 @@ export default function ChangePasswordModal({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, new: true })}
-                  className="w-full px-3 py-2 pr-12 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   aria-label={showNewPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
@@ -178,11 +178,11 @@ export default function ChangePasswordModal({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, confirm: true })}
-                  className="w-full px-3 py-2 pr-12 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label={showConfirmPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
@@ -199,7 +199,7 @@ export default function ChangePasswordModal({
           </div>
 
           {/* Password Requirements */}
-          <div className="bg-[#F8F8F8] rounded-[5px] p-4 mb-6">
+          <div className="bg-muted rounded-[5px] p-4 mb-6">
             <div className="text-[12px] text-neutral-60 space-y-1">
               <div>• 비밀번호는 최소 8자 이상이어야 합니다.</div>
               <div>• 대문자, 소문자, 숫자, 특수문자를 모두 포함하여 입력해 주세요.</div>
@@ -210,13 +210,13 @@ export default function ChangePasswordModal({
           <div className="flex justify-end gap-3">
             <button
               onClick={handleClose}
-              className="px-4 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-gray-50"
+              className="px-4 py-2 bg-card border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-muted cursor-pointer"
             >
               취소
             </button>
             <button
               onClick={handleConfirm}
-              className="px-4 py-2 bg-neutral-90 text-white rounded-[5px] text-[14px] font-semibold hover:opacity-90"
+              className="px-4 py-2 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 cursor-pointer"
             >
               비밀번호 변경
             </button>

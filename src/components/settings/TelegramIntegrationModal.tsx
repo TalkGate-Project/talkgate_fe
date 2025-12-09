@@ -46,7 +46,7 @@ export default function TelegramIntegrationModal({
       <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
 
       {/* Modal container */}
-      <div className="relative w-[848px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[848px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
         {/* Close button */}
         <button
           className="cursor-pointer absolute top-6 right-6 w-6 h-6 grid place-items-center hover:opacity-70 transition-opacity"
@@ -57,7 +57,8 @@ export default function TelegramIntegrationModal({
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="currentColor"
+              className="text-neutral-50 dark:text-neutral-50"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -73,11 +74,11 @@ export default function TelegramIntegrationModal({
             </h2>
           </div>
 
-          <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3 mb-6">
-            <p className="text-[14px] font-medium text-foreground mb-2">
+          <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[5px] px-6 py-3 mb-6">
+            <p className="text-[14px] font-medium text-foreground dark:text-neutral-80 mb-2">
               텔레그램 봇 토큰 설정
             </p>
-            <p className="text-[14px] font-medium text-neutral-60 leading-6">
+            <p className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 leading-6">
               봇 토큰을 얻는 방법
               <br />
               &nbsp;1. 텔레그램에서 @BotFather를 검색하여 대화를 시작합니다.
@@ -100,7 +101,7 @@ export default function TelegramIntegrationModal({
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
                 placeholder="1234567890:ABCdefGhIJKLMnopQRStuvWxYZ"
-                className="w-full px-3 py-2 border border-neutral-30 font-medium rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 font-medium rounded-[5px] text-[14px] text-foreground dark:text-neutral-80 bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground dark:focus:border-neutral-80"
                 disabled={isSaving}
               />
             </div>
@@ -108,19 +109,19 @@ export default function TelegramIntegrationModal({
         </div>
 
         {/* Full-width divider (ignores side padding) */}
-        <div className="w-full h-[1px] bg-neutral-30" />
+        <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30" />
 
         {/* Footer buttons with side padding */}
         <div className="px-7 py-3 flex justify-end gap-3">
           <button
-            className="cursor-pointer px-3 h-[34px] bg-white border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer px-3 h-[34px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleClose}
             disabled={isSaving}
           >
             취소
           </button>
           <button
-            className="cursor-pointer px-3 h-[34px] bg-neutral-90 text-neutral-20 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer px-3 h-[34px] bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSubmit}
             disabled={isSaving}
           >

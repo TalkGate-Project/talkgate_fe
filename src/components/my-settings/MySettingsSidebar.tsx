@@ -37,7 +37,7 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
   return (
     <div className="w-[280px] max-h-[362px] bg-card rounded-[14px]">
       {/* 헤더 */}
-      <div className="mb-2 border-b border-[#E2E2E255] p-7">
+      <div className="mb-2 border-b border-border opacity-70 p-7">
         <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
         <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
       </div>

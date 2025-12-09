@@ -44,11 +44,11 @@ export default function DeleteAccountModal({
       <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative w-[848px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[848px] bg-card rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
+          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center cursor-pointer"
         >
           <svg
             width="24"
@@ -70,7 +70,7 @@ export default function DeleteAccountModal({
         {/* Content */}
         <div className="p-8 h-full flex flex-col">
           {/* Header */}
-          <div className="text-[#D83232] text-[18px] font-semibold mb-8">
+          <div className="text-danger-40 text-[18px] font-semibold mb-8">
             계정 삭제확인
           </div>
 
@@ -95,17 +95,17 @@ export default function DeleteAccountModal({
 
           {/* Main Warning */}
           <div className="text-center mb-8">
-            <div className="text-[#D83232] text-[18px] font-semibold mb-2">
+            <div className="text-danger-40 text-[18px] font-semibold mb-2">
               정말로 계정을 삭제하시겠습니까?
             </div>
-            <div className="text-[#000000] text-[14px] font-medium">
+            <div className="text-foreground text-[14px] font-medium">
               이 작업은 되돌릴 수 없으며, 다음 데이터가 영구적으로 삭제됩니다
             </div>
           </div>
 
           {/* Data to be Deleted List */}
-          <div className="bg-[#F8F8F8] rounded-[5px] p-6 mb-6">
-            <div className="text-[#000000] text-[14px] font-medium leading-6">
+          <div className="bg-muted rounded-[5px] p-6 mb-6">
+            <div className="text-foreground text-[14px] font-medium leading-6">
               • 모든 개인 정보
               <br />
               • 상담 기록 및 메시지
@@ -116,8 +116,8 @@ export default function DeleteAccountModal({
           </div>
 
           {/* Confirmation Input */}
-          <div className="bg-[#F8F8F8] rounded-[5px] p-6 mb-6">
-            <div className="text-[#000000] text-[14px] font-medium mb-3">
+          <div className="bg-muted rounded-[5px] p-6 mb-6">
+            <div className="text-foreground text-[14px] font-medium mb-3">
               계정 삭제를 확인하려면 아래에 이름 "{confirmText}"를 정확히 입력하세요.
             </div>
             <input
@@ -125,18 +125,18 @@ export default function DeleteAccountModal({
               value={inputValue}
               onChange={handleInputChange}
               placeholder={confirmText}
-              className="w-full px-3 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-medium text-[#808080] focus:outline-none focus:border-[#D83232]"
+              className="w-full px-3 py-2 bg-card border border-border rounded-[5px] text-[14px] font-medium text-muted-foreground focus:outline-none focus:border-danger-40"
             />
           </div>
 
           {/* Divider */}
-          <div className="w-full h-[1px] bg-[#E2E2E266] mb-6"></div>
+          <div className="w-full h-[1px] bg-border opacity-70 mb-6"></div>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3">
             <button
               onClick={handleClose}
-              className="px-3 py-1.5 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
+              className="px-3 py-1.5 bg-card border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-muted cursor-pointer"
             >
               취소
             </button>
@@ -145,8 +145,8 @@ export default function DeleteAccountModal({
               disabled={!isConfirmed}
               className={`px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
                 isConfirmed
-                  ? "bg-[#252525] text-white hover:bg-[#1a1a1a] cursor-pointer"
-                  : "bg-[#B0B0B0] text-[#808080] cursor-not-allowed"
+                  ? "bg-neutral-90 text-white hover:bg-neutral-80 cursor-pointer"
+                  : "bg-neutral-50 text-neutral-60 cursor-not-allowed"
               }`}
             >
               계정 삭제

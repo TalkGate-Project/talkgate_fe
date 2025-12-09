@@ -37,7 +37,7 @@ export default function InviteMemberModal({
       <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative w-[440px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[440px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -52,7 +52,8 @@ export default function InviteMemberModal({
           >
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="currentColor"
+              className="text-neutral-60 dark:text-neutral-60"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -63,13 +64,13 @@ export default function InviteMemberModal({
         {/* Content */}
         <div className="px-7 py-6">
           {/* Header */}
-          <div className="text-[18px] font-semibold text-foreground mb-[30px] leading-[1]">
+          <div className="text-[18px] font-semibold text-foreground dark:text-neutral-80 mb-[30px] leading-[1]">
             멤버 초대
           </div>
 
           {/* Email Input */}
           <div className="mb-5">
-            <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+            <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
               이메일 주소
             </label>
             <input
@@ -77,13 +78,13 @@ export default function InviteMemberModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="초대할 멤버의 이메일을 입력하세요"
-              className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] focus:outline-none focus:border-[#252525]"
+              className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] bg-card dark:bg-neutral-10 text-ink dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-foreground dark:focus:border-neutral-80"
             />
           </div>
 
           {/* Role Selection */}
           <div className="mb-[6px]">
-            <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+            <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
               역할
             </label>
             <div className="relative">
@@ -92,14 +93,14 @@ export default function InviteMemberModal({
                 onChange={(e) =>
                   setRole(e.target.value as "subAdmin" | "member")
                 }
-                className="w-full px-3 py-2 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] focus:outline-none focus:border-[#252525] appearance-none"
+                className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] bg-card dark:bg-neutral-10 text-ink dark:text-neutral-80 focus:outline-none focus:border-foreground dark:focus:border-neutral-80 appearance-none"
               >
                 <option value="member">멤버</option>
                 <option value="subAdmin">부관리자</option>
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                 <svg
-                  className="w-4 h-4 text-[#B0B0B0]"
+                  className="w-4 h-4 text-neutral-50 dark:text-neutral-50"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -117,24 +118,24 @@ export default function InviteMemberModal({
         </div>
 
         {/* divider */}
-        <div className="w-full h-[1px] bg-neutral-30 opacity-70"></div>
+        <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-70"></div>
 
         {/* footer */}
         <div className="flex justify-end gap-3 px-7 py-3">
           {/* Action Buttons */}
           <button
             onClick={handleClose}
-            className="px-4 py-2 bg-white border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-[#000000] hover:bg-gray-50"
+            className="cursor-pointer px-4 py-2 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
           >
             취소
           </button>
           <button
             onClick={handleInvite}
             disabled={!email.trim()}
-            className={`px-4 py-2 rounded-[5px] text-[14px] font-semibold ${
+            className={`cursor-pointer px-4 py-2 rounded-[5px] text-[14px] font-semibold transition-colors ${
               email.trim()
-                ? "bg-[#252525] text-[#D0D0D0] hover:bg-[#333333]"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+                : "bg-gray-300 dark:bg-neutral-20 text-gray-500 dark:text-neutral-50 cursor-not-allowed"
             }`}
           >
             초대 보내기

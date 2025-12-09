@@ -113,7 +113,7 @@ export default function BillingTab() {
         <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">결제관리</h1>
 
         {/* 구분선 */}
-        <div className="border-b border-[#E2E2E266]"></div>
+        <div className="border-b border-border opacity-70"></div>
 
         {/* 프로젝트 구독 섹션 */}
         <div className="px-10 py-[30px]">
@@ -130,7 +130,7 @@ export default function BillingTab() {
             </div>
             <button
               onClick={() => setViewMode("subscription")}
-              className="cursor-pointer px-4 py-2 bg-[#252525] text-white text-[14px] font-medium rounded-[8px] hover:bg-[#3a3a3a] transition-colors"
+              className="cursor-pointer px-4 py-2 bg-neutral-90 text-white text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
             >
               구독 관리
             </button>
@@ -266,7 +266,7 @@ export default function BillingTab() {
         {/* 테이블 */}
         <div className="px-7">
           {/* 테이블 헤더 */}
-          <div className="bg-[#EDEDED] rounded-[8px] h-[40px] flex items-center px-6">
+          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6">
             <div className="flex-[1.5] text-[16px] font-medium text-neutral-60">결제날짜</div>
             <div className="flex-[1] text-[16px] font-medium text-neutral-60">금액</div>
             <div className="flex-[1] text-[16px] font-medium text-neutral-60">결제 상태</div>

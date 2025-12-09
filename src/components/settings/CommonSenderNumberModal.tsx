@@ -334,7 +334,7 @@ export default function CommonSenderNumberModal({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="h-[42px] px-6 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-white hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-[42px] px-6 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 dark:text-neutral-90 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "등록 중..." : "등록"}
           </button>

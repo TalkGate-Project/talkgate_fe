@@ -21,11 +21,11 @@ function FailureCard({ errorCode, errorMessage, count }: FailureCardProps) {
   const displayMessage = getErrorDisplayMessage(errorCode, errorMessage);
   
   return (
-    <div className="flex flex-col items-start p-3 gap-1.5 border border-[#E2E2E2] rounded-[5px] h-[68px]">
-      <div className="text-[14px] font-semibold leading-5 text-[#D83232] truncate w-full" title={displayMessage}>
+    <div className="flex flex-col items-start p-3 gap-1.5 border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[68px]">
+      <div className="text-[14px] font-semibold leading-5 text-danger-40 dark:text-danger-40 truncate w-full" title={displayMessage}>
         {displayMessage}
       </div>
-      <div className="text-[14px] font-medium leading-5 text-[#808080]">
+      <div className="text-[14px] font-medium leading-5 text-neutral-60 dark:text-neutral-60">
         {count}행
       </div>
     </div>
@@ -130,49 +130,49 @@ export default function FailureDetailModal({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
       {/* Modal */}
-      <div className="relative w-[848px] max-h-[668px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
+      <div className="relative w-[848px] max-h-[668px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-[30px]">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-[#000000]">
+          <h2 className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">
             실패 내역 상세보기
           </h2>
           <button
             onClick={onClose}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-60 dark:text-neutral-60"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M6 18L18 6M6 6l12 12" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
 
         {/* Divider */}
-        <div className="mx-7 h-[1px] bg-neutral-30"></div>
+        <div className="mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30"></div>
 
         {/* Content */}
         <div className="px-7 pt-[13px]">
           {isLoading ? (
             <div className="flex items-center justify-center h-[500px]">
-              <div className="text-neutral-60">로딩 중...</div>
+              <div className="text-neutral-60 dark:text-neutral-60">로딩 중...</div>
             </div>
           ) : jobDetail ? (
             <>
               {/* File Information */}
-              <div className="bg-[#F8F8F8] rounded-[12px] px-4 py-3 mb-[23px]">
+              <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 mb-[23px]">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="text-[16px] font-semibold leading-[19px] text-[#000000] mb-1 truncate" title={jobDetail.fileName}>
+                    <div className="text-[16px] font-semibold leading-[19px] text-ink dark:text-neutral-80 mb-1 truncate" title={jobDetail.fileName}>
                       {jobDetail.fileName}
                     </div>
-                    <div className="text-[14px] font-medium leading-[17px] text-[#808080]">
+                    <div className="text-[14px] font-medium leading-[17px] text-neutral-60 dark:text-neutral-60">
                       업로드 시간 : {formatDateTime(jobDetail.createdAt)}
                     </div>
                   </div>
                   <div className="text-right ml-4 shrink-0">
-                    <div className="text-[14px] font-medium leading-[17px] text-[#808080] mb-1">
+                    <div className="text-[14px] font-medium leading-[17px] text-neutral-60 dark:text-neutral-60 mb-1">
                       총 {jobDetail.failureCount}건의 실패 항목
                     </div>
-                    <div className="text-[14px] font-medium leading-[17px] text-[#B0B0B0]">
+                    <div className="text-[14px] font-medium leading-[17px] text-neutral-50 dark:text-neutral-50">
                       *최대 20개 항목까지 표시됩니다.
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function FailureDetailModal({
                 }}
               >
                 {groupedFailures.length === 0 ? (
-                  <div className="flex items-center justify-center h-32 text-neutral-60">
+                  <div className="flex items-center justify-center h-32 text-neutral-60 dark:text-neutral-60">
                     실패 항목이 없습니다.
                   </div>
                 ) : (
@@ -206,13 +206,13 @@ export default function FailureDetailModal({
               </div>
 
               {/* Divider */}
-              <div className="w-full h-[1px] bg-[#E2E2E2] mb-[13px]"></div>
+              <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-[13px]"></div>
 
               {/* Footer Buttons */}
               <div className="flex justify-end gap-3 mb-3">
                 <button
                   onClick={onClose}
-                  className="cursor-pointer px-3 py-[6px] h-[34px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#000000] hover:bg-gray-50 transition-colors"
+                  className="cursor-pointer px-3 py-[6px] h-[34px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
                 >
                   닫기
                 </button>
@@ -220,7 +220,7 @@ export default function FailureDetailModal({
             </>
           ) : (
             <div className="flex items-center justify-center h-[500px]">
-              <div className="text-neutral-60">데이터를 불러올 수 없습니다.</div>
+              <div className="text-neutral-60 dark:text-neutral-60">데이터를 불러올 수 없습니다.</div>
             </div>
           )}
         </div>
