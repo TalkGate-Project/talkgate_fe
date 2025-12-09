@@ -6,9 +6,12 @@ import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
+import { getProjectSubdomainUrl } from "@/lib/subdomain";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
+import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-assigned-customer.png";
+import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.png";
 
 function ProjectsContent() {
   const router = useRouter();
@@ -134,8 +137,17 @@ function ProjectsContent() {
               key={p.id}
               className="px-7 pt-6 pb-[30px] md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
               onClick={() => {
+                // 서브도메인이 있고, 서브도메인을 사용할 수 있는 환경인 경우
+                if (p.subDomain) {
+                  const subdomainUrl = getProjectSubdomainUrl(p.subDomain, "/dashboard");
+                  if (subdomainUrl) {
+                    // 실제 도메인 환경: 서브도메인으로 리다이렉트
+                    window.location.href = subdomainUrl;
+                    return;
+                  }
+                }
+                // localhost/IP 환경이거나 서브도메인이 없는 경우: 기존 로직 사용
                 setSelectedProjectId(p.id);
-                // 근태 메뉴 사용 여부도 함께 저장
                 setUseAttendanceMenu(p.useAttendanceMenu ?? false);
                 router.push(`/projects/${p.id}/dashboard`);
               }}
@@ -156,19 +168,19 @@ function ProjectsContent() {
                   <div className="text-[18px] font-semibold text-[#000] truncate">
                     {p.name}
                   </div>
-                  <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70">
-                    멤버 {p.memberCount ?? 0}명
+                  <div className="flex items-center gap-2">
+                    <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70">
+                      멤버 {p.memberCount ?? 0}명
+                    </div>
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{
+                        backgroundColor: p.hasActiveSubscription ? "#00E272" : "#D83232",
+                      }}
+                    />
                   </div>
                 </div>
-                <button
-                  className="cursor-pointer h-[32px] px-4 rounded-[6px] bg-[#252525] text-white text-[13px] font-semibold hover:bg-[#3a3a3a] transition-colors flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSubscribeProject(p);
-                  }}
-                >
-                  구독하기
-                </button>
+                
               </div>
               <div className="grid grid-cols-2 gap-6 mt-5">
                 <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
@@ -184,7 +196,7 @@ function ProjectsContent() {
                     </div>
                   </div>
                   <Image
-                    src={projectAssignedCustomerImg}
+                    src={p.hasActiveSubscription ? projectAssignedCustomerImg : projectNotAssignedCustomerImg}
                     alt="할당 고객 아이콘"
                     width={60}
                     height={60}
@@ -204,7 +216,7 @@ function ProjectsContent() {
                     </div>
                   </div>
                   <Image
-                    src={projectReservedItemImg}
+                    src={p.hasActiveSubscription ? projectReservedItemImg : projectNotReservedItemImg}
                     alt="예약 일정 아이콘"
                     width={60}
                     height={60}
