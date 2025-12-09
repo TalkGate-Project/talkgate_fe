@@ -85,6 +85,15 @@ function addCookieDeletionHeaders(
   const isProduction = isProductionDomain(hostname);
   const isSecure = request.nextUrl.protocol === 'https:';
 
+  // 디버깅: 환경 정보 로깅
+  console.log('[Logout Route] 🔍 쿠키 삭제 환경 정보:', {
+    hostname,
+    isProduction,
+    isSecure,
+    protocol: request.nextUrl.protocol,
+    url: request.nextUrl.toString(),
+  });
+
   // 삭제할 쿠키 목록
   const cookiesToDelete = [
     'tg_access_token',
@@ -93,14 +102,29 @@ function addCookieDeletionHeaders(
   ];
 
   // 로그인 API와 동일한 방식으로 쿠키 삭제
-  // 로그인 API: domain: '.talkgate.im' (프로덕션), maxAge 사용
+  // 로그인 API에서 사용한 옵션:
+  // - httpOnly: true
+  // - secure: isSecure (프로토콜이 https인지 확인)
+  // - sameSite: isSecure ? 'none' : 'lax'
+  // - path: '/'
+  // - domain: 프로덕션 환경에서 '.talkgate.im'
+  // - maxAge: rememberMe ? 30일 : undefined (세션 쿠키)
+  //
+  // 중요: 쿠키 삭제 시 설정할 때 사용한 것과 정확히 동일한 속성을 사용해야 함
+  // 특히 domain, path, secure, sameSite가 일치해야 브라우저가 쿠키를 삭제함
   const baseCookieOptions = {
     httpOnly: true,
     secure: isSecure,
     sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     path: '/',
-    maxAge: 0, // 즉시 만료
+    maxAge: 0, // 즉시 만료 (쿠키 삭제)
   };
+  
+  console.log('[Logout Route] 🔍 쿠키 삭제 옵션:', {
+    baseCookieOptions,
+    isProduction,
+    isSecure,
+  });
 
   // 프로덕션 환경: Domain 속성이 있는 쿠키 삭제
   // 로그인 시 domain: '.talkgate.im'으로 설정했으므로 동일하게 삭제
@@ -112,7 +136,10 @@ function addCookieDeletionHeaders(
     
     cookiesToDelete.forEach(cookieName => {
       response.cookies.set(cookieName, '', cookieOptionsWithDomain);
-      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 포함): ${cookieName}`, cookieOptionsWithDomain);
+      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 포함): ${cookieName}`, {
+        ...cookieOptionsWithDomain,
+        value: '(빈 값)',
+      });
     });
   }
 
@@ -120,13 +147,29 @@ function addCookieDeletionHeaders(
   // 현재 도메인에 설정된 쿠키 삭제
   // domain을 명시하지 않음 (현재 도메인에 자동 설정)
   cookiesToDelete.forEach(cookieName => {
-    response.cookies.set(cookieName, '', baseCookieOptions);
-    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 없음): ${cookieName}`, baseCookieOptions);
+    const cookieOptionsWithoutDomain = {
+      ...baseCookieOptions,
+      domain: undefined, // 명시적으로 undefined 설정
+    };
+    response.cookies.set(cookieName, '', cookieOptionsWithoutDomain);
+    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 없음): ${cookieName}`, {
+      ...cookieOptionsWithoutDomain,
+      value: '(빈 값)',
+    });
   });
   
   // Set-Cookie 헤더 확인
   const setCookieHeaders = response.headers.getSetCookie();
-  console.log('[Logout Route] 📋 Set-Cookie 헤더 확인:', setCookieHeaders);
+  console.log('[Logout Route] 📋 Set-Cookie 헤더 확인 (총 개수):', setCookieHeaders.length);
+  setCookieHeaders.forEach((header, index) => {
+    console.log(`[Logout Route] 📋 Set-Cookie 헤더 [${index}]:`, header);
+  });
+  
+  // 토큰 쿠키만 필터링하여 확인
+  const tokenCookieHeaders = setCookieHeaders.filter(header => 
+    header.includes('tg_access_token') || header.includes('tg_refresh_token')
+  );
+  console.log('[Logout Route] 🎯 토큰 쿠키 삭제 헤더:', tokenCookieHeaders);
 }
 
 /**
