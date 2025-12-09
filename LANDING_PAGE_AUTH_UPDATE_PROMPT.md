@@ -46,9 +46,9 @@
 - httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로 동작하지 않음
 
 **해결 방법:**
-- 메인 서비스의 API를 통해 인증 상태 확인
-- 예: `GET /api/proxy/v1/auth/user` 호출하여 사용자 정보 확인
-- 또는 메인 서비스에서 인증 상태 확인 API 엔드포인트 제공 (`/api/auth/check` 등)
+- 메인 서비스의 API 프록시를 통해 인증 상태 확인
+- `GET /api/proxy/v1/auth/user` 호출하여 사용자 정보 확인
+- ⚠️ 반드시 `credentials: 'include'` 설정 필요 (쿠키 전달을 위해)
 
 **예시 코드:**
 ```typescript
@@ -58,9 +58,12 @@ const hasAuth = document.cookie.includes('tg_access_token');
 // 이후
 async function checkAuthStatus(): Promise<boolean> {
   try {
-    const response = await fetch('https://app.talkgate.im/api/proxy/v1/auth/user', {
+    // 프로덕션: https://app.talkgate.im
+    // 개발: https://app-dev.talkgate.im 또는 http://localhost:3000
+    const mainServiceUrl = process.env.NEXT_PUBLIC_MAIN_SERVICE_URL || 'https://app-dev.talkgate.im';
+    const response = await fetch(`${mainServiceUrl}/api/proxy/v1/auth/user`, {
       method: 'GET',
-      credentials: 'include',
+      credentials: 'include', // 필수: 쿠키를 포함하기 위해
     });
     return response.ok;
   } catch {
@@ -75,8 +78,9 @@ async function checkAuthStatus(): Promise<boolean> {
 - 로그인 완료 후 쿠키가 설정되었는지 확인하는 로직
 
 **해결 방법:**
-- 메인 서비스의 인증 상태 확인 API 호출
-- 콜백 페이지에서 `/api/auth/check` 또는 `/api/proxy/v1/auth/user` 호출
+- 메인 서비스의 API 프록시를 통해 인증 상태 확인
+- 콜백 페이지에서 `GET /api/proxy/v1/auth/user` 호출하여 로그인 성공 확인
+- `credentials: 'include'` 필수
 
 ### 3. 로그아웃 후 상태 확인
 
@@ -84,17 +88,31 @@ async function checkAuthStatus(): Promise<boolean> {
 - 로그아웃 후 쿠키가 삭제되었는지 확인하는 로직
 
 **해결 방법:**
-- 메인 서비스의 로그아웃 API가 성공적으로 처리되었는지 확인
+- 메인 서비스의 로그아웃 API 호출 후 콜백 URL로 리다이렉트됨
 - 로그아웃 콜백에서 인증 상태 확인 API 호출하여 로그아웃 확인
+- `credentials: 'include'` 필수
 
 **예시 코드:**
 ```typescript
+// 로그아웃 요청
+function requestLogout(returnUrl: string) {
+  const mainServiceUrl = process.env.NEXT_PUBLIC_MAIN_SERVICE_URL || 'https://app-dev.talkgate.im';
+  const callbackUrl = `${window.location.origin}/api/auth/logout-callback`;
+  const logoutUrl = `${mainServiceUrl}/logout?callbackUrl=${encodeURIComponent(callbackUrl)}&returnUrl=${encodeURIComponent(returnUrl)}`;
+  window.location.href = logoutUrl;
+}
+
 // 로그아웃 콜백 처리
-async function handleLogoutCallback() {
-  // 로그아웃 API 호출이 완료된 후
+async function handleLogoutCallback(returnUrl?: string) {
+  // 로그아웃 API가 완료된 후 콜백으로 돌아옴
   const isLoggedOut = !(await checkAuthStatus());
   if (isLoggedOut) {
     // 로그아웃 성공 처리
+    if (returnUrl) {
+      window.location.href = returnUrl;
+    } else {
+      window.location.href = '/';
+    }
   }
 }
 ```
@@ -130,9 +148,66 @@ async function handleLogoutCallback() {
 
 ## 📚 참고 자료
 
-- 메인 서비스 API 프록시: `/api/proxy/*`
-- 인증 상태 확인: `GET /api/proxy/v1/auth/user`
-- 로그아웃 API: `GET /logout?callbackUrl=...&returnUrl=...`
+### 메인 서비스 API 엔드포인트
+
+**프로덕션 환경:**
+- 메인 서비스 URL: `https://app.talkgate.im`
+- 개발 환경: `https://app-dev.talkgate.im` 또는 `http://localhost:3000`
+
+**인증 관련 API:**
+
+1. **인증 상태 확인**
+   - `GET https://app.talkgate.im/api/proxy/v1/auth/user`
+   - 응답: 200 (인증됨), 401 (인증 안됨)
+   - `credentials: 'include'` 필수
+
+2. **로그인 API** (직접 사용 불가, 메인 서비스 로그인 페이지 사용)
+   - 서버 API: `POST /api/auth/login` (메인 서비스 내부)
+   - 소셜 로그인: `POST /api/auth/social/{provider}` (메인 서비스 내부)
+   - 2FA 로그인: `POST /api/auth/two-factor/login` (메인 서비스 내부)
+   - ⚠️ 랜딩 페이지에서는 메인 서비스 로그인 페이지로 리다이렉트만 수행
+
+3. **로그아웃 API**
+   - `GET https://app.talkgate.im/logout?callbackUrl={URL}&returnUrl={URL}`
+   - 파라미터:
+     - `callbackUrl`: 로그아웃 후 돌아올 랜딩 페이지 콜백 URL
+     - `returnUrl`: 최종적으로 이동할 랜딩 페이지 URL
+   - 예시:
+     ```
+     GET https://app.talkgate.im/logout?callbackUrl=https://talkgate.im/api/auth/logout-callback&returnUrl=https://talkgate.im/pricing
+     ```
+
+### API 프록시
+
+- 모든 백엔드 API 호출: `GET/POST/PUT/PATCH/DELETE /api/proxy/{backend_path}`
+- 예: `GET /api/proxy/v1/auth/user` → 백엔드의 `/v1/auth/user`로 프록시
+- 서버가 자동으로 httpOnly 쿠키에서 토큰을 읽어서 Authorization 헤더에 추가
+
+### 로그인 플로우
+
+```
+랜딩 페이지 → 메인 서비스 로그인 페이지 (/login)
+↓
+사용자가 로그인 (이메일/비밀번호 또는 소셜 로그인)
+↓
+메인 서비스에서 httpOnly 쿠키 설정
+↓
+랜딩 페이지로 리다이렉트 (returnUrl)
+↓
+랜딩 페이지에서 인증 상태 확인 (/api/proxy/v1/auth/user)
+```
+
+### 로그아웃 플로우
+
+```
+랜딩 페이지 → 메인 서비스 로그아웃 API (/logout?callbackUrl=...&returnUrl=...)
+↓
+메인 서비스에서 httpOnly 쿠키 삭제
+↓
+랜딩 페이지 콜백으로 리다이렉트 (callbackUrl)
+↓
+랜딩 페이지에서 인증 상태 확인하여 로그아웃 확인
+```
 
 ---
 
