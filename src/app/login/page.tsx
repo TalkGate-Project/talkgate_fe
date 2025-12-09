@@ -30,6 +30,21 @@ function LoginContent() {
 
   useEffect(() => {
     let mounted = true;
+    
+    // 로그아웃 후 리다이렉트인 경우 쿠키 체크 건너뛰기
+    // 쿠키 삭제가 완전히 적용되기 전에 페이지가 로드될 수 있음
+    const isLogoutRedirect = searchParams.get('logout') === 'success';
+    
+    if (isLogoutRedirect) {
+      console.log("[LoginPage] 🚪 로그아웃 후 리다이렉트 - 로그인 폼 표시");
+      // URL에서 logout 파라미터 제거 (히스토리 정리)
+      const url = new URL(window.location.href);
+      url.searchParams.delete('logout');
+      window.history.replaceState({}, '', url.pathname + (url.search || ''));
+      setChecking(false);
+      return;
+    }
+    
     // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
     AuthService.me()
       .then(() => {
@@ -62,7 +77,7 @@ function LoginContent() {
     return () => {
       mounted = false;
     };
-  }, [router, redirectUrl]);
+  }, [router, redirectUrl, searchParams]);
 
   if (checking) return null;
 
