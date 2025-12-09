@@ -160,23 +160,21 @@ export default function ProfileSettings() {
     // Root: bg-[#00B55B] (Primary-80), text-[#D6FAE8] (Primary-10)
     // Child: bg-[#808080] (Light-60), text-[#FFFFFF] (Light-0)
     
-    const containerBaseClass = "flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-[#E2E2E2] mb-[8px]";
-    const rootBgClass = "bg-[#F2FDF8]"; // Approximate hex for rgba(214, 250, 232, 0.3) on white, or just use style prop for exact match
-    const childBgClass = "bg-[#F8F8F8]";
-    
-    const containerStyle = isRoot 
-      ? { background: "linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)), #FFFFFF" }
-      : { background: "#F8F8F8" };
+    const containerBaseClass = `flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 mb-[8px] ${
+      isRoot 
+        ? "bg-primary-10/30 dark:bg-primary-10/20" 
+        : "bg-neutral-10 dark:bg-neutral-20"
+    }`;
 
-    const avatarBgClass = isRoot ? "bg-[#00B55B]" : "bg-[#808080]";
-    const avatarTextClass = isRoot ? "text-[#D6FAE8]" : "text-[#FFFFFF]";
+    const avatarBgClass = isRoot ? "bg-primary-80" : "bg-neutral-60";
+    const avatarTextClass = isRoot ? "text-primary-10" : "text-white";
     
     // Team badge for Root
     // bg-[#D3E1FE] text-[#4D82F3]
     
     return (
         <div className="w-full">
-            <div className={containerBaseClass} style={containerStyle}>
+            <div className={containerBaseClass}>
                 <div className="flex items-center gap-[16px]">
                      {/* Avatar */}
                      <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center ${avatarBgClass} flex-shrink-0`}>
@@ -190,14 +188,14 @@ export default function ProfileSettings() {
                      </div>
                      
                      {/* Name */}
-                     <span className="text-[16px] font-semibold text-[#000000] leading-[24px]">
+                     <span className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px]">
                          {node.name}
                      </span>
                      
                      {/* Team Badge (Only for Root/Leader in the example) */}
                      {isRoot && node.teamName && (
-                         <div className="flex items-center justify-center px-[12px] py-[4px] bg-[#D3E1FE] rounded-[30px] h-[22px]">
-                             <span className="text-[12px] font-medium text-[#4D82F3] opacity-80 leading-[14px]">
+                         <div className="flex items-center justify-center px-[12px] py-[4px] bg-secondary-10 dark:bg-secondary-10 rounded-[30px] h-[22px]">
+                             <span className="text-[12px] font-medium text-secondary-40 dark:text-secondary-40 opacity-80 leading-[14px]">
                                  {node.teamName}
                              </span>
                          </div>
@@ -216,9 +214,9 @@ export default function ProfileSettings() {
                             viewBox="0 0 24 24" 
                             fill="none" 
                             xmlns="http://www.w3.org/2000/svg"
-                            className={`transform transition-transform ${isOrgExpanded ? "" : "rotate-180"}`} // CSS snippet says matrix(1, 0, 0, -1) which is flip Y, or rotate 180. Arrow usually points down when expanded? Or up? The snippet shows "cheveron-down" with transform.
+                            className={`transform transition-transform ${isOrgExpanded ? "" : "rotate-180"}`}
                         >
-                             <path d="M6 9L12 15L18 9" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                             <path d="M6 9L12 15L18 9" stroke="currentColor" className="text-neutral-50 dark:text-neutral-50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                          </svg>
                     </button>
                 )}
@@ -239,27 +237,27 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-white rounded-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
+    <div className="bg-card dark:bg-neutral-0 rounded-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
       {/* 헤더 */}
       <div className="px-7 flex items-center justify-between h-[76px]">
-         <h1 className="text-[24px] font-bold text-[#252525] leading-[20px]">프로필</h1>
+         <h1 className="text-[24px] font-bold text-ink dark:text-neutral-80 leading-[20px]">프로필</h1>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-[#E2E2E2] opacity-50 mb-[26px]"></div>
+      <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40 mb-[26px]"></div>
 
       {/* 프로필 정보 섹션 */}
       <div className="mb-5">
         {/* 프로필 정보 헤더 */}
         <div className="flex items-center justify-between px-7 mb-[26px]">
           <div>
-            <h2 className="text-[16px] font-semibold text-black mb-[6px]">프로필 정보</h2>
-            <p className="text-[14px] text-[#808080]">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
+            <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80 mb-[6px]">프로필 정보</h2>
+            <p className="text-[14px] text-neutral-60 dark:text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
           </div>
           {!isEditMode ? (
             <button 
               onClick={() => setIsEditMode(true)}
-              className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-black hover:bg-neutral-10 transition-colors h-[34px]"
+              className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors h-[34px]"
             >
               프로필 수정
             </button>
@@ -268,14 +266,14 @@ export default function ProfileSettings() {
               <button 
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-[#E2E2E2] rounded-[5px] text-[14px] font-semibold text-black hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
               >
                 취소
               </button>
               <button 
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] bg-[#252525] text-white rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] bg-neutral-90 dark:bg-neutral-80 text-white rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
               >
                 {isSaving ? "저장 중..." : "저장"}
               </button>
@@ -283,7 +281,7 @@ export default function ProfileSettings() {
           )}
         </div>
         
-        <div className="mx-7 h-[1px] bg-[#E2E2E2] mb-[54px]"></div>
+        <div className="mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-[54px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
         <div className="flex justify-center mb-[54px]">
@@ -295,7 +293,7 @@ export default function ProfileSettings() {
               {profileImageUrl ? (
                 <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-[#808080] flex items-center justify-center">
+                <div className="w-full h-full bg-neutral-60 dark:bg-neutral-60 flex items-center justify-center">
                   <span className="text-[28px] font-semibold text-white leading-[33px] tracking-[-0.02em]">
                     {name ? name.charAt(0) : "?"}
                   </span>
@@ -319,7 +317,7 @@ export default function ProfileSettings() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-[20px] max-w-[792px] mx-auto px-4">
           {/* 이름 */}
           <div className="relative">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">이름</label>
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">이름</label>
             <input
               type="text"
               value={name}
@@ -331,21 +329,21 @@ export default function ProfileSettings() {
 
           {/* 이메일 (읽기 전용) */}
           <div className="relative">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
               이메일
             </label>
             <input
               type="email"
               value={email}
               disabled={true}
-              className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 bg-neutral-10 cursor-not-allowed"
+              className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 bg-neutral-10 dark:bg-neutral-20 cursor-not-allowed"
               readOnly
             />
           </div>
 
           {/* 연락처 */}
           <div className="relative mt-[25px]">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-[#808080] mb-2">연락처</label>
+            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">연락처</label>
             <input
               type="tel"
               value={phone}
@@ -359,14 +357,14 @@ export default function ProfileSettings() {
 
       {/* 조직정보 섹션 */}
       <div className="max-w-[792px] mx-auto px-4 mt-[45px]">
-        <h2 className="text-[14px] font-medium text-[#808080] mb-[10px]">조직정보</h2>
+        <h2 className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-[10px]">조직정보</h2>
         
         {/* 조직 트리 렌더링 */}
         <div className="w-full md:w-1/2">
             {orgRoot ? (
                 renderOrgNode(orgRoot, true)
             ) : (
-                <div className="w-full h-[48px] px-[24px] rounded-[12px] border border-[#E2E2E2] bg-white flex items-center text-[14px] text-[#808080]">
+                <div className="w-full h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 flex items-center text-[14px] text-neutral-60 dark:text-neutral-60">
                     조직 정보가 없습니다.
                 </div>
             )}

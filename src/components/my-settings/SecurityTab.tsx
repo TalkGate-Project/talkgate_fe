@@ -143,7 +143,7 @@ export default function SecurityTab() {
           보안 설정
         </h1>
 
-        <div className="border-b border-[#E2E2E266]"></div>
+        <div className="border-b border-border opacity-70"></div>
 
         <div className="px-7 py-[30px]">
           <h2 className="text-[16px] font-semibold text-foreground mb-1">
@@ -165,7 +165,7 @@ export default function SecurityTab() {
             {twoFactorEnabled ? (
               <button
                 onClick={() => setShowDisableModal(true)}
-                className="w-[72px] h-[34px] bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 연결해제
@@ -173,7 +173,7 @@ export default function SecurityTab() {
             ) : (
               <button
                 onClick={handleStartSetup}
-                className="w-[72px] h-[34px] bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "로딩 중..." : "연결하기"}
@@ -184,7 +184,7 @@ export default function SecurityTab() {
       </div>
 
       {/* Second Box - Change Password */}
-      <div className="bg-white rounded-[14px] border border-border mb-6">
+      <div className="bg-card rounded-[14px] mb-6">
         <div className="px-7 py-6">
           <h2 className="text-[16px] font-semibold text-foreground mb-1">
             비밀번호 변경
@@ -202,7 +202,7 @@ export default function SecurityTab() {
             </div>
             <button 
               onClick={() => setShowChangePwModal(true)} 
-              className="px-3 py-1.5 bg-neutral-90 text-[#EDEDED] text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
+              className="cursor-pointer px-3 py-1.5 bg-neutral-90 text-white text-[14px] font-semibold dark:text-neutral-0 rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
             >
               비밀번호 변경
             </button>
@@ -211,7 +211,7 @@ export default function SecurityTab() {
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-white rounded-[14px] border border-danger-10">
+      <div className="bg-card rounded-[14px]">
         <div className="px-7 py-6">
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-[16px] font-semibold text-danger-40">계정 삭제</h2>
@@ -226,13 +226,13 @@ export default function SecurityTab() {
           {/* Divider */}
           <div className="w-full h-[1px] bg-border mb-3"></div>
 
-          <div className="flex items-center justify-between py-2 bg-[#FFEBEB80] px-6">
+          <div className="flex items-center justify-between py-2 bg-danger-10/50 px-6">
             <div className="text-[16px] font-semibold text-danger-40">
               계정 삭제
             </div>
             <button 
               onClick={() => setShowDeleteAccountModal(true)}
-              className="px-3 py-1.5 bg-danger-40 text-white text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
+              className="cursor-pointer px-3 py-1.5 bg-danger-40 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
             >
               계정 삭제
             </button>

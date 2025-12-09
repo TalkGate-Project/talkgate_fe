@@ -49,14 +49,14 @@ function InvitedMemberRow({
       <div className="flex items-center px-10 py-4 w-full">
         {/* Email & Role - 가장 넓게 */}
         <div className="flex-[2] text-left">
-          <div className="text-[14px] text-foreground font-semibold">
+          <div className="text-[14px] text-foreground dark:text-neutral-80 font-semibold">
             {member.email}
           </div>
           {/* <div className="text-[12px] text-neutral-60 mt-0.5">{roleLabel}</div> */}
         </div>
 
         {/* Invitation Date - 중간 크기 */}
-        <div className="flex-[1] text-[14px] text-foreground text-left font-semibold">
+        <div className="flex-[1] text-[14px] text-foreground dark:text-neutral-80 text-left font-semibold">
           {invitationDate}
         </div>
 
@@ -64,13 +64,13 @@ function InvitedMemberRow({
         <div className="flex-[1] text-left font-semibold">
           <div
             className={`text-[14px] ${
-              isExpired ? "text-red-500" : "text-foreground"
+              isExpired ? "text-red-500 dark:text-red-500" : "text-foreground dark:text-neutral-80"
             }`}
           >
             {expirationDate}
           </div>
           {isExpired && (
-            <div className="text-[12px] text-red-500 mt-0.5">만료됨</div>
+            <div className="text-[12px] text-red-500 dark:text-red-500 mt-0.5">만료됨</div>
           )}
         </div>
 
@@ -78,7 +78,7 @@ function InvitedMemberRow({
         <div className="flex-[0.5] flex justify-center">
           <button
             onClick={() => onResend(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
             title="재전송"
           >
             <svg
@@ -104,7 +104,7 @@ function InvitedMemberRow({
         <div className="flex-[0.5] flex justify-center">
           <button
             onClick={() => onDelete(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
             title="삭제"
           >
             <svg
@@ -126,7 +126,7 @@ function InvitedMemberRow({
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30 opacity-50"></div>
+      <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50"></div>
     </>
   );
 }
@@ -210,7 +210,7 @@ export default function InvitedMemberSettings() {
   if (!projectId) {
     return (
       <div className="bg-card rounded-[14px] p-6">
-        <p className="text-neutral-60">프로젝트를 선택해주세요.</p>
+        <p className="text-neutral-60 dark:text-neutral-60">프로젝트를 선택해주세요.</p>
       </div>
     );
   }
@@ -218,7 +218,7 @@ export default function InvitedMemberSettings() {
   if (isLoading) {
     return (
       <div className="bg-card rounded-[14px] p-6">
-        <p className="text-neutral-60">초대 목록을 불러오는 중...</p>
+        <p className="text-neutral-60 dark:text-neutral-60">초대 목록을 불러오는 중...</p>
       </div>
     );
   }
@@ -227,37 +227,37 @@ export default function InvitedMemberSettings() {
     <div className="bg-card rounded-[14px] pb-7 min-h-[70dvh]">
       {/* Header */}
       <div className="flex items-center justify-between px-7 h-[76px]">
-        <h1 className="text-[24px] font-bold text-foreground leading-5">
+        <h1 className="text-[24px] font-bold text-foreground dark:text-neutral-80 leading-5">
           초대중인 멤버
         </h1>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-border opacity-70 mb-6"></div>
+      <div className="w-full h-[1px] bg-border dark:bg-neutral-30 opacity-70 mb-6"></div>
 
       {/* content */}
       <div className="px-7">
         {/* Table Header */}
-        <div className="bg-[#EDEDED] rounded-[8px] px-10 h-[40px] flex items-center">
+        <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center">
           <div className="flex items-center w-full">
             {/* Email - 가장 넓게 */}
-            <div className="flex-[2] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-[2] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               이메일
             </div>
             {/* Invitation Date - 중간 크기 */}
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-[1] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               초대일시
             </div>
             {/* Expiration Date - 중간 크기 */}
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60 text-left">
+            <div className="flex-[1] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               만료일시
             </div>
             {/* Send/Resend Button Column - 가장 작게 */}
-            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60">
+            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60 dark:text-neutral-60">
               {/* Empty header for send button column */}
             </div>
             {/* Delete Button Column - 가장 작게 */}
-            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60">
+            <div className="flex-[0.5] text-[16px] font-medium text-neutral-60 dark:text-neutral-60">
               {/* Empty header for delete button column */}
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function InvitedMemberSettings() {
         {/* Invited Member List */}
         <div className="space-y-0">
           {invitations.length === 0 ? (
-            <div className="py-8 text-center text-neutral-60">
+            <div className="py-8 text-center text-neutral-60 dark:text-neutral-60">
               초대중인 멤버가 없습니다.
             </div>
           ) : (

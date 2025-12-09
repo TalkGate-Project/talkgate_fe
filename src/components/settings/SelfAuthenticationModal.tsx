@@ -62,20 +62,20 @@ export default function SelfAuthenticationModal({
 
       {/* Modal */}
       <div 
-        className="relative w-[440px] bg-white rounded-[14px] mx-4"
+        className="relative w-[440px] bg-card dark:bg-neutral-0 rounded-[14px] mx-4"
         style={{
           boxShadow: '0px 13px 61px rgba(169, 169, 169, 0.366013)'
         }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-7 pb-5">
-          <h2 className="text-[18px] font-bold text-[#1A1A1A] leading-[1.4]">
+          <h2 className="text-[18px] font-bold text-ink dark:text-neutral-80 leading-[1.4]">
             {getTitle()}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 transition-colors"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
             aria-label="닫기"
           >
             <svg
@@ -87,7 +87,8 @@ export default function SelfAuthenticationModal({
             >
               <path
                 d="M18 6L6 18M6 6L18 18"
-                stroke="#666666"
+                stroke="currentColor"
+                className="text-neutral-60 dark:text-neutral-60"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -106,20 +107,20 @@ export default function SelfAuthenticationModal({
           </div>
 
           {/* Main Text */}
-          <p className="text-[18px] font-semibold text-[#1A1A1A] leading-[1.5] text-center mb-2">
+          <p className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[1.5] text-center mb-2">
             {getMainText()}
           </p>
 
           {/* Sub Text - 개인 발신번호 추가시에만 표시 */}
           {getSubText() && (
-            <p className="text-[14px] text-[#666666] leading-[1.6] text-center">
+            <p className="text-[14px] text-neutral-60 dark:text-neutral-60 leading-[1.6] text-center">
               {getSubText()}
             </p>
           )}
         </div>
 
         {/* Divider */}
-        <div className="border-t border-[#E2E2E2]" />
+        <div className="border-t border-neutral-30 dark:border-neutral-30" />
 
         {/* Actions */}
         <div className="flex gap-2 justify-end px-7 py-4">
@@ -127,7 +128,7 @@ export default function SelfAuthenticationModal({
             type="button"
             onClick={onClose}
             disabled={isAuthenticating}
-            className="w-[48px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 bg-white text-[13px] font-medium text-neutral-90 hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[48px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-[13px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             취소
           </button>
@@ -135,7 +136,7 @@ export default function SelfAuthenticationModal({
             type="button"
             onClick={handleAuthenticate}
             disabled={isAuthenticating}
-            className="w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 text-[13px] font-medium text-white hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] font-medium text-neutral-0 dark:text-neutral-90 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAuthenticating ? "인증 중..." : "인증하기"}
           </button>

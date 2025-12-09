@@ -107,10 +107,10 @@ export default function LineIntegrationModal({
       <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] max-h-[90vh] flex flex-col">
+      <div className="relative bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="h-[64px] flex items-center px-7 border-b border-neutral-30/40">
-          <div className="text-[18px] font-semibold leading-[21px] text-[#000]">
+        <div className="h-[64px] flex items-center px-7 border-b border-neutral-30/40 dark:border-neutral-30/40">
+          <div className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">
             라인 공식 계정 연동
           </div>
           <button
@@ -128,7 +128,8 @@ export default function LineIntegrationModal({
             >
               <path
                 d="M6 18L18 6M6 6L18 18"
-                stroke="#B0B0B0"
+                stroke="currentColor"
+                className="text-neutral-50 dark:text-neutral-50"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -146,12 +147,12 @@ export default function LineIntegrationModal({
           >
             <div
               className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
-                step >= 1 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
+                step >= 1 ? "bg-primary-10 dark:bg-primary-10" : "bg-neutral-20 dark:bg-neutral-20"
               }`}
             >
               <span
                 className={`text-[18px] font-semibold leading-[21px] transition-colors ${
-                  step >= 1 ? "text-[#00B55B]" : "text-[#808080]"
+                  step >= 1 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
                 }`}
               >
                 1
@@ -159,7 +160,7 @@ export default function LineIntegrationModal({
             </div>
             <div
               className={`text-[14px] font-medium leading-[17px] transition-colors ${
-                step >= 1 ? "text-[#00B55B]" : "text-[#808080]"
+                step >= 1 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
               }`}
             >
               계정 생성
@@ -175,12 +176,12 @@ export default function LineIntegrationModal({
           >
             <div
               className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
-                step >= 2 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
+                step >= 2 ? "bg-primary-10 dark:bg-primary-10" : "bg-neutral-20 dark:bg-neutral-20"
               }`}
             >
               <span
                 className={`text-[18px] font-semibold leading-[21px] transition-colors ${
-                  step >= 2 ? "text-[#00B55B]" : "text-[#808080]"
+                  step >= 2 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
                 }`}
               >
                 2
@@ -188,7 +189,7 @@ export default function LineIntegrationModal({
             </div>
             <div
               className={`text-[14px] font-medium leading-[17px] transition-colors ${
-                step >= 2 ? "text-[#00B55B]" : "text-[#808080]"
+                step >= 2 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
               }`}
             >
               웹훅 설정
@@ -204,12 +205,12 @@ export default function LineIntegrationModal({
           >
             <div
               className={`w-9 h-9 rounded-full grid place-items-center transition-colors ${
-                step >= 3 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"
+                step >= 3 ? "bg-primary-10 dark:bg-primary-10" : "bg-neutral-20 dark:bg-neutral-20"
               }`}
             >
               <span
                 className={`text-[18px] font-semibold leading-[21px] transition-colors ${
-                  step >= 3 ? "text-[#00B55B]" : "text-[#808080]"
+                  step >= 3 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
                 }`}
               >
                 3
@@ -217,7 +218,7 @@ export default function LineIntegrationModal({
             </div>
             <div
               className={`text-[14px] font-medium leading-[17px] transition-colors ${
-                step >= 3 ? "text-[#00B55B]" : "text-[#808080]"
+                step >= 3 ? "text-primary-80 dark:text-primary-80" : "text-neutral-60 dark:text-neutral-60"
               }`}
             >
               인증 정보
@@ -228,11 +229,11 @@ export default function LineIntegrationModal({
         {/* 본문 */}
         <div className="flex-1 px-7 pb-[30px] overflow-y-auto">
           {step === 1 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
-              <h3 className="text-[14px] font-medium text-foreground mb-4 leading-6">
+            <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[5px] px-6 py-3">
+              <h3 className="text-[14px] font-medium text-foreground dark:text-neutral-80 mb-4 leading-6">
                 1단계: LINE Official Account Manager 설정
               </h3>
-              <div className="text-[14px] font-medium text-neutral-60 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 leading-6">
                 <div>1. LINE Official Account Manager 페이지에서 계정을 생성합니다.</div>
                 <div>2. 계정 생성 후 홈 화면에서 우측 상단의 설정 버튼을 클릭합니다.</div>
                 <div>3. 좌측 메뉴에서 답변 설정 메뉴를 선택합니다.</div>
@@ -243,14 +244,14 @@ export default function LineIntegrationModal({
           )}
 
           {step === 2 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
+            <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[5px] px-6 py-3">
               {/* 제목 */}
-              <h3 className="text-[14px] font-medium text-foreground mb-2 leading-6">
+              <h3 className="text-[14px] font-medium text-foreground dark:text-neutral-80 mb-2 leading-6">
                 2단계: 웹훅 URL 등록
               </h3>
 
               {/* 설명 */}
-              <div className="text-[14px] font-medium text-neutral-60 mb-2 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2 leading-6">
                 아래 웹훅 URL을 LINE Official Account Manager의 Webhook URL에 등록해주세요
               </div>
 
@@ -260,19 +261,19 @@ export default function LineIntegrationModal({
                   type="text"
                   value={isLoadingWebhook ? "로딩 중..." : webhookUrl}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 bg-card tracking-[-0.02em] leading-[17px]"
+                  className="flex-1 px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 bg-card dark:bg-neutral-10 tracking-[-0.02em] leading-[17px]"
                 />
                 <button
                   onClick={handleCopyWebhookUrl}
                   disabled={!webhookUrl || isLoadingWebhook}
-                  className="cursor-pointer w-[72px] h-[34px] px-3 py-1.5 bg-neutral-90 text-neutral-20 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] leading-[17px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer w-[72px] h-[34px] px-3 py-1.5 bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] leading-[17px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   복사
                 </button>
               </div>
 
               {/* 등록 방법 안내 */}
-              <div className="text-[14px] font-medium text-neutral-60 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 leading-6">
                 <div>등록 방법:</div>
                 <div>1. LINE Official Account Manager에서 설정 → Messaging API메뉴로 이동</div>
                 <div>2. Webhook URL 필드에 위 URL을 입력하고 저장 버튼을 클릭합니다.</div>
@@ -282,18 +283,18 @@ export default function LineIntegrationModal({
           )}
 
           {step === 3 && (
-            <div className="bg-[#F8F8F8] rounded-[5px] px-6 py-3">
-              <h3 className="text-[14px] font-medium text-foreground mb-2 leading-6">
+            <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[5px] px-6 py-3">
+              <h3 className="text-[14px] font-medium text-foreground dark:text-neutral-80 mb-2 leading-6">
                 3단계: 인증 정보 입력
               </h3>
 
-              <div className="text-[14px] font-medium text-neutral-60 mb-3 leading-6">
+              <div className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-3 leading-6">
                 설정 - Messaging API 메뉴에서 Channel ID와 Channel Secret을 확인하여 입력해주세요.
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+                  <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
                     Channel ID
                   </label>
                   <input
@@ -301,13 +302,13 @@ export default function LineIntegrationModal({
                     value={channelId}
                     onChange={(e) => setChannelId(e.target.value)}
                     placeholder="1234567890"
-                    className="w-full px-3 py-2 border border-neutral-30 font-medium text-neutral-60 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 font-medium rounded-[5px] text-[14px] text-foreground dark:text-neutral-80 bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground dark:focus:border-neutral-80"
                     disabled={isSaving}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+                  <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
                     Channel Secret
                   </label>
                   <input
@@ -315,7 +316,7 @@ export default function LineIntegrationModal({
                     value={channelSecret}
                     onChange={(e) => setChannelSecret(e.target.value)}
                     placeholder="abdcefghijklmnopqrstuvwxyz1234567890"
-                    className="w-full px-3 py-2 border border-neutral-30 font-medium text-neutral-60 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                    className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 font-medium rounded-[5px] text-[14px] text-foreground dark:text-neutral-80 bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground dark:focus:border-neutral-80"
                     disabled={isSaving}
                   />
                 </div>
@@ -325,9 +326,9 @@ export default function LineIntegrationModal({
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-neutral-30 px-7 py-3 flex items-center justify-end gap-3">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-7 py-3 flex items-center justify-end gap-3">
           <button
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleClose}
             disabled={isSaving}
           >
@@ -336,7 +337,7 @@ export default function LineIntegrationModal({
 
           {step > 1 && (
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-[#000] bg-white hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep((step - 1) as 1 | 2 | 3)}
               disabled={isSaving}
             >
@@ -346,7 +347,7 @@ export default function LineIntegrationModal({
 
           {step < 3 ? (
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep((step + 1) as 1 | 2 | 3)}
               disabled={!canGoNext() || isSaving}
             >
@@ -354,7 +355,7 @@ export default function LineIntegrationModal({
             </button>
           ) : (
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 text-[14px] font-semibold leading-[17px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
               disabled={!canGoNext() || isSaving}
             >
