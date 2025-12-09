@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
-import { getRememberMePreference, setRememberMePreference, clearTokens } from "@/lib/token";
-import { getSelectedProjectId } from "@/lib/project";
+import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
+import { getSelectedProjectId, setSelectedProjectId } from "@/lib/project";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -54,9 +54,8 @@ function LoginContent() {
       })
       .catch((err) => {
         if (mounted) {
-          // 인증 실패: 잔존 쿠키가 있을 수 있으므로 명시적으로 정리
-          console.log("[LoginPage] ⚠️ 인증 확인 실패 - 쿠키 정리 후 로그인 폼 표시", err);
-          clearTokens();
+          // 인증 실패: httpOnly 쿠키는 서버에서만 관리되므로 클라이언트에서 삭제 불가
+          console.log("[LoginPage] ⚠️ 인증 확인 실패 - 로그인 폼 표시", err);
           setChecking(false);
         }
       });
@@ -76,45 +75,77 @@ function LoginContent() {
           e.preventDefault();
           setInvalid(false);
           setRememberMePreference(autoLogin);
-          AuthService.login({ email, password })
+          console.log("[LoginPage] 🔑 로그인 요청 시작:", { email, hasRedirectUrl: !!redirectUrl });
+          AuthService.login({ email, password, rememberMe: autoLogin })
             .then((res) => {
-              const data = (res as any)?.data?.data;
+              console.log("[LoginPage] 📥 로그인 응답 전체:", res);
+              const data = (res as any)?.data;
+              console.log("[LoginPage] 📦 추출된 data:", data);
+              
               // Check if this is a 2FA required response
-              if (data?.twoFactorToken) {
+              if (data?.requiresTwoFactor && data?.twoFactorToken) {
                 // Navigate to 2FA login page with the token (리디렉션 URL 유지)
                 const twoFactorUrl = redirectUrl 
                   ? `/login/two-factor?token=${data.twoFactorToken}&redirectUrl=${encodeURIComponent(redirectUrl)}`
                   : `/login/two-factor?token=${data.twoFactorToken}`;
+                console.log("[LoginPage] 🔐 2FA 필요 →", twoFactorUrl);
                 router.push(twoFactorUrl);
+                return;
+              }
+              
+              // Normal login success
+              console.log("[LoginPage] ✅ 로그인 성공 확인");
+              
+              // 서버에서 프로젝트 ID를 반환했으면 저장
+              if (data?.projectId != null) {
+                console.log("[LoginPage] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
+                setSelectedProjectId(data.projectId);
+              }
+              
+              // 리다이렉션 처리
+              // 쿠키가 설정되는 것을 보장하기 위해 window.location.href 사용
+              if (redirectUrl) {
+                // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
+                console.log("[LoginPage] ✅ 로그인 성공 + 리디렉션 URL 있음 →", redirectUrl);
+                window.location.href = redirectUrl;
               } else {
-                // Normal login success
-                if (redirectUrl) {
-                  // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-                  console.log("[LoginPage] ✅ 로그인 성공 + 리디렉션 URL 있음 →", redirectUrl);
-                  window.location.href = redirectUrl;
+                // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
+                const projectId = data?.projectId || getSelectedProjectId();
+                console.log("[LoginPage] 📊 프로젝트 ID 확인:", { 
+                  fromResponse: data?.projectId, 
+                  fromCookie: getSelectedProjectId(),
+                  final: projectId 
+                });
+                
+                // window.location.href 사용하여 페이지 전체 리로드 (쿠키 설정 보장)
+                if (projectId) {
+                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
+                  window.location.href = "/dashboard";
                 } else {
-                  // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-                  const projectId = getSelectedProjectId();
-                  if (projectId) {
-                    console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
-                    router.replace("/dashboard");
-                  } else {
-                    console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-                    router.replace("/projects");
-                  }
+                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
+                  window.location.href = "/projects";
                 }
               }
             })
             .catch((err: any) => {
+              console.error("[LoginPage] ❌ 로그인 실패:", err);
+              console.error("[LoginPage] ❌ 에러 상세:", {
+                status: err?.status,
+                code: err?.data?.code,
+                message: err?.data?.message,
+                error: err,
+              });
+              
               const status = err?.status;
               const code = err?.data?.code;
               const msg = String(err?.data?.message || "").toUpperCase();
+              
               if (status === 401 && code === "UNAUTHORIZED") {
                 setInvalid(true);
               } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
                 setInvalid(true);
               } else {
-                alert("로그인에 실패했습니다.");
+                alert(`로그인에 실패했습니다. ${err?.data?.message || err?.message || ""}`);
               }
             });
         }}
