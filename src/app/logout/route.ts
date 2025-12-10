@@ -77,10 +77,31 @@ function getMainDomain(host: string): string {
  * 쿠키 삭제 헤더를 응답에 추가합니다.
  * 쿠키 삭제는 쿠키가 설정된 것과 정확히 동일한 속성을 사용해야 합니다.
  */
-function addCookieDeletionHeaders(
+/**
+ * 쿠키 삭제 헤더를 응답에 추가합니다.
+ * 
+ * 중요: 로그인 API와 동일한 방식으로 쿠키를 삭제해야 합니다.
+ * 
+ * Next.js 15에서는 두 가지 방법을 모두 사용하여 확실히 삭제:
+ * 1. cookies().delete() - 서버 사이드에서 직접 삭제
+ * 2. NextResponse.cookies.set() - 응답 헤더에 Set-Cookie 추가
+ * 
+ * 로그인 API에서 사용한 옵션:
+ * - httpOnly: true
+ * - secure: isSecure (프로토콜이 https인지 확인)
+ * - sameSite: isSecure ? 'none' : 'lax'
+ * - path: '/'
+ * - domain: 프로덕션 환경에서 '.talkgate.im'
+ * 
+ * 쿠키 삭제 시 주의사항:
+ * 1. 설정할 때 사용한 것과 정확히 동일한 속성을 사용해야 함
+ * 2. domain, path, secure, sameSite가 일치해야 브라우저가 쿠키를 삭제함
+ * 3. maxAge: 0 또는 expires: 과거 날짜로 설정하여 삭제
+ */
+async function addCookieDeletionHeaders(
   response: NextResponse,
   request: NextRequest
-): void {
+): Promise<void> {
   const hostname = request.headers.get('host')?.split(':')[0] || '';
   const isProduction = isProductionDomain(hostname);
   const isSecure = request.nextUrl.protocol === 'https:';
@@ -101,23 +122,26 @@ function addCookieDeletionHeaders(
     'tg_selected_project_id', // 프로젝트 ID 쿠키도 삭제
   ];
 
-  // 로그인 API와 동일한 방식으로 쿠키 삭제
-  // 로그인 API에서 사용한 옵션:
-  // - httpOnly: true
-  // - secure: isSecure (프로토콜이 https인지 확인)
-  // - sameSite: isSecure ? 'none' : 'lax'
-  // - path: '/'
-  // - domain: 프로덕션 환경에서 '.talkgate.im'
-  // - maxAge: rememberMe ? 30일 : undefined (세션 쿠키)
-  //
-  // 중요: 쿠키 삭제 시 설정할 때 사용한 것과 정확히 동일한 속성을 사용해야 함
-  // 특히 domain, path, secure, sameSite가 일치해야 브라우저가 쿠키를 삭제함
+  // 방법 1: cookies().delete() 사용 (서버 사이드에서 직접 삭제)
+  try {
+    const cookieStore = await cookies();
+    cookiesToDelete.forEach(cookieName => {
+      cookieStore.delete(cookieName);
+      console.log(`[Logout Route] 🗑️ cookies().delete() 호출: ${cookieName}`);
+    });
+  } catch (error) {
+    console.error('[Logout Route] ❌ cookies().delete() 실패:', error);
+  }
+
+  // 방법 2: NextResponse.cookies.set() 사용 (응답 헤더에 Set-Cookie 추가)
+  // 로그인 API와 정확히 동일한 옵션 사용
   const baseCookieOptions = {
     httpOnly: true,
     secure: isSecure,
     sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     path: '/',
     maxAge: 0, // 즉시 만료 (쿠키 삭제)
+    expires: new Date(0), // 과거 날짜로 설정 (추가 보장)
   };
   
   console.log('[Logout Route] 🔍 쿠키 삭제 옵션:', {
@@ -145,11 +169,10 @@ function addCookieDeletionHeaders(
 
   // Domain 속성이 없는 쿠키도 삭제 시도 (브라우저 호환성)
   // 현재 도메인에 설정된 쿠키 삭제
-  // domain을 명시하지 않음 (현재 도메인에 자동 설정)
   cookiesToDelete.forEach(cookieName => {
     const cookieOptionsWithoutDomain = {
       ...baseCookieOptions,
-      domain: undefined, // 명시적으로 undefined 설정
+      // domain을 명시하지 않음 (현재 도메인에 자동 설정)
     };
     response.cookies.set(cookieName, '', cookieOptionsWithoutDomain);
     console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 없음): ${cookieName}`, {
@@ -170,6 +193,10 @@ function addCookieDeletionHeaders(
     header.includes('tg_access_token') || header.includes('tg_refresh_token')
   );
   console.log('[Logout Route] 🎯 토큰 쿠키 삭제 헤더:', tokenCookieHeaders);
+  
+  if (tokenCookieHeaders.length === 0) {
+    console.error('[Logout Route] ❌ 토큰 쿠키 삭제 헤더가 없습니다!');
+  }
 }
 
 /**
@@ -189,6 +216,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const callbackUrl = searchParams.get('callbackUrl');
     const returnUrl = searchParams.get('returnUrl');
+    const redirect = searchParams.get('redirect'); // Header에서 전달하는 redirect 파라미터
 
     console.log('[Logout Route] 🚪 로그아웃 요청 시작:', {
       callbackUrl,
@@ -212,7 +240,7 @@ export async function GET(request: NextRequest) {
         
         // 쿠키 삭제 헤더를 포함한 리다이렉트 응답
         const redirectResponse = NextResponse.redirect(new URL(loginUrl));
-        addCookieDeletionHeaders(redirectResponse, request);
+        await addCookieDeletionHeaders(redirectResponse, request);
         return redirectResponse;
       }
 
@@ -227,29 +255,43 @@ export async function GET(request: NextRequest) {
       
       // 쿠키 삭제 헤더를 포함한 리다이렉트 응답
       const redirectResponse = NextResponse.redirect(callback);
-      addCookieDeletionHeaders(redirectResponse, request);
+      await addCookieDeletionHeaders(redirectResponse, request);
       return redirectResponse;
     }
 
     // 콜백 URL이 없는 경우 기본 로그아웃 처리
-    // 서브도메인에서 로그아웃 시 메인 도메인의 로그인 페이지로 리다이렉트
+    // redirect 파라미터가 있으면 해당 URL로, 없으면 메인 도메인의 로그인 페이지로 리다이렉트
     const currentHost = request.headers.get('host') || '';
     const protocol = request.nextUrl.protocol;
     const mainDomain = getMainDomain(currentHost);
     
-    const loginUrlObj = new URL(`${protocol}//${mainDomain}/login`);
-    // 로그아웃 완료 플래그 추가 - 로그인 페이지에서 쿠키 체크를 건너뛰도록 함
-    loginUrlObj.searchParams.set('logout', 'success');
+    let loginUrlObj: URL;
+    if (redirect) {
+      // redirect 파라미터가 있으면 해당 URL 사용
+      try {
+        loginUrlObj = new URL(redirect);
+      } catch {
+        // 유효하지 않은 URL인 경우 기본 로그인 페이지 사용
+        loginUrlObj = new URL(`${protocol}//${mainDomain}/login`);
+        loginUrlObj.searchParams.set('logout', 'success');
+      }
+    } else {
+      // redirect 파라미터가 없으면 메인 도메인의 로그인 페이지로 리다이렉트
+      loginUrlObj = new URL(`${protocol}//${mainDomain}/login`);
+      // 로그아웃 완료 플래그 추가 - 로그인 페이지에서 쿠키 체크를 건너뛰도록 함
+      loginUrlObj.searchParams.set('logout', 'success');
+    }
     
     console.log('[Logout Route] ✅ 로그아웃 완료 - 로그인 페이지로 리다이렉트:', {
       from: currentHost,
       to: loginUrlObj.toString(),
       mainDomain,
+      hasRedirect: !!redirect,
     });
     
     // 쿠키 삭제 헤더를 포함한 리다이렉트 응답
     const redirectResponse = NextResponse.redirect(loginUrlObj);
-    addCookieDeletionHeaders(redirectResponse, request);
+    await addCookieDeletionHeaders(redirectResponse, request);
     return redirectResponse;
   } catch (error) {
     console.error('[Logout Route] ❌ 로그아웃 처리 중 에러:', error);
@@ -261,7 +303,7 @@ export async function GET(request: NextRequest) {
     const loginUrlObj = new URL(`${protocol}//${mainDomain}/login`);
     loginUrlObj.searchParams.set('logout', 'success');
     const redirectResponse = NextResponse.redirect(loginUrlObj);
-    addCookieDeletionHeaders(redirectResponse, request);
+    await addCookieDeletionHeaders(redirectResponse, request);
     return redirectResponse;
   }
 }

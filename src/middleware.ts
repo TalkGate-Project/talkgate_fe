@@ -13,6 +13,34 @@ const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
 const RESERVED_SUBDOMAINS = ["www", "app", "app-dev", "api", "api-dev", "landing", "landing-dev", "dev", "staging", "admin"];
 
 /**
+ * 개발 환경인지 확인합니다.
+ * 환경변수 기반으로 판단: NODE_ENV === "development" 또는 VERCEL 환경변수가 없는 경우
+ * 호스트명은 보조적으로만 사용 (localhost 체크)
+ */
+function isDevelopment(host: string): boolean {
+  // 환경변수 기반 판단 (우선순위 1)
+  // npm run dev: NODE_ENV === "development"
+  // Vercel 배포: NODE_ENV === "production", VERCEL 환경변수 존재
+  if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
+    return true;
+  }
+
+  // 호스트명 기반 판단 (보조적)
+  // localhost나 127.0.0.1 환경은 개발 환경으로 간주
+  const hostWithoutPort = host.split(":")[0];
+  if (
+    hostWithoutPort.includes("localhost") ||
+    hostWithoutPort.includes("127.0.0.1") ||
+    /^\d+\.\d+\.\d+\.\d+$/.test(hostWithoutPort)
+  ) {
+    return true;
+  }
+
+  // 그 외의 경우는 배포 환경으로 간주
+  return false;
+}
+
+/**
  * 호스트에서 서브도메인을 추출합니다.
  * 예: subdomain.talkgate.im → subdomain
  *     talkgate.im → null
@@ -328,15 +356,21 @@ export async function middleware(req: NextRequest) {
     console.log('[Middleware] 🚪 로그아웃 플래그 감지 - 토큰 리프레시 건너뜀');
   }
   
+  // 개발 환경 감지
+  const isDev = isDevelopment(host);
+
   // 1) 미인증 사용자는 보호 경로 접근 시 메인 도메인의 로그인으로 보냄
   if (!hasAuthCookie) {
-    const subdomain = extractSubdomain(host);
-    
-    // 서브도메인에서 접속한 경우 메인 도메인으로 리다이렉트
-    if (subdomain) {
-      const protocol = req.nextUrl.protocol;
-      const mainDomain = getMainDomain(host);
-      return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+    // 개발 환경이 아닌 경우에만 서브도메인 체크
+    if (!isDev) {
+      const subdomain = extractSubdomain(host);
+      
+      // 서브도메인에서 접속한 경우 메인 도메인으로 리다이렉트
+      if (subdomain) {
+        const protocol = req.nextUrl.protocol;
+        const mainDomain = getMainDomain(host);
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+      }
     }
     
     // 메인 도메인에서 접속한 경우 그대로 /login으로
@@ -399,29 +433,31 @@ export async function middleware(req: NextRequest) {
     // 새 토큰을 사용하여 프로젝트 조회를 다시 수행할 수 없습니다.
     // 대신, 쿠키에 이미 설정되었으므로 다음 요청에서 사용될 것입니다.
     
-    // 새 토큰으로 프로젝트 조회 시도 (서브도메인이 있는 경우)
-    const subdomain = extractSubdomain(host);
-    if (subdomain) {
-      const project = await fetchProjectBySubdomain(subdomain, newTokens.accessToken, host);
-      if (project) {
-        const subdomainProjectId = String(project.id);
-        const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
-        
-        if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-          response.cookies.set("tg_selected_project_id", subdomainProjectId, {
-            path: "/",
-            maxAge: 60 * 60 * 24 * 30,
-            sameSite: cookieOptions.sameSite,
-            secure: cookieOptions.secure,
-            ...(cookieOptions.domain && { domain: cookieOptions.domain }),
-          });
-        }
-        
-        // /projects 경로 접근 시 /dashboard로 리다이렉트
-        if (pathname === "/projects" || pathname.startsWith("/projects/")) {
-          const url = req.nextUrl.clone();
-          url.pathname = "/dashboard";
-          return NextResponse.redirect(url);
+    // 새 토큰으로 프로젝트 조회 시도 (서브도메인이 있고 개발 환경이 아닌 경우)
+    if (!isDev) {
+      const subdomain = extractSubdomain(host);
+      if (subdomain) {
+        const project = await fetchProjectBySubdomain(subdomain, newTokens.accessToken, host);
+        if (project) {
+          const subdomainProjectId = String(project.id);
+          const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
+          
+          if (!currentProjectId || currentProjectId !== subdomainProjectId) {
+            response.cookies.set("tg_selected_project_id", subdomainProjectId, {
+              path: "/",
+              maxAge: 60 * 60 * 24 * 30,
+              sameSite: cookieOptions.sameSite,
+              secure: cookieOptions.secure,
+              ...(cookieOptions.domain && { domain: cookieOptions.domain }),
+            });
+          }
+          
+          // /projects 경로 접근 시 /dashboard로 리다이렉트
+          if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+            const url = req.nextUrl.clone();
+            url.pathname = "/dashboard";
+            return NextResponse.redirect(url);
+          }
         }
       }
     }
@@ -431,68 +467,75 @@ export async function middleware(req: NextRequest) {
   
   // 3) 서브도메인 기반 프로젝트 처리
   // (토큰이 리프레시되지 않은 경우, 또는 리프레시되었지만 서브도메인이 없는 경우)
-  const subdomain = extractSubdomain(host);
+  // 개발 환경에서는 서브도메인 로직을 건너뜀
   const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
   let hasSelectedProject = Boolean(currentProjectId);
   
-  // 서브도메인이 있는 경우: 항상 서브도메인 프로젝트로 처리
-  // (다른 프로젝트가 선택되어 있어도 서브도메인 프로젝트로 전환)
-  
-  if (subdomain) {
-    const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+  // 개발 환경이 아닌 경우에만 서브도메인 처리
+  if (!isDev) {
+    const subdomain = extractSubdomain(host);
     
-    if (project) {
-      const subdomainProjectId = String(project.id);
+    // 서브도메인이 있는 경우: 항상 서브도메인 프로젝트로 처리
+    // (다른 프로젝트가 선택되어 있어도 서브도메인 프로젝트로 전환)
+    
+    if (subdomain) {
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
       
-      // 서브도메인이 있는 상태에서 /projects로 접근하는 것은 논리적으로 맞지 않음
-      // 프로젝트가 이미 선택된 상태이므로 대시보드로 리다이렉트
-      if (pathname === "/projects" || pathname.startsWith("/projects/")) {
-        const url = req.nextUrl.clone();
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-      
-      // 현재 선택된 프로젝트와 서브도메인 프로젝트가 다른 경우 로그 출력
-      if (currentProjectId && currentProjectId !== subdomainProjectId) {
-        console.log(`[Middleware] 프로젝트 전환: ${currentProjectId} → ${subdomainProjectId} (서브도메인: ${subdomain})`);
-      }
-      
-      // 프로젝트가 선택되지 않았거나, 다른 프로젝트가 선택된 경우 → 서브도메인 프로젝트로 설정
-      if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-        const response = NextResponse.next();
+      if (project) {
+        const subdomainProjectId = String(project.id);
         
-        // 쿠키 설정 (30일 유효, 도메인은 명시하지 않음 - 현재 도메인에 자동 설정)
-        const maxAge = 60 * 60 * 24 * 30;
-        const isSecure = req.nextUrl.protocol === "https:";
-        response.cookies.set("tg_selected_project_id", subdomainProjectId, {
-          path: "/",
-          maxAge,
-          sameSite: isSecure ? "none" : "lax",
-          secure: isSecure,
-        });
+        // 서브도메인이 있는 상태에서 /projects로 접근하는 것은 논리적으로 맞지 않음
+        // 프로젝트가 이미 선택된 상태이므로 대시보드로 리다이렉트
+        if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+          const url = req.nextUrl.clone();
+          url.pathname = "/dashboard";
+          return NextResponse.redirect(url);
+        }
         
-        return response;
+        // 현재 선택된 프로젝트와 서브도메인 프로젝트가 다른 경우 로그 출력
+        if (currentProjectId && currentProjectId !== subdomainProjectId) {
+          console.log(`[Middleware] 프로젝트 전환: ${currentProjectId} → ${subdomainProjectId} (서브도메인: ${subdomain})`);
+        }
+        
+        // 프로젝트가 선택되지 않았거나, 다른 프로젝트가 선택된 경우 → 서브도메인 프로젝트로 설정
+        if (!currentProjectId || currentProjectId !== subdomainProjectId) {
+          const response = NextResponse.next();
+          
+          // 쿠키 설정 (30일 유효, 도메인은 명시하지 않음 - 현재 도메인에 자동 설정)
+          const maxAge = 60 * 60 * 24 * 30;
+          const isSecure = req.nextUrl.protocol === "https:";
+          response.cookies.set("tg_selected_project_id", subdomainProjectId, {
+            path: "/",
+            maxAge,
+            sameSite: isSecure ? "none" : "lax",
+            secure: isSecure,
+          });
+          
+          return response;
+        }
+        
+        // 이미 올바른 프로젝트가 선택되어 있음
+        hasSelectedProject = true;
+      } else {
+        // 서브도메인이 있지만 프로젝트를 찾지 못함 (유효하지 않은 서브도메인 또는 권한 없음)
+        console.log(`[Middleware] 유효하지 않은 서브도메인 또는 접근 권한 없음: ${subdomain}`);
+        
+        // 유효하지 않은 서브도메인으로 접근 시, 메인 도메인의 프로젝트 선택 페이지로 리다이렉트
+        // 같은 서브도메인으로 리다이렉트하면 무한 루프가 발생하므로 메인 도메인으로 이동
+        const protocol = req.nextUrl.protocol;
+        const mainDomain = getMainDomain(host);
+        const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+        redirectUrl.searchParams.set("error", "invalid_subdomain");
+        redirectUrl.searchParams.set("subdomain", subdomain);
+        return NextResponse.redirect(redirectUrl);
       }
-      
-      // 이미 올바른 프로젝트가 선택되어 있음
-      hasSelectedProject = true;
-    } else {
-      // 서브도메인이 있지만 프로젝트를 찾지 못함 (유효하지 않은 서브도메인 또는 권한 없음)
-      console.log(`[Middleware] 유효하지 않은 서브도메인 또는 접근 권한 없음: ${subdomain}`);
-      
-      // 유효하지 않은 서브도메인으로 접근 시, 메인 도메인의 프로젝트 선택 페이지로 리다이렉트
-      // 같은 서브도메인으로 리다이렉트하면 무한 루프가 발생하므로 메인 도메인으로 이동
-      const protocol = req.nextUrl.protocol;
-      const mainDomain = getMainDomain(host);
-      const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
-      redirectUrl.searchParams.set("error", "invalid_subdomain");
-      redirectUrl.searchParams.set("subdomain", subdomain);
-      return NextResponse.redirect(redirectUrl);
     }
   }
   
   // 4) 서브도메인 없이 접속 + 프로젝트 미선택 상태에서는 프로젝트 선택 페이지로 유도
-  if (!subdomain && !hasSelectedProject) {
+  // 개발 환경에서는 서브도메인 체크를 건너뛰므로 항상 프로젝트 미선택 상태를 체크
+  // 단, 로그인 페이지나 로그아웃 페이지는 예외 처리
+  if (!hasSelectedProject) {
     const projectRequiredPrefixes = [
       "/dashboard",
       "/consult",
@@ -504,7 +547,13 @@ export async function middleware(req: NextRequest) {
       "/notifications",
     ];
     const isProjectRequired = projectRequiredPrefixes.some((p) => pathname.startsWith(p));
-    const isException = pathname === "/projects" || pathname.startsWith("/my-settings");
+    // 예외: 프로젝트 선택 페이지, 개인 설정, 로그인/로그아웃 관련 페이지
+    const isException = 
+      pathname === "/projects" || 
+      pathname.startsWith("/my-settings") ||
+      pathname === "/login" ||
+      pathname.startsWith("/logout") ||
+      pathname.startsWith("/auth/callback");
     
     if (isProjectRequired && !isException) {
       const url = req.nextUrl.clone();
