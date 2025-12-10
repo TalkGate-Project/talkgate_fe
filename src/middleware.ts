@@ -236,7 +236,8 @@ function addCookieDeletionHeaders(response: NextResponse, request: NextRequest):
   const cookieOptions = {
     path: '/',
     maxAge: 0, // 0으로 설정하여 즉시 만료
-    httpOnly: true,
+    // httpOnly: true,
+    httpOnly: false,
     secure: isSecure,
     sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     ...(isProduction && { domain: '.talkgate.im' }),
@@ -281,7 +282,8 @@ function getCookieOptions(request: NextRequest): {
 
   return {
     path: '/',
-    httpOnly: true,
+    // httpOnly: true,
+    httpOnly: false,
     secure: isSecure,
     sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     ...(isProduction && { domain: '.talkgate.im' }),
