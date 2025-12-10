@@ -144,10 +144,24 @@ async function handleRequest(
       data = await response.blob();
     }
 
-    // 응답 헤더 전달 (필요한 것만)
+    // 응답 헤더 전달
+    // 중요: 백엔드가 Set-Cookie 헤더를 보내는 경우, 이를 전달해야 함
+    // 백엔드가 쿠키를 관리하는 경우 Next.js에서 쿠키를 설정하지 않아야 함
     const responseHeaders = new Headers();
     if (contentTypeHeader) {
       responseHeaders.set('Content-Type', contentTypeHeader);
+    }
+    
+    // 백엔드 응답의 Set-Cookie 헤더 확인 및 전달
+    const backendSetCookieHeaders = response.headers.get('set-cookie');
+    if (backendSetCookieHeaders) {
+      console.log('[API Proxy] 🍪 백엔드 Set-Cookie 헤더 감지:', backendSetCookieHeaders);
+      // Set-Cookie 헤더는 여러 개일 수 있으므로 getAll 사용
+      const allSetCookies = response.headers.getSetCookie();
+      allSetCookies.forEach((cookie) => {
+        responseHeaders.append('Set-Cookie', cookie);
+      });
+      console.log('[API Proxy] 🍪 Set-Cookie 헤더 전달:', allSetCookies);
     }
 
     // 401 에러 시 토큰 갱신 시도

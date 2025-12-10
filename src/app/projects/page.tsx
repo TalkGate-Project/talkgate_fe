@@ -6,7 +6,7 @@ import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
-import { getProjectSubdomainUrl } from "@/lib/subdomain";
+import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
@@ -137,19 +137,30 @@ function ProjectsContent() {
               key={p.id}
               className="px-7 pt-6 pb-[30px] md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
               onClick={() => {
-                // 서브도메인이 있고, 서브도메인을 사용할 수 있는 환경인 경우
+                const isDev = isDevelopment();
+                
+                // 개발 환경: 쿠키에 세팅하고 /dashboard로 이동
+                if (isDev) {
+                  setSelectedProjectId(p.id);
+                  setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+                  router.push("/dashboard");
+                  return;
+                }
+                
+                // 배포 환경: 서브도메인이 있으면 서브도메인으로 이동, 없으면 쿠키 세팅 후 /dashboard로 이동
                 if (p.subDomain) {
                   const subdomainUrl = getProjectSubdomainUrl(p.subDomain, "/dashboard");
                   if (subdomainUrl) {
-                    // 실제 도메인 환경: 서브도메인으로 리다이렉트
+                    // 서브도메인으로 리다이렉트
                     window.location.href = subdomainUrl;
                     return;
                   }
                 }
-                // localhost/IP 환경이거나 서브도메인이 없는 경우: 기존 로직 사용
+                
+                // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
                 setSelectedProjectId(p.id);
                 setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                router.push(`/projects/${p.id}/dashboard`);
+                router.push("/dashboard");
               }}
             >
               <div className="flex items-center justify-between">

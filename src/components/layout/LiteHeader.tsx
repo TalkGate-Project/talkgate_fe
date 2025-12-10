@@ -224,12 +224,30 @@ export default function LiteHeader() {
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
                     onClick={() => {
+                      console.log("[LiteHeader] 🚪 로그아웃 버튼 클릭");
+                      // 클라이언트 사이드 정리
                       clearTokens();
                       clearSelectedProjectId();
-                      // 로그아웃 시 모든 캐시 초기화 (이전 유저 정보 제거)
                       queryClient.clear();
                       setOpen(false);
-                      router.replace("/login");
+                      
+                      // 메인 도메인 계산
+                      const host = window.location.host;
+                      const hostWithoutPort = host.split(':')[0];
+                      let mainDomain = host;
+                      
+                      // 서브도메인인 경우 메인 도메인으로 변환
+                      if (hostWithoutPort.includes('.talkgate.im')) {
+                        if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
+                          mainDomain = 'app.talkgate.im';
+                        } else {
+                          mainDomain = 'app-dev.talkgate.im';
+                        }
+                      }
+                      
+                      const protocol = window.location.protocol;
+                      // 로그아웃 API를 호출하고 메인 도메인의 로그인으로 리다이렉트
+                      window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">

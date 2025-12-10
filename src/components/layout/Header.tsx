@@ -272,7 +272,8 @@ export default function Header() {
                     onMouseLeave={() => setIsProjectSelectHovered(false)}
                     onClick={() => {
                       setOpen(false);
-                      router.push("/projects");
+                      // window.location.href를 사용하여 middleware 리다이렉트 방지
+                      window.location.href = "/projects";
                     }}
                   >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -316,61 +317,30 @@ export default function Header() {
                     onMouseLeave={() => setIsLogoutHovered(false)}
                     onClick={() => {
                       console.log("[Header] 🚪 로그아웃 버튼 클릭");
-                      // 서버 API를 통해 로그아웃 (httpOnly 쿠키 삭제)
+                      // 클라이언트 사이드 정리
                       clearSelectedProjectId();
                       clearUseAttendanceMenu();
-                      // React Query 캐시 초기화
                       queryClient.clear();
                       setOpen(false);
-                      // 서버 로그아웃 API 호출
-                      // 서버에서 메인 도메인으로 리다이렉트하지만, 
-                      // fetch는 리다이렉트를 자동으로 따라가지 않으므로 클라이언트에서도 처리
-                      fetch("/logout", {
-                        method: "GET",
-                        credentials: "include",
-                        redirect: "follow", // 서버 리다이렉트를 따라감
-                      })
-                        .then((response) => {
-                          // 서버 리다이렉트 URL 확인
-                          if (response.redirected) {
-                            window.location.href = response.url;
-                          } else {
-                            // 서버 리다이렉트가 없는 경우 메인 도메인의 로그인으로 이동
-                            const host = window.location.host;
-                            const hostWithoutPort = host.split(':')[0];
-                            let mainDomain = host;
-                            
-                            // 서브도메인인 경우 메인 도메인으로 변환
-                            if (hostWithoutPort.includes('.talkgate.im')) {
-                              if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-                                mainDomain = 'app.talkgate.im';
-                              } else {
-                                mainDomain = 'app-dev.talkgate.im';
-                              }
-                            }
-                            
-                            const protocol = window.location.protocol;
-                            window.location.href = `${protocol}//${mainDomain}/login`;
-                          }
-                        })
-                        .catch((error) => {
-                          console.error("[Header] ❌ 로그아웃 처리 중 에러:", error);
-                          // 에러 발생 시에도 메인 도메인의 로그인으로 이동
-                          const host = window.location.host;
-                          const hostWithoutPort = host.split(':')[0];
-                          let mainDomain = host;
-                          
-                          if (hostWithoutPort.includes('.talkgate.im')) {
-                            if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-                              mainDomain = 'app.talkgate.im';
-                            } else {
-                              mainDomain = 'app-dev.talkgate.im';
-                            }
-                          }
-                          
-                          const protocol = window.location.protocol;
-                          window.location.href = `${protocol}//${mainDomain}/login`;
-                        });
+                      
+                      // 메인 도메인 계산
+                      const host = window.location.host;
+                      const hostWithoutPort = host.split(':')[0];
+                      let mainDomain = host;
+                      
+                      // 서브도메인인 경우 메인 도메인으로 변환
+                      if (hostWithoutPort.includes('.talkgate.im')) {
+                        if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
+                          mainDomain = 'app.talkgate.im';
+                        } else {
+                          mainDomain = 'app-dev.talkgate.im';
+                        }
+                      }
+                      
+                      const protocol = window.location.protocol;
+                      // 로그아웃 API를 호출하고 메인 도메인의 로그인으로 리다이렉트
+                      // window.location.href를 사용하여 서버 리다이렉트를 확실히 처리
+                      window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">

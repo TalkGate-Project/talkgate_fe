@@ -21,6 +21,15 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ email, password }),
     });
 
+    // 중요: 백엔드가 Set-Cookie 헤더를 보내는지 확인
+    // 백엔드가 쿠키를 관리하는 경우, Next.js에서 쿠키를 설정하면 충돌 발생 가능
+    const backendSetCookieHeaders = response.headers.get('set-cookie');
+    console.log('[Login API] 🔍 백엔드 Set-Cookie 헤더 확인:', {
+      hasSetCookie: !!backendSetCookieHeaders,
+      setCookieHeaders: backendSetCookieHeaders,
+      allResponseHeaders: Object.fromEntries(response.headers.entries()),
+    });
+
     const data = await response.json();
 
     if (!response.ok) {

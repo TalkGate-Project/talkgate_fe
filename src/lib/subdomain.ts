@@ -1,6 +1,38 @@
 "use client";
 
 /**
+ * 개발 환경인지 확인합니다.
+ * 환경변수 기반으로 판단: NODE_ENV === "development" 또는 VERCEL 환경변수가 없는 경우
+ * 호스트명은 보조적으로만 사용 (localhost 체크)
+ */
+export function isDevelopment(): boolean {
+  // 환경변수 기반 판단 (우선순위 1)
+  // npm run dev: NODE_ENV === "development"
+  // Vercel 배포: NODE_ENV === "production", VERCEL 환경변수 존재
+  if (typeof window === "undefined") {
+    // 서버 사이드: NODE_ENV가 development이거나 VERCEL이 없으면 개발 환경
+    return process.env.NODE_ENV === "development" || !process.env.VERCEL;
+  }
+
+  // 클라이언트 사이드: Next.js가 빌드 시 NODE_ENV를 인라인하므로 직접 체크 가능
+  // 하지만 런타임에서는 접근 불가하므로 호스트명으로 판단
+  const host = window.location.host;
+  const hostWithoutPort = host.split(":")[0];
+  
+  // localhost나 127.0.0.1 환경은 개발 환경으로 간주
+  if (
+    hostWithoutPort.includes("localhost") ||
+    hostWithoutPort.includes("127.0.0.1") ||
+    /^\d+\.\d+\.\d+\.\d+$/.test(hostWithoutPort)
+  ) {
+    return true;
+  }
+
+  // 그 외의 경우는 배포 환경으로 간주
+  return false;
+}
+
+/**
  * 현재 호스트에서 메인 도메인을 추출합니다.
  * 예: app-dev.talkgate.im → app-dev.talkgate.im
  *     project-123.app-dev.talkgate.im → app-dev.talkgate.im
@@ -35,27 +67,24 @@ export function getMainDomain(): string {
 
 /**
  * 현재 환경에서 서브도메인을 사용할 수 있는지 확인합니다.
- * localhost나 IP 주소 환경에서는 서브도메인을 사용할 수 없습니다.
+ * 개발 환경(localhost)에서는 사용 불가, Vercel 배포 환경에서는 사용 가능
  */
 export function canUseSubdomain(): boolean {
-  if (typeof window === "undefined") {
+  // 개발 환경에서는 서브도메인 사용 불가
+  if (isDevelopment()) {
     return false;
+  }
+
+  if (typeof window === "undefined") {
+    // 서버 사이드에서는 Vercel 환경인지 확인
+    return !!process.env.VERCEL;
   }
 
   const host = window.location.host;
   const hostWithoutPort = host.split(":")[0];
 
-  // localhost나 IP 주소 환경에서는 서브도메인 사용 불가
-  if (
-    hostWithoutPort.includes("localhost") ||
-    hostWithoutPort.includes("127.0.0.1") ||
-    /^\d+\.\d+\.\d+\.\d+$/.test(hostWithoutPort)
-  ) {
-    return false;
-  }
-
-  // 실제 도메인 환경에서만 서브도메인 사용 가능
-  return hostWithoutPort.includes("talkgate.im");
+  // 실제 도메인 환경(talkgate.im 또는 vercel.app)에서만 서브도메인 사용 가능
+  return hostWithoutPort.includes("talkgate.im") || hostWithoutPort.includes("vercel.app");
 }
 
 /**
