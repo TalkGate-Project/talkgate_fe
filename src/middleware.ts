@@ -359,8 +359,19 @@ export async function middleware(req: NextRequest) {
   // 개발 환경 감지
   const isDev = isDevelopment(host);
 
+  // 로그아웃 경로는 서브도메인 체크를 건너뜀 (메인 도메인으로 리다이렉트 중일 수 있음)
+  const isLogoutPath = pathname === "/logout" || pathname.startsWith("/logout");
+
   // 1) 미인증 사용자는 보호 경로 접근 시 메인 도메인의 로그인으로 보냄
   if (!hasAuthCookie) {
+    // 로그아웃 경로는 예외 처리 (서브도메인에서 메인 도메인으로 리다이렉트 중)
+    if (isLogoutPath) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set('logout', 'success');
+      return NextResponse.redirect(url);
+    }
+    
     // 개발 환경이 아닌 경우에만 서브도메인 체크
     if (!isDev) {
       const subdomain = extractSubdomain(host);
@@ -466,6 +477,11 @@ export async function middleware(req: NextRequest) {
     return response;
   }
   
+  // 로그아웃 경로는 서브도메인 처리를 건너뜀 (메인 도메인으로 리다이렉트 중)
+  if (isLogoutPath) {
+    return NextResponse.next();
+  }
+
   // 3) 서브도메인 기반 프로젝트 처리
   // (토큰이 리프레시되지 않은 경우, 또는 리프레시되었지만 서브도메인이 없는 경우)
   // 개발 환경에서는 서브도메인 로직을 건너뜀
