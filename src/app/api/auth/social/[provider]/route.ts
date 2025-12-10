@@ -63,7 +63,8 @@ export async function POST(
     const maxAge = 60 * 60 * 24 * 30; // 소셜 로그인은 기본 30일
 
     const cookieOptions = {
-      httpOnly: true,
+      // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
+      httpOnly: false,
       secure: isSecure,
       sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
       path: '/',
