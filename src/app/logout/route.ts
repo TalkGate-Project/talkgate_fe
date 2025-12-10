@@ -226,24 +226,62 @@ export async function GET(request: NextRequest) {
     const returnUrl = searchParams.get('returnUrl');
     const redirect = searchParams.get('redirect'); // Header에서 전달하는 redirect 파라미터
 
+    const currentHost = request.headers.get('host') || '';
+    const protocol = request.nextUrl.protocol;
+    const mainDomain = getMainDomain(currentHost);
+
     console.log('[Logout Route] 🚪 로그아웃 요청 시작:', {
       callbackUrl,
       returnUrl,
-      host: request.headers.get('host'),
+      redirect,
+      currentHost,
+      mainDomain,
       protocol: request.nextUrl.protocol,
       pathname: request.nextUrl.pathname,
     });
 
-    console.log('[Logout Route] 🍪 쿠키 삭제 시작');
+    // 서브도메인에서 호출된 경우 메인 도메인으로 리다이렉트
+    // .talkgate.im 도메인 쿠키는 메인 도메인에서만 삭제 가능
+    const hostWithoutPort = currentHost.split(':')[0];
+    // 메인 도메인 목록
+    const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
+    const RESERVED_SUBDOMAINS = ["www", "app", "app-dev", "api", "api-dev", "landing", "landing-dev", "dev", "staging", "admin"];
+    
+    // 서브도메인인지 확인
+    let isSubdomain = false;
+    for (const mainDomain of MAIN_DOMAINS) {
+      if (hostWithoutPort === mainDomain) {
+        isSubdomain = false;
+        break;
+      }
+      if (hostWithoutPort.endsWith(`.${mainDomain}`)) {
+        const subdomain = hostWithoutPort.slice(0, -(mainDomain.length + 1));
+        const firstPart = subdomain.split(".")[0];
+        if (firstPart && !RESERVED_SUBDOMAINS.includes(firstPart.toLowerCase())) {
+          isSubdomain = true;
+          break;
+        }
+      }
+    }
+    
+    if (isSubdomain) {
+      console.log('[Logout Route] 🔄 서브도메인에서 호출됨 - 메인 도메인으로 리다이렉트');
+      // 메인 도메인의 /logout으로 리다이렉트 (쿼리 파라미터 유지)
+      const logoutUrl = new URL(`${protocol}//${mainDomain}/logout`);
+      // 모든 쿼리 파라미터 복사
+      searchParams.forEach((value, key) => {
+        logoutUrl.searchParams.set(key, value);
+      });
+      return NextResponse.redirect(logoutUrl);
+    }
+
+    console.log('[Logout Route] 🍪 쿠키 삭제 시작 (메인 도메인에서 실행)');
 
     // 콜백 URL이 있으면 검증 후 리다이렉트
     if (callbackUrl) {
       if (!isValidCallbackUrl(callbackUrl)) {
         console.error('[Logout Route] ❌ 유효하지 않은 콜백 URL:', callbackUrl);
         // 콜백 URL이 유효하지 않은 경우 쿠키 삭제 후 메인 도메인 로그인으로 리다이렉트
-        const currentHost = request.headers.get('host') || '';
-        const protocol = request.nextUrl.protocol;
-        const mainDomain = getMainDomain(currentHost);
         const loginUrl = `${protocol}//${mainDomain}/login`;
         
         // 쿠키 삭제 헤더를 포함한 리다이렉트 응답
@@ -269,10 +307,6 @@ export async function GET(request: NextRequest) {
 
     // 콜백 URL이 없는 경우 기본 로그아웃 처리
     // redirect 파라미터가 있으면 해당 URL로, 없으면 메인 도메인의 로그인 페이지로 리다이렉트
-    const currentHost = request.headers.get('host') || '';
-    const protocol = request.nextUrl.protocol;
-    const mainDomain = getMainDomain(currentHost);
-    
     let loginUrlObj: URL;
     if (redirect) {
       // redirect 파라미터가 있으면 해당 URL 사용
