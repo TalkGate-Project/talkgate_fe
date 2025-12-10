@@ -453,7 +453,8 @@ export async function middleware(req: NextRequest) {
           }
           
           // /projects 경로 접근 시 /dashboard로 리다이렉트
-          if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+          // 단, /projects 자체는 허용 (프로젝트 선택 페이지)
+          if (pathname.startsWith("/projects/") && pathname !== "/projects") {
             const url = req.nextUrl.clone();
             url.pathname = "/dashboard";
             return NextResponse.redirect(url);
@@ -484,9 +485,10 @@ export async function middleware(req: NextRequest) {
       if (project) {
         const subdomainProjectId = String(project.id);
         
-        // 서브도메인이 있는 상태에서 /projects로 접근하는 것은 논리적으로 맞지 않음
-        // 프로젝트가 이미 선택된 상태이므로 대시보드로 리다이렉트
-        if (pathname === "/projects" || pathname.startsWith("/projects/")) {
+        // 서브도메인이 있는 상태에서 /projects로 접근하는 경우
+        // 프로젝트 선택 페이지는 접근 허용 (다른 프로젝트로 전환 가능)
+        // 단, /projects/[projectId] 같은 하위 경로는 리다이렉트
+        if (pathname.startsWith("/projects/") && pathname !== "/projects") {
           const url = req.nextUrl.clone();
           url.pathname = "/dashboard";
           return NextResponse.redirect(url);

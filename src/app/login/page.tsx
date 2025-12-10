@@ -37,6 +37,8 @@ function LoginContent() {
     
     if (isLogoutRedirect) {
       console.log("[LoginPage] 🚪 로그아웃 후 리다이렉트 - 로그인 폼 표시");
+      // 로그아웃 후에는 쿠키 체크를 건너뛰고 바로 로그인 폼 표시
+      // 쿠키가 남아있어도 AuthService.me()가 실패할 것이므로 자동으로 로그인 폼이 표시됨
       // URL에서 logout 파라미터 제거 (히스토리 정리)
       const url = new URL(window.location.href);
       url.searchParams.delete('logout');
