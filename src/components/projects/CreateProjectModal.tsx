@@ -192,17 +192,17 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] h-[597px] flex flex-col">
+      <div className="relative bg-card rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] w-[848px] h-[597px] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center px-7">
-          <div className="text-[18px] font-semibold leading-[1] text-[#000] mt-[24px] mb-[35px]">새 프로젝트 생성</div>
+          <div className="text-[18px] font-semibold leading-[1] text-foreground mt-[24px] mb-[35px]">새 프로젝트 생성</div>
           <button
             aria-label="close"
             className="cursor-pointer ml-auto w-6 h-6 grid place-items-center"
             onClick={() => !submitting && onClose()}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="[&_path]:stroke-[var(--neutral-50)]">
+              <path d="M6 18L18 6M6 6L18 18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
@@ -210,23 +210,23 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         {/* 단계 인디케이터 */}
         <div className="flex justify-center gap-2 mb-6">
           <div className="flex flex-col items-center gap-2">
-            <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 1 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"}`}>
-              <span className={`text-[18px] font-semibold leading-[21px] ${step >= 1 ? "text-[#00B55B]" : "text-[#808080]"}`}>
+            <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 1 ? "bg-primary-10" : "bg-neutral-20"}`}>
+              <span className={`text-[18px] font-semibold leading-[21px] ${step >= 1 ? "text-primary-80" : "text-neutral-60"}`}>
                 1
               </span>
             </div>
-            <div className={`text-[14px] font-medium leading-[17px] ${step >= 1 ? "text-[#00B55B]" : "text-[#808080]"}`}>
+            <div className={`text-[14px] font-medium leading-[17px] ${step >= 1 ? "text-primary-80" : "text-neutral-60"}`}>
               기본정보
             </div>
           </div>
-          <div className="w-[60px] h-px bg-[#E2E2E2] mt-[18px]" />
+          <div className="w-[60px] h-px bg-neutral-30 mt-[18px]" />
           <div className="flex flex-col items-center gap-2">
-            <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 2 ? "bg-[#D6FAE8]" : "bg-[#EDEDED]"}`}>
-              <span className={`text-[18px] font-semibold leading-[21px] ${step >= 2 ? "text-[#00B55B]" : "text-[#808080]"}`}>
+            <div className={`w-9 h-9 rounded-full grid place-items-center ${step >= 2 ? "bg-primary-10" : "bg-neutral-20"}`}>
+              <span className={`text-[18px] font-semibold leading-[21px] ${step >= 2 ? "text-primary-80" : "text-neutral-60"}`}>
                 2
               </span>
             </div>
-            <div className={`text-[14px] font-medium leading-[17px] ${step >= 2 ? "text-[#00B55B]" : "text-[#808080]"}`}>
+            <div className={`text-[14px] font-medium leading-[17px] ${step >= 2 ? "text-primary-80" : "text-neutral-60"}`}>
               도메인 설정
             </div>
           </div>
@@ -243,12 +243,12 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           {step === 1 ? (
             <div className="space-y-5">
               {/* 브랜드 아이콘 영역 */}
-              <div className="h-[181px] rounded-[5px] bg-[#F8F8F8] px-6 py-3">
-                <div className="text-[14px] font-medium text-[#000]">브랜드 아이콘</div>
+              <div className="h-[181px] rounded-[5px] bg-neutral-10 px-6 py-3">
+                <div className="text-[14px] font-medium text-foreground">브랜드 아이콘</div>
                 {/* 드롭존 */}
                 <div className="mt-2 flex items-center justify-center">
                   <div
-                    className={`w-[100px] h-[100px] rounded-[14px] ${iconPreview ? "border border-dashed border-[#E2E2E2]" : ""} bg-white overflow-hidden cursor-pointer grid place-items-center`}
+                    className={`w-[100px] h-[100px] rounded-[14px] ${iconPreview ? "border border-dashed border-neutral-30" : ""} bg-card overflow-hidden cursor-pointer grid place-items-center`}
                     onClick={onPickFile}
                   >
                     {iconPreview ? (
@@ -260,20 +260,20 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="mt-2 text-center text-[14px] font-medium text-[#808080]">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
+                <div className="mt-2 text-center text-[14px] font-medium text-neutral-60">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
                 <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={onFileChange} />
               </div>
 
               {/* 프로젝트 이름 */}
-              <div className="h-[90px] rounded-[5px] bg-[#F8F8F8] px-6 py-3">
-                <div className="text-[14px] font-medium text-[#000]">
-                  프로젝트 이름 <span className="text-[#F00]">*</span>
+              <div className="h-[90px] rounded-[5px] bg-neutral-10 px-6 py-3">
+                <div className="text-[14px] font-medium text-foreground">
+                  프로젝트 이름 <span className="text-danger-40">*</span>
                 </div>
                 <input
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="프로젝트 이름을 입력하세요"
-                  className="mt-2 w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] text-[#000] bg-[#fff]"
+                  className="mt-2 w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] text-foreground bg-card"
                 />
               </div>
             </div>
@@ -282,8 +282,8 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
               {/* 안내 문구 */}
 
               {/* 서브도메인 설정 섹션 */}
-              <div className="rounded-[5px] bg-[#F8F8F8] px-6 py-3 min-h-[146px] flex flex-col">
-                <div className="text-[14px] font-medium leading-[24px] text-[#000] mb-2">서브도메인 설정</div>
+              <div className="rounded-[5px] bg-neutral-10 px-6 py-3 min-h-[146px] flex flex-col">
+                <div className="text-[14px] font-medium leading-[24px] text-foreground mb-2">서브도메인 설정</div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1 relative">
                     <input
@@ -295,14 +295,14 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       setDomainError(null);
                     }}
                       placeholder="myservice"
-                      className="w-full h-[34px] rounded-[5px] border border-[#E2E2E2] px-3 pr-[85px] text-[14px] font-medium leading-[17px] text-[#000] bg-white"
+                      className="w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 pr-[85px] text-[14px] font-medium leading-[17px] text-foreground bg-card"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium leading-[17px] text-[#000]">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium leading-[17px] text-foreground">
                       .talkgate.im
                     </span>
                   </div>
                   <button
-                    className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] whitespace-nowrap disabled:opacity-50"
+                    className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] whitespace-nowrap disabled:opacity-50"
                     type="button"
                     onClick={validateSubdomain}
                     disabled={
@@ -317,7 +317,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                 {domainAvailable !== null && (
                   <div
                     className={`text-[14px] font-medium leading-[24px] ${
-                      domainAvailable ? "text-[#00B55B]" : "text-[#D83232]"
+                      domainAvailable ? "text-primary-80" : "text-danger-40"
                     }`}
                   >
                     {domainAvailable
@@ -325,24 +325,24 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       : domainError || "도메인을 사용할 수 없습니다."}
                   </div>
                 )}
-                <div className="text-[14px] font-medium leading-[24px] text-[#808080]">
+                <div className="text-[14px] font-medium leading-[24px] text-neutral-60">
                   <div>• 영문 소문자, 숫자, 하이픈(-) 사용 가능 (3-30자)</div>
                   <div>• 하이픈(-)으로 시작하거나 끝날 수 없습니다</div>
                 </div>
               </div>
 
               {/* 건너뛰기 섹션 */}
-              <div className="rounded-[5px] bg-[#F8F8F8] px-6 py-3 h-[104px] flex items-center justify-between">
+              <div className="rounded-[5px] bg-neutral-10 px-6 py-3 h-[104px] flex items-center justify-between">
                 <div>
-                  <div className="text-[14px] font-medium leading-[24px] text-[#000] mb-2">도메인을 나중에 설정하시겠습니까?</div>
-                  <div className="text-[14px] font-medium leading-[24px] text-[#808080]">
+                  <div className="text-[14px] font-medium leading-[24px] text-foreground mb-2">도메인을 나중에 설정하시겠습니까?</div>
+                  <div className="text-[14px] font-medium leading-[24px] text-neutral-60">
                     이 단계를 건너뛰면 무작위 도메인이 자동으로 생성됩니다.
                     <br />
                     언제든지 설정 &gt; 일반에서 변경할 수 있습니다.
                   </div>
                 </div>
                 <button
-                  className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] bg-white text-[#000] text-[14px] font-semibold leading-[17px] disabled:opacity-50"
+                  className="h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-foreground text-[14px] font-semibold leading-[17px] disabled:opacity-50"
                   type="button"
                   onClick={handleSkip}
                   disabled={submitting}
@@ -357,7 +357,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         {/* 하단 버튼 영역 */}
         <div className="border-t border-neutral-30 px-7 pt-[18px] pb-3 flex items-center justify-end gap-3">
           <button
-            className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
+            className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-foreground bg-card disabled:opacity-50"
             onClick={() => !submitting && onClose()}
             disabled={submitting}
           >
@@ -365,7 +365,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           </button>
           {step === 2 && (
             <button
-              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000] bg-white disabled:opacity-50"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-foreground bg-card disabled:opacity-50"
               onClick={() => setStep(1)}
               disabled={submitting}
             >
@@ -374,7 +374,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           )}
           {step === 1 ? (
             <button
-              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep(2)}
               disabled={!canGoNext || submitting}
             >
@@ -382,7 +382,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             </button>
           ) : (
             <button
-              className="cursor-pointer h-[34px] min-w-[50px] px-2 rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] min-w-[50px] px-2 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => handleSubmit()}
               disabled={submitting || !canGoNext}
             >
