@@ -178,7 +178,7 @@ export default function CustomerLinkCreateModal({
               <path
                 d="M6 18L18 6M6 6L18 18"
                 stroke="currentColor"
-                className="text-neutral-50 dark:text-neutral-50"
+                className="text-neutral-60 dark:text-neutral-50"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
