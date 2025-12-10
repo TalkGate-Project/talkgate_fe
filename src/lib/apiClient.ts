@@ -189,12 +189,24 @@ export class ApiClient {
       const pathname = window.location.pathname || "/";
       // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
       if (!isPublicRoute(pathname)) {
-        // 서버 로그아웃 API 호출
-        fetch("/logout", {
-          method: "GET",
+        // ✅ 새로운 로그아웃 API 호출
+        fetch("/api/auth/logout", {
+          method: "POST",
           credentials: "include",
         }).finally(() => {
-          window.location.replace("/login");
+          // 메인 도메인 계산
+          const host = window.location.host;
+          const hostWithoutPort = host.split(':')[0];
+          let mainDomain = host;
+          if (hostWithoutPort.includes('.talkgate.im')) {
+            if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
+              mainDomain = 'app.talkgate.im';
+            } else {
+              mainDomain = 'app-dev.talkgate.im';
+            }
+          }
+          const protocol = window.location.protocol;
+          window.location.href = `${protocol}//${mainDomain}/login?logout=success`;
         });
       }
     }
