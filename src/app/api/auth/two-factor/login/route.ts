@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
     const cookieOptions = {
       // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
       httpOnly: false,
-      secure: isSecure,
-      sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+      secure: false, // 테스트를 위해 false로 설정
+      sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
       path: '/',
       maxAge: 60 * 60 * 24 * 30, // 30일
       ...(isProduction && { domain: '.talkgate.im' }),

@@ -137,12 +137,12 @@ async function addCookieDeletionHeaders(
   }
 
   // 방법 2: NextResponse.cookies.set() 사용 (응답 헤더에 Set-Cookie 추가)
-  // 로그인 API와 정확히 동일한 옵션 사용 (테스트를 위해 httpOnly: false)
+  // 로그인 API와 정확히 동일한 옵션 사용 (테스트를 위해 httpOnly: false, secure: false)
   const baseCookieOptions = {
     // 테스트를 위해 httpOnly: false로 설정 (로그인 API와 일치)
     httpOnly: false,
-    secure: isSecure,
-    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    secure: false, // 테스트를 위해 false로 설정
+    sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
     path: '/',
     maxAge: 0, // 즉시 만료 (쿠키 삭제)
     expires: new Date(0), // 과거 날짜로 설정 (추가 보장)
