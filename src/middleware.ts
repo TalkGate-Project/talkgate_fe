@@ -279,13 +279,17 @@ function getCookieOptions(request: NextRequest): {
   const hostname = request.headers.get('host')?.split(':')[0] || '';
   const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
   const isSecure = request.nextUrl.protocol === 'https:';
+  
+  // 프로덕션 환경에서는 secure를 true로 설정 (HTTPS 환경)
+  // 테스트 단계에서는 false로 설정 가능하도록 환경변수로 제어 가능
+  const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
 
   return {
     path: '/',
     // httpOnly: true,
-    httpOnly: false,
-    secure: false, // 테스트를 위해 false로 설정
-    sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
+    httpOnly: false, // 테스트를 위해 false로 설정 (프로덕션에서는 true로 변경 필요)
+    secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+    sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     ...(isProduction && { domain: '.talkgate.im' }),
     maxAge: 60 * 60 * 24 * 30, // 30일
   };
@@ -521,13 +525,13 @@ export async function middleware(req: NextRequest) {
         if (!currentProjectId || currentProjectId !== subdomainProjectId) {
           const response = NextResponse.next();
           
-          // 쿠키 설정 (30일 유효, 도메인은 명시하지 않음 - 현재 도메인에 자동 설정)
-          const maxAge = 60 * 60 * 24 * 30;
+          // ✅ getCookieOptions 함수 활용하여 코드 중복 제거 및 설정 일관성 유지
+          const cookieOptions = getCookieOptions(req);
+          
           response.cookies.set("tg_selected_project_id", subdomainProjectId, {
-            path: "/",
-            maxAge,
-            sameSite: "lax", // secure: false이면 sameSite도 'lax'로 통일
-            secure: false, // 테스트를 위해 false로 설정
+            ...cookieOptions,
+            // maxAge는 getCookieOptions에서 이미 설정되어 있지만, 명시적으로 유지
+            maxAge: cookieOptions.maxAge || 60 * 60 * 24 * 30,
           });
           
           return response;

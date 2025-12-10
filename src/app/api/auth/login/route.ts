@@ -63,12 +63,15 @@ export async function POST(request: NextRequest) {
     const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
     const isSecure = request.nextUrl.protocol === 'https:';
     const maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined; // 30일 또는 세션
+    
+    // 프로덕션 HTTPS 환경에서는 secure: true, 그 외는 false
+    const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
 
     const cookieOptions = {
       // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
       httpOnly: false,
-      secure: false, // 테스트를 위해 false로 설정
-      sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
+      secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+      sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
       path: '/',
       ...(isProduction && { domain: '.talkgate.im' }),
       ...(maxAge && { maxAge }),
@@ -102,8 +105,8 @@ export async function POST(request: NextRequest) {
     if (responseData.projectId) {
       const projectIdCookieOptions = {
         httpOnly: false, // 클라이언트에서도 접근 가능하도록 (기존 로직과 호환)
-        secure: false, // 테스트를 위해 false로 설정
-        sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
+        secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+        sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
         path: '/',
         maxAge: 60 * 60 * 24 * 30, // 30일
         ...(isProduction && { domain: '.talkgate.im' }),
