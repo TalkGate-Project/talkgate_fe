@@ -349,6 +349,15 @@ async function fetchProjectBySubdomain(
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host") || "";
+  
+  // ✅ [긴급 수정] 로그아웃 경로는 미들웨어의 어떤 로직(토큰 갱신, 프로젝트 쿠키 설정 등)도 타지 않도록 즉시 통과
+  // 로그아웃 처리는 오직 route.ts에서만 담당해야 충돌이 없음
+  const isLogoutPath = pathname === "/logout" || pathname.startsWith("/logout");
+  if (isLogoutPath) {
+    console.log('[Middleware] 🚪 로그아웃 경로 감지 - 모든 로직 건너뛰고 즉시 통과');
+    return NextResponse.next();
+  }
+  
   const accessToken = req.cookies.get("tg_access_token")?.value;
   const refreshToken = req.cookies.get("tg_refresh_token")?.value;
   const hasAuthCookie = Boolean(accessToken || refreshToken);
@@ -365,18 +374,9 @@ export async function middleware(req: NextRequest) {
   // 개발 환경 감지
   const isDev = isDevelopment(host);
 
-  // 로그아웃 경로는 서브도메인 체크를 건너뜀 (메인 도메인으로 리다이렉트 중일 수 있음)
-  const isLogoutPath = pathname === "/logout" || pathname.startsWith("/logout");
-
   // 1) 미인증 사용자는 보호 경로 접근 시 메인 도메인의 로그인으로 보냄
+  // (로그아웃 경로는 이미 위에서 처리되어 여기 도달하지 않음)
   if (!hasAuthCookie) {
-    // 로그아웃 경로는 예외 처리 (서브도메인에서 메인 도메인으로 리다이렉트 중)
-    if (isLogoutPath) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set('logout', 'success');
-      return NextResponse.redirect(url);
-    }
     
     // 개발 환경이 아닌 경우에만 서브도메인 체크
     if (!isDev) {
@@ -482,13 +482,9 @@ export async function middleware(req: NextRequest) {
     
     return response;
   }
-  
-  // 로그아웃 경로는 서브도메인 처리를 건너뜀 (메인 도메인으로 리다이렉트 중)
-  if (isLogoutPath) {
-    return NextResponse.next();
-  }
 
   // 3) 서브도메인 기반 프로젝트 처리
+  // (로그아웃 경로는 이미 위에서 처리되어 여기 도달하지 않음)
   // (토큰이 리프레시되지 않은 경우, 또는 리프레시되었지만 서브도메인이 없는 경우)
   // 개발 환경에서는 서브도메인 로직을 건너뜀
   const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
