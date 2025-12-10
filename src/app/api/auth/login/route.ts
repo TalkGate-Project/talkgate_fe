@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
     const maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined; // 30일 또는 세션
 
     const cookieOptions = {
-      httpOnly: true,
+      // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
+      httpOnly: false,
       secure: isSecure,
       sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
       path: '/',
