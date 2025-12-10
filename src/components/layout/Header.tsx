@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import NotificationBell from "./NotificationBell";
+import { clearTokens } from "@/lib/token";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -319,6 +320,7 @@ export default function Header() {
                       console.log("[Header] 🚪 로그아웃 버튼 클릭");
                       
                       // 클라이언트 사이드 정리
+                      clearTokens();
                       clearSelectedProjectId();
                       clearUseAttendanceMenu();
                       queryClient.clear();
