@@ -122,21 +122,9 @@ async function addCookieDeletionHeaders(
     'tg_selected_project_id', // 프로젝트 ID 쿠키도 삭제
   ];
 
-  // 방법 1: cookies().delete() 사용 (서버 사이드에서 직접 삭제)
-  // 주의: cookies().delete()는 현재 요청의 도메인에서만 작동
-  // .talkgate.im 도메인 쿠키는 NextResponse.cookies.set()으로 삭제해야 함
-  try {
-    const cookieStore = await cookies();
-    cookiesToDelete.forEach(cookieName => {
-      // 현재 도메인의 쿠키 삭제 시도
-      cookieStore.delete(cookieName);
-      console.log(`[Logout Route] 🗑️ cookies().delete() 호출 (현재 도메인): ${cookieName}`);
-    });
-  } catch (error) {
-    console.error('[Logout Route] ❌ cookies().delete() 실패:', error);
-  }
-
-  // 방법 2: NextResponse.cookies.set() 사용 (응답 헤더에 Set-Cookie 추가)
+  // ✅ NextResponse.cookies.set()만 사용하여 쿠키 삭제
+  // cookies().delete()와 NextResponse.cookies.set() 혼용 시 타이밍 이슈로 인해 의도한 대로 동작하지 않을 수 있음
+  // 특히 middleware를 거쳐온 응답 객체라면 더욱 그렇습니다.
   // 로그인 API와 정확히 동일한 옵션 사용
   // 프로덕션 HTTPS 환경에서는 secure: true, 그 외는 false
   const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
@@ -162,35 +150,25 @@ async function addCookieDeletionHeaders(
   // 2. .talkgate.im 도메인 쿠키 삭제 (프로덕션 환경)
   // 3. 메인 도메인으로 리다이렉트하여 확실히 삭제
   
-  // 프로덕션 환경: Domain 속성이 있는 쿠키 삭제
-  // 로그인 시 domain: '.talkgate.im'으로 설정했으므로 동일하게 삭제
-  if (isProduction) {
-    const cookieOptionsWithDomain = {
-      ...baseCookieOptions,
-      domain: '.talkgate.im',
-    };
-    
-    cookiesToDelete.forEach(cookieName => {
-      response.cookies.set(cookieName, '', cookieOptionsWithDomain);
-      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (.talkgate.im 도메인): ${cookieName}`, {
-        ...cookieOptionsWithDomain,
-        value: '(빈 값)',
-      });
-    });
-  }
-
-  // 현재 도메인에 설정된 쿠키도 삭제 시도
-  // 서브도메인에서 호출 시 현재 서브도메인의 쿠키 삭제
+  // 쿠키 삭제: 모든 가능한 조합으로 삭제 시도
   cookiesToDelete.forEach(cookieName => {
-    const cookieOptionsCurrentDomain = {
+    // 1. 프로덕션 환경: Domain 속성이 있는 쿠키 삭제 (.talkgate.im)
+    // 로그인 시 domain: '.talkgate.im'으로 설정했으므로 동일하게 삭제
+    if (isProduction) {
+      response.cookies.set(cookieName, '', {
+        ...baseCookieOptions,
+        domain: '.talkgate.im',
+      });
+      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (.talkgate.im 도메인): ${cookieName}`);
+    }
+    
+    // 2. 현재 도메인에 설정된 쿠키 삭제 시도 (HostOnly 쿠키 포함)
+    // domain 속성을 명시하지 않으면 현재 호스트 기준으로 삭제됨
+    response.cookies.set(cookieName, '', {
       ...baseCookieOptions,
       // domain을 명시하지 않음 (현재 도메인에 자동 설정)
-    };
-    response.cookies.set(cookieName, '', cookieOptionsCurrentDomain);
-    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (현재 도메인): ${cookieName}`, {
-      ...cookieOptionsCurrentDomain,
-      value: '(빈 값)',
     });
+    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (현재 도메인): ${cookieName}`);
   });
   
   // Set-Cookie 헤더 확인
