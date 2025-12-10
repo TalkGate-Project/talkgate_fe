@@ -1,5 +1,6 @@
 import { env } from "./env";
 import { getSelectedProjectId, clearSelectedProjectId } from "./project";
+import { clearTokens } from "./token";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -183,6 +184,7 @@ export class ApiClient {
   private handleAutoLogout(): void {
     // 클라이언트 사이드 정리
     try {
+      clearTokens();
       clearSelectedProjectId();
     } catch {}
     if (typeof window !== "undefined") {
