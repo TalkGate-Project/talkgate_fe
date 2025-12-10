@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 
 /**
- * 로그아웃 페이지
- * 
- * 클라이언트 사이드에서 로그아웃 API를 호출하고 리다이렉트합니다.
- * 서브도메인에서도 확실히 작동하도록 클라이언트 사이드에서 처리합니다.
+ * 로그아웃 페이지 내부 컴포넌트
  */
-export default function LogoutPage() {
+function LogoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -83,6 +80,26 @@ export default function LogoutPage() {
         <p className="text-lg text-gray-600">로그아웃 중...</p>
       </div>
     </div>
+  );
+}
+
+/**
+ * 로그아웃 페이지
+ * 
+ * 클라이언트 사이드에서 로그아웃 API를 호출하고 리다이렉트합니다.
+ * 서브도메인에서도 확실히 작동하도록 클라이언트 사이드에서 처리합니다.
+ */
+export default function LogoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">로그아웃 중...</p>
+        </div>
+      </div>
+    }>
+      <LogoutContent />
+    </Suspense>
   );
 }
 
