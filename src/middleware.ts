@@ -238,8 +238,8 @@ function addCookieDeletionHeaders(response: NextResponse, request: NextRequest):
     maxAge: 0, // 0으로 설정하여 즉시 만료
     // httpOnly: true,
     httpOnly: false,
-    secure: isSecure,
-    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    secure: false, // 테스트를 위해 false로 설정
+    sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
     ...(isProduction && { domain: '.talkgate.im' }),
   };
 
@@ -284,8 +284,8 @@ function getCookieOptions(request: NextRequest): {
     path: '/',
     // httpOnly: true,
     httpOnly: false,
-    secure: isSecure,
-    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    secure: false, // 테스트를 위해 false로 설정
+    sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
     ...(isProduction && { domain: '.talkgate.im' }),
     maxAge: 60 * 60 * 24 * 30, // 30일
   };
@@ -456,13 +456,13 @@ export async function middleware(req: NextRequest) {
           const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
           
           if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-            response.cookies.set("tg_selected_project_id", subdomainProjectId, {
-              path: "/",
-              maxAge: 60 * 60 * 24 * 30,
-              sameSite: cookieOptions.sameSite,
-              secure: cookieOptions.secure,
-              ...(cookieOptions.domain && { domain: cookieOptions.domain }),
-            });
+          response.cookies.set("tg_selected_project_id", subdomainProjectId, {
+            path: "/",
+            maxAge: 60 * 60 * 24 * 30,
+            sameSite: cookieOptions.sameSite,
+            secure: false, // 테스트를 위해 false로 설정
+            ...(cookieOptions.domain && { domain: cookieOptions.domain }),
+          });
           }
           
           // /projects 경로 접근 시 /dashboard로 리다이렉트
@@ -523,12 +523,11 @@ export async function middleware(req: NextRequest) {
           
           // 쿠키 설정 (30일 유효, 도메인은 명시하지 않음 - 현재 도메인에 자동 설정)
           const maxAge = 60 * 60 * 24 * 30;
-          const isSecure = req.nextUrl.protocol === "https:";
           response.cookies.set("tg_selected_project_id", subdomainProjectId, {
             path: "/",
             maxAge,
-            sameSite: isSecure ? "none" : "lax",
-            secure: isSecure,
+            sameSite: "lax", // secure: false이면 sameSite도 'lax'로 통일
+            secure: false, // 테스트를 위해 false로 설정
           });
           
           return response;
