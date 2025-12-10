@@ -315,32 +315,59 @@ export default function Header() {
                       }`}
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
-                    onClick={() => {
+                    onClick={async () => {
                       console.log("[Header] 🚪 로그아웃 버튼 클릭");
-                      // 클라이언트 사이드 정리
-                      clearSelectedProjectId();
-                      clearUseAttendanceMenu();
-                      queryClient.clear();
-                      setOpen(false);
                       
-                      // 메인 도메인 계산
-                      const host = window.location.host;
-                      const hostWithoutPort = host.split(':')[0];
-                      let mainDomain = host;
-                      
-                      // 서브도메인인 경우 메인 도메인으로 변환
-                      if (hostWithoutPort.includes('.talkgate.im')) {
-                        if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-                          mainDomain = 'app.talkgate.im';
-                        } else {
-                          mainDomain = 'app-dev.talkgate.im';
+                      try {
+                        // ✅ 새로운 로그아웃 API 호출
+                        const response = await fetch('/api/auth/logout', {
+                          method: 'POST',
+                          credentials: 'include',
+                        });
+                        
+                        if (!response.ok) {
+                          throw new Error('로그아웃 실패');
                         }
+                        
+                        // 클라이언트 사이드 정리
+                        clearSelectedProjectId();
+                        clearUseAttendanceMenu();
+                        queryClient.clear();
+                        setOpen(false);
+                        
+                        // 메인 도메인 계산
+                        const host = window.location.host;
+                        const hostWithoutPort = host.split(':')[0];
+                        let mainDomain = host;
+                        
+                        // 서브도메인인 경우 메인 도메인으로 변환
+                        if (hostWithoutPort.includes('.talkgate.im')) {
+                          if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
+                            mainDomain = 'app.talkgate.im';
+                          } else {
+                            mainDomain = 'app-dev.talkgate.im';
+                          }
+                        }
+                        
+                        const protocol = window.location.protocol;
+                        // 로그인 페이지로 리다이렉트
+                        window.location.href = `${protocol}//${mainDomain}/login?logout=success`;
+                      } catch (error) {
+                        console.error('[Header] ❌ 로그아웃 실패:', error);
+                        // 에러가 발생해도 로그인 페이지로 이동
+                        const host = window.location.host;
+                        const hostWithoutPort = host.split(':')[0];
+                        let mainDomain = host;
+                        if (hostWithoutPort.includes('.talkgate.im')) {
+                          if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
+                            mainDomain = 'app.talkgate.im';
+                          } else {
+                            mainDomain = 'app-dev.talkgate.im';
+                          }
+                        }
+                        const protocol = window.location.protocol;
+                        window.location.href = `${protocol}//${mainDomain}/login?logout=success`;
                       }
-                      
-                      const protocol = window.location.protocol;
-                      // 로그아웃 API를 호출하고 메인 도메인의 로그인으로 리다이렉트
-                      // window.location.href를 사용하여 서버 리다이렉트를 확실히 처리
-                      window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
                     }}
                   >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">

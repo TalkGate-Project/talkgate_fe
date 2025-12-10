@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 
 /**
  * 로그인 API 엔드포인트
@@ -57,79 +57,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 서버에서 쿠키 설정 (httpOnly)
-    const cookieStore = await cookies();
-    const hostname = request.headers.get('host')?.split(':')[0] || '';
-    const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
-    const isSecure = request.nextUrl.protocol === 'https:';
-    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined; // 30일 또는 세션
-    
-    // 프로덕션 HTTPS 환경에서는 secure: true, 그 외는 false
-    const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
-
-    const cookieOptions = {
-      // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
-      httpOnly: false,
-      secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
-      sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-      path: '/',
-      ...(isProduction && { domain: '.talkgate.im' }),
-      ...(maxAge && { maxAge }),
-    };
-
-    // 쿠키 설정
-    if (accessToken) {
-      cookieStore.set('tg_access_token', accessToken, cookieOptions);
-      console.log('[Login API] 🍪 access_token 쿠키 설정:', {
-        hasToken: !!accessToken,
-        tokenPreview: accessToken ? `${accessToken.slice(0, 20)}...` : null,
-        cookieOptions,
-      });
-    }
-    if (refreshToken) {
-      cookieStore.set('tg_refresh_token', refreshToken, cookieOptions);
-      console.log('[Login API] 🍪 refresh_token 쿠키 설정:', {
-        hasToken: !!refreshToken,
-        cookieOptions,
-      });
-    }
-
+    // 응답 데이터 준비
     const responseData = {
       user: loginData?.user,
       projectId: loginData?.projectId || loginData?.defaultProjectId || loginData?.user?.defaultProjectId,
     };
     
-    // 프로젝트 ID가 있으면 서버에서도 쿠키 설정 (서브도메인 간 공유를 위해)
     const nextResponse = NextResponse.json(responseData);
     
-    if (responseData.projectId) {
-      const projectIdCookieOptions = {
-        httpOnly: false, // 클라이언트에서도 접근 가능하도록 (기존 로직과 호환)
-        secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
-        sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 30, // 30일
-        ...(isProduction && { domain: '.talkgate.im' }),
-      };
-      
-      nextResponse.cookies.set('tg_selected_project_id', String(responseData.projectId), projectIdCookieOptions);
-      console.log('[Login API] 🍪 프로젝트 ID 쿠키 설정:', {
-        projectId: responseData.projectId,
-        cookieOptions: projectIdCookieOptions,
+    // ✅ 새로운 쿠키 유틸리티 사용
+    if (accessToken && refreshToken) {
+      setAuthCookies(nextResponse, request, {
+        accessToken,
+        refreshToken,
+        maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined, // 30일 또는 세션
       });
+      console.log('[Login API] 🍪 인증 쿠키 설정 완료');
     }
     
-    console.log('[Login API] ✅ 로그인 성공 - 응답 데이터:', {
-      hasUser: !!responseData.user,
-      projectId: responseData.projectId,
-      hostname,
-      isProduction,
-      isSecure,
-    });
+    // 프로젝트 ID 쿠키 설정
+    if (responseData.projectId) {
+      setProjectIdCookie(nextResponse, request, responseData.projectId);
+      console.log('[Login API] 🍪 프로젝트 ID 쿠키 설정:', responseData.projectId);
+    }
     
-    // 응답 헤더에 Set-Cookie 확인
-    const setCookieHeaders = nextResponse.headers.getSetCookie();
-    console.log('[Login API] 📋 Set-Cookie 헤더:', setCookieHeaders);
+    console.log('[Login API] ✅ 로그인 성공');
     
     return nextResponse;
   } catch (error) {

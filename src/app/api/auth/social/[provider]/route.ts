@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 
 /**
  * 소셜 로그인 API 엔드포인트
@@ -55,39 +55,30 @@ export async function POST(
       );
     }
 
-    // 서버에서 쿠키 설정 (httpOnly)
-    const cookieStore = await cookies();
-    const hostname = request.headers.get('host')?.split(':')[0] || '';
-    const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
-    const isSecure = request.nextUrl.protocol === 'https:';
-    const maxAge = 60 * 60 * 24 * 30; // 소셜 로그인은 기본 30일
-    
-    // 프로덕션 HTTPS 환경에서는 secure: true, 그 외는 false
-    const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
-
-    const cookieOptions = {
-      // 테스트를 위해 httpOnly: false로 설정 (프로덕션에서는 true로 변경 필요)
-      httpOnly: false,
-      secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
-      sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-      path: '/',
-      ...(isProduction && { domain: '.talkgate.im' }),
-      maxAge,
-    };
-
-    if (accessToken) {
-      cookieStore.set('tg_access_token', accessToken, cookieOptions);
-    }
-    if (refreshToken) {
-      cookieStore.set('tg_refresh_token', refreshToken, cookieOptions);
-    }
-
-    return NextResponse.json({
+    const responseData = {
       success: true,
       requiresTwoFactor: false,
       user: loginData?.user,
       projectId: loginData?.projectId || loginData?.defaultProjectId || loginData?.user?.defaultProjectId,
-    });
+    };
+    
+    const nextResponse = NextResponse.json(responseData);
+    
+    // ✅ 새로운 쿠키 유틸리티 사용
+    if (accessToken && refreshToken) {
+      setAuthCookies(nextResponse, request, {
+        accessToken,
+        refreshToken,
+        maxAge: 60 * 60 * 24 * 30, // 소셜 로그인은 기본 30일
+      });
+    }
+    
+    // 프로젝트 ID 쿠키 설정
+    if (responseData.projectId) {
+      setProjectIdCookie(nextResponse, request, responseData.projectId);
+    }
+    
+    return nextResponse;
   } catch (error) {
     console.error(`[Social Login API] ${provider} 에러:`, error);
     return NextResponse.json(
