@@ -65,12 +65,12 @@ function ProjectsContent() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[#111111]">
+    <main className="min-h-screen bg-background">
       <div className="max-w-[1428px] mx-auto pt-[90px] pb-24">
-        <h1 className="text-[32px] leading-[38px] font-bold text-[#252525] text-center mb-6">
+        <h1 className="text-[32px] leading-[38px] font-bold text-foreground text-center mb-6">
           프로젝트 선택
         </h1>
-        <p className="text-[18px] leading-[21px] text-[#808080] text-center">
+        <p className="text-[18px] leading-[21px] text-neutral-60 text-center">
           관리할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요
         </p>
 
@@ -125,17 +125,17 @@ function ProjectsContent() {
         {/* Projects row */}
         <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-[50px] gap-y-[40px]">
           {loading && (
-            <div className="col-span-full text-center text-[#808080]">
+            <div className="col-span-full text-center text-neutral-60">
               불러오는 중...
             </div>
           )}
           {!loading && projects.length === 0 && (
-            <div className="col-span-full text-center text-[#808080]"></div>
+            <div className="col-span-full text-center text-neutral-60"></div>
           )}
           {projects.map((p: any) => (
             <div
               key={p.id}
-              className="px-7 pt-6 pb-[30px] md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] bg-white border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
+              className="px-7 pt-6 pb-[30px] md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
               onClick={() => {
                 const isDev = isDevelopment();
                 
@@ -174,9 +174,9 @@ function ProjectsContent() {
                       className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-[#EDEDED]" />
+                    <div className="w-7 h-7 rounded-full bg-neutral-20" />
                   )}
-                  <div className="text-[18px] font-semibold text-[#000] truncate">
+                  <div className="text-[18px] font-semibold text-foreground truncate">
                     {p.name}
                   </div>
                   <div className="flex items-center gap-2">
@@ -186,7 +186,9 @@ function ProjectsContent() {
                     <div
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{
-                        backgroundColor: p.hasActiveSubscription ? "#00E272" : "#D83232",
+                        backgroundColor: p.hasActiveSubscription 
+                          ? "var(--primary-60)" 
+                          : "var(--danger-40)",
                       }}
                     />
                   </div>
@@ -194,13 +196,13 @@ function ProjectsContent() {
                 
               </div>
               <div className="grid grid-cols-2 gap-6 mt-5">
-                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
                   <div>
-                    <div className="text-[16px] font-semibold text-[#252525]">
+                    <div className="text-[16px] font-semibold text-foreground">
                       나에게 할당된 고객
                     </div>
                     <div
-                      className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525] font-montserrat"
+                      className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
                       style={montserratStyle}
                     >
                       {p.assignedCustomerCount ?? 0}건
@@ -214,13 +216,13 @@ function ProjectsContent() {
                     className="w-[60px] h-[60px]"
                   />
                 </div>
-                <div className="rounded-[14px] bg-white shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
                   <div>
-                    <div className="text-[16px] font-semibold text-[#252525]">
+                    <div className="text-[16px] font-semibold text-foreground">
                       오늘 예약 일정
                     </div>
                     <div
-                      className="mt-2 text-[28px] font-bold tracking-[1px] text-[#252525] font-montserrat"
+                      className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
                       style={montserratStyle}
                     >
                       {p.todayScheduleCount ?? 0}건
@@ -240,7 +242,7 @@ function ProjectsContent() {
 
           {/* Create new service */}
           <div
-            className="rounded-[14px] border-2 border-dashed border-[#E2E2E2] hover:border-[#00E272] transition-colors duration-200 bg-white p-12 flex flex-col items-center justify-center min-h-[225px] cursor-pointer"
+            className="rounded-[14px] border-2 border-dashed border-neutral-30 hover:border-primary-60 transition-colors duration-200 bg-card p-12 flex flex-col items-center justify-center min-h-[225px] cursor-pointer"
             onClick={() => setShowCreate(true)}
           >
             <div className="w-12 h-12 rounded-[12px] overflow-hidden grid place-items-center">
@@ -250,21 +252,21 @@ function ProjectsContent() {
                 viewBox="0 0 48 48"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                className="[&_circle]:fill-[var(--neutral-20)] [&_path]:stroke-[var(--neutral-60)]"
               >
-                <circle cx="24" cy="24" r="24" fill="#EDEDED" />
+                <circle cx="24" cy="24" r="24" />
                 <path
                   d="M24 16V32M32 24L16 24"
-                  stroke="#808080"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
             </div>
-            <div className="mt-5 text-[16px] font-semibold text-[#252525]">
+            <div className="mt-5 text-[16px] font-semibold text-foreground">
               새 프로젝트 생성
             </div>
-            <div className="mt-2 text-[16px] font-medium text-[#808080]">
+            <div className="mt-2 text-[16px] font-medium text-neutral-60">
               새로운 고객관리 프로젝트를 만들어보세요
             </div>
           </div>
