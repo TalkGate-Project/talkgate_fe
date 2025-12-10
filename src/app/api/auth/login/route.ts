@@ -95,6 +95,26 @@ export async function POST(request: NextRequest) {
       projectId: loginData?.projectId || loginData?.defaultProjectId || loginData?.user?.defaultProjectId,
     };
     
+    // 프로젝트 ID가 있으면 서버에서도 쿠키 설정 (서브도메인 간 공유를 위해)
+    const nextResponse = NextResponse.json(responseData);
+    
+    if (responseData.projectId) {
+      const projectIdCookieOptions = {
+        httpOnly: false, // 클라이언트에서도 접근 가능하도록 (기존 로직과 호환)
+        secure: isSecure,
+        sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30일
+        ...(isProduction && { domain: '.talkgate.im' }),
+      };
+      
+      nextResponse.cookies.set('tg_selected_project_id', String(responseData.projectId), projectIdCookieOptions);
+      console.log('[Login API] 🍪 프로젝트 ID 쿠키 설정:', {
+        projectId: responseData.projectId,
+        cookieOptions: projectIdCookieOptions,
+      });
+    }
+    
     console.log('[Login API] ✅ 로그인 성공 - 응답 데이터:', {
       hasUser: !!responseData.user,
       projectId: responseData.projectId,
@@ -102,8 +122,6 @@ export async function POST(request: NextRequest) {
       isProduction,
       isSecure,
     });
-    
-    const nextResponse = NextResponse.json(responseData);
     
     // 응답 헤더에 Set-Cookie 확인
     const setCookieHeaders = nextResponse.headers.getSetCookie();

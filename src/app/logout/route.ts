@@ -123,11 +123,14 @@ async function addCookieDeletionHeaders(
   ];
 
   // 방법 1: cookies().delete() 사용 (서버 사이드에서 직접 삭제)
+  // 주의: cookies().delete()는 현재 요청의 도메인에서만 작동
+  // .talkgate.im 도메인 쿠키는 NextResponse.cookies.set()으로 삭제해야 함
   try {
     const cookieStore = await cookies();
     cookiesToDelete.forEach(cookieName => {
+      // 현재 도메인의 쿠키 삭제 시도
       cookieStore.delete(cookieName);
-      console.log(`[Logout Route] 🗑️ cookies().delete() 호출: ${cookieName}`);
+      console.log(`[Logout Route] 🗑️ cookies().delete() 호출 (현재 도메인): ${cookieName}`);
     });
   } catch (error) {
     console.error('[Logout Route] ❌ cookies().delete() 실패:', error);
@@ -150,6 +153,11 @@ async function addCookieDeletionHeaders(
     isSecure,
   });
 
+  // 중요: 서브도메인에서 쿠키 삭제 시
+  // 1. 현재 도메인의 쿠키 삭제
+  // 2. .talkgate.im 도메인 쿠키 삭제 (프로덕션 환경)
+  // 3. 메인 도메인으로 리다이렉트하여 확실히 삭제
+  
   // 프로덕션 환경: Domain 속성이 있는 쿠키 삭제
   // 로그인 시 domain: '.talkgate.im'으로 설정했으므로 동일하게 삭제
   if (isProduction) {
@@ -160,23 +168,23 @@ async function addCookieDeletionHeaders(
     
     cookiesToDelete.forEach(cookieName => {
       response.cookies.set(cookieName, '', cookieOptionsWithDomain);
-      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 포함): ${cookieName}`, {
+      console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (.talkgate.im 도메인): ${cookieName}`, {
         ...cookieOptionsWithDomain,
         value: '(빈 값)',
       });
     });
   }
 
-  // Domain 속성이 없는 쿠키도 삭제 시도 (브라우저 호환성)
-  // 현재 도메인에 설정된 쿠키 삭제
+  // 현재 도메인에 설정된 쿠키도 삭제 시도
+  // 서브도메인에서 호출 시 현재 서브도메인의 쿠키 삭제
   cookiesToDelete.forEach(cookieName => {
-    const cookieOptionsWithoutDomain = {
+    const cookieOptionsCurrentDomain = {
       ...baseCookieOptions,
       // domain을 명시하지 않음 (현재 도메인에 자동 설정)
     };
-    response.cookies.set(cookieName, '', cookieOptionsWithoutDomain);
-    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (도메인 없음): ${cookieName}`, {
-      ...cookieOptionsWithoutDomain,
+    response.cookies.set(cookieName, '', cookieOptionsCurrentDomain);
+    console.log(`[Logout Route] 🍪 쿠키 삭제 헤더 추가 (현재 도메인): ${cookieName}`, {
+      ...cookieOptionsCurrentDomain,
       value: '(빈 값)',
     });
   });
