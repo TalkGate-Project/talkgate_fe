@@ -137,12 +137,15 @@ async function addCookieDeletionHeaders(
   }
 
   // 방법 2: NextResponse.cookies.set() 사용 (응답 헤더에 Set-Cookie 추가)
-  // 로그인 API와 정확히 동일한 옵션 사용 (테스트를 위해 httpOnly: false, secure: false)
+  // 로그인 API와 정확히 동일한 옵션 사용
+  // 프로덕션 HTTPS 환경에서는 secure: true, 그 외는 false
+  const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
+  
   const baseCookieOptions = {
     // 테스트를 위해 httpOnly: false로 설정 (로그인 API와 일치)
     httpOnly: false,
-    secure: false, // 테스트를 위해 false로 설정
-    sameSite: 'lax' as 'none' | 'lax' | 'strict', // secure: false이면 sameSite도 'lax'로 통일
+    secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+    sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
     path: '/',
     maxAge: 0, // 즉시 만료 (쿠키 삭제)
     expires: new Date(0), // 과거 날짜로 설정 (추가 보장)
@@ -266,14 +269,50 @@ export async function GET(request: NextRequest) {
     }
     
     if (isSubdomain) {
-      console.log('[Logout Route] 🔄 서브도메인에서 호출됨 - 메인 도메인으로 리다이렉트');
+      console.log('[Logout Route] 🔄 서브도메인에서 호출됨 - 쿠키 정리 후 메인 도메인 이동');
+      
       // 메인 도메인의 /logout으로 리다이렉트 (쿼리 파라미터 유지)
       const logoutUrl = new URL(`${protocol}//${mainDomain}/logout`);
-      // 모든 쿼리 파라미터 복사
       searchParams.forEach((value, key) => {
         logoutUrl.searchParams.set(key, value);
       });
-      return NextResponse.redirect(logoutUrl);
+      
+      // 리다이렉트 응답 생성
+      const redirectResponse = NextResponse.redirect(logoutUrl);
+      
+      // ✨ 핵심: 현재 서브도메인에 묻어있을 수 있는 HostOnly 쿠키들을 삭제
+      const cookiesToDelete = ['tg_access_token', 'tg_refresh_token', 'tg_selected_project_id'];
+      const isProduction = isProductionDomain(hostWithoutPort);
+      const isSecure = request.nextUrl.protocol === 'https:';
+      const shouldUseSecure = process.env.NODE_ENV === 'production' && isSecure;
+      
+      cookiesToDelete.forEach(cookieName => {
+        // 1. HostOnly 쿠키 삭제 (domain 속성 없음 - 현재 서브도메인 전용 쿠키)
+        redirectResponse.cookies.set(cookieName, '', {
+          path: '/',
+          maxAge: 0,
+          expires: new Date(0),
+          sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+          secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+          httpOnly: false,
+        });
+        
+        // 2. .talkgate.im 도메인 쿠키도 삭제 시도 (서브도메인에서도 상위 도메인 쿠키 삭제 가능)
+        if (isProduction) {
+          redirectResponse.cookies.set(cookieName, '', {
+            path: '/',
+            maxAge: 0,
+            expires: new Date(0),
+            domain: '.talkgate.im',
+            sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+            secure: shouldUseSecure, // 프로덕션 HTTPS 환경에서는 true, 그 외는 false
+            httpOnly: false,
+          });
+        }
+      });
+      
+      console.log('[Logout Route] 🍪 서브도메인 쿠키 삭제 헤더 추가 후 메인 도메인으로 리다이렉트');
+      return redirectResponse;
     }
 
     console.log('[Logout Route] 🍪 쿠키 삭제 시작 (메인 도메인에서 실행)');
