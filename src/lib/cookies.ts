@@ -83,7 +83,7 @@ export function setProjectIdCookie(
  * 서브도메인과 메인 도메인 모두에서 삭제를 시도합니다.
  * 
  * 중요: 쿠키 삭제는 설정할 때 사용한 것과 정확히 동일한 속성을 사용해야 합니다.
- * 가능한 모든 조합으로 삭제를 시도하여 섀도우 쿠키도 제거합니다.
+ * 실제 쿠키 설정과 동일한 옵션만 사용하여 정확하게 삭제합니다.
  */
 export function deleteAuthCookies(
   response: NextResponse,
@@ -100,62 +100,28 @@ export function deleteAuthCookies(
     'tg_selected_project_id',
   ];
 
-  // 가능한 모든 조합으로 쿠키 삭제 시도
-  cookiesToDelete.forEach(cookieName => {
-    // 1. 프로덕션 환경: .talkgate.im 도메인 쿠키 삭제 (secure: true, sameSite: none)
-    if (isProduction && shouldUseSecure) {
-      response.cookies.set(cookieName, '', {
-        path: '/',
-        domain: '.talkgate.im',
-        httpOnly: false,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 0,
-        expires: new Date(0),
-      });
-    }
+  // 정확한 쿠키 옵션으로 삭제 (설정할 때와 동일한 옵션 사용)
+  const deleteOptions: CookieOptions = {
+    path: '/',
+    httpOnly: false,
+    secure: shouldUseSecure,
+    sameSite: (shouldUseSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    maxAge: 0,
+    expires: new Date(0),
+  };
 
-    // 2. 프로덕션 환경: .talkgate.im 도메인 쿠키 삭제 (secure: false, sameSite: lax)
+  cookiesToDelete.forEach(cookieName => {
+    // 1. 프로덕션 환경: .talkgate.im 도메인 쿠키 삭제 (설정할 때와 동일한 옵션)
     if (isProduction) {
       response.cookies.set(cookieName, '', {
-        path: '/',
+        ...deleteOptions,
         domain: '.talkgate.im',
-        httpOnly: false,
-        secure: false,
-        sameSite: 'lax',
-        maxAge: 0,
-        expires: new Date(0),
       });
     }
 
-    // 3. 현재 도메인 쿠키 삭제 (secure: true, sameSite: none) - HTTPS 환경
-    if (shouldUseSecure) {
-      response.cookies.set(cookieName, '', {
-        path: '/',
-        httpOnly: false,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 0,
-        expires: new Date(0),
-      });
-    }
-
-    // 4. 현재 도메인 쿠키 삭제 (secure: false, sameSite: lax) - 일반 환경
-    response.cookies.set(cookieName, '', {
-      path: '/',
-      httpOnly: false,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 0,
-      expires: new Date(0),
-    });
-
-    // 5. 추가: domain 없이도 시도 (혹시 모를 경우 대비)
-    response.cookies.set(cookieName, '', {
-      path: '/',
-      maxAge: 0,
-      expires: new Date(0),
-    });
+    // 2. 현재 도메인 쿠키 삭제 (HostOnly 쿠키가 있을 수 있으므로)
+    // domain을 명시하지 않으면 현재 호스트 기준으로 삭제됨
+    response.cookies.set(cookieName, '', deleteOptions);
   });
 
   console.log('[Cookie Utils] 🍪 쿠키 삭제 헤더 추가 완료:', {
@@ -163,6 +129,7 @@ export function deleteAuthCookies(
     isProduction,
     shouldUseSecure,
     hostname,
+    deleteOptions,
   });
 }
 
