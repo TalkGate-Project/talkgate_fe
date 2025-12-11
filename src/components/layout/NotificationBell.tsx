@@ -168,10 +168,10 @@ export default function NotificationBell() {
 
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="absolute -right-4 top-[50px] w-[360px] bg-white rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50">
+        <div className="absolute -right-4 top-[50px] w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50">
           {/* 헤더 */}
-          <div className="px-[30px] pb-5 border-b border-[#E2E2E266]">
-            <span className="text-[16px] font-semibold leading-[17px] tracking-[-0.02em] text-[#111827]">
+          <div className="px-[30px] pb-5 border-b border-border">
+            <span className="text-[16px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
               새로운 소식
             </span>
           </div>
@@ -179,9 +179,9 @@ export default function NotificationBell() {
           {/* 목록 */}
           <div className="max-h-[260px] overflow-y-auto pt-3">
             {loading ? (
-              <div className="px-5 py-6 text-[13px] text-[#6B7280]">불러오는 중...</div>
+              <div className="px-5 py-6 text-[13px] text-neutral-60">불러오는 중...</div>
             ) : notifications.length === 0 ? (
-              <div className="px-5 py-6 text-[13px] text-[#6B7280]">알림이 없습니다.</div>
+              <div className="px-5 py-6 text-[13px] text-neutral-60">알림이 없습니다.</div>
             ) : (
               notifications.map((notification) => {
                 const isUnread = !notification.isRead;
@@ -193,22 +193,22 @@ export default function NotificationBell() {
                     onClick={() => handleNotificationClick(notification)}
                     className={`w-full text-left px-5 py-3 transition-colors ${
                       isUnread
-                        ? "bg-[rgba(214,250,232,0.3)] hover:bg-[rgba(214,250,232,0.5)] cursor-pointer"
-                        : "bg-white hover:bg-[#F9FAFB] cursor-pointer"
+                        ? "bg-[var(--notification-unread-bg)] hover:bg-[var(--notification-unread-bg)]/50 cursor-pointer"
+                        : "bg-card hover:bg-muted cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1 gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[16px] font-semibold leading-[1] tracking-[-0.02em] text-[#252525] truncate">
+                        <span className="text-[16px] font-semibold leading-[1] tracking-[-0.02em] text-foreground truncate">
                           {notification.title}
                         </span>
-                        {isUnread && <span className="w-2 h-2 rounded-full bg-primary-60 flex-shrink-0" />}
+                        {isUnread && <span className="w-2 h-2 rounded-full bg-[var(--notification-unread-border)] flex-shrink-0" />}
                       </div>
-                      <span className="text-[14px] font-medium leading-[1] text-[#808080] whitespace-nowrap">
+                      <span className="text-[14px] font-medium leading-[1] text-neutral-60 whitespace-nowrap">
                         {formatNotificationTime(notification.createdAt)}
                       </span>
                     </div>
-                    <p className="text-[16px] leading-[1] font-medium tracking-[-0.02em] text-[#808080] overflow-hidden text-ellipsis line-clamp-2">
+                    <p className="text-[16px] leading-[1] font-medium tracking-[-0.02em] text-neutral-60 overflow-hidden text-ellipsis line-clamp-2">
                       {notification.content}
                     </p>
                   </button>
@@ -221,7 +221,7 @@ export default function NotificationBell() {
           <button
             type="button"
             onClick={handleClickViewAll}
-            className="mt-2 w-full text-center text-[13px] font-semibold leading-[18px] tracking-[-0.02em] text-[#2563EB] hover:bg-[#F3F4F6] py-2"
+            className="mt-2 w-full text-center text-[13px] font-semibold leading-[18px] tracking-[-0.02em] text-secondary-60 hover:bg-muted py-2"
           >
             모든 알림 보기
           </button>

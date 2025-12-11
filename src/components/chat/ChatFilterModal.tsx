@@ -256,7 +256,7 @@ export default function ChatFilterModal({
               초기화
             </button>
             <button
-              className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+              className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
               onClick={() => onApply({ messenger, statuses })}
             >
               적용완료

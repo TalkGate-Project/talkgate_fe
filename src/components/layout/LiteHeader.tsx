@@ -128,7 +128,7 @@ export default function LiteHeader() {
               )}
             </button>
             {open && (
-              <div className="absolute right-0 top-[65px] w-[360px] bg-white rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] py-5 z-50">
+              <div className="absolute right-0 top-[65px] w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] py-5 z-50">
                 {/* 사용자 정보 영역 (프로젝트 미선택 - 2줄) */}
                 <div className="flex flex-col gap-3 px-6 mb-3">
                   <div className="flex items-center gap-3">
@@ -144,7 +144,7 @@ export default function LiteHeader() {
                         />
                       </div>
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-[#808080] flex-shrink-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-neutral-60 flex-shrink-0 flex items-center justify-center">
                         <span className="text-white text-[18px] font-semibold tracking-[-0.02em]">
                           {user?.name ? user.name.charAt(0) : "김"}
                         </span>
@@ -152,22 +152,22 @@ export default function LiteHeader() {
                     )}
                     <div className="flex-1 min-w-0 flex flex-col gap-[8px]">
                       {/* 첫째 줄: 이메일 */}
-                      <div className="text-[16px] font-semibold leading-[20px] text-[#000000] tracking-[0.2px]">
+                      <div className="text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
                         {user?.email || "user@kakao.com"}
                       </div>
                       {/* 둘째 줄: UID */}
-                      <div className="text-[14px] font-medium leading-[20px] text-[#808080]">
+                      <div className="text-[14px] font-medium leading-[20px] text-neutral-60">
                         UID : {user?.id || "12345"}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full h-[1px] bg-[#E2E2E266] mb-2.5"></div>
+                <div className="w-full h-[1px] bg-border mb-2.5"></div>
 
                 <div className="flex flex-col gap-1">
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProfileHovered ? "bg-[var(--notification-unread-bg)]" : ""}`}
                     onMouseEnter={() => setIsProfileHovered(true)}
                     onMouseLeave={() => setIsProfileHovered(false)}
                     onClick={() => {
@@ -175,17 +175,17 @@ export default function LiteHeader() {
                       router.push("/my-settings");
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke={isProfileHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke={isProfileHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className={`w-6 h-6 ${isProfileHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
+                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className={`text-[16px] tracking-[-0.02em] ${isProfileHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"}`}>
+                    <span className={`text-[16px] tracking-[-0.02em] ${isProfileHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       개인설정
                     </span>
                   </button>
 
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isProjectSelectHovered ? "bg-[var(--notification-unread-bg)]" : ""}`}
                     onMouseEnter={() => setIsProjectSelectHovered(true)}
                     onMouseLeave={() => setIsProjectSelectHovered(false)}
                     onClick={() => {
@@ -193,17 +193,17 @@ export default function LiteHeader() {
                       router.push("/projects");
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke={isProjectSelectHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className={`w-6 h-6 ${isProjectSelectHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className={`text-[16px] tracking-[-0.02em] ${isProjectSelectHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"}`}>
+                    <span className={`text-[16px] tracking-[-0.02em] ${isProjectSelectHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       프로젝트 선택
                     </span>
                   </button>
 
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isPaymentHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isPaymentHovered ? "bg-[var(--notification-unread-bg)]" : ""}`}
                     onMouseEnter={() => setIsPaymentHovered(true)}
                     onMouseLeave={() => setIsPaymentHovered(false)}
                     onClick={() => {
@@ -211,16 +211,16 @@ export default function LiteHeader() {
                       router.push("/my-settings?tab=billing");
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" stroke={isPaymentHovered ? "#00E272" : "#808080"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className={`w-6 h-6 ${isPaymentHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
+                      <path d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className={`text-[16px] tracking-[-0.02em] ${isPaymentHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"}`}>
+                    <span className={`text-[16px] tracking-[-0.02em] ${isPaymentHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       결제관리
                     </span>
                   </button>
 
                   <button
-                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isLogoutHovered ? "bg-[rgba(214,250,232,0.3)]" : ""}`}
+                    className={`cursor-pointer flex items-center gap-4 px-7 py-5 transition-colors ${isLogoutHovered ? "bg-[var(--notification-unread-bg)]" : ""}`}
                     onMouseEnter={() => setIsLogoutHovered(true)}
                     onMouseLeave={() => setIsLogoutHovered(false)}
                     onClick={() => {
@@ -250,10 +250,10 @@ export default function LiteHeader() {
                       window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
                     }}
                   >
-                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke={isLogoutHovered ? "#00E272" : "#B0B0B0"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className={`w-6 h-6 ${isLogoutHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className={`text-[16px] tracking-[-0.02em] ${isLogoutHovered ? "font-bold text-[#00E272]" : "font-medium text-[#808080]"}`}>
+                    <span className={`text-[16px] tracking-[-0.02em] ${isLogoutHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       로그아웃
                     </span>
                   </button>

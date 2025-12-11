@@ -200,7 +200,7 @@ export default function BasicTab({
             />
             <button
               type="button"
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
               onClick={handleAddMessenger}
             >
               추가
