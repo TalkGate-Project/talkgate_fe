@@ -411,7 +411,7 @@ export default function TeamManagementSettings() {
           />
         </div>
       ) : (
-        <div className="flex-1 px-7 overflow-hidden flex gap-4">
+        <div className="flex-1 mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2]">
           {/* 트리 뷰 영역 */}
           <div className="flex-shrink-0 overflow-x-auto overflow-y-auto max-h-[600px]">
             <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />
@@ -419,7 +419,7 @@ export default function TeamManagementSettings() {
           
           {/* 미배정 멤버 리스트 영역 */}
           {unassignedMembers.length > 0 && (
-            <div className="flex-shrink-0 w-[190px] rounded-[12px] bg-neutral-10/50 overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex flex-col border-[#E2E2E2] border-l">
               <div className="flex-1 overflow-y-auto max-h-[520px]">
                 <UnassignedMembersList 
                   data={unassignedMembers} 
