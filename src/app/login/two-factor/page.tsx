@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
-import { getSelectedProjectId, setSelectedProjectId } from "@/lib/project";
+import { setSelectedProjectId } from "@/lib/project";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 function TwoFactorLoginContent() {
@@ -64,22 +64,10 @@ function TwoFactorLoginContent() {
         console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 리디렉션 URL 있음 →", redirectUrl);
         window.location.href = redirectUrl;
       } else {
-        // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-        const projectId = data?.projectId || getSelectedProjectId();
-        console.log("[TwoFactorLogin] 📊 프로젝트 ID 확인:", { 
-          fromResponse: data?.projectId, 
-          fromCookie: getSelectedProjectId(),
-          final: projectId 
-        });
-        
-        // window.location.href 사용하여 페이지 전체 리로드 (쿠키 설정 보장)
-        if (projectId) {
-          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 있음 → 대시보드로 이동");
-          window.location.href = "/dashboard";
-        } else {
-          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-          window.location.href = "/projects";
-        }
+        // 인증된 플로우는 반드시 서브도메인이 필요하므로
+        // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
+        window.location.href = "/projects";
       }
     } catch (err: any) {
       const status = err?.status;

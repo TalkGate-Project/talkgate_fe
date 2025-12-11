@@ -138,7 +138,7 @@ function OAuthCallbackPage() {
           projectId,
           hasRedirectUrl: !!redirectUrl,
           redirectUrl,
-          destination: redirectUrl || (projectId ? "/dashboard" : "/projects"),
+          destination: redirectUrl || "/projects",
         });
         
         if (mounted) {
@@ -146,12 +146,10 @@ function OAuthCallbackPage() {
             // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
             debugLog("🔗 리디렉션 URL로 이동:", redirectUrl);
             window.location.href = redirectUrl;
-          } else if (projectId) {
-            // 프로젝트 ID가 있으면 대시보드로 이동
-            router.replace("/dashboard");
           } else {
-            // 프로젝트 ID가 없으면 프로젝트 선택 페이지로 이동
-            debugLog("⚠️ 프로젝트 ID 없음 - 프로젝트 선택 페이지로 이동");
+            // 인증된 플로우는 반드시 서브도메인이 필요하므로
+            // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+            debugLog("✅ 로그인 성공 - 프로젝트 선택 페이지로 이동 (서브도메인 필수)");
             router.replace("/projects");
           }
         }

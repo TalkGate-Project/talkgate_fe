@@ -6,7 +6,7 @@ import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
-import { getSelectedProjectId, setSelectedProjectId } from "@/lib/project";
+import { setSelectedProjectId } from "@/lib/project";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -57,15 +57,10 @@ function LoginContent() {
             console.log("[LoginPage] ✅ 이미 인증됨 + 리디렉션 URL 있음 →", redirectUrl);
             window.location.href = redirectUrl;
           } else {
-            // 프로젝트가 선택되어 있으면 대시보드로, 아니면 프로젝트 선택으로
-            const projectId = getSelectedProjectId();
-            if (projectId) {
-              console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 있음 → 대시보드로 이동");
-              router.replace("/dashboard");
-            } else {
-              console.log("[LoginPage] ✅ 이미 인증됨 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-              router.replace("/projects");
-            }
+            // 인증된 플로우는 반드시 서브도메인이 필요하므로
+            // 로그인 페이지에서는 항상 /projects로 이동
+            console.log("[LoginPage] ✅ 이미 인증됨 → 프로젝트 선택으로 이동 (서브도메인 필수)");
+            router.replace("/projects");
           }
         }
       })
@@ -113,7 +108,7 @@ function LoginContent() {
               // Normal login success
               console.log("[LoginPage] ✅ 로그인 성공 확인");
               
-              // 서버에서 프로젝트 ID를 반환했으면 저장
+              // 서버에서 프로젝트 ID를 반환했으면 저장 (나중에 프로젝트 선택 시 사용)
               if (data?.projectId != null) {
                 console.log("[LoginPage] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
                 setSelectedProjectId(data.projectId);
@@ -126,22 +121,10 @@ function LoginContent() {
                 console.log("[LoginPage] ✅ 로그인 성공 + 리디렉션 URL 있음 →", redirectUrl);
                 window.location.href = redirectUrl;
               } else {
-                // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-                const projectId = data?.projectId || getSelectedProjectId();
-                console.log("[LoginPage] 📊 프로젝트 ID 확인:", { 
-                  fromResponse: data?.projectId, 
-                  fromCookie: getSelectedProjectId(),
-                  final: projectId 
-                });
-                
-                // window.location.href 사용하여 페이지 전체 리로드 (쿠키 설정 보장)
-                if (projectId) {
-                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 있음 → 대시보드로 이동");
-                  window.location.href = "/dashboard";
-                } else {
-                  console.log("[LoginPage] ✅ 로그인 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-                  window.location.href = "/projects";
-                }
+                // 인증된 플로우는 반드시 서브도메인이 필요하므로
+                // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+                console.log("[LoginPage] ✅ 로그인 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
+                window.location.href = "/projects";
               }
             })
             .catch((err: any) => {
