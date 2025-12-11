@@ -105,7 +105,7 @@ function TwoFactorLoginContent() {
       </p>
 
       <form
-        className="mt-6 w-full space-y-3"
+        className="w-full space-y-3"
         onSubmit={handleSubmit}
       >
         <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>
