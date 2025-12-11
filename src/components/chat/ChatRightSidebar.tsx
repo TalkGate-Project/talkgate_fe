@@ -192,7 +192,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
             <div className="flex justify-start">
               <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
                 <div className="text-[13px] leading-[20px]">
-                  AI 상담 도우미 연결되었습니다. 무엇을 도와드릴까요?
+                  AI 상담 도우미 연결되었습니다.<br />무엇을 도와드릴까요?
                 </div>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
               </div>
             )}
 
-            {loading && messages.length === 0 ? (
+            {loading && messages.length === 0 && (
               <div className="flex justify-center py-4">
                 <svg
                   className="animate-spin h-6 w-6 text-primary-60"
@@ -226,11 +226,9 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                   ></path>
                 </svg>
               </div>
-            ) : messages.length === 0 ? (
-              <div className="text-[13px] text-neutral-60">
-                아직 AI 상담 도우미와의 대화가 없습니다. 첫 질문을 남겨보세요.
-              </div>
-            ) : (
+            )}
+
+            {!loading && messages.length > 0 && (
               <>
                 {hasMore && (
                   <button
