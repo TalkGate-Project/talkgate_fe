@@ -54,7 +54,7 @@ export default function CustomersFilterBar({
           필터추가
         </button>
         <button
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
           onClick={onSearch}
         >
           검색

@@ -385,7 +385,7 @@ export default function SalesTab({
               className="flex-1 h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px]"
             />
             <button
-              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold"
+              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
               onClick={handleAddSchedule}
             >
               추가

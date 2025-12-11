@@ -196,7 +196,7 @@ export default function ChatMainView({
               </button>
             )}
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCloseConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"
@@ -542,7 +542,7 @@ export default function ChatMainView({
               <div className="mb-3 mx-auto grid place-items-center">
                 <EmptyChatIcon />
               </div>
-              <div className="text-[16px] font-semibold text-neutral-70">
+              <div className="text-[16px] font-semibold text-neutral-60">
                 채팅을 선택하세요
               </div>
               <div className="text-[13px] text-neutral-60">

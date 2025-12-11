@@ -68,7 +68,7 @@ export default function SelfAuthenticationModal({
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-7 pt-7 pb-5">
+        <div className="flex items-center justify-between px-7 pt-6 pb-5">
           <h2 className="text-[18px] font-bold text-ink dark:text-neutral-80 leading-[1.4]">
             {getTitle()}
           </h2>
@@ -123,7 +123,7 @@ export default function SelfAuthenticationModal({
         <div className="border-t border-neutral-30 dark:border-neutral-30" />
 
         {/* Actions */}
-        <div className="flex gap-2 justify-end px-7 py-4">
+        <div className="flex gap-2 justify-end px-7 py-3">
           <button
             type="button"
             onClick={onClose}

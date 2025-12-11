@@ -81,20 +81,20 @@ export default function CustomersActions({
         onChange={handleExcelUpload}
       />
       <button
-        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em]"
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
         onClick={onCreateOpen}
       >
         고객등록
       </button>
       <button
-        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onAssignOpen}
         disabled={selectedIds.length === 0}
       >
         일괄배정
       </button>
       <button
-        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onSmsOpen}
         disabled={selectedIds.length === 0}
       >

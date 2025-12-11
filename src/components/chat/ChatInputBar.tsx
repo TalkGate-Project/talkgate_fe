@@ -116,7 +116,7 @@ export default function ChatInputBar({
           </svg>
         </button>
         <button
-          className="cursor-pointer h-[34px] text-[14px] px-3 rounded-[8px] bg-neutral-90 text-neutral-40 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer h-[34px] text-[14px] px-3 rounded-[8px] bg-neutral-90 text-neutral-20 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onSend}
           disabled={disabled || !connected}
         >

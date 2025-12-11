@@ -171,7 +171,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
 
   return (
     <div className="max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col">
-      <div className="px-4 py-4.5 flex items-center justify-between border-b border-border dark:border-neutral-30">
+      <div className="px-4 py-5 flex items-center justify-between border-b border-border dark:border-neutral-30">
         <div className="flex items-center gap-2">
           <h3 className="text-[20px] font-bold">AI상담도우미</h3>
           <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
@@ -183,8 +183,9 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         ref={messagesScrollRef}
       >
         {!hasActiveConversation ? (
-          <div className="text-[13px] leading-[20px] text-neutral-60">
-            왼쪽에서 상담 채팅을 선택하면 AI 상담 도우미를 사용할 수 있습니다.
+          <div className="text-[13px] leading-[20px] text-neutral-60 h-full flex items-center justify-center text-center">
+            상담에 도움이 필요하시면 언제든<br />
+            AI에게 질문하세요.
           </div>
         ) : (
           <>

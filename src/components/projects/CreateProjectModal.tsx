@@ -302,7 +302,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     </span>
                   </div>
                   <button
-                    className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] whitespace-nowrap disabled:opacity-50"
+                    className="h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] whitespace-nowrap disabled:opacity-50"
                     type="button"
                     onClick={validateSubdomain}
                     disabled={
@@ -374,7 +374,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           )}
           {step === 1 ? (
             <button
-              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] w-[50px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => setStep(2)}
               disabled={!canGoNext || submitting}
             >
@@ -382,7 +382,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             </button>
           ) : (
             <button
-              className="cursor-pointer h-[34px] min-w-[50px] px-2 rounded-[5px] bg-neutral-90 text-neutral-40 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] min-w-[50px] px-2 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => handleSubmit()}
               disabled={submitting || !canGoNext}
             >
