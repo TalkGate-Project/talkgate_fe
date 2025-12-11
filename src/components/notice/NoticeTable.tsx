@@ -49,7 +49,7 @@ export default function NoticeTable({
   return (
     <div className="bg-card rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
       {/* Title & Filter */}
-      <div className="flex items-center justify-between mb-[30px]">
+      <div className="flex items-center justify-between mb-7">
         <h2 className="text-[18px] font-semibold text-neutral-90">
           공지사항
         </h2>
@@ -119,7 +119,7 @@ export default function NoticeTable({
           notices.map((notice, index) => (
             <div key={notice.id}>
               <div
-                className="flex items-center py-4 px-6 hover:bg-neutral-10 cursor-pointer transition-colors"
+                className="max-h-[48px] flex items-center py-[18px] px-6 hover:bg-neutral-10 cursor-pointer transition-colors "
                 onClick={() => handleNoticeClick(notice)}
               >
                 {/* 고유번호 영역 */}

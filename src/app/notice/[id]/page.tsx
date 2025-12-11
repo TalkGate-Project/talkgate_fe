@@ -160,8 +160,8 @@ export default function NoticeDetailPage() {
               </svg>
             </button>
             {notice.important && (
-              <div className="px-3 py-1 bg-danger-10 rounded-[30px]">
-                <span className="text-[12px] font-medium text-danger-40">
+              <div className="px-3 py-1 bg-danger-10 rounded-[30px] max-h-[24px] leading-[14px]">
+                <span className="text-[12px] font-medium text-danger-40 leading-[14px]">
                   중요
                 </span>
               </div>
