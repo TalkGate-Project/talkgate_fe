@@ -59,13 +59,18 @@ function TwoFactorLoginContent() {
       }
       
       // 2FA 인증 성공 후 리디렉션
-      if (redirectUrl) {
-        // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 리디렉션 URL 있음 →", redirectUrl);
+      // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
+      const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+      if (isAbsoluteUrl) {
+        // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
         window.location.href = redirectUrl;
       } else {
-        // 인증된 플로우는 반드시 서브도메인이 필요하므로
-        // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+        // 상대 경로이거나 redirectUrl이 없는 경우
+        // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
+        if (redirectUrl) {
+          console.log("[TwoFactorLogin] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
+        }
         console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
         window.location.href = "/projects";
       }

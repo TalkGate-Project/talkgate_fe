@@ -133,22 +133,29 @@ function OAuthCallbackPage() {
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
         
+        // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
+        const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+        
         debugLog("🎯 리디렉션 결정", {
           hasProjectId: !!projectId,
           projectId,
           hasRedirectUrl: !!redirectUrl,
+          isAbsoluteUrl,
           redirectUrl,
-          destination: redirectUrl || "/projects",
+          destination: isAbsoluteUrl ? redirectUrl : "/projects",
         });
         
         if (mounted) {
-          if (redirectUrl) {
-            // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-            debugLog("🔗 리디렉션 URL로 이동:", redirectUrl);
+          if (isAbsoluteUrl) {
+            // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+            debugLog("🔗 절대 리디렉션 URL로 이동:", redirectUrl);
             window.location.href = redirectUrl;
           } else {
-            // 인증된 플로우는 반드시 서브도메인이 필요하므로
-            // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+            // 상대 경로이거나 redirectUrl이 없는 경우
+            // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
+            if (redirectUrl) {
+              debugLog("⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
+            }
             debugLog("✅ 로그인 성공 - 프로젝트 선택 페이지로 이동 (서브도메인 필수)");
             router.replace("/projects");
           }

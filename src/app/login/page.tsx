@@ -52,13 +52,15 @@ function LoginContent() {
       .then(() => {
         if (mounted) {
           // 이미 인증된 상태
-          if (redirectUrl) {
-            // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-            console.log("[LoginPage] ✅ 이미 인증됨 + 리디렉션 URL 있음 →", redirectUrl);
+          // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
+          const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+          if (isAbsoluteUrl) {
+            // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+            console.log("[LoginPage] ✅ 이미 인증됨 + 절대 리디렉션 URL 있음 →", redirectUrl);
             window.location.href = redirectUrl;
           } else {
-            // 인증된 플로우는 반드시 서브도메인이 필요하므로
-            // 로그인 페이지에서는 항상 /projects로 이동
+            // 상대 경로이거나 redirectUrl이 없는 경우
+            // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
             console.log("[LoginPage] ✅ 이미 인증됨 → 프로젝트 선택으로 이동 (서브도메인 필수)");
             router.replace("/projects");
           }
@@ -116,13 +118,19 @@ function LoginContent() {
               
               // 리다이렉션 처리
               // 쿠키가 설정되는 것을 보장하기 위해 window.location.href 사용
-              if (redirectUrl) {
-                // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-                console.log("[LoginPage] ✅ 로그인 성공 + 리디렉션 URL 있음 →", redirectUrl);
+              // redirectUrl이 절대 URL(http:// 또는 https://)인 경우에만 해당 URL로 이동
+              // 상대 경로인 경우 서브도메인 없이 이동하면 미들웨어에서 차단되므로 /projects로 이동
+              const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+              if (isAbsoluteUrl) {
+                // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+                console.log("[LoginPage] ✅ 로그인 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
                 window.location.href = redirectUrl;
               } else {
-                // 인증된 플로우는 반드시 서브도메인이 필요하므로
-                // 로그인 후 항상 /projects로 이동하여 프로젝트 선택 후 서브도메인으로 이동
+                // 상대 경로이거나 redirectUrl이 없는 경우
+                // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
+                if (redirectUrl) {
+                  console.log("[LoginPage] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
+                }
                 console.log("[LoginPage] ✅ 로그인 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
                 window.location.href = "/projects";
               }
