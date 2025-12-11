@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
 import type { ImageFileWithPreview } from "./types";
 import { usePhoneDragScroll } from "./usePhoneDragScroll";
 
@@ -17,15 +18,106 @@ export default function PhonePreview({
   imageFiles,
 }: PhonePreviewProps) {
   const { phoneScreenRef, dragHandlers } = usePhoneDragScroll();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  // 화면 크기에 따라 스케일 조정
+  useEffect(() => {
+    const updateScale = () => {
+      if (!containerRef.current) return;
+
+      // 모달 컨테이너 찾기
+      const modalContainer = containerRef.current.closest('[class*="max-h"]');
+      
+      if (!modalContainer) {
+        setScale(1);
+        return;
+      }
+
+      // 모달의 실제 높이와 스크롤 여부 확인
+      const modalHeight = modalContainer.clientHeight;
+      const modalScrollHeight = modalContainer.scrollHeight;
+      const hasScroll = modalScrollHeight > modalHeight;
+      
+      // 모달의 max-height 값 가져오기
+      const computedStyle = window.getComputedStyle(modalContainer);
+      const maxHeightStr = computedStyle.maxHeight;
+      const maxHeight = maxHeightStr && maxHeightStr !== 'none' 
+        ? parseFloat(maxHeightStr) 
+        : null;
+      
+      // 스크롤이 없고 모달이 max-height에 도달하지 않았다면 scale 1 유지
+      if (!hasScroll && (!maxHeight || modalHeight < maxHeight)) {
+        setScale(1);
+        return;
+      }
+      
+      // 스크롤이 있거나 max-height에 도달한 경우에만 스케일 계산
+      // PhonePreview 컨테이너의 실제 높이 측정
+      const previewContainer = containerRef.current;
+      const previewContainerHeight = previewContainer.clientHeight;
+      
+      // 핸드폰 기본 높이 (600px)
+      const phoneBaseHeight = 600;
+      const previewPadding = 48; // p-6 * 2
+      const titleHeight = 32; // "미리보기" 제목
+      
+      // 실제 사용 가능한 높이 (PhonePreview 컨테이너 높이에서 제목과 패딩 제외)
+      const availableHeight = previewContainerHeight - previewPadding - titleHeight;
+      
+      // 스케일 계산: 사용 가능한 높이가 충분하면 1, 아니면 비례적으로 축소
+      let calculatedScale = 1;
+      
+      if (availableHeight < phoneBaseHeight) {
+        // 공간이 부족하면 축소 (여유 공간을 위해 0.98 곱함)
+        calculatedScale = (availableHeight / phoneBaseHeight) * 0.98;
+        // 최소 스케일 제한
+        calculatedScale = Math.max(0.7, calculatedScale);
+      }
+      
+      setScale(calculatedScale);
+    };
+
+    // 초기 계산
+    updateScale();
+    
+    // 약간의 지연 후 다시 계산 (레이아웃이 완전히 렌더링된 후)
+    const timeoutId = setTimeout(updateScale, 100);
+    const timeoutId2 = setTimeout(updateScale, 300);
+    
+    window.addEventListener("resize", updateScale);
+    
+    // ResizeObserver로 모달 크기 변화 감지
+    const resizeObserver = new ResizeObserver(updateScale);
+    if (containerRef.current) {
+      const modalContainer = containerRef.current.closest('[class*="max-h"]');
+      if (modalContainer) {
+        resizeObserver.observe(modalContainer);
+      }
+    }
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(timeoutId2);
+      window.removeEventListener("resize", updateScale);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   return (
-    <div className="bg-[#F8F8F8] dark:bg-neutral-10 rounded-[12px] p-6">
+    <div ref={containerRef} className="bg-[#F8F8F8] dark:bg-neutral-10 rounded-[12px] p-6">
       <h3 className="text-[16px] font-semibold leading-[19px] text-ink dark:text-neutral-90 mb-4">
         미리보기
       </h3>
 
       {/* 핸드폰 미리보기 */}
-      <div className="relative w-[300px] h-[600px] mx-auto">
+      <div 
+        className="relative w-[300px] h-[600px] mx-auto origin-top"
+        style={{ 
+          transform: `scale(${scale})`,
+          transformOrigin: "top center"
+        }}
+      >
         {/* 폰 케이스 이미지 */}
         <img
           src="/phone_case.png"

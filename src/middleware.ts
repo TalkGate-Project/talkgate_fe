@@ -262,28 +262,30 @@ export async function middleware(req: NextRequest) {
     }
 
     // 인증됨 + 서브도메인 있음 → 프로젝트 정보 확인
-    const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
-    
-    if (project) {
-      const subdomainProjectId = String(project.id);
-      const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
+    if (subdomain && accessToken) {
+      const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
       
-      // 프로젝트 ID가 없거나 다르면 쿠키 설정
-      if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-        console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
-        const response = NextResponse.next();
-        setProjectIdCookie(response, req, subdomainProjectId);
-        return response;
+      if (project) {
+        const subdomainProjectId = String(project.id);
+        const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
+        
+        // 프로젝트 ID가 없거나 다르면 쿠키 설정
+        if (!currentProjectId || currentProjectId !== subdomainProjectId) {
+          console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
+          const response = NextResponse.next();
+          setProjectIdCookie(response, req, subdomainProjectId);
+          return response;
+        }
+        
+        return NextResponse.next();
+      } else {
+        // 서브도메인이 있지만 프로젝트를 찾지 못함 → 프로젝트 선택 페이지로
+        console.log(`[Middleware] 유효하지 않은 서브도메인: ${subdomain}`);
+        const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+        redirectUrl.searchParams.set("error", "invalid_subdomain");
+        redirectUrl.searchParams.set("subdomain", subdomain);
+        return NextResponse.redirect(redirectUrl);
       }
-      
-      return NextResponse.next();
-    } else {
-      // 서브도메인이 있지만 프로젝트를 찾지 못함 → 프로젝트 선택 페이지로
-      console.log(`[Middleware] 유효하지 않은 서브도메인: ${subdomain}`);
-      const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
-      redirectUrl.searchParams.set("error", "invalid_subdomain");
-      redirectUrl.searchParams.set("subdomain", subdomain);
-      return NextResponse.redirect(redirectUrl);
     }
   }
 
