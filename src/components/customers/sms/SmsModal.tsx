@@ -522,7 +522,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 dark:border-neutral-30 px-7 py-4 flex justify-end gap-3">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-7 py-3 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

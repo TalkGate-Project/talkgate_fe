@@ -124,6 +124,22 @@ function NotificationsPage() {
     }
   };
 
+  const handleNotificationClick = async (notification: UINotification) => {
+    // 읽음 처리
+    if (!notification.read) {
+      await handleMarkAsRead(notification.id);
+    }
+
+    // 알림 타입에 따라 적절한 페이지로 이동
+    if (notification.type === "notice" && notification.referenceId) {
+      // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
+      router.push(`/notice/${notification.referenceId}`);
+    } else if (notification.type === "customer_assignment") {
+      // 고객 관련 알림: 고객 목록 페이지로 이동
+      router.push("/customers");
+    }
+  };
+
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case "notice":
@@ -250,7 +266,7 @@ function NotificationsPage() {
                 {filteredNotifications.map((notification) => (
                   <div
                     key={notification.id}
-                    onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                     className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border cursor-pointer transition-colors ${
                       !notification.read
                         ? "bg-notification-unread border-notification-unread hover:opacity-90"

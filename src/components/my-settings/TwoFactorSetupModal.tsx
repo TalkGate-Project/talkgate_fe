@@ -197,7 +197,7 @@ export default function TwoFactorSetupModal({
         <div className="w-full h-[1px] bg-border mt-8"></div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-7 py-4">
+        <div className="flex justify-end gap-3 px-7 py-3">
           <button
             onClick={onClose}
             className="px-3 py-1.5 border border-border rounded-[5px] text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-muted transition-colors cursor-pointer"

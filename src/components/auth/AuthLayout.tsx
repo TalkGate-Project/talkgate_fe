@@ -123,7 +123,7 @@ export default function AuthLayout({
             <div
               className="absolute left-1/2 -translate-x-[41%]"
               style={{
-                top: "-650px",
+                top: "-670px",
                 width: "41%",
                 height: "calc(50vh + var(--card-padding-top, 310px) + 80px)",
                 backgroundImage: `url('${loginCardStrap.src}')`,
@@ -136,18 +136,19 @@ export default function AuthLayout({
               aria-hidden="true"
             />
             
-            {/* Form 컨테이너 - contents 배경 이미지로 감싸기 */}
+            {/* Form 컨테이너 - contents 배경 이미지로 감싸기 (고정 위치) */}
             <div
               className="relative mx-auto flex flex-col items-center !px-[90px]"
               aria-label={ariaLabel}
               style={{
                 width: "564px",
                 maxWidth: "calc(100% - 20px)",
+                height: "1000px",
                 backgroundImage: `url('${loginCardContents.src}')`,
                 backgroundRepeat: "no-repeat",
-                backgroundPosition: "center -130%",
+                backgroundPosition: "center 80px",
                 backgroundSize: "110% auto",
-                padding: "var(--card-padding-top, 330px) 0 var(--card-padding-bottom, 100px) 0",
+                padding: "var(--card-padding-top, 310px) 0 var(--card-padding-bottom, 100px) 0",
                 zIndex: 2,
               }}
             >

@@ -84,7 +84,7 @@ function LoginContent() {
     <AuthLayout ariaLabel="login-form-area">
       <h1 className="sr-only">로그인</h1>
       <form
-        className="mt-6 w-full space-y-3"
+        className="w-full space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           setInvalid(false);

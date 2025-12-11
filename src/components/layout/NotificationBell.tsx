@@ -118,7 +118,7 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = async (notification: TGNotification) => {
-    // 알림을 클릭하면 읽음 처리 (향후 상세 페이지 이동이 필요하면 이 함수에서 처리)
+    // 알림을 클릭하면 읽음 처리 후 해당 페이지로 이동
     if (!notification.isRead) {
       try {
         await NotificationsService.markAsRead(notification.id);
@@ -137,6 +137,16 @@ export default function NotificationBell() {
       } catch (error) {
         console.error("Failed to mark notification as read:", error);
       }
+    }
+
+    // 알림 타입에 따라 적절한 페이지로 이동
+    setIsOpen(false);
+    if (notification.type === "notice" && notification.referenceId) {
+      // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
+      router.push(`/notice/${notification.referenceId}`);
+    } else if (notification.type === "customer_assignment") {
+      // 고객 관련 알림: 고객 목록 페이지로 이동
+      router.push("/customers");
     }
   };
 
@@ -221,7 +231,7 @@ export default function NotificationBell() {
           <button
             type="button"
             onClick={handleClickViewAll}
-            className="mt-2 w-full text-center text-[13px] font-semibold leading-[18px] tracking-[-0.02em] text-secondary-60 hover:bg-muted py-2"
+            className="cursor-pointer mt-2 w-full text-center text-[13px] font-semibold leading-[18px] tracking-[-0.02em] text-secondary-60 hover:bg-muted py-2"
           >
             모든 알림 보기
           </button>

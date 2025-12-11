@@ -137,7 +137,7 @@ export default function SubscribeProjectModal({
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-[#E2E2E2] px-7 py-4 flex items-center justify-end gap-3">
+        <div className="border-t border-[#E2E2E2] px-7 py-3 flex items-center justify-end gap-3">
           <button
             className="cursor-pointer h-[38px] px-5 rounded-[8px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525] bg-white hover:bg-[#F8F8F8] transition-colors disabled:opacity-50"
             onClick={() => !submitting && onClose()}
@@ -157,6 +157,8 @@ export default function SubscribeProjectModal({
     </div>
   );
 }
+
+
 
 
 
