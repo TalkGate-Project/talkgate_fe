@@ -6,6 +6,19 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole } from "@/types/members";
+
+function SidebarSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 px-8 py-3">
+          <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
+          <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
+        </div>
+      ))}
+    </>
+  );
+}
 import GeneralIcon from "./icons/GeneralIcon";
 import ProfileIcon from "./icons/ProfileIcon";
 import ConsultationChannelIcon from "./icons/ConsultationChannelIcon";
@@ -175,7 +188,13 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
   const [projectId] = useSelectedProjectId();
   const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set(["조직관리", "문자"])); // 기본적으로 확장
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set()); // 기본적으로 닫힘
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 프로젝트 정보 로드
   useEffect(() => {
@@ -344,14 +363,8 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
 
       {/* 탭 목록 */}
       <nav className="space-y-1">
-        {loading ? (
-          // 로딩 중 스켈레톤
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 px-8 py-3">
-              <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
-              <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
-            </div>
-          ))
+        {!mounted || loading ? (
+          <SidebarSkeleton />
         ) : (
           visibleItems.map((item) => renderItem(item))
         )}

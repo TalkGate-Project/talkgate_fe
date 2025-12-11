@@ -13,9 +13,15 @@ export default function NoticeDetailPage() {
   const router = useRouter();
   const params = useParams();
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     document.title = "TalkGate - 공지사항";
+  }, []);
+
+  // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -96,7 +102,9 @@ export default function NoticeDetailPage() {
 
   if (!projectId) return null;
 
-  if (loading) {
+  // 서버와 클라이언트 초기 렌더링을 일치시키기 위해 첫 렌더링에서는 항상 같은 구조 유지
+  // 클라이언트 마운트 후에만 로딩 스켈레톤 표시
+  if (mounted && loading) {
     return <NoticeDetailSkeleton />;
   }
 
