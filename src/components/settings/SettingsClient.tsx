@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole, MyMember } from "@/types/members";
@@ -86,6 +86,7 @@ export default function SettingsClient() {
   const searchParams = useSearchParams();
   const { member, loading } = useMyMember();
   const currentRole = member?.role;
+  const [mounted, setMounted] = useState(false);
   
   // 권한에 따른 기본 탭
   const defaultTab = useMemo(() => getDefaultTab(currentRole), [currentRole]);
@@ -93,6 +94,11 @@ export default function SettingsClient() {
   // URL에서 탭 정보를 읽어옴
   const tabParam = searchParams.get("tab");
   const activeTab = isValidTab(tabParam) ? tabParam : defaultTab;
+
+  // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 권한 체크 후 잘못된 탭이면 기본 탭으로 리디렉션
   useEffect(() => {
@@ -117,19 +123,28 @@ export default function SettingsClient() {
     router.push(`/settings?${params.toString()}`);
   }, [router, searchParams]);
 
-  // 로딩 중이면 스켈레톤 표시
-  if (loading) {
+  // 서버와 클라이언트 초기 렌더링을 일치시키기 위해 첫 렌더링에서는 항상 실제 컨텐츠 구조를 유지
+  // Suspense fallback이 이미 스켈레톤을 처리하므로 여기서는 클라이언트 마운트 후에만 로딩 상태 표시
+  if (!mounted || loading) {
     return (
       <div className="flex gap-8">
-        <div className="w-[280px] max-h-[530px] bg-card rounded-[14px] pt-7 pb-5 animate-pulse">
-          <div className="px-7 pb-7 mb-1">
-            <div className="h-5 w-32 bg-neutral-20 rounded mb-2" />
-            <div className="h-4 w-40 bg-neutral-20 rounded" />
+        <div className="w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
+          <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
+            <div className="h-5 w-32 bg-neutral-20 rounded mb-2 animate-pulse" />
+            <div className="h-4 w-40 bg-neutral-20 rounded animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-8 py-3">
+                <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
+              </div>
+            ))}
           </div>
         </div>
-        <div className="flex-1 bg-card rounded-[14px] p-7 animate-pulse">
-          <div className="h-6 w-40 bg-neutral-20 rounded mb-4" />
-          <div className="h-40 bg-neutral-20 rounded" />
+        <div className="flex-1 bg-card rounded-[14px] p-7">
+          <div className="h-6 w-40 bg-neutral-20 rounded mb-4 animate-pulse" />
+          <div className="h-40 bg-neutral-20 rounded animate-pulse" />
         </div>
       </div>
     );
