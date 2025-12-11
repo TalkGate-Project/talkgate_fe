@@ -4,7 +4,8 @@ import { useEffect, ReactNode, useId } from "react";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
-import loginCardImg from "@/assets/images/auth/login_card.png";
+import loginCardContents from "@/assets/images/auth/login_card_contents.png";
+import loginCardStrap from "@/assets/images/auth/login_card_strap.png";
 
 /**
  * Auth 페이지 공통 배경색 (확대/축소/컴팩트 모드 대응)
@@ -112,37 +113,55 @@ export default function AuthLayout({
 
           {/* 우측 카드 영역 */}
           <div
-            className="flex-shrink-0"
+            className="flex-shrink-0 relative flex items-center justify-center overflow-hidden"
             style={{
               width: "min(92vw, 564px)",
               height: "100vh",
-              backgroundImage: `url('${loginCardImg.src}')`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center -325px",
-              backgroundSize: "100% auto",
             }}
           >
-          {/* 카드 내부 콘텐츠 */}
-          <div
-            className="mx-auto flex flex-col items-center"
-            aria-label={ariaLabel}
-            style={{
-              width: "384px",
-              maxWidth: "calc(100% - 40px)",
-              paddingTop: "var(--card-padding-top, 310px)",
-            }}
-          >
-            {/* 워드마크 로고 */}
-            {showLogo && (
-              <div style={{ marginBottom: "50px" }}>
-                <TalkGateLogoWordmark />
-              </div>
-            )}
+            {/* Strap - 화면 상단부터 form 컨테이너 상단까지 배치 */}
+            <div
+              className="absolute left-1/2 -translate-x-[41%]"
+              style={{
+                top: "-650px",
+                width: "41%",
+                height: "calc(50vh + var(--card-padding-top, 310px) + 80px)",
+                backgroundImage: `url('${loginCardStrap.src}')`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "top center",
+                backgroundSize: "100% auto",
+                zIndex: 1,
+                pointerEvents: "none",
+              }}
+              aria-hidden="true"
+            />
             
-            {/* 페이지별 콘텐츠 */}
-            {children}
+            {/* Form 컨테이너 - contents 배경 이미지로 감싸기 */}
+            <div
+              className="relative mx-auto flex flex-col items-center !px-[90px]"
+              aria-label={ariaLabel}
+              style={{
+                width: "564px",
+                maxWidth: "calc(100% - 20px)",
+                backgroundImage: `url('${loginCardContents.src}')`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center -130%",
+                backgroundSize: "110% auto",
+                padding: "var(--card-padding-top, 330px) 0 var(--card-padding-bottom, 100px) 0",
+                zIndex: 2,
+              }}
+            >
+              {/* 워드마크 로고 */}
+              {showLogo && (
+                <div style={{ marginBottom: "50px" }}>
+                  <TalkGateLogoWordmark />
+                </div>
+              )}
+              
+              {/* 페이지별 콘텐츠 */}
+              {children}
+            </div>
           </div>
-        </div>
         </div>
       </main>
     </>
