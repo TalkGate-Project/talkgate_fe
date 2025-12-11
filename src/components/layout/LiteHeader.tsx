@@ -175,10 +175,12 @@ export default function LiteHeader() {
                       router.push("/my-settings");
                     }}
                   >
-                    <svg className={`w-6 h-6 ${isProfileHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
-                      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <div className={isProfileHovered ? "text-primary-60" : "text-neutral-60"}>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                     <span className={`text-[16px] tracking-[-0.02em] ${isProfileHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       개인설정
                     </span>
@@ -193,10 +195,12 @@ export default function LiteHeader() {
                       router.push("/projects");
                     }}
                   >
-                    <svg className={`w-6 h-6 ${isProjectSelectHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <div className={isProjectSelectHovered ? "text-primary-60" : "text-neutral-60"}>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                     <span className={`text-[16px] tracking-[-0.02em] ${isProjectSelectHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       프로젝트 선택
                     </span>
@@ -211,9 +215,11 @@ export default function LiteHeader() {
                       router.push("/my-settings?tab=billing");
                     }}
                   >
-                    <svg className={`w-6 h-6 ${isPaymentHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
-                      <path d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <div className={isPaymentHovered ? "text-primary-60" : "text-neutral-60"}>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                     <span className={`text-[16px] tracking-[-0.02em] ${isPaymentHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       결제관리
                     </span>
@@ -250,9 +256,11 @@ export default function LiteHeader() {
                       window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
                     }}
                   >
-                    <svg className={`w-6 h-6 ${isLogoutHovered ? "text-primary-60" : "text-neutral-50"}`} viewBox="0 0 24 24" fill="none">
-                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <div className={isLogoutHovered ? "text-primary-60" : "text-neutral-60"}>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                     <span className={`text-[16px] tracking-[-0.02em] ${isLogoutHovered ? "font-bold text-primary-60" : "font-medium text-neutral-60"}`}>
                       로그아웃
                     </span>
