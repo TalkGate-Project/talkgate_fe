@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
-import { getSelectedProjectId, setSelectedProjectId } from "@/lib/project";
+import { setSelectedProjectId } from "@/lib/project";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 function TwoFactorLoginContent() {
@@ -59,27 +59,20 @@ function TwoFactorLoginContent() {
       }
       
       // 2FA 인증 성공 후 리디렉션
-      if (redirectUrl) {
-        // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 리디렉션 URL 있음 →", redirectUrl);
+      // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
+      const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+      if (isAbsoluteUrl) {
+        // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
         window.location.href = redirectUrl;
       } else {
-        // 프로젝트 ID가 있으면 대시보드로, 없으면 프로젝트 선택으로
-        const projectId = data?.projectId || getSelectedProjectId();
-        console.log("[TwoFactorLogin] 📊 프로젝트 ID 확인:", { 
-          fromResponse: data?.projectId, 
-          fromCookie: getSelectedProjectId(),
-          final: projectId 
-        });
-        
-        // window.location.href 사용하여 페이지 전체 리로드 (쿠키 설정 보장)
-        if (projectId) {
-          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 있음 → 대시보드로 이동");
-          window.location.href = "/dashboard";
-        } else {
-          console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 프로젝트 없음 → 프로젝트 선택으로 이동");
-          window.location.href = "/projects";
+        // 상대 경로이거나 redirectUrl이 없는 경우
+        // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
+        if (redirectUrl) {
+          console.log("[TwoFactorLogin] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
         }
+        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
+        window.location.href = "/projects";
       }
     } catch (err: any) {
       const status = err?.status;
