@@ -212,8 +212,8 @@ export default function PaymentBarChart() {
             <LabelList
               dataKey="amount"
               position="top"
-              formatter={(label: unknown): ReactNode =>
-                typeof label === "number" ? `${NUMBER_FORMATTER.format(label)}원` : (label as ReactNode)
+              formatter={(label: unknown) =>
+                typeof label === "number" ? `${NUMBER_FORMATTER.format(label)}원` : String(label ?? "")
               }
               style={{ fill: "var(--neutral-60)", fontSize: 12 }}
             />
