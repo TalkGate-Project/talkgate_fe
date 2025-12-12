@@ -168,7 +168,7 @@ export default function TeamListView({
                 type="button"
                 onClick={() => onMemberClick(item)}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="text-left text-[16px] font-semibold text-foreground hover:underline focus:underline"
+                className="cursor-pointer text-left text-[16px] font-semibold text-foreground hover:underline focus:underline"
               >
                 {item.name}
               </button>
