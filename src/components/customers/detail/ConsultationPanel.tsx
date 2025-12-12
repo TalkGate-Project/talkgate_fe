@@ -213,7 +213,7 @@ export default function ConsultationPanel({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="상담 내용을 입력하세요"
-            className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-neutral-30 px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
+            className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
           />
           <button
             className="cursor-pointer w-[48px] h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"

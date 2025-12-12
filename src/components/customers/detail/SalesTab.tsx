@@ -144,7 +144,7 @@ export default function SalesTab({
             onChange={(e) =>
               setForm((prev) => ({ ...prev, investmentInfo: e.target.value }))
             }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="투자정보를 입력하세요"
           />
         </label>
@@ -160,7 +160,7 @@ export default function SalesTab({
                 investmentProfitLoss: e.target.value,
               }))
             }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="0"
           />
         </label>
@@ -188,7 +188,7 @@ export default function SalesTab({
 
       {/* Payment History */}
       <div>
-        <div className="mb-3 pb-2 border-b border-[#E2E2E2]">
+        <div className="mb-3 pb-2 border-b border-[#E2E2E2] dark:border-[#444444]">
           <div className="text-[16px] font-semibold text-neutral-90">
             결제 내역
           </div>
@@ -229,7 +229,7 @@ export default function SalesTab({
                 setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="금액"
-              className="h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 text-[14px] font-medium"
+              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium"
             />
           </div>
           <div className="grid grid-cols-[140px_minmax(0,1fr)_auto] gap-2">
@@ -248,7 +248,7 @@ export default function SalesTab({
               value={paymentDesc}
               onChange={(e) => setPaymentDesc(e.target.value)}
               placeholder="설명을 추가하세요"
-              className="h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 text-[14px] font-medium"
+              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium"
             />
             <button
               className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
@@ -289,7 +289,7 @@ export default function SalesTab({
 
       {/* Schedule Management */}
       <div>
-        <div className="mb-3 pb-2 border-b border-[#E2E2E2]">
+        <div className="mb-3 pb-2 border-b border-[#E2E2E2] dark:border-[#444444]">
           <div className="text-[16px] font-semibold text-neutral-90">
             일정관리
           </div>

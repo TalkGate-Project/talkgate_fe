@@ -9,7 +9,7 @@ export function SelectField({
     <div className="relative">
       <select
         {...props}
-        className={`w-full rounded-[5px] border border-[#E5E7EB] px-2 pr-6 appearance-none ${
+        className={`w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-2 pr-6 appearance-none ${
           className ?? ""
         }`}
       >
