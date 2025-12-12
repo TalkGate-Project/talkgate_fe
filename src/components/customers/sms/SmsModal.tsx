@@ -228,13 +228,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                 {displayRecipients.displayed.map((customer) => (
                   <span
                     key={customer.id}
-                    className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-20 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
+                    className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
                   >
                     {customer.name} {customer.contact1}
                   </span>
                 ))}
                 {displayRecipients.remaining > 0 && (
-                  <span className="inline-flex items-center h-[28px] px-3 bg-neutral-20 rounded-[30px] text-[13px] text-neutral-70">
+                  <span className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70">
                     +{displayRecipients.remaining}
                   </span>
                 )}
@@ -247,9 +247,9 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                 메시지 유형 (90byte 초과 시 LMS)
               </label>
               <span
-                className={`inline-flex items-center h-[24px] px-3 rounded-[4px] text-[12px] font-semibold ${
+                className={`inline-flex items-center h-[24px] px-3 rounded-[30px] text-[12px] leading-[24px] font-semibold ${
                   messageType === "SMS"
-                    ? "bg-[#00E272]/20 text-[#00A854]"
+                    ? "bg-[#00E272]/20 dark:!bg-[#D6FAE8E5] text-[#00A854]"
                     : messageType === "LMS"
                     ? "bg-[#FFB800]/20 text-[#B88200]"
                     : "bg-[#FF6B6B]/20 text-[#D83232]"
@@ -338,7 +338,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
                   type="button"
                   onClick={handleFileSelect}
                   disabled={imageFiles.length >= MAX_IMAGES}
-                  className="h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink bg-white hover:bg-neutral-10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink bg-white dark:bg-neutral-10 hover:bg-neutral-10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   파일선택
                 </button>
