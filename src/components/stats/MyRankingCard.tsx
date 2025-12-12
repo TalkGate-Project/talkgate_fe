@@ -40,7 +40,6 @@ export default function MyRankingCard({ projectId, mode }: Props) {
   const amount: number = payload.totalAmount ?? 0;
   const previousAmount: number = payload.previousTotalAmount ?? 0;
   const diff = amount - previousAmount;
-  const badgeColor = "bg-primary-10 text-primary-100";
   const badgeLabel = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
 
   return (
@@ -70,8 +69,8 @@ export default function MyRankingCard({ projectId, mode }: Props) {
               <div className="mt-1 text-[14px] font-medium text-neutral-90">₩ {NUMBER_FORMATTER.format(amount)}원</div>
             </div>
           </div>
-          <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
-            {badgeLabel}
+          <div className="px-3 py-1 h-[25px] rounded-[30px] grid place-items-center text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+            <span className="dark:opacity-80">{badgeLabel}</span>
           </div>
         </div>
       </div>

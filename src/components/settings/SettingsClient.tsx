@@ -93,12 +93,23 @@ export default function SettingsClient() {
   
   // URL에서 탭 정보를 읽어옴
   const tabParam = searchParams.get("tab");
+  const openInvite = searchParams.get("openInvite");
   const activeTab = isValidTab(tabParam) ? tabParam : defaultTab;
 
   // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // openInvite 쿼리스트링이 있으면 member 탭으로 이동
+  useEffect(() => {
+    if (loading || !mounted) return;
+    if (openInvite === "true" && activeTab !== "member") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", "member");
+      router.replace(`/settings?${params.toString()}`, { scroll: false });
+    }
+  }, [openInvite, activeTab, loading, mounted, searchParams, router]);
 
   // 권한 체크 후 잘못된 탭이면 기본 탭으로 리디렉션
   useEffect(() => {

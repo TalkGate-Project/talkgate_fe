@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSelectedProjectId } from "@/lib/project";
 import { useMyMember } from "@/hooks/useMyMember";
@@ -136,6 +137,8 @@ function MemberRow({
 }
 
 export default function MemberSettings() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,6 +154,19 @@ export default function MemberSettings() {
     const id = getSelectedProjectId();
     setProjectId(id);
   }, []);
+
+  // 쿼리스트링에서 openInvite 확인하여 모달 열기
+  useEffect(() => {
+    const openInvite = searchParams.get("openInvite");
+    if (openInvite === "true") {
+      setIsInviteModalOpen(true);
+      // 쿼리스트링에서 openInvite 제거
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("openInvite");
+      const newQuery = params.toString();
+      router.replace(`/settings?tab=member${newQuery ? `&${newQuery}` : ""}`, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // 현재 사용자 정보 조회
   const { member: myMember } = useMyMember(projectId);

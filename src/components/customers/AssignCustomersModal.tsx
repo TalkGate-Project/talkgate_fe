@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
 import { useMe } from "@/hooks/useMe";
 import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
@@ -242,6 +243,7 @@ function HierarchicalTeamList({
 
 export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const { open, onClose, selectedCustomerIds, onAssign, projectId } = props;
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
   const { user } = useMe();
@@ -471,6 +473,26 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           {isLoading ? (
             <div className="text-center text-neutral-60 dark:text-neutral-60 py-10">
               불러오는 중...
+            </div>
+          ) : teamMembers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="text-center mb-6">
+                <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-2">
+                  배정 가능한 직원이 없습니다
+                </div>
+                <div className="text-[14px] text-neutral-60 dark:text-neutral-60">
+                  고객을 배정하려면 먼저 팀 멤버를 초대해야 합니다.
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  router.push("/settings?tab=member&openInvite=true");
+                }}
+                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 text-[14px] font-semibold hover:opacity-90 transition-opacity"
+              >
+                팀 멤버 관리로 이동
+              </button>
             </div>
           ) : (
             <HierarchicalTeamList

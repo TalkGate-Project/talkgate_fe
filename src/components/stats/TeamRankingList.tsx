@@ -70,7 +70,6 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
             const previousAmount = row.previousTotalAmount ?? 0;
             const diff = row.totalAmount - previousAmount;
             const changeLabel = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
-            const badgeColor = "bg-primary-10 text-primary-100";
             
             return (
               <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
@@ -91,8 +90,8 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
                     <div className="mt-3 leading-[1] text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
                   </div>
                 </div>
-                <div className={`px-3 h-[25px] rounded-full grid place-items-center text-[14px] font-bold ${badgeColor}`}>
-                  {changeLabel}
+                <div className="px-3 py-1 h-[25px] rounded-[30px] grid place-items-center text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+                  <span className="dark:opacity-80">{changeLabel}</span>
                 </div>
               </div>
             );
