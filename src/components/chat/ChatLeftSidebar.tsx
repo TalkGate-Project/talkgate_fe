@@ -184,7 +184,7 @@ export default function ChatLeftSidebar({
               onClick={() => setUnreadOnly(!unreadOnly)}
               className={`cursor-pointer inline-flex items-center px-1 h-[18px] rounded-[5px] text-[12px] transition-colors ${
                 unreadOnly
-                  ? "bg-primary-60 text-white font-medium"
+                  ? "bg-primary-60 text-white dark:text-neutral-0 font-medium"
                   : "bg-neutral-20 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-70 dark:opacity-80 hover:bg-neutral-30"
               }`}
             >
