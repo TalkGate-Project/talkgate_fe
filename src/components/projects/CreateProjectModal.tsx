@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import pleaseDragImg from "@/assets/images/projects/please_drag.png";
+import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.png";
 
 type Props = {
   onClose: () => void;
@@ -243,20 +245,33 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           {step === 1 ? (
             <div className="space-y-5">
               {/* 브랜드 아이콘 영역 */}
-              <div className="h-[181px] rounded-[5px] bg-neutral-10 px-6 py-3">
+              <div className="h-[181px] rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-6 py-3">
                 <div className="text-[14px] font-medium text-foreground">브랜드 아이콘</div>
                 {/* 드롭존 */}
                 <div className="mt-2 flex items-center justify-center">
                   <div
-                    className={`w-[100px] h-[100px] rounded-[14px] ${iconPreview ? "border border-dashed border-neutral-30" : ""} bg-card overflow-hidden cursor-pointer grid place-items-center`}
+                    className={`relative w-[100px] h-[100px] rounded-[14px] ${iconPreview ? "border border-dashed border-neutral-30" : ""} bg-card overflow-hidden cursor-pointer grid place-items-center`}
                     onClick={onPickFile}
                   >
                     {iconPreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={iconPreview} alt="preview" className="w-full h-full object-cover" />
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pleaseDragImg.src} alt="클릭하거나 드래그하여 업로드" className="w-full h-full object-contain" />
+                      <>
+                        <Image
+                          src={pleaseDragImg}
+                          alt="클릭하거나 드래그하여 업로드"
+                          className="dark:hidden"
+                          fill
+                          style={{ objectFit: "contain" }}
+                        />
+                        <Image
+                          src={pleaseDragDarkImg}
+                          alt="클릭하거나 드래그하여 업로드"
+                          className="hidden dark:block"
+                          fill
+                          style={{ objectFit: "contain" }}
+                        />
+                      </>
                     )}
                   </div>
                 </div>
@@ -265,7 +280,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
               </div>
 
               {/* 프로젝트 이름 */}
-              <div className="h-[90px] rounded-[5px] bg-neutral-10 px-6 py-3">
+              <div className="h-[90px] rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-6 py-3">
                 <div className="text-[14px] font-medium text-foreground">
                   프로젝트 이름 <span className="text-danger-40">*</span>
                 </div>
@@ -282,7 +297,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
               {/* 안내 문구 */}
 
               {/* 서브도메인 설정 섹션 */}
-              <div className="rounded-[5px] bg-neutral-10 px-6 py-3 min-h-[146px] flex flex-col">
+              <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-6 py-3 min-h-[146px] flex flex-col">
                 <div className="text-[14px] font-medium leading-[24px] text-foreground mb-2">서브도메인 설정</div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1 relative">
@@ -332,7 +347,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
               </div>
 
               {/* 건너뛰기 섹션 */}
-              <div className="rounded-[5px] bg-neutral-10 px-6 py-3 h-[104px] flex items-center justify-between">
+              <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-6 py-3 h-[104px] flex items-center justify-between">
                 <div>
                   <div className="text-[14px] font-medium leading-[24px] text-foreground mb-2">도메인을 나중에 설정하시겠습니까?</div>
                   <div className="text-[14px] font-medium leading-[24px] text-neutral-60">
