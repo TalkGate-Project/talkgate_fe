@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useCreateTeamMutation } from "@/hooks/useMembersTree";
+import { HRService } from "@/services/hr";
+import DatePicker from "@/components/common/DatePicker";
+import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import type {
   MemberDetail,
   HrNote,
@@ -127,12 +132,20 @@ export default function TeamMemberInfoModal({
   onClose,
   projectId,
 }: Props) {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabKey>("organization");
   const [localNotes, setLocalNotes] = useState<HrNote[]>([]);
   const [noteInput, setNoteInput] = useState("");
   const [teamCreateMode, setTeamCreateMode] = useState(false);
   const [teamNameDraft, setTeamNameDraft] = useState("");
   const [profileEditMode, setProfileEditMode] = useState(false);
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [hrFormData, setHrFormData] = useState({
+    realName: "",
+    birthDate: null as Date | null,
+    address: "",
+  });
   const createTeam = useCreateTeamMutation(projectId);
 
   // API로 멤버 상세 정보 가져오기
@@ -148,25 +161,88 @@ export default function TeamMemberInfoModal({
     setTeamCreateMode(false);
     setTeamNameDraft("");
     setProfileEditMode(false);
+    setHrFormData({
+      realName: member.hrData?.realName ?? "",
+      birthDate: member.hrData?.birth ? new Date(member.hrData.birth) : null,
+      address: member.hrData?.address ?? "",
+    });
   }, [member, open]);
 
   if (!open || typeof document === "undefined") {
     return null;
   }
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     const trimmed = noteInput.trim();
     if (!trimmed) return;
-    // TODO: API 호출로 특이사항 추가
-    const newNote: HrNote = {
-      id: Date.now(),
-      memberId: memberId,
-      note: trimmed,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setLocalNotes((prev) => [newNote, ...prev]);
-    setNoteInput("");
+    if (isSubmittingNote) return;
+
+    try {
+      setIsSubmittingNote(true);
+      const response = await HRService.addMemberNote(memberId, {
+        note: trimmed,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      // API 응답으로 받은 노트를 로컬 상태에 추가
+      if (response.data?.data) {
+        setLocalNotes((prev) => [response.data.data, ...prev]);
+      }
+      setNoteInput("");
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "특이사항 추가에 실패했습니다.");
+    } finally {
+      setIsSubmittingNote(false);
+    }
+  };
+
+  const handleRemoveNote = async (noteId: number) => {
+    if (!confirm("이 특이사항을 삭제하시겠습니까?")) return;
+    if (isSubmittingNote) return;
+
+    try {
+      setIsSubmittingNote(true);
+      await HRService.removeMemberNote(memberId, noteId);
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      setLocalNotes((prev) => prev.filter((note) => note.id !== noteId));
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "특이사항 삭제에 실패했습니다.");
+    } finally {
+      setIsSubmittingNote(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (isSubmittingProfile) return;
+
+    try {
+      setIsSubmittingProfile(true);
+      await HRService.updateMemberData(memberId, {
+        realName: hrFormData.realName,
+        birth: hrFormData.birthDate ? format(hrFormData.birthDate, "yyyy-MM-dd") : "",
+        address: hrFormData.address,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      alert("프로필 정보가 저장되었습니다.");
+      setProfileEditMode(false);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "저장에 실패했습니다.");
+    } finally {
+      setIsSubmittingProfile(false);
+    }
+  };
+
+  const handleCancelProfileEdit = () => {
+    if (member) {
+      setHrFormData({
+        realName: member.hrData?.realName ?? "",
+        birthDate: member.hrData?.birth ? new Date(member.hrData.birth) : null,
+        address: member.hrData?.address ?? "",
+      });
+    }
+    setProfileEditMode(false);
   };
 
   const handleReset = () => {
@@ -174,6 +250,13 @@ export default function TeamMemberInfoModal({
     setNoteInput("");
     setTab("organization");
     setProfileEditMode(false);
+    if (member) {
+      setHrFormData({
+        realName: member.hrData?.realName ?? "",
+        birthDate: member.hrData?.birth ? new Date(member.hrData.birth) : null,
+        address: member.hrData?.address ?? "",
+      });
+    }
   };
 
   const isLeader =
@@ -316,20 +399,19 @@ export default function TeamMemberInfoModal({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setProfileEditMode(false)}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]"
+                onClick={handleCancelProfileEdit}
+                disabled={isSubmittingProfile}
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000] disabled:opacity-60"
               >
                 취소
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  // TODO: 저장 로직 구현
-                  setProfileEditMode(false);
-                }}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#EDEDED]"
+                onClick={handleSaveProfile}
+                disabled={isSubmittingProfile}
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#EDEDED] disabled:opacity-60"
               >
-                저장
+                {isSubmittingProfile ? "저장 중..." : "저장"}
               </button>
             </div>
           ) : (
@@ -349,9 +431,20 @@ export default function TeamMemberInfoModal({
               <span className="w-[100px] text-[14px] text-[#808080] leading-6">
                 이름
               </span>
-              <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {member?.hrData?.realName || member?.name || "-"}
-              </span>
+              {profileEditMode ? (
+                <input
+                  type="text"
+                  value={hrFormData.realName}
+                  onChange={(e) =>
+                    setHrFormData((prev) => ({ ...prev, realName: e.target.value }))
+                  }
+                  className="flex-1 h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] bg-white"
+                />
+              ) : (
+                <span className="text-[14px] font-medium text-[#252525] leading-6">
+                  {member?.hrData?.realName || member?.name || "-"}
+                </span>
+              )}
             </div>
             <div className="flex items-center">
               <span className="w-[100px] text-[14px] text-[#808080] leading-6">
@@ -365,9 +458,23 @@ export default function TeamMemberInfoModal({
               <span className="w-[100px] text-[14px] text-[#808080] leading-6">
                 생년월일
               </span>
-              <span className="text-[14px] font-medium text-[#252525] leading-6">
-                {member?.hrData?.birth || "-"}
-              </span>
+              {profileEditMode ? (
+                <div className="relative flex-1">
+                  <DatePicker
+                    value={hrFormData.birthDate}
+                    onChange={(d) =>
+                      setHrFormData((prev) => ({ ...prev, birthDate: d }))
+                    }
+                    minDate={new Date(1950, 0, 1)}
+                    className="cursor-pointer pr-10"
+                  />
+                  <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
+                </div>
+              ) : (
+                <span className="text-[14px] font-medium text-[#252525] leading-6">
+                  {member?.hrData?.birth || "-"}
+                </span>
+              )}
             </div>
             <div className="flex items-center">
               <span className="w-[100px] text-[14px] text-[#808080] leading-6">
@@ -381,9 +488,20 @@ export default function TeamMemberInfoModal({
               <span className="w-[100px] text-[14px] text-[#808080] leading-6">
                 주소
               </span>
-              <span className="flex-1 text-[14px] font-medium text-[#252525] leading-6">
-                {member?.hrData?.address || "-"}
-              </span>
+              {profileEditMode ? (
+                <input
+                  type="text"
+                  value={hrFormData.address}
+                  onChange={(e) =>
+                    setHrFormData((prev) => ({ ...prev, address: e.target.value }))
+                  }
+                  className="flex-1 h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] bg-white"
+                />
+              ) : (
+                <span className="flex-1 text-[14px] font-medium text-[#252525] leading-6">
+                  {member?.hrData?.address || "-"}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -464,11 +582,8 @@ export default function TeamMemberInfoModal({
                   </div>
                   <button
                     className="cursor-pointer w-5 h-5 text-[#B0B0B0] hover:text-[#808080]"
-                    onClick={() =>
-                      setLocalNotes((prev) =>
-                        prev.filter((item) => item.id !== note.id)
-                      )
-                    }
+                    onClick={() => handleRemoveNote(note.id)}
+                    disabled={isSubmittingNote}
                     aria-label="특이사항 삭제"
                   >
                     <svg
@@ -508,9 +623,12 @@ export default function TeamMemberInfoModal({
           <button
             type="button"
             onClick={handleAddNote}
-            className="h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#EDEDED] text-[14px] font-semibold hover:opacity-90"
+            disabled={isSubmittingNote}
+            className={`h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#EDEDED] text-[14px] font-semibold hover:opacity-90 ${
+              isSubmittingNote ? "opacity-60 cursor-not-allowed" : ""
+            }`}
           >
-            저장
+            {isSubmittingNote ? "저장 중..." : "저장"}
           </button>
         </div>
       </section>
