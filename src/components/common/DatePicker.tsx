@@ -24,7 +24,11 @@ export default function DatePicker(props: DatePickerProps) {
 	const [mode, setMode] = useState<"month" | "year">("month");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
 	const [view, setView] = useState<Date>(new Date(initial.getFullYear(), initial.getMonth(), 1));
-	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 20); // 40-year page with scroll
+	// Calculate yearStart: if minDate exists, start from minDate year, otherwise start from initial year - 20
+	const minYear = minDate ? minDate.getFullYear() : null;
+	const maxYear = maxDate ? maxDate.getFullYear() : new Date().getFullYear() + 10;
+	const defaultYearStart = minYear ? minYear : initial.getFullYear() - 20;
+	const [yearStart, setYearStart] = useState<number>(defaultYearStart); // Starting year for year selection
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const inputRef = useRef<HTMLInputElement | null>(null);
@@ -35,9 +39,11 @@ export default function DatePicker(props: DatePickerProps) {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		setYearStart(base.getFullYear() - 20);
+		const resetMinYear = minDate ? minDate.getFullYear() : null;
+		const resetYearStart = resetMinYear ? resetMinYear : base.getFullYear() - 20;
+		setYearStart(resetYearStart);
 		setMode("month");
-	}, [value]);
+	}, [value, minDate]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -108,10 +114,12 @@ export default function DatePicker(props: DatePickerProps) {
 		if (!open) {
 			const base = value ? new Date(value) : new Date();
 			setView(new Date(base.getFullYear(), base.getMonth(), 1));
-			setYearStart(base.getFullYear() - 20);
+			const syncMinYear = minDate ? minDate.getFullYear() : null;
+			const syncYearStart = syncMinYear ? syncMinYear : base.getFullYear() - 20;
+			setYearStart(syncYearStart);
 			setMode("month");
 		}
-	}, [value, open]);
+	}, [value, open, minDate]);
 
 	const label = useMemo(() => {
 		const y = view.getFullYear();
@@ -125,7 +133,9 @@ export default function DatePicker(props: DatePickerProps) {
 		setMode("month");
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		setYearStart(base.getFullYear() - 20);
+		const openMinYear = minDate ? minDate.getFullYear() : null;
+		const openYearStart = openMinYear ? openMinYear : base.getFullYear() - 20;
+		setYearStart(openYearStart);
 	}
 
 
@@ -133,16 +143,12 @@ export default function DatePicker(props: DatePickerProps) {
 	function goPrev() {
 		if (mode === "month") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1));
-		} else {
-			setYearStart((s) => s - 40);
 		}
 	}
 
 	function goNext() {
 		if (mode === "month") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1));
-		} else {
-			setYearStart((s) => s + 40);
 		}
 	}
 
@@ -185,7 +191,10 @@ export default function DatePicker(props: DatePickerProps) {
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
-									setYearStart(view.getFullYear() - 20);
+									// When switching to year mode, start from minYear if exists, otherwise from current year
+									const toggleMinYear = minDate ? minDate.getFullYear() : null;
+									const toggleYearStart = toggleMinYear ? toggleMinYear : view.getFullYear() - 20;
+									setYearStart(toggleYearStart);
 								} else {
 									setMode("month");
 								}
@@ -212,28 +221,30 @@ export default function DatePicker(props: DatePickerProps) {
 								/>
 							</svg>
 						</button>
-						<div className="flex items-center gap-2">
-							<button
-								type="button"
-								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
-								onClick={goPrev}
-								aria-label="이전"
-							>
-								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-								</svg>
-							</button>
-							<button
-								type="button"
-								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
-								onClick={goNext}
-								aria-label="다음"
-							>
-								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-								</svg>
-							</button>
-						</div>
+						{mode === "month" && (
+							<div className="flex items-center gap-2">
+								<button
+									type="button"
+									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+									onClick={goPrev}
+									aria-label="이전"
+								>
+									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+									</svg>
+								</button>
+								<button
+									type="button"
+									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+									onClick={goNext}
+									aria-label="다음"
+								>
+									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+									</svg>
+								</button>
+							</div>
+						)}
 					</div>
 
 					{/* Body */}
@@ -289,18 +300,24 @@ export default function DatePicker(props: DatePickerProps) {
 					) : (
 						<div className="max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
-								{Array.from({ length: 40 }).map((_, idx) => {
+								{Array.from({ length: Math.min(80, maxYear - yearStart + 1) }).map((_, idx) => {
 									const y = yearStart + idx;
+									if (y > maxYear) return null;
 									const isCurrentYear = view.getFullYear() === y;
+									// Check if year is disabled based on minDate and maxDate
+									const isDisabled = (minDate ? y < minDate.getFullYear() : false) || (maxDate ? y > maxDate.getFullYear() : false);
 									return (
 										<button
 											key={y}
 											type="button"
-											onClick={() => onSelectYear(y)}
-											className={`h-8 rounded-[6px] text-[14px] cursor-pointer ${
-												isCurrentYear 
-													? "bg-[#D6FAE8] text-[#252525] font-medium" 
-													: "text-[#252525] hover:bg-neutral-20"
+											onClick={() => !isDisabled && onSelectYear(y)}
+											disabled={isDisabled || undefined}
+											className={`h-8 rounded-[6px] text-[14px] ${
+												isDisabled 
+													? "opacity-30 cursor-not-allowed text-[#B0B0B0]"
+													: isCurrentYear 
+														? "bg-[#D6FAE8] text-[#252525] font-medium cursor-pointer" 
+														: "text-[#252525] hover:bg-neutral-20 cursor-pointer"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>

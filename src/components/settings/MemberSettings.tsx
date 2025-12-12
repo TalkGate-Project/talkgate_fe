@@ -11,6 +11,7 @@ import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import TeamMemberInfoModal from "./teamManagement/TeamMemberInfoModal";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -22,10 +23,12 @@ const ROLE_LABELS: Record<string, string> = {
 function MemberRow({
   member,
   onDelete,
+  onInfoClick,
   canDelete,
 }: {
   member: MemberListItem;
   onDelete: (id: number) => void;
+  onInfoClick: (id: number) => void;
   /** 현재 사용자가 삭제 권한이 있는지 (admin/subAdmin) */
   canDelete: boolean;
 }) {
@@ -49,7 +52,10 @@ function MemberRow({
     <>
       <div className="flex items-center py-3 px-10 h-[80px]">
         {/* Member Info */}
-        <div className="flex items-center gap-4 w-[280px] min-w-[280px] flex-none">
+        <div 
+          className="flex items-center gap-4 w-[280px] min-w-[280px] flex-none cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => onInfoClick(member.id)}
+        >
           {/* Avatar */}
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] flex-shrink-0 ${
@@ -139,6 +145,7 @@ export default function MemberSettings() {
   const [selectedMember, setSelectedMember] = useState<MemberListItem | null>(
     null
   );
+  const [selectedMemberIdForInfo, setSelectedMemberIdForInfo] = useState<number | null>(null);
 
   useEffect(() => {
     const id = getSelectedProjectId();
@@ -327,6 +334,7 @@ export default function MemberSettings() {
                 key={member.id}
                 member={member}
                 onDelete={handleDelete}
+                onInfoClick={(id) => setSelectedMemberIdForInfo(id)}
                 canDelete={isAdminOrSubAdmin}
               />
             ))
@@ -371,6 +379,16 @@ export default function MemberSettings() {
         confirmText="탈퇴하기"
         cancelText="취소"
       />
+
+      {/* Team Member Info Modal */}
+      {selectedMemberIdForInfo && (
+        <TeamMemberInfoModal
+          open={Boolean(selectedMemberIdForInfo)}
+          memberId={selectedMemberIdForInfo}
+          onClose={() => setSelectedMemberIdForInfo(null)}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 }

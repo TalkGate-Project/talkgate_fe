@@ -286,6 +286,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                             onChange={(d) =>
                               setFormData((prev) => ({ ...prev, birthDate: d }))
                             }
+                            minDate={new Date(1950, 0, 1)}
                             className="cursor-pointer pr-10"
                           />
                           <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5" />
