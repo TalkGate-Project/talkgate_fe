@@ -11,6 +11,7 @@ import PhoneIcon from "@/components/common/icons/PhoneIcon";
 import LockClosedDangerIcon from "@/components/common/icons/LockClosedDangerIcon";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import TrashIcon from "@/components/common/icons/TrashIcon";
+import TeamNameBadge from "@/components/common/TeamNameBadge";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { HRService } from "@/services/hr";
 
@@ -235,9 +236,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                       {/* 지점 태그 (팀명 표시) */}
                       {displayData.teamName && (
                         <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-secondary-10 rounded-[30px] text-[12px] font-medium text-secondary-40">
-                            {displayData.teamName}
-                          </span>
+                          <TeamNameBadge label={displayData.teamName} />
                         </div>
                       )}
                     </div>

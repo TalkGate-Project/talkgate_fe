@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState, flattenTeamData } from "@/hooks/useTeamTree";
 import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "./tokens";
+import TeamNameBadge from "@/components/common/TeamNameBadge";
 
 type Props = {
   data: TeamMember[];
@@ -124,7 +125,7 @@ export default function TeamListView({
             <div
               className={`h-[60px] flex items-center px-6 gap-4 border border-neutral-30 rounded-[12px] cursor-move transition-all ${
                 item.isLeader
-                  ? "bg-primary-10/30"
+                  ? "bg-team-leader-highlight"
                   : "bg-card"
               } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
               style={{ marginLeft: `${indent}px` }}
@@ -173,9 +174,7 @@ export default function TeamListView({
                 {item.name}
               </button>
               {item.department && item.department !== "팀원" && (
-                <div className="px-3 bg-secondary-10 rounded-[30px] max-h-[22px] flex items-center justify-center">
-                  <span className="text-[12px] font-medium text-secondary-40 leading-[22px]">{item.department}</span>
-                </div>
+                <TeamNameBadge label={item.department} />
               )}
             </div>
             {hasVisibleChildren && isExpanded && item.children && (
