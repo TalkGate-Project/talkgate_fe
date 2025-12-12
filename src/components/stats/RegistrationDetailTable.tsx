@@ -107,7 +107,7 @@ export default function RegistrationDetailTable({
               </tr>
             ) : (
               rows.map((row, index) => (
-                <tr key={row.id} className="border-b border-neutral-30/40">
+                <tr key={row.id} className="border-b border-neutral-30/40 dark:!border-[#44444455]">
                   <td className="px-4 py-3 pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
                   <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>

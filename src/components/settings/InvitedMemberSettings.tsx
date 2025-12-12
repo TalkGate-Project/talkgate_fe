@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSelectedProjectId } from "@/lib/project";
+import { useMyMember } from "@/hooks/useMyMember";
+import { hasAdminAccess } from "@/utils/permissions";
 import { MembersService } from "@/services/members";
 import type { InvitationListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
+import InviteMemberModal from "@/components/common/InviteMemberModal";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -135,11 +138,19 @@ export default function InvitedMemberSettings() {
   const queryClient = useQueryClient();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   useEffect(() => {
     const id = getSelectedProjectId();
     setProjectId(id);
   }, []);
+
+  // 현재 사용자 정보 조회
+  const { member: myMember } = useMyMember(projectId);
+  const myRole = myMember?.role;
+  
+  // 권한 체크
+  const isAdminOrSubAdmin = hasAdminAccess(myRole);
 
   // 초대 목록 조회
   const { data: invitationsData, isLoading } = useQuery({
@@ -190,6 +201,26 @@ export default function InvitedMemberSettings() {
     },
   });
 
+  // 멤버 초대 mutation
+  const inviteMutation = useMutation({
+    mutationFn: (payload: { email: string; role: "subAdmin" | "member" }) =>
+      MembersService.invite(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["invitations", "list", projectId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["members", "list", projectId],
+      });
+      setIsInviteModalOpen(false);
+      alert("멤버 초대가 완료되었습니다.");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.data?.message || "멤버 초대에 실패했습니다.";
+      alert(errorMessage);
+    },
+  });
+
   const handleResend = (id: number) => {
     if (confirm("초대 이메일을 재전송하시겠습니까?")) {
       resendMutation.mutate(id);
@@ -200,6 +231,14 @@ export default function InvitedMemberSettings() {
     if (confirm("초대를 취소하시겠습니까?")) {
       cancelMutation.mutate(id);
     }
+  };
+
+  const handleInviteMember = () => {
+    setIsInviteModalOpen(true);
+  };
+
+  const handleInviteConfirm = (email: string, role: "subAdmin" | "member") => {
+    inviteMutation.mutate({ email, role });
   };
 
   const handlePageChange = (page: number) => {
@@ -230,6 +269,16 @@ export default function InvitedMemberSettings() {
         <h1 className="text-[24px] font-bold text-foreground dark:text-neutral-80 leading-5">
           초대중인 멤버
         </h1>
+        
+        {/* 멤버초대 버튼 - admin/subAdmin만 표시 */}
+        {isAdminOrSubAdmin && (
+          <button
+            onClick={handleInviteMember}
+            className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
+          >
+            멤버초대
+          </button>
+        )}
       </div>
 
       {/* Divider */}
@@ -291,6 +340,13 @@ export default function InvitedMemberSettings() {
           />
         </div>
       )}
+
+      {/* Invite Member Modal */}
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onInvite={handleInviteConfirm}
+      />
     </div>
   );
 }

@@ -169,7 +169,7 @@ function StatsPage() {
         {/* Apply Tab: 신청통계 */}
         {active === "apply" && (
           <>
-            <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <div className="flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90">
                   신청통계
@@ -207,7 +207,7 @@ function StatsPage() {
               </div>
             </section>
 
-            <section className="mt-9 surface rounded-[14px] pt-6 px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+            <section className="mt-9 surface rounded-[14px] pt-6 px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
@@ -223,7 +223,7 @@ function StatsPage() {
 
         {/* Assign Tab: 배정통계 */}
         {active === "assign" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between h-[48px]">
               <h2 className="text-[18px] font-semibold text-neutral-90">
                 배정통계
@@ -261,7 +261,7 @@ function StatsPage() {
 
         {/* Payment Tab: 결제통계 */}
         {active === "payment" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-neutral-90">
                 결제통계
@@ -300,7 +300,7 @@ function StatsPage() {
 
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
-          <section className="surface rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <h2 className="text-[18px] font-semibold text-neutral-90">
               처리상태통계
             </h2>
@@ -315,7 +315,7 @@ function StatsPage() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+          <section className="surface rounded-[14px] px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-start justify-between">
               <div className="pt-[11px]">
                 <h2 className="text-[18px] font-semibold text-neutral-90">
