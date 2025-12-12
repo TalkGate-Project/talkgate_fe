@@ -9,6 +9,7 @@ import { useCreateTeamMutation } from "@/hooks/useMembersTree";
 import { HRService } from "@/services/hr";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
+import TeamNameBadge from "@/components/common/TeamNameBadge";
 import type {
   MemberDetail,
   HrNote,
@@ -346,7 +347,7 @@ export default function TeamMemberInfoModal({
               <div
                 key={node.id}
                 className={`flex items-center gap-3 px-5 py-3 rounded-[12px] ${
-                  isNodeLeader ? "bg-[#E9F8EF]" : "bg-[#F8F8F8]"
+                  isNodeLeader ? "bg-team-leader-highlight" : "bg-[#F8F8F8]"
                 }`}
               >
                 <div
@@ -360,9 +361,7 @@ export default function TeamMemberInfoModal({
                   {node.name}
                 </span>
                 {isNodeLeader && node.department && (
-                  <span className="px-3 py-1 rounded-[30px] bg-[#D6FAE8] text-[12px] font-medium text-[#00B55B]">
-                    {node.department}
-                  </span>
+                  <TeamNameBadge label={node.department} />
                 )}
               </div>
             );

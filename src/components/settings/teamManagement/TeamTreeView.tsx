@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState } from "@/hooks/useTeamTree";
 import { TOKENS } from "./tokens";
+import TeamNameBadge from "@/components/common/TeamNameBadge";
 
 type Props = {
   data: TeamMember[];
@@ -58,26 +59,21 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         <div className="flex flex-col items-center">
           {/* 팀/부서 배지 (리더일 경우) */}
           {isLeader && (
-            <div
-              className="flex justify-center items-center px-3 py-1 rounded-[30px] shadow-sm bg-secondary-10 mb-1"
+            <TeamNameBadge
+              label={item.department ?? ""}
+              className="mb-1"
               style={{
                 minWidth: `${TOKENS.node.badge.w}px`,
                 height: `${TOKENS.node.badge.h}px`,
               }}
-            >
-              <span
-                className="text-[12px] font-medium truncate text-secondary-40 opacity-80"
-                title={item.department}
-              >
-                {item.department}
-              </span>
-            </div>
+              title={item.department}
+            />
           )}
 
           {/* 노드 카드 */}
           <div
             className={`group relative flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 ${
-              isLeader ? "bg-primary-10/30" : "bg-neutral-10"
+              isLeader ? "bg-team-leader-highlight" : "bg-neutral-10"
             } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               minWidth: `${TOKENS.node.leader.w}px`,

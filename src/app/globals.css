@@ -528,6 +528,18 @@ body {
 @utility bg-notification-unread { background-color: var(--notification-unread-bg); }
 @utility border-notification-unread { border-color: var(--notification-unread-border); }
 
+/* Team leader / highlight backgrounds */
+@utility bg-team-leader-highlight {
+  /*
+    Figma-export style intent:
+    - White base
+    - Very subtle primary-10 overlay (almost-white green tint)
+  */
+  background:
+    linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
+    linear-gradient(0deg, #FFFFFF, #FFFFFF);
+}
+
 @utility text-secondary-10 { color: var(--secondary-10); }
 @utility text-secondary-20 { color: var(--secondary-20); }
 @utility text-secondary-40 { color: var(--secondary-40); }

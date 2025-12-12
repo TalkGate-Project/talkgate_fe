@@ -16,7 +16,12 @@ type CustomersTableProps = {
   onCustomerClick: (customerId: number) => void;
 };
 
-const UI_SCALE_STORAGE_KEY = "tg-ui-scale-mode";
+function getBodyZoom(): number {
+  if (typeof document === "undefined") return 1;
+  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
 
 export default function CustomersTable({
   customers,
@@ -37,37 +42,6 @@ export default function CustomersTable({
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
-  const [isCompactMode, setIsCompactMode] = useState(false);
-
-  // Check compact mode on mount and listen for storage changes
-  useEffect(() => {
-    const checkCompactMode = () => {
-      try {
-        const mode = window.localStorage.getItem(UI_SCALE_STORAGE_KEY);
-        setIsCompactMode(mode === "compact");
-      } catch {
-        setIsCompactMode(false);
-      }
-    };
-
-    checkCompactMode();
-
-    // Listen for storage changes (when user toggles mode)
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === UI_SCALE_STORAGE_KEY) {
-        checkCompactMode();
-      }
-    };
-    window.addEventListener("storage", handleStorage);
-
-    // Also check periodically for same-tab changes
-    const interval = setInterval(checkCompactMode, 500);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-    };
-  }, []);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -90,18 +64,17 @@ export default function CustomersTable({
     const notes = Array.isArray(customer.recentNotes) ? customer.recentNotes : [];
     setHoveredId(customer.id);
     
-    // 컴팩트 모드일 때 위치 보정 (zoom 0.8 대응)
-    const zoom = isCompactMode ? 0.8 : 1;
-    // 컴팩트 모드일 때 조금 더 여유를 둠
-    const offsetX = isCompactMode ? 20 : 12;
-    const offsetY = isCompactMode ? 20 : 12;
+    // body zoom(컴팩트 0.8 / 기본 1) 기준으로 위치 보정
+    const zoom = getBodyZoom();
+    const offsetX = zoom < 1 ? 20 : 12;
+    const offsetY = zoom < 1 ? 20 : 12;
 
     const adjustedX = (clientX + offsetX) / zoom;
     const adjustedY = (clientY + offsetY) / zoom;
 
     // window.innerWidth도 줌 레벨에 따라 달라질 수 있으므로 안전하게 처리
     // (크롬 등에서는 zoom 시 innerWidth가 늘어남)
-    const maxLeft = (window.innerWidth / (isCompactMode ? 1 : 1)) - 400;
+    const maxLeft = window.innerWidth / zoom - 400;
 
     setHoverInfo({
       name: customer.name,
@@ -115,13 +88,13 @@ export default function CustomersTable({
     if (!hoverInfo) return;
     const { clientX, clientY } = e;
 
-    const zoom = isCompactMode ? 0.8 : 1;
-    const offsetX = isCompactMode ? 20 : 12;
-    const offsetY = isCompactMode ? 20 : 12;
+    const zoom = getBodyZoom();
+    const offsetX = zoom < 1 ? 20 : 12;
+    const offsetY = zoom < 1 ? 20 : 12;
 
     const adjustedX = (clientX + offsetX) / zoom;
     const adjustedY = (clientY + offsetY) / zoom;
-    const maxLeft = (window.innerWidth / (isCompactMode ? 1 : 1)) - 400;
+    const maxLeft = window.innerWidth / zoom - 400;
 
     setHoverInfo((prev) =>
       prev
