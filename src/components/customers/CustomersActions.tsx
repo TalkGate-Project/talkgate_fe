@@ -34,7 +34,7 @@ export default function CustomersActions({
         fileType,
         projectId,
       });
-      const { uploadUrl, fileUrl } = presign.data;
+      const { uploadUrl, fileUrl } = presign.data.data;
       if (uploadUrl) {
         await AssetsService.uploadToS3(uploadUrl, file, fileType);
       }
