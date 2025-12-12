@@ -29,10 +29,15 @@ export default function CustomersActions({
     if (!file) return;
     try {
       const fileType = file.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      const presign = await AssetsService.presignBulkImport({ fileName: file.name, fileType });
-      const { uploadUrl, fileUrl, url } = presign.data as any;
-      const putUrl = uploadUrl || url;
-      if (putUrl) await AssetsService.uploadToS3(putUrl, file, fileType);
+      const presign = await AssetsService.presignBulkImport({ 
+        fileName: file.name, 
+        fileType,
+        projectId,
+      });
+      const { uploadUrl, fileUrl } = presign.data;
+      if (uploadUrl) {
+        await AssetsService.uploadToS3(uploadUrl, file, fileType);
+      }
       await CustomersBulkService.createImport({
         fileUrl: fileUrl || undefined,
         fileName: file.name,
@@ -50,13 +55,28 @@ export default function CustomersActions({
 
   const handleExcelDownload = async () => {
     try {
-      const exportQuery: Record<string, string | number | boolean> = {
-        page: appliedFilters.page || 1,
-        limit: appliedFilters.limit || 10,
-      } as any;
+      const exportQuery: Record<string, string | number | boolean | Array<string | number>> = {};
       const appliedForExport: any = appliedFilters;
+      
+      // API 스펙에 맞는 모든 필터 파라미터 전달 (page, limit 제외)
       if (appliedForExport.name) exportQuery.name = appliedForExport.name;
       if (appliedForExport.contact1) exportQuery.contact1 = appliedForExport.contact1;
+      if (appliedForExport.contact2) exportQuery.contact2 = appliedForExport.contact2;
+      if (appliedForExport.noteContent) exportQuery.noteContent = appliedForExport.noteContent;
+      if (appliedForExport.assignType) exportQuery.assignType = appliedForExport.assignType;
+      if (appliedForExport.teamId) exportQuery.teamId = appliedForExport.teamId;
+      if (appliedForExport.memberId) exportQuery.memberId = appliedForExport.memberId;
+      if (appliedForExport.applicationRoute) exportQuery.applicationRoute = appliedForExport.applicationRoute;
+      if (appliedForExport.mediaCompany) exportQuery.mediaCompany = appliedForExport.mediaCompany;
+      if (appliedForExport.site) exportQuery.site = appliedForExport.site;
+      if (appliedForExport.categoryIds && Array.isArray(appliedForExport.categoryIds) && appliedForExport.categoryIds.length > 0) {
+        exportQuery.categoryIds = appliedForExport.categoryIds;
+      }
+      if (appliedForExport.applicationDateFrom) exportQuery.applicationDateFrom = appliedForExport.applicationDateFrom;
+      if (appliedForExport.applicationDateTo) exportQuery.applicationDateTo = appliedForExport.applicationDateTo;
+      if (appliedForExport.assignedAtFrom) exportQuery.assignedAtFrom = appliedForExport.assignedAtFrom;
+      if (appliedForExport.assignedAtTo) exportQuery.assignedAtTo = appliedForExport.assignedAtTo;
+      
       const blobRes = await CustomersBulkService.exportExcel({ projectId, query: exportQuery });
       const blob = blobRes.data;
       const url = URL.createObjectURL(blob);

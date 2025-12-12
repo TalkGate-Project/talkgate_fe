@@ -7,8 +7,11 @@ export const AssetsService = {
     return apiClient.post<PresignOutput>("/v1/asset/attachment/presigned-url", input);
   },
   // 고객 bulk import용 Presigned URL 발급 (x-project-id 헤더 필요)
-  presignBulkImport(input: PresignInput) {
-    return apiClient.post<PresignOutput>("/v1/asset/bulk-import/presigned-url", input);
+  presignBulkImport(input: PresignInput & { projectId: string }) {
+    const { projectId, ...body } = input;
+    return apiClient.post<PresignOutput>("/v1/asset/bulk-import/presigned-url", body, {
+      headers: { "x-project-id": projectId },
+    });
   },
   // 프로필 이미지 업로드용 Presigned URL 발급
   presignProfileImage(input: PresignInput) {

@@ -177,7 +177,7 @@ export default function BasicTab({
       {/* Messenger Accounts */}
       <div className="md:col-span-2">
         <div className="text-[16px] font-semibold text-neutral-90 mb-3">메신저 계정</div>
-        <div className="border-b border-[#E2E2E2] mb-3" />
+        <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <div className="w-[120px]">
