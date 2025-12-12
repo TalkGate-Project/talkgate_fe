@@ -104,10 +104,10 @@ export default function LineIntegrationModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[848px] max-h-[90vh] flex flex-col">
+      <div className="relative bg-card dark:bg-neutral-10 rounded-[14px] w-[848px] max-h-[90vh] flex flex-col">
         {/* 헤더 */}
         <div className="h-[64px] flex items-center px-7 border-b border-neutral-30/40 dark:border-neutral-30/40">
           <div className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">

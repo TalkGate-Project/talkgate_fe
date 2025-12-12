@@ -67,10 +67,10 @@ export default function TwoFactorDisableModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-card rounded-[16px] w-full max-w-[480px] shadow-xl">
+      <div className="relative bg-card dark:bg-neutral-10 rounded-[16px] w-full max-w-[480px]">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-4">
           <h2 className="text-[20px] font-bold text-foreground">

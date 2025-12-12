@@ -56,16 +56,13 @@ export default function SelfAuthenticationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/30"
+        className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div 
-        className="relative w-[440px] bg-card dark:bg-neutral-0 rounded-[14px] mx-4"
-        style={{
-          boxShadow: '0px 13px 61px rgba(169, 169, 169, 0.366013)'
-        }}
+        className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-5">

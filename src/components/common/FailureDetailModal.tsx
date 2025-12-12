@@ -128,9 +128,9 @@ export default function FailureDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 dark:bg-[#000000CC]">
       {/* Modal */}
-      <div className="relative w-[848px] max-h-[668px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
+      <div className="relative w-[848px] max-h-[668px] bg-card dark:bg-neutral-10 rounded-[14px]">
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-[30px]">
           <h2 className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">

@@ -124,8 +124,8 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
       {children}
       {state.open ? (
         <div className="fixed inset-0 z-[150] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/35" onClick={hide} />
-          <div className="relative w-[440px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+          <div className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]" onClick={hide} />
+          <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
             <div className="px-8 pt-7 pb-6">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-[#000000]">{state.title}</h2>

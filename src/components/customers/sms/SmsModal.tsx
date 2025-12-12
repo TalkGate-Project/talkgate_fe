@@ -134,8 +134,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
   return (
     <BaseModal
       onClose={onClose}
-      overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] max-h-[703px] xl:max-h-[753px] overflow-y-auto rounded-[14px] bg-card dark:bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      containerClassName="relative w-[848px] max-h-[703px] xl:max-h-[753px] overflow-y-auto rounded-[14px] bg-card dark:bg-neutral-10"
       ariaLabel="문자 전송"
     >
       <div className="relative w-full flex flex-col">

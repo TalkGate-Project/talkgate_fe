@@ -32,9 +32,9 @@ export default function ConfirmModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onCancel} />
       <div
-        className="relative w-[440px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
+        className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
         role="dialog"
         aria-modal="true"
       >

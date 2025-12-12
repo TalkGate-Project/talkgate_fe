@@ -191,8 +191,8 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" />
-      <div className="relative bg-card rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] w-[848px] h-[597px] flex flex-col">
+      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" />
+      <div className="relative bg-card dark:bg-neutral-10 rounded-[14px] w-[848px] h-[597px] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center px-7">
           <div className="text-[18px] font-semibold leading-[1] text-foreground mt-[24px] mb-[35px]">새 프로젝트 생성</div>

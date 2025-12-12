@@ -21,11 +21,11 @@ export default function ApiKeyRegenerateModal({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40" onClick={onClose} />
 
       {/* Modal */}
       <div
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1),0px_13px_61px_rgba(169,169,169,0.366)] z-50"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] z-50"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

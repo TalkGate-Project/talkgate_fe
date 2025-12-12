@@ -59,9 +59,9 @@ export default function MemberStatsFilterModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
       <div
-        className="absolute left-1/2 top-1/2 bg-card rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]"
+        className="absolute left-1/2 top-1/2 bg-card dark:bg-neutral-10 rounded-[14px]"
         style={{ width: 480, transform: "translate(-50%, -50%)" }}
       >
         {/* Header */}

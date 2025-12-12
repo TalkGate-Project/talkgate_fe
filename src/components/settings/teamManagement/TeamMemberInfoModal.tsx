@@ -638,9 +638,9 @@ export default function TeamMemberInfoModal({
   if (isLoading) {
     return createPortal(
       <div className="fixed inset-0 z-[100]">
-        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
         <div
-          className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col items-center justify-center"
+          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
             height: 400,
@@ -661,9 +661,9 @@ export default function TeamMemberInfoModal({
   if (isError || !member) {
     return createPortal(
       <div className="fixed inset-0 z-[100]">
-        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
         <div
-          className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col items-center justify-center"
+          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
             height: 400,
@@ -688,9 +688,9 @@ export default function TeamMemberInfoModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
       <div
-        className="absolute left-1/2 top-1/2 bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] overflow-hidden flex flex-col"
+        className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col"
         style={{
           width: 904,
           maxHeight: "90vh",

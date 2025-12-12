@@ -53,12 +53,12 @@ export default function SmsHistoryFilterModal({
     <>
       {/* 모달 배경 오버레이 */}
       <div
-        className="fixed inset-0 bg-black/30 z-40"
+        className="fixed inset-0 bg-black/30 dark:bg-[#000000CC] z-40"
         onClick={onClose}
       />
       
       {/* 모달 */}
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[306px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] z-50 flex flex-col">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[306px] bg-card dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col">
         {/* 모달 헤더 */}
         <div className="flex items-center justify-between px-6 pt-6 pb-[30px]">
           <h3 className="text-[18px] font-semibold text-ink dark:text-neutral-80">필터설정</h3>

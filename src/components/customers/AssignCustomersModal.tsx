@@ -380,8 +380,8 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   return (
     <BaseModal
       onClose={() => !loading && onClose()}
-      overlayClassName="bg-black/50"
-      containerClassName="relative w-[848px] max-w-[92vw] max-h-[90vh] rounded-[14px] bg-card dark:bg-neutral-0 shadow-[0_13px_61px_rgba(169,169,169,0.37)] p-6 flex flex-col"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      containerClassName="relative w-[848px] max-w-[92vw] max-h-[90vh] rounded-[14px] bg-card dark:bg-neutral-10 p-6 flex flex-col"
       ariaLabel="고객 배정"
     >
       {/* Header row */}

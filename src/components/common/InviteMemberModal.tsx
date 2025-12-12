@@ -34,10 +34,10 @@ export default function InviteMemberModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative w-[440px] bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px]">
         {/* Close Button */}
         <button
           onClick={handleClose}
