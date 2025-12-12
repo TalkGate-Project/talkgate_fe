@@ -109,7 +109,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                 e.stopPropagation();
                 onMemberClick(item);
               }}
-              className="font-semibold text-left text-[16px] leading-6 tracking-[0.2px] text-foreground hover:underline focus:underline truncate max-w-[120px]"
+              className="cursor-pointer font-semibold text-left text-[16px] leading-6 tracking-[0.2px] text-foreground hover:underline focus:underline truncate max-w-[120px]"
             >
               {item.name}
             </button>
