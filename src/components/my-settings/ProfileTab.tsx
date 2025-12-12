@@ -74,7 +74,8 @@ export default function ProfileTab() {
             프로젝트에서 사용되는 프로필 정보를 설정합니다.
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정 */}
+        {/* <div className="flex gap-2">
           {isEditing ? (
             <>
               <button
@@ -100,7 +101,7 @@ export default function ProfileTab() {
               프로필 수정
             </button>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Divider */}
@@ -145,7 +146,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Form Fields */}
-      <div className="px-7 grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2 gap-5 max-w-[788px] mx-auto">
         {/* 이름 */}
         <div>
           <label className="block text-[14px] font-medium text-neutral-60 mb-2">
@@ -184,10 +185,10 @@ export default function ProfileTab() {
           />
         </div>
 
-        {/* 연락처 */}
+        {/* 휴대폰 번호 */}
         <div>
           <label className="block text-[14px] font-medium text-neutral-60 mb-2">
-            연락처
+            휴대폰 번호
           </label>
           <input
             type="tel"
@@ -199,7 +200,7 @@ export default function ProfileTab() {
                 ? "border-border bg-card focus:border-foreground" 
                 : "border-border bg-neutral-10 text-neutral-60 cursor-default"
             }`}
-            placeholder="연락처를 입력하세요"
+            placeholder="휴대폰 번호를 입력하세요"
           />
         </div>
       </div>
