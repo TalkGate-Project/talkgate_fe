@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, ReactNode, useId } from "react";
+import { useEffect, ReactNode } from "react";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
@@ -12,6 +12,8 @@ import loginCardStrap from "@/assets/images/auth/login_card_strap.png";
  * 배경 이미지의 주요 톤과 어울리는 단색
  */
 const AUTH_BODY_BG = "#494949";
+
+const COMPACT_ZOOM = 0.8;
 
 interface AuthLayoutProps {
   /** 카드 내부에 렌더링될 콘텐츠 */
@@ -31,61 +33,58 @@ export default function AuthLayout({
   showLogo = true,
   ariaLabel = "auth-form-area",
 }: AuthLayoutProps) {
-  const styleId = useId();
-  
-  // html/body 배경색 설정 (확대/축소/컴팩트 모드 대응)
+  // Auth 페이지에서는 zoom을 1로 강제 설정 (컴팩트 모드 예외)
   useEffect(() => {
-    const styleTagId = `auth-layout-style-${styleId.replace(/:/g, "-")}`;
-    
-    const existingStyle = document.getElementById(styleTagId);
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    
-    const styleTag = document.createElement("style");
-    styleTag.id = styleTagId;
-    styleTag.textContent = `
-      html,
-      html[data-theme],
-      html[data-theme="light"],
-      html[data-theme="dark"],
-      body {
-        background-color: ${AUTH_BODY_BG} !important;
-        --background: ${AUTH_BODY_BG} !important;
-      }
-    `;
-    document.head.appendChild(styleTag);
-    
+    if (typeof document === "undefined") return;
+
+    const body = document.body;
+    // 현재 zoom 값 저장 (복원용)
+    const originalZoom = (body.style as any).zoom || String(COMPACT_ZOOM);
+    const originalTransform = body.style.transform || "";
+    const originalTransformOrigin = body.style.transformOrigin || "";
+    const originalMinHeight = body.style.minHeight || "";
+
+    // zoom을 1로 강제 설정
+    (body.style as any).zoom = "1";
+    body.style.transform = "";
+    body.style.transformOrigin = "";
+    body.style.minHeight = "";
+
+    // cleanup: 원래 zoom 값으로 복원
     return () => {
-      const styleToRemove = document.getElementById(styleTagId);
-      if (styleToRemove) {
-        styleToRemove.remove();
-      }
+      (body.style as any).zoom = originalZoom;
+      body.style.transform = originalTransform;
+      body.style.transformOrigin = originalTransformOrigin;
+      body.style.minHeight = originalMinHeight;
     };
-  }, [styleId]);
+  }, []);
 
   return (
     <>
-      {/* 전체 화면 배경 레이어 */}
+      {/* 전체 화면 배경 레이어 (단색 fallback) */}
       <div
         className="fixed inset-0 -z-10"
         style={{
           backgroundColor: AUTH_BODY_BG,
-          width: "125vw",
-          height: "125vh",
         }}
         aria-hidden="true"
       />
       
-      {/* 메인 컨테이너 */}
-      <main
-        className="min-h-screen flex items-center justify-center"
+      {/* 배경 이미지 레이어 (zoom이 항상 1이므로 cover로 충분) */}
+      <div
+        className="fixed inset-0 -z-[9]"
         style={{
           backgroundImage: `url('${loginBgImg.src}')`,
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
+        aria-hidden="true"
+      />
+      
+      {/* 메인 컨테이너 */}
+      <main
+        className="min-h-screen flex items-center justify-center relative"
       >
         {/* 중앙 정렬 컨테이너 */}
         <div 
@@ -138,7 +137,7 @@ export default function AuthLayout({
             
             {/* Form 컨테이너 - contents 배경 이미지로 감싸기 (고정 위치) */}
             <div
-              className="relative mx-auto flex flex-col items-center !px-[90px]"
+              className="relative mx-auto flex flex-col items-center !px-[90px] rounded-b-[24px] overflow-hidden"
               aria-label={ariaLabel}
               style={{
                 width: "564px",
