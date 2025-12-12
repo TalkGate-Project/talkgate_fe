@@ -186,7 +186,7 @@ export default function CustomersTable({
                   key={c.id}
                   className={`${
                     isLastRow 
-                      ? "border-b border-[#E2E2E2]" 
+                      ? "border-b border-[#E2E2E2] dark:border-[#e2e2e244]" 
                       : ""
                   } ${hoveredId === c.id ? "bg-neutral-10" : ""}`}
                   style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}

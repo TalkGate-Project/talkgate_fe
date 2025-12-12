@@ -16,7 +16,7 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, applicationRoute: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="예: 유튜브"
         />
       </label>
@@ -25,7 +25,7 @@ export default function DataTab({ form, setForm }: Props) {
         <input
           value={form.site}
           onChange={(e) => setForm((prev) => ({ ...prev, site: e.target.value }))}
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="예: 모두의주식투자채널"
         />
       </label>
@@ -37,7 +37,7 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, mediaCompany: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="예: 광고회사"
         />
       </label>
@@ -48,7 +48,7 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, applicationDate: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="YYYY-MM-DD HH:mm"
         />
       </label>
@@ -60,7 +60,7 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, assignedMemberName: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="담당자명"
         />
       </label>
@@ -71,7 +71,7 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, assignedTeamName: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
           placeholder="예: 영업1팀"
         />
       </label>
@@ -84,7 +84,7 @@ export default function DataTab({ form, setForm }: Props) {
             setForm((prev) => ({ ...prev, specialNotes: e.target.value }))
           }
           rows={3}
-          className="w-full rounded-[5px] border border-[#E5E7EB] px-3 py-2 font-medium text-[14px]"
+          className="w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px]"
           placeholder="특이사항을 입력하세요"
         />
       </div>

@@ -57,7 +57,7 @@ export default function BasicTab({
           <input
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="고객 이름을 입력하세요"
           />
         </div>
@@ -81,7 +81,7 @@ export default function BasicTab({
             <input
               value={form.contact1}
               onChange={(e) => setForm((prev) => ({ ...prev, contact1: e.target.value }))}
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="010-1234-5678"
             />
           </div>
@@ -105,7 +105,7 @@ export default function BasicTab({
             <input
               value={form.contact2}
               onChange={(e) => setForm((prev) => ({ ...prev, contact2: e.target.value }))}
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="선택 입력"
             />
           </div>
@@ -124,7 +124,7 @@ export default function BasicTab({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, residentFront: e.target.value }))
               }
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="123456"
             />
           </div>
@@ -135,7 +135,7 @@ export default function BasicTab({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, residentBack: e.target.value }))
               }
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="*******"
             />
           </div>
@@ -151,7 +151,7 @@ export default function BasicTab({
           <input
             value={form.job}
             onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="직업"
           />
         </div>
@@ -168,7 +168,7 @@ export default function BasicTab({
             onChange={(e) =>
               setForm((prev) => ({ ...prev, ageRange: e.target.value }))
             }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="연령"
           />
         </div>
@@ -177,7 +177,7 @@ export default function BasicTab({
       {/* Messenger Accounts */}
       <div className="md:col-span-2">
         <div className="text-[16px] font-semibold text-neutral-90 mb-3">메신저 계정</div>
-        <div className="border-b border-[#E2E2E2] mb-3" />
+        <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <div className="w-[120px]">
@@ -196,7 +196,7 @@ export default function BasicTab({
               value={newMessengerAccount}
               onChange={(e) => setNewMessengerAccount(e.target.value)}
               placeholder="계정 ID를 입력하세요"
-              className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] px-3 font-medium text-[14px]"
+              className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             />
             <button
               type="button"

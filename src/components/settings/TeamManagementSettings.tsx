@@ -411,7 +411,7 @@ export default function TeamManagementSettings() {
           />
         </div>
       ) : (
-        <div className="flex-1 mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2]">
+        <div className="flex-1 mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444]">
           {/* 트리 뷰 영역 */}
           <div className="flex-shrink-0 overflow-x-auto overflow-y-auto max-h-[600px]">
             <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />

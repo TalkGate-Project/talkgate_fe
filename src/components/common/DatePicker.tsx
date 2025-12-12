@@ -4,6 +4,13 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { generateMonthCells } from "@/utils/calendar";
 
+function getBodyZoom(): number {
+	if (typeof document === "undefined") return 1;
+	const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+	const parsed = Number.parseFloat(raw);
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 type DatePickerProps = {
 	value: Date | null;
 	onChange: (date: Date | null) => void;
@@ -73,6 +80,7 @@ export default function DatePicker(props: DatePickerProps) {
 			if (!el) return;
 			
 			const r = el.getBoundingClientRect();
+			const zoom = getBodyZoom();
 			const panelHeight = panel?.offsetHeight || 400; // Default estimate 400px
 			const viewportHeight = window.innerHeight;
 			
@@ -83,16 +91,16 @@ export default function DatePicker(props: DatePickerProps) {
 			// If not enough space below but enough space above, position above
 			let top: number;
 			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-				// Position above input
-				top = r.top - panelHeight - 8;
+				// Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
+				top = (r.top - panelHeight - 8) / zoom;
 			} else {
-				// Position below input (default)
-				top = r.bottom + 8;
+				// Position below input (default) - adjust for zoom
+				top = (r.bottom + 8) / zoom;
 			}
 			
 			setPanelPos({ 
 				top, 
-				left: r.left 
+				left: r.left / zoom
 			});
 		}
 		
@@ -174,20 +182,20 @@ export default function DatePicker(props: DatePickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, dateFormat, { locale: ko }) : ""}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 cursor-pointer ${className}`}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
-					className="z-[1000] w-[256px] bg-white rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] p-4"
+					className="z-[1000] w-[256px] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
 					style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
 				>
 					{/* Header */}
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] font-medium text-[#252525] flex items-center gap-2 cursor-pointer"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] font-medium text-[#252525] dark:text-neutral-80 flex items-center gap-2 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
@@ -218,6 +226,7 @@ export default function DatePicker(props: DatePickerProps) {
 									strokeWidth="1.5"
 									strokeLinecap="round"
 									strokeLinejoin="round"
+									className="dark:stroke-neutral-60"
 								/>
 							</svg>
 						</button>
@@ -225,22 +234,22 @@ export default function DatePicker(props: DatePickerProps) {
 							<div className="flex items-center gap-2">
 								<button
 									type="button"
-									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
 									onClick={goPrev}
 									aria-label="이전"
 								>
 									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+										<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
 									</svg>
 								</button>
 								<button
 									type="button"
-									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
 									onClick={goNext}
 									aria-label="다음"
 								>
 									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+										<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
 									</svg>
 								</button>
 							</div>
@@ -253,7 +262,7 @@ export default function DatePicker(props: DatePickerProps) {
 							{/* Weekday header */}
 							<div className="grid grid-cols-7 gap-y-2 mb-2">
 								{DAYS.map((d) => (
-									<div key={d} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080]">
+									<div key={d} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080] dark:text-neutral-60">
 										{d}
 									</div>
 								))}
@@ -278,8 +287,8 @@ export default function DatePicker(props: DatePickerProps) {
 									
 									const baseCls =
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
-									const textCls = inCurrent ? "text-[#252525]" : "text-[#B0B0B0]";
-									const selectedCls = isSelected ? "bg-[#D6FAE8]" : "hover:bg-neutral-20";
+									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
+									const selectedCls = isSelected ? "bg-[#D6FAE8] dark:bg-primary-40/30" : "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
 										return (
@@ -314,10 +323,10 @@ export default function DatePicker(props: DatePickerProps) {
 											disabled={isDisabled || undefined}
 											className={`h-8 rounded-[6px] text-[14px] ${
 												isDisabled 
-													? "opacity-30 cursor-not-allowed text-[#B0B0B0]"
+													? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
 													: isCurrentYear 
-														? "bg-[#D6FAE8] text-[#252525] font-medium cursor-pointer" 
-														: "text-[#252525] hover:bg-neutral-20 cursor-pointer"
+														? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium cursor-pointer" 
+														: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>

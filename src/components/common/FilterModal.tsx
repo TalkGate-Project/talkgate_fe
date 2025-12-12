@@ -6,6 +6,13 @@ import DatePicker from "@/components/common/DatePicker";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 import Checkbox from "@/components/common/Checkbox";
 
+function getBodyZoom(): number {
+    if (typeof document === "undefined") return 1;
+    const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 export type FilterValues = {
     teamId?: number;
     memberId?: number;
@@ -83,10 +90,10 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                 <div className="relative w-full h-full bg-white dark:bg-neutral-10 rounded-[14px]">
                     {/* Header */}
                     <div className="px-7 pt-7 pb-3 flex items-center justify-between">
-                        <h2 className="text-[18px] leading-[21px] font-semibold text-black">필터추가</h2>
-                        <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center text-[#111827]">
+                        <h2 className="text-[18px] leading-[21px] font-semibold text-black dark:text-neutral-80">필터추가</h2>
+                        <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center text-[#111827] dark:text-neutral-70">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 18L18 6M6 6L18 18" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </button>
                     </div>
@@ -105,15 +112,15 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
 
                             {/* 상담 내용 */}
                             <div className="col-span-2">
-                                <label className="block text-[14px] text-[#808080] mb-2">상담 내용</label>
-                                <div className="border border-[#E2E2E2] rounded-[5px] px-3 py-2 h-[34px] flex items-start">
-                                    <textarea value={form.noteContent || ""} onChange={(e) => setForm((f) => ({ ...f, noteContent: e.target.value || undefined }))} className="w-full h-[66px] resize-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080]" placeholder="상담 내용을 작성해주세요" />
+                                <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 내용</label>
+                                <div className="border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] px-3 py-2 h-[34px] flex items-start bg-white dark:bg-neutral-20">
+                                    <textarea value={form.noteContent || ""} onChange={(e) => setForm((f) => ({ ...f, noteContent: e.target.value || undefined }))} className="w-full h-[66px] resize-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] dark:placeholder:text-neutral-60 text-[#000] dark:text-neutral-80 bg-transparent" placeholder="상담 내용을 작성해주세요" />
                                 </div>
                             </div>
 
                             {/* 신청시간 / 배정시간 */}
                             <div>
-                                <label className="block text-[14px] text-[#808080] mb-2">신청시간</label>
+                                <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">신청시간</label>
                                 <div className="flex items-center gap-3">
                                     <DateRange 
                                         startValue={stringToDate(form.applicationDateFrom)}
@@ -124,7 +131,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[14px] text-[#808080] mb-2">배정시간</label>
+                                <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">배정시간</label>
                                 <div className="flex items-center gap-3">
                                     <DateRange 
                                         startValue={stringToDate(form.assignedAtFrom)}
@@ -138,10 +145,10 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-[#E2E2E2]" />
+                    <div className="border-t border-[#E2E2E2] dark:border-[#444444]" />
                     <div className="px-7 py-3 flex items-center justify-end gap-3">
-                        <button className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold tracking-[-0.02em] text-[#000] bg-white" onClick={() => setForm({})}>초기화</button>
-                        <button className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold tracking-[-0.02em]" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
+                        <button className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => setForm({})}>초기화</button>
+                        <button className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
                     </div>
                 </div>
             </div>
@@ -152,16 +159,16 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
 function LabeledSelect({ label, options, placeholder, value, onChange, freeText }: { label: string; options: Option[]; placeholder: string; value?: string; onChange?: (v: string) => void; freeText?: boolean }) {
     return (
         <div>
-            <label className="block text-[14px] text-[#808080] mb-2">{label}</label>
-            <div className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] rounded-[5px] h-[34px]">
+            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
+            <div className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20">
                 <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
                     {freeText ? (
-                        <input value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000]" placeholder={placeholder} />
+                        <input value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60" placeholder={placeholder} />
                     ) : (
-                        <select value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] appearance-none pr-6">
-                            <option value="">{placeholder}</option>
+                        <select value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 appearance-none pr-6 cursor-pointer">
+                            <option value="" className="bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80">{placeholder}</option>
                             {options.map((o) => (
-                                <option key={String(o.value)} value={String(o.value)}>{o.label}</option>
+                                <option key={String(o.value)} value={String(o.value)} className="bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80">{o.label}</option>
                             ))}
                         </select>
                     )}
@@ -169,7 +176,7 @@ function LabeledSelect({ label, options, placeholder, value, onChange, freeText 
                 {/* Custom dropdown arrow - freeText(일반 입력 필드)일 때는 숨김 */}
                 {!freeText && (
                     <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 1.87809e-07 0.647327 2.2346e-07L7.35267 8.0966e-07C7.76048 8.45312e-07 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="#000000" />
+                        <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 1.87809e-07 0.647327 2.2346e-07L7.35267 8.0966e-07C7.76048 8.45312e-07 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
                     </svg>
                 )}
             </div>
@@ -247,7 +254,7 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
 
     return (
         <div ref={wrapRef} className="relative">
-            <label className="block text-[14px] text-[#808080] mb-2">상담 카테고리</label>
+            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 카테고리</label>
             {/* Combobox trigger */}
             <button
                 ref={triggerRef}
@@ -257,16 +264,22 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                         const next = !v;
                         if (next && triggerRef.current) {
                             const r = triggerRef.current.getBoundingClientRect();
-                            setPanelPos({ top: r.bottom + 8 + window.scrollY, left: r.left + window.scrollX, width: r.width });
+                            const zoom = getBodyZoom();
+                            // Zoom을 고려하여 위치 계산
+                            setPanelPos({ 
+                                top: (r.bottom + 8) / zoom + window.scrollY, 
+                                left: r.left / zoom + window.scrollX, 
+                                width: r.width / zoom 
+                            });
                         }
                         return next;
                     });
                 }}
-                className="w-full border border-[#E2E2E2] rounded-[5px] h-[34px] px-3 relative text-left flex items-center justify-between bg-white"
+                className="w-full border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] px-3 relative text-left flex items-center justify-between bg-white dark:bg-neutral-20"
             >
-                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] opacity-80">{summaryLabel}</span>
+                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 opacity-80">{summaryLabel}</span>
                 <svg className="pointer-events-none" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 0 0.647327 0L7.35267 0C7.76048 0 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="#000000" />
+                    <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 0 0.647327 0L7.35267 0C7.76048 0 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
                 </svg>
             </button>
 
@@ -289,7 +302,7 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
             {open && panelPos && createPortal(
                 <div
                     ref={panelRef}
-                    className="z-[1000] border border-[#E2E2E2] rounded-[8px] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[240px] overflow-auto"
+                    className="z-[1000] border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] bg-white dark:bg-neutral-20 shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)] max-h-[240px] overflow-auto"
                     style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width }}
                 >
                     {(options || []).map((c) => {
@@ -299,14 +312,14 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                                 key={c.id}
                                 className={`w-full h-[48px] px-6 flex items-center gap-3 text-left rounded-[5px] cursor-pointer ${
                                     checked
-                                        ? "bg-primary-10/30"
-                                        : "bg-card hover:bg-neutral-10"
+                                        ? "bg-primary-10/30 dark:bg-primary-40/20"
+                                        : "bg-card dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30"
                                 }`}
                             >
                                 <Checkbox checked={checked} onChange={(next) => {
                                     setSelected((prev) => (next ? [...prev, c.id] : prev.filter((x) => x !== c.id)));
                                 }} ariaLabel={c.name} />
-                                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000]">{c.name}</span>
+                                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">{c.name}</span>
                             </label>
                         );
                     })}
@@ -334,16 +347,16 @@ function DateRange({
                 <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
                     </svg>
                 </div>
             </div>
-            <span className="text-[14px]">-</span>
+            <span className="text-[14px] text-[#000] dark:text-neutral-80">-</span>
             <div className="relative w-[175px]">
                 <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
                     </svg>
                 </div>
             </div>
