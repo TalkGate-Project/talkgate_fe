@@ -9,16 +9,16 @@ import { StatisticsService } from "@/services/statistics";
 import type { CustomerNoteStatusRecord, CustomerNoteStatusResponse } from "@/types/statistics";
 
 const COLORS = [
-  "var(--danger-40)",
-  "var(--warning-40)",
-  "var(--neutral-40)",
-  "var(--secondary-20)",
-  "var(--primary-60)",
-  "var(--danger-20)",
-  "var(--warning-20)",
-  "var(--secondary-40)",
-  "var(--primary-20)",
-  "var(--danger-60)",
+  "#D83232",
+  "#EFB008",
+  "#CFF39C",
+  "#93EAC0",
+  "#84E0FF",
+  "#BBA6DF",
+  "#B4B0FB",
+  "#97B4FC",
+  "#9DCDE3",
+  "#558BE8",
 ];
 
 export default function StatusBarChart() {
