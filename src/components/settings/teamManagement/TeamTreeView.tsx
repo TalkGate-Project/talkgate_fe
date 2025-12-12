@@ -78,7 +78,6 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             style={{
               minWidth: `${TOKENS.node.leader.w}px`,
               height: `${TOKENS.node.leader.h}px`,
-              borderColor: isLeader ? undefined : TOKENS.colors.light[30],
             }}
             draggable
             onDragStart={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragStart(e, item)}
@@ -140,10 +139,10 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               >
                 {/* 부모에서 내려오는 수직 연결선 */}
                 <div
+                  className="bg-border"
                   style={{
                     width: `${TOKENS.connector.width}px`,
                     height: `${TOKENS.spacing.vertical}px`,
-                    background: TOKENS.connector.color,
                   }}
                 />
 
@@ -152,10 +151,9 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                   {/* 수평 연결선 (자식이 2개 이상일 때) */}
                   {children.length > 1 && (
                     <div
-                      className="absolute"
+                      className="absolute bg-border"
                       style={{
                         height: `${TOKENS.connector.width}px`,
-                        background: TOKENS.connector.color,
                         top: 0,
                         // 첫 번째 자식 중앙에서 마지막 자식 중앙까지
                         // 자식 컨테이너의 첫번째/마지막 자식의 중앙을 기준으로 함
@@ -174,10 +172,10 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
                       <div key={child.id} className="flex flex-col items-center">
                         {/* 수평선에서 자식으로 내려오는 수직 연결선 */}
                         <div
+                          className="bg-border"
                           style={{
                             width: `${TOKENS.connector.width}px`,
                             height: `${TOKENS.spacing.vertical}px`,
-                            background: TOKENS.connector.color,
                           }}
                         />
                         {/* 자식 노드 (재귀) */}

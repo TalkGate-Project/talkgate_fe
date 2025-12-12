@@ -177,10 +177,10 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
             <div className="px-6 py-4 space-y-[30px]">
               {/* 기본 정보 */}
               <div>
-                <div className="text-[16px] font-semibold text-foreground border-b border-neutral-30 pb-3 mb-5">
+                <div className="text-[16px] font-semibold text-foreground border-b border-border pb-3 mb-5">
                   기본 정보
                 </div>
-                <div className="bg-neutral-10 rounded-[12px] p-4">
+                <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
                   <div className="flex items-start gap-4">
                     {/* 아바타 */}
                     <div className="w-12 h-12 bg-neutral-60 rounded-full flex items-center justify-center overflow-hidden">
@@ -252,7 +252,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
               </div>
 
               {/* 관리자 정보, 팀 변경 이력, 특이사항을 감싸는 래퍼 */}
-              <div className="border border-neutral-30 rounded-[12px] p-4 space-y-6">
+              <div className="border border-border rounded-[12px] p-4 space-y-6 dark:bg-neutral-25">
                 {/* 관리자 정보 */}
                 <div>
                   <div className="space-y-4">
@@ -271,7 +271,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                               realName: e.target.value,
                             }))
                           }
-                          className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card"
+                          className="w-full h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
                         />
                       </div>
 
@@ -308,7 +308,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                               address: e.target.value,
                             }))
                           }
-                          className="flex-1 h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card"
+                          className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
                         />
                         <button
                           className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
@@ -329,7 +329,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                   </div>
 
                   {/* 구분선 */}
-                  <div className="border-t border-neutral-30 my-3" />
+                  <div className="border-t border-border my-3" />
 
                   <div className="space-y-3">
                     {member?.teamChangeLogs &&
@@ -337,7 +337,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                       member.teamChangeLogs.map((log) => (
                         <div
                           key={log.id}
-                          className="bg-neutral-10 rounded-[12px] p-4"
+                          className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -369,14 +369,14 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                   </div>
 
                   {/* 구분선 */}
-                  <div className="border-t border-neutral-30 my-3" />
+                  <div className="border-t border-border my-3" />
 
                   {/* 기존 특이사항 */}
                   {member?.hrNotes && member.hrNotes.length > 0 ? (
                     member.hrNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="bg-neutral-10 rounded-[12px] p-4 mb-4"
+                        className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 mb-4"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -441,7 +441,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
         </div>
 
         {/* 푸터 */}
-        <div className="px-6 py-3 flex justify-end gap-3 border-t border-neutral-30 flex-shrink-0">
+        <div className="px-6 py-3 flex justify-end gap-3 border-t border-border flex-shrink-0">
           <button
             className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-border text-foreground bg-card text-[14px]"
             onClick={() => {

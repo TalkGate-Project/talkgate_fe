@@ -123,7 +123,7 @@ export default function TeamListView({
               </>
             )}
             <div
-              className={`h-[60px] flex items-center px-6 gap-4 border border-neutral-30 rounded-[12px] cursor-move transition-all ${
+              className={`h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all ${
                 item.isLeader
                   ? "bg-team-leader-highlight"
                   : "bg-card"
