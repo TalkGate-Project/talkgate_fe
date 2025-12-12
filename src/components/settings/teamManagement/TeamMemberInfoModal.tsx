@@ -60,8 +60,8 @@ function Badge({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-2">
-      <span className="text-[14px] text-[#808080]">{label}</span>
-      <span className="text-[14px] font-medium text-[#252525]">{value}</span>
+      <span className="text-[14px] text-neutral-60">{label}</span>
+      <span className="text-[14px] font-medium text-foreground">{value}</span>
     </div>
   );
 }
@@ -270,7 +270,7 @@ export default function TeamMemberInfoModal({
   const teamNodes = flattenOrgTree(member?.organizationTree);
 
   const organizationContent = (
-    <section className="border border-[#E2E2E2] rounded-[12px] p-5 space-y-5">
+    <section className="border border-border rounded-[12px] p-5 space-y-5 dark:bg-neutral-10">
       {canCreateTeam ? (
         teamCreateMode ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -278,7 +278,7 @@ export default function TeamMemberInfoModal({
               value={teamNameDraft}
               onChange={(e) => setTeamNameDraft(e.target.value)}
               placeholder="팀이름을 입력하세요"
-              className="h-[34px] w-full max-w-[240px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] placeholder:text-[#808080]"
+              className="h-[34px] w-full max-w-[240px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
             />
             <div className="flex items-center gap-2">
               <button
@@ -287,7 +287,7 @@ export default function TeamMemberInfoModal({
                   setTeamCreateMode(false);
                   setTeamNameDraft("");
                 }}
-                className="h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#252525]"
+                className="h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
               >
                 취소
               </button>
@@ -311,7 +311,7 @@ export default function TeamMemberInfoModal({
                 disabled={createTeam.isPending}
                 className={`${
                   createTeam.isPending ? "cursor-not-allowed" : "cursor-pointer"
-                } h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0] disabled:opacity-60`}
+                } h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 disabled:opacity-60`}
               >
                 {createTeam.isPending ? "저장 중..." : "저장"}
               </button>
@@ -330,14 +330,14 @@ export default function TeamMemberInfoModal({
         <button
           type="button"
           disabled
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#808080] cursor-not-allowed"
+          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 cursor-not-allowed bg-card"
         >
           팀 제거
         </button>
       )}
 
       <div className="space-y-3">
-        <span className="block text-[16px] font-semibold text-[#000000]">
+        <span className="block text-[16px] font-semibold text-foreground">
           조직도
         </span>
         <div className="space-y-2">
@@ -347,17 +347,17 @@ export default function TeamMemberInfoModal({
               <div
                 key={node.id}
                 className={`flex items-center gap-3 px-5 py-3 rounded-[12px] ${
-                  isNodeLeader ? "bg-team-leader-highlight" : "bg-[#F8F8F8]"
+                  isNodeLeader ? "bg-team-leader-highlight" : "bg-neutral-10 dark:bg-neutral-25"
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full text-white text-[14px] font-semibold flex items-center justify-center ${
-                    isNodeLeader ? "bg-[#00B55B]" : "bg-[#808080]"
+                    isNodeLeader ? "bg-primary-80" : "bg-neutral-60"
                   }`}
                 >
                   {node.avatar}
                 </div>
-                <span className="text-[14px] font-medium text-[#252525]">
+                <span className="text-[14px] font-medium text-foreground">
                   {node.name}
                 </span>
                 {isNodeLeader && node.department && (
@@ -387,11 +387,11 @@ export default function TeamMemberInfoModal({
   };
 
   const managerContent = (
-    <div className="border border-[#E2E2E2] rounded-[12px] p-7">
+    <div className="border border-border rounded-[12px] p-7 dark:bg-neutral-10">
       {/* 프로필 정보 Section */}
       <section className="pb-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[16px] font-semibold text-[#000000]">
+          <span className="text-[16px] font-semibold text-foreground">
             프로필 정보
           </span>
           {profileEditMode ? (
@@ -400,7 +400,7 @@ export default function TeamMemberInfoModal({
                 type="button"
                 onClick={handleCancelProfileEdit}
                 disabled={isSubmittingProfile}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000] disabled:opacity-60"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card disabled:opacity-60"
               >
                 취소
               </button>
@@ -408,7 +408,7 @@ export default function TeamMemberInfoModal({
                 type="button"
                 onClick={handleSaveProfile}
                 disabled={isSubmittingProfile}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#EDEDED] disabled:opacity-60"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 disabled:opacity-60"
               >
                 {isSubmittingProfile ? "저장 중..." : "저장"}
               </button>
@@ -417,17 +417,17 @@ export default function TeamMemberInfoModal({
             <button
               type="button"
               onClick={() => setProfileEditMode(true)}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
             >
               수정
             </button>
           )}
         </div>
-        <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
-        <div className="bg-[#F8F8F8] rounded-[12px] p-4">
+        <div className="h-[1px] bg-border opacity-50 mb-4" />
+        <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-[#808080] leading-6">
+              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 이름
               </span>
               {profileEditMode ? (
@@ -437,24 +437,24 @@ export default function TeamMemberInfoModal({
                   onChange={(e) =>
                     setHrFormData((prev) => ({ ...prev, realName: e.target.value }))
                   }
-                  className="flex-1 h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] bg-white"
+                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
                 />
               ) : (
-                <span className="text-[14px] font-medium text-[#252525] leading-6">
+                <span className="text-[14px] font-medium text-foreground leading-6">
                   {member?.hrData?.realName || member?.name || "-"}
                 </span>
               )}
             </div>
             <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-[#808080] leading-6">
+              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 직책
               </span>
-              <span className="text-[14px] font-medium text-[#252525] leading-6">
+              <span className="text-[14px] font-medium text-foreground leading-6">
                 {roleLabel(member?.role ?? "")}
               </span>
             </div>
             <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-[#808080] leading-6">
+              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 생년월일
               </span>
               {profileEditMode ? (
@@ -470,21 +470,21 @@ export default function TeamMemberInfoModal({
                   <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
                 </div>
               ) : (
-                <span className="text-[14px] font-medium text-[#252525] leading-6">
+                <span className="text-[14px] font-medium text-foreground leading-6">
                   {member?.hrData?.birth || "-"}
                 </span>
               )}
             </div>
             <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-[#808080] leading-6">
+              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 입사일
               </span>
-              <span className="text-[14px] font-medium text-[#252525] leading-6">
+              <span className="text-[14px] font-medium text-foreground leading-6">
                 {member?.createdAt ? formatDate(member.createdAt) : "-"}
               </span>
             </div>
             <div className="col-span-2 flex items-center">
-              <span className="w-[100px] text-[14px] text-[#808080] leading-6">
+              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 주소
               </span>
               {profileEditMode ? (
@@ -494,10 +494,10 @@ export default function TeamMemberInfoModal({
                   onChange={(e) =>
                     setHrFormData((prev) => ({ ...prev, address: e.target.value }))
                   }
-                  className="flex-1 h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] bg-white"
+                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
                 />
               ) : (
-                <span className="flex-1 text-[14px] font-medium text-[#252525] leading-6">
+                <span className="flex-1 text-[14px] font-medium text-foreground leading-6">
                   {member?.hrData?.address || "-"}
                 </span>
               )}
@@ -509,19 +509,19 @@ export default function TeamMemberInfoModal({
       {/* 팀 변경 이력 Section */}
       <section className="pb-6">
         <div className="mb-3">
-          <span className="text-[16px] font-semibold text-[#000000]">
+          <span className="text-[16px] font-semibold text-foreground">
             팀 변경 이력
           </span>
         </div>
-        <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
+        <div className="h-[1px] bg-border opacity-50 mb-4" />
         <div className="space-y-3">
           {(member?.teamChangeLogs ?? []).length > 0 ? (
             member?.teamChangeLogs.map((history) => (
               <div
                 key={history.id}
-                className="bg-[#F8F8F8] rounded-[12px] p-4 flex items-center gap-4"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 flex items-center gap-4"
               >
-                <span className="text-[14px] text-[#808080] whitespace-nowrap">
+                <span className="text-[14px] text-neutral-60 whitespace-nowrap">
                   {formatDate(history.createdAt)}
                 </span>
                 <Badge
@@ -548,13 +548,13 @@ export default function TeamMemberInfoModal({
                     <Badge label={history.newTeamName} variant="primary" />
                   </>
                 )}
-                <span className="ml-auto text-[14px] text-[#808080]">
+                <span className="ml-auto text-[14px] text-neutral-60">
                   {history.type === "teamMove" ? "팀이동" : history.type}
                 </span>
               </div>
             ))
           ) : (
-            <div className="px-4 py-3 bg-[#F8F8F8] rounded-[12px] text-[14px] text-[#808080]">
+            <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-25 rounded-[12px] text-[14px] text-neutral-60">
               팀 변경 이력이 없습니다.
             </div>
           )}
@@ -564,23 +564,23 @@ export default function TeamMemberInfoModal({
       {/* 특이사항 Section */}
       <section>
         <div className="mb-3">
-          <span className="text-[16px] font-semibold text-[#000000]">
+          <span className="text-[16px] font-semibold text-foreground">
             특이사항
           </span>
         </div>
-        <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
+        <div className="h-[1px] bg-border opacity-50 mb-4" />
         {localNotes.length > 0 ? (
           <div className="space-y-3 mb-4">
             {localNotes.map((note) => (
-              <div key={note.id} className="bg-[#F8F8F8] rounded-[12px] p-4">
+              <div key={note.id} className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-[14px] text-[#000000]">
-                    <span className="text-[#808080]">
+                  <div className="flex items-center gap-2 text-[14px] text-foreground">
+                    <span className="text-neutral-60">
                       {formatDateTime(note.createdAt)}
                     </span>
                   </div>
                   <button
-                    className="cursor-pointer w-5 h-5 text-[#B0B0B0] hover:text-[#808080]"
+                    className="cursor-pointer w-5 h-5 text-neutral-50 hover:text-neutral-60"
                     onClick={() => handleRemoveNote(note.id)}
                     disabled={isSubmittingNote}
                     aria-label="특이사항 삭제"
@@ -602,12 +602,12 @@ export default function TeamMemberInfoModal({
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-[#000000]">{note.note}</p>
+                <p className="text-[14px] text-foreground">{note.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="px-4 py-3 bg-[#F8F8F8] rounded-[12px] text-[14px] text-[#808080] mb-4">
+          <div className="px-4 py-3 bg-neutral-10 rounded-[12px] text-[14px] text-neutral-60 mb-4">
             등록된 특이사항이 없습니다.
           </div>
         )}
@@ -617,13 +617,13 @@ export default function TeamMemberInfoModal({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="특이사항을 입력하세요"
-            className="flex-1 h-[34px] px-3 border border-[#E2E2E2] rounded-[5px] text-[14px] text-[#252525] placeholder:text-[#808080]"
+            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
           />
           <button
             type="button"
             onClick={handleAddNote}
             disabled={isSubmittingNote}
-            className={`h-[34px] px-3 rounded-[5px] bg-[#252525] text-[#EDEDED] text-[14px] font-semibold hover:opacity-90 ${
+            className={`h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-0 text-[14px] font-semibold hover:opacity-90 ${
               isSubmittingNote ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
@@ -648,7 +648,7 @@ export default function TeamMemberInfoModal({
           }}
         >
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
-          <p className="mt-4 text-[14px] text-[#808080]">
+          <p className="mt-4 text-[14px] text-neutral-60">
             직원 정보를 불러오는 중...
           </p>
         </div>
@@ -670,13 +670,13 @@ export default function TeamMemberInfoModal({
             transform: "translate(-50%, -50%)",
           }}
         >
-          <p className="text-[14px] text-[#808080]">
+          <p className="text-[14px] text-neutral-60">
             직원 정보를 불러오는 중 오류가 발생했습니다.
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="mt-4 h-[34px] px-4 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0]"
+            className="mt-4 h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0"
           >
             닫기
           </button>
@@ -698,14 +698,14 @@ export default function TeamMemberInfoModal({
         }}
       >
         <header className="px-6 pt-4 pb-[10px] flex items-center justify-between">
-          <h1 className="text-[18px] font-semibold leading-[1] text-[#000000]">
+          <h1 className="text-[18px] font-semibold leading-[1] text-foreground">
             직원정보
           </h1>
           <button
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-[#F3F3F3]"
+            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10"
           >
             <svg
               width="24"
@@ -727,20 +727,20 @@ export default function TeamMemberInfoModal({
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <section className="mb-8">
-            <h2 className="text-[16px] font-semibold leading-[1] text-[#000000] mb-3">
+            <h2 className="text-[16px] font-semibold leading-[1] text-foreground mb-3">
               기본 정보
             </h2>
-            <div className="h-[1px] bg-[#E2E2E2] opacity-50 mb-4" />
-            <div className="bg-[#F8F8F8] rounded-[12px] p-4 h-full min-h-[72px]">
+            <div className="h-[1px] bg-border opacity-50 mb-4" />
+            <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 h-full min-h-[72px]">
               <div className="flex items-start gap-4 h-full">
                 <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[84px]" : "min-h-[72px]"} flex items-center justify-center`}>
-                  <div className="w-12 h-12 rounded-full bg-[#00B55B] text-white flex items-center justify-center text-[18px] font-semibold">
+                  <div className="w-12 h-12 rounded-full bg-primary-80 text-neutral-0 flex items-center justify-center text-[18px] font-semibold">
                     {initialFromName(member.name)}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-3">
-                    <span className="text-[18px] font-semibold text-[#000000]">
+                    <span className="text-[18px] font-semibold text-foreground">
                       {member.name}
                     </span>
                     <Badge
@@ -748,7 +748,7 @@ export default function TeamMemberInfoModal({
                       variant={isLeader ? "primary" : "neutral"}
                     />
                   </div>
-                  <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#808080]">
+                  <div className="flex flex-wrap items-center gap-6 text-[14px] text-neutral-60">
                     <div className="flex items-center gap-2">
                       <svg
                         width="20"
@@ -809,14 +809,14 @@ export default function TeamMemberInfoModal({
                 type="button"
                 onClick={() => setTab("organization")}
                 className={`cursor-pointer relative pb-2 text-[16px] font-semibold transition-colors ${
-                  tab === "organization" ? "text-[#000000]" : "text-[#808080]"
+                  tab === "organization" ? "text-foreground" : "text-neutral-60"
                 }`}
               >
                 조직정보
                 <span
                   className={`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
                     tab === "organization"
-                      ? "opacity-100 bg-[#000000]"
+                      ? "opacity-100 bg-foreground"
                       : "opacity-0"
                   }`}
                 />
@@ -825,7 +825,7 @@ export default function TeamMemberInfoModal({
                 type="button"
                 onClick={() => setTab("manager")}
                 className={`cursor-pointer relative flex items-center gap-2 pb-2 text-[16px] font-semibold transition-colors ${
-                  tab === "manager" ? "text-[#000000]" : "text-[#808080]"
+                  tab === "manager" ? "text-foreground" : "text-neutral-60"
                 }`}
               >
                 관리자 정보
@@ -853,7 +853,7 @@ export default function TeamMemberInfoModal({
                 </svg>
                 <span
                   className={`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
-                    tab === "manager" ? "opacity-100 bg-[#000000]" : "opacity-0"
+                    tab === "manager" ? "opacity-100 bg-foreground" : "opacity-0"
                   }`}
                 />
               </button>
@@ -862,18 +862,18 @@ export default function TeamMemberInfoModal({
           </section>
         </div>
 
-        <footer className="px-6 py-4 border-t border-[#E2E2E266] flex justify-end gap-3">
+        <footer className="px-6 py-4 border-t border-border flex justify-end gap-3">
           <button
             type="button"
             onClick={handleReset}
-            className="h-[34px] px-4 rounded-[5px] border border-[#E2E2E2] text-[14px] font-semibold text-[#000000]"
+            className="h-[34px] px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
           >
             초기화
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="h-[34px] px-4 rounded-[5px] bg-[#252525] text-[14px] font-semibold text-[#D0D0D0]"
+            className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0"
           >
             적용완료
           </button>

@@ -20,6 +20,7 @@
   --neutral-dark-0: #111111;
   --neutral-dark-10: #1e1e1e;
   --neutral-dark-20: #222222;
+  --neutral-dark-25: #333333; /* Container background in dark mode */
   --neutral-dark-30: #444444;
   --neutral-dark-40: #777777;
   --neutral-dark-50: #959595;
@@ -62,6 +63,7 @@
   --neutral-0: var(--neutral-light-0);
   --neutral-10: var(--neutral-light-10);
   --neutral-20: var(--neutral-light-20);
+  --neutral-25: var(--neutral-light-10); /* Light mode: same as neutral-10, dark mode: #333333 */
   --neutral-30: var(--neutral-light-30);
   --neutral-40: var(--neutral-light-40);
   --neutral-50: var(--neutral-light-50);
@@ -86,12 +88,17 @@
   /* Customer link modal gradients (default to light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  
+  /* Team leader highlight background (default to light mode) */
+  --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
+    linear-gradient(0deg, #FFFFFF, #FFFFFF);
 }
 
 :root[data-theme="light"] {
   --neutral-0: var(--neutral-light-0);
   --neutral-10: var(--neutral-light-10);
   --neutral-20: var(--neutral-light-20);
+  --neutral-25: var(--neutral-light-10); /* Light mode: same as neutral-10 */
   --neutral-30: var(--neutral-light-30);
   --neutral-40: var(--neutral-light-40);
   --neutral-50: var(--neutral-light-50);
@@ -120,12 +127,17 @@
   /* Customer link modal gradients (light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  
+  /* Team leader highlight background (light mode) */
+  --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
+    linear-gradient(0deg, #FFFFFF, #FFFFFF);
 }
 
 :root[data-theme="dark"] {
   --neutral-0: var(--neutral-dark-0);
   --neutral-10: var(--neutral-dark-10);
   --neutral-20: var(--neutral-dark-20);
+  --neutral-25: var(--neutral-dark-25);
   --neutral-30: var(--neutral-dark-30);
   --neutral-40: var(--neutral-dark-40);
   --neutral-50: var(--neutral-dark-50);
@@ -154,6 +166,9 @@
   /* Customer link modal gradients (dark mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, rgba(0, 181, 91, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
+  
+  /* Team leader highlight background (dark mode) */
+  --team-leader-highlight-bg: #111111;
 }
 
 @theme inline {
@@ -251,6 +266,20 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  
+  /* Neutral color scale for Tailwind utilities */
+  --color-neutral-0: var(--neutral-0);
+  --color-neutral-10: var(--neutral-10);
+  --color-neutral-20: var(--neutral-20);
+  --color-neutral-25: var(--neutral-25);
+  --color-neutral-30: var(--neutral-30);
+  --color-neutral-40: var(--neutral-40);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-60: var(--neutral-60);
+  --color-neutral-70: var(--neutral-70);
+  --color-neutral-80: var(--neutral-80);
+  --color-neutral-90: var(--neutral-90);
+  --color-neutral-100: var(--neutral-100);
 
   /* Typography (font families are stacks; Pretendard 우선) */
   --font-sans: "Pretendard Variable", Pretendard, var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -311,6 +340,7 @@
     --neutral-0: var(--neutral-dark-0);
     --neutral-10: var(--neutral-dark-10);
     --neutral-20: var(--neutral-dark-20);
+    --neutral-25: var(--neutral-dark-25);
     --neutral-30: var(--neutral-dark-30);
     --neutral-40: var(--neutral-dark-40);
     --neutral-50: var(--neutral-dark-50);
@@ -339,6 +369,9 @@
     /* Customer link modal gradients (dark mode) */
     --customer-link-create-gradient: linear-gradient(74.9deg, rgba(0, 181, 91, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
     --customer-link-existing-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
+    
+    /* Team leader highlight background (dark mode) */
+    --team-leader-highlight-bg: #111111;
   }
 }
 
@@ -534,10 +567,9 @@ body {
     Figma-export style intent:
     - White base
     - Very subtle primary-10 overlay (almost-white green tint)
+    - Dark mode: solid #111111 background
   */
-  background:
-    linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
-    linear-gradient(0deg, #FFFFFF, #FFFFFF);
+  background: var(--team-leader-highlight-bg);
 }
 
 @utility text-secondary-10 { color: var(--secondary-10); }
