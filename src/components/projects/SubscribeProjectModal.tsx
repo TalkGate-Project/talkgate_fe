@@ -40,12 +40,12 @@ export default function SubscribeProjectModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 배경 오버레이 */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
         onClick={() => !submitting && onClose()}
       />
 
       {/* 모달 */}
-      <div className="relative bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)] w-[440px] flex flex-col">
+      <div className="relative bg-white dark:bg-neutral-10 rounded-[14px] w-[440px] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4">
           <h2 className="text-[18px] font-semibold text-[#000]">구독하기</h2>

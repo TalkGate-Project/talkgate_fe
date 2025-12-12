@@ -48,8 +48,8 @@ export default function UnlinkConversationModal({
   return (
     <BaseModal
       onClose={loading ? () => {} : onClose}
-      overlayClassName="bg-black/50"
-      containerClassName="relative w-[92vw] min-w-[440px] max-w-[560px] rounded-[14px] bg-white shadow-[0_13px_61px_rgba(169,169,169,0.37)] flex flex-col"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      containerClassName="relative w-[92vw] min-w-[440px] max-w-[560px] rounded-[14px] bg-white dark:bg-neutral-10 flex flex-col"
       ariaLabel="연동 끊기"
     >
       {/* Header */}

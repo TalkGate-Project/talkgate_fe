@@ -109,8 +109,8 @@ export default function CustomerLinkExistingModal({
   return (
     <BaseModal
       onClose={() => (!linking ? onClose() : undefined)}
-      overlayClassName="bg-black/30"
-      containerClassName="relative w-[848px] rounded-[14px] bg-neutral-0 shadow-[0px_13px_61px_rgba(169,169,169,0.37)]"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      containerClassName="relative w-[848px] rounded-[14px] bg-neutral-0 dark:bg-neutral-10"
       ariaLabel="기존 고객과 연동"
     >
       <div className="relative w-full h-full flex flex-col">

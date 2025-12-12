@@ -147,8 +147,8 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
   return (
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
-      overlayClassName="bg-black/30"
-      containerClassName="relative w-[440px] rounded-[14px] bg-white shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      containerClassName="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
       ariaLabel={isEditMode ? "일정 수정" : "일정 추가"}
     >
         {/* Header */}

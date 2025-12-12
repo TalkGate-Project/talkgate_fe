@@ -67,7 +67,7 @@ export default function ChatFilterModal({
 
   return (
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
       {/* POP-UP 440x336 centered */}
       <div
         className="absolute"
@@ -78,7 +78,7 @@ export default function ChatFilterModal({
           transform: "translate(-50%, -50%)",
         }}
       >
-        <div className="relative w-full h-full bg-neutral-0 rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)]">
+        <div className="relative w-full h-full bg-neutral-0 dark:bg-neutral-10 rounded-[14px]">
           {/* Header */}
           <div className="px-7 pt-6 pb-[30px] flex items-center justify-between">
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">

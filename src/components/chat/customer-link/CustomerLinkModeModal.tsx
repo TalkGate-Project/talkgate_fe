@@ -15,9 +15,9 @@ export default function CustomerLinkModeModal({
 
   return (
     <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
       <div className="absolute left-1/2 top-1/2 w-[440px] -translate-x-1/2 -translate-y-1/2">
-        <div className="relative w-full rounded-[16px] bg-neutral-0 shadow-[0px_28px_80px_rgba(38,38,38,0.18)] px-7 py-6">
+        <div className="relative w-full rounded-[16px] bg-neutral-0 dark:bg-neutral-10 px-7 py-6">
           <button
             aria-label="close"
             onClick={onClose}

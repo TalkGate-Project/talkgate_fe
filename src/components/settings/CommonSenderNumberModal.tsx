@@ -119,10 +119,10 @@ export default function CommonSenderNumberModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-[600px] bg-white rounded-[14px] p-7 mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-[600px] bg-white dark:bg-neutral-10 rounded-[14px] p-7 mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-[20px] font-bold text-neutral-90">

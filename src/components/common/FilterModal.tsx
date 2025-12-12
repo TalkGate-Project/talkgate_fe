@@ -76,11 +76,11 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
     return (
         <div className="fixed inset-0 z-[100]">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
             {/* Modal container (centered) */}
             <div className="absolute left-1/2 top-1/2" style={{ width: 848, transform: "translate(-50%, -50%)" }}>
-                <div className="relative w-full h-full bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+                <div className="relative w-full h-full bg-white dark:bg-neutral-10 rounded-[14px]">
                     {/* Header */}
                     <div className="px-7 pt-7 pb-3 flex items-center justify-between">
                         <h2 className="text-[18px] leading-[21px] font-semibold text-black">필터추가</h2>

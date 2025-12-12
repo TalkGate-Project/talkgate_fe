@@ -57,8 +57,8 @@ export default function CustomerDetailModal({
   return (
     <BaseModal
       onClose={handleClose}
-      overlayClassName="bg-black/50"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-0 px-7 pt-6 pb-4 shadow-[0_13px_61px_rgba(169,169,169,0.37)] flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[546px]"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[546px]"
       ariaLabel="고객정보"
     >
       {/* Header */}

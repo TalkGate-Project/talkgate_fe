@@ -58,13 +58,13 @@ export default function TwoFactorSetupModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div 
-        className="relative bg-card rounded-[14px] w-full max-w-[848px] shadow-[0px_13px_61px_rgba(169,169,169,0.366)]"
+        className="relative bg-card dark:bg-neutral-10 rounded-[14px] w-full max-w-[848px]"
         style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
       >
         {/* Header */}

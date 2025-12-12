@@ -46,8 +46,8 @@ export default function InstagramIntegrationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30" onClick={handleClose} />
-      <div className="relative w-[848px] bg-white rounded-[14px] shadow-[0px_13px_61px_rgba(169,169,169,0.37)]">
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
+      <div className="relative w-[848px] bg-white dark:bg-neutral-10 rounded-[14px]">
         <button
           className="absolute top-6 right-6 w-6 h-6 grid place-items-center hover:opacity-70 transition-opacity"
           aria-label="close"

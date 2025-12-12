@@ -31,8 +31,8 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
 
   return createPortal(
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 bg-card rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)]" style={{ width: 480, transform: 'translate(-50%, -50%)' }}>
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
+      <div className="absolute left-1/2 top-1/2 bg-card dark:bg-neutral-10 rounded-[14px]" style={{ width: 480, transform: 'translate(-50%, -50%)' }}>
         <div className="px-7 py-4 flex items-center justify-between">
           <div className="text-[18px] font-semibold text-foreground">필터설정</div>
           <button onClick={onClose} aria-label="close" className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10">
