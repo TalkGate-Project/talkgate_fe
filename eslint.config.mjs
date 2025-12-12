@@ -31,7 +31,7 @@ const eslintConfig = [
       "react-hooks/exhaustive-deps": "warn",
       
       // Next.js 관련 규칙 완화
-      "@next/next/no-img-element": "warn",
+      "@next/next/no-img-element": "off", // 외부/동적 이미지의 경우 <Image /> 사용 시 문제 발생 가능
       "@next/next/no-html-link-for-pages": "warn",
       
       // 기타 규칙 완화

@@ -123,7 +123,7 @@ function ProjectsContent() {
         )}
 
         {/* Projects row */}
-        <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-[50px] gap-y-[40px]">
+        <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
           {loading && (
             <div className="col-span-full text-center text-neutral-60">
               불러오는 중...
@@ -135,7 +135,7 @@ function ProjectsContent() {
           {projects.map((p: any) => (
             <div
               key={p.id}
-              className="px-7 pt-6 pb-[30px] md:min-w-[688px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
+              className="px-7 pt-6 pb-[30px] md:min-w-[646px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
               onClick={() => {
                 const isDev = isDevelopment();
                 
@@ -242,8 +242,16 @@ function ProjectsContent() {
 
           {/* Create new service */}
           <div
-            className="rounded-[14px] border-2 border-dashed border-neutral-30 hover:border-primary-60 transition-colors duration-200 bg-card p-12 flex flex-col items-center justify-center min-h-[225px] cursor-pointer"
-            onClick={() => setShowCreate(true)}
+            className={`rounded-[14px] border-2 border-dashed border-neutral-30 transition-colors duration-200 bg-card p-12 flex flex-col items-center justify-center min-h-[225px] ${
+              loading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:border-primary-60 cursor-pointer"
+            }`}
+            onClick={() => {
+              if (!loading) {
+                setShowCreate(true);
+              }
+            }}
           >
             <div className="w-12 h-12 rounded-[12px] overflow-hidden grid place-items-center">
               <svg
