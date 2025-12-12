@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
@@ -65,7 +66,9 @@ export default function RootLayout({
               <NotificationProvider>
                 <ConditionalHeader />
                 {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
-                <UiScaleToggle />
+                <Suspense fallback={null}>
+                  <UiScaleToggle />
+                </Suspense>
                 {/* No fixed padding; header component inserts spacer only when visible */}
                 <div>{children}</div>
               </NotificationProvider>
