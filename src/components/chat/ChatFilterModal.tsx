@@ -132,12 +132,18 @@ export default function ChatFilterModal({
                       onClick={() => setMessenger(it.key)}
                       className={`cursor-pointer w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
                         messenger === it.key
-                          ? "border-2 border-primary-40 bg-primary-10/30"
+                          ? "border-2 border-primary-40 bg-primary-10/30 dark:!bg-primary-10/10"
                           : "border-border bg-card"
                       }`}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={it.icon!} alt="" className="w-5 h-5" />
+                      {it.key === "x" ? (
+                        <>
+                          <img src="/x_twitter.png" alt="" className="w-5 h-5 dark:hidden" />
+                          <img src="/x_twitter_dark.png" alt="" className="w-5 h-5 hidden dark:block" />
+                        </>
+                      ) : (
+                        <img src={it.icon!} alt="" className="w-5 h-5" />
+                      )}
                     </button>
                   ))}
               </div>

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+function getBodyZoom(): number {
+  if (typeof document === "undefined") return 1;
+  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 type TimePickerProps = {
   /** "HH:mm" 형식의 24시간제 문자열 (예: "09:00", "16:40") */
   value: string | null;
@@ -131,18 +138,30 @@ export default function TimePicker(props: TimePickerProps) {
       const el = inputRef.current;
       const panel = panelRef.current;
       if (!el) return;
+      
       const r = el.getBoundingClientRect();
+      const zoom = getBodyZoom();
       const panelHeight = panel?.offsetHeight || 260;
       const viewportHeight = window.innerHeight;
+      
+      // Calculate if there's enough space below the input
       const spaceBelow = viewportHeight - r.bottom;
       const spaceAbove = r.top;
+      
+      // If not enough space below but enough space above, position above
       let top: number;
       if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-        top = r.top - panelHeight - 8;
+        // Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
+        top = (r.top - panelHeight - 8) / zoom;
       } else {
-        top = r.bottom + 8;
+        // Position below input (default) - adjust for zoom
+        top = (r.bottom + 8) / zoom;
       }
-      setPanelPos({ top, left: r.left });
+      
+      setPanelPos({ 
+        top, 
+        left: r.left / zoom
+      });
     }
     const timer = setTimeout(update, 0);
     update();
@@ -172,7 +191,7 @@ export default function TimePicker(props: TimePickerProps) {
         onFocus={openPicker}
         value={label}
         placeholder={placeholder}
-        className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 cursor-pointer ${className}`}
+        className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-border bg-card text-foreground placeholder:text-neutral-60 px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       />
 
       {open &&
@@ -180,7 +199,7 @@ export default function TimePicker(props: TimePickerProps) {
         createPortal(
           <div
             ref={panelRef}
-            className="z-[1000] w-[240px] bg-white rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] p-3"
+            className="z-[1000] w-[240px] bg-card dark:bg-neutral-10 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_13px_61px_0px_#000000B2] p-3"
             style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
           >
             <div className="flex justify-between text-[12px] text-neutral-60 mb-2 px-1">
@@ -196,7 +215,9 @@ export default function TimePicker(props: TimePickerProps) {
                     key={p}
                     type="button"
                     className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
-                      p === period ? "bg-neutral-90 text-white" : "text-[#252525] hover:bg-neutral-20"
+                      p === period
+                        ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
+                        : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
                     }`}
                     onClick={() => {
                       setPeriod(p);
@@ -216,8 +237,8 @@ export default function TimePicker(props: TimePickerProps) {
                     type="button"
                     className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
                       h === hour12
-                        ? "bg-neutral-90 text-white"
-                        : "text-[#252525] hover:bg-neutral-20"
+                        ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
+                        : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
                     }`}
                     onClick={() => {
                       setHour12(h);
@@ -237,8 +258,8 @@ export default function TimePicker(props: TimePickerProps) {
                     type="button"
                     className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
                       m === minute
-                        ? "bg-neutral-90 text-white"
-                        : "text-[#252525] hover:bg-neutral-20"
+                        ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
+                        : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
                     }`}
                     onClick={() => {
                       setMinute(m);
