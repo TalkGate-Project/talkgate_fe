@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useStatsTeamRanking } from "@/hooks/useStatsRanking";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
 import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import Pagination from "@/components/common/Pagination";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -39,10 +41,25 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
   const [page, setPage] = useState(1);
   const limit = 5;
   const { rows, totalCount, isLoading, isError } = useStatsTeamRanking(projectId, page, limit);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentProjectId] = useSelectedProjectId();
 
   useEffect(() => {
     setPage(1);
   }, [projectId]);
+
+  const handleTeamClick = (leaderMemberId: number | null) => {
+    if (leaderMemberId) {
+      setSelectedMemberId(leaderMemberId);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   if (!projectId) {
     return <EmptyState message="프로젝트를 먼저 선택해주세요." />;
@@ -86,7 +103,15 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
                     </div>
                   )}
                   <div>
-                    <div className="text-[18px] leading-[21px] font-bold text-neutral-90">{row.teamName ?? "소속없음"}</div>
+                    <button
+                      onClick={() => handleTeamClick(row.leaderMemberId)}
+                      disabled={!row.leaderMemberId}
+                      className={`text-[18px] leading-[21px] font-bold text-neutral-90 text-left ${
+                        row.leaderMemberId ? "cursor-pointer hover:underline" : "cursor-default"
+                      }`}
+                    >
+                      {row.teamName ?? "소속없음"}
+                    </button>
                     <div className="mt-3 leading-[1] text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
                   </div>
                 </div>
@@ -105,6 +130,14 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
           onPageChange={setPage}
         />
       </div>
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={currentProjectId}
+        />
+      )}
     </div>
   );
 }
