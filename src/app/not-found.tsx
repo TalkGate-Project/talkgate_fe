@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
+import Link from "next/link";
 
 const AUTH_BODY_BG = "#494949";
 const COMPACT_ZOOM = 0.8;
@@ -64,12 +65,12 @@ export default function NotFound() {
             <div className="text-[120px] leading-[1] font-bold tracking-tight">404</div>
             <div className="mt-3 text-[40px] leading-[49px] font-bold tracking-tight">NOT FOUND</div>
             <div className="mt-6 text-[24px] leading-[29px] font-medium">찾으시는 페이지를 발견할 수 없습니다.</div>
-            <a
+            <Link
               href="/"
               className="mt-10 inline-flex items-center justify-center h-[34px] px-4 rounded-[5px] border border-white/70 text-[14px] font-semibold hover:bg-white/10"
             >
               처음으로 돌아가기
-            </a>
+            </Link>
           </div>
         </div>
       </main>

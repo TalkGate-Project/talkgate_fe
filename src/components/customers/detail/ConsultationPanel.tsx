@@ -106,7 +106,6 @@ export default function ConsultationPanel({
           <div className="flex items-center gap-4 min-w-0">
             <div className="w-12 h-12 rounded-full bg-neutral-30 dark:bg-neutral-30 overflow-hidden flex-shrink-0">
               {conversation!.profileUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={conversation!.profileUrl as string}
                   alt={conversation!.name}
@@ -125,7 +124,6 @@ export default function ConsultationPanel({
               <div className="mt-1 flex items-center gap-2 text-[14px] text-neutral-60 dark:text-neutral-60">
                 {conversation!.platform === "instagram" && (
                   <span className="w-4 h-4 inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/icons/platform/instagram.png"
                       alt="Instagram"
@@ -135,7 +133,6 @@ export default function ConsultationPanel({
                 )}
                 {conversation!.platform === "telegram" && (
                   <span className="w-4 h-4 inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/icons/platform/telegram.png"
                       alt="Telegram"
@@ -145,7 +142,6 @@ export default function ConsultationPanel({
                 )}
                 {conversation!.platform === "line" && (
                   <span className="w-4 h-4 inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/icons/platform/line.png"
                       alt="Line"

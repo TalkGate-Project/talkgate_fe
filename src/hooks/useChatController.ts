@@ -261,7 +261,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
     const onMessageResult = (payload: MessageResultEvent) => {
       if (!payload?.success) {
         const message = payload?.error || payload?.message || "메시지 전송에 실패했습니다.";
-        showBanner("error", message);
+        showBannerRef.current("error", message);
         // Optimistic UI 업데이트 실패 처리
         if (payload?.tempMessageId) {
           setMessages((prev) =>

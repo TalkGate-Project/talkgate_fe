@@ -109,7 +109,6 @@ export default function UnlinkConversationModal({
         <div className="bg-[#F8F8F8] rounded-[8px] px-6 py-4 flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
             {conversation.profileUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={conversation.profileUrl}
                 alt={conversation.name}
@@ -127,7 +126,6 @@ export default function UnlinkConversationModal({
                 {conversation.name}
               </span>
               <span className="w-5 h-5 inline-block flex-shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={platformIcon}
                   alt={platformLabel}

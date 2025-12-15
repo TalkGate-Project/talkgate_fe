@@ -240,28 +240,28 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
   }, [activeTab]);
 
   // 현재 사용자 권한에 따라 접근 가능한 탭만 필터링 (재귀적으로)
-  const filterVisibleItems = (items: SidebarItem[]): SidebarItem[] => {
-    return items
-      .map((item) => {
-        // canAccess가 없으면 모든 사용자 접근 가능
-        const canAccess = !item.canAccess || item.canAccess({ role: currentRole, isLoading: loading });
-        
-        if (!canAccess) return null;
-
-        // 하위 항목이 있으면 재귀적으로 필터링
-        if (item.children) {
-          const filteredChildren = filterVisibleItems(item.children);
-          // 하위 항목이 하나도 없으면 부모도 숨김
-          if (filteredChildren.length === 0) return null;
-          return { ...item, children: filteredChildren };
-        }
-
-        return item;
-      })
-      .filter((item): item is SidebarItem => item !== null);
-  };
-
   const visibleItems = useMemo(() => {
+    const filterVisibleItems = (items: SidebarItem[]): SidebarItem[] => {
+      return items
+        .map((item) => {
+          // canAccess가 없으면 모든 사용자 접근 가능
+          const canAccess = !item.canAccess || item.canAccess({ role: currentRole, isLoading: loading });
+          
+          if (!canAccess) return null;
+
+          // 하위 항목이 있으면 재귀적으로 필터링
+          if (item.children) {
+            const filteredChildren = filterVisibleItems(item.children);
+            // 하위 항목이 하나도 없으면 부모도 숨김
+            if (filteredChildren.length === 0) return null;
+            return { ...item, children: filteredChildren };
+          }
+
+          return item;
+        })
+        .filter((item): item is SidebarItem => item !== null);
+    };
+
     return filterVisibleItems(SIDEBAR_ITEMS);
   }, [currentRole, loading]);
 

@@ -24,7 +24,9 @@ export function useStatsAssignment(projectId: string | null) {
     },
   });
 
-  const teams: CustomerAssignmentTeamRecord[] = teamQuery.data?.data.data === null ? [] : (teamQuery.data?.data.data ?? []);
+  const teams = useMemo<CustomerAssignmentTeamRecord[]>(() => {
+    return teamQuery.data?.data.data === null ? [] : (teamQuery.data?.data.data ?? []);
+  }, [teamQuery.data?.data.data]);
   
   const topTeamsWithColors = useMemo(
     () =>

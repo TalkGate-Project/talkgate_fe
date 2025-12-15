@@ -195,7 +195,7 @@ function OAuthCallbackPage() {
     return () => {
       mounted = false;
     };
-  }, [code, provider, callbackUrl, router, oauthError]);
+  }, [code, provider, callbackUrl, router, oauthError, redirectUrl]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
