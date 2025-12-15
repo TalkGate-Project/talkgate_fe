@@ -295,19 +295,49 @@ export function useCustomerActions({
 
   const removeNote = useCallback(
     async (id: number) => {
-      await CustomersService.removeNote({
-        noteId: id,
-        projectId: getProjectId(),
-      });
+      // Validation: id가 유효한 정수인지 확인
+      if (
+        typeof id !== "number" ||
+        !Number.isInteger(id) ||
+        id <= 0 ||
+        !Number.isFinite(id)
+      ) {
+        console.error("Invalid note id for deletion:", id);
+        showErrorModal({
+          title: "오류 발생",
+          headline: "상담 내용 삭제에 실패했습니다.",
+          description: "유효하지 않은 상담 내용 ID입니다.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+        return;
+      }
 
-      setDetail((prev) =>
-        prev
-          ? {
-              ...prev,
-              notes: prev.notes.filter((x) => x.id !== id),
-            }
-          : prev
-      );
+      try {
+        await CustomersService.removeNote({
+          noteId: id,
+          projectId: getProjectId(),
+        });
+
+        setDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                notes: prev.notes.filter((x) => x.id !== id),
+              }
+            : prev
+        );
+      } catch (error) {
+        showErrorModal({
+          title: "오류 발생",
+          headline: "상담 내용 삭제에 실패했습니다.",
+          description: "상담 내용을 삭제하는 중 오류가 발생했습니다.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+      }
     },
     [setDetail]
   );

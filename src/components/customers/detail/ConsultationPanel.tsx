@@ -198,7 +198,6 @@ export default function ConsultationPanel({
             }
             className="w-[106px] h-[34px] rounded-[5px] text-body-3"
           >
-            <option value="">일반</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -225,7 +224,7 @@ export default function ConsultationPanel({
         >
           {notes?.map((n) => {
             const category = categories.find((c) => c.id === n.categoryId);
-            const categoryName = category?.name || "일반";
+            const categoryName = category?.name || "알 수 없음";
             const badgeStyle = getBadgeStyle(categoryName, n.categoryId || 0);
 
             return (
@@ -251,7 +250,19 @@ export default function ConsultationPanel({
                     </span>
                     <button
                       className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
-                      onClick={() => onRemoveNote(n.id)}
+                      onClick={() => {
+                        // Validation: id가 유효한 정수인지 확인
+                        if (
+                          typeof n.id !== "number" ||
+                          !Number.isInteger(n.id) ||
+                          n.id <= 0 ||
+                          !Number.isFinite(n.id)
+                        ) {
+                          console.error("Invalid note id:", n.id);
+                          return;
+                        }
+                        onRemoveNote(n.id);
+                      }}
                     >
                       <svg
                         width="12"
