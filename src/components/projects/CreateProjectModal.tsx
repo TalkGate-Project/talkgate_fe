@@ -6,6 +6,7 @@ import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import pleaseDragImg from "@/assets/images/projects/please_drag.png";
 import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.png";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Props = {
   onClose: () => void;
@@ -177,7 +178,12 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     } catch (e) {
       console.error("Project creation failed:", e);
       const errorMessage = e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.";
-      alert(`생성에 실패했습니다: ${errorMessage}`);
+      showErrorModal({
+        type: "error",
+        headline: "생성에 실패했습니다",
+        description: errorMessage,
+        hideCancel: true,
+      });
     } finally {
       setSubmitting(false);
     }

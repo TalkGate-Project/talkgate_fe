@@ -11,10 +11,12 @@ import {
 import {
   subscribeErrorModal,
   type ErrorModalCallbacks,
+  type FeedbackModalType,
 } from "@/lib/errorModalEvents";
 
 type ErrorModalState = {
   open: boolean;
+  type: FeedbackModalType;
   title: string;
   headline: string;
   description: string;
@@ -30,13 +32,35 @@ type ErrorModalContextValue = {
   hide: () => void;
 };
 
-const defaultTexts = {
-  title: "오류 발생",
-  headline: "일시적인 오류가 발생했습니다.",
-  description:
-    "데이터를 불러오거나 이동하는 과정에서 예상치 못한 문제가 발생했습니다. 불편하시겠지만 잠시 기다린 후 새로고침(Refresh) 버튼을 눌러 다시 시도해 주시기 바랍니다.",
-  confirmText: "확인",
-  cancelText: "취소",
+const defaultTexts: Record<FeedbackModalType, {
+  title: string;
+  headline: string;
+  description: string;
+  confirmText: string;
+  cancelText: string;
+}> = {
+  error: {
+    title: "오류 발생",
+    headline: "일시적인 오류가 발생했습니다.",
+    description:
+      "데이터를 불러오거나 이동하는 과정에서 예상치 못한 문제가 발생했습니다. 불편하시겠지만 잠시 기다린 후 새로고침(Refresh) 버튼을 눌러 다시 시도해 주시기 바랍니다.",
+    confirmText: "확인",
+    cancelText: "취소",
+  },
+  success: {
+    title: "완료",
+    headline: "처리가 완료되었습니다.",
+    description: "",
+    confirmText: "확인",
+    cancelText: "취소",
+  },
+  info: {
+    title: "알림",
+    headline: "",
+    description: "",
+    confirmText: "확인",
+    cancelText: "취소",
+  },
 };
 
 const ErrorModalContext = createContext<ErrorModalContextValue | undefined>(
@@ -45,11 +69,12 @@ const ErrorModalContext = createContext<ErrorModalContextValue | undefined>(
 
 const createInitialState = (): ErrorModalState => ({
   open: false,
-  title: defaultTexts.title,
-  headline: defaultTexts.headline,
-  description: defaultTexts.description,
-  confirmText: defaultTexts.confirmText,
-  cancelText: defaultTexts.cancelText,
+  type: "error",
+  title: defaultTexts.error.title,
+  headline: defaultTexts.error.headline,
+  description: defaultTexts.error.description,
+  confirmText: defaultTexts.error.confirmText,
+  cancelText: defaultTexts.error.cancelText,
   hideCancel: false,
   onConfirm: undefined,
   onCancel: undefined,
@@ -82,17 +107,20 @@ export default function ErrorFeedbackModalProvider({
 
   const show = useCallback((options?: ErrorModalCallbacks) => {
     setConfirming(false);
+    const type = options?.type ?? "error";
+    const texts = defaultTexts[type];
     setState({
       ...createInitialState(),
       open: true,
+      type,
       ...options,
-      title: options?.title ?? defaultTexts.title,
-      headline: options?.headline ?? defaultTexts.headline,
-      description: options?.description ?? defaultTexts.description,
-      confirmText: options?.confirmText ?? defaultTexts.confirmText,
+      title: options?.title ?? texts.title,
+      headline: options?.headline ?? texts.headline,
+      description: options?.description ?? texts.description,
+      confirmText: options?.confirmText ?? texts.confirmText,
       cancelText:
         options?.cancelText === undefined
-          ? defaultTexts.cancelText
+          ? texts.cancelText
           : options.cancelText,
       hideCancel: options?.hideCancel ?? false,
       onConfirm: options?.onConfirm,
@@ -186,29 +214,91 @@ export default function ErrorFeedbackModalProvider({
               </div>
               <div className="mt-6 flex justify-center">
                 <div className="flex items-center justify-center rounded-full">
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
-                      stroke="#D83232"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {state.type === "error" && (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
+                        stroke="#D83232"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                  {state.type === "success" && (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="20"
+                        cy="20"
+                        r="18"
+                        stroke="#00E272"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M12 20L18 26L28 14"
+                        stroke="#00E272"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                  {state.type === "info" && (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="20"
+                        cy="20"
+                        r="18"
+                        stroke="#8280FF"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M20 12V20M20 28H20.01"
+                        stroke="#8280FF"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
                 </div>
               </div>
-              <p className="mt-6 text-center text-[18px] font-semibold leading-[21px] text-danger-40">
-                {state.headline}
-              </p>
-              <p className="mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
-                {state.description}
-              </p>
+              {state.headline && (
+                <p
+                  className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
+                    state.type === "error"
+                      ? "text-danger-40"
+                      : state.type === "success"
+                      ? "text-[#00E272]"
+                      : "text-[#8280FF]"
+                  }`}
+                >
+                  {state.headline}
+                </p>
+              )}
+              {state.description && (
+                <p className="mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
+                  {state.description}
+                </p>
+              )}
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
             <div className="flex justify-end gap-3 px-8 py-4">
@@ -223,7 +313,13 @@ export default function ErrorFeedbackModalProvider({
               ) : null}
               <button
                 type="button"
-                className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 dark:text-neutral-20 disabled:opacity-60"
+                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
+                  state.type === "error"
+                    ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
+                    : state.type === "success"
+                    ? "bg-[#00E272] text-white"
+                    : "bg-[#8280FF] text-white"
+                }`}
                 onClick={handleConfirm}
                 disabled={confirming}
               >
