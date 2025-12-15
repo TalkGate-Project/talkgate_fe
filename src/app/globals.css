@@ -769,3 +769,9 @@ body {
   stroke: #959595;
 }
 
+/* Remove browser default focus outline on select elements */
+select:focus {
+  outline: none;
+  outline-offset: 0;
+}
+
