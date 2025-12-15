@@ -16,6 +16,7 @@ import { AttendanceItem } from "@/types/attendance";
 import { useAttendanceList } from "@/hooks/useAttendanceList";
 import { useAttendanceDate } from "@/hooks/useAttendanceDate";
 import { formatHm, computeWorkTime } from "@/utils/attendance";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 function AttendancePageContent() {
   const router = useRouter();
@@ -58,8 +59,17 @@ function AttendancePageContent() {
 
     if (!isAttendanceMenuEnabled) {
       // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
-      alert("근태 메뉴는 현재 비활성화되어 있습니다.");
-      router.replace("/dashboard");
+      showErrorModal({
+        title: "알림",
+        headline: "근태 메뉴는 현재 비활성화되어 있습니다.",
+        description: "대시보드로 이동합니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+        onConfirm: () => {
+          router.replace("/dashboard");
+        },
+      });
     }
   }, [isAttendanceMenuEnabled, attendanceReady, router]);
 

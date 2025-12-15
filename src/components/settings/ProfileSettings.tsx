@@ -6,6 +6,7 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { MembersService } from "@/services/members";
 import { AssetsService } from "@/services/assets";
 import type { OrganizationTreeNode } from "@/types/members";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
@@ -57,12 +58,22 @@ export default function ProfileSettings() {
     if (!file || !projectId) return;
     
     if (file.size > 5 * 1024 * 1024) {
-      alert("파일 크기는 5MB를 초과할 수 없습니다.");
+      showErrorModal({
+        headline: "파일 크기 초과",
+        description: "파일 크기는 5MB를 초과할 수 없습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
       return;
     }
     
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-      alert("PNG, JPG, WEBP 파일만 업로드 가능합니다.");
+      showErrorModal({
+        headline: "지원하지 않는 파일 형식",
+        description: "PNG, JPG, WEBP 파일만 업로드 가능합니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
       return;
     }
     
@@ -76,10 +87,20 @@ export default function ProfileSettings() {
       const { uploadUrl, fileUrl } = presignResponse.data.data;
       await AssetsService.uploadToS3(uploadUrl, file, file.type);
       setProfileImageUrl(fileUrl);
-      alert("프로필 이미지가 업로드되었습니다.");
-    } catch (error) {
+      showErrorModal({
+        headline: "프로필 이미지가 업로드되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } catch (error: any) {
       console.error("Failed to upload profile image:", error);
-      alert("프로필 이미지 업로드에 실패했습니다.");
+      const errorMessage = error?.data?.message || error?.message || "프로필 이미지 업로드에 실패했습니다.";
+      showErrorModal({
+        headline: "프로필 이미지 업로드 실패",
+        description: errorMessage,
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -115,11 +136,23 @@ export default function ProfileSettings() {
       setOriginalProfileImageUrl(profileImageUrl);
       setIsEditMode(false);
       
-      alert("프로필이 수정되었습니다.");
-      refetch();
-    } catch (error) {
+      showErrorModal({
+        headline: "프로필이 수정되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+        onConfirm: () => {
+          refetch();
+        },
+      });
+    } catch (error: any) {
       console.error("Failed to update profile:", error);
-      alert("프로필 수정에 실패했습니다.");
+      const errorMessage = error?.data?.message || error?.message || "프로필 수정에 실패했습니다.";
+      showErrorModal({
+        headline: "프로필 수정 실패",
+        description: errorMessage,
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } finally {
       setIsSaving(false);
     }

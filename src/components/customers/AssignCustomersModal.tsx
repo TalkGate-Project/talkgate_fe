@@ -9,6 +9,7 @@ import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
 import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export type AssignCustomersModalProps = {
   open: boolean;
@@ -536,8 +537,16 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
               try {
                 await onAssign(targetId);
                 onClose();
-              } catch (e) {
-                alert("배정에 실패했습니다");
+              } catch (e: any) {
+                const errorMessage = e?.data?.message || e?.message || "배정에 실패했습니다.";
+                showErrorModal({
+                  title: "오류 발생",
+                  headline: "배정에 실패했습니다.",
+                  description: errorMessage,
+                  confirmText: "확인",
+                  cancelText: null,
+                  hideCancel: true,
+                });
               } finally {
                 setLoading(false);
               }

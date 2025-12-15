@@ -9,6 +9,7 @@ import type {
 import { MAX_IMAGES, SMS_BYTE_LIMIT, getByteLength } from "./types";
 import { SmsService } from "@/services/sms";
 import type { CustomerListItem } from "@/types/customers";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 export function useSmsForm() {
   // 폼 상태 - 발신번호는 "source-id" 형식의 복합 키로 관리
@@ -138,7 +139,14 @@ export function useSmsForm() {
         // jpg 확장자만 허용
         const extension = file.name.toLowerCase().split(".").pop();
         if (extension !== "jpg" && extension !== "jpeg") {
-          alert("jpg 파일만 첨부할 수 있습니다.");
+          showErrorModal({
+            title: "알림",
+            headline: "jpg 파일만 첨부할 수 있습니다.",
+            description: "",
+            confirmText: "확인",
+            cancelText: null,
+            hideCancel: true,
+          });
           continue;
         }
 

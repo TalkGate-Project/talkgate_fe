@@ -16,6 +16,7 @@ import type {
   TeamChangeLog,
   OrganizationTreeNode,
 } from "@/types/members";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Props = {
   open: boolean;
@@ -191,27 +192,44 @@ export default function TeamMemberInfoModal({
       setNoteInput("");
     } catch (e: any) {
       console.error(e);
-      alert(e?.message || "특이사항 추가에 실패했습니다.");
+      const errorMessage = e?.message || e?.data?.message || "특이사항 추가에 실패했습니다.";
+      showErrorModal({
+        headline: "특이사항 추가 실패",
+        description: errorMessage,
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } finally {
       setIsSubmittingNote(false);
     }
   };
 
   const handleRemoveNote = async (noteId: number) => {
-    if (!confirm("이 특이사항을 삭제하시겠습니까?")) return;
     if (isSubmittingNote) return;
 
-    try {
-      setIsSubmittingNote(true);
-      await HRService.removeMemberNote(memberId, noteId);
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
-      setLocalNotes((prev) => prev.filter((note) => note.id !== noteId));
-    } catch (e: any) {
-      console.error(e);
-      alert(e?.message || "특이사항 삭제에 실패했습니다.");
-    } finally {
-      setIsSubmittingNote(false);
-    }
+    showErrorModal({
+      headline: "특이사항 삭제",
+      description: "이 특이사항을 삭제하시겠습니까?",
+      onConfirm: async () => {
+        try {
+          setIsSubmittingNote(true);
+          await HRService.removeMemberNote(memberId, noteId);
+          await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+          setLocalNotes((prev) => prev.filter((note) => note.id !== noteId));
+        } catch (e: any) {
+          console.error(e);
+          const errorMessage = e?.message || e?.data?.message || "특이사항 삭제에 실패했습니다.";
+          showErrorModal({
+            headline: "특이사항 삭제 실패",
+            description: errorMessage,
+            hideCancel: true,
+            confirmText: "확인",
+          });
+        } finally {
+          setIsSubmittingNote(false);
+        }
+      },
+    });
   };
 
   const handleSaveProfile = async () => {
@@ -225,11 +243,23 @@ export default function TeamMemberInfoModal({
         address: hrFormData.address,
       });
       await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
-      alert("프로필 정보가 저장되었습니다.");
-      setProfileEditMode(false);
+      showErrorModal({
+        headline: "프로필 정보가 저장되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+        onConfirm: () => {
+          setProfileEditMode(false);
+        },
+      });
     } catch (e: any) {
       console.error(e);
-      alert(e?.message || "저장에 실패했습니다.");
+      const errorMessage = e?.message || e?.data?.message || "저장에 실패했습니다.";
+      showErrorModal({
+        headline: "저장 실패",
+        description: errorMessage,
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } finally {
       setIsSubmittingProfile(false);
     }
@@ -303,9 +333,15 @@ export default function TeamMemberInfoModal({
                     });
                     setTeamCreateMode(false);
                     setTeamNameDraft("");
-                  } catch (err) {
+                  } catch (err: any) {
                     console.error(err);
-                    alert((err as Error)?.message ?? "팀 생성에 실패했습니다.");
+                    const errorMessage = (err as Error)?.message || err?.data?.message || "팀 생성에 실패했습니다.";
+                    showErrorModal({
+                      headline: "팀 생성 실패",
+                      description: errorMessage,
+                      hideCancel: true,
+                      confirmText: "확인",
+                    });
                   }
                 }}
                 disabled={createTeam.isPending}

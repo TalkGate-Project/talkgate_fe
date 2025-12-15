@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 interface ChangePaymentMethodModalProps {
   isOpen: boolean;
@@ -64,11 +65,25 @@ export default function ChangePaymentMethodModal({
 
   const handleConfirm = () => {
     if (!formData.email || !formData.cardholderName || !formData.cardNumber || !formData.expiryMonth || !formData.expiryYear || !formData.cvc || !formData.postalCode) {
-      alert("모든 필드를 입력해주세요.");
+      showErrorModal({
+        title: "알림",
+        headline: "모든 필드를 입력해주세요.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     if (!formData.agreeToTerms) {
-      alert("약관에 동의해주세요.");
+      showErrorModal({
+        title: "알림",
+        headline: "약관에 동의해주세요.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     onConfirm(formData);

@@ -8,6 +8,7 @@ import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SchedulesService } from "@/services/schedules";
 import type { WeeklyScheduleItem } from "@/types/dashboard";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Props = {
   defaultDate?: Date | null;
@@ -110,11 +111,25 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
   const onSubmit = async () => {
     if (!projectId || submitting) return;
     if (!desc.trim()) {
-      alert("내용을 입력하세요.");
+      showErrorModal({
+        title: "알림",
+        headline: "내용을 입력하세요.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     if (!hour || !minute) {
-      alert("시간을 선택하세요.");
+      showErrorModal({
+        title: "알림",
+        headline: "시간을 선택하세요.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     setSubmitting(true);
@@ -138,7 +153,15 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
       onCreated?.();
       onClose();
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`);
+      const errorMessage = e?.data?.message || e?.message || `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`;
+      showErrorModal({
+        title: "오류 발생",
+        headline: `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`,
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       setSubmitting(false);
     }

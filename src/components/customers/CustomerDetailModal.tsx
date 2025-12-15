@@ -7,6 +7,7 @@ import BasicTab from "./detail/BasicTab";
 import DataTab from "./detail/DataTab";
 import SalesTab from "./detail/SalesTab";
 import ConsultationPanel from "./detail/ConsultationPanel";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export type CustomerDetailModalProps = {
   open: boolean;
@@ -188,7 +189,17 @@ export default function CustomerDetailModal({
                   : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
               }`}
               onClick={() => {
-                actions.saveForm().then(() => onClose()).catch(() => alert("저장에 실패했습니다."));
+                actions.saveForm().then(() => onClose()).catch((e: any) => {
+                  const errorMessage = e?.data?.message || e?.message || "저장에 실패했습니다.";
+                  showErrorModal({
+                    title: "오류 발생",
+                    headline: "저장에 실패했습니다.",
+                    description: errorMessage,
+                    confirmText: "확인",
+                    cancelText: null,
+                    hideCancel: true,
+                  });
+                });
               }}
               disabled={!hasChanges}
             >

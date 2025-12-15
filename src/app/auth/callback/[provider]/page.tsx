@@ -14,6 +14,7 @@ import {
   printDebugLogs,
   getDebugState,
 } from "@/lib/auth-utils";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 function OAuthCallbackPage() {
   const router = useRouter();
@@ -194,7 +195,7 @@ function OAuthCallbackPage() {
     return () => {
       mounted = false;
     };
-  }, [code, provider, callbackUrl, router, oauthError]);
+  }, [code, provider, callbackUrl, router, oauthError, redirectUrl]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
@@ -226,7 +227,14 @@ function OAuthCallbackPage() {
                 <button
                   onClick={() => {
                     printDebugLogs();
-                    alert("콘솔에서 디버그 로그를 확인하세요.");
+                    showErrorModal({
+                      title: "알림",
+                      headline: "콘솔에서 디버그 로그를 확인하세요.",
+                      description: "",
+                      confirmText: "확인",
+                      cancelText: null,
+                      hideCancel: true,
+                    });
                   }}
                   className="px-4 py-2 bg-[#3a3a3a] text-[#888] rounded-[5px] hover:bg-[#454545] transition-colors text-sm"
                 >

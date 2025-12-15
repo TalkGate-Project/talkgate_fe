@@ -1,7 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { subscribeErrorModal, type ErrorModalCallbacks } from "@/lib/errorModalEvents";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  subscribeErrorModal,
+  type ErrorModalCallbacks,
+} from "@/lib/errorModalEvents";
 
 type ErrorModalState = {
   open: boolean;
@@ -23,12 +33,15 @@ type ErrorModalContextValue = {
 const defaultTexts = {
   title: "오류 발생",
   headline: "일시적인 오류가 발생했습니다.",
-  description: "데이터를 불러오거나 이동하는 과정에서 예상치 못한 문제가 발생했습니다. 불편하시겠지만 잠시 기다린 후 새로고침(Refresh) 버튼을 눌러 다시 시도해 주시기 바랍니다.",
+  description:
+    "데이터를 불러오거나 이동하는 과정에서 예상치 못한 문제가 발생했습니다. 불편하시겠지만 잠시 기다린 후 새로고침(Refresh) 버튼을 눌러 다시 시도해 주시기 바랍니다.",
   confirmText: "확인",
   cancelText: "취소",
 };
 
-const ErrorModalContext = createContext<ErrorModalContextValue | undefined>(undefined);
+const ErrorModalContext = createContext<ErrorModalContextValue | undefined>(
+  undefined
+);
 
 const createInitialState = (): ErrorModalState => ({
   open: false,
@@ -45,13 +58,21 @@ const createInitialState = (): ErrorModalState => ({
 export function useErrorModal() {
   const ctx = useContext(ErrorModalContext);
   if (!ctx) {
-    throw new Error("useErrorModal must be used within ErrorFeedbackModalProvider");
+    throw new Error(
+      "useErrorModal must be used within ErrorFeedbackModalProvider"
+    );
   }
   return ctx;
 }
 
-export default function ErrorFeedbackModalProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<ErrorModalState>(() => createInitialState());
+export default function ErrorFeedbackModalProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [state, setState] = useState<ErrorModalState>(() =>
+    createInitialState()
+  );
   const [confirming, setConfirming] = useState(false);
 
   const hide = useCallback(() => {
@@ -69,7 +90,10 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
       headline: options?.headline ?? defaultTexts.headline,
       description: options?.description ?? defaultTexts.description,
       confirmText: options?.confirmText ?? defaultTexts.confirmText,
-      cancelText: options?.cancelText === undefined ? defaultTexts.cancelText : options.cancelText,
+      cancelText:
+        options?.cancelText === undefined
+          ? defaultTexts.cancelText
+          : options.cancelText,
       hideCancel: options?.hideCancel ?? false,
       onConfirm: options?.onConfirm,
       onCancel: options?.onCancel,
@@ -104,7 +128,7 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
       console.error("ErrorModal onConfirm failed", err);
       setConfirming(false);
     }
-  }, [confirming, state.onConfirm, hide]);
+  }, [confirming, state, hide]);
 
   const handleCancel = useCallback(async () => {
     if (state.onCancel) {
@@ -115,52 +139,83 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
       }
     }
     hide();
-  }, [state.onCancel, hide]);
+  }, [state, hide]);
 
-  const contextValue = useMemo<ErrorModalContextValue>(() => ({ show, hide }), [show, hide]);
+  const contextValue = useMemo<ErrorModalContextValue>(
+    () => ({ show, hide }),
+    [show, hide]
+  );
 
   return (
     <ErrorModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
         <div className="fixed inset-0 z-[150] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]" onClick={hide} />
+          <div
+            className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
+            onClick={hide}
+          />
           <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
             <div className="px-8 pt-7 pb-6">
               <div className="flex items-start justify-between">
-                <h2 className="text-[18px] font-semibold text-[#000000]">{state.title}</h2>
+                <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
+                  {state.title}
+                </h2>
                 <button
                   type="button"
-                  className="h-8 w-8 rounded-full border border-[#E2E2E2] text-[#808080]"
+                  className="cursor-pointer h-8 w-8"
                   onClick={hide}
                   aria-label="close error modal"
                 >
-                  ×
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 18L18 6M6 6L18 18"
+                      stroke="#959595"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </button>
               </div>
               <div className="mt-6 flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border-[4px] border-[#D83232]">
-                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div className="flex items-center justify-center rounded-full">
+                  <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
-                      d="M12.2044 4.2473C13.0326 2.7018 14.9674 2.70179 15.7956 4.2473L24.5703 20.7865C25.3761 22.2913 24.2901 24 22.7748 24H5.2252C3.70993 24 2.62392 22.2913 3.42973 20.7865L12.2044 4.2473Z"
+                      d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
                       stroke="#D83232"
-                      strokeWidth="2"
-                      fill="#FFF5F5"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                    <rect x="12.25" y="9" width="3.5" height="8" rx="1" fill="#D83232" />
-                    <rect x="12.25" y="19" width="3.5" height="3.5" rx="1.75" fill="#D83232" />
                   </svg>
                 </div>
               </div>
-              <p className="mt-6 text-center text-[18px] font-semibold leading-[21px] text-[#D83232]">{state.headline}</p>
-              <p className="mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-[#000000]">{state.description}</p>
+              <p className="mt-6 text-center text-[18px] font-semibold leading-[21px] text-danger-40">
+                {state.headline}
+              </p>
+              <p className="mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
+                {state.description}
+              </p>
             </div>
-            <div className="h-px w-full bg-[#E2E2E2]" />
+            <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
             <div className="flex justify-end gap-3 px-8 py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"
-                  className="flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#000000]"
+                  className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80"
                   onClick={handleCancel}
                 >
                   {state.cancelText}
@@ -168,7 +223,7 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
               ) : null}
               <button
                 type="button"
-                className="flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] bg-[#252525] px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#D0D0D0] disabled:opacity-60"
+                className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 dark:text-neutral-20 disabled:opacity-60"
                 onClick={handleConfirm}
                 disabled={confirming}
               >
@@ -183,5 +238,3 @@ export default function ErrorFeedbackModalProvider({ children }: { children: Rea
 }
 
 export { showErrorModal, hideErrorModal } from "@/lib/errorModalEvents";
-
-

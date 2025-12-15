@@ -11,6 +11,7 @@ import {
 } from "@/lib/invite";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import Image from "next/image";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 // 개발용 토큰 - 백엔드 없이 UI 테스트용
 const DEV_TOKEN = "developmentmastertoken";
@@ -299,7 +300,14 @@ function InviteLanding() {
   async function onAccept() {
     const effectiveToken = token || getPendingInviteToken();
     if (!effectiveToken) {
-      alert("유효하지 않은 초대 토큰입니다.");
+      showErrorModal({
+        title: "오류 발생",
+        headline: "유효하지 않은 초대 토큰입니다.",
+        description: "초대 링크가 만료되었거나 잘못된 링크입니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
 

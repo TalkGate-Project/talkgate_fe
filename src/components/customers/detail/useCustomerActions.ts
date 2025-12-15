@@ -3,6 +3,7 @@ import { CustomersService } from "@/services/customers";
 import { ConversationsService } from "@/services/conversations";
 import type { CustomerDetail, UpdateCustomerInput } from "@/types/customers";
 import type { MessengerLocal } from "./types";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 // ============================================================================
 // Helper: 프로젝트 ID 가져오기
@@ -125,7 +126,14 @@ export function useCustomerActions({
         } catch (e) {
           // 실패 시 롤백
           setMessengersLocal(prevList);
-          alert("메신저 삭제에 실패했습니다.");
+          showErrorModal({
+            title: "알림",
+            headline: "메신저 삭제에 실패했습니다.",
+            description: "메신저 삭제에 실패했습니다.",
+            confirmText: "확인",
+            cancelText: null,
+            hideCancel: true,
+          });
         }
       }
     },

@@ -13,6 +13,7 @@ import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import TeamMemberInfoModal from "./teamManagement/TeamMemberInfoModal";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -205,7 +206,20 @@ export default function MemberSettings() {
     },
     onError: (error: any) => {
       const errorMessage = error?.data?.message || "멤버 초대에 실패했습니다.";
-      alert(errorMessage);
+      
+      // "Invitation already exists for this email" 메시지를 한국어로 변환
+      const displayMessage = errorMessage.includes("Invitation already exists for this email")
+        ? "이미 초대중인 계정입니다"
+        : errorMessage;
+      
+      showErrorModal({
+        title: "오류 발생",
+        headline: "멤버 초대에 실패했습니다.",
+        description: displayMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     },
   });
 

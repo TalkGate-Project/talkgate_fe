@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { AssetsService } from "@/services/assets";
 import { CustomersService } from "@/services/customers";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type CustomersActionsProps = {
   projectId: string;
@@ -43,11 +44,28 @@ export default function CustomersActions({
         fileName: file.name,
         projectId,
       });
-      alert("업로드 요청이 접수되었습니다.");
-      onUploadSuccess();
-    } catch (err) {
+      showErrorModal({
+        title: "알림",
+        headline: "업로드 요청이 접수되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+        onConfirm: () => {
+          onUploadSuccess();
+        },
+      });
+    } catch (err: any) {
       console.error(err);
-      alert("업로드에 실패했습니다.");
+      const errorMessage = err?.data?.message || err?.message || "업로드에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "업로드에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -85,9 +103,17 @@ export default function CustomersActions({
       a.download = "customers.xlsx";
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("다운로드에 실패했습니다.");
+      const errorMessage = err?.data?.message || err?.message || "다운로드에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "다운로드에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     }
   };
 
