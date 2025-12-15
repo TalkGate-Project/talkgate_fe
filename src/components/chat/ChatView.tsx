@@ -13,6 +13,7 @@ import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal
 import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Props = { projectId: number };
 
@@ -167,7 +168,14 @@ export default function ChatView({ projectId }: Props) {
       return;
     }
     if (!activeConversation.customerId) {
-      alert("연결된 고객 정보가 없습니다.");
+      showErrorModal({
+        title: "알림",
+        headline: "연결된 고객 정보가 없습니다.",
+        description: "이 대화에는 연결된 고객 정보가 없습니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     setCustomerDetailOpen(true);

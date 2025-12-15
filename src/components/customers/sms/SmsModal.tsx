@@ -11,6 +11,7 @@ import RadioButton from "./RadioButton";
 import { MAX_IMAGES } from "./types";
 import type { SmsModalProps } from "./types";
 import { AssetsService } from "@/services/assets";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function SmsModal({ open, onClose, customers, onSuccess }: SmsModalProps) {
   const {
@@ -105,9 +106,17 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
               }
             }
           }
-        } catch (uploadError) {
+        } catch (uploadError: any) {
           console.error("이미지 업로드 실패:", uploadError);
-          alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+          const errorMessage = uploadError?.data?.message || uploadError?.message || "이미지 업로드에 실패했습니다. 다시 시도해주세요.";
+          showErrorModal({
+            title: "오류 발생",
+            headline: "이미지 업로드에 실패했습니다.",
+            description: errorMessage,
+            confirmText: "확인",
+            cancelText: null,
+            hideCancel: true,
+          });
           return;
         } finally {
           setUploadingImages(false);
@@ -117,15 +126,39 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
       const result = await handleSend(customers, imageUrls);
       
       if (result.success) {
-        alert(result.message || "문자 발송이 완료되었습니다.");
-        onSuccess?.();
-        onClose();
+        showErrorModal({
+          title: "알림",
+          headline: "문자 발송이 완료되었습니다.",
+          description: result.message || "",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+          onConfirm: () => {
+            onSuccess?.();
+            onClose();
+          },
+        });
       } else {
-        alert(result.message || "문자 발송에 실패했습니다.");
+        showErrorModal({
+          title: "오류 발생",
+          headline: "문자 발송에 실패했습니다.",
+          description: result.message || "",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("발송 처리 중 오류:", error);
-      alert("문자 발송 중 오류가 발생했습니다.");
+      const errorMessage = error?.data?.message || error?.message || "문자 발송 중 오류가 발생했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "문자 발송 중 오류가 발생했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     }
   };
 

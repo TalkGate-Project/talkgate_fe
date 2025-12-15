@@ -6,6 +6,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import DeleteAccountModal from "./DeleteAccountModal";
 import TwoFactorSetupModal from "./TwoFactorSetupModal";
 import TwoFactorDisableModal from "./TwoFactorDisableModal";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function SecurityTab() {
   const { user, refetch } = useMe();
@@ -41,10 +42,25 @@ export default function SecurityTab() {
     } catch (e: any) {
       const errorCode = e?.response?.data?.code;
       if (errorCode === "TWO_FACTOR_ALREADY_ENABLED") {
-        alert("2단계 인증이 이미 활성화되어 있습니다.");
+        showErrorModal({
+          title: "알림",
+          headline: "2단계 인증이 이미 활성화되어 있습니다.",
+          description: "",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
         setTwoFactorEnabled(true);
       } else {
-        alert(e?.response?.data?.message || "2FA 설정에 실패했습니다.");
+        const errorMessage = e?.response?.data?.message || "2FA 설정에 실패했습니다.";
+        showErrorModal({
+          title: "오류 발생",
+          headline: "2FA 설정에 실패했습니다.",
+          description: errorMessage,
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       }
     } finally {
       setLoading(false);
@@ -57,16 +73,40 @@ export default function SecurityTab() {
       setLoading(true);
       const { AuthService } = await import("@/services/auth");
       await AuthService.twoFactorEnable({ totpCode });
-      alert("2단계 인증이 성공적으로 활성화되었습니다!");
-      setShowSetupModal(false);
-      setTwoFactorEnabled(true);
-      await refetch();
+      showErrorModal({
+        title: "알림",
+        headline: "2단계 인증이 성공적으로 활성화되었습니다!",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+        onConfirm: () => {
+          setShowSetupModal(false);
+          setTwoFactorEnabled(true);
+          refetch();
+        },
+      });
     } catch (e: any) {
       const errorCode = e?.response?.data?.code;
       if (errorCode === "INVALID_TWO_FACTOR_CODE") {
-        alert("잘못된 인증 코드입니다. 다시 시도해주세요.");
+        showErrorModal({
+          title: "오류 발생",
+          headline: "잘못된 인증 코드입니다.",
+          description: "다시 시도해주세요.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       } else {
-        alert(e?.response?.data?.message || "인증에 실패했습니다.");
+        const errorMessage = e?.response?.data?.message || "인증에 실패했습니다.";
+        showErrorModal({
+          title: "오류 발생",
+          headline: "인증에 실패했습니다.",
+          description: errorMessage,
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       }
     } finally {
       setLoading(false);
@@ -79,9 +119,24 @@ export default function SecurityTab() {
       setLoading(true);
       const { AuthService } = await import("@/services/auth");
       await AuthService.twoFactorDisableSendCode();
-      alert("인증 코드가 이메일로 발송되었습니다.");
+      showErrorModal({
+        title: "알림",
+        headline: "인증 코드가 이메일로 발송되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } catch (e: any) {
-      alert(e?.response?.data?.message || "인증 코드 발송에 실패했습니다.");
+      const errorMessage = e?.response?.data?.message || "인증 코드 발송에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "인증 코드 발송에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       throw e;
     } finally {
       setLoading(false);
@@ -94,20 +149,53 @@ export default function SecurityTab() {
       setLoading(true);
       const { AuthService } = await import("@/services/auth");
       await AuthService.twoFactorDisable({ emailCode, totpCode: "" });
-      alert("2단계 인증이 해제되었습니다.");
-      setShowDisableModal(false);
-      setTwoFactorEnabled(false);
-      await refetch();
+      showErrorModal({
+        title: "알림",
+        headline: "2단계 인증이 해제되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+        onConfirm: () => {
+          setShowDisableModal(false);
+          setTwoFactorEnabled(false);
+          refetch();
+        },
+      });
     } catch (e: any) {
       const errorCode = e?.response?.data?.code;
       if (errorCode === "TWO_FACTOR_NOT_ENABLED") {
-        alert("2단계 인증이 활성화되어 있지 않습니다.");
-        setTwoFactorEnabled(false);
-        setShowDisableModal(false);
+        showErrorModal({
+          title: "알림",
+          headline: "2단계 인증이 활성화되어 있지 않습니다.",
+          description: "",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+          onConfirm: () => {
+            setTwoFactorEnabled(false);
+            setShowDisableModal(false);
+          },
+        });
       } else if (errorCode === "INVALID_TWO_FACTOR_CODE") {
-        alert("잘못된 인증 코드입니다.");
+        showErrorModal({
+          title: "오류 발생",
+          headline: "잘못된 인증 코드입니다.",
+          description: "",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       } else {
-        alert(e?.response?.data?.message || "2FA 해제에 실패했습니다.");
+        const errorMessage = e?.response?.data?.message || "2FA 해제에 실패했습니다.";
+        showErrorModal({
+          title: "오류 발생",
+          headline: "2FA 해제에 실패했습니다.",
+          description: errorMessage,
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
       }
     } finally {
       setLoading(false);
@@ -118,9 +206,24 @@ export default function SecurityTab() {
     try {
       const { AuthService } = await import("@/services/auth");
       await AuthService.changePassword({ currentPassword, newPassword });
-      alert("비밀번호가 변경되었습니다.");
+      showErrorModal({
+        title: "알림",
+        headline: "비밀번호가 변경되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || "변경에 실패했습니다");
+      const errorMessage = e?.data?.message || e?.message || "변경에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "비밀번호 변경에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     }
   };
 
@@ -128,9 +231,24 @@ export default function SecurityTab() {
     try {
       // TODO: Implement account deletion logic
       console.log("계정 삭제 실행");
-      alert("계정이 삭제되었습니다.");
+      showErrorModal({
+        title: "알림",
+        headline: "계정이 삭제되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || "삭제에 실패했습니다");
+      const errorMessage = e?.data?.message || e?.message || "삭제에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "계정 삭제에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     }
   };
 

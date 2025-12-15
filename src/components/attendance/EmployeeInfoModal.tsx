@@ -14,6 +14,7 @@ import TrashIcon from "@/components/common/icons/TrashIcon";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { HRService } from "@/services/hr";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Props = {
   open: boolean;
@@ -58,11 +59,27 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
         address: formData.address,
       });
       await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
-      alert("관리자 정보가 저장되었습니다.");
-      onClose();
+      showErrorModal({
+        title: "알림",
+        headline: "관리자 정보가 저장되었습니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+        onConfirm: () => {
+          onClose();
+        },
+      });
     } catch (e: any) {
       console.error(e);
-      alert(e?.message || "저장에 실패했습니다.");
+      showErrorModal({
+        title: "오류 발생",
+        headline: "저장에 실패했습니다.",
+        description: e?.message || "관리자 정보 저장 중 오류가 발생했습니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +88,14 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
   const handleAddNote = async () => {
     if (!memberId) return;
     if (!formData.specialNote.trim()) {
-      alert("특이사항 내용을 입력해주세요.");
+      showErrorModal({
+        title: "알림",
+        headline: "특이사항 내용을 입력해주세요.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     if (isSubmitting) return;
@@ -85,7 +109,14 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
       setFormData((prev) => ({ ...prev, specialNote: "" }));
     } catch (e: any) {
       console.error(e);
-      alert(e?.message || "특이사항 추가에 실패했습니다.");
+      showErrorModal({
+        title: "오류 발생",
+        headline: "특이사항 추가에 실패했습니다.",
+        description: e?.message || "특이사항 추가 중 오류가 발생했습니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -93,19 +124,35 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
 
   const handleRemoveNote = async (noteId: number) => {
     if (!memberId) return;
-    if (!confirm("이 특이사항을 삭제하시겠습니까?")) return;
-    if (isSubmitting) return;
-
-    try {
-      setIsSubmitting(true);
-      await HRService.removeMemberNote(memberId, noteId);
-      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
-    } catch (e: any) {
-      console.error(e);
-      alert(e?.message || "특이사항 삭제에 실패했습니다.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    
+    showErrorModal({
+      title: "확인",
+      headline: "이 특이사항을 삭제하시겠습니까?",
+      description: "",
+      confirmText: "삭제",
+      cancelText: "취소",
+      hideCancel: false,
+      onConfirm: async () => {
+        if (isSubmitting) return;
+        try {
+          setIsSubmitting(true);
+          await HRService.removeMemberNote(memberId, noteId);
+          await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+        } catch (e: any) {
+          console.error(e);
+          showErrorModal({
+            title: "오류 발생",
+            headline: "특이사항 삭제에 실패했습니다.",
+            description: e?.message || "특이사항 삭제 중 오류가 발생했습니다.",
+            confirmText: "확인",
+            cancelText: null,
+            hideCancel: true,
+          });
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+    });
   };
 
   if (!open || !employee || typeof document === "undefined") return null;

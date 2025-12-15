@@ -5,6 +5,7 @@ import BaseModal from "@/components/common/BaseModal";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Props = {
   open: boolean;
@@ -108,7 +109,14 @@ export default function CustomerLinkCreateModal({
 
   const handleSubmit = async () => {
     if (!name.trim() || !contact1.trim()) {
-      alert("이름과 연락처1은 필수입니다.");
+      showErrorModal({
+        title: "알림",
+        headline: "이름과 연락처1은 필수입니다.",
+        description: "",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       return;
     }
     setSubmitting(true);
@@ -143,7 +151,15 @@ export default function CustomerLinkCreateModal({
       handleReset();
       onClose();
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || "고객 등록에 실패했습니다.");
+      const errorMessage = e?.data?.message || e?.message || "고객 등록에 실패했습니다.";
+      showErrorModal({
+        title: "오류 발생",
+        headline: "고객 등록에 실패했습니다.",
+        description: errorMessage,
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       setSubmitting(false);
     }

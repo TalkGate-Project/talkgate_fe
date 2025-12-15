@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ApiKeyRegenerateModal from "./ApiKeyRegenerateModal";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 const API_ENDPOINT_PLACEHOLDER = "https://api.talkgate.im/v1/projects/proj_1fdx73abc123/customers";
 const API_KEY_PLACEHOLDER = "TGK-1a9d6sd9a6sd96asd9a6sd9a6sd9as6d";
@@ -19,7 +20,12 @@ export default function CustomerApiSettings() {
       setTimeout(() => setCopyState("idle"), 1500);
     } catch (err) {
       console.error("Failed to copy endpoint", err);
-      alert("복사에 실패했습니다. 다시 시도해주세요.");
+      showErrorModal({
+        headline: "복사 실패",
+        description: "복사에 실패했습니다. 다시 시도해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
     }
   };
 
@@ -30,7 +36,12 @@ export default function CustomerApiSettings() {
       setTimeout(() => setKeyCopyState("idle"), 1500);
     } catch (err) {
       console.error("Failed to copy API key", err);
-      alert("복사에 실패했습니다. 다시 시도해주세요.");
+      showErrorModal({
+        headline: "복사 실패",
+        description: "복사에 실패했습니다. 다시 시도해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
     }
   };
 
@@ -44,7 +55,12 @@ export default function CustomerApiSettings() {
 
   const handleConfirmRegenerate = () => {
     // TODO: API 연동 후 실제 재발급 로직 구현
-    alert("API 키가 재발급되었습니다. (추후 API 연동 후 실제 구현 예정)");
+    showErrorModal({
+      headline: "API 키 재발급",
+      description: "API 키가 재발급되었습니다. (추후 API 연동 후 실제 구현 예정)",
+      hideCancel: true,
+      confirmText: "확인",
+    });
   };
 
   return (

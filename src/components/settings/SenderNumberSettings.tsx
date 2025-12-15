@@ -6,6 +6,7 @@ import { SmsService } from "@/services/sms";
 import type { ProjectSenderNumber, MemberSenderNumber } from "@/types/sms";
 import SelfAuthenticationModal from "./SelfAuthenticationModal";
 import CommonSenderNumberModal from "./CommonSenderNumberModal";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type ProjectSenderNumberStatus = "verified" | "pending" | "rejected";
 
@@ -174,15 +175,35 @@ export default function SenderNumberSettings() {
 
   // 삭제 핸들러 (TODO: API 연동)
   const handleDeleteProjectNumber = async (id: number) => {
-    if (!confirm("이 발신번호를 삭제하시겠습니까?")) return;
-    // TODO: API 연동 후 구현
-    alert("발신번호 삭제 API가 아직 구현되지 않았습니다.");
+    showErrorModal({
+      headline: "발신번호 삭제",
+      description: "이 발신번호를 삭제하시겠습니까?",
+      onConfirm: () => {
+        // TODO: API 연동 후 구현
+        showErrorModal({
+          headline: "알림",
+          description: "발신번호 삭제 API가 아직 구현되지 않았습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+      },
+    });
   };
 
   const handleDeleteMemberNumber = async (id: number) => {
-    if (!confirm("이 발신번호를 삭제하시겠습니까?")) return;
-    // TODO: API 연동 후 구현
-    alert("발신번호 삭제 API가 아직 구현되지 않았습니다.");
+    showErrorModal({
+      headline: "발신번호 삭제",
+      description: "이 발신번호를 삭제하시겠습니까?",
+      onConfirm: () => {
+        // TODO: API 연동 후 구현
+        showErrorModal({
+          headline: "알림",
+          description: "발신번호 삭제 API가 아직 구현되지 않았습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+      },
+    });
   };
 
   // 공통 발신번호 추가 핸들러
@@ -214,15 +235,33 @@ export default function SenderNumberSettings() {
       // 개인 발신번호: 본인인증 완료 시 자동으로 발신번호 추가
       try {
         await SmsService.registerMemberSenderNumber({ verificationToken });
-        alert("본인인증이 완료되어 발신번호가 자동으로 추가되었습니다.");
-        loadMemberNumbers(); // 목록 새로고침
+        showErrorModal({
+          headline: "본인인증 완료",
+          description: "본인인증이 완료되어 발신번호가 자동으로 추가되었습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+          onConfirm: () => {
+            loadMemberNumbers(); // 목록 새로고침
+          },
+        });
       } catch (error: any) {
         console.error("개인 발신번호 등록 실패:", error);
         const errorCode = error?.response?.data?.code;
         if (errorCode === "ALREADY_EXISTS") {
-          alert("이미 등록된 발신번호입니다.");
+          showErrorModal({
+            headline: "이미 등록된 발신번호",
+            description: "이미 등록된 발신번호입니다.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
         } else {
-          alert("발신번호 등록에 실패했습니다.");
+          const errorMessage = error?.response?.data?.message || error?.message || "발신번호 등록에 실패했습니다.";
+          showErrorModal({
+            headline: "발신번호 등록 실패",
+            description: errorMessage,
+            hideCancel: true,
+            confirmText: "확인",
+          });
         }
       }
     } else if (authPurpose === "common") {
