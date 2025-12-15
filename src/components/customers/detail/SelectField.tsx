@@ -9,14 +9,14 @@ export function SelectField({
     <div className="relative">
       <select
         {...props}
-        className={`w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-2 pr-6 appearance-none ${
+        className={`w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-2 pr-6 appearance-none bg-card dark:bg-neutral-10 text-ink dark:text-neutral-80 ${
           className ?? ""
         }`}
       >
         {children}
       </select>
       <svg
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink dark:text-neutral-80"
         width="8"
         height="6"
         viewBox="0 0 8 6"
@@ -25,7 +25,7 @@ export function SelectField({
       >
         <path
           d="M4.25896 5.4382C4.05939 5.71473 3.64764 5.71473 3.44807 5.4382L0.0954003 0.792604C-0.143249 0.461921 0.0930391 1.87809e-07 0.500843 2.2346e-07L7.20619 8.0966e-07C7.61399 8.45312e-07 7.85028 0.461922 7.61163 0.792604L4.25896 5.4382Z"
-          fill="black"
+          fill="currentColor"
         />
       </svg>
     </div>

@@ -148,7 +148,7 @@ export default function SubscribeProjectModal({
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <button
               aria-label="close"
-              className="w-6 h-6 flex items-center justify-center text-white hover:opacity-70 transition-opacity"
+              className="cursor-pointer w-6 h-6 flex items-center justify-center text-white hover:opacity-70 transition-opacity"
               onClick={() => !submitting && onClose()}
             >
               <svg
@@ -209,7 +209,7 @@ export default function SubscribeProjectModal({
           <button
             onClick={handleSubscribe}
             disabled={submitting}
-            className="w-[344px] h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[344px] h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>구독하기</span>
             <svg

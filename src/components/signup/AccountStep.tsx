@@ -103,7 +103,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
         >
           이메일
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full max-w-[364px]">
           <input
             name="email"
             value={email}
@@ -118,7 +118,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
                 ? "이메일을 다시 입력하세요"
                 : "이메일을 입력하세요"
             }
-            className={`flex-1 h-[34px] rounded-[5px] border bg-transparent px-3 text-white ${
+            className={`flex-1 min-w-0 h-[34px] rounded-[5px] border bg-transparent pl-3 text-white ${
               (invalid && !emailValid) || emailDuplicate
                 ? "border-[#FF5A5A] placeholder-[#FF5A5A]"
                 : "border-[#555555]"
@@ -127,7 +127,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
           />
           <button
             type="button"
-            className={`h-[34px] px-3 rounded-[5px] ${
+            className={`min-w-[72px] h-[34px] rounded-[5px] ${
               email === verifiedEmail && emailChecked
                 ? "bg-[#2F2F2F] text-[#555555]"
                 : "bg-[#2F2F2F] text-[#D0D0D0]"
