@@ -40,7 +40,7 @@ export default function ConfirmModal({
       >
         <div className="px-8 py-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-[20px] font-semibold text-[#1B1B1B]">{title}</h2>
+            <h2 className="text-[20px] font-semibold text-ink dark:text-neutral-90">{title}</h2>
             <button
               type="button"
               onClick={onCancel}
@@ -56,7 +56,8 @@ export default function ConfirmModal({
               >
                 <path
                   d="M6 18L18 6M6 6L18 18"
-                  stroke="#B0B0B0"
+                  stroke="currentColor"
+                  className="text-neutral-60 dark:text-neutral-60"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -82,19 +83,19 @@ export default function ConfirmModal({
                 />
               </svg>
             </div>
-            <p className="text-[18px] font-semibold text-[#E43B3B]">
+            <p className="text-[18px] font-semibold text-[#E43B3B] dark:text-danger-40">
               {headline ?? title}
             </p>
-            <p className="whitespace-pre-line text-[14px] font-medium text-[#1F1F1F]">
+            <p className="whitespace-pre-line text-[14px] font-medium text-ink dark:text-neutral-80">
               {description}
             </p>
           </div>
         </div>
-        <div className="h-px w-full bg-[#E2E2E2]"></div>
+        <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30"></div>
         <div className="px-8 py-4 flex justify-end gap-3">
           <button
             type="button"
-            className="cursor-pointer flex h-[34px] items-center justify-center rounded-[5px] border border-[#E2E2E2] px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#000000]"
+            className="cursor-pointer flex h-[34px] items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-ink dark:text-neutral-80"
             onClick={onCancel}
             disabled={loading}
           >
@@ -102,7 +103,7 @@ export default function ConfirmModal({
           </button>
           <button
             type="button"
-            className="cursor-pointer flex h-[34px] items-center justify-center rounded-[5px] bg-[#252525] px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#D0D0D0] disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer flex h-[34px] items-center justify-center rounded-[5px] bg-[#252525] dark:bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-[#D0D0D0] dark:text-neutral-20 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={handleConfirm}
             disabled={loading}
           >

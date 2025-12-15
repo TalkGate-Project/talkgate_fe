@@ -42,6 +42,8 @@ export function useCustomerForm(): UseCustomerFormReturn {
       name: detail.name || "",
       contact1: detail.contact1 || "",
       contact2: detail.contact2 || "",
+      contact1Type: detail.contact1Type ?? null,
+      contact2Type: detail.contact2Type ?? null,
       residentFront: detail.residentId?.slice(0, 6) || "",
       residentBack: detail.residentId?.slice(6) || "",
       ageRange: detail.ageRange || "",
@@ -89,6 +91,9 @@ export function useCustomerForm(): UseCustomerFormReturn {
           // "-" 표시 필드는 서버 전송 시 빈 값으로 변환
           if (EMPTY_DISPLAY_DASH_FIELDS.includes(key)) {
             (changedFields as any)[apiField] = fromDisplayValue(form[key]);
+          } else if (key === "contact1Type" || key === "contact2Type") {
+            // contact1Type과 contact2Type은 null을 그대로 전송
+            (changedFields as any)[apiField] = form[key];
           } else {
             (changedFields as any)[apiField] = form[key] || undefined;
           }

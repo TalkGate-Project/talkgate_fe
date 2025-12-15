@@ -4,6 +4,7 @@ import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
+import { ContactType } from "@/types/customers";
 
 type Props = {
   form: CustomerFormState;
@@ -71,10 +72,21 @@ export default function BasicTab({
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
           <div>
-            <SelectField className="h-[34px] font-medium text-[14px]">
-              <option>휴대폰</option>
-              <option>집</option>
-              <option>회사</option>
+            <SelectField
+              value={form.contact1Type ?? ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  contact1Type: e.target.value ? (e.target.value as ContactType) : null,
+                }))
+              }
+              className="h-[34px] font-medium text-[14px]"
+            >
+              <option value="">선택</option>
+              <option value={ContactType.Phone}>휴대폰</option>
+              <option value={ContactType.Home}>집</option>
+              <option value={ContactType.Office}>회사</option>
+              <option value={ContactType.Other}>기타</option>
             </SelectField>
           </div>
           <div>
@@ -95,10 +107,21 @@ export default function BasicTab({
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
           <div>
-            <SelectField className="h-[34px] font-medium text-[14px]">
-              <option>선택사항</option>
-              <option>집</option>
-              <option>회사</option>
+            <SelectField
+              value={form.contact2Type ?? ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  contact2Type: e.target.value ? (e.target.value as ContactType) : null,
+                }))
+              }
+              className="h-[34px] font-medium text-[14px]"
+            >
+              <option value="">선택</option>
+              <option value={ContactType.Phone}>휴대폰</option>
+              <option value={ContactType.Home}>집</option>
+              <option value={ContactType.Office}>회사</option>
+              <option value={ContactType.Other}>기타</option>
             </SelectField>
           </div>
           <div>

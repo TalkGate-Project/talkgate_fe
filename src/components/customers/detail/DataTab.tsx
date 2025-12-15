@@ -48,7 +48,8 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, applicationDate: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          disabled
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
           placeholder="YYYY-MM-DD HH:mm"
         />
       </label>
@@ -60,7 +61,8 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, assignedMemberName: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          disabled
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
           placeholder="담당자명"
         />
       </label>
@@ -71,7 +73,8 @@ export default function DataTab({ form, setForm }: Props) {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, assignedTeamName: e.target.value }))
           }
-          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          disabled
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
           placeholder="예: 영업1팀"
         />
       </label>

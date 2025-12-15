@@ -146,8 +146,6 @@ export default function DatePicker(props: DatePickerProps) {
 		setYearStart(openYearStart);
 	}
 
-
-
 	function goPrev() {
 		if (mode === "month") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1));
@@ -288,7 +286,7 @@ export default function DatePicker(props: DatePickerProps) {
 									const baseCls =
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
-									const selectedCls = isSelected ? "bg-[#D6FAE8] dark:bg-primary-40/30" : "hover:bg-neutral-20 dark:hover:bg-neutral-30";
+									const selectedCls = isSelected ? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30" : "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
 										return (
