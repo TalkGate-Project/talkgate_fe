@@ -5,7 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useTeams } from "@/hooks/useMembersTree";
 import { StatisticsService } from "@/services/statistics";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type { CustomerPaymentTeamRecord, CustomerPaymentByTeamResponse } from "@/types/statistics";
 import DateRangePicker from "@/components/common/DateRangePicker";
 
@@ -36,6 +38,9 @@ export default function PaymentBarChart() {
   const [endDate, setEndDate] = useState<Date | null>(new Date(defaultRange.endDate));
   const formattedStart = startDate ? formatDate(startDate) : defaultRange.startDate;
   const formattedEnd = endDate ? formatDate(endDate) : defaultRange.endDate;
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: teamsData } = useTeams(projectId);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate: formattedStart, endDate: formattedEnd }],
@@ -48,6 +53,18 @@ export default function PaymentBarChart() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const teamLeaderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (teamsData) {
+      teamsData.forEach((team) => {
+        if (team.name && team.leaderMemberId) {
+          map.set(team.name, team.leaderMemberId);
+        }
+      });
+    }
+    return map;
+  }, [teamsData]);
+
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
     return records
@@ -58,6 +75,19 @@ export default function PaymentBarChart() {
         count: record.paymentCount ?? 0,
       }));
   }, [data]);
+
+  const handleBarClick = (teamName: string) => {
+    const leaderMemberId = teamLeaderMap.get(teamName);
+    if (leaderMemberId) {
+      setSelectedMemberId(leaderMemberId);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   // X축 커스텀 렌더러: "팀명" + 아래 줄 "N건"
   const teamToCount = useMemo(
@@ -208,7 +238,18 @@ export default function PaymentBarChart() {
               );
             }}
           />
-          <Bar dataKey="amount" fill="url(#payGradient)" radius={[8, 8, 0, 0]} barSize={56}>
+          <Bar 
+            dataKey="amount" 
+            fill="url(#payGradient)" 
+            radius={[8, 8, 0, 0]} 
+            barSize={56}
+            onClick={(data: any) => {
+              if (data && data.team) {
+                handleBarClick(data.team);
+              }
+            }}
+            style={{ cursor: "pointer" }}
+          >
             <LabelList
               dataKey="amount"
               position="top"
@@ -221,6 +262,14 @@ export default function PaymentBarChart() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 }

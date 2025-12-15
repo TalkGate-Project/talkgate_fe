@@ -69,6 +69,7 @@ function CustomersPage() {
   const {
     selectedIds,
     setSelectedIds,
+    selectionMode,
     allSelectedOnPage,
     toggleSelectAll,
     toggleSelect,
@@ -118,8 +119,8 @@ function CustomersPage() {
     return members.map((m) => ({ label: m.name, value: m.id }));
   }, [members]);
 
-  const handleSelectAll = () => {
-    toggleSelectAll(customers);
+  const handleSelectAll = (mode: "page" | "all") => {
+    toggleSelectAll(customers, mode);
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -145,13 +146,40 @@ function CustomersPage() {
 
   const handleAssign = async (targetId: number) => {
     try {
-      await CustomersService.assign({
-        assignmentType: "ids",
-        memberId: targetId as any,
-        customerIds: selectedIds,
-        expectedCount: selectedIds.length,
-        projectId: projectId!,
-      });
+      if (selectionMode === "all") {
+        // 전체 목록 선택: 필터 기준으로 배정
+        await CustomersService.assign({
+          assignmentType: "filters",
+          memberId: targetId as any,
+          filterConditions: {
+            name: applied.name,
+            contact1: applied.contact1,
+            contact2: applied.contact2,
+            noteContent: applied.noteContent,
+            teamId: applied.teamId,
+            memberId: applied.memberId,
+            applicationRoute: applied.applicationRoute,
+            mediaCompany: applied.mediaCompany,
+            site: applied.site,
+            categoryIds: applied.categoryIds,
+            applicationDateFrom: applied.applicationDateFrom,
+            applicationDateTo: applied.applicationDateTo,
+            assignedAtFrom: applied.assignedAtFrom,
+            assignedAtTo: applied.assignedAtTo,
+          },
+          expectedCount: total,
+          projectId: projectId!,
+        });
+      } else {
+        // 현재 페이지 선택: ID 기준으로 배정
+        await CustomersService.assign({
+          assignmentType: "ids",
+          memberId: targetId as any,
+          customerIds: selectedIds,
+          expectedCount: selectedIds.length,
+          projectId: projectId!,
+        });
+      }
       clearSelection();
       await refetch();
     } catch (e) {
@@ -218,6 +246,8 @@ function CustomersPage() {
           onSelectAll={handleSelectAll}
           allSelectedOnPage={allSelectedOnPage(customers)}
           onCustomerClick={setDetailId}
+          totalCount={total}
+          selectionMode={selectionMode}
         />
         <CustomersPagination
           total={total}
@@ -258,6 +288,10 @@ function CustomersPage() {
         open={isSmsOpen}
         onClose={() => setSmsOpen(false)}
         customers={customers.filter((c) => selectedIds.includes(c.id))}
+        selectionMode={selectionMode}
+        appliedFilters={applied}
+        totalCount={total}
+        projectId={projectId!}
       />
       </div>
     </main>

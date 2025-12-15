@@ -13,7 +13,7 @@ import type { SmsModalProps } from "./types";
 import { AssetsService } from "@/services/assets";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
-export default function SmsModal({ open, onClose, customers, onSuccess }: SmsModalProps) {
+export default function SmsModal({ open, onClose, customers, onSuccess, selectionMode, appliedFilters, totalCount, projectId }: SmsModalProps) {
   const {
     selectedSenderKey,
     selectedSender,
@@ -123,7 +123,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess }: SmsMod
         }
       }
 
-      const result = await handleSend(customers, imageUrls);
+      const result = await handleSend(customers, imageUrls, selectionMode, appliedFilters, totalCount, projectId);
       
       if (result.success) {
         showErrorModal({

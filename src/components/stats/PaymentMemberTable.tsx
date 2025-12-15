@@ -8,6 +8,7 @@ import MemberStatsFilterModal, { type MemberFilterState } from "@/components/com
 import DateRangePicker from "@/components/common/DateRangePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type {
   CustomerPaymentMemberRecord,
   CustomerPaymentTeamRecord,
@@ -67,6 +68,18 @@ export default function PaymentMemberTable() {
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
   const [sortOrder, setSortOrder] = useState<MemberFilterState["sort"]>(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleMemberClick = (memberId: number) => {
+    setSelectedMemberId(memberId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -238,7 +251,12 @@ export default function PaymentMemberTable() {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
             <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid grid-cols-4 items-center px-[30px]">
-              <div className="text-[14px] text-foreground opacity-80">{row.memberName}</div>
+              <button
+                onClick={() => handleMemberClick(row.memberId)}
+                className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
+              >
+                {row.memberName}
+              </button>
               <div className="flex items-center gap-2 text-[14px] text-foreground opacity-80">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />
                 {row.teamName ?? "미지정"}
@@ -293,6 +311,14 @@ export default function PaymentMemberTable() {
         defaults={{ team: teamFilter, sort: sortOrder }}
         teamOptions={teamOptions}
       />
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 }

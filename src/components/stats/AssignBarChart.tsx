@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, Cell } from "recharts";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useTeams } from "@/hooks/useMembersTree";
 import { StatisticsService } from "@/services/statistics";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
@@ -18,6 +20,9 @@ export default function AssignBarChart() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: teamsData } = useTeams(projectId);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerAssignmentByTeamResponse>({
     queryKey: ["stats", "assignment", "team-chart", projectId],
@@ -30,14 +35,40 @@ export default function AssignBarChart() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const teamLeaderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    if (teamsData) {
+      teamsData.forEach((team) => {
+        if (team.name && team.leaderMemberId) {
+          map.set(team.name, team.leaderMemberId);
+        }
+      });
+    }
+    return map;
+  }, [teamsData]);
+
   const chartData = useMemo(() => {
     const items = data?.data.data === null ? [] : (data?.data.data ?? []);
     return items.map((item, index) => ({
       name: item.teamName ?? "배정되지 않음",
       value: item.totalAssignedCount,
       color: BAR_COLORS[index % BAR_COLORS.length],
+      teamId: item.teamId,
     }));
   }, [data]);
+
+  const handleBarClick = (teamName: string) => {
+    const leaderMemberId = teamLeaderMap.get(teamName);
+    if (leaderMemberId) {
+      setSelectedMemberId(leaderMemberId);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   // Y축 도메인 계산 (최댓값에 14% 여유 추가)
   const yDomain = useMemo(() => {
@@ -88,19 +119,50 @@ export default function AssignBarChart() {
   return (
     <>
       <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
-      <div className="h-[300px] mt-[94px]">
+      <div className="h-[310px] mt-[94px]">
         <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 20, left: 20 }} barCategoryGap="20%">
+        <BarChart data={chartData} margin={{ top: 30, right: 20, bottom: 30, left: 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fill: "var(--foreground)", fontSize: 12, fontFamily: "var(--font-montserrat)", fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
             tickMargin={30}
+            tick={(props: any) => {
+              const { x, y, payload } = props;
+              const teamName = payload.value;
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  <text
+                    x={0}
+                    y={0}
+                    dy={16}
+                    textAnchor="middle"
+                    fill="var(--foreground)"
+                    fontSize={12}
+                    fontFamily="var(--font-montserrat)"
+                    fontWeight={500}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleBarClick(teamName)}
+                  >
+                    {teamName}
+                  </text>
+                </g>
+              );
+            }}
           />
           <YAxis hide domain={yDomain} />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={42}>
+          <Bar 
+            dataKey="value" 
+            radius={[8, 8, 0, 0]} 
+            barSize={42}
+            onClick={(data: any) => {
+              if (data && data.name) {
+                handleBarClick(data.name);
+              }
+            }}
+            style={{ cursor: "pointer" }}
+          >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
@@ -108,21 +170,44 @@ export default function AssignBarChart() {
               dataKey="value"
               position="top"
               offset={10}
-              style={{
-                fill: "var(--foreground)",
-                fontSize: "12px",
-                fontWeight: "500",
-                fontFamily: "var(--font-montserrat)",
-              }}
-              formatter={(value: any) => {
+              content={(props: any) => {
+                const { x, y, value, payload } = props;
+                if (!payload || value === undefined) return null;
                 const numValue = typeof value === 'number' ? value : Number(value);
-                return `${NUMBER_FORMATTER.format(numValue)}건`;
+                const formattedValue = `${NUMBER_FORMATTER.format(numValue)}건`;
+                const teamName = payload.name;
+                
+                return (
+                  <g>
+                    <text
+                      x={x}
+                      y={y}
+                      fill="var(--foreground)"
+                      fontSize="12px"
+                      fontWeight="500"
+                      fontFamily="var(--font-montserrat)"
+                      textAnchor="middle"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleBarClick(teamName)}
+                    >
+                      {formattedValue}
+                    </text>
+                  </g>
+                );
               }}
             />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
       </div>
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={projectId}
+        />
+      )}
     </>
   );
 }

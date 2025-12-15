@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type {
   CustomerAssignmentByMemberResponse,
   CustomerAssignmentMemberRecord,
@@ -45,6 +46,18 @@ export default function AssignMemberTable() {
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
   const [sortOrder, setSortOrder] = useState<MemberFilterState["sort"]>(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleMemberClick = (memberId: number) => {
+    setSelectedMemberId(memberId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -201,7 +214,12 @@ export default function AssignMemberTable() {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
             <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid grid-cols-3 items-center px-[30px]">
-              <div className="text-[14px] text-foreground opacity-80">{r.memberName}</div>
+              <button
+                onClick={() => handleMemberClick(r.memberId)}
+                className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
+              >
+                {r.memberName}
+              </button>
               <div className="flex items-center gap-2 text-[14px] text-foreground opacity-80">
                 <span className="w-3 h-3 rounded-full" style={{ background: color }} />
                 {r.teamName ?? "미지정"}
@@ -259,6 +277,14 @@ export default function AssignMemberTable() {
         defaults={{ team: teamFilter, sort: sortOrder }}
         teamOptions={teamOptions}
       />
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 }

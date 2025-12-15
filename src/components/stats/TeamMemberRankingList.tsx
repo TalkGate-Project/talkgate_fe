@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useStatsMemberRanking } from "@/hooks/useStatsRanking";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
 import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import Pagination from "@/components/common/Pagination";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -39,10 +41,23 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
   const [page, setPage] = useState(1);
   const limit = 5;
   const { rows, totalCount, isLoading, isError } = useStatsMemberRanking(projectId, page, limit);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentProjectId] = useSelectedProjectId();
 
   useEffect(() => {
     setPage(1);
   }, [projectId]);
+
+  const handleMemberClick = (memberId: number) => {
+    setSelectedMemberId(memberId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMemberId(null);
+  };
 
   if (!projectId) {
     return <EmptyState message="프로젝트를 먼저 선택해주세요." />;
@@ -87,7 +102,12 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
                   )}
                   <div>
                     <div className="text-[18px] leading-[21px] font-bold text-neutral-90 flex items-center gap-2">
-                      {row.memberName}
+                      <button
+                        onClick={() => handleMemberClick(row.memberId)}
+                        className="cursor-pointer hover:underline text-left"
+                      >
+                        {row.memberName}
+                      </button>
                       {row.teamName && (
                         <div className="text-[14px] leading-[16px] font-medium text-neutral-60 border-l border-neutral-30 pl-3">
                           {row.teamName}
@@ -112,6 +132,14 @@ export default function TeamMemberRankingList({ projectId }: TeamMemberRankingLi
           onPageChange={setPage}
         />
       </div>
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={isModalOpen}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={currentProjectId}
+        />
+      )}
     </div>
   );
 }
