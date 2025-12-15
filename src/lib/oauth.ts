@@ -78,7 +78,7 @@ export function initiateSocialLogin(provider: OAuthProvider): void {
 
   const clientId = clientIdMap[provider];
   if (!clientId) {
-    const errorMsg = `❌ ${provider.toUpperCase()} Client ID가 설정되지 않았습니다. 환경변수를 확인하세요.`;
+    const errorMsg = `❌ ${provider.toUpperCase()} Client ID가 설정되지 않았습니다. (Vercel: Environment Variables 설정 후 반드시 재배포 필요)`;
     debugLog(errorMsg);
     console.error(`[OAuth] ${errorMsg}`);
     alert(`소셜 로그인 설정 오류: ${provider} Client ID가 누락되었습니다.`);

@@ -24,6 +24,10 @@ NEXT_PUBLIC_KAKAO_REST_API_KEY=
 NEXT_PUBLIC_NAVER_CLIENT_ID=
 ```
 
+중요(Next.js):
+- `NEXT_PUBLIC_*` 값은 **빌드 시점에 번들에 인라인**됩니다.
+- Vercel에서 환경 변수 값을 바꿨다면 **반드시 재배포(리빌드)** 해야 브라우저에 반영됩니다.
+
 각 소셜 제공자 콘솔에 아래 Redirect URI를 등록하세요:
 
 - Google: `https://YOUR_HOST/auth/callback/google`
