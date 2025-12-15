@@ -27,7 +27,28 @@ export function subscribeErrorModal(listener: Listener): () => void {
   };
 }
 
-export function showErrorModal(payload?: ErrorModalCallbacks) {
+// 문자열을 받으면 자동으로 headline으로 변환
+export function showErrorModal(message: string): void;
+// 객체를 받으면 그대로 사용
+export function showErrorModal(payload?: ErrorModalCallbacks): void;
+// 구현
+export function showErrorModal(
+  payloadOrMessage?: ErrorModalCallbacks | string
+): void {
+  let payload: ErrorModalCallbacks | undefined;
+  
+  if (typeof payloadOrMessage === "string") {
+    // 문자열인 경우 headline으로 변환
+    payload = {
+      type: "error",
+      headline: payloadOrMessage,
+      hideCancel: true,
+    };
+  } else {
+    // 객체인 경우 그대로 사용
+    payload = payloadOrMessage;
+  }
+  
   const event: ErrorModalEvent = { type: "show", payload };
   listeners.forEach((listener) => listener(event));
 }
