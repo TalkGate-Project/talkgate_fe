@@ -9,6 +9,7 @@ import NoticeTable from "@/components/notice/NoticeTable";
 import { getSelectedProjectId } from "@/lib/project";
 import { useNoticeQueryParams } from "@/hooks/useNoticeQueryParams";
 import { useNoticeList } from "@/hooks/useNoticeList";
+import { useMyMember } from "@/hooks/useMyMember";
 
 function NoticePageContent() {
   const router = useRouter();
@@ -36,6 +37,7 @@ function NoticePageContent() {
     title,
     important,
   });
+  const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   // 검색어를 URL 파라미터와 동기화
   useEffect(() => {
@@ -75,6 +77,7 @@ function NoticePageContent() {
           searchTerm={searchInput}
           onSearchTermChange={setSearchInput}
           onSearch={handleSearch}
+          canWrite={isAdminOrSubAdmin}
         />
 
         {/* 공지사항 목록 테이블 */}

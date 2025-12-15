@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { AssetsService } from "@/services/assets";
 import { SmsService } from "@/services/sms";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 interface CommonSenderNumberModalProps {
   isOpen: boolean;
@@ -48,27 +49,47 @@ export default function CommonSenderNumberModal({
   const handleSubmit = async () => {
     // Validation
     if (!phoneNumber.trim()) {
-      alert("발신번호를 입력해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "발신번호를 입력해주세요",
+        hideCancel: true,
+      });
       return;
     }
 
     if (!file1) {
-      alert("통신서비스 이용증명원을 첨부해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "통신서비스 이용증명원을 첨부해주세요",
+        hideCancel: true,
+      });
       return;
     }
 
     if (!file2) {
-      alert("사업자등록증 또는 법인등기부등본을 첨부해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "사업자등록증 또는 법인등기부등본을 첨부해주세요",
+        hideCancel: true,
+      });
       return;
     }
 
     if (!file3) {
-      alert("신분증 사본을 첨부해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "신분증 사본을 첨부해주세요",
+        hideCancel: true,
+      });
       return;
     }
 
     if (!file4) {
-      alert("재직증명서를 첨부해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "재직증명서를 첨부해주세요",
+        hideCancel: true,
+      });
       return;
     }
 
@@ -103,14 +124,26 @@ export default function CommonSenderNumberModal({
         documentImage4: url4,
       });
 
-      alert("발신번호가 성공적으로 등록되었습니다. 승인 심사 후 사용 가능합니다.");
-      onSuccess();
-      onClose();
+      showErrorModal({
+        type: "success",
+        headline: "발신번호가 성공적으로 등록되었습니다",
+        description: "승인 심사 후 사용 가능합니다.",
+        hideCancel: true,
+        onConfirm: () => {
+          onSuccess();
+          onClose();
+        },
+      });
     } catch (error: any) {
       console.error("발신번호 등록 실패:", error);
       const errorMessage =
         error?.response?.data?.message || "발신번호 등록에 실패했습니다.";
-      alert(errorMessage);
+      showErrorModal({
+        type: "error",
+        headline: "발신번호 등록에 실패했습니다",
+        description: errorMessage,
+        hideCancel: true,
+      });
     } finally {
       setIsSubmitting(false);
     }

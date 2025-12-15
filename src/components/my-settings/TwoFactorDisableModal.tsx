@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Step = "email" | "verify";
 
@@ -51,7 +52,12 @@ export default function TwoFactorDisableModal({
 
   const handleDisable = async () => {
     if (code.length !== 6) {
-      alert("6자리 인증 코드를 입력하세요.");
+      showErrorModal({
+        type: "error",
+        headline: "인증 코드를 입력하세요",
+        description: "6자리 인증 코드를 입력해주세요.",
+        hideCancel: true,
+      });
       return;
     }
     await onDisable(code);

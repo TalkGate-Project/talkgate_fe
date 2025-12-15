@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Project = {
   id: string;
@@ -98,7 +99,12 @@ export default function SubscribeProjectModal({
       onClose();
     } catch (error) {
       console.error("Subscription failed:", error);
-      alert("구독에 실패했습니다. 다시 시도해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "구독에 실패했습니다",
+        description: "다시 시도해주세요.",
+        hideCancel: true,
+      });
     } finally {
       setSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 interface TwoFactorSetupModalProps {
   isOpen: boolean;
@@ -31,12 +32,21 @@ export default function TwoFactorSetupModal({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(secretCode);
-    alert("시크릿 코드가 복사되었습니다.");
+    showErrorModal({
+      type: "success",
+      headline: "시크릿 코드가 복사되었습니다.",
+      hideCancel: true,
+    });
   };
 
   const handleVerify = async () => {
     if (code.length !== 6) {
-      alert("6자리 인증 코드를 입력하세요.");
+      showErrorModal({
+        type: "error",
+        headline: "인증 코드를 입력하세요",
+        description: "6자리 인증 코드를 입력해주세요.",
+        hideCancel: true,
+      });
       return;
     }
     await onVerify(code);

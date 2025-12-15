@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import Image from "next/image";
 import defaultProfileImg from "@/assets/images/common/default_profile.png";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
@@ -38,9 +39,18 @@ export default function ProfileTab() {
       await AuthService.updateProfile({ name, phone: contact });
       await refetch();
       setIsEditing(false);
-      alert("프로필이 업데이트되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "프로필이 업데이트되었습니다.",
+        hideCancel: true,
+      });
     } catch (e: any) {
-      alert(e?.data?.message || e?.message || "업데이트에 실패했습니다");
+      showErrorModal({
+        type: "error",
+        headline: "업데이트에 실패했습니다",
+        description: e?.data?.message || e?.message || "프로필 업데이트 중 오류가 발생했습니다.",
+        hideCancel: true,
+      });
     } finally {
       setSaving(false);
     }
@@ -52,7 +62,11 @@ export default function ProfileTab() {
     
     // TODO: 이미지 업로드 API 연동 필요
     console.log("File selected:", file);
-    alert("사진 업로드 기능은 준비 중입니다.");
+    showErrorModal({
+      type: "info",
+      headline: "사진 업로드 기능은 준비 중입니다.",
+      hideCancel: true,
+    });
   };
 
   return (

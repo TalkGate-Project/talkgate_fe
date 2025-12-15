@@ -10,6 +10,8 @@ interface MySettingsSidebarProps {
   onTabChange: (tab: MySettingsTab) => void;
 }
 
+// 모든 사용자가 모든 탭에 접근 가능 (정책 변경: 2025년)
+// 프로필, 알림, 구독관리, 보안 탭 모두 모든 역할의 사용자에게 표시됨
 const SIDEBAR_ITEMS = [
   {
     key: "profile" as const,
@@ -42,7 +44,7 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
         <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
       </div>
 
-      {/* 탭 목록 */}
+      {/* 탭 목록 - 모든 사용자에게 모든 탭 표시 */}
       <nav className="space-y-1">
         {SIDEBAR_ITEMS.map((item) => {
           const IconComponent = item.icon;

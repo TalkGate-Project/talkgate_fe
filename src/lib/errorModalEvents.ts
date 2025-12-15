@@ -1,4 +1,7 @@
+export type FeedbackModalType = "error" | "success" | "info";
+
 export type ErrorModalCallbacks = {
+  type?: FeedbackModalType;
   title?: string;
   headline?: string;
   description?: string;
