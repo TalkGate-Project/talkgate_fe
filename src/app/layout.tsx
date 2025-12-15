@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
+import ConfirmModalProvider from "@/providers/ConfirmModalProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
@@ -61,19 +62,21 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
         <ErrorFeedbackModalProvider>
-          <ReactQueryProvider>
-            <DemoModeProvider>
-              <NotificationProvider>
-                <ConditionalHeader />
-                {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
-                <Suspense fallback={null}>
-                  <UiScaleToggle />
-                </Suspense>
-                {/* No fixed padding; header component inserts spacer only when visible */}
-                <div>{children}</div>
-              </NotificationProvider>
-            </DemoModeProvider>
-          </ReactQueryProvider>
+          <ConfirmModalProvider>
+            <ReactQueryProvider>
+              <DemoModeProvider>
+                <NotificationProvider>
+                  <ConditionalHeader />
+                  {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
+                  <Suspense fallback={null}>
+                    <UiScaleToggle />
+                  </Suspense>
+                  {/* No fixed padding; header component inserts spacer only when visible */}
+                  <div>{children}</div>
+                </NotificationProvider>
+              </DemoModeProvider>
+            </ReactQueryProvider>
+          </ConfirmModalProvider>
         </ErrorFeedbackModalProvider>
       </body>
     </html>
