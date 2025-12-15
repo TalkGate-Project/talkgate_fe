@@ -18,38 +18,17 @@ npm i
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 NEXT_PUBLIC_API_TIMEOUT_MS=10000
 
-# OAuth Client IDs (환경별 설정)
-# 개발 환경용
-NEXT_PUBLIC_GOOGLE_CLIENT_ID_DEV=your-dev-google-client-id
-NEXT_PUBLIC_KAKAO_REST_API_KEY_DEV=your-dev-kakao-rest-api-key
-NEXT_PUBLIC_NAVER_CLIENT_ID_DEV=your-dev-naver-client-id
-
-# 프로덕션 환경용
-NEXT_PUBLIC_GOOGLE_CLIENT_ID_PROD=your-prod-google-client-id
-NEXT_PUBLIC_KAKAO_REST_API_KEY_PROD=your-prod-kakao-rest-api-key
-NEXT_PUBLIC_NAVER_CLIENT_ID_PROD=your-prod-naver-client-id
-
-# 호환성을 위한 단일 환경 변수 (선택사항, 환경별 변수가 없을 때만 사용)
-# NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-# NEXT_PUBLIC_KAKAO_REST_API_KEY=
-# NEXT_PUBLIC_NAVER_CLIENT_ID=
+# OAuth Client IDs
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+NEXT_PUBLIC_KAKAO_REST_API_KEY=
+NEXT_PUBLIC_NAVER_CLIENT_ID=
 ```
 
-**환경 자동 감지:**
-- 개발 환경: `localhost` 또는 `.talkgate.im`이 아닌 도메인 → `_DEV` 접미사 값 사용
-- 프로덕션 환경: `.talkgate.im` 또는 `talkgate.im` 도메인 → `_PROD` 접미사 값 사용
+각 소셜 제공자 콘솔에 아래 Redirect URI를 등록하세요:
 
-**각 소셜 제공자 콘솔에 아래 Redirect URI를 등록하세요:**
-
-- Google: 
-  - 개발: `http://localhost:3000/auth/callback/google`, `https://app-dev.talkgate.im/auth/callback/google`
-  - 프로덕션: `https://app.talkgate.im/auth/callback/google`
-- Kakao: 
-  - 개발: `http://localhost:3000/auth/callback/kakao`, `https://app-dev.talkgate.im/auth/callback/kakao`
-  - 프로덕션: `https://app.talkgate.im/auth/callback/kakao`
-- Naver: 
-  - 개발: `http://localhost:3000/auth/callback/naver`, `https://app-dev.talkgate.im/auth/callback/naver`
-  - 프로덕션: `https://app.talkgate.im/auth/callback/naver`
+- Google: `https://YOUR_HOST/auth/callback/google`
+- Kakao: `https://YOUR_HOST/auth/callback/kakao`
+- Naver: `https://YOUR_HOST/auth/callback/naver`
 
 3) 개발 서버:
 
