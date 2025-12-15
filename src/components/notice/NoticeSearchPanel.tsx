@@ -7,9 +7,10 @@ interface NoticeSearchPanelProps {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   onSearch: () => void;
+  canWrite?: boolean;
 }
 
-export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSearch }: NoticeSearchPanelProps) {
+export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSearch, canWrite = false }: NoticeSearchPanelProps) {
   const router = useRouter();
 
   return (
@@ -54,14 +55,16 @@ export default function NoticeSearchPanel({ searchTerm, onSearchTermChange, onSe
         </div>
 
         {/* 글쓰기 버튼 */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => router.push("/notice/write")}
-            className="cursor-pointer w-[60px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
-          >
-            글쓰기
-          </button>
-        </div>
+        {canWrite && (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.push("/notice/write")}
+              className="cursor-pointer w-[60px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+            >
+              글쓰기
+            </button>
+          </div>
+        )}
       </div>
     </Panel>
   );

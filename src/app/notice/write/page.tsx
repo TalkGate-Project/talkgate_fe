@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Checkbox from "@/components/common/Checkbox";
 import { NoticesService } from "@/services/notices";
 import { getSelectedProjectId } from "@/lib/project";
+import { useMyMember } from "@/hooks/useMyMember";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -45,6 +47,17 @@ function NoticeWritePage() {
     }
     setProjectId(id);
   }, [router]);
+
+  const { isAdminOrSubAdmin, loading: memberLoading } = useMyMember(projectId);
+
+  // 권한 체크: admin 또는 subAdmin만 접근 가능
+  useEffect(() => {
+    if (!projectId || memberLoading) return;
+    if (!isAdminOrSubAdmin) {
+      showErrorModal("공지사항 작성 권한이 없습니다. 관리자 또는 부관리자만 작성할 수 있습니다.");
+      router.replace("/notices");
+    }
+  }, [projectId, memberLoading, isAdminOrSubAdmin, router]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -121,6 +134,11 @@ function NoticeWritePage() {
   };
 
   if (!projectId) return null;
+
+  // 권한이 없으면 아무것도 렌더링하지 않음 (리다이렉트 처리 중)
+  if (!memberLoading && !isAdminOrSubAdmin) {
+    return null;
+  }
 
   return (
     <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
