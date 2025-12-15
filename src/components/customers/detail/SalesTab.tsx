@@ -7,6 +7,7 @@ import { CustomerFormState } from "./useCustomerDetail";
 import { CustomerDetail } from "@/types/customers";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: "creditCard", label: "신용카드" },
@@ -278,7 +279,15 @@ export default function SalesTab({
 
               <button
                 className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
-                onClick={() => onRemovePayment(ph.id)}
+                onClick={() => {
+                  showConfirmModal({
+                    title: "확인",
+                    message: "결제 내역을 삭제하시겠습니까?",
+                    confirmText: "삭제",
+                    cancelText: "취소",
+                    onConfirm: () => onRemovePayment(ph.id),
+                  });
+                }}
               >
                 ×
               </button>
@@ -419,7 +428,15 @@ export default function SalesTab({
                 </span>
                 <button
                   className="cursor-pointer ml-2 w-5 h-5 grid place-items-center rounded-full bg-[#000] dark:bg-neutral-80 text-white dark:text-neutral-20 text-[16px] leading-[1]"
-                  onClick={() => onRemoveSchedule(sc.id)}
+                  onClick={() => {
+                    showConfirmModal({
+                      title: "확인",
+                      message: "일정을 삭제하시겠습니까?",
+                      confirmText: "삭제",
+                      cancelText: "취소",
+                      onConfirm: () => onRemoveSchedule(sc.id),
+                    });
+                  }}
                 >
                   ×
                 </button>

@@ -5,6 +5,7 @@ import { formatDetailDate } from "./utils";
 import { CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 type Props = {
   customerName: string;
@@ -261,7 +262,13 @@ export default function ConsultationPanel({
                           console.error("Invalid note id:", n.id);
                           return;
                         }
-                        onRemoveNote(n.id);
+                        showConfirmModal({
+                          title: "확인",
+                          message: "상담 내용을 삭제하시겠습니까?",
+                          confirmText: "삭제",
+                          cancelText: "취소",
+                          onConfirm: () => onRemoveNote(n.id),
+                        });
                       }}
                     >
                       <svg
