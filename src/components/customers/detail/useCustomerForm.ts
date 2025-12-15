@@ -90,7 +90,8 @@ export function useCustomerForm(): UseCustomerFormReturn {
         if (apiField) {
           // "-" 표시 필드는 서버 전송 시 빈 값으로 변환
           if (EMPTY_DISPLAY_DASH_FIELDS.includes(key)) {
-            (changedFields as any)[apiField] = fromDisplayValue(form[key]);
+            // EMPTY_DISPLAY_DASH_FIELDS에 포함된 필드들은 항상 string 타입
+            (changedFields as any)[apiField] = fromDisplayValue(form[key] as string);
           } else if (key === "contact1Type" || key === "contact2Type") {
             // contact1Type과 contact2Type은 null을 그대로 전송
             (changedFields as any)[apiField] = form[key];
