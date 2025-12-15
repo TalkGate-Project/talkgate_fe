@@ -1,4 +1,4 @@
-import type { UpdateCustomerInput, CustomerDetail } from "@/types/customers";
+import type { UpdateCustomerInput, CustomerDetail, ContactType } from "@/types/customers";
 
 // ============================================================================
 // Form State Types
@@ -8,6 +8,8 @@ export type CustomerFormState = {
   name: string;
   contact1: string;
   contact2: string;
+  contact1Type: ContactType | null;
+  contact2Type: ContactType | null;
   residentFront: string;
   residentBack: string;
   ageRange: string;
@@ -28,6 +30,8 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   name: "",
   contact1: "",
   contact2: "",
+  contact1Type: null,
+  contact2Type: null,
   residentFront: "",
   residentBack: "",
   ageRange: "",
@@ -56,6 +60,8 @@ export const FORM_TO_API_FIELD_MAP: Record<
   name: "name",
   contact1: "contact1",
   contact2: "contact2",
+  contact1Type: "contact1Type",
+  contact2Type: "contact2Type",
   residentFront: null, // residentId로 합쳐서 처리
   residentBack: null, // residentId로 합쳐서 처리
   ageRange: "ageRange",

@@ -1,5 +1,12 @@
 // Customers domain types
 
+export enum ContactType {
+  Phone = 'phone', // 휴대폰
+  Home = 'home', // 집
+  Office = 'office', // 회사
+  Other = 'other', // 기타
+}
+
 export type RecentNote = {
   id: number;
   memberId?: number | null;
@@ -117,6 +124,8 @@ export type CustomerDetail = {
   name: string;
   contact1: string;
   contact2: string;
+  contact1Type?: ContactType | null;
+  contact2Type?: ContactType | null;
   residentId?: string;
   ageRange?: string;
   gender?: string; // e.g., "male"
@@ -157,6 +166,8 @@ export type UpdateCustomerInput = {
   name?: string;
   contact1?: string;
   contact2?: string;
+  contact1Type?: ContactType | null;
+  contact2Type?: ContactType | null;
   residentId?: string;
   ageRange?: string;
   gender?: string;
