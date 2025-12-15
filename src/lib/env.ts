@@ -8,7 +8,7 @@ export type AppEnv = {
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL?: string; // WebSocket URL for notification namespace
   NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
   /**
-   * Kakao REST API Key (OAuth Client Key)
+   * Kakao OAuth Client ID (Kakao Console: REST API Key)
    * 
    * Redirect URI:
    * - 프로덕션: https://app.talkgate.im/auth/callback/kakao
@@ -71,7 +71,7 @@ const apiBaseUrl = "https://api-dev.talkgate.im";
 
 // 정적으로 환경 변수 읽기 (Next.js가 빌드 시점에 인라인)
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || undefined;
-const kakaoRestApiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
+const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
 const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
 
 export const env: AppEnv = {
@@ -84,7 +84,7 @@ export const env: AppEnv = {
   NEXT_PUBLIC_WS_CHAT_BASE_URL: getWebSocketUrl(apiBaseUrl, "chat"),
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: getWebSocketUrl(apiBaseUrl, "notification"),
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: googleClientId,
-  NEXT_PUBLIC_KAKAO_REST_API_KEY: kakaoRestApiKey,
+  NEXT_PUBLIC_KAKAO_REST_API_KEY: kakaoClientId,
   NEXT_PUBLIC_NAVER_CLIENT_ID: naverClientId,
 };
 
