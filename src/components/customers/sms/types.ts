@@ -12,11 +12,17 @@ export type ImageFileWithPreview = {
   id: string;
 };
 
+import type { SelectionMode } from "@/hooks/useCustomersSelection";
+
 export type SmsModalProps = {
   open: boolean;
   onClose: () => void;
   customers: CustomerListItem[];
   onSuccess?: () => void;
+  selectionMode: SelectionMode | null;
+  appliedFilters: any;
+  totalCount: number;
+  projectId: string;
 };
 
 export type SmsFormState = {

@@ -200,7 +200,11 @@ export function useSmsForm() {
   const handleSend = useCallback(
     async (
       customers: CustomerListItem[],
-      imageUrls?: string[]
+      imageUrls?: string[],
+      selectionMode?: "page" | "all" | null,
+      appliedFilters?: any,
+      totalCount?: number,
+      projectId?: string
     ): Promise<{ success: boolean; message?: string }> => {
       if (!selectedSender) {
         return { success: false, message: "발신번호를 선택해주세요." };
@@ -234,17 +238,51 @@ export function useSmsForm() {
           scheduledAt = new Date().toISOString();
         }
 
-        const response = await SmsService.send({
-          assignmentType: "ids",
-          customerIds: customers.map((c) => c.id),
-          senderNumberType: selectedSender.source,
-          senderNumberId: selectedSender.id,
-          advertisementType: contentType,
-          title: title.trim() || undefined,
-          content: body,
-          scheduledAt,
-          imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
-        });
+        let response;
+        if (selectionMode === "all" && appliedFilters && totalCount !== undefined && projectId) {
+          // 전체 목록 선택: 필터 기준으로 발송
+          response = await SmsService.send({
+            assignmentType: "filter",
+            filters: {
+              name: appliedFilters.name,
+              contact1: appliedFilters.contact1,
+              contact2: appliedFilters.contact2,
+              noteContent: appliedFilters.noteContent,
+              assignType: appliedFilters.assignType,
+              teamId: appliedFilters.teamId,
+              memberId: appliedFilters.memberId,
+              applicationRoute: appliedFilters.applicationRoute,
+              mediaCompany: appliedFilters.mediaCompany,
+              site: appliedFilters.site,
+              categoryIds: appliedFilters.categoryIds,
+              applicationDateFrom: appliedFilters.applicationDateFrom,
+              applicationDateTo: appliedFilters.applicationDateTo,
+              assignedAtFrom: appliedFilters.assignedAtFrom,
+              assignedAtTo: appliedFilters.assignedAtTo,
+            },
+            expectedCount: totalCount,
+            senderNumberType: selectedSender.source,
+            senderNumberId: selectedSender.id,
+            advertisementType: contentType,
+            title: title.trim() || undefined,
+            content: body,
+            scheduledAt,
+            imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
+          });
+        } else {
+          // 현재 페이지 선택: ID 기준으로 발송
+          response = await SmsService.send({
+            assignmentType: "ids",
+            customerIds: customers.map((c) => c.id),
+            senderNumberType: selectedSender.source,
+            senderNumberId: selectedSender.id,
+            advertisementType: contentType,
+            title: title.trim() || undefined,
+            content: body,
+            scheduledAt,
+            imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
+          });
+        }
 
         const data = (response.data as any)?.data ?? response.data;
         

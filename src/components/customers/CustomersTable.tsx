@@ -11,9 +11,11 @@ type CustomersTableProps = {
   error: boolean;
   selectedIds: number[];
   onSelect: (customerId: number, checked: boolean) => void;
-  onSelectAll: () => void;
+  onSelectAll: (mode: "page" | "all") => void;
   allSelectedOnPage: boolean;
   onCustomerClick: (customerId: number) => void;
+  totalCount: number;
+  selectionMode: "page" | "all" | null;
 };
 
 function getBodyZoom(): number {
@@ -32,6 +34,8 @@ export default function CustomersTable({
   onSelectAll,
   allSelectedOnPage,
   onCustomerClick,
+  totalCount,
+  selectionMode,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -42,6 +46,8 @@ export default function CustomersTable({
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -127,6 +133,37 @@ export default function CustomersTable({
     setHoveredId(null);
   };
 
+  // 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [dropdownOpen]);
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleSelectAllPage = () => {
+    onSelectAll("page");
+    setDropdownOpen(false);
+  };
+
+  const handleSelectAllList = () => {
+    onSelectAll("all");
+    setDropdownOpen(false);
+  };
+
   return (
     <>
       <div className="overflow-hidden" style={{ width: "100%" }}>
@@ -134,13 +171,31 @@ export default function CustomersTable({
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
               <th className="px-6 h-[40px] align-middle rounded-l-[8px]">
-                <div className="flex items-center justify-start">
-                  <Checkbox
-                    checked={allSelectedOnPage}
-                    onChange={onSelectAll}
-                    ariaLabel="전체 선택"
-                    size={24}
-                  />
+                <div className="flex items-center justify-start relative" ref={dropdownRef}>
+                  <div onClick={handleCheckboxClick} className="cursor-pointer flex items-center">
+                    <Checkbox
+                      checked={allSelectedOnPage || selectionMode === "all"}
+                      onChange={() => {}}
+                      ariaLabel="전체 선택"
+                      size={24}
+                    />
+                  </div>
+                  {dropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] shadow-lg z-50 min-w-[176px]">
+                      <button
+                        onClick={handleSelectAllList}
+                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                      >
+                        전체 목록 선택&nbsp;<span className="text-neutral-60">총 {totalCount}개</span>
+                      </button>
+                      <button
+                        onClick={handleSelectAllPage}
+                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-t border-neutral-30 dark:border-neutral-30"
+                      >
+                        현재 페이지 선택&nbsp;<span className="text-neutral-60">총 {customers.length}개</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </th>
               {[
@@ -179,7 +234,7 @@ export default function CustomersTable({
               </tr>
             )}
             {customers.map((c, index) => {
-              const checked = selectedIds.includes(c.id);
+              const checked = selectedIds.includes(c.id) || selectionMode === "all";
               const isLastRow = index === customers.length - 1;
               return (
                 <tr
