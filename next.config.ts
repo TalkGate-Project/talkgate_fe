@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+// ========== 빌드 시점 환경변수 디버깅 ==========
+console.log("=".repeat(60));
+console.log("[BUILD TIME] Environment Variables Check:");
+console.log("  NEXT_PUBLIC_GOOGLE_CLIENT_ID:", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? "✅ SET" : "❌ MISSING");
+console.log("  NEXT_PUBLIC_KAKAO_REST_API_KEY:", process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY ? "✅ SET" : "❌ MISSING");
+console.log("  NEXT_PUBLIC_NAVER_CLIENT_ID:", process.env.NEXT_PUBLIC_NAVER_CLIENT_ID ? "✅ SET" : "❌ MISSING");
+console.log("  VERCEL:", process.env.VERCEL ? "✅ YES" : "❌ NO");
+console.log("  VERCEL_ENV:", process.env.VERCEL_ENV ?? "(not set)");
+console.log("=".repeat(60));
+// ================================================
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
