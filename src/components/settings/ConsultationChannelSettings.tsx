@@ -64,8 +64,8 @@ function ChannelCard({
       {/* Right Content - Status and Button */}
       <div className="flex items-center gap-3">
         {isConnected && (
-          <div className="flex items-center justify-center px-3 py-1 bg-primary-10 rounded-[30px]">
-            <span className="text-[12px] font-medium text-primary-80 opacity-80">
+          <div className="flex items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
+            <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
               연결됨
             </span>
           </div>
@@ -286,8 +286,8 @@ export default function ConsultationChannelSettings() {
         <h1 className="text-[24px] font-bold text-foreground leading-5">
           상담 채널 연동
         </h1>
-        <div className="flex items-center px-3 py-1 bg-primary-10 rounded-[30px]">
-          <span className="text-[12px] font-medium text-primary-80 opacity-80 leading-[1]">
+        <div className="flex items-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
+          <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
             연결된 채널 : {connectedCount}개
           </span>
         </div>
