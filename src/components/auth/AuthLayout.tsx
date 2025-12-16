@@ -120,7 +120,7 @@ export default function AuthLayout({
           >
             {/* Strap - 화면 상단부터 form 컨테이너 상단까지 배치 */}
             <div
-              className="absolute left-1/2 -translate-x-[41%]"
+              className="absolute left-1/2 -translate-x-[41%] z-[0]"
               style={{
                 top: "-670px",
                 width: "41%",
@@ -137,7 +137,7 @@ export default function AuthLayout({
             
             {/* Form 컨테이너 - contents 배경 이미지로 감싸기 (고정 위치) */}
             <div
-              className="relative mx-auto flex flex-col items-center !px-[90px] rounded-b-[24px] overflow-hidden"
+              className="relative mx-auto flex flex-col items-center !px-[90px] rounded-b-[24px] overflow-hidden z-[1]"
               aria-label={ariaLabel}
               style={{
                 width: "564px",
