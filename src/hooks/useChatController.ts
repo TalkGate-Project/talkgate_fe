@@ -301,10 +301,11 @@ export function useChatController({ projectId, status = "all", platform }: Param
       }
       const current = activeIdRef.current;
       if (message?.conversationId === current) {
-        // 현재 활성 대화의 메시지면 뒤에 추가 (백엔드가 오래된 것부터 최신 순서로 관리)
+        // 현재 활성 대화의 메시지면 앞에 추가 (배열: [최신, ..., 오래된] → reverse 후 화면: [오래된, ..., 최신])
+        // send() 함수의 Optimistic UI와 동일한 방식으로 앞에 추가해야 새 메시지가 화면 하단에 표시됨
         setMessages((prev) => {
           if (prev.some((m) => m.id === message.id)) return prev; // 중복 제거
-          return [...prev, message];
+          return [message, ...prev];
         });
         if (current) {
           // 읽음 처리
