@@ -76,54 +76,38 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     key: "profile",
     label: "프로필",
     icon: ProfileIcon,
-    // 프로필은 모든 사용자 접근 가능
+    // 모든 사용자 접근 가능
   },
   {
     key: "consultation-channel",
     label: "상담채널",
     icon: ConsultationChannelIcon,
-    // 상담채널은 admin 또는 subAdmin만 접근 가능
-    canAccess: ({ role, isLoading }) => {
-      if (isLoading) return false;
-      return hasAdminAccess(role);
-    },
+    // 모든 사용자 접근 가능
   },
   {
     key: null,
     label: "조직관리",
     icon: OrganizationManagementIcon,
     isParent: true,
-    // 조직관리는 admin 또는 subAdmin만 접근 가능
-    canAccess: ({ role, isLoading }) => {
-      if (isLoading) return false;
-      return hasAdminAccess(role);
-    },
+    // 모든 사용자 접근 가능
     children: [
       {
         key: "team-management",
         label: "팀",
         icon: TeamIcon,
-        // 팀은 모든 사용자 접근 가능 (본인 팀 확인용)
+        // 모든 사용자 접근 가능
       },
       {
         key: "member",
         label: "멤버",
         icon: MemberIcon,
-        // 멤버 관리는 admin 또는 subAdmin만 접근 가능
-        canAccess: ({ role, isLoading }) => {
-          if (isLoading) return false;
-          return hasAdminAccess(role);
-        },
+        // 모든 사용자 접근 가능
       },
       {
         key: "invited-member",
         label: "초대중인 멤버",
         icon: InvitedMemberIcon,
-        // 초대중인 멤버는 admin 또는 subAdmin만 접근 가능
-        canAccess: ({ role, isLoading }) => {
-          if (isLoading) return false;
-          return hasAdminAccess(role);
-        },
+        // 모든 사용자 접근 가능
       },
     ],
   },
@@ -132,31 +116,19 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     label: "문자",
     icon: SmsIcon,
     isParent: true,
-    // 문자는 admin 또는 subAdmin만 접근 가능
-    canAccess: ({ role, isLoading }) => {
-      if (isLoading) return false;
-      return hasAdminAccess(role);
-    },
+    // 모든 사용자 접근 가능
     children: [
       {
         key: "sender-numbers",
         label: "발신번호 등록",
         icon: SenderNumberIcon,
-        // 발신번호 등록은 admin 또는 subAdmin만 접근 가능
-        canAccess: ({ role, isLoading }) => {
-          if (isLoading) return false;
-          return hasAdminAccess(role);
-        },
+        // 모든 사용자 접근 가능
       },
       {
         key: "sms-history",
         label: "문자 발송 이력",
         icon: SmsHistoryIcon,
-        // 문자 발송 이력은 admin 또는 subAdmin만 접근 가능
-        canAccess: ({ role, isLoading }) => {
-          if (isLoading) return false;
-          return hasAdminAccess(role);
-        },
+        // 모든 사용자 접근 가능
       },
     ],
   },
@@ -164,21 +136,13 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     key: "batch-registration",
     label: "일괄 등록 이력",
     icon: BatchRegistrationIcon,
-    // 일괄 등록 이력은 admin 또는 subAdmin만 접근 가능
-    canAccess: ({ role, isLoading }) => {
-      if (isLoading) return false;
-      return hasAdminAccess(role);
-    },
+    // 모든 사용자 접근 가능
   },
   {
     key: "customer-api",
     label: "고객등록 API",
     icon: CustomerApiIcon,
-    // 고객등록 API는 admin 또는 subAdmin만 접근 가능
-    canAccess: ({ role, isLoading }) => {
-      if (isLoading) return false;
-      return hasAdminAccess(role);
-    },
+    // 모든 사용자 접근 가능
   },
 ];
 
