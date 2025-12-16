@@ -200,16 +200,13 @@ export default function SmsHistorySettings() {
                   문자 발송 이력이 없습니다.
                 </div>
               ) : (
-                <div className="divide-y divide-neutral-30/40 dark:divide-neutral-30/40">
+                <div className="divide-y divide-neutral-30/40 dark:!divide-neutral-[#44444455]">
                   {histories.map((history) => {
                     const isLastRow = histories.indexOf(history) === histories.length - 1;
                     return (
                       <div
                         key={history.id}
-                        className={`px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors ${
-                          isLastRow ? "border-b border-[#E2E2E2] dark:border-neutral-30" : ""
-                        }`}
-                        style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
+                        className={`px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
                       >
                         <div className="flex-[2] text-[14px] text-ink dark:text-neutral-80 text-left">
                           {formatDateTime(history.scheduledAt || history.createdAt)}

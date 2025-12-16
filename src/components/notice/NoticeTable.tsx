@@ -156,7 +156,7 @@ export default function NoticeTable({
 
               {/* 구분선 */}
               {index < notices.length - 1 && (
-                <div className="border-t border-neutral-30/40" />
+                <div className="border-t border-neutral-30/40 dark:!border-[#44444455]" />
               )}
             </div>
           ))
