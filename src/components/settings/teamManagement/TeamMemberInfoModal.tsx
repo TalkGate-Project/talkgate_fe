@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useMyMember } from "@/hooks/useMyMember";
-import { useCreateTeamMutation } from "@/hooks/useMembersTree";
+import { useCreateTeamMutation, useDeleteTeamMutation } from "@/hooks/useMembersTree";
 import { HRService } from "@/services/hr";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
@@ -150,6 +150,7 @@ export default function TeamMemberInfoModal({
     address: "",
   });
   const createTeam = useCreateTeamMutation(projectId);
+  const deleteTeam = useDeleteTeamMutation(projectId);
   // projectId를 string | null로 변환 (number인 경우 문자열로 변환)
   const projectIdString = projectId !== null ? String(projectId) : null;
   const { isAdminOrSubAdmin } = useMyMember(projectIdString);
@@ -308,13 +309,44 @@ export default function TeamMemberInfoModal({
   
   // 멤버가 팀장인지 확인
   const isLeader = member?.role === "leader";
+  
+  // 팀 제거 권한: subAdmin 이상이고, 대상이 팀장이고, 팀이 있는 경우
+  const canDeleteTeam = isAdminOrSubAdmin && isLeader && member?.teamInfo?.name;
 
   // 조직도 노드 계산
   const teamNodes = flattenOrgTree(member?.organizationTree);
 
+  const handleDeleteTeam = async () => {
+    if (deleteTeam.isPending) return;
+    
+    showErrorModal({
+      headline: "팀 제거",
+      description: "이 팀을 제거하시겠습니까?",
+      onConfirm: async () => {
+        try {
+          await deleteTeam.mutateAsync({ memberId: memberId });
+          await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+          showErrorModal({
+            headline: "팀이 제거되었습니다.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
+        } catch (err: any) {
+          console.error(err);
+          showErrorModal({
+            headline: "팀 제거 실패",
+            description: "일시적인 오류가 발생했습니다.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
+        }
+      },
+    });
+  };
+
   const organizationContent = (
     <section className="border border-border rounded-[12px] p-5 space-y-5 dark:bg-neutral-10">
-      {canCreateTeam ? (
+      {canCreateTeam && (
         teamCreateMode ? (
           <div className="flex flex-wrap items-center gap-2">
             <input
@@ -374,14 +406,21 @@ export default function TeamMemberInfoModal({
             팀 생성
           </button>
         )
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 cursor-not-allowed bg-card"
-        >
-          팀 제거
-        </button>
+      )}
+      {canDeleteTeam && (
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] text-foreground">{member?.teamInfo?.name}</span>
+          <button
+            type="button"
+            onClick={handleDeleteTeam}
+            disabled={deleteTeam.isPending}
+            className={`${
+              deleteTeam.isPending ? "cursor-not-allowed" : "cursor-pointer"
+            } h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card disabled:opacity-60`}
+          >
+            {deleteTeam.isPending ? "제거 중..." : "팀 제거"}
+          </button>
+        </div>
       )}
 
       <div className="space-y-3">
