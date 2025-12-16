@@ -153,11 +153,9 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
       onCreated?.();
       onClose();
     } catch (e: any) {
-      const errorMessage = e?.data?.message || e?.message || `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`;
       showErrorModal({
         title: "오류 발생",
         headline: `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`,
-        description: errorMessage,
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

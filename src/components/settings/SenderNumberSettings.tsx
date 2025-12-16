@@ -255,10 +255,9 @@ export default function SenderNumberSettings() {
             confirmText: "확인",
           });
         } else {
-          const errorMessage = error?.response?.data?.message || error?.message || "발신번호 등록에 실패했습니다.";
           showErrorModal({
             headline: "발신번호 등록 실패",
-            description: errorMessage,
+            description: "일시적인 오류가 발생했습니다.",
             hideCancel: true,
             confirmText: "확인",
           });

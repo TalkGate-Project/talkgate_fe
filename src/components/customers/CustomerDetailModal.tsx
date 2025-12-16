@@ -190,11 +190,10 @@ export default function CustomerDetailModal({
               }`}
               onClick={() => {
                 actions.saveForm().then(() => onClose()).catch((e: any) => {
-                  const errorMessage = e?.data?.message || e?.message || "저장에 실패했습니다.";
                   showErrorModal({
                     title: "오류 발생",
                     headline: "저장에 실패했습니다.",
-                    description: errorMessage,
+                    description: "저장에 실패했습니다.",
                     confirmText: "확인",
                     cancelText: null,
                     hideCancel: true,

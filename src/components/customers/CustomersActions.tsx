@@ -57,11 +57,10 @@ export default function CustomersActions({
       });
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err?.data?.message || err?.message || "업로드에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "업로드에 실패했습니다.",
-        description: errorMessage,
+        description: "업로드에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -105,11 +104,10 @@ export default function CustomersActions({
       URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err?.data?.message || err?.message || "다운로드에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "다운로드에 실패했습니다.",
-        description: errorMessage,
+        description: "다운로드에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

@@ -103,10 +103,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to update project name:", error);
-      const errorMessage = error?.data?.message || error?.message || "프로젝트 이름 변경에 실패했습니다.";
       showErrorModal({
         headline: "프로젝트 이름 변경 실패",
-        description: errorMessage,
+        description: "프로젝트 이름 변경에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -133,10 +132,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to update subdomain:", error);
-      const errorMessage = error?.data?.message || error?.message || "서브도메인 변경에 실패했습니다.";
       showErrorModal({
         headline: "서브도메인 변경 실패",
-        description: errorMessage,
+        description: "서브도메인 변경에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -215,10 +213,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to upload brand icon:", error);
-      const errorMessage = error?.data?.message || error?.message || "브랜드 아이콘 업로드에 실패했습니다.";
       showErrorModal({
         headline: "브랜드 아이콘 업로드 실패",
-        description: errorMessage,
+        description: "브랜드 아이콘 업로드에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -250,10 +247,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to remove brand icon:", error);
-      const errorMessage = error?.data?.message || error?.message || "브랜드 아이콘 삭제에 실패했습니다.";
       showErrorModal({
         headline: "브랜드 아이콘 삭제 실패",
-        description: errorMessage,
+        description: "브랜드 아이콘 삭제에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -278,10 +274,9 @@ export default function GeneralSettings() {
       }
     } catch (error: any) {
       console.error("Failed to create status:", error);
-      const errorMessage = error?.data?.message || error?.message || "처리상태 추가에 실패했습니다.";
       showErrorModal({
         headline: "처리상태 추가 실패",
-        description: errorMessage,
+        description: "처리상태 추가에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -309,10 +304,9 @@ export default function GeneralSettings() {
       }
     } catch (error: any) {
       console.error("Failed to update status:", error);
-      const errorMessage = error?.data?.message || error?.message || "처리상태 수정에 실패했습니다.";
       showErrorModal({
         headline: "처리상태 수정 실패",
-        description: errorMessage,
+        description: "처리상태 수정에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -335,10 +329,9 @@ export default function GeneralSettings() {
           setStatuses(statuses.filter(status => status.id !== id));
         } catch (error: any) {
           console.error("Failed to delete status:", error);
-          const errorMessage = error?.data?.message || error?.message || "처리상태 삭제에 실패했습니다.";
           showErrorModal({
             headline: "처리상태 삭제 실패",
-            description: errorMessage,
+            description: "처리상태 삭제에 실패했습니다.",
             hideCancel: true,
             confirmText: "확인",
           });
@@ -371,10 +364,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to update attendance menu:", error);
-      const errorMessage = error?.data?.message || error?.message || "근태 메뉴 설정 변경에 실패했습니다.";
       showErrorModal({
         headline: "근태 메뉴 설정 변경 실패",
-        description: errorMessage,
+        description: "근태 메뉴 설정 변경에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -400,10 +392,9 @@ export default function GeneralSettings() {
       });
     } catch (error: any) {
       console.error("Failed to delete project:", error);
-      const errorMessage = error?.data?.message || error?.message || "프로젝트 삭제에 실패했습니다.";
       showErrorModal({
         headline: "프로젝트 삭제 실패",
-        description: errorMessage,
+        description: "프로젝트 삭제에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });

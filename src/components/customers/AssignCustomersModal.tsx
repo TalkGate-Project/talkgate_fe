@@ -538,11 +538,10 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                 await onAssign(targetId);
                 onClose();
               } catch (e: any) {
-                const errorMessage = e?.data?.message || e?.message || "배정에 실패했습니다.";
                 showErrorModal({
                   title: "오류 발생",
                   headline: "배정에 실패했습니다.",
-                  description: errorMessage,
+                  description: "배정에 실패했습니다.",
                   confirmText: "확인",
                   cancelText: null,
                   hideCancel: true,

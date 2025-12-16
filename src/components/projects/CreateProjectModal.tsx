@@ -177,11 +177,10 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       await onCreated();
     } catch (e) {
       console.error("Project creation failed:", e);
-      const errorMessage = e instanceof Error ? e.message : "알 수 없는 오류가 발생했습니다.";
       showErrorModal({
         type: "error",
         headline: "생성에 실패했습니다",
-        description: errorMessage,
+        description: "알 수 없는 오류가 발생했습니다.",
         hideCancel: true,
       });
     } finally {
