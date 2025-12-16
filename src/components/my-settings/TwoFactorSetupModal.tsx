@@ -141,7 +141,7 @@ export default function TwoFactorSetupModal({
                 </div>
                 <button
                   onClick={handleCopy}
-                  className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 transition-colors cursor-pointer"
+                  className="h-[34px] px-3 bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors cursor-pointer"
                 >
                   복사
                 </button>
@@ -179,7 +179,7 @@ export default function TwoFactorSetupModal({
                   setCode(rawValue);
                 }}
                 placeholder="_ _ _ _ _ _"
-                className="w-full text-[14px] font-medium tracking-[0.2em] text-center text-foreground placeholder:text-neutral-30 bg-transparent outline-none"
+                className="w-full text-[14px] font-medium tracking-[0.2em] text-center text-foreground placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-transparent outline-none"
               />
             </div>
 
@@ -195,7 +195,7 @@ export default function TwoFactorSetupModal({
             {/* Verify Button */}
             <button
               onClick={handleVerify}
-              className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-[34px] px-3 bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || code.length !== 6}
             >
               {loading ? "인증 중..." : "인증"}
@@ -216,7 +216,7 @@ export default function TwoFactorSetupModal({
           </button>
           <button
             onClick={handleVerify}
-            className="px-3 py-1.5 bg-neutral-90 text-white text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading || code.length !== 6}
           >
             {loading ? "인증 중..." : "인증완료"}

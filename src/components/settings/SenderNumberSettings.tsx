@@ -98,7 +98,7 @@ function InfoIcon({ tooltip }: { tooltip?: string }) {
         <circle cx="8" cy="11" r="0.75" fill="#EF4444" />
       </svg>
       {tooltip && (
-        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-neutral-80 text-white text-[11px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-normal">
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-[#A0A0A0] text-white dark:text-[#111111] text-[12px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-normal">
           {tooltip}
         </span>
       )}

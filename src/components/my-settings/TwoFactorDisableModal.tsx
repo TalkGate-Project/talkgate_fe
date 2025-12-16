@@ -125,7 +125,7 @@ export default function TwoFactorDisableModal({
           <h3 className="text-[18px] leading-[1] font-bold text-danger-40 mb-3">
             2단계 인증(2FA)을 해제하시겠습니까?
           </h3>
-          <p className="text-[14px] text-ink leading-[1.1] mb-3">
+          <p className="text-[14px] text-ink dark:text-neutral-80 leading-[1.1] mb-3">
             2단계 인증을 해제하시면 보안에 취약해질 수 있습니다.
             <br />
             본인 확인을 위해 이메일 인증이 필요합니다. 계속 진행하시겠습니까?
@@ -154,7 +154,7 @@ export default function TwoFactorDisableModal({
                   setCode(value);
                 }}
                 placeholder="인증번호 6자리 입력"
-                className="w-full h-[34px] px-4 bg-card border border-border rounded-[5px] text-[14px] text-foreground tracking-[0.3em] font-mono"
+                className="w-full h-[34px] px-4 bg-card border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 dark:placeholder:text-neutral-60 tracking-[0.3em] font-mono"
               />
             </div>
           )}
@@ -172,7 +172,7 @@ export default function TwoFactorDisableModal({
               </button>
               <button
                 onClick={handleSendCode}
-                className="h-[34px] px-3 bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="h-[34px] px-3 bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-25 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading}
               >
                 {loading ? "발송 중..." : "인증번호 발송"}
@@ -189,7 +189,7 @@ export default function TwoFactorDisableModal({
               </button>
               <button
                 onClick={handleDisable}
-                className="h-[34px] px-3 bg-neutral-90 text-white text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="h-[34px] px-3 bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-25 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 disabled={loading || code.length !== 6}
               >
                 {loading ? "처리 중..." : "해제완료"}
