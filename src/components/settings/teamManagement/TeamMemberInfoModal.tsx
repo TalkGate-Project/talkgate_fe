@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
+import { useMyMember } from "@/hooks/useMyMember";
 import { useCreateTeamMutation } from "@/hooks/useMembersTree";
 import { HRService } from "@/services/hr";
 import DatePicker from "@/components/common/DatePicker";
@@ -149,6 +150,7 @@ export default function TeamMemberInfoModal({
     address: "",
   });
   const createTeam = useCreateTeamMutation(projectId);
+  const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   // API로 멤버 상세 정보 가져오기
   const { member, isLoading, isError } = useMemberDetail(
@@ -157,6 +159,7 @@ export default function TeamMemberInfoModal({
 
   useEffect(() => {
     if (!open || !member) return;
+    // 권한이 없으면 항상 organization 탭으로 설정
     setTab("organization");
     setLocalNotes(member.hrNotes ?? []);
     setNoteInput("");
@@ -169,6 +172,13 @@ export default function TeamMemberInfoModal({
       address: member.hrData?.address ?? "",
     });
   }, [member, open]);
+
+  // 권한이 없는데 manager 탭에 있으면 organization으로 변경
+  useEffect(() => {
+    if (tab === "manager" && !isAdminOrSubAdmin) {
+      setTab("organization");
+    }
+  }, [tab, isAdminOrSubAdmin]);
 
   if (!open || typeof document === "undefined") {
     return null;
@@ -290,11 +300,12 @@ export default function TeamMemberInfoModal({
     }
   };
 
-  const isLeader =
+  // 팀 생성 권한: subAdmin 이상만 가능 (팀장이 아닌 경우에만)
+  const isTargetLeader =
     member?.role === "leader" ||
     member?.role === "admin" ||
     member?.role === "subAdmin";
-  const canCreateTeam = !isLeader;
+  const canCreateTeam = isAdminOrSubAdmin && !isTargetLeader;
 
   // 조직도 노드 계산
   const teamNodes = flattenOrgTree(member?.organizationTree);
@@ -857,44 +868,47 @@ export default function TeamMemberInfoModal({
                   }`}
                 />
               </button>
-              <button
-                type="button"
-                onClick={() => setTab("manager")}
-                className={`cursor-pointer relative flex items-center gap-2 pb-2 text-[16px] font-semibold transition-colors ${
-                  tab === "manager" ? "text-foreground" : "text-neutral-60"
-                }`}
-              >
-                관리자 정보
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M17 8H7C5.89543 8 5 8.89543 5 10V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V10C19 8.89543 18.1046 8 17 8Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M8 8V6C8 4.34315 9.34315 3 11 3H13C14.6569 3 16 4.34315 16 6V8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span
-                  className={`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
-                    tab === "manager" ? "opacity-100 bg-foreground" : "opacity-0"
+              {/* 관리자 정보 탭 - subAdmin 이상만 볼 수 있음 */}
+              {isAdminOrSubAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setTab("manager")}
+                  className={`cursor-pointer relative flex items-center gap-2 pb-2 text-[16px] font-semibold transition-colors ${
+                    tab === "manager" ? "text-foreground" : "text-neutral-60"
                   }`}
-                />
-              </button>
+                >
+                  관리자 정보
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M17 8H7C5.89543 8 5 8.89543 5 10V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V10C19 8.89543 18.1046 8 17 8Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M8 8V6C8 4.34315 9.34315 3 11 3H13C14.6569 3 16 4.34315 16 6V8"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span
+                    className={`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
+                      tab === "manager" ? "opacity-100 bg-foreground" : "opacity-0"
+                    }`}
+                  />
+                </button>
+              )}
             </div>
-            {tab === "organization" ? organizationContent : managerContent}
+            {tab === "organization" ? organizationContent : (isAdminOrSubAdmin ? managerContent : organizationContent)}
           </section>
         </div>
 

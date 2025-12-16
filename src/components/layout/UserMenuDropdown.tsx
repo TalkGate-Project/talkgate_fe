@@ -6,6 +6,7 @@ import { useState } from "react";
 import { clearTokens } from "@/lib/token";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 import type { MeUser } from "@/hooks/useMe";
+import { useMyMember } from "@/hooks/useMyMember";
 
 type Props = {
   user: MeUser | null | undefined;
@@ -16,10 +17,14 @@ type Props = {
 export default function UserMenuDropdown({ user, variant = "full", onClose }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { member } = useMyMember();
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
   const [isPaymentHovered, setIsPaymentHovered] = useState(false);
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
+  
+  // 직원 정보의 이름을 우선 사용, 없으면 user.name 사용
+  const displayName = member?.name || user?.name || "김직원";
 
   const handleProjectSelect = () => {
     onClose();
@@ -93,7 +98,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
                 {/* 첫째 줄: 멤버이름 | 팀명 */}
                 <div className="flex items-center gap-2">
                   <div className="text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
-                    {user?.name || "김직원"}
+                    {displayName}
                   </div>
                   <div className="w-px h-4 bg-neutral-60"></div>
                   <div className="text-[14px] font-medium leading-[20px] text-neutral-60">

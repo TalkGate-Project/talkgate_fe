@@ -13,6 +13,7 @@ import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import TrashIcon from "@/components/common/icons/TrashIcon";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
+import { useMyMember } from "@/hooks/useMyMember";
 import { HRService } from "@/services/hr";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
@@ -26,6 +27,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
   const queryClient = useQueryClient();
   const memberId = employee?.id ?? null;
   const { member, isLoading } = useMemberDetail(memberId);
+  const { isAdminOrSubAdmin } = useMyMember();
 
   const [formData, setFormData] = useState({
     realName: "",
@@ -291,15 +293,18 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mb-4">
-                <LockClosedDangerIcon />
-                <span className="text-[16px] font-semibold text-danger-40">
-                  관리자 정보
-                </span>
-              </div>
+              {/* 관리자 정보 섹션 - subAdmin 이상만 볼 수 있음 */}
+              {isAdminOrSubAdmin && (
+                <>
+                  <div className="flex items-center gap-2 mb-4">
+                    <LockClosedDangerIcon />
+                    <span className="text-[16px] font-semibold text-danger-40">
+                      관리자 정보
+                    </span>
+                  </div>
 
-              {/* 관리자 정보, 팀 변경 이력, 특이사항을 감싸는 래퍼 */}
-              <div className="border border-border rounded-[12px] p-4 space-y-6 dark:bg-neutral-25">
+                  {/* 관리자 정보, 팀 변경 이력, 특이사항을 감싸는 래퍼 */}
+                  <div className="border border-border rounded-[12px] p-4 space-y-6 dark:bg-neutral-25">
                 {/* 관리자 정보 */}
                 <div>
                   <div className="space-y-4">
@@ -483,6 +488,8 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                   </div>
                 </div>
               </div>
+                </>
+              )}
             </div>
           )}
         </div>

@@ -1,22 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMe } from "@/hooks/useMe";
+import { useMyMember } from "@/hooks/useMyMember";
 import Image from "next/image";
 import defaultProfileImg from "@/assets/images/common/default_profile.png";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
+  const { member } = useMyMember();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.name || "김직원");
+  
+  // 직원 정보의 이름을 우선 사용, 없으면 user.name 사용
+  const displayName = member?.name || user?.name || "김직원";
+  
+  const [name, setName] = useState(displayName);
   const [email, setEmail] = useState(user?.email || "abcd@gmail.com");
   const [contact, setContact] = useState("010-1234-5678");
   const [saving, setSaving] = useState(false);
 
+  // displayName이 변경되면 name state 업데이트
+  useEffect(() => {
+    if (displayName && !isEditing) {
+      setName(displayName);
+    }
+  }, [displayName, isEditing]);
+
   // 초기화용 ref
   const initialData = {
-    name: user?.name || "김직원",
+    name: displayName,
     email: user?.email || "abcd@gmail.com",
     contact: "010-1234-5678"
   };
