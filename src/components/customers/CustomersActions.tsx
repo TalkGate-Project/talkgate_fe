@@ -8,6 +8,7 @@ type CustomersActionsProps = {
   projectId: string;
   appliedFilters: any;
   selectedIds: number[];
+  selectionMode: "page" | "all" | null;
   onUploadSuccess: () => void;
   onAssignOpen: () => void;
   onCreateOpen: () => void;
@@ -18,6 +19,7 @@ export default function CustomersActions({
   projectId,
   appliedFilters,
   selectedIds,
+  selectionMode,
   onUploadSuccess,
   onAssignOpen,
   onCreateOpen,
@@ -133,14 +135,14 @@ export default function CustomersActions({
       <button
         className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onAssignOpen}
-        disabled={selectedIds.length === 0}
+        disabled={selectedIds.length === 0 && selectionMode !== "all"}
       >
         일괄배정
       </button>
       <button
         className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onSmsOpen}
-        disabled={selectedIds.length === 0}
+        disabled={selectedIds.length === 0 && selectionMode !== "all"}
       >
         문자전송
       </button>

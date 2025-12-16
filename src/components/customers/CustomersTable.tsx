@@ -219,13 +219,6 @@ export default function CustomersTable({
             </tr>
           </thead>
           <tbody className="typo-body-3">
-            {loading && (
-              <tr>
-                <td colSpan={10} className="px-6 h-[72px] text-center text-neutral-60">
-                  불러오는 중...
-                </td>
-              </tr>
-            )}
             {Boolean(error) && !loading && (
               <tr>
                 <td colSpan={10} className="px-6 h-[72px] text-center text-red-500">
