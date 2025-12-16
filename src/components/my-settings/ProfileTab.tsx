@@ -2,72 +2,76 @@
 
 import { useState, useEffect } from "react";
 import { useMe } from "@/hooks/useMe";
-import { useMyMember } from "@/hooks/useMyMember";
-import Image from "next/image";
-import defaultProfileImg from "@/assets/images/common/default_profile.png";
+// import Image from "next/image";
+
 import { showErrorModal } from "@/lib/errorModalEvents";
+// import defaultProfileImg from "@/assets/images/common/default_profile.png";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
-  const { member } = useMyMember();
   const [isEditing, setIsEditing] = useState(false);
   
-  // 직원 정보의 이름을 우선 사용, 없으면 user.name 사용
-  const displayName = member?.name || user?.name || "김직원";
+  // 개인 설정에서는 유저 이름만 사용
+  const displayName = user?.name || "-";
   
-  const [name, setName] = useState(displayName);
-  const [email, setEmail] = useState(user?.email || "abcd@gmail.com");
-  const [contact, setContact] = useState("010-1234-5678");
+  const [name, setName] = useState(user?.name || "-");
+  const [email, setEmail] = useState(user?.email || "");
+  const [contact, setContact] = useState(user?.phone || "");
   const [saving, setSaving] = useState(false);
 
-  // displayName이 변경되면 name state 업데이트
+  // user 데이터가 로드되면 상태 업데이트
   useEffect(() => {
-    if (displayName && !isEditing) {
-      setName(displayName);
+    if (user && !isEditing) {
+      setName(user.name);
+      setEmail(user.email);
+      setContact(user.phone || "");
     }
-  }, [displayName, isEditing]);
+  }, [user, isEditing]);
 
   // 초기화용 ref
   const initialData = {
-    name: displayName,
-    email: user?.email || "abcd@gmail.com",
-    contact: "010-1234-5678"
+    name: user?.name || "-",
+    email: user?.email || "",
+    contact: user?.phone || ""
   };
 
-  const handleEditStart = () => {
-    setIsEditing(true);
-  };
+  // TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정
+  // const handleEditStart = () => {
+  //   setIsEditing(true);
+  // };
 
-  const handleCancel = () => {
-    setName(initialData.name);
-    setEmail(initialData.email);
-    setContact(initialData.contact);
-    setIsEditing(false);
-  };
+  // TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정
+  // const handleCancel = () => {
+  //   setName(initialData.name);
+  //   setEmail(initialData.email);
+  //   setContact(initialData.contact);
+  //   setIsEditing(false);
+  // };
 
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-      const { AuthService } = await import("@/services/auth");
-      await AuthService.updateProfile({ name, phone: contact });
-      await refetch();
-      setIsEditing(false);
-      showErrorModal({
-        type: "success",
-        headline: "프로필이 업데이트되었습니다.",
-        hideCancel: true,
-      });
-    } catch (e: any) {
-      showErrorModal({
-        type: "error",
-        headline: "업데이트에 실패했습니다",
-        description: "프로필 업데이트 중 오류가 발생했습니다.",
-        hideCancel: true,
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  // TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정
+  // const handleSave = async () => {
+  //   try {
+  //     setSaving(true);
+  //     const { AuthService } = await import("@/services/auth");
+  //     await AuthService.updateProfile({ name, phone: contact });
+  //     await refetch();
+  //     setIsEditing(false);
+  //     showErrorModal({
+  //       type: "success",
+  //       headline: "프로필이 업데이트되었습니다.",
+  //       hideCancel: true,
+  //     });
+  //   } catch (e: any) {
+  //     showErrorModal({
+  //       type: "error",
+  //       headline: "업데이트에 실패했습니다",
+  //       description: "프로필 업데이트 중 오류가 발생했습니다.",
+  //       hideCancel: true,
+  //     });
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
