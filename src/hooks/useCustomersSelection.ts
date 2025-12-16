@@ -24,9 +24,16 @@ export function useCustomersSelection() {
       }
     } else {
       // 전체 목록 선택 (필터 기준)
-      setSelectionMode("all");
-      // 현재 페이지의 ID는 유지하되, 모드만 설정
-      // 실제 선택은 API 호출 시 필터로 처리
+      if (selectionMode === "all") {
+        // 전체 목록 재선택 시 해제
+        setSelectionMode(null);
+        setSelectedIds([]);
+      } else {
+        // 전체 목록 선택
+        setSelectionMode("all");
+        // 현재 페이지의 ID는 유지하되, 모드만 설정
+        // 실제 선택은 API 호출 시 필터로 처리
+      }
     }
   };
 

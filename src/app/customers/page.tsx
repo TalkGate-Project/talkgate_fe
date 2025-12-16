@@ -228,6 +228,7 @@ function CustomersPage() {
             projectId={projectId}
             appliedFilters={applied}
             selectedIds={selectedIds}
+            selectionMode={selectionMode}
             onUploadSuccess={refetch}
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
@@ -300,11 +301,7 @@ function CustomersPage() {
 
 export default function CustomersPageWrapper() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-neutral-60">불러오는 중...</div>
-      </main>
-    }>
+    <Suspense fallback={null}>
       <CustomersPage />
     </Suspense>
   );
