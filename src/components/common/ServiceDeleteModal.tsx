@@ -138,7 +138,7 @@ export default function ServiceDeleteModal({
         </div>
 
         {/* Divider */}
-        <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40"></div>
+        <div className="w-full h-[1px] bg-neutral-30/40 dark:!bg-[#444444]"></div>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 px-7 py-3">

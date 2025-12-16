@@ -343,7 +343,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
   return (
     <div className="w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
       {/* 헤더 */}
-      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
+      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40 dark:!border-[#44444455]">
         <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
         <div className="flex items-center gap-3">
           {projectLogoUrl ? (
