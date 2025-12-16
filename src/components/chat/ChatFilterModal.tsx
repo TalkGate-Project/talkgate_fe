@@ -119,7 +119,7 @@ export default function ChatFilterModal({
                   className={`cursor-pointer w-[48px] h-[34px] rounded-[5px] border text-[14px] ${
                     messenger === "all"
                       ? "border-2 border-primary-40 bg-primary-10/30 font-bold"
-                      : "border-border bg-card"
+                      : "border-border bg-card dark:bg-neutral-10"
                   }`}
                 >
                   전체
@@ -133,7 +133,7 @@ export default function ChatFilterModal({
                       className={`cursor-pointer w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
                         messenger === it.key
                           ? "border-2 border-primary-40 bg-primary-10/30 dark:!bg-primary-10/10"
-                          : "border-border bg-card"
+                          : "border-border bg-card dark:bg-neutral-10"
                       }`}
                     >
                       {it.key === "x" ? (
@@ -155,7 +155,7 @@ export default function ChatFilterModal({
               <button
                 type="button"
                 onClick={() => setStatusOpen((v) => !v)}
-                className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between"
+                className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between bg-neutral-0 dark:bg-neutral-10"
               >
                 <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-90 opacity-90">
                   {statuses.length
@@ -225,7 +225,7 @@ export default function ChatFilterModal({
                         className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer ${
                           checked
                             ? "border-2 border-primary-40 bg-primary-10/30"
-                            : "border-border bg-card"
+                            : "border-border bg-card dark:bg-neutral-10"
                         }`}
                       >
                         <Checkbox
@@ -253,7 +253,7 @@ export default function ChatFilterModal({
           {/* Footer */}
           <div className="px-7 py-3 flex items-center justify-end gap-3 border-t border-neutral-30">
             <button
-              className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0"
+              className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 dark:bg-neutral-10"
               onClick={() => {
                 setMessenger("all");
                 setStatuses([]);

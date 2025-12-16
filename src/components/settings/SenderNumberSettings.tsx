@@ -98,7 +98,7 @@ function InfoIcon({ tooltip }: { tooltip?: string }) {
         <circle cx="8" cy="11" r="0.75" fill="#EF4444" />
       </svg>
       {tooltip && (
-        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-neutral-80 text-white text-[11px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-normal">
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-[#A0A0A0] text-white dark:text-[#111111] text-[12px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-normal">
           {tooltip}
         </span>
       )}
@@ -365,10 +365,7 @@ export default function SenderNumberSettings() {
                   return (
                   <div
                     key={num.id}
-                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors ${
-                      isLastRow ? "border-b border-[#E2E2E2] dark:border-neutral-30" : ""
-                    }`}
-                    style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
+                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
                   >
                     <div className="flex-1 text-[14px] text-ink dark:text-neutral-80">
                       {num.number}
@@ -437,10 +434,7 @@ export default function SenderNumberSettings() {
                   return (
                   <div
                     key={num.id}
-                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors ${
-                      isLastRow ? "border-b border-[#E2E2E2] dark:border-neutral-30" : ""
-                    }`}
-                    style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
+                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
                   >
                     <div className="flex-1 text-[14px] text-ink dark:text-neutral-80">
                       {num.phoneNumber}

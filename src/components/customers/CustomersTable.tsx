@@ -239,11 +239,7 @@ export default function CustomersTable({
               return (
                 <tr
                   key={c.id}
-                  className={`${
-                    isLastRow 
-                      ? "border-b border-[#E2E2E2] dark:border-[#e2e2e244]" 
-                      : ""
-                  } ${hoveredId === c.id ? "bg-neutral-10" : ""}`}
+                  className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${hoveredId === c.id ? "bg-neutral-10" : ""}`}
                   style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
                   onMouseEnter={(e) => handleMouseEnter(e, c)}
                   onMouseMove={handleMouseMove}
