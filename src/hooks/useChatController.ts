@@ -290,27 +290,55 @@ export function useChatController({ projectId, status = "all", platform }: Param
     const onNewMessage = (payload: NewMessageEvent) => {
       if (!payload) return;
       const { message, conversation } = payload;
-      if (conversation) {
-        // 대화 목록 업데이트 (최신 메시지가 있는 대화를 맨 위로 이동)
-        setConversations((prev) => {
-          const exists = prev.find((c) => c.id === conversation.id);
-          if (!exists) return [conversation, ...prev];
-          const others = prev.filter((c) => c.id !== conversation.id);
-          return [conversation, ...others];
-        });
-      }
       const current = activeIdRef.current;
-      if (message?.conversationId === current) {
-        // 현재 활성 대화의 메시지면 앞에 추가 (배열: [최신, ..., 오래된] → reverse 후 화면: [오래된, ..., 최신])
+      const messageConvId = message?.conversationId;
+
+      // 대화 목록 업데이트 (최신 메시지가 있는 대화를 맨 위로 이동, lastMessage/unreadCount 갱신)
+      // 채팅방을 열지 않은 상태에서도 리스트가 갱신되어야 함
+      setConversations((prev) => {
+        // conversation 객체가 있으면 사용, 없으면 기존 목록에서 찾기
+        const existingConv = prev.find((c) => c.id === (conversation?.id || messageConvId));
+        
+        if (conversation) {
+          // 백엔드가 conversation 객체를 보내준 경우
+          const others = prev.filter((c) => c.id !== conversation.id);
+          // 활성 대화방이 아닐 때만 unreadCount 증가 (이미 증가된 값이 오지 않은 경우 대비)
+          const shouldIncreaseUnread = current !== conversation.id && message?.direction === "incoming";
+          const updated: Conversation = {
+            ...conversation,
+            lastMessage: conversation.lastMessage || message,
+            unreadCount: shouldIncreaseUnread && conversation.unreadCount === (existingConv?.unreadCount ?? 0)
+              ? (existingConv?.unreadCount ?? 0) + 1
+              : conversation.unreadCount,
+          };
+          return [updated, ...others];
+        } else if (message && existingConv) {
+          // conversation 객체가 없지만 message로 대화 목록 업데이트 가능한 경우
+          const others = prev.filter((c) => c.id !== messageConvId);
+          // 활성 대화방이 아니고 incoming 메시지일 때만 unreadCount 증가
+          const shouldIncreaseUnread = current !== messageConvId && message.direction === "incoming";
+          const updated: Conversation = {
+            ...existingConv,
+            lastMessage: message,
+            updatedAt: message.sentAt || message.createdAt,
+            unreadCount: shouldIncreaseUnread ? existingConv.unreadCount + 1 : existingConv.unreadCount,
+          };
+          return [updated, ...others];
+        }
+        
+        return prev;
+      });
+
+      // 현재 활성 대화의 메시지면 메시지 목록에 추가
+      if (message && messageConvId === current) {
+        // 앞에 추가 (배열: [최신, ..., 오래된] → reverse 후 화면: [오래된, ..., 최신])
         // send() 함수의 Optimistic UI와 동일한 방식으로 앞에 추가해야 새 메시지가 화면 하단에 표시됨
         setMessages((prev) => {
           if (prev.some((m) => m.id === message.id)) return prev; // 중복 제거
           return [message, ...prev];
         });
-        if (current) {
-          // 읽음 처리
-          socket.emit("markMessagesRead", { conversationId: current });
-        }
+        // 읽음 처리
+        socket.emit("markMessagesRead", { conversationId: current });
       }
     };
 

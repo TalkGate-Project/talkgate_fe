@@ -33,7 +33,10 @@ export class NotificationSocket {
         projectId,
       },
       autoConnect: true,
-      transports: ["websocket"],
+      // polling으로 먼저 연결 후 websocket으로 업그레이드 (Socket.IO 기본 동작)
+      // websocket only 설정 시 초기 연결 실패가 잦아 폴백 허용
+      transports: ["polling", "websocket"],
+      upgrade: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
