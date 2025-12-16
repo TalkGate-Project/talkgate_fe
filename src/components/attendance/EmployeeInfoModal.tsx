@@ -77,7 +77,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
       showErrorModal({
         title: "오류 발생",
         headline: "저장에 실패했습니다.",
-        description: e?.message || "관리자 정보 저장 중 오류가 발생했습니다.",
+        description: "관리자 정보 저장 중 오류가 발생했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -114,7 +114,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
       showErrorModal({
         title: "오류 발생",
         headline: "특이사항 추가에 실패했습니다.",
-        description: e?.message || "특이사항 추가 중 오류가 발생했습니다.",
+        description: "특이사항 추가 중 오류가 발생했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -145,7 +145,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
           showErrorModal({
             title: "오류 발생",
             headline: "특이사항 삭제에 실패했습니다.",
-            description: e?.message || "특이사항 삭제 중 오류가 발생했습니다.",
+            description: "특이사항 삭제 중 오류가 발생했습니다.",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,

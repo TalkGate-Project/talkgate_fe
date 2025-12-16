@@ -204,10 +204,9 @@ export default function TeamMemberInfoModal({
       setNoteInput("");
     } catch (e: any) {
       console.error(e);
-      const errorMessage = e?.message || e?.data?.message || "특이사항 추가에 실패했습니다.";
       showErrorModal({
         headline: "특이사항 추가 실패",
-        description: errorMessage,
+        description: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -230,10 +229,9 @@ export default function TeamMemberInfoModal({
           setLocalNotes((prev) => prev.filter((note) => note.id !== noteId));
         } catch (e: any) {
           console.error(e);
-          const errorMessage = e?.message || e?.data?.message || "특이사항 삭제에 실패했습니다.";
           showErrorModal({
             headline: "특이사항 삭제 실패",
-            description: errorMessage,
+            description: "일시적인 오류가 발생했습니다.",
             hideCancel: true,
             confirmText: "확인",
           });
@@ -265,10 +263,9 @@ export default function TeamMemberInfoModal({
       });
     } catch (e: any) {
       console.error(e);
-      const errorMessage = e?.message || e?.data?.message || "저장에 실패했습니다.";
       showErrorModal({
         headline: "저장 실패",
-        description: errorMessage,
+        description: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -351,10 +348,9 @@ export default function TeamMemberInfoModal({
                     setTeamNameDraft("");
                   } catch (err: any) {
                     console.error(err);
-                    const errorMessage = (err as Error)?.message || err?.data?.message || "팀 생성에 실패했습니다.";
                     showErrorModal({
                       headline: "팀 생성 실패",
-                      description: errorMessage,
+                      description: "일시적인 오류가 발생했습니다.",
                       hideCancel: true,
                       confirmText: "확인",
                     });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 interface InstagramIntegrationModalProps {
   isOpen: boolean;
@@ -27,7 +28,11 @@ export default function InstagramIntegrationModal({
 
   const handleSubmit = async () => {
     if (!code.trim()) {
-      alert("인증 코드를 입력해주세요.");
+      showErrorModal({
+        type: "info",
+        headline: "인증 코드를 입력해주세요.",
+        hideCancel: true,
+      });
       return;
     }
 

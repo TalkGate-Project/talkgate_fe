@@ -136,12 +136,10 @@ export default function CommonSenderNumberModal({
       });
     } catch (error: any) {
       console.error("발신번호 등록 실패:", error);
-      const errorMessage =
-        error?.response?.data?.message || "발신번호 등록에 실패했습니다.";
       showErrorModal({
         type: "error",
         headline: "발신번호 등록에 실패했습니다",
-        description: errorMessage,
+        description: "발신번호 등록에 실패했습니다.",
         hideCancel: true,
       });
     } finally {

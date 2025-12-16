@@ -154,11 +154,10 @@ function LoginContent() {
               } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
                 setInvalid(true);
               } else {
-                const errorMessage = err?.data?.message || err?.message || "";
                 showErrorModal({
                   title: "오류 발생",
                   headline: "로그인에 실패했습니다.",
-                  description: errorMessage || "이메일 또는 비밀번호를 확인해주세요.",
+                  description: "이메일 또는 비밀번호를 확인해주세요.",
                   confirmText: "확인",
                   cancelText: null,
                   hideCancel: true,

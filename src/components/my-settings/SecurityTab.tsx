@@ -52,11 +52,10 @@ export default function SecurityTab() {
         });
         setTwoFactorEnabled(true);
       } else {
-        const errorMessage = e?.response?.data?.message || "2FA 설정에 실패했습니다.";
         showErrorModal({
           title: "오류 발생",
           headline: "2FA 설정에 실패했습니다.",
-          description: errorMessage,
+          description: "2FA 설정에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -98,11 +97,10 @@ export default function SecurityTab() {
           hideCancel: true,
         });
       } else {
-        const errorMessage = e?.response?.data?.message || "인증에 실패했습니다.";
         showErrorModal({
           title: "오류 발생",
           headline: "인증에 실패했습니다.",
-          description: errorMessage,
+          description: "인증에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -128,11 +126,10 @@ export default function SecurityTab() {
         hideCancel: true,
       });
     } catch (e: any) {
-      const errorMessage = e?.response?.data?.message || "인증 코드 발송에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "인증 코드 발송에 실패했습니다.",
-        description: errorMessage,
+        description: "인증 코드 발송에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -187,11 +184,10 @@ export default function SecurityTab() {
           hideCancel: true,
         });
       } else {
-        const errorMessage = e?.response?.data?.message || "2FA 해제에 실패했습니다.";
         showErrorModal({
           title: "오류 발생",
           headline: "2FA 해제에 실패했습니다.",
-          description: errorMessage,
+          description: "2FA 해제에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -215,11 +211,10 @@ export default function SecurityTab() {
         hideCancel: true,
       });
     } catch (e: any) {
-      const errorMessage = e?.data?.message || e?.message || "변경에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "비밀번호 변경에 실패했습니다.",
-        description: errorMessage,
+        description: "비밀번호 변경에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -240,11 +235,10 @@ export default function SecurityTab() {
         hideCancel: true,
       });
     } catch (e: any) {
-      const errorMessage = e?.data?.message || e?.message || "삭제에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "계정 삭제에 실패했습니다.",
-        description: errorMessage,
+        description: "계정 삭제에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

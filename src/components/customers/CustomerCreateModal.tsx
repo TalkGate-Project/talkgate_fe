@@ -160,11 +160,10 @@ export default function CustomerCreateModal({
       handleReset();
       onClose();
     } catch (e: any) {
-      const errorMessage = e?.data?.message || e?.message || "고객 등록에 실패했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "고객 등록에 실패했습니다.",
-        description: errorMessage,
+        description: "고객 등록에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

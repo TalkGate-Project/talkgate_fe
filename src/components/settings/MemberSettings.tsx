@@ -13,7 +13,8 @@ import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import TeamMemberInfoModal from "./teamManagement/TeamMemberInfoModal";
-import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -202,22 +203,27 @@ export default function MemberSettings() {
         queryKey: ["members", "list", projectId],
       });
       setIsInviteModalOpen(false);
-      alert("멤버 초대가 완료되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "멤버 초대가 완료되었습니다.",
+        hideCancel: true,
+      });
     },
     onError: (error: any) => {
-      const errorMessage = error?.data?.message || "멤버 초대에 실패했습니다.";
+      const errorMessage = error?.data?.message || "";
       
-      // "Invitation already exists for this email" 메시지를 한국어로 변환
-      const displayMessage = errorMessage.includes("Invitation already exists for this email")
-        ? "이미 초대중인 계정입니다"
-        : errorMessage;
+      // 영어 에러 메시지를 한글로 변환
+      let displayMessage = "잠시 후 다시 시도해 주세요.";
+      if (errorMessage.includes("Invitation already exists")) {
+        displayMessage = "이미 초대중인 이메일입니다.";
+      } else if (errorMessage.includes("already a member")) {
+        displayMessage = "이미 등록된 멤버입니다.";
+      }
       
       showErrorModal({
-        title: "오류 발생",
+        type: "error",
         headline: "멤버 초대에 실패했습니다.",
         description: displayMessage,
-        confirmText: "확인",
-        cancelText: null,
         hideCancel: true,
       });
     },
@@ -233,11 +239,19 @@ export default function MemberSettings() {
       });
       setIsDeleteModalOpen(false);
       setSelectedMember(null);
-      alert("멤버가 삭제되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "멤버가 삭제되었습니다.",
+        hideCancel: true,
+      });
     },
-    onError: (error: any) => {
-      const errorMessage = error?.data?.message || "멤버 삭제에 실패했습니다.";
-      alert(errorMessage);
+    onError: () => {
+      showErrorModal({
+        type: "error",
+        headline: "멤버 삭제에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+        hideCancel: true,
+      });
     },
   });
 

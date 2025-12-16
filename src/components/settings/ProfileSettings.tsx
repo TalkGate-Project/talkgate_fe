@@ -94,10 +94,8 @@ export default function ProfileSettings() {
       });
     } catch (error: any) {
       console.error("Failed to upload profile image:", error);
-      const errorMessage = error?.data?.message || error?.message || "프로필 이미지 업로드에 실패했습니다.";
       showErrorModal({
-        headline: "프로필 이미지 업로드 실패",
-        description: errorMessage,
+        headline: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -146,10 +144,8 @@ export default function ProfileSettings() {
       });
     } catch (error: any) {
       console.error("Failed to update profile:", error);
-      const errorMessage = error?.data?.message || error?.message || "프로필 수정에 실패했습니다.";
       showErrorModal({
-        headline: "프로필 수정 실패",
-        description: errorMessage,
+        headline: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });

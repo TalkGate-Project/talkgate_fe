@@ -6,6 +6,8 @@ import { MessengerIntegrationService } from "@/services/messengerIntegration";
 import LineIntegrationModal from "./LineIntegrationModal";
 import TelegramIntegrationModal from "./TelegramIntegrationModal";
 import type { Platform, MessengerIntegration } from "@/types/messengerIntegration";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 const channels = [
   {
     id: "instagram" as Platform,
@@ -181,23 +183,46 @@ export default function ConsultationChannelSettings() {
     );
   };
 
-  const handleDisconnect = async (platform: Platform) => {
-    if (!projectId || !confirm(`${platform} 연동을 해제하시겠습니까?`)) return;
+  const handleDisconnect = (platform: Platform) => {
+    if (!projectId) return;
 
-    try {
-      await MessengerIntegrationService.remove(platform, {
-        "x-project-id": projectId,
-      });
+    const platformNames: Record<Platform, string> = {
+      instagram: "인스타그램",
+      telegram: "텔레그램",
+      line: "라인",
+    };
 
-      // 목록에서 제거
-      setIntegrations((prev) =>
-        prev.filter((integration) => integration.platform !== platform)
-      );
-      alert("연동이 해제되었습니다.");
-    } catch (error) {
-      console.error("Failed to disconnect messenger:", error);
-      alert("연동 해제에 실패했습니다.");
-    }
+    showConfirmModal({
+      title: "연동 해제",
+      message: `${platformNames[platform]} 연동을 해제하시겠습니까?`,
+      confirmText: "해제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await MessengerIntegrationService.remove(platform, {
+            "x-project-id": projectId,
+          });
+
+          // 목록에서 제거
+          setIntegrations((prev) =>
+            prev.filter((integration) => integration.platform !== platform)
+          );
+          showErrorModal({
+            type: "success",
+            headline: "연동이 해제되었습니다.",
+            hideCancel: true,
+          });
+        } catch (error) {
+          console.error("Failed to disconnect messenger:", error);
+          showErrorModal({
+            type: "error",
+            headline: "연동 해제에 실패했습니다.",
+            description: "잠시 후 다시 시도해 주세요.",
+            hideCancel: true,
+          });
+        }
+      },
+    });
   };
 
   const handleConfirmIntegration = async (payload: any) => {
@@ -228,12 +253,19 @@ export default function ConsultationChannelSettings() {
         setIntegrations((prev) => [...prev, response.data.data]);
       }
 
-      alert("메신저 연동이 완료되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "메신저 연동이 완료되었습니다.",
+        hideCancel: true,
+      });
     } catch (error: any) {
       console.error("Failed to integrate messenger:", error);
-      const errorMessage =
-        error?.data?.message || "메신저 연동에 실패했습니다.";
-      alert(errorMessage);
+      showErrorModal({
+        type: "error",
+        headline: "메신저 연동에 실패했습니다.",
+        description: "입력한 정보를 확인하시고 다시 시도해 주세요.",
+        hideCancel: true,
+      });
       throw error;
     }
   };

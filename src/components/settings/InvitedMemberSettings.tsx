@@ -9,6 +9,8 @@ import { MembersService } from "@/services/members";
 import type { InvitationListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -176,12 +178,19 @@ export default function InvitedMemberSettings() {
       queryClient.invalidateQueries({
         queryKey: ["invitations", "list", projectId],
       });
-      alert("초대 이메일이 재전송되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "초대 이메일이 재전송되었습니다.",
+        hideCancel: true,
+      });
     },
-    onError: (error: any) => {
-      const errorMessage =
-        error?.data?.message || "초대 재전송에 실패했습니다.";
-      alert(errorMessage);
+    onError: () => {
+      showErrorModal({
+        type: "error",
+        headline: "초대 재전송에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+        hideCancel: true,
+      });
     },
   });
 
@@ -193,11 +202,19 @@ export default function InvitedMemberSettings() {
       queryClient.invalidateQueries({
         queryKey: ["invitations", "list", projectId],
       });
-      alert("초대가 취소되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "초대가 취소되었습니다.",
+        hideCancel: true,
+      });
     },
-    onError: (error: any) => {
-      const errorMessage = error?.data?.message || "초대 취소에 실패했습니다.";
-      alert(errorMessage);
+    onError: () => {
+      showErrorModal({
+        type: "error",
+        headline: "초대 취소에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+        hideCancel: true,
+      });
     },
   });
 
@@ -213,24 +230,52 @@ export default function InvitedMemberSettings() {
         queryKey: ["members", "list", projectId],
       });
       setIsInviteModalOpen(false);
-      alert("멤버 초대가 완료되었습니다.");
+      showErrorModal({
+        type: "success",
+        headline: "멤버 초대가 완료되었습니다.",
+        hideCancel: true,
+      });
     },
     onError: (error: any) => {
-      const errorMessage = error?.data?.message || "멤버 초대에 실패했습니다.";
-      alert(errorMessage);
+      const errorMessage = error?.data?.message || "";
+      // 영어 에러 메시지를 한글로 변환
+      let displayMessage = "잠시 후 다시 시도해 주세요.";
+      if (errorMessage.includes("Invitation already exists")) {
+        displayMessage = "이미 초대중인 이메일입니다.";
+      } else if (errorMessage.includes("already a member")) {
+        displayMessage = "이미 등록된 멤버입니다.";
+      }
+      showErrorModal({
+        type: "error",
+        headline: "멤버 초대에 실패했습니다.",
+        description: displayMessage,
+        hideCancel: true,
+      });
     },
   });
 
   const handleResend = (id: number) => {
-    if (confirm("초대 이메일을 재전송하시겠습니까?")) {
-      resendMutation.mutate(id);
-    }
+    showConfirmModal({
+      title: "초대 재전송",
+      message: "초대 이메일을 재전송하시겠습니까?",
+      confirmText: "재전송",
+      cancelText: "취소",
+      onConfirm: () => {
+        resendMutation.mutate(id);
+      },
+    });
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("초대를 취소하시겠습니까?")) {
-      cancelMutation.mutate(id);
-    }
+    showConfirmModal({
+      title: "초대 취소",
+      message: "초대를 취소하시겠습니까?",
+      confirmText: "취소하기",
+      cancelText: "닫기",
+      onConfirm: () => {
+        cancelMutation.mutate(id);
+      },
+    });
   };
 
   const handleInviteMember = () => {

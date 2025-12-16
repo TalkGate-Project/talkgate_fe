@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 interface SelfAuthenticationModalProps {
   isOpen: boolean;
@@ -31,7 +32,12 @@ export default function SelfAuthenticationModal({
       onSuccess(dummyVerificationToken);
     } catch (error) {
       console.error("본인인증 실패:", error);
-      alert("본인인증에 실패했습니다. 다시 시도해주세요.");
+      showErrorModal({
+        type: "error",
+        headline: "본인인증에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+        hideCancel: true,
+      });
     } finally {
       setIsAuthenticating(false);
     }

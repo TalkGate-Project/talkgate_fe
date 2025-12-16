@@ -12,6 +12,7 @@ import { TeamMember } from "@/types/teams";
 import { MemberTreeNode } from "@/types/membersTree";
 import { getSelectedProjectId } from "@/lib/project";
 import { useMembersTree, useTeams, useMoveTeamMutation } from "@/hooks/useMembersTree";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 const ROLE_LABEL: Record<string, string> = {
   leader: "리더",
@@ -265,7 +266,12 @@ export default function TeamManagementSettings() {
       setDraggedItem(null);
     } catch (err) {
       console.error(err);
-      alert((err as Error)?.message ?? "조직 이동에 실패했습니다.");
+      showErrorModal({
+        type: "error",
+        headline: "조직 이동에 실패했습니다.",
+        description: "잠시 후 다시 시도해 주세요.",
+        hideCancel: true,
+      });
     }
   }, [moveMutation, pendingMove]);
 

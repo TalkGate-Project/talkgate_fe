@@ -61,7 +61,7 @@ export default function ProfileTab() {
       showErrorModal({
         type: "error",
         headline: "업데이트에 실패했습니다",
-        description: e?.data?.message || e?.message || "프로필 업데이트 중 오류가 발생했습니다.",
+        description: "프로필 업데이트 중 오류가 발생했습니다.",
         hideCancel: true,
       });
     } finally {

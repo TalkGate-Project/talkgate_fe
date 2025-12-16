@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 interface TelegramIntegrationModalProps {
   isOpen: boolean;
@@ -23,7 +24,11 @@ export default function TelegramIntegrationModal({
 
   const handleSubmit = async () => {
     if (!botToken.trim()) {
-      alert("봇 토큰을 입력해주세요.");
+      showErrorModal({
+        type: "info",
+        headline: "봇 토큰을 입력해주세요.",
+        hideCancel: true,
+      });
       return;
     }
 

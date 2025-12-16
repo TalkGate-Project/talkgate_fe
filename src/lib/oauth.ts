@@ -6,6 +6,7 @@ import {
   startOAuthFlow,
   debugLog,
 } from "./auth-utils";
+import { showErrorModal } from "./errorModalEvents";
 
 export type OAuthProvider = "google" | "kakao" | "naver";
 
@@ -81,7 +82,12 @@ export function initiateSocialLogin(provider: OAuthProvider): void {
     const errorMsg = `❌ ${provider.toUpperCase()} Client ID가 설정되지 않았습니다. (Vercel: Environment Variables 설정 후 반드시 재배포 필요)`;
     debugLog(errorMsg);
     console.error(`[OAuth] ${errorMsg}`);
-    alert(`소셜 로그인 설정 오류: ${provider} Client ID가 누락되었습니다.`);
+    showErrorModal({
+      type: "error",
+      headline: "소셜 로그인을 사용할 수 없습니다.",
+      description: "서비스 설정 오류가 발생했습니다. 관리자에게 문의해 주세요.",
+      hideCancel: true,
+    });
     return;
   }
 
