@@ -329,32 +329,27 @@ export default function SecurityTab() {
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-card rounded-[14px]">
-        <div className="px-7 py-6">
-          <div className="flex items-center gap-2 mb-1">
-            <h2 className="text-[16px] font-semibold text-danger-40">계정 삭제</h2>
-            <div className="px-3 py-1 bg-danger-10 text-danger-40 text-[12px] font-medium rounded-[30px]">
-              주의
-            </div>
-          </div>
-          <p className="text-[14px] font-medium text-danger-40 mb-3">
-            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
-          </p>
+      <div className="bg-card rounded-[14px] shadow-sm p-7">
+        <div className="flex items-center gap-3 mb-[6px]">
+          <h2 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">계정 삭제</h2>
+          <span className="w-[44px] bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">
+            주의
+          </span>
+        </div>
+        <p className="text-[14px] text-danger-40 dark:text-danger-40 font-medium mb-3 tracking-[0.2px] leading-[1]">
+          계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+        </p>
 
-          {/* Divider */}
-          <div className="w-full h-[1px] bg-border mb-3"></div>
+        <div className="border-t border-neutral-30 dark:border-neutral-30 mb-3"></div>
 
-          <div className="flex items-center justify-between py-2 bg-danger-10/50 px-6">
-            <div className="text-[16px] font-semibold text-danger-40">
-              계정 삭제
-            </div>
-            <button 
-              onClick={() => setShowDeleteAccountModal(true)}
-              className="cursor-pointer px-3 py-1.5 bg-danger-40 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
-            >
-              계정 삭제
-            </button>
-          </div>
+        <div className="flex items-center justify-between py-3 px-6 bg-[rgba(255,235,235,0.5)] dark:bg-neutral-20 rounded-[5px] h-[48px]">
+          <span className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 leading-[19px]">계정 삭제</span>
+          <button 
+            onClick={() => setShowDeleteAccountModal(true)}
+            className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] h-[34px]"
+          >
+            계정 삭제
+          </button>
         </div>
       </div>
 

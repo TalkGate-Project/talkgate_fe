@@ -133,7 +133,7 @@ export default function SelfAuthenticationModal({
             type="button"
             onClick={handleAuthenticate}
             disabled={isAuthenticating}
-            className="cursor-pointer w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] font-medium text-neutral-0 dark:text-neutral-90 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] font-medium text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAuthenticating ? "인증 중..." : "인증하기"}
           </button>
