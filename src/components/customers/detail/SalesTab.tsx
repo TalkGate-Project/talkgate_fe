@@ -278,7 +278,7 @@ export default function SalesTab({
               <span className="flex-1 text-ink dark:text-neutral-80">{ph.description || "결제"}</span>
 
               <button
-                className="ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
+                className="cursor-pointer ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
                 onClick={() => {
                   showConfirmModal({
                     title: "확인",
