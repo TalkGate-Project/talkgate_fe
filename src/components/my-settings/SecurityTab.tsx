@@ -346,7 +346,7 @@ export default function SecurityTab() {
           <span className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 leading-[19px]">계정 삭제</span>
           <button 
             onClick={() => setShowDeleteAccountModal(true)}
-            className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] h-[34px]"
+            className="cursor-pointer px-3 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] h-[34px]"
           >
             계정 삭제
           </button>
