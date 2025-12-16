@@ -150,7 +150,9 @@ export default function TeamMemberInfoModal({
     address: "",
   });
   const createTeam = useCreateTeamMutation(projectId);
-  const { isAdminOrSubAdmin } = useMyMember(projectId);
+  // projectId를 string | null로 변환 (number인 경우 문자열로 변환)
+  const projectIdString = projectId !== null ? String(projectId) : null;
+  const { isAdminOrSubAdmin } = useMyMember(projectIdString);
 
   // API로 멤버 상세 정보 가져오기
   const { member, isLoading, isError } = useMemberDetail(
@@ -306,6 +308,9 @@ export default function TeamMemberInfoModal({
     member?.role === "admin" ||
     member?.role === "subAdmin";
   const canCreateTeam = isAdminOrSubAdmin && !isTargetLeader;
+  
+  // 멤버가 팀장인지 확인
+  const isLeader = member?.role === "leader";
 
   // 조직도 노드 계산
   const teamNodes = flattenOrgTree(member?.organizationTree);
