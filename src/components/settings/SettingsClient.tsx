@@ -44,13 +44,7 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
 
 // 권한이 필요한 탭 목록 (admin/subAdmin만 접근 가능)
 const ADMIN_ONLY_TABS: SettingsTab[] = [
-  "consultation-channel",
-  "member",
-  "customer-api",
-  "invited-member",
-  "batch-registration",
-  "sender-numbers",
-  "sms-history",
+  "general",
 ];
 
 // 유효한 탭인지 확인하는 함수
