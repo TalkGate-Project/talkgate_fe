@@ -15,13 +15,13 @@ export default function TeamNameBadge({ label, className = "", style, title }: P
         "px-3",
         "h-[22px]",
         "rounded-[30px]",
-        "bg-secondary-10",
+        "bg-secondary-10 dark:bg-secondary-10/90",
         className,
       ].join(" ")}
       style={style}
       title={title ?? label}
     >
-      <span className="text-[12px] font-medium text-secondary-40 leading-[22px] whitespace-nowrap truncate">
+      <span className="text-[12px] font-medium text-secondary-40 dark:text-[#0037B3] leading-[22px] whitespace-nowrap truncate">
         {label}
       </span>
     </div>
