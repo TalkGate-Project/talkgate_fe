@@ -775,3 +775,11 @@ select:focus {
   outline-offset: 0;
 }
 
+/* Remove focus outline on SVG chart elements (Recharts) */
+svg text:focus,
+svg g:focus,
+svg rect:focus,
+svg path:focus {
+  outline: none;
+}
+
