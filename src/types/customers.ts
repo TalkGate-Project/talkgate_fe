@@ -11,7 +11,7 @@ export type RecentNote = {
   id: number;
   memberId?: number | null;
   memberName?: string | null;
-  categoryId: number;
+  categoryId: number | null;
   note: string;
   createdAt: string;
 };
@@ -267,7 +267,7 @@ export type BasicSuccessResponse = { result: true; data?: unknown };
 // Notes add/remove
 export type AddCustomerNoteInput = {
   customerId: number;
-  categoryId: number;
+  categoryId: number | null;
   note: string;
   projectId: string; // header
 };
