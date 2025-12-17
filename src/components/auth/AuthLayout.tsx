@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, ReactNode } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
@@ -33,6 +33,28 @@ export default function AuthLayout({
   showLogo = true,
   ariaLabel = "auth-form-area",
 }: AuthLayoutProps) {
+  // Strap top 값을 캔버스 높이에 따라 동적으로 계산
+  const [strapTop, setStrapTop] = useState(-810);
+
+  useEffect(() => {
+    const calculateStrapTop = () => {
+      const height = window.innerHeight;
+      
+      // 선형 공식: top = (height - 1890) * 0.4974 - 670
+      // 캔버스 높이가 증가할수록 top 값도 증가 (더 양수 방향으로)
+      // 최소값: -810px (약 1417.5px 이하에서 고정)
+      const calculatedTop = (height - 1890) * 0.4974 - 670;
+      setStrapTop(Math.max(calculatedTop, -810));
+    };
+
+    calculateStrapTop();
+    window.addEventListener("resize", calculateStrapTop);
+
+    return () => {
+      window.removeEventListener("resize", calculateStrapTop);
+    };
+  }, []);
+
   // Auth 페이지에서는 zoom을 1로 강제 설정 (컴팩트 모드 예외)
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -122,7 +144,7 @@ export default function AuthLayout({
             <div
               className="absolute left-1/2 -translate-x-[41%] z-[0]"
               style={{
-                top: "-670px",
+                top: `${strapTop}px`,
                 width: "41%",
                 height: "calc(50vh + var(--card-padding-top, 310px) + 80px)",
                 backgroundImage: `url('${loginCardStrap.src}')`,
