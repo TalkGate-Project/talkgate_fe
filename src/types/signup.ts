@@ -18,6 +18,8 @@ export type RegisterInput = {
 
 export type RegisterOutput = {
   success: true;
+  // 초대 플로우에서는 이메일 인증 없이 토큰이 바로 반환될 수 있음
+  tokens?: SignupTokens;
 };
 
 export type VerifyEmailInput = {

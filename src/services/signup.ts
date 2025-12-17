@@ -61,6 +61,20 @@ export const SignupService = {
     return apiClient
       .post<any>("/v1/auth/signup", body)
       .then((res) => {
+        const data = (res.data as any)?.data ?? res.data;
+        
+        // 초대 플로우인 경우 백엔드에서 토큰을 반환할 수 있음
+        // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
+        if (input.invitationToken && data?.accessToken && data?.refreshToken) {
+          return {
+            success: true,
+            tokens: {
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+            },
+          } as RegisterOutput;
+        }
+        
         return { success: true } as RegisterOutput;
       });
   },
