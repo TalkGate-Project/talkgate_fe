@@ -31,12 +31,37 @@ function formatNotificationTime(dateString: string) {
   return `${year}-${month}-${day}`;
 }
 
+// 알림 목록을 ID 기준으로 병합하고 최신순 정렬 (중복 제거)
+function mergeNotifications(
+  existing: TGNotification[],
+  incoming: TGNotification[],
+  limit: number = 5
+): TGNotification[] {
+  const map = new Map<number, TGNotification>();
+
+  // 기존 알림 먼저 추가
+  existing.forEach((n) => map.set(n.id, n));
+
+  // 새 알림으로 덮어쓰기 (최신 상태 반영)
+  incoming.forEach((n) => map.set(n.id, n));
+
+  // 최신순 정렬 후 limit 적용
+  return Array.from(map.values())
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, limit);
+}
+
 export default function NotificationBell() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<TGNotification[]>([]);
-  const [loading, setLoading] = useState(false);
+  // 초기 로딩 상태 (데이터가 한 번도 로드되지 않은 상태)
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  // 백그라운드 리프레시 상태 (기존 데이터를 유지하면서 새 데이터 로드 중)
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  // 데이터가 한 번이라도 로드되었는지 여부
+  const hasFetchedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const loadUnreadCount = useCallback(async () => {
@@ -49,14 +74,32 @@ export default function NotificationBell() {
   }, []);
 
   const loadLatestNotifications = useCallback(async () => {
-    setLoading(true);
+    // 이미 데이터가 있으면 백그라운드 리프레시, 없으면 초기 로딩
+    const isFirstLoad = !hasFetchedRef.current;
+
+    if (isFirstLoad) {
+      setIsInitialLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+
     try {
       const response = await NotificationsService.list({ limit: 5 });
-      setNotifications(response.notifications);
+
+      setNotifications((prev) => {
+        // 초기 로딩이면 그대로 설정, 아니면 병합
+        if (isFirstLoad) {
+          return response.notifications;
+        }
+        return mergeNotifications(prev, response.notifications, 5);
+      });
+
+      hasFetchedRef.current = true;
     } catch (error) {
       console.error("Failed to load latest notifications:", error);
     } finally {
-      setLoading(false);
+      setIsInitialLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -65,7 +108,7 @@ export default function NotificationBell() {
     loadUnreadCount();
   }, [loadUnreadCount]);
 
-  // 드롭다운 열릴 때마다 최신 알림 로딩
+  // 드롭다운 열릴 때마다 최신 알림 로딩 (기존 데이터 유지하면서)
   useEffect(() => {
     if (!isOpen) return;
     loadLatestNotifications();
@@ -180,15 +223,20 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="absolute -right-4 top-[50px] w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50">
           {/* 헤더 */}
-          <div className="px-[30px] pb-5 border-b border-border">
+          <div className="px-[30px] pb-5 border-b border-border flex items-center justify-between">
             <span className="text-[16px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
               새로운 소식
             </span>
+            {isRefreshing && (
+              <span className="text-[12px] text-neutral-60 animate-pulse">
+                업데이트 중...
+              </span>
+            )}
           </div>
 
           {/* 목록 */}
           <div className="max-h-[260px] overflow-y-auto pt-3">
-            {loading ? (
+            {isInitialLoading ? (
               <div className="px-5 py-6 text-[13px] text-neutral-60">불러오는 중...</div>
             ) : notifications.length === 0 ? (
               <div className="px-5 py-6 text-[13px] text-neutral-60">알림이 없습니다.</div>
