@@ -262,17 +262,18 @@ export default function ErrorFeedbackModalProvider({
                       viewBox="0 0 40 40"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
+                      className="text-secondary-80 dark:text-secondary-20"
                     >
                       <circle
                         cx="20"
                         cy="20"
                         r="18"
-                        stroke="#8280FF"
+                        stroke="currentColor"
                         strokeWidth="4"
                       />
                       <path
                         d="M20 12V20M20 28H20.01"
-                        stroke="#8280FF"
+                        stroke="currentColor"
                         strokeWidth="4"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -288,7 +289,7 @@ export default function ErrorFeedbackModalProvider({
                       ? "text-danger-40"
                       : state.type === "success"
                       ? "text-[#00E272]"
-                      : "text-[#8280FF]"
+                      : "text-secondary-80 dark:text-secondary-20"
                   }`}
                 >
                   {state.headline}
@@ -318,7 +319,7 @@ export default function ErrorFeedbackModalProvider({
                     ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : state.type === "success"
                     ? "bg-[#00E272] text-white"
-                    : "bg-[#8280FF] text-white"
+                    : "bg-secondary-80 dark:bg-secondary-20 text-white"
                 }`}
                 onClick={handleConfirm}
                 disabled={confirming}
