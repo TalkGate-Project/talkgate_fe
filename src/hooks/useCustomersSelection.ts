@@ -15,15 +15,20 @@ export function useCustomersSelection() {
     if (mode === "page") {
       // 현재 페이지 선택/해제
       const currentPageIds = customers.map((c) => c.id);
-      const isCurrentPageSelected = selectionMode === "page" && allSelectedOnPage(customers);
+      const isCurrentPageFullySelected = allSelectedOnPage(customers);
       
-      if (isCurrentPageSelected) {
-        // 현재 페이지가 이미 선택된 상태면 해제
-        setSelectedIds([]);
-        setSelectionMode(null);
-      } else {
-        // 이전 선택 초기화 후 현재 페이지만 선택
+      if (selectionMode === "all") {
+        // "전체 목록 선택" 상태에서 "현재 페이지 선택" → 전체 해제 후 현재 페이지만 선택
         setSelectedIds(currentPageIds);
+        setSelectionMode("page");
+      } else if (isCurrentPageFullySelected) {
+        // 현재 페이지가 이미 모두 선택된 상태면 현재 페이지만 해제 (다른 페이지 선택은 유지)
+        setSelectedIds((prev) => prev.filter((id) => !currentPageIds.includes(id)));
+        setSelectionMode((prev) => prev); // 모드 유지
+      } else {
+        // 현재 페이지를 기존 선택에 추가 (누적)
+        const newIds = currentPageIds.filter((id) => !selectedIds.includes(id));
+        setSelectedIds((prev) => [...prev, ...newIds]);
         setSelectionMode("page");
       }
     } else {
