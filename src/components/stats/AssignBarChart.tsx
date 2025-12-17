@@ -131,7 +131,7 @@ export default function AssignBarChart() {
               const teamName = payload.value;
               const teamId = chartData[index]?.teamId ?? null;
               return (
-                <g transform={`translate(${x},${y})`}>
+                <g transform={`translate(${x},${y})`} focusable="false" style={{ outline: 'none' }}>
                   <text
                     x={0}
                     y={0}
@@ -141,7 +141,8 @@ export default function AssignBarChart() {
                     fontSize={12}
                     fontFamily="var(--font-montserrat)"
                     fontWeight={500}
-                    style={{ cursor: teamId ? "pointer" : "default" }}
+                    focusable="false"
+                    style={{ cursor: teamId ? "pointer" : "default", outline: 'none' }}
                     onClick={() => handleBarClick(teamId)}
                   >
                     {teamName}
@@ -177,7 +178,7 @@ export default function AssignBarChart() {
                 const teamId = payload.teamId ?? null;
                 
                 return (
-                  <g>
+                  <g focusable="false" style={{ outline: 'none' }}>
                     <text
                       x={x}
                       y={y}
@@ -186,7 +187,8 @@ export default function AssignBarChart() {
                       fontWeight="500"
                       fontFamily="var(--font-montserrat)"
                       textAnchor="middle"
-                      style={{ cursor: teamId ? "pointer" : "default" }}
+                      focusable="false"
+                      style={{ cursor: teamId ? "pointer" : "default", outline: 'none' }}
                       onClick={() => handleBarClick(teamId)}
                     >
                       {formattedValue}

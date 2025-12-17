@@ -207,8 +207,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         aria-label="조직도 트리"
       >
         <div className="text-center text-neutral-60 text-[14px]">
-          <p className="mb-1">배정된 멤버가 없습니다</p>
-          <p className="text-[12px] text-neutral-50">조직을 구성하려면 멤버를 드래그하여 배정하세요</p>
+          <p className="">표시할 조직 정보가 없습니다.</p>
         </div>
       </div>
     );
