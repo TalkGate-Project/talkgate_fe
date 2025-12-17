@@ -192,11 +192,54 @@ export async function middleware(req: NextRequest) {
   }
 
   // ============================================
-  // 배포 환경 (Vercel) 로직
+  // 배포 환경 (Vercel) - 루트 경로 처리
   // ============================================
-
   const subdomain = extractSubdomain(host);
   const mainDomain = getMainDomain(host);
+
+  if (pathname === "/") {
+    // 서브도메인이 있는 경우 (프로젝트 컨텍스트)
+    if (subdomain) {
+      if (hasAuthCookie && accessToken) {
+        // 인증됨 + 서브도메인 → 프로젝트 확인 후 대시보드로 리다이렉트
+        const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
+        
+        if (project) {
+          console.log(`[Middleware] 루트 + 서브도메인 + 인증됨 → /dashboard로 리다이렉트`);
+          const response = NextResponse.redirect(new URL(`${protocol}//${host}/dashboard`));
+          // 프로젝트 ID 쿠키도 설정
+          const subdomainProjectId = String(project.id);
+          const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
+          if (!currentProjectId || currentProjectId !== subdomainProjectId) {
+            setProjectIdCookie(response, req, subdomainProjectId);
+          }
+          return response;
+        } else {
+          // 유효하지 않은 서브도메인 → 프로젝트 선택 페이지로
+          console.log(`[Middleware] 루트 + 유효하지 않은 서브도메인: ${subdomain}`);
+          const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
+          redirectUrl.searchParams.set("error", "invalid_subdomain");
+          redirectUrl.searchParams.set("subdomain", subdomain);
+          return NextResponse.redirect(redirectUrl);
+        }
+      } else {
+        // 비인증 + 서브도메인 → 메인 도메인 로그인으로 리다이렉트
+        console.log(`[Middleware] 루트 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+      }
+    } else {
+      // 서브도메인이 없는 경우 (메인 도메인)
+      if (hasAuthCookie) {
+        // 인증됨 + 메인 도메인 → 프로젝트 선택으로 리다이렉트
+        console.log(`[Middleware] 루트 + 메인도메인 + 인증됨 → /projects로 리다이렉트`);
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/projects`));
+      } else {
+        // 비인증 + 메인 도메인 → 로그인으로 리다이렉트
+        console.log(`[Middleware] 루트 + 메인도메인 + 비인증 → /login으로 리다이렉트`);
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+      }
+    }
+  }
 
   // ============================================
   // 1. 비회원 경로 처리 (/login, /signup, /forgot-password, /auth/callback)
@@ -327,6 +370,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    // 루트 경로 (서브도메인 처리용)
+    '/',
     // 보호된 경로 (인증 + 프로젝트 필수)
     '/dashboard/:path*',
     '/consult/:path*',
