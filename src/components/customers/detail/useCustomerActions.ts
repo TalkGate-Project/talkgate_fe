@@ -34,7 +34,7 @@ type CustomerActions = {
   removePayment: (id: number) => Promise<void>;
   addSchedule: (dateIso: string, desc: string, colorCode: string) => Promise<void>;
   removeSchedule: (id: number) => Promise<void>;
-  addNote: (categoryId: number | undefined, note: string) => Promise<void>;
+  addNote: (categoryId: number | null, note: string) => Promise<void>;
   removeNote: (id: number) => Promise<void>;
   unlinkConversation: () => Promise<void>;
 };
@@ -263,12 +263,12 @@ export function useCustomerActions({
   // =========================================================================
 
   const addNote = useCallback(
-    async (categoryId: number | undefined, note: string) => {
+    async (categoryId: number | null, note: string) => {
       if (!detail) return;
 
       await CustomersService.addNote({
         customerId: detail.id,
-        categoryId: categoryId || 0,
+        categoryId,
         note,
         projectId: getProjectId(),
       });
@@ -280,7 +280,7 @@ export function useCustomerActions({
               notes: [
                 {
                   id: Math.random(),
-                  categoryId: categoryId || 0,
+                  categoryId,
                   note,
                   createdAt: new Date().toISOString(),
                 },

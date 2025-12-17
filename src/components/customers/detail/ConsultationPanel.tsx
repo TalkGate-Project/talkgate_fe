@@ -12,7 +12,7 @@ type Props = {
   conversation: CustomerDetail["conversation"];
   notes: CustomerDetail["notes"];
   categories: { id: number; name: string; color?: string }[];
-  onAddNote: (categoryId: number | undefined, note: string) => void;
+  onAddNote: (categoryId: number | null, note: string) => void;
   onRemoveNote: (id: number) => void;
   customerId: number;
   onUnlinkConversation?: () => void;
@@ -47,7 +47,7 @@ export default function ConsultationPanel({
 
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
-    const catId = typeof noteCategoryId === "number" ? noteCategoryId : undefined;
+    const catId = typeof noteCategoryId === "number" ? noteCategoryId : null;
     onAddNote(catId, noteInput.trim());
     setNoteInput("");
   };
@@ -199,6 +199,7 @@ export default function ConsultationPanel({
             }
             className="w-[106px] h-[34px] rounded-[5px] text-body-3"
           >
+            <option value="">일반</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -224,9 +225,9 @@ export default function ConsultationPanel({
           className="flex-1 min-h-0 space-y-3 overflow-auto border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] p-5 bg-card dark:bg-neutral-10"
         >
           {notes?.map((n) => {
-            const category = categories.find((c) => c.id === n.categoryId);
-            const categoryName = category?.name || "알 수 없음";
-            const badgeStyle = getBadgeStyle(categoryName, n.categoryId || 0);
+            const category = n.categoryId !== null ? categories.find((c) => c.id === n.categoryId) : null;
+            const categoryName = n.categoryId === null ? "일반" : (category?.name || "알 수 없음");
+            const badgeStyle = getBadgeStyle(categoryName, n.categoryId ?? 0);
 
             return (
               <div
