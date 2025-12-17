@@ -252,7 +252,7 @@ function CustomersPage() {
         />
         <CustomersPagination
           total={total}
-          selectedCount={selectedIds.length}
+          selectedCount={selectionMode === "all" ? total : selectedIds.length}
           page={page}
           totalPages={totalPages}
           limit={limit}
