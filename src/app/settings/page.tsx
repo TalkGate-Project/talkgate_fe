@@ -10,7 +10,7 @@ export default function SettingsPage() {
 
   return (
     <main className="bg-background pt-9 pb-12">
-      <div className="container mx-auto max-w-[1324px] px-4">
+      <div className="container mx-auto max-w-[1324px]">
         <Suspense fallback={
           <div className="flex gap-6">
             <div className="w-[280px] bg-card rounded-[14px] shadow-sm p-6">

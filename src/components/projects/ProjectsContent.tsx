@@ -64,7 +64,7 @@ export default function ProjectsContent() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="max-w-[1428px] mx-auto pt-[90px] pb-24">
+      <div className="max-w-[1422px] mx-auto pt-[90px] pb-24 ">
         <h1 className="text-[32px] leading-[38px] font-bold text-foreground text-center mb-6">
           프로젝트 선택
         </h1>
