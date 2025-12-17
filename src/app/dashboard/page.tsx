@@ -13,7 +13,7 @@ import StatsSection from "@/components/stats/StatsSection";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { SummaryResponse } from "@/types/statistics";
-import { useMe } from "@/hooks/useMe";
+import { useMyMember } from "@/hooks/useMyMember";
 import RecentCustomersIcon from "@/components/common/icons/RecentCustomersIcon";
 import TotalCustomersIcon from "@/components/common/icons/TotalCustomersIcon";
 import PaymentRateIcon from "@/components/common/icons/PaymentRateIcon";
@@ -62,7 +62,7 @@ function DashboardContent() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
-  const { user } = useMe();
+  const { member } = useMyMember();
 
   useEffect(() => {
     document.title = "TalkGate";
@@ -117,7 +117,7 @@ function DashboardContent() {
     <main className="min-h-[calc(100vh-54px)] bg-background text-foreground">
       <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-6">
         <GreetingBanner
-          userName={user?.name ?? user?.email ?? null}
+          userName={member?.name ?? member?.email ?? null}
           todayQuote={summary?.todayQuote ?? null}
           loading={bannerLoading}
         />
