@@ -5,8 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, Cell } from "recharts";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
-import { useTeams } from "@/hooks/useMembersTree";
 import { StatisticsService } from "@/services/statistics";
+import { MembersService } from "@/services/members";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
 
@@ -22,7 +22,7 @@ export default function AssignBarChart() {
   const missingProject = projectReady && !projectId;
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: teamsData } = useTeams(projectId);
+  const [isLoadingLeader, setIsLoadingLeader] = useState(false);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerAssignmentByTeamResponse>({
     queryKey: ["stats", "assignment", "team-chart", projectId],
@@ -35,18 +35,6 @@ export default function AssignBarChart() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const teamLeaderMap = useMemo(() => {
-    const map = new Map<string, number>();
-    if (teamsData) {
-      teamsData.forEach((team) => {
-        if (team.name && team.leaderMemberId) {
-          map.set(team.name, team.leaderMemberId);
-        }
-      });
-    }
-    return map;
-  }, [teamsData]);
-
   const chartData = useMemo(() => {
     const items = data?.data.data === null ? [] : (data?.data.data ?? []);
     return items.map((item, index) => ({
@@ -57,11 +45,21 @@ export default function AssignBarChart() {
     }));
   }, [data]);
 
-  const handleBarClick = (teamName: string) => {
-    const leaderMemberId = teamLeaderMap.get(teamName);
-    if (leaderMemberId) {
-      setSelectedMemberId(leaderMemberId);
-      setIsModalOpen(true);
+  const handleBarClick = async (teamId: number | null) => {
+    if (!teamId || isLoadingLeader) return;
+    
+    try {
+      setIsLoadingLeader(true);
+      const response = await MembersService.getTeamLeaderMemberDetail(teamId);
+      const leaderMemberId = response.data?.data?.id;
+      if (leaderMemberId) {
+        setSelectedMemberId(leaderMemberId);
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch team leader:", error);
+    } finally {
+      setIsLoadingLeader(false);
     }
   };
 
@@ -129,8 +127,9 @@ export default function AssignBarChart() {
             tickLine={false}
             tickMargin={30}
             tick={(props: any) => {
-              const { x, y, payload } = props;
+              const { x, y, payload, index } = props;
               const teamName = payload.value;
+              const teamId = chartData[index]?.teamId ?? null;
               return (
                 <g transform={`translate(${x},${y})`}>
                   <text
@@ -142,8 +141,8 @@ export default function AssignBarChart() {
                     fontSize={12}
                     fontFamily="var(--font-montserrat)"
                     fontWeight={500}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => handleBarClick(teamName)}
+                    style={{ cursor: teamId ? "pointer" : "default" }}
+                    onClick={() => handleBarClick(teamId)}
                   >
                     {teamName}
                   </text>
@@ -157,8 +156,8 @@ export default function AssignBarChart() {
             radius={[8, 8, 0, 0]} 
             barSize={42}
             onClick={(data: any) => {
-              if (data && data.name) {
-                handleBarClick(data.name);
+              if (data && data.teamId) {
+                handleBarClick(data.teamId);
               }
             }}
             style={{ cursor: "pointer" }}
@@ -175,7 +174,7 @@ export default function AssignBarChart() {
                 if (!payload || value === undefined) return null;
                 const numValue = typeof value === 'number' ? value : Number(value);
                 const formattedValue = `${NUMBER_FORMATTER.format(numValue)}건`;
-                const teamName = payload.name;
+                const teamId = payload.teamId ?? null;
                 
                 return (
                   <g>
@@ -187,8 +186,8 @@ export default function AssignBarChart() {
                       fontWeight="500"
                       fontFamily="var(--font-montserrat)"
                       textAnchor="middle"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleBarClick(teamName)}
+                      style={{ cursor: teamId ? "pointer" : "default" }}
+                      onClick={() => handleBarClick(teamId)}
                     >
                       {formattedValue}
                     </text>

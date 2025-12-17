@@ -9,6 +9,8 @@ interface EmojiPickerProps {
   position?: { x: number; y: number };
   mode?: "compact" | "full";
   onToggleMode?: (mode: "compact" | "full") => void;
+  /** 이모지 버튼 ref - 외부 클릭 시 버튼 클릭은 무시하기 위해 사용 */
+  triggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 // 기본 자주 사용되는 이모지들 (fallback)
@@ -559,6 +561,7 @@ export default function EmojiPicker({
   position,
   mode = "full",
   onToggleMode,
+  triggerRef,
 }: EmojiPickerProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<keyof typeof emojiCategories>("smileys");
@@ -579,12 +582,16 @@ export default function EmojiPicker({
   // 외부 클릭 시 닫기
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        pickerRef.current &&
-        !pickerRef.current.contains(event.target as Node)
-      ) {
-        onClose();
+      const target = event.target as Node;
+      // 피커 내부 클릭은 무시
+      if (pickerRef.current?.contains(target)) {
+        return;
       }
+      // 트리거 버튼 클릭은 무시 (버튼 핸들러에서 토글 처리)
+      if (triggerRef?.current?.contains(target)) {
+        return;
+      }
+      onClose();
     }
 
     if (isOpen) {
@@ -592,7 +599,7 @@ export default function EmojiPicker({
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, triggerRef]);
 
   // Ensure default recent emojis persist for first-time users or invalid storage
   useEffect(() => {
@@ -643,7 +650,7 @@ export default function EmojiPicker({
     return (
       <div
         ref={pickerRef}
-        className="fixed z-50 bg-white border border-gray-200 rounded-full shadow-md px-2 py-1"
+        className="fixed z-50 bg-white dark:bg-neutral-20 border border-gray-200 dark:border-neutral-30 rounded-full shadow-md px-2 py-1"
         style={{
           left: position?.x || 0,
           top: position?.y || 0,
@@ -655,14 +662,14 @@ export default function EmojiPicker({
             <button
               key={idx}
               onClick={() => handleEmojiClick(emoji)}
-              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-lg"
             >
               {emoji}
             </button>
           ))}
           <button
             onClick={() => onToggleMode?.("full")}
-            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-gray-500"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
             aria-label="expand-emoji"
             title="더보기"
           >
@@ -679,7 +686,7 @@ export default function EmojiPicker({
                 width="25"
                 height="25"
                 rx="12.5"
-                fill="white"
+                className="fill-white dark:fill-neutral-20"
               />
               <rect
                 x="0.5"
@@ -687,11 +694,11 @@ export default function EmojiPicker({
                 width="25"
                 height="25"
                 rx="12.5"
-                stroke="#E2E2E2"
+                className="stroke-[#E2E2E2] dark:stroke-neutral-30"
               />
               <path
                 d="M17.6667 11L13 15.6667L8.33337 11"
-                stroke="#B0B0B0"
+                className="stroke-[#B0B0B0] dark:stroke-neutral-60"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -707,7 +714,7 @@ export default function EmojiPicker({
   return (
     <div
       ref={pickerRef}
-      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg"
+      className="fixed z-50 bg-white dark:bg-neutral-20 border border-gray-200 dark:border-neutral-30 rounded-lg shadow-lg"
       style={{
         width: "216px",
         height: "282px",
@@ -717,20 +724,20 @@ export default function EmojiPicker({
       }}
     >
       {/* 상단 자주 사용되는 이모지 */}
-      <div className="p-2 border-b border-gray-100">
+      <div className="p-2 border-b border-gray-100 dark:border-neutral-30">
         <div className="flex gap-1">
           {recentTop5.map((emoji, index) => (
             <button
               key={index}
               onClick={() => handleEmojiClick(emoji)}
-              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-lg"
             >
               {emoji}
             </button>
           ))}
           <button
             onClick={() => onToggleMode?.("compact")}
-            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-gray-500"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
             aria-label="collapse-emoji"
             title="접기"
           >
@@ -748,7 +755,7 @@ export default function EmojiPicker({
                 height="25"
                 rx="12.5"
                 transform="matrix(1 0 0 -1 1 26)"
-                fill="white"
+                className="fill-white dark:fill-neutral-20"
               />
               <rect
                 x="-0.5"
@@ -757,11 +764,11 @@ export default function EmojiPicker({
                 height="25"
                 rx="12.5"
                 transform="matrix(1 0 0 -1 1 26)"
-                stroke="#E2E2E2"
+                className="stroke-[#E2E2E2] dark:stroke-neutral-30"
               />
               <path
                 d="M17.6666 15L12.9999 10.3333L8.33325 15"
-                stroke="#B0B0B0"
+                className="stroke-[#B0B0B0] dark:stroke-neutral-60"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -778,7 +785,7 @@ export default function EmojiPicker({
             <button
               key={index}
               onClick={() => handleEmojiClick(emoji)}
-              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-lg"
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-lg"
             >
               {emoji}
             </button>
