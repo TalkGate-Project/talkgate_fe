@@ -1,3 +1,5 @@
+"use client";
+
 type DoneStepProps = {
   onGoLogin: () => void;
 };

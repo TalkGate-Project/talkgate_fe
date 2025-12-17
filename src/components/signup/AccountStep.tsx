@@ -1,21 +1,29 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { SignupService } from "@/services/signup";
 import Checkbox from "@/components/common/Checkbox";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
+import type { SignupTokens } from "@/types/signup";
 
 type AccountStepProps = {
-  onSuccess: (params: { email: string; password: string }) => void;
+  onSuccess: (params: { email: string; password: string; tokens?: SignupTokens }) => void;
   invitationToken?: string;
+  inviteEmail?: string; // 초대 플로우에서 이메일 고정
 };
 
-export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
-  const [email, setEmail] = useState("");
+export function AccountStep({ onSuccess, invitationToken, inviteEmail }: AccountStepProps) {
+  // 초대 플로우 여부
+  const isInviteFlow = !!invitationToken && !!inviteEmail;
+  
+  const [email, setEmail] = useState(inviteEmail || "");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [invalid, setInvalid] = useState(false);
-  const [emailChecked, setEmailChecked] = useState(false);
-  const [verifiedEmail, setVerifiedEmail] = useState("");
+  // 초대 플로우에서는 이메일 중복 확인 스킵
+  const [emailChecked, setEmailChecked] = useState(isInviteFlow);
+  const [verifiedEmail, setVerifiedEmail] = useState(inviteEmail || "");
   const [emailDuplicate, setEmailDuplicate] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -24,6 +32,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [pwdTouched, setPwdTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const emailValid = useMemo(() => /.+@.+\..+/.test(email), [email]);
   const passwordValid = useMemo(() => password.length >= 8, [password]);
@@ -53,7 +62,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
     // 계정 생성 단계 폼 영역 시작
     <form
       className="mt-8 w-full"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         setInvalid(false);
         if (
@@ -67,17 +76,40 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
           setInvalid(true);
           return;
         }
-        SignupService.register({
-          email,
-          password,
-          agreeTerms,
-          agreePrivacy,
-          invitationToken,
-        }).then((res) => {
+        
+        setIsSubmitting(true);
+        try {
+          const res = await SignupService.register({
+            email,
+            password,
+            agreeTerms,
+            agreePrivacy,
+            invitationToken,
+          });
+          
           if (res.success) {
-            onSuccess({ email, password });
+            // 초대 플로우인 경우: 백엔드에서 토큰을 반환할 수 있음
+            // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
+            if (isInviteFlow && res.tokens) {
+              console.log("[AccountStep] 🎉 초대 플로우 - 토큰 반환됨, 이메일 인증 스킵");
+              onSuccess({ email, password, tokens: res.tokens });
+            } else if (isInviteFlow) {
+              // 토큰이 없어도 초대 플로우면 임시 토큰으로 진행 (백엔드 구현에 따라)
+              console.log("[AccountStep] 🎉 초대 플로우 - 회원가입 성공");
+              // 백엔드가 토큰을 반환하지 않는 경우, 로그인 후 진행해야 함
+              // 이 경우 프로필 스텝 대신 바로 /invite/accept로 리다이렉트
+              onSuccess({ email, password });
+            } else {
+              // 일반 플로우: 이메일 인증 단계로
+              onSuccess({ email, password });
+            }
           }
-        });
+        } catch (err) {
+          console.error("[AccountStep] 회원가입 실패:", err);
+          setInvalid(true);
+        } finally {
+          setIsSubmitting(false);
+        }
       }}
     >
       {/* 안내 문구 영역 시작 */}
@@ -108,6 +140,9 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
             name="email"
             value={email}
             onChange={(e) => {
+              // 초대 플로우에서는 이메일 변경 불가
+              if (isInviteFlow) return;
+              
               setEmail(e.target.value);
               setEmailChecked(false);
               setEmailDuplicate(false);
@@ -121,38 +156,45 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
             className={`flex-1 min-w-0 h-[34px] rounded-[5px] border bg-transparent pl-3 text-white ${
               (invalid && !emailValid) || emailDuplicate
                 ? "border-[#FF5A5A] placeholder-[#FF5A5A]"
+                : isInviteFlow
+                ? "border-[#00E272]/50 bg-[#1a3a2a]/30"
                 : "border-[#555555]"
             }`}
             autoComplete="email"
+            readOnly={isInviteFlow}
+            disabled={isInviteFlow}
           />
-          <button
-            type="button"
-            className={`min-w-[72px] h-[34px] rounded-[5px] ${
-              email === verifiedEmail && emailChecked
-                ? "bg-[#2F2F2F] text-[#555555]"
-                : "bg-[#2F2F2F] text-[#D0D0D0]"
-            } text-[13px]`}
-            disabled={email === verifiedEmail && emailChecked}
-            onClick={() => {
-              if (!emailValid) {
-                setInvalid(true);
-                return;
-              }
-              SignupService.checkEmailAvailable({ email }).then((res) => {
-                if (res.available) {
-                  setEmailChecked(true);
-                  setVerifiedEmail(email);
-                  setEmailDuplicate(false);
-                } else {
-                  setEmailChecked(false);
-                  setVerifiedEmail("");
-                  setEmailDuplicate(true);
+          {/* 초대 플로우에서는 중복확인 버튼 숨김 */}
+          {!isInviteFlow && (
+            <button
+              type="button"
+              className={`cursor-pointer min-w-[72px] h-[34px] rounded-[5px] ${
+                email === verifiedEmail && emailChecked
+                  ? "bg-[#2F2F2F] text-[#555555]"
+                  : "bg-[#2F2F2F] text-[#D0D0D0]"
+              } text-[13px]`}
+              disabled={email === verifiedEmail && emailChecked}
+              onClick={() => {
+                if (!emailValid) {
+                  setInvalid(true);
+                  return;
                 }
-              });
-            }}
-          >
-            중복확인
-          </button>
+                SignupService.checkEmailAvailable({ email }).then((res) => {
+                  if (res.available) {
+                    setEmailChecked(true);
+                    setVerifiedEmail(email);
+                    setEmailDuplicate(false);
+                  } else {
+                    setEmailChecked(false);
+                    setVerifiedEmail("");
+                    setEmailDuplicate(true);
+                  }
+                });
+              }}
+            >
+              중복확인
+            </button>
+          )}
         </div>
       </div>
       {emailDuplicate && (
@@ -160,9 +202,16 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
           이미 사용 중인 이메일입니다.
         </div>
       )}
-      {emailChecked && !emailDuplicate && email === verifiedEmail && (
+      {/* 일반 플로우에서만 이메일 확인 메시지 표시 */}
+      {!isInviteFlow && emailChecked && !emailDuplicate && email === verifiedEmail && (
         <div className="mt-3 mb-3 text-[14px] text-[#00E272]">
           사용 가능한 이메일입니다.
+        </div>
+      )}
+      {/* 초대 플로우에서는 고정 이메일 안내 */}
+      {isInviteFlow && (
+        <div className="mt-3 mb-3 text-[14px] text-[#00E272]">
+          초대받은 이메일로 가입됩니다.
         </div>
       )}
       {/* 이메일 입력 영역 끝 */}
@@ -341,6 +390,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
         type="submit"
         className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={
+          isSubmitting ||
           !emailChecked ||
           !emailValid ||
           !passwordStrong ||
@@ -349,7 +399,7 @@ export function AccountStep({ onSuccess, invitationToken }: AccountStepProps) {
           !agreePrivacy
         }
       >
-        다음
+        {isSubmitting ? "처리 중..." : "다음"}
       </button>
       {/* 다음 버튼 영역 끝 */}
     </form>
