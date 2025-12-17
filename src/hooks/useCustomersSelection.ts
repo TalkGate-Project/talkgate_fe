@@ -14,12 +14,16 @@ export function useCustomersSelection() {
   const toggleSelectAll = (customers: CustomerListItem[], mode: SelectionMode) => {
     if (mode === "page") {
       // 현재 페이지 선택/해제
-      if (allSelectedOnPage(customers)) {
-        setSelectedIds((prev) => prev.filter((id) => !customers.some((c) => c.id === id)));
+      const currentPageIds = customers.map((c) => c.id);
+      const isCurrentPageSelected = selectionMode === "page" && allSelectedOnPage(customers);
+      
+      if (isCurrentPageSelected) {
+        // 현재 페이지가 이미 선택된 상태면 해제
+        setSelectedIds([]);
         setSelectionMode(null);
       } else {
-        const add = customers.map((c) => c.id).filter((id) => !selectedIds.includes(id));
-        setSelectedIds((prev) => [...prev, ...add]);
+        // 이전 선택 초기화 후 현재 페이지만 선택
+        setSelectedIds(currentPageIds);
         setSelectionMode("page");
       }
     } else {
@@ -29,10 +33,9 @@ export function useCustomersSelection() {
         setSelectionMode(null);
         setSelectedIds([]);
       } else {
-        // 전체 목록 선택
+        // 이전 선택 초기화 후 전체 목록 선택
+        setSelectedIds([]);
         setSelectionMode("all");
-        // 현재 페이지의 ID는 유지하되, 모드만 설정
-        // 실제 선택은 API 호출 시 필터로 처리
       }
     }
   };
