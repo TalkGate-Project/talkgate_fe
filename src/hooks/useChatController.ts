@@ -275,12 +275,20 @@ export function useChatController({ projectId, status = "all", platform }: Param
       // Optimistic UI 업데이트: 임시 메시지를 실제 메시지로 교체
       if ((payload as any).tempMessageId) {
         const tempId = (payload as any).tempMessageId as string;
+        const serverMessage = (payload as any).message;
         setMessages((prev) =>
-          prev.map((m: any) =>
-            m.tempMessageId === tempId
-              ? { ...m, id: payload.messageId, status: "done", sentAt: new Date().toISOString() }
-              : m
-          )
+          prev.map((m: any) => {
+            if (m.tempMessageId !== tempId) return m;
+            // 서버에서 받은 메시지 데이터가 있으면 전체 교체 (thumbnailUrl, fileUrl 등 포함)
+            if (serverMessage) {
+              return {
+                ...serverMessage,
+                tempMessageId: undefined, // 임시 ID 제거
+              };
+            }
+            // 서버 메시지가 없으면 기존 방식 (텍스트 메시지 등)
+            return { ...m, id: payload.messageId, status: "done", sentAt: new Date().toISOString() };
+          })
         );
         tempIdSetRef.current.delete(tempId);
       }

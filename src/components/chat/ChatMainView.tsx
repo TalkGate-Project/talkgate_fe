@@ -297,23 +297,54 @@ export default function ChatMainView({
                   )}
 
                   {/* 이미지 메시지 */}
-                  {m.type === "image" && m.fileUrl && (
+                  {m.type === "image" && (
                     <div className="relative">
-                      <a
-                        href={m.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
-                      >
-                        <Image
-                          src={m.thumbnailUrl || m.fileUrl}
-                          alt={m.fileName || "이미지"}
-                          width={400}
-                          height={400}
-                          className="max-w-full h-auto object-contain cursor-pointer"
-                          unoptimized
-                        />
-                      </a>
+                      {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
+                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                        <div className="w-[200px] h-[200px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
+                          <div className="text-center">
+                            <svg
+                              className="animate-spin h-8 w-8 text-primary-60 mx-auto mb-2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <div className="text-[12px] text-neutral-60">
+                              {m.fileName || "이미지 전송 중..."}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <a
+                          href={m.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <Image
+                            src={m.thumbnailUrl || m.fileUrl}
+                            alt={m.fileName || "이미지"}
+                            width={400}
+                            height={400}
+                            className="max-w-full h-auto object-contain cursor-pointer"
+                            unoptimized
+                          />
+                        </a>
+                      )}
                       {m.content && (
                         <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -323,16 +354,47 @@ export default function ChatMainView({
                   )}
 
                   {/* 비디오 메시지 */}
-                  {m.type === "video" && m.fileUrl && (
+                  {m.type === "video" && (
                     <div className="relative">
-                      <video
-                        src={m.fileUrl}
-                        controls
-                        className="max-w-full max-h-[400px] object-contain"
-                        preload="metadata"
-                      >
-                        비디오를 재생할 수 없습니다.
-                      </video>
+                      {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
+                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                        <div className="w-[200px] h-[150px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
+                          <div className="text-center">
+                            <svg
+                              className="animate-spin h-8 w-8 text-primary-60 mx-auto mb-2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <div className="text-[12px] text-neutral-60">
+                              {m.fileName || "비디오 전송 중..."}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <video
+                          src={m.fileUrl}
+                          controls
+                          className="max-w-full max-h-[400px] object-contain"
+                          preload="metadata"
+                        >
+                          비디오를 재생할 수 없습니다.
+                        </video>
+                      )}
                       {m.content && (
                         <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -342,20 +404,53 @@ export default function ChatMainView({
                   )}
 
                   {/* 오디오 메시지 */}
-                  {m.type === "audio" && m.fileUrl && (
+                  {m.type === "audio" && (
                     <div className="space-y-2">
-                      <audio
-                        src={m.fileUrl}
-                        controls
-                        className="w-full"
-                        preload="metadata"
-                      >
-                        오디오를 재생할 수 없습니다.
-                      </audio>
-                      {m.fileName && (
-                        <div className="text-[12px] leading-[20px] break-words">
-                          {m.fileName}
+                      {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
+                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                        <div className="w-[200px] h-[60px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="animate-spin h-5 w-5 text-primary-60"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <div className="text-[12px] text-neutral-60">
+                              {m.fileName || "오디오 전송 중..."}
+                            </div>
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <audio
+                            src={m.fileUrl}
+                            controls
+                            className="w-full"
+                            preload="metadata"
+                          >
+                            오디오를 재생할 수 없습니다.
+                          </audio>
+                          {m.fileName && (
+                            <div className="text-[12px] leading-[20px] break-words">
+                              {m.fileName}
+                            </div>
+                          )}
+                        </>
                       )}
                       {m.content && (
                         <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
@@ -366,27 +461,91 @@ export default function ChatMainView({
                   )}
 
                   {/* 파일 메시지 */}
-                  {m.type === "file" && m.fileUrl && (
+                  {m.type === "file" && (
                     <div className="space-y-2">
-                      {(() => {
-                        const isPdf =
-                          (m.fileType && /pdf/i.test(m.fileType)) ||
-                          (m.fileName && /\.pdf$/i.test(m.fileName)) ||
-                          /\.pdf$/i.test(m.fileUrl);
-                        if (isPdf) {
+                      {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
+                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-[8px] bg-neutral-20 dark:bg-neutral-80 flex items-center justify-center flex-shrink-0">
+                            <svg
+                              className="animate-spin h-5 w-5 text-primary-60"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[12px] font-medium leading-[20px] break-words">
+                              {m.fileName || "파일 전송 중..."}
+                            </div>
+                            {m.fileSize && (
+                              <div className="text-[12px] opacity-70">
+                                {(m.fileSize / 1024 / 1024).toFixed(2)} MB
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        (() => {
+                          const isPdf =
+                            (m.fileType && /pdf/i.test(m.fileType)) ||
+                            (m.fileName && /\.pdf$/i.test(m.fileName)) ||
+                            /\.pdf$/i.test(m.fileUrl);
+                          if (isPdf) {
+                            return (
+                              <button
+                                onClick={() => downloadFile(m.fileUrl!, m.fileName || "document.pdf")}
+                                className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+                              >
+                                <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
+                                  <svg
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M8 13h8M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[12px] font-medium leading-[20px] break-words">
+                                    {m.fileName || "PDF 파일"}
+                                  </div>
+                                  {m.fileSize && (
+                                    <div className="text-[12px] opacity-70">
+                                      {(m.fileSize / 1024 / 1024).toFixed(2)} MB
+                                    </div>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          }
                           return (
-                            <button
-                              onClick={() => downloadFile(m.fileUrl!, m.fileName || "document.pdf")}
-                              className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+                            <a
+                              href={m.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity"
                             >
                               <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
-                                <svg
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   <path d="M8 13h8M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -394,42 +553,16 @@ export default function ChatMainView({
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="text-[12px] font-medium leading-[20px] break-words">
-                                  {m.fileName || "PDF 파일"}
+                                  {m.fileName || "파일"}
                                 </div>
                                 {m.fileSize && (
-                                  <div className="text-[12px] opacity-70">
-                                    {(m.fileSize / 1024 / 1024).toFixed(2)} MB
-                                  </div>
+                                  <div className="text-[12px] opacity-70">{(m.fileSize / 1024 / 1024).toFixed(2)} MB</div>
                                 )}
                               </div>
-                            </button>
+                            </a>
                           );
-                        }
-                        return (
-                          <a
-                            href={m.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="cursor-pointer flex items-center gap-3 hover:opacity-80 transition-opacity"
-                          >
-                            <div className="w-10 h-10 rounded-[8px] bg-neutral-20 flex items-center justify-center flex-shrink-0">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M8 13h8M8 17h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[12px] font-medium leading-[20px] break-words">
-                                {m.fileName || "파일"}
-                              </div>
-                              {m.fileSize && (
-                                <div className="text-[12px] opacity-70">{(m.fileSize / 1024 / 1024).toFixed(2)} MB</div>
-                              )}
-                            </div>
-                          </a>
-                        );
-                      })()}
+                        })()
+                      )}
                       {m.content && (
                         <div className="text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -526,7 +659,7 @@ export default function ChatMainView({
 
                   {/* 타임스탬프 */}
                   <div
-                    className={`mt-2 text-[12px] text-[#B0B0B0] ${
+                    className={`mt-2 text-[12px] text-[#B0B0B0] ${m.direction === "outgoing" ? "text-right" : "text-left"} ${
                       m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""
                     }`}
                   >
