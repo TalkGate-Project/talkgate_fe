@@ -15,6 +15,11 @@ import type {
 import { ConversationsService } from "@/services/conversations";
 import { AssetsService } from "@/services/assets";
 import { useBannerNotification } from "./useBannerNotification";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+
+// 파일 용량 제한 (바이트 단위)
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 type Params = {
   projectId: number;
@@ -571,9 +576,29 @@ export function useChatController({ projectId, status = "all", platform }: Param
         showBanner("error", "소켓 연결 상태를 확인해주세요.");
         return;
       }
+
+      const messageType = detectMessageType(file);
+      
+      // 파일 용량 제한 체크
+      const isImage = messageType === "image";
+      const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
+      const maxSizeMB = isImage ? 8 : 20;
+      
+      if (file.size > maxSize) {
+        const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
+        showErrorModal({
+          type: "info",
+          title: "파일 용량 초과",
+          headline: `${isImage ? "이미지" : "파일"} 용량이 너무 큽니다.`,
+          description: `최대 ${maxSizeMB}MB까지 업로드 가능합니다.\n현재 파일 크기: ${fileSizeMB}MB`,
+          confirmText: "확인",
+          hideCancel: true,
+        });
+        return;
+      }
+
       const tempMessageId = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       const now = new Date().toISOString();
-      const messageType = detectMessageType(file);
       setAttachmentUploading(true);
 
       // Optimistic UI: 즉시 메시지 추가 (앞에 추가하여 최신 메시지가 위로 - 추후 렌더링 시 reverse됨)
