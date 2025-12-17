@@ -59,4 +59,12 @@ export const MembersService = {
   projectTree() {
     return apiClient.get<MemberTreeResponse>(`/v1/members-tree/tree`);
   },
+
+  /**
+   * 팀 ID로 팀 리더의 멤버 상세 정보 조회
+   * GET /v1/members/by-team/{teamId}
+   */
+  getTeamLeaderMemberDetail(teamId: number) {
+    return apiClient.get<MemberDetailResponse>(`/v1/members/by-team/${teamId}`);
+  },
 };
