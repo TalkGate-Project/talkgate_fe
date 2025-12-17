@@ -334,6 +334,7 @@ export default function ChatView({ projectId }: Props) {
         emojiPickerOpen={emojiPickerOpen}
         loadOlderMessages={loadOlderMessages}
         isMessagesLoading={isMessagesLoading}
+        onDropFile={sendAttachment}
       />
 
       {/* 1440px 이상: 기존 우측 사이드바 사용 */}
