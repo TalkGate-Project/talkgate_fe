@@ -15,6 +15,13 @@ import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
+function getBodyZoom(): number {
+  if (typeof document === "undefined") return 1;
+  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 type Props = { projectId: number };
 
 export default function ChatView({ projectId }: Props) {
@@ -195,9 +202,11 @@ export default function ChatView({ projectId }: Props) {
     }
     if (emojiButtonRef.current) {
       const rect = emojiButtonRef.current.getBoundingClientRect();
+      // body zoom(컴팩트 0.8 / 기본 1) 기준으로 위치 보정
+      const zoom = getBodyZoom();
       setEmojiPickerPosition({
-        x: rect.left - 108,
-        y: rect.top,
+        x: (rect.left - 150) / zoom,
+        y: rect.top / zoom,
       });
     }
     setEmojiPickerMode("compact");
@@ -446,6 +455,7 @@ export default function ChatView({ projectId }: Props) {
         position={emojiPickerPosition}
         mode={emojiPickerMode}
         onToggleMode={(m) => setEmojiPickerMode(m)}
+        triggerRef={emojiButtonRef}
       />
 
       {/* 숨겨진 파일 입력 */}
