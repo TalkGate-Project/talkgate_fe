@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useLayoutEffect } from "react";
+import { useCallback, useRef, useLayoutEffect, useState, DragEvent } from "react";
 import { Conversation, ChatMessage } from "@/lib/realtime";
 import ChatInputBar from "./ChatInputBar";
 import EmptyUserIcon from "./icons/EmptyUserIcon";
@@ -32,6 +32,7 @@ type Props = {
   emojiPickerOpen: boolean;
   loadOlderMessages: () => void;
   isMessagesLoading: boolean;
+  onDropFile?: (file: File) => void;
 };
 
 export default function ChatMainView({
@@ -55,10 +56,15 @@ export default function ChatMainView({
   emojiPickerOpen,
   loadOlderMessages,
   isMessagesLoading,
+  onDropFile,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
   const prevMessagesLengthRef = useRef(0);
+  
+  // 드래그 앤 드롭 상태
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -72,6 +78,46 @@ export default function ChatMainView({
     
     return `${month}. ${day}. ${ampm} ${hour12}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
+
+  // 드래그 앤 드롭 이벤트 핸들러
+  const handleDragEnter = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+
+    if (!onDropFile || !activeConversation || !connected) return;
+
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      // 첫 번째 파일만 업로드 (여러 파일은 순차 처리도 가능하지만 현재는 단일 파일)
+      const file = files[0];
+      onDropFile(file);
+    }
+  }, [onDropFile, activeConversation, connected]);
 
   const downloadFile = useCallback(async (url: string, fileName?: string) => {
     try {
@@ -141,9 +187,48 @@ export default function ChatMainView({
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length, activeConversation, displayMessages]);
 
+  // 드래그 앤 드롭 가능 여부
+  const canDrop = Boolean(activeConversation && connected && onDropFile);
+
   return (
     <div className="max-w-[688px] flex justify-center h-full">
-      <div className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col">
+      <div 
+        className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col relative"
+        onDragEnter={canDrop ? handleDragEnter : undefined}
+        onDragLeave={canDrop ? handleDragLeave : undefined}
+        onDragOver={canDrop ? handleDragOver : undefined}
+        onDrop={canDrop ? handleDrop : undefined}
+      >
+        {/* 드래그 앤 드롭 오버레이 */}
+        {isDragging && canDrop && (
+          <div className="absolute inset-0 z-50 bg-primary-80/20 dark:bg-primary-80/30 backdrop-blur-[2px] rounded-[14px] border-2 border-dashed border-primary-80 flex items-center justify-center cursor-copy">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary-80 flex items-center justify-center">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="text-[18px] font-semibold text-primary-80">
+                파일을 여기에 놓으세요
+              </div>
+              <div className="text-[14px] text-neutral-60 mt-1">
+                이미지, 동영상, 문서 등을 업로드할 수 있습니다
+              </div>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="px-7 py-[15px] flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-4">
