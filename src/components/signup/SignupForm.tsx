@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { AccountStep } from "@/components/signup/AccountStep";
 import { VerifyStep } from "@/components/signup/VerifyStep";
@@ -10,10 +11,12 @@ import { DoneStep } from "@/components/signup/DoneStep";
 import type { SignupStep } from "@/components/signup/steps";
 import type { SignupTokens } from "@/types/signup";
 import { getPendingInviteInfo } from "@/lib/invite";
+import { setTokens } from "@/lib/token";
 
 export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<SignupStep>("account");
   const [accountEmail, setAccountEmail] = useState("");
   const [accountPassword, setAccountPassword] = useState("");
@@ -40,7 +43,16 @@ export function SignupForm() {
     window.scrollTo(0, 0);
   }, [step]);
 
-  const handleAccountSuccess = (params: {
+  // 토큰 저장 및 캐시 무효화 헬퍼
+  const saveTokensAndInvalidateCache = async (tokens: SignupTokens) => {
+    setTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    });
+    await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+  };
+
+  const handleAccountSuccess = async (params: {
     email: string;
     password: string;
     tokens?: SignupTokens; // 초대 플로우에서는 회원가입 시 바로 토큰 반환
@@ -48,17 +60,16 @@ export function SignupForm() {
     setAccountEmail(params.email);
     setAccountPassword(params.password);
     
-    // 초대 플로우인 경우 이메일 인증 스킵
-    // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
+    // 초대 플로우인 경우 이메일 인증 스킵 + 휴대폰 본인인증도 스킵
+    // 휴대폰 본인인증은 /invite/accept에서 한번만 받음 (중복 방지)
     if (isInviteFlow) {
       if (params.tokens) {
-        // 토큰이 반환된 경우 → 프로필 단계로
-        console.log("[SignupPage] 🎉 초대 플로우 - 토큰 있음, 프로필 단계로 이동");
-        setSignupTokens(params.tokens);
-        setStep("profile");
+        // 토큰 저장 후 바로 초대 수락 페이지로 이동
+        console.log("[SignupPage] 🎉 초대 플로우 - 토큰 저장 후 초대 수락 페이지로 바로 이동");
+        await saveTokensAndInvalidateCache(params.tokens);
+        window.location.href = "/invite/accept";
       } else {
         // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
-        // 회원가입은 완료되었으므로 로그인 페이지로 리다이렉트
         console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
         window.location.href = "/login";
       }
