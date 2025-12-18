@@ -269,9 +269,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
         showBannerRef.current("error", message);
         // Optimistic UI 업데이트 실패 처리
         if (payload?.tempMessageId) {
+          // 서버에서 받은 message 객체의 status 확인 (failed 또는 unsupported)
+          const serverMessage = (payload as any).message;
+          const messageStatus = serverMessage?.status === "unsupported" ? "unsupported" : "failed";
           setMessages((prev) =>
             prev.map((m: any) =>
-              m.tempMessageId === payload.tempMessageId ? { ...m, status: "failed" } : m
+              m.tempMessageId === payload.tempMessageId ? { ...m, status: messageStatus } : m
             )
           );
         }
