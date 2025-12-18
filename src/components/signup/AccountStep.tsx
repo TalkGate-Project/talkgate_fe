@@ -14,8 +14,8 @@ type AccountStepProps = {
 };
 
 export function AccountStep({ onSuccess, invitationToken, inviteEmail }: AccountStepProps) {
-  // 초대 플로우 여부
-  const isInviteFlow = !!invitationToken && !!inviteEmail;
+  // 초대 플로우 여부 - 토큰이 있으면 초대 플로우 (이메일이 없어도)
+  const isInviteFlow = !!invitationToken;
   
   const [email, setEmail] = useState(inviteEmail || "");
   const [password, setPassword] = useState("");

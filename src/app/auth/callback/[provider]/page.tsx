@@ -79,6 +79,16 @@ function OAuthCallbackPage() {
         // 콜백 도착 로깅
         markOAuthCallback(provider, !!code);
         
+        // 🔍 초대 정보 미리 확인 (디버깅용)
+        const earlyInviteCheck = getPendingInviteInfo();
+        console.log("[OAuth Callback] 🔍 초대 정보 사전 확인:", {
+          hasInviteInfo: !!earlyInviteCheck,
+          token: earlyInviteCheck?.token?.slice(0, 20) + "..." || "없음",
+          email: earlyInviteCheck?.email || "없음",
+          projectName: earlyInviteCheck?.projectName || "없음",
+          rawLocalStorage: typeof window !== 'undefined' ? window.localStorage.getItem('tg_invite_info') : 'SSR',
+        });
+        
         // 이전 플로우 상태 확인
         const prevState = getDebugState();
         debugLog("📥 콜백 페이지 로드", {
@@ -138,8 +148,15 @@ function OAuthCallbackPage() {
         // 초대 플로우 확인 - localStorage에 초대 정보가 있는지 확인
         const pendingInvite = getPendingInviteInfo();
         
-        if (pendingInvite?.token && pendingInvite?.email) {
-          // 초대 플로우: 사용자 이메일 확인 필요
+        debugLog("🎫 초대 정보 확인", { 
+          hasToken: !!pendingInvite?.token,
+          hasEmail: !!pendingInvite?.email,
+          token: pendingInvite?.token?.slice(0, 20) + "...",
+          email: pendingInvite?.email,
+        });
+        
+        // 초대 토큰이 있으면 초대 플로우로 처리
+        if (pendingInvite?.token) {
           debugLog("🎫 초대 플로우 감지 - 사용자 이메일 확인 시작");
           
           try {
@@ -147,13 +164,13 @@ function OAuthCallbackPage() {
             const meRes = await AuthService.me();
             const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
             const loggedInEmail = userData?.email?.toLowerCase();
-            const inviteEmail = pendingInvite.email.toLowerCase();
+            const inviteEmail = pendingInvite.email?.toLowerCase() || "";
             
-            debugLog("📧 이메일 비교", { loggedInEmail, inviteEmail });
+            debugLog("📧 이메일 비교", { loggedInEmail, inviteEmail, hasInviteEmail: !!inviteEmail });
             
-            if (loggedInEmail === inviteEmail) {
-              // 이메일 일치 → 초대 수락 페이지로 이동
-              debugLog("✅ 초대 이메일 일치 → 초대 수락 페이지로 이동");
+            // 초대 이메일이 없거나 일치하면 → 초대 수락 페이지로
+            if (!inviteEmail || loggedInEmail === inviteEmail) {
+              debugLog("✅ 초대 수락 페이지로 이동", { reason: !inviteEmail ? "초대 이메일 없음" : "이메일 일치" });
               if (mounted) {
                 window.location.href = "/invite/accept";
               }
@@ -178,8 +195,12 @@ function OAuthCallbackPage() {
               return;
             }
           } catch (meError) {
-            debugLog("⚠️ 사용자 정보 조회 실패", meError);
-            // 사용자 정보 조회 실패 시 일반 플로우로 진행
+            debugLog("⚠️ 사용자 정보 조회 실패 - 초대 수락 페이지로 이동 시도", meError);
+            // 사용자 정보 조회 실패해도 초대 토큰이 있으면 초대 수락 페이지로 이동
+            if (mounted) {
+              window.location.href = "/invite/accept";
+            }
+            return;
           }
         }
         
