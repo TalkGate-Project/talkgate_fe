@@ -283,6 +283,11 @@ export function LoginForm() {
             if (redirectUrl) {
               sessionStorage.setItem("tg_redirect_url", redirectUrl);
             }
+            // 초대 정보가 있으면 sessionStorage에도 백업 (OAuth 리다이렉트 후 복구용)
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
+            }
             initiateSocialLogin("kakao");
           }}
         >
@@ -296,6 +301,11 @@ export function LoginForm() {
             if (redirectUrl) {
               sessionStorage.setItem("tg_redirect_url", redirectUrl);
             }
+            // 초대 정보가 있으면 sessionStorage에도 백업
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
+            }
             initiateSocialLogin("naver");
           }}
         >
@@ -307,6 +317,11 @@ export function LoginForm() {
           onClick={() => {
             if (redirectUrl) {
               sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            // 초대 정보가 있으면 sessionStorage에도 백업
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
             initiateSocialLogin("google");
           }}
