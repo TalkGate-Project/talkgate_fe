@@ -38,16 +38,12 @@ export function EnvelopeAnimation({
 
   return (
     <div className="relative" style={{ perspective: "1200px" }}>
-      {/* 봉투 컨테이너 - 열릴 때 아래로 이동 */}
+      {/* 봉투 컨테이너 - 이미 열린 상태 (아래로 이동된 상태) */}
       <motion.div
         className="relative w-[622px] h-[370px] mx-auto mt-[120px]"
         style={{ clipPath: "inset(-500px -50px 0px -50px)" }}
-        animate={{
-          y: isOpen ? 80 : 0,
-        }}
-        transition={{
-          y: { delay: 0.5, duration: 0.8, ease: easeInOut },
-        }}
+        initial={{ y: 80 }}
+        animate={{ y: 80 }}
       >
         {/* 1. 봉투 바닥 (Back) - envelope-base.png */}
         <div
@@ -64,23 +60,15 @@ export function EnvelopeAnimation({
           />
         </div>
 
-        {/* 2. 뚜껑 - envelope-cover.png
-            180도 회전하면 역삼각형 → 삼각형으로 변환 */}
-        <motion.div
+        {/* 2. 뚜껑 - 이미 열린 상태 (180도 회전된 상태) */}
+        <div
           className="absolute top-0 left-0 w-full"
           style={{
             transformOrigin: "top center",
             height: "200px",
             clipPath: "polygon(0 0, 100% 0, 50% 100%)", // 역삼각형
-          }}
-          initial={{ rotateX: 0 }}
-          animate={{
-            rotateX: isOpen ? 180 : 0,
-            zIndex: isOpen ? 11 : 40, // 열리면 바닥 위로, 닫히면 가장 앞
-          }}
-          transition={{
-            rotateX: { duration: 1.0, ease: easeInOut },
-            zIndex: { delay: isOpen ? 0.5 : 0 },
+            transform: "rotateX(180deg)", // 이미 열린 상태
+            zIndex: 11, // 바닥 위
           }}
         >
           <Image
@@ -91,9 +79,9 @@ export function EnvelopeAnimation({
             width={672}
             height={252}
           />
-        </motion.div>
+        </div>
 
-        {/* 3. 카드 (초대장) - 피그마 스타일 적용 */}
+        {/* 3. 카드 (초대장) - 페이지 로드 시 자동으로 올라오는 애니메이션 */}
         <motion.div
           className="absolute left-0 right-0 mx-auto w-[572px]"
           style={{
@@ -101,13 +89,10 @@ export function EnvelopeAnimation({
             zIndex: 20, // outer(30)보다 뒤
           }}
           initial={{ y: 80, opacity: 0 }}
-          animate={{
-            y: isOpen ? -180 : 80,
-            opacity: isOpen ? 1 : 0,
-          }}
+          animate={{ y: -180, opacity: 1 }}
           transition={{
-            y: { delay: 0.7, duration: 1.0, ease: easeInOut },
-            opacity: { delay: 0.7, duration: 0.3 },
+            y: { delay: 0.3, duration: 0.8, ease: easeInOut },
+            opacity: { delay: 0.3, duration: 0.3 },
           }}
         >
           <div
