@@ -38,12 +38,15 @@ export function EnvelopeAnimation({
 
   return (
     <div className="relative" style={{ perspective: "1200px" }}>
-      {/* 봉투 컨테이너 - 이미 열린 상태 (아래로 이동된 상태) */}
+      {/* 봉투 컨테이너 - 전체가 함께 페이드인 */}
       <motion.div
         className="relative w-[622px] h-[370px] mx-auto mt-[120px]"
         style={{ clipPath: "inset(-500px -50px 0px -50px)" }}
-        initial={{ y: 80 }}
-        animate={{ y: 80 }}
+        initial={{ y: 80, opacity: 0 }}
+        animate={{ y: 80, opacity: 1 }}
+        transition={{
+          opacity: { delay: 0.1, duration: 0.6, ease: easeInOut },
+        }}
       >
         {/* 1. 봉투 바닥 (Back) - envelope-base.png */}
         <div
@@ -81,18 +84,13 @@ export function EnvelopeAnimation({
           />
         </div>
 
-        {/* 3. 카드 (초대장) - 페이지 로드 시 자동으로 올라오는 애니메이션 */}
-        <motion.div
+        {/* 3. 카드 (초대장) - 이미 최종 위치에 고정 */}
+        <div
           className="absolute left-0 right-0 mx-auto w-[572px]"
           style={{
             bottom: "10px",
             zIndex: 20, // outer(30)보다 뒤
-          }}
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: -180, opacity: 1 }}
-          transition={{
-            y: { delay: 0.3, duration: 0.8, ease: easeInOut },
-            opacity: { delay: 0.3, duration: 0.3 },
+            transform: "translateY(-180px)",
           }}
         >
           <div
@@ -181,7 +179,7 @@ export function EnvelopeAnimation({
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 4. 봉투 앞면 (V자 포켓) - envelope-outer.png 
             V자 위쪽 움푹 파인 부분은 투명 (흰색)

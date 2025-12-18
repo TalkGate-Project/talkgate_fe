@@ -14,15 +14,17 @@ type AccountStepProps = {
 };
 
 export function AccountStep({ onSuccess, invitationToken, inviteEmail }: AccountStepProps) {
-  // 초대 플로우 여부 - 토큰이 있으면 초대 플로우 (이메일이 없어도)
+  // 초대 플로우 여부 - 토큰이 있으면 초대 플로우
   const isInviteFlow = !!invitationToken;
+  // 초대 이메일 고정 여부 - 토큰이 있고 이메일도 있을 때만 고정
+  const isEmailLocked = isInviteFlow && !!inviteEmail;
   
   const [email, setEmail] = useState(inviteEmail || "");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [invalid, setInvalid] = useState(false);
-  // 초대 플로우에서는 이메일 중복 확인 스킵
-  const [emailChecked, setEmailChecked] = useState(isInviteFlow);
+  // 초대 이메일이 고정된 경우에만 이메일 중복 확인 스킵
+  const [emailChecked, setEmailChecked] = useState(isEmailLocked);
   const [verifiedEmail, setVerifiedEmail] = useState(inviteEmail || "");
   const [emailDuplicate, setEmailDuplicate] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -54,13 +56,13 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
     passwordHasDigit &&
     passwordHasSpecial;
 
-  // 이메일 검증 조건: 초대 플로우에서 초대 이메일이 있으면 통과
+  // 이메일 검증 조건: 초대 이메일이 고정된 경우 통과, 아니면 기존 검증
   const isEmailConditionMet = useMemo(() => {
-    // 초대 플로우에서 초대 이메일이 있으면 조건 충족
-    if (isInviteFlow && inviteEmail) return true;
+    // 초대 이메일이 고정된 경우 조건 충족
+    if (isEmailLocked) return true;
     // 그 외에는 기존 검증 로직 (중복확인 완료 + 유효한 이메일)
     return emailChecked && emailValid;
-  }, [isInviteFlow, inviteEmail, emailChecked, emailValid]);
+  }, [isEmailLocked, emailChecked, emailValid]);
 
   useEffect(() => {
     setInvalid(false);
@@ -147,8 +149,8 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             name="email"
             value={email}
             onChange={(e) => {
-              // 초대 플로우에서는 이메일 변경 불가
-              if (isInviteFlow) return;
+              // 초대 이메일이 고정된 경우 변경 불가
+              if (isEmailLocked) return;
               
               setEmail(e.target.value);
               setEmailChecked(false);
@@ -163,16 +165,16 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             className={`flex-1 min-w-0 h-[34px] rounded-[5px] border bg-transparent pl-3 text-white ${
               (invalid && !emailValid) || emailDuplicate
                 ? "border-[#FF5A5A] placeholder-[#FF5A5A]"
-                : isInviteFlow
+                : isEmailLocked
                 ? "border-[#00E272]/50 bg-[#1a3a2a]/30"
                 : "border-[#555555]"
             }`}
             autoComplete="email"
-            readOnly={isInviteFlow}
-            disabled={isInviteFlow}
+            readOnly={isEmailLocked}
+            disabled={isEmailLocked}
           />
-          {/* 초대 플로우에서는 중복확인 버튼 숨김 */}
-          {!isInviteFlow && (
+          {/* 초대 이메일이 고정된 경우 중복확인 버튼 숨김 */}
+          {!isEmailLocked && (
             <button
               type="button"
               className={`cursor-pointer min-w-[72px] h-[34px] rounded-[5px] ${
@@ -209,14 +211,14 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
           이미 사용 중인 이메일입니다.
         </div>
       )}
-      {/* 일반 플로우에서만 이메일 확인 메시지 표시 */}
-      {!isInviteFlow && emailChecked && !emailDuplicate && email === verifiedEmail && (
+      {/* 이메일 고정되지 않은 경우에만 이메일 확인 메시지 표시 */}
+      {!isEmailLocked && emailChecked && !emailDuplicate && email === verifiedEmail && (
         <div className="mt-3 mb-3 text-[14px] text-[#00E272]">
           사용 가능한 이메일입니다.
         </div>
       )}
-      {/* 초대 플로우에서는 고정 이메일 안내 */}
-      {isInviteFlow && (
+      {/* 초대 이메일이 고정된 경우 안내 */}
+      {isEmailLocked && (
         <div className="mt-3 mb-3 text-[14px] text-[#00E272]">
           초대받은 이메일로 가입됩니다.
         </div>
