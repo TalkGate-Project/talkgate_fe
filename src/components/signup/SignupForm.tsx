@@ -122,13 +122,6 @@ export function SignupForm() {
     setStep("done");
   };
 
-  const handleGoLogin = () => {
-    const loginUrl = redirectUrl 
-      ? `/login?redirectUrl=${encodeURIComponent(redirectUrl)}`
-      : "/login";
-    router.replace(loginUrl);
-  };
-
   return (
     <AuthLayout ariaLabel="signup-area">
       <h1 className="sr-only">회원가입</h1>
@@ -157,7 +150,8 @@ export function SignupForm() {
         />
       )}
 
-      {step === "done" && <DoneStep onGoLogin={handleGoLogin} />}
+      {/* 회원가입 완료 후 리다이렉트 중 로딩 표시 */}
+      {step === "done" && <DoneStep />}
     </AuthLayout>
   );
 }
