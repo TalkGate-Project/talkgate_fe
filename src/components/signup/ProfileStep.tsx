@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/lib/apiClient";
 import { setTokens } from "@/lib/token";
 import type { SignupTokens } from "@/types/signup";
-import type { UpdateProfileInput } from "@/types/auth";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type ProfileStepProps = {
   tokens: SignupTokens;
@@ -19,9 +18,7 @@ export function ProfileStep({
   onSkip,
 }: ProfileStepProps) {
   const queryClient = useQueryClient();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // 토큰을 쿠키에 저장하고 React Query 캐시를 무효화하는 공통 함수
   const saveTokensAndInvalidateCache = async () => {
@@ -33,105 +30,126 @@ export function ProfileStep({
     await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
+  const handleVerification = async () => {
+    setIsVerifying(true);
     try {
-      // 로그인 없이 전달받은 토큰을 헤더에 직접 태워서 프로필 업데이트
-      const profileData: UpdateProfileInput = {};
-      if (name) profileData.name = name;
-      if (phone) profileData.phone = phone;
-
-      await apiClient.patch("/v1/auth/profile", profileData, {
-        headers: {
-          Authorization: `Bearer ${tokens.accessToken}`,
-        },
-      });
+      // TODO: 실제 본인인증 서비스(PASS, NICE 등) 연동
+      console.log("[ProfileStep] 📱 본인인증 시작");
       
-      // 프로필 업데이트 성공 후 토큰 저장 및 캐시 무효화
+      // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      console.log("[ProfileStep] ✅ 본인인증 완료");
+      
+      // 토큰 저장 및 캐시 무효화
       await saveTokensAndInvalidateCache();
       onComplete();
-    } catch {
-      // 프로필 업데이트 실패 시에도 토큰 저장 및 캐시 무효화 후 완료 처리
-      await saveTokensAndInvalidateCache();
-      onComplete();
+    } catch (err: unknown) {
+      console.error("[ProfileStep] 본인인증 실패:", err);
+      const errorData = err as { data?: { message?: string } };
+      showErrorModal({
+        title: "오류 발생",
+        headline: "본인인증에 실패했습니다.",
+        description: errorData?.data?.message || "잠시 후 다시 시도해주세요.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsVerifying(false);
     }
   };
 
   const handleSkip = async () => {
-    setIsSubmitting(true);
+    setIsVerifying(true);
     try {
-      // 건너뛰기 시에는 프로필 업데이트 없이 토큰만 저장 및 캐시 무효화
+      // 건너뛰기 시에는 본인인증 없이 토큰만 저장 및 캐시 무효화
       await saveTokensAndInvalidateCache();
       onSkip();
     } finally {
-      setIsSubmitting(false);
+      setIsVerifying(false);
     }
   };
 
   return (
-    // 프로필 입력 단계 폼 영역 시작
-    <form
-      className="mt-8 w-full space-y-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit();
-      }}
-    >
-      {/* 안내 문구 영역 시작 */}
-      <div className="text-[#BFBFBF] text-[14px] font-medium text-center mb-[30px]">
+    <div className="w-full mt-8">
+      {/* 안내 문구 */}
+      <div className="text-[#FDFDFD] text-[14px] leading-[1] text-center tracking-[-0.02em] mb-[30px]">
         회원가입을 진행해주세요.
       </div>
-      {/* 안내 문구 영역 끝 */}
 
-      {/* 이름 입력 영역 시작 */}
-      <label className="block text-[#CECECE] text-[14px] font-medium mb-1">
-        이름
-      </label>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="이름을 입력하세요"
-        className="w-full h-[34px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
-      />
-      {/* 이름 입력 영역 끝 */}
+      {/* 본인인증 버튼 - 피그마 디자인 적용 */}
+      <button
+        type="button"
+        className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold flex items-center justify-center gap-[10px] hover:bg-[#2F2F2F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={handleVerification}
+        disabled={isVerifying}
+      >
+        {/* 스마트폰 아이콘 */}
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect
+            x="5"
+            y="2.5"
+            width="10"
+            height="15"
+            rx="2"
+            stroke="#B0B0B0"
+            strokeWidth="1.5"
+          />
+          <line
+            x1="8"
+            y1="14.5"
+            x2="12"
+            y2="14.5"
+            stroke="#B0B0B0"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+        {isVerifying ? "인증 중..." : "휴대폰 본인인증"}
+      </button>
 
-      {/* 핸드폰 번호 입력 영역 시작 */}
-      <label className="block text-[#CECECE] text-[14px] font-medium mt-3 mb-1">
-        핸드폰 번호
-      </label>
-      <div className="flex gap-2">
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-          placeholder="핸드폰 번호를 입력하세요"
-          className="flex-1 h-[34px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
-        />
-      </div>
-      {/* 핸드폰 번호 입력 영역 끝 */}
-
-      {/* 하단 버튼 영역 (건너뛰기 / 시작하기) 시작 */}
-      <div className="mt-[30px] flex gap-5">
+      {/* 건너뛰기 - 피그마 디자인 적용 */}
+      <div className="mt-6 flex justify-end">
         <button
           type="button"
-          className="cursor-pointer w-full h-[40px] px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer text-[14px] text-[#808080] hover:text-[#BFBFBF] transition-colors flex items-center gap-1"
           onClick={handleSkip}
-          disabled={isSubmitting}
+          disabled={isVerifying}
         >
-          건너뛰기
-        </button>
-        <button
-          type="submit"
-          className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isSubmitting}
-        >
-          시작하기
+          <span>건너뛰기</span>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="text-[#808080]"
+          >
+            <path
+              d="M5 3.5L8.5 7L5 10.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M8.5 3.5L12 7L8.5 10.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </div>
-      {/* 하단 버튼 영역 (건너뛰기 / 시작하기) 끝 */}
-    </form>
-    // 프로필 입력 단계 폼 영역 끝
+    </div>
   );
 }
 

@@ -359,17 +359,6 @@ export function LoginForm() {
         </button>
       </div>
       
-      {/* 초대 플로우 안내 */}
-      {isInviteFlow && pendingInvite?.projectName && (
-        <div className="mt-4 p-3 rounded-lg bg-[#1a3a2a] border border-[#00E272]/30">
-          <p className="text-[#00E272] text-[13px] text-center">
-            "{pendingInvite.projectName}" 프로젝트 초대 진행 중
-          </p>
-          <p className="text-[#B9B9B9] text-[12px] text-center mt-1">
-            {pendingInvite.email}로 로그인하거나 회원가입해주세요.
-          </p>
-        </div>
-      )}
     </AuthLayout>
   );
 }
