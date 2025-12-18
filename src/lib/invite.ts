@@ -1,6 +1,8 @@
 "use client";
 
+/** 초대 토큰 저장 키 */
 const INVITE_TOKEN_KEY = "tg_invite_token";
+/** 초대 정보 저장 키 */
 const INVITE_INFO_KEY = "tg_invite_info";
 
 export type PendingInviteInfo = {

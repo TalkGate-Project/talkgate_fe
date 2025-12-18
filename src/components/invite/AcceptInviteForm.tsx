@@ -111,7 +111,7 @@ export function AcceptInviteForm() {
       <h1 className="sr-only">초대 수락</h1>
 
       <form
-        className="mt-8 w-full space-y-3"
+        className="w-full space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit();
