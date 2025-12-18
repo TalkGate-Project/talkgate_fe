@@ -80,13 +80,36 @@ function OAuthCallbackPage() {
         markOAuthCallback(provider, !!code);
         
         // 🔍 초대 정보 미리 확인 (디버깅용)
-        const earlyInviteCheck = getPendingInviteInfo();
+        let earlyInviteCheck = getPendingInviteInfo();
+        
+        // localStorage에 없으면 sessionStorage 백업에서 복구 시도
+        if (!earlyInviteCheck?.token && typeof window !== 'undefined') {
+          const backupData = sessionStorage.getItem('tg_invite_backup');
+          if (backupData) {
+            try {
+              const backup = JSON.parse(backupData);
+              console.log("[OAuth Callback] 🔄 sessionStorage 백업에서 초대 정보 복구:", backup);
+              // localStorage에 복구
+              if (backup?.token) {
+                localStorage.setItem('tg_invite_info', backupData);
+                localStorage.setItem('tg_invite_token', backup.token);
+                earlyInviteCheck = backup;
+              }
+              // 백업 사용 후 삭제
+              sessionStorage.removeItem('tg_invite_backup');
+            } catch (e) {
+              console.error("[OAuth Callback] 백업 파싱 실패:", e);
+            }
+          }
+        }
+        
         console.log("[OAuth Callback] 🔍 초대 정보 사전 확인:", {
           hasInviteInfo: !!earlyInviteCheck,
           token: earlyInviteCheck?.token?.slice(0, 20) + "..." || "없음",
           email: earlyInviteCheck?.email || "없음",
           projectName: earlyInviteCheck?.projectName || "없음",
           rawLocalStorage: typeof window !== 'undefined' ? window.localStorage.getItem('tg_invite_info') : 'SSR',
+          rawSessionBackup: typeof window !== 'undefined' ? sessionStorage.getItem('tg_invite_backup') : 'SSR',
         });
         
         // 이전 플로우 상태 확인

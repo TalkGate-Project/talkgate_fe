@@ -64,6 +64,7 @@ export function cleanupSessionBeforeLogin(): void {
     "tg_auto_login", // Remember Me 설정은 유지
     "talkgate-theme", // 테마 설정 유지
     "tg_invite_token", // 초대 토큰 유지
+    "tg_invite_info", // 초대 정보 유지 (소셜 로그인 후 초대 수락용)
   ];
 
   try {
