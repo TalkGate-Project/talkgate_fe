@@ -25,7 +25,7 @@ export function WrongAccountModal({
           </div>
           
           <h2 className="text-[18px] font-semibold text-white mb-3">
-            다른 계정으로 로그인되어 있어요
+            현재 다른 계정으로 로그인되어 있어 진행할 수 없어요.
           </h2>
           <p className="text-[14px] text-[#B9B9B9] mb-2">
             현재 <span className="text-white font-medium">{loggedInEmail}</span>로 로그인되어 있습니다.
