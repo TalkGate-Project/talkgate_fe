@@ -627,7 +627,7 @@ export default function ChatMainView({
                           const isPdf =
                             (m.fileType && /pdf/i.test(m.fileType)) ||
                             (m.fileName && /\.pdf$/i.test(m.fileName)) ||
-                            /\.pdf$/i.test(m.fileUrl);
+                            (m.fileUrl && /\.pdf$/i.test(m.fileUrl));
                           if (isPdf) {
                             return (
                               <button
