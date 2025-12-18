@@ -272,7 +272,24 @@ export default function CustomersTable({
                     {c.assignedMemberName || "-"}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    -
+                    {(() => {
+                      // 마지막 상담내용의 카테고리를 찾기
+                      const notes = Array.isArray(c.recentNotes) ? c.recentNotes : [];
+                      if (notes.length === 0) return "-";
+                      
+                      // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
+                      const sortedNotes = [...notes].sort((a, b) => 
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                      );
+                      const lastNote = sortedNotes[0];
+                      
+                      // categoryId가 없으면 "-" 표시
+                      if (!lastNote.categoryId) return "-";
+                      
+                      // 카테고리 이름 찾기
+                      const category = categories.find(cat => cat.id === lastNote.categoryId);
+                      return category?.name || "-";
+                    })()}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {formatDateTime(c.applicationDate || c.createdAt)}
