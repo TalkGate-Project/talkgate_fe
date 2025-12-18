@@ -7,7 +7,6 @@ import EmptyUserIcon from "./icons/EmptyUserIcon";
 import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
 import PlatformIcon from "./icons/PlatformIcon";
-import Image from "next/image";
 import TgsSticker from "./TgsSticker";
 import ConversationAvatar from "./ConversationAvatar";
 
@@ -407,23 +406,20 @@ export default function ChatMainView({
                             )}
                           </div>
                         </div>
-                      ) : (
+                      ) : (m.thumbnailUrl || m.fileUrl) ? (
                         <a
                           href={m.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block"
                         >
-                          <Image
+                          <img
                             src={m.thumbnailUrl || m.fileUrl}
                             alt={m.fileName || "이미지"}
-                            width={400}
-                            height={400}
                             className="max-w-full h-auto object-contain cursor-pointer"
-                            unoptimized
                           />
                         </a>
-                      )}
+                      ) : null}
                       {m.content && (
                         <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -705,22 +701,16 @@ export default function ChatMainView({
                       {m.fileUrl && /\.tgs$/i.test(m.fileUrl) ? (
                         <TgsSticker src={m.fileUrl} width={120} height={120} />
                       ) : m.thumbnailUrl ? (
-                        <Image
+                        <img
                           src={m.thumbnailUrl}
                           alt="스티커"
-                          width={200}
-                          height={200}
                           className="max-w-[200px] max-h-[200px] object-contain"
-                          unoptimized
                         />
                       ) : m.fileUrl && /\.(png|jpg|jpeg|gif|webp)$/i.test(m.fileUrl) ? (
-                        <Image
+                        <img
                           src={m.fileUrl}
                           alt="스티커"
-                          width={200}
-                          height={200}
                           className="max-w-[200px] max-h-[200px] object-contain"
-                          unoptimized
                         />
                       ) : m.stickerEmoji ? (
                         <div className="w-[120px] h-[120px] grid place-items-center text-[64px]">
