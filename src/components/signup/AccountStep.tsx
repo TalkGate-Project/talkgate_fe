@@ -61,7 +61,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
   return (
     // 계정 생성 단계 폼 영역 시작
     <form
-      className="mt-8 w-full"
+      className="w-full"
       onSubmit={async (e) => {
         e.preventDefault();
         setInvalid(false);

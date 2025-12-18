@@ -6,6 +6,7 @@ import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
 import { setRememberMePreference, getRememberMePreference } from "@/lib/token";
 import { getSelectedProjectId } from "@/lib/project";
+import { getPendingInviteInfo, clearPendingInviteInfo } from "@/lib/invite";
 import {
   debugLog,
   markOAuthCallback,
@@ -133,6 +134,54 @@ function OAuthCallbackPage() {
         // 일반 로그인 성공
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
+        
+        // 초대 플로우 확인 - localStorage에 초대 정보가 있는지 확인
+        const pendingInvite = getPendingInviteInfo();
+        
+        if (pendingInvite?.token && pendingInvite?.email) {
+          // 초대 플로우: 사용자 이메일 확인 필요
+          debugLog("🎫 초대 플로우 감지 - 사용자 이메일 확인 시작");
+          
+          try {
+            // 로그인한 사용자 정보 가져오기
+            const meRes = await AuthService.me();
+            const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
+            const loggedInEmail = userData?.email?.toLowerCase();
+            const inviteEmail = pendingInvite.email.toLowerCase();
+            
+            debugLog("📧 이메일 비교", { loggedInEmail, inviteEmail });
+            
+            if (loggedInEmail === inviteEmail) {
+              // 이메일 일치 → 초대 수락 페이지로 이동
+              debugLog("✅ 초대 이메일 일치 → 초대 수락 페이지로 이동");
+              if (mounted) {
+                window.location.href = "/invite/accept";
+              }
+              return;
+            } else {
+              // 이메일 불일치 → 경고 후 프로젝트 페이지로
+              debugLog("⚠️ 초대 이메일 불일치", { loggedInEmail, inviteEmail });
+              clearPendingInviteInfo();
+              showErrorModal({
+                title: "알림",
+                headline: "초대받은 이메일과 다른 계정입니다.",
+                description: `초대받은 이메일(${pendingInvite.email})로 로그인해주세요.`,
+                confirmText: "확인",
+                cancelText: null,
+                hideCancel: true,
+              });
+              if (mounted) {
+                setTimeout(() => {
+                  window.location.href = "/projects";
+                }, 100);
+              }
+              return;
+            }
+          } catch (meError) {
+            debugLog("⚠️ 사용자 정보 조회 실패", meError);
+            // 사용자 정보 조회 실패 시 일반 플로우로 진행
+          }
+        }
         
         // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
         const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
