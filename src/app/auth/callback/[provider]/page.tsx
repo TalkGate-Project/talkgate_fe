@@ -150,6 +150,7 @@ function OAuthCallbackPage() {
           success: result.success,
           requiresTwoFactor: result.requiresTwoFactor,
           hasTwoFactorToken: !!result.twoFactorToken,
+          isNewUser: result.isNewUser,
         });
         
         // 2FA가 필요한 경우
@@ -160,6 +161,15 @@ function OAuthCallbackPage() {
           
           if (mounted) {
             router.push(`/login/two-factor?token=${result.twoFactorToken}`);
+          }
+          return;
+        }
+        
+        // 신규 가입 사용자인 경우 → 회원정보 등록 페이지로 이동
+        if (result.isNewUser) {
+          debugLog("🆕 신규 가입 사용자 - 회원정보 등록 페이지로 이동");
+          if (mounted) {
+            window.location.href = "/social-signup";
           }
           return;
         }

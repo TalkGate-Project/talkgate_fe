@@ -105,6 +105,7 @@ export type SocialLoginResult = {
   success: boolean;
   requiresTwoFactor: boolean;
   twoFactorToken?: string;
+  isNewUser?: boolean; // 신규 가입 사용자 여부
   response: any;
 };
 
@@ -181,6 +182,7 @@ export const AuthService = {
         success: data.success,
         requiresTwoFactor: data.requiresTwoFactor || false,
         twoFactorToken: data.twoFactorToken,
+        isNewUser: data.isNewUser ?? false,
         response: { ok: true, status: res.status, data },
       };
     });
@@ -211,6 +213,7 @@ export const AuthService = {
         success: data.success,
         requiresTwoFactor: data.requiresTwoFactor || false,
         twoFactorToken: data.twoFactorToken,
+        isNewUser: data.isNewUser ?? false,
         response: { ok: true, status: res.status, data },
       };
     });
@@ -241,6 +244,7 @@ export const AuthService = {
         success: data.success,
         requiresTwoFactor: data.requiresTwoFactor || false,
         twoFactorToken: data.twoFactorToken,
+        isNewUser: data.isNewUser ?? false,
         response: { ok: true, status: res.status, data },
       };
     });

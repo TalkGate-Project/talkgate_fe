@@ -60,6 +60,7 @@ export async function POST(
       requiresTwoFactor: false,
       user: loginData?.user,
       projectId: loginData?.projectId || loginData?.defaultProjectId || loginData?.user?.defaultProjectId,
+      isNewUser: loginData?.isNewUser ?? false, // 신규 가입 사용자 여부
     };
     
     const nextResponse = NextResponse.json(responseData);
