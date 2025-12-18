@@ -12,7 +12,7 @@ type TermsStepProps = {
 export function TermsStep({ onComplete }: TermsStepProps) {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(true); // 기본으로 펼쳐진 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const allAgreed = agreeTerms && agreePrivacy;
@@ -23,7 +23,10 @@ export function TermsStep({ onComplete }: TermsStepProps) {
     setIsSubmitting(true);
     try {
       // 약관 동의 API 호출
-      await AuthService.termsAccept();
+      await AuthService.termsAccept({
+        isAllowTerms: agreeTerms,
+        isAllowPrivacy: agreePrivacy,
+      });
       console.log("[TermsStep] ✅ 약관 동의 완료");
       onComplete();
     } catch (err: any) {
@@ -31,7 +34,7 @@ export function TermsStep({ onComplete }: TermsStepProps) {
       showErrorModal({
         title: "오류 발생",
         headline: "약관 동의에 실패했습니다.",
-        description: err?.data?.message || "잠시 후 다시 시도해주세요.",
+        description: "잠시 후 다시 시도해주세요.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

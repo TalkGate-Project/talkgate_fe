@@ -54,6 +54,14 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
     passwordHasDigit &&
     passwordHasSpecial;
 
+  // 이메일 검증 조건: 초대 플로우에서 초대 이메일이 있으면 통과
+  const isEmailConditionMet = useMemo(() => {
+    // 초대 플로우에서 초대 이메일이 있으면 조건 충족
+    if (isInviteFlow && inviteEmail) return true;
+    // 그 외에는 기존 검증 로직 (중복확인 완료 + 유효한 이메일)
+    return emailChecked && emailValid;
+  }, [isInviteFlow, inviteEmail, emailChecked, emailValid]);
+
   useEffect(() => {
     setInvalid(false);
   }, [email, password, passwordConfirm, agreeTerms, agreePrivacy]);
@@ -66,10 +74,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
         e.preventDefault();
         setInvalid(false);
         if (
-          !emailValid ||
+          !isEmailConditionMet ||
           !passwordStrong ||
           !passwordMatch ||
-          !emailChecked ||
           !agreeTerms ||
           !agreePrivacy
         ) {
@@ -151,7 +158,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             placeholder={
               invalid && !emailValid
                 ? "이메일을 다시 입력하세요"
-                : "이메일을 입력하세요"
+                : "email@email.com"
             }
             className={`flex-1 min-w-0 h-[34px] rounded-[5px] border bg-transparent pl-3 text-white ${
               (invalid && !emailValid) || emailDuplicate
@@ -391,8 +398,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
         className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={
           isSubmitting ||
-          !emailChecked ||
-          !emailValid ||
+          !isEmailConditionMet ||
           !passwordStrong ||
           !passwordMatch ||
           !agreeTerms ||

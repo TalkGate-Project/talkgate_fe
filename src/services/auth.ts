@@ -295,8 +295,8 @@ export const AuthService = {
     // 별도 호출이 필요한 경우를 위해 프록시를 통해 호출
     return apiClient.post<unknown>("/v1/auth/refresh");
   },
-  termsAccept() {
-    return apiClient.post<unknown>("/v1/auth/terms");
+  termsAccept(input: { isAllowTerms: boolean; isAllowPrivacy: boolean }) {
+    return apiClient.post<unknown>("/v1/auth/terms", input);
   },
   verifyEmail(input: { token: string }) {
     console.log("[AuthService] ✉️ verifyEmail 호출");
