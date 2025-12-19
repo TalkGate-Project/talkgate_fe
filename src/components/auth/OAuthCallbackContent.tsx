@@ -149,16 +149,18 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         if (mounted) {
           if (isAbsoluteUrl) {
             // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
+            // window.location.replace() 사용하여 히스토리에서 OAuth 콜백 페이지 제거 (뒤로가기 방지)
             debugLog("🔗 절대 리디렉션 URL로 이동:", redirectUrl);
-            window.location.href = redirectUrl;
+            window.location.replace(redirectUrl);
           } else {
             // 상대 경로이거나 redirectUrl이 없는 경우
             // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
+            // window.location.replace() 사용하여 히스토리에서 OAuth 콜백 페이지 제거 (뒤로가기 방지)
             if (redirectUrl) {
               debugLog("⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
             }
             debugLog("✅ 로그인 성공 - 프로젝트 선택 페이지로 이동 (서브도메인 필수)");
-            router.replace("/projects");
+            window.location.replace("/projects");
           }
         }
       } catch (e: any) {
