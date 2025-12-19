@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import Image from "next/image";
@@ -21,6 +22,8 @@ export default function ProjectsContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [subscribeProject, setSubscribeProject] = useState<any | null>(null);
   const [subdomainError, setSubdomainError] = useState<string | null>(null);
+  // 클릭된 프로젝트 ID (로딩 상태 표시 및 중복 클릭 방지용)
+  const [selectingProjectId, setSelectingProjectId] = useState<number | null>(null);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -130,16 +133,32 @@ export default function ProjectsContent() {
           {!loading && projects.length === 0 && (
             <div className="col-span-full text-center text-neutral-60"></div>
           )}
-          {projects.map((p: any) => (
+          {projects.map((p: any) => {
+            const isSelecting = selectingProjectId === p.id;
+            const isAnySelecting = selectingProjectId !== null;
+            
+            return (
             <div
               key={p.id}
-              className="px-7 pt-6 pb-[30px] md:min-w-[646px] cursor-pointer rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border border-transparent hover:border-primary-60 hover:translate-y-[-20px] transition-colors transition-transform duration-300 ease-out"
+              className={`px-7 pt-6 pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
+                isSelecting
+                  ? "border-primary-60 opacity-80"
+                  : isAnySelecting
+                  ? "opacity-50 cursor-not-allowed border-transparent"
+                  : "cursor-pointer border-transparent hover:border-primary-60 hover:translate-y-[-20px]"
+              }`}
               onClick={() => {
+                // 이미 선택 중인 프로젝트가 있으면 클릭 무시
+                if (isAnySelecting) return;
+                
                 // 구독이 활성화되지 않은 경우 모달 표시
                 if (!p.hasActiveSubscription) {
                   setSubscribeProject(p);
                   return;
                 }
+
+                // 선택 상태 설정
+                setSelectingProjectId(p.id);
 
                 // 구독이 활성화된 경우 대시보드로 이동
                 const isDev = isDevelopment();
@@ -198,7 +217,10 @@ export default function ProjectsContent() {
                     />
                   </div>
                 </div>
-                
+                {/* 로딩 스피너 */}
+                {isSelecting && (
+                  <LoadingSpinner size="sm" variant="primary" />
+                )}
               </div>
               <div className="grid grid-cols-2 gap-6 mt-5">
                 <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
@@ -243,7 +265,8 @@ export default function ProjectsContent() {
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
 
           {/* Create new service */}
           <div

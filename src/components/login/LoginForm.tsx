@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
+import AsyncButton from "@/components/common/AsyncButton";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
 import { setSelectedProjectId } from "@/lib/project";
 import { getPendingInviteInfo, clearPendingInviteInfo } from "@/lib/invite";
@@ -22,6 +23,7 @@ export function LoginForm() {
   const [autoLogin, setAutoLogin] = useState(getRememberMePreference());
   const [invalid, setInvalid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
   const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
@@ -96,9 +98,11 @@ export function LoginForm() {
       <h1 className="sr-only">로그인</h1>
       <form
         className="w-full space-y-3"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          if (isSubmitting) return;
           setInvalid(false);
+          setIsSubmitting(true);
           setRememberMePreference(autoLogin);
           console.log("[LoginPage] 🔑 로그인 요청 시작:", { email, hasRedirectUrl: !!redirectUrl });
           AuthService.login({ email, password, rememberMe: autoLogin })
@@ -202,6 +206,9 @@ export function LoginForm() {
                   hideCancel: true,
                 });
               }
+            })
+            .finally(() => {
+              setIsSubmitting(false);
             });
         }}
       >
@@ -264,7 +271,17 @@ export function LoginForm() {
           </button>
         </div>
 
-        <button type="submit" className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
+        <AsyncButton
+          type="submit"
+          variant="auth"
+          size="md"
+          fullWidth
+          loading={isSubmitting}
+          loadingText="로그인 중..."
+          className="mt-2"
+        >
+          로그인
+        </AsyncButton>
       </form>
 
       {/* Social buttons - 초대 플로우에서도 소셜 로그인 허용 (기존 소셜 가입자 지원) */}
