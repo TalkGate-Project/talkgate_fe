@@ -216,7 +216,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
         <div className="overflow-y-auto flex-1">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
-              <LoadingSpinner size="lg" variant="primary" />
+              <LoadingSpinner size="lg" />
             </div>
           ) : (
             <div className="px-6 py-4 space-y-[30px]">

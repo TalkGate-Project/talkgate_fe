@@ -219,7 +219,7 @@ export default function ProjectsContent() {
                 </div>
                 {/* 로딩 스피너 */}
                 {isSelecting && (
-                  <LoadingSpinner size="sm" variant="primary" />
+                  <LoadingSpinner size="sm" />
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6 mt-5">
