@@ -37,18 +37,13 @@ export function LoginForm() {
     }
   }, [pendingInvite?.email]);
 
-  useEffect(() => {
-    let mounted = true;
-    
+  // 인증 상태 확인 함수 (재사용)
+  const checkAuthAndRedirect = () => {
     // 로그아웃 후 리다이렉트인 경우 쿠키 체크 건너뛰기
-    // 쿠키 삭제가 완전히 적용되기 전에 페이지가 로드될 수 있음
     const isLogoutRedirect = searchParams.get('logout') === 'success';
     
     if (isLogoutRedirect) {
       console.log("[LoginPage] 🚪 로그아웃 후 리다이렉트 - 로그인 폼 표시");
-      // 로그아웃 후에는 쿠키 체크를 건너뛰고 바로 로그인 폼 표시
-      // 쿠키가 남아있어도 AuthService.me()가 실패할 것이므로 자동으로 로그인 폼이 표시됨
-      // URL에서 logout 파라미터 제거 (히스토리 정리)
       const url = new URL(window.location.href);
       url.searchParams.delete('logout');
       window.history.replaceState({}, '', url.pathname + (url.search || ''));
@@ -56,35 +51,42 @@ export function LoginForm() {
       return;
     }
     
-    // 인증 유효성 실제 확인 후에만 이동 (쿠키 존재만으로는 리다이렉트하지 않음)
+    // 인증 유효성 실제 확인 후에만 이동
     AuthService.me()
       .then(() => {
-        if (mounted) {
-          // 이미 인증된 상태
-          // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
-          const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
-          if (isAbsoluteUrl) {
-            // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-            console.log("[LoginPage] ✅ 이미 인증됨 + 절대 리디렉션 URL 있음 →", redirectUrl);
-            window.location.href = redirectUrl;
-          } else {
-            // 상대 경로이거나 redirectUrl이 없는 경우
-            // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-            console.log("[LoginPage] ✅ 이미 인증됨 → 프로젝트 선택으로 이동 (서브도메인 필수)");
-            router.replace("/projects");
-          }
+        // 이미 인증된 상태
+        const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+        if (isAbsoluteUrl) {
+          console.log("[LoginPage] ✅ 이미 인증됨 + 절대 리디렉션 URL 있음 →", redirectUrl);
+          window.location.replace(redirectUrl);
+        } else {
+          console.log("[LoginPage] ✅ 이미 인증됨 → 프로젝트 선택으로 이동 (서브도메인 필수)");
+          router.replace("/projects");
         }
       })
       .catch((err) => {
-        if (mounted) {
-          // 인증 실패: httpOnly 쿠키는 서버에서만 관리되므로 클라이언트에서 삭제 불가
-          console.log("[LoginPage] ⚠️ 인증 확인 실패 - 로그인 폼 표시", err);
-          setChecking(false);
-        }
+        console.log("[LoginPage] ⚠️ 인증 확인 실패 - 로그인 폼 표시", err);
+        setChecking(false);
       });
-    return () => {
-      mounted = false;
+  };
+
+  useEffect(() => {
+    checkAuthAndRedirect();
+    
+    // bfcache에서 복원될 때 인증 상태 재확인 (뒤로가기 시)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        console.log("[LoginPage] 🔄 bfcache에서 복원됨 - 인증 상태 재확인");
+        setChecking(true);
+        checkAuthAndRedirect();
+      }
     };
+    
+    window.addEventListener('pageshow', handlePageShow);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, redirectUrl, searchParams]);
 
   if (checking) return null;
@@ -156,14 +158,14 @@ export function LoginForm() {
               }
               
               // 리다이렉션 처리
-              // 쿠키가 설정되는 것을 보장하기 위해 window.location.href 사용
+              // window.location.replace() 사용하여 히스토리에서 로그인 페이지 제거 (뒤로가기 방지)
               // redirectUrl이 절대 URL(http:// 또는 https://)인 경우에만 해당 URL로 이동
               // 상대 경로인 경우 서브도메인 없이 이동하면 미들웨어에서 차단되므로 /projects로 이동
               const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
               if (isAbsoluteUrl) {
                 // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
                 console.log("[LoginPage] ✅ 로그인 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
-                window.location.href = redirectUrl;
+                window.location.replace(redirectUrl);
               } else {
                 // 상대 경로이거나 redirectUrl이 없는 경우
                 // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
@@ -171,7 +173,7 @@ export function LoginForm() {
                   console.log("[LoginPage] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
                 }
                 console.log("[LoginPage] ✅ 로그인 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
-                window.location.href = "/projects";
+                window.location.replace("/projects");
               }
             })
             .catch((err: any) => {
