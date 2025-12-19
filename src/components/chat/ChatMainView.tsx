@@ -7,7 +7,6 @@ import EmptyUserIcon from "./icons/EmptyUserIcon";
 import EmptyChatIcon from "./icons/EmptyChatIcon";
 import LinkIcon from "./icons/LinkIcon";
 import PlatformIcon from "./icons/PlatformIcon";
-import Image from "next/image";
 import TgsSticker from "./TgsSticker";
 import ConversationAvatar from "./ConversationAvatar";
 
@@ -302,26 +301,7 @@ export default function ChatMainView({
           >
             {isMessagesLoading && (
               <div className="flex justify-center py-4">
-                <svg
-                  className="animate-spin h-6 w-6 text-primary-60"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <div className="h-6 w-6 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
               </div>
             )}
             {banner && (
@@ -385,51 +365,61 @@ export default function ChatMainView({
                   {m.type === "image" && (
                     <div className="relative">
                       {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
-                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                      {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[200px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="text-center">
-                            <svg
-                              className="animate-spin h-8 w-8 text-primary-60 mx-auto mb-2"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mx-auto mb-2" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "이미지 전송 중..."}
                             </div>
                           </div>
                         </div>
-                      ) : (
+                      ) : m.status === "failed" || m.status === "unsupported" ? (
+                        <div className="w-[200px] h-[200px] flex flex-col items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px] border border-danger-20">
+                          <div className="text-center px-4">
+                            <svg
+                              className="h-8 w-8 text-danger-60 mx-auto mb-2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                            <div className="text-[12px] font-medium text-danger-60 mb-1">
+                              전송 실패
+                            </div>
+                            {m.status === "unsupported" && (
+                              <div className="text-[11px] text-neutral-60">
+                                지원하지 않는 파일 형식
+                              </div>
+                            )}
+                            {m.fileName && (
+                              <div className="text-[11px] text-neutral-60 mt-1 truncate max-w-[180px]">
+                                {m.fileName}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (m.thumbnailUrl || m.fileUrl) ? (
                         <a
                           href={m.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block"
                         >
-                          <Image
+                          <img
                             src={m.thumbnailUrl || m.fileUrl}
                             alt={m.fileName || "이미지"}
-                            width={400}
-                            height={400}
                             className="max-w-full h-auto object-contain cursor-pointer"
-                            unoptimized
                           />
                         </a>
-                      )}
+                      ) : null}
                       {m.content && (
                         <div className="px-5 py-2 text-[14px] leading-[26px] whitespace-pre-wrap break-words">
                           {m.content}
@@ -442,32 +432,45 @@ export default function ChatMainView({
                   {m.type === "video" && (
                     <div className="relative">
                       {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
-                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                      {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[150px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="text-center">
-                            <svg
-                              className="animate-spin h-8 w-8 text-primary-60 mx-auto mb-2"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mx-auto mb-2" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "비디오 전송 중..."}
                             </div>
+                          </div>
+                        </div>
+                      ) : m.status === "failed" || m.status === "unsupported" ? (
+                        <div className="w-[200px] h-[150px] flex flex-col items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px] border border-danger-20">
+                          <div className="text-center px-4">
+                            <svg
+                              className="h-8 w-8 text-danger-60 mx-auto mb-2"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                            <div className="text-[12px] font-medium text-danger-60 mb-1">
+                              전송 실패
+                            </div>
+                            {m.status === "unsupported" && (
+                              <div className="text-[11px] text-neutral-60">
+                                지원하지 않는 파일 형식
+                              </div>
+                            )}
+                            {m.fileName && (
+                              <div className="text-[11px] text-neutral-60 mt-1 truncate max-w-[180px]">
+                                {m.fileName}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -492,32 +495,47 @@ export default function ChatMainView({
                   {m.type === "audio" && (
                     <div className="space-y-2">
                       {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
-                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                      {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[60px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="flex items-center gap-2">
-                            <svg
-                              className="animate-spin h-5 w-5 text-primary-60"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                            <div className="h-5 w-5 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "오디오 전송 중..."}
                             </div>
+                          </div>
+                        </div>
+                      ) : m.status === "failed" || m.status === "unsupported" ? (
+                        <div className="w-[200px] min-h-[60px] flex flex-col items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px] border border-danger-20 px-4 py-3">
+                          <div className="text-center w-full">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              <svg
+                                className="h-5 w-5 text-danger-60"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                              <div className="text-[12px] font-medium text-danger-60">
+                                전송 실패
+                              </div>
+                            </div>
+                            {m.status === "unsupported" && (
+                              <div className="text-[11px] text-neutral-60 mb-1">
+                                지원하지 않는 파일 형식
+                              </div>
+                            )}
+                            {m.fileName && (
+                              <div className="text-[11px] text-neutral-60 truncate max-w-full">
+                                {m.fileName}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -549,29 +567,10 @@ export default function ChatMainView({
                   {m.type === "file" && (
                     <div className="space-y-2">
                       {/* 로딩 중 (pending 상태이거나 fileUrl이 없는 경우) */}
-                      {((m as any).status === "pending" || !m.fileUrl) ? (
+                      {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-[8px] bg-neutral-20 dark:bg-neutral-80 flex items-center justify-center flex-shrink-0">
-                            <svg
-                              className="animate-spin h-5 w-5 text-primary-60"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                            <div className="h-5 w-5 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-[12px] font-medium leading-[20px] break-words">
@@ -584,12 +583,51 @@ export default function ChatMainView({
                             )}
                           </div>
                         </div>
+                      ) : m.status === "failed" || m.status === "unsupported" ? (
+                        <div className="flex items-center gap-3 border border-danger-20 rounded-[8px] bg-neutral-20 dark:bg-neutral-80 px-3 py-2">
+                          <div className="w-10 h-10 rounded-[8px] bg-danger-10 flex items-center justify-center flex-shrink-0">
+                            <svg
+                              className="h-5 w-5 text-danger-60"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[12px] font-medium text-danger-60 leading-[20px] break-words mb-1">
+                              전송 실패
+                            </div>
+                            {m.status === "unsupported" && (
+                              <div className="text-[11px] text-neutral-60 mb-1">
+                                지원하지 않는 파일 형식
+                              </div>
+                            )}
+                            {m.fileName && (
+                              <div className="text-[12px] text-neutral-60 break-words">
+                                {m.fileName}
+                              </div>
+                            )}
+                            {m.fileSize && (
+                              <div className="text-[11px] text-neutral-60 opacity-70 mt-1">
+                                {(m.fileSize / 1024 / 1024).toFixed(2)} MB
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ) : (
                         (() => {
                           const isPdf =
                             (m.fileType && /pdf/i.test(m.fileType)) ||
                             (m.fileName && /\.pdf$/i.test(m.fileName)) ||
-                            /\.pdf$/i.test(m.fileUrl);
+                            (m.fileUrl && /\.pdf$/i.test(m.fileUrl));
                           if (isPdf) {
                             return (
                               <button
@@ -663,22 +701,16 @@ export default function ChatMainView({
                       {m.fileUrl && /\.tgs$/i.test(m.fileUrl) ? (
                         <TgsSticker src={m.fileUrl} width={120} height={120} />
                       ) : m.thumbnailUrl ? (
-                        <Image
+                        <img
                           src={m.thumbnailUrl}
                           alt="스티커"
-                          width={200}
-                          height={200}
                           className="max-w-[200px] max-h-[200px] object-contain"
-                          unoptimized
                         />
                       ) : m.fileUrl && /\.(png|jpg|jpeg|gif|webp)$/i.test(m.fileUrl) ? (
-                        <Image
+                        <img
                           src={m.fileUrl}
                           alt="스티커"
-                          width={200}
-                          height={200}
                           className="max-w-[200px] max-h-[200px] object-contain"
-                          unoptimized
                         />
                       ) : m.stickerEmoji ? (
                         <div className="w-[120px] h-[120px] grid place-items-center text-[64px]">

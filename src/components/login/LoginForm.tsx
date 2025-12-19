@@ -267,57 +267,68 @@ export function LoginForm() {
         <button type="submit" className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">로그인</button>
       </form>
 
-      {/* Social buttons - 초대 플로우에서는 숨김 (초대 이메일로 회원가입해야 함) */}
-      {!isInviteFlow && (
-        <>
-          <div className="mt-5 w-full flex items-center gap-3 text-white/90">
-            <div className="h-px flex-1 bg-white/20" />
-            <div className="text-center text-[13px]">또는</div>
-            <div className="h-px flex-1 bg-white/20" />
-          </div>
-          <div className="mt-3 flex items-center justify-center gap-4">
-            <button
-              aria-label="kakao"
-              className="cursor-pointer w-11 h-11 rounded-full"
-              style={{ background: "#FEE500" }}
-              onClick={() => {
-                // 소셜 로그인 시 리디렉션 URL을 세션 스토리지에 저장
-                if (redirectUrl) {
-                  sessionStorage.setItem("tg_redirect_url", redirectUrl);
-                }
-                initiateSocialLogin("kakao");
-              }}
-            >
-              <img src="/kakao.png" alt="" />
-            </button>
-            <button
-              aria-label="naver"
-              className="cursor-pointer w-11 h-11 rounded-full"
-              style={{ background: "#03C75A" }}
-              onClick={() => {
-                if (redirectUrl) {
-                  sessionStorage.setItem("tg_redirect_url", redirectUrl);
-                }
-                initiateSocialLogin("naver");
-              }}
-            >
-              <img src="/naver.png" alt="" />
-            </button>
-            <button
-              aria-label="google"
-              className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
-              onClick={() => {
-                if (redirectUrl) {
-                  sessionStorage.setItem("tg_redirect_url", redirectUrl);
-                }
-                initiateSocialLogin("google");
-              }}
-            >
-              <img src="/google.png" alt="" />
-            </button>
-          </div>
-        </>
-      )}
+      {/* Social buttons - 초대 플로우에서도 소셜 로그인 허용 (기존 소셜 가입자 지원) */}
+      <div className="mt-5 w-full flex items-center gap-3 text-white/90">
+        <div className="h-px flex-1 bg-white/20" />
+        <div className="text-center text-[13px]">또는</div>
+        <div className="h-px flex-1 bg-white/20" />
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-4">
+        <button
+          aria-label="kakao"
+          className="cursor-pointer w-11 h-11 rounded-full"
+          style={{ background: "#FEE500" }}
+          onClick={() => {
+            // 소셜 로그인 시 리디렉션 URL을 세션 스토리지에 저장
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            // 초대 정보가 있으면 sessionStorage에도 백업 (OAuth 리다이렉트 후 복구용)
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
+            }
+            initiateSocialLogin("kakao");
+          }}
+        >
+          <img src="/kakao.png" alt="" />
+        </button>
+        <button
+          aria-label="naver"
+          className="cursor-pointer w-11 h-11 rounded-full"
+          style={{ background: "#03C75A" }}
+          onClick={() => {
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            // 초대 정보가 있으면 sessionStorage에도 백업
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
+            }
+            initiateSocialLogin("naver");
+          }}
+        >
+          <img src="/naver.png" alt="" />
+        </button>
+        <button
+          aria-label="google"
+          className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
+          onClick={() => {
+            if (redirectUrl) {
+              sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            }
+            // 초대 정보가 있으면 sessionStorage에도 백업
+            if (pendingInvite?.token) {
+              sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
+              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
+            }
+            initiateSocialLogin("google");
+          }}
+        >
+          <img src="/google.png" alt="" />
+        </button>
+      </div>
 
       {/* Signup link */}
       <div className="mt-6 text-[13px] text-[#BFBFBF]">
@@ -348,17 +359,6 @@ export function LoginForm() {
         </button>
       </div>
       
-      {/* 초대 플로우 안내 */}
-      {isInviteFlow && pendingInvite?.projectName && (
-        <div className="mt-4 p-3 rounded-lg bg-[#1a3a2a] border border-[#00E272]/30">
-          <p className="text-[#00E272] text-[13px] text-center">
-            "{pendingInvite.projectName}" 프로젝트 초대 진행 중
-          </p>
-          <p className="text-[#B9B9B9] text-[12px] text-center mt-1">
-            {pendingInvite.email}로 로그인하거나 회원가입해주세요.
-          </p>
-        </div>
-      )}
     </AuthLayout>
   );
 }

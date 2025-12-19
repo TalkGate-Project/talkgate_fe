@@ -53,6 +53,52 @@
 - 네트워크 에러는 상위에서 사용자 메시지로 전환하십시오.
 - 컴포넌트에서는 `error` 상태에 따라 UX를 결정(재시도 버튼, 안내 문구 등).
 
+#### 7.1 에러 메시지 표시 원칙 (중요)
+
+**서버 응답 메시지를 UI에 그대로 표시하지 않습니다.**
+
+```typescript
+// ❌ BAD - 서버 메시지를 그대로 표시
+showErrorModal({
+  headline: "오류 발생",
+  description: errorData?.data?.message || "잠시 후 다시 시도해주세요.",
+});
+
+// ✅ GOOD - 일반적인 사용자 친화적 메시지 사용
+showErrorModal({
+  headline: "초대 수락에 실패했습니다.",
+  description: "잠시 후 다시 시도해주세요.",
+});
+```
+
+**이유:**
+1. 서버 메시지는 개발자를 위한 기술적 내용이 포함될 수 있음 (예: `Cannot read properties of undefined`)
+2. 영어로 된 메시지가 그대로 노출될 수 있음 (예: `Invitation has already been accepted`)
+3. 사용자에게 불필요한 기술적 정보 노출은 UX를 해침
+4. 개발자는 콘솔 로그로 디버깅, 사용자에게는 친화적 메시지 제공
+
+**에러 코드 기반 분기 처리:**
+```typescript
+// ✅ GOOD - 에러 코드로 분기하고 적절한 동작 수행
+const errorCode = errorData?.data?.code;
+
+if (errorCode === "INVITATION_ALREADY_ACCEPTED") {
+  // 에러 모달 없이 자연스럽게 다음 플로우로 이동
+  router.replace("/projects");
+  return;
+}
+
+// 그 외 에러는 일반적인 메시지로 표시
+showErrorModal({
+  headline: "처리에 실패했습니다.",
+  description: "잠시 후 다시 시도해주세요.",
+});
+```
+
+**로깅:**
+- 디버깅을 위해 `console.error`로 원본 에러 객체를 로깅하는 것은 권장됨
+- 프로덕션에서는 에러 모니터링 서비스(Sentry 등)로 전송
+
 ### 8. 접근성/국제화
 
 - 상호작용 요소에 `aria-*` 속성을 고려하고, 텍스트 대비를 유지합니다.

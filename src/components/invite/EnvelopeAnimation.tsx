@@ -38,15 +38,14 @@ export function EnvelopeAnimation({
 
   return (
     <div className="relative" style={{ perspective: "1200px" }}>
-      {/* 봉투 컨테이너 - 열릴 때 아래로 이동 */}
+      {/* 봉투 컨테이너 - 전체가 함께 페이드인 */}
       <motion.div
         className="relative w-[622px] h-[370px] mx-auto mt-[120px]"
         style={{ clipPath: "inset(-500px -50px 0px -50px)" }}
-        animate={{
-          y: isOpen ? 80 : 0,
-        }}
+        initial={{ y: 80, opacity: 0 }}
+        animate={{ y: 80, opacity: 1 }}
         transition={{
-          y: { delay: 0.5, duration: 0.8, ease: easeInOut },
+          opacity: { delay: 0.1, duration: 0.6, ease: easeInOut },
         }}
       >
         {/* 1. 봉투 바닥 (Back) - envelope-base.png */}
@@ -64,23 +63,15 @@ export function EnvelopeAnimation({
           />
         </div>
 
-        {/* 2. 뚜껑 - envelope-cover.png
-            180도 회전하면 역삼각형 → 삼각형으로 변환 */}
-        <motion.div
+        {/* 2. 뚜껑 - 이미 열린 상태 (180도 회전된 상태) */}
+        <div
           className="absolute top-0 left-0 w-full"
           style={{
             transformOrigin: "top center",
             height: "200px",
             clipPath: "polygon(0 0, 100% 0, 50% 100%)", // 역삼각형
-          }}
-          initial={{ rotateX: 0 }}
-          animate={{
-            rotateX: isOpen ? 180 : 0,
-            zIndex: isOpen ? 11 : 40, // 열리면 바닥 위로, 닫히면 가장 앞
-          }}
-          transition={{
-            rotateX: { duration: 1.0, ease: easeInOut },
-            zIndex: { delay: isOpen ? 0.5 : 0 },
+            transform: "rotateX(180deg)", // 이미 열린 상태
+            zIndex: 11, // 바닥 위
           }}
         >
           <Image
@@ -91,23 +82,15 @@ export function EnvelopeAnimation({
             width={672}
             height={252}
           />
-        </motion.div>
+        </div>
 
-        {/* 3. 카드 (초대장) - 피그마 스타일 적용 */}
-        <motion.div
+        {/* 3. 카드 (초대장) - 이미 최종 위치에 고정 */}
+        <div
           className="absolute left-0 right-0 mx-auto w-[572px]"
           style={{
             bottom: "10px",
             zIndex: 20, // outer(30)보다 뒤
-          }}
-          initial={{ y: 80, opacity: 0 }}
-          animate={{
-            y: isOpen ? -180 : 80,
-            opacity: isOpen ? 1 : 0,
-          }}
-          transition={{
-            y: { delay: 0.7, duration: 1.0, ease: easeInOut },
-            opacity: { delay: 0.7, duration: 0.3 },
+            transform: "translateY(-180px)",
           }}
         >
           <div
@@ -196,7 +179,7 @@ export function EnvelopeAnimation({
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 4. 봉투 앞면 (V자 포켓) - envelope-outer.png 
             V자 위쪽 움푹 파인 부분은 투명 (흰색)

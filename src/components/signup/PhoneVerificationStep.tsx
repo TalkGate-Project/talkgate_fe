@@ -1,51 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { setTokens } from "@/lib/token";
-import type { SignupTokens } from "@/types/signup";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
-type ProfileStepProps = {
-  tokens: SignupTokens;
+type PhoneVerificationStepProps = {
   onComplete: () => void;
   onSkip: () => void;
+  guideMessage?: string; // 안내 문구 커스터마이징
 };
 
-export function ProfileStep({
-  tokens,
-  onComplete,
+export function PhoneVerificationStep({ 
+  onComplete, 
   onSkip,
-}: ProfileStepProps) {
-  const queryClient = useQueryClient();
+  guideMessage = "회원가입을 진행해주세요.",
+}: PhoneVerificationStepProps) {
   const [isVerifying, setIsVerifying] = useState(false);
-
-  // 토큰을 쿠키에 저장하고 React Query 캐시를 무효화하는 공통 함수
-  const saveTokensAndInvalidateCache = async () => {
-    setTokens({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    });
-    // 이전 유저 정보 캐시를 제거하고 새 유저 정보로 갱신
-    await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
-  };
 
   const handleVerification = async () => {
     setIsVerifying(true);
     try {
       // TODO: 실제 본인인증 서비스(PASS, NICE 등) 연동
-      console.log("[ProfileStep] 📱 본인인증 시작");
+      // 현재는 임시로 시뮬레이션
+      console.log("[PhoneVerification] 📱 본인인증 시작");
       
       // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
+      // 실제 구현 시에는 window.open 또는 SDK 호출
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      console.log("[ProfileStep] ✅ 본인인증 완료");
+      // 본인인증 성공 시 API 호출
+      // await AuthService.verifyPhone({ verificationToken: "..." });
       
-      // 토큰 저장 및 캐시 무효화
-      await saveTokensAndInvalidateCache();
+      console.log("[PhoneVerification] ✅ 본인인증 완료");
       onComplete();
     } catch (err: unknown) {
-      console.error("[ProfileStep] 본인인증 실패:", err);
+      console.error("[PhoneVerification] 본인인증 실패:", err);
       const errorData = err as { data?: { message?: string } };
       showErrorModal({
         title: "오류 발생",
@@ -60,22 +48,11 @@ export function ProfileStep({
     }
   };
 
-  const handleSkip = async () => {
-    setIsVerifying(true);
-    try {
-      // 건너뛰기 시에는 본인인증 없이 토큰만 저장 및 캐시 무효화
-      await saveTokensAndInvalidateCache();
-      onSkip();
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   return (
-    <div className="w-full mt-8">
+    <div className="w-full">
       {/* 안내 문구 */}
       <div className="text-[#FDFDFD] text-[14px] leading-[1] text-center tracking-[-0.02em] mb-[30px]">
-        회원가입을 진행해주세요.
+        {guideMessage}
       </div>
 
       {/* 본인인증 버튼 - 피그마 디자인 적용 */}
@@ -120,7 +97,7 @@ export function ProfileStep({
         <button
           type="button"
           className="cursor-pointer text-[14px] text-[#808080] hover:text-[#BFBFBF] transition-colors flex items-center gap-1"
-          onClick={handleSkip}
+          onClick={onSkip}
           disabled={isVerifying}
         >
           <span>건너뛰기</span>
@@ -152,5 +129,4 @@ export function ProfileStep({
     </div>
   );
 }
-
 

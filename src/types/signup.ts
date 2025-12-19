@@ -8,6 +8,12 @@ export type CheckEmailOutput = {
   available: boolean;
 };
 
+// 회원가입 플로우에서 임시로 보관하는 토큰 정보
+export type SignupTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export type RegisterInput = {
   email: string;
   password: string;
@@ -51,11 +57,5 @@ export type VerifyEmailOutput = {
     refreshToken: string;
     user: VerifyEmailUser;
   };
-};
-
-// 회원가입 플로우에서 임시로 보관하는 토큰 정보
-export type SignupTokens = {
-  accessToken: string;
-  refreshToken: string;
 };
 

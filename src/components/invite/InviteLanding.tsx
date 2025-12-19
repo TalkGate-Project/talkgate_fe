@@ -91,7 +91,8 @@ export function InviteLanding() {
         // 토큰 검증
         const res = await MembersService.verifyInvitation({ token });
         const payload: any = (res as any)?.data;
-        const inviteData = payload?.data ?? payload ?? {};
+        // 백엔드 응답: { result, data: { isValid, invitation: {...} } }
+        const inviteData = payload?.data?.invitation ?? payload?.invitation ?? payload?.data ?? payload ?? {};
         setInviteInfo(inviteData);
         setIsTokenValid(true);
 
