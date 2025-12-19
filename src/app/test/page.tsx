@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
@@ -8,6 +8,8 @@ import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+
+const THEME_STORAGE_KEY = "talkgate-theme";
 
 export default function TestPage() {
   const [loadingStates, setLoadingStates] = useState({
@@ -19,6 +21,44 @@ export default function TestPage() {
     schedule: false,
     ranking: false,
   });
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const initialTheme = storedTheme === "dark" || storedTheme === "light"
+      ? storedTheme
+      : prefersDark
+        ? "dark"
+        : "light";
+
+    setIsDarkMode(initialTheme === "dark");
+  }, [mounted]);
+
+  useEffect(() => {
+    if (!mounted || typeof document === "undefined") return;
+
+    const theme = isDarkMode ? "dark" : "light";
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.classList.toggle("dark", isDarkMode);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    }
+  }, [mounted, isDarkMode]);
+
+  const handleToggleTheme = () => {
+    setIsDarkMode((prev) => !prev);
+  };
 
   const handleButtonClick = (key: keyof typeof loadingStates, duration: number = 2000) => {
     setLoadingStates((prev) => ({ ...prev, [key]: true }));
@@ -30,7 +70,43 @@ export default function TestPage() {
   return (
     <div className="min-h-screen bg-neutral-0 p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-neutral-90 mb-8">로딩 상태 테스트 페이지</h1>
+        {/* 다크모드 토글 버튼 */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-neutral-90">로딩 상태 테스트 페이지</h1>
+          <button
+            onClick={handleToggleTheme}
+            className="px-4 py-2 bg-neutral-90 dark:bg-neutral-20 text-neutral-0 dark:text-neutral-90 rounded-lg hover:opacity-80 transition-opacity flex items-center gap-2"
+            aria-label={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"}
+          >
+            {isDarkMode ? (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 3V5M12 19V21M5 12H3M21 12H19M6.343 6.343L4.929 4.929M19.071 19.071L17.657 17.657M6.343 17.657L4.929 19.071M19.071 4.929L17.657 6.343M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>라이트 모드</span>
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>다크 모드</span>
+              </>
+            )}
+          </button>
+        </div>
 
         {/* 버튼 로딩 상태 테스트 */}
         <section className="mb-12">
@@ -174,7 +250,7 @@ export default function TestPage() {
         {/* 다양한 스피너 크기 테스트 */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">스피너 크기별 테스트</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="flex items-center gap-8 flex-wrap">
               <div className="flex flex-col items-center gap-2">
                 <LoadingSpinner size="xs" />
@@ -199,6 +275,142 @@ export default function TestPage() {
               <div className="flex flex-col items-center gap-2">
                 <LoadingSpinner size="2xl" />
                 <span className="text-sm text-neutral-60">2X Large</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 스피너 색상별 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 dark:text-neutral-80 mb-4">스피너 색상별 테스트</h2>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Default Variant (그레이 계열) */}
+              <div className="flex flex-col gap-4 p-4 border border-neutral-30 dark:border-neutral-30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-neutral-90 dark:text-neutral-80">Default (그레이)</h3>
+                  <span className="text-xs px-2 py-1 bg-neutral-20 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-60 rounded">
+                    기본값
+                  </span>
+                </div>
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="sm" variant="default" />
+                    <span className="text-xs text-neutral-60">Small</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="md" variant="default" />
+                    <span className="text-xs text-neutral-60">Medium</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="lg" variant="default" />
+                    <span className="text-xs text-neutral-60">Large</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="xl" variant="default" />
+                    <span className="text-xs text-neutral-60">XL</span>
+                  </div>
+                </div>
+                <div className="text-xs text-neutral-60 dark:text-neutral-50">
+                  <p>색상: 연회색(#e2e2e2) + 진회색(#595959)</p>
+                  <p className="mt-1">사용 예: <code className="bg-neutral-10 dark:bg-neutral-20 px-1 rounded">&lt;LoadingSpinner /&gt;</code></p>
+                </div>
+              </div>
+
+              {/* Primary Variant (녹색 계열) */}
+              <div className="flex flex-col gap-4 p-4 border border-neutral-30 dark:border-neutral-30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-neutral-90 dark:text-neutral-80">Primary (녹색)</h3>
+                  <span className="text-xs px-2 py-1 bg-primary-10 text-primary-80 rounded">
+                    강조
+                  </span>
+                </div>
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="sm" variant="primary" />
+                    <span className="text-xs text-neutral-60">Small</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="md" variant="primary" />
+                    <span className="text-xs text-neutral-60">Medium</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="lg" variant="primary" />
+                    <span className="text-xs text-neutral-60">Large</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="xl" variant="primary" />
+                    <span className="text-xs text-neutral-60">XL</span>
+                  </div>
+                </div>
+                <div className="text-xs text-neutral-60 dark:text-neutral-50">
+                  <p>색상: 회색(#d0d0d0) + 녹색(#00e272)</p>
+                  <p className="mt-1">사용 예: <code className="bg-neutral-10 dark:bg-neutral-20 px-1 rounded">&lt;LoadingSpinner variant="primary" /&gt;</code></p>
+                </div>
+              </div>
+
+              {/* White Variant */}
+              <div className="flex flex-col gap-4 p-4 border border-neutral-30 dark:border-neutral-30 rounded-lg bg-neutral-90 dark:bg-neutral-20">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-white dark:text-neutral-80">White (흰색)</h3>
+                  <span className="text-xs px-2 py-1 bg-white/20 text-white rounded">
+                    다크 배경용
+                  </span>
+                </div>
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="sm" variant="white" />
+                    <span className="text-xs text-white/80">Small</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="md" variant="white" />
+                    <span className="text-xs text-white/80">Medium</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="lg" variant="white" />
+                    <span className="text-xs text-white/80">Large</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="xl" variant="white" />
+                    <span className="text-xs text-white/80">XL</span>
+                  </div>
+                </div>
+                <div className="text-xs text-white/70 dark:text-neutral-50">
+                  <p>색상: 반투명 흰색 + 흰색</p>
+                  <p className="mt-1">사용 예: <code className="bg-white/10 px-1 rounded">&lt;LoadingSpinner variant="white" /&gt;</code></p>
+                </div>
+              </div>
+
+              {/* Neutral Variant (더 진한 그레이) */}
+              <div className="flex flex-col gap-4 p-4 border border-neutral-30 dark:border-neutral-30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-neutral-90 dark:text-neutral-80">Neutral (진한 그레이)</h3>
+                  <span className="text-xs px-2 py-1 bg-neutral-30 dark:bg-neutral-40 text-neutral-70 dark:text-neutral-60 rounded">
+                    대비 강화
+                  </span>
+                </div>
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="sm" variant="neutral" />
+                    <span className="text-xs text-neutral-60">Small</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="md" variant="neutral" />
+                    <span className="text-xs text-neutral-60">Medium</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="lg" variant="neutral" />
+                    <span className="text-xs text-neutral-60">Large</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <LoadingSpinner size="xl" variant="neutral" />
+                    <span className="text-xs text-neutral-60">XL</span>
+                  </div>
+                </div>
+                <div className="text-xs text-neutral-60 dark:text-neutral-50">
+                  <p>색상: 중간회색(#b0b0b0) + 진회색(#474747)</p>
+                  <p className="mt-1">사용 예: <code className="bg-neutral-10 dark:bg-neutral-20 px-1 rounded">&lt;LoadingSpinner variant="neutral" /&gt;</code></p>
+                </div>
               </div>
             </div>
           </div>

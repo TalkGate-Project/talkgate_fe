@@ -26,22 +26,27 @@ const sizeClasses: Record<LoadingSpinnerSize, string> = {
   "2xl": "h-12 w-12 border-4",
 };
 
-const variantClasses: Record<LoadingSpinnerVariant, { border: string; borderTop: string }> = {
+type VariantStyle = {
+  borderColor: string;
+  borderTopColor: string;
+};
+
+const variantStyles: Record<LoadingSpinnerVariant, VariantStyle> = {
   default: {
-    border: "border-neutral-20",
-    borderTop: "border-t-primary-60",
+    borderColor: "#e2e2e2", // neutral-30
+    borderTopColor: "#595959", // neutral-70
   },
   primary: {
-    border: "border-primary-20",
-    borderTop: "border-t-primary-60",
+    borderColor: "#d0d0d0", // neutral-40
+    borderTopColor: "#00e272", // primary-60
   },
   white: {
-    border: "border-white/30",
-    borderTop: "border-t-white",
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderTopColor: "#ffffff",
   },
   neutral: {
-    border: "border-neutral-30",
-    borderTop: "border-t-neutral-70",
+    borderColor: "#b0b0b0", // neutral-50
+    borderTopColor: "#474747", // neutral-80
   },
 };
 
@@ -70,17 +75,19 @@ export default function LoadingSpinner({
   className,
   "aria-label": ariaLabel = "로딩 중",
 }: LoadingSpinnerProps) {
-  const variantStyle = variantClasses[variant];
+  const variantStyle = variantStyles[variant];
 
   return (
     <div
       className={cn(
         "animate-spin rounded-full",
         sizeClasses[size],
-        variantStyle.border,
-        variantStyle.borderTop,
         className
       )}
+      style={{
+        borderColor: variantStyle.borderColor,
+        borderTopColor: variantStyle.borderTopColor,
+      }}
       role="status"
       aria-label={ariaLabel}
     >
