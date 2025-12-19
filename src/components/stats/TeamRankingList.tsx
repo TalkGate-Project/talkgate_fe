@@ -6,6 +6,7 @@ import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import Pagination from "@/components/common/Pagination";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -24,7 +25,7 @@ function EmptyState({ message }: { message: string }) {
 function LoadingState() {
   return (
     <div className="mt-6 flex h-[160px] items-center justify-center">
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+      <LoadingSpinner size="2xl" />
     </div>
   );
 }

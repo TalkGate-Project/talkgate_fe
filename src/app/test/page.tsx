@@ -5,6 +5,7 @@ import TableSkeleton from "@/components/common/TableSkeleton";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
@@ -42,7 +43,7 @@ export default function TestPage() {
             >
               {loadingStates.button1 ? (
                 <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
+                  <LoadingSpinner size="sm" />
                   로딩 중...
                 </span>
               ) : (
@@ -57,7 +58,7 @@ export default function TestPage() {
             >
               {loadingStates.button2 ? (
                 <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
+                  <LoadingSpinner size="sm" />
                   처리 중...
                 </span>
               ) : (
@@ -72,7 +73,7 @@ export default function TestPage() {
             >
               {loadingStates.button3 ? (
                 <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
+                  <LoadingSpinner size="sm" />
                   저장 중...
                 </span>
               ) : (
@@ -176,24 +177,28 @@ export default function TestPage() {
           <div className="bg-white rounded-lg border border-neutral-60 p-6">
             <div className="flex items-center gap-8 flex-wrap">
               <div className="flex flex-col items-center gap-2">
-                <Spinner size="xs" />
+                <LoadingSpinner size="xs" />
                 <span className="text-sm text-neutral-60">Extra Small</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Spinner size="sm" />
+                <LoadingSpinner size="sm" />
                 <span className="text-sm text-neutral-60">Small</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Spinner size="md" />
+                <LoadingSpinner size="md" />
                 <span className="text-sm text-neutral-60">Medium</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Spinner size="lg" />
+                <LoadingSpinner size="lg" />
                 <span className="text-sm text-neutral-60">Large</span>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <Spinner size="xl" />
+                <LoadingSpinner size="xl" />
                 <span className="text-sm text-neutral-60">Extra Large</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <LoadingSpinner size="2xl" />
+                <span className="text-sm text-neutral-60">2X Large</span>
               </div>
             </div>
           </div>
@@ -204,15 +209,15 @@ export default function TestPage() {
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">인라인 로딩 상태</h2>
           <div className="bg-white rounded-lg border border-neutral-60 p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <Spinner size="sm" />
+              <LoadingSpinner size="sm" />
               <span className="text-neutral-90">데이터를 불러오는 중입니다...</span>
             </div>
             <div className="flex items-center gap-3">
-              <Spinner size="md" />
+              <LoadingSpinner size="md" />
               <span className="text-neutral-90">처리 중입니다. 잠시만 기다려주세요.</span>
             </div>
             <div className="flex items-center gap-3">
-              <Spinner size="sm" />
+              <LoadingSpinner size="sm" />
               <span className="text-neutral-60 text-sm">작은 텍스트와 함께 표시되는 스피너</span>
             </div>
           </div>
@@ -444,24 +449,4 @@ export default function TestPage() {
   );
 }
 
-// 스피너 컴포넌트
-function Spinner({ size = "md" }: { size?: "xs" | "sm" | "md" | "lg" | "xl" }) {
-  const sizeClasses = {
-    xs: "w-3 h-3 border-2",
-    sm: "w-4 h-4 border-2",
-    md: "w-6 h-6 border-[3px]",
-    lg: "w-8 h-8 border-[3px]",
-    xl: "w-12 h-12 border-4",
-  };
-
-  return (
-    <div
-      className={`${sizeClasses[size]} border-neutral-30 border-t-neutral-70 rounded-full animate-spin`}
-      role="status"
-      aria-label="로딩 중"
-    >
-      <span className="sr-only">로딩 중</span>
-    </div>
-  );
-}
 

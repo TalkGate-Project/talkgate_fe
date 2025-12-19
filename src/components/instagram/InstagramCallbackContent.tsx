@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessengerIntegrationService } from "@/services/messengerIntegration";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 function InstagramCallbackContentInner() {
   const searchParams = useSearchParams();
@@ -68,7 +69,7 @@ function InstagramCallbackContentInner() {
       <div className="bg-card rounded-[14px] shadow-lg p-8 max-w-md w-full mx-4">
         {status === "loading" && (
           <div className="text-center">
-            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mb-4" />
+            <LoadingSpinner size="2xl" className="mb-4" />
             <h2 className="text-[18px] font-semibold text-foreground mb-2">
               인스타그램 연동 중...
             </h2>
@@ -146,7 +147,7 @@ export default function InstagramCallbackContent() {
       <div className="min-h-screen flex items-center justify-center bg-neutral-10">
         <div className="bg-card rounded-[14px] shadow-lg p-8 max-w-md w-full mx-4">
           <div className="text-center">
-            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mb-4" />
+            <LoadingSpinner size="2xl" className="mb-4" />
             <h2 className="text-[18px] font-semibold text-foreground mb-2">
               인스타그램 연동 중...
             </h2>

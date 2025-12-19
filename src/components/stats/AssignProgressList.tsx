@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerAssignmentTeamRecord, CustomerAssignmentByTeamResponse } from "@/types/statistics";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const COLORS = [
   "var(--primary-20)",
@@ -47,7 +48,7 @@ export default function AssignProgressList() {
   if (waitingForProject) {
     return (
       <div className="mt-6 flex h-[140px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

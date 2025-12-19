@@ -9,6 +9,7 @@ import LinkIcon from "./icons/LinkIcon";
 import PlatformIcon from "./icons/PlatformIcon";
 import TgsSticker from "./TgsSticker";
 import ConversationAvatar from "./ConversationAvatar";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 type Props = {
   activeConversation: Conversation | null;
@@ -301,7 +302,7 @@ export default function ChatMainView({
           >
             {isMessagesLoading && (
               <div className="flex justify-center py-4">
-                <div className="h-6 w-6 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                <LoadingSpinner size="sm" />
               </div>
             )}
             {banner && (
@@ -368,7 +369,7 @@ export default function ChatMainView({
                       {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[200px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="text-center">
-                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mx-auto mb-2" />
+                            <LoadingSpinner size="lg" className="mx-auto mb-2" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "이미지 전송 중..."}
                             </div>
@@ -435,7 +436,7 @@ export default function ChatMainView({
                       {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[150px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="text-center">
-                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60 mx-auto mb-2" />
+                            <LoadingSpinner size="lg" className="mx-auto mb-2" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "비디오 전송 중..."}
                             </div>
@@ -498,7 +499,7 @@ export default function ChatMainView({
                       {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="w-[200px] h-[60px] flex items-center justify-center bg-neutral-20 dark:bg-neutral-80 rounded-[8px]">
                           <div className="flex items-center gap-2">
-                            <div className="h-5 w-5 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                            <LoadingSpinner size="xs" />
                             <div className="text-[12px] text-neutral-60">
                               {m.fileName || "오디오 전송 중..."}
                             </div>
@@ -570,7 +571,7 @@ export default function ChatMainView({
                       {((m as any).status === "pending" || (!m.fileUrl && m.status !== "failed" && m.status !== "unsupported")) ? (
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-[8px] bg-neutral-20 dark:bg-neutral-80 flex items-center justify-center flex-shrink-0">
-                            <div className="h-5 w-5 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                            <LoadingSpinner size="xs" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-[12px] font-medium leading-[20px] break-words">

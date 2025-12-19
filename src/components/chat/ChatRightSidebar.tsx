@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConversationsService } from "@/services/conversations";
 import type { AiAssistantMessage } from "@/types/conversations";
 import SendIcon from "./icons/SendIcon";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 type Props = {
   projectId: number;
@@ -205,7 +206,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
 
             {loading && messages.length === 0 && (
               <div className="flex justify-center py-4">
-                <div className="h-6 w-6 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                <LoadingSpinner size="sm" />
               </div>
             )}
 

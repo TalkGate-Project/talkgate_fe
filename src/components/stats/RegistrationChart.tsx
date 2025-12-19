@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, LabelList } from "recharts";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -21,7 +22,7 @@ export default function RegistrationChart({ data, isLoading, isError, hasProject
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="2xl" />
       </div>
     );
   }

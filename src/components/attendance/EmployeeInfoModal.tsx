@@ -16,6 +16,7 @@ import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useMyMember } from "@/hooks/useMyMember";
 import { HRService } from "@/services/hr";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 type Props = {
   open: boolean;
@@ -214,7 +215,7 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
         <div className="overflow-y-auto flex-1">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-60" />
+              <LoadingSpinner size="lg" variant="primary" />
             </div>
           ) : (
             <div className="px-6 py-4 space-y-[30px]">

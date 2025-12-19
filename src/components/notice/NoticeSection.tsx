@@ -10,6 +10,7 @@ import Panel from "@/components/common/Panel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { NoticesService } from "@/services/notices";
 import type { Notice } from "@/types/notices";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function NoticeSection() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function NoticeSection() {
     >
       {waitingForProject ? (
         <div className="flex h-[240px] items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <LoadingSpinner size="2xl" />
         </div>
       ) : missingProject ? (
         <NoticeEmpty message="프로젝트를 먼저 선택해주세요." />
