@@ -15,6 +15,7 @@ import type {
 } from "@/types/dashboard";
 import Pagination from "@/components/common/Pagination";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", ""];
 const ROW_LIMIT = 10;
@@ -90,7 +91,7 @@ export default function AssignedCustomersTable() {
       >
         {waitingForProject ? (
           <div className="flex h-full items-center justify-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+            <LoadingSpinner size="2xl" />
           </div>
         ) : missingProject ? (
           <div className="flex h-full items-center justify-center text-[14px] text-neutral-60 pb-10">
@@ -173,9 +174,9 @@ export default function AssignedCustomersTable() {
                           <path
                             d="M9 5L16 12L9 19"
                             stroke="#B0B0B0"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           />
                         </svg>
                       </button>

@@ -11,6 +11,7 @@ import type { RankingMemberResponse, RankingTeamResponse } from "@/types/statist
 import { useSalesRankingData, type RankingMode, type RankingRow } from "@/hooks/useSalesRankingData";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function SalesRanking() {
   const router = useRouter();
@@ -89,7 +90,7 @@ export default function SalesRanking() {
       <div className="mt-0">
         {waitingForProject ? (
           <div className="flex h-[240px] items-center justify-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+            <LoadingSpinner size="2xl" />
           </div>
         ) : missingProject ? (
           <div className="flex h-[240px] items-center justify-center text-[14px] text-neutral-60">

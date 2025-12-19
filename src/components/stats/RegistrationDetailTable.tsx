@@ -4,6 +4,7 @@ import { formatTableDateKR } from "@/utils/format";
 import ApplyTableSkeleton from "./ApplyTableSkeleton";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import Pagination from "@/components/common/Pagination";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -89,7 +90,7 @@ export default function RegistrationDetailTable({
               <tr>
                 <td colSpan={5} className="text-center py-20">
                   <div className="flex justify-center">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                    <LoadingSpinner size="xl" />
                   </div>
                 </td>
               </tr>

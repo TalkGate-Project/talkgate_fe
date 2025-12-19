@@ -10,6 +10,7 @@ import { StatisticsService } from "@/services/statistics";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type { CustomerPaymentTeamRecord, CustomerPaymentByTeamResponse } from "@/types/statistics";
 import DateRangePicker from "@/components/common/DateRangePicker";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -151,7 +152,7 @@ export default function PaymentBarChart() {
       <div className="w-full">
         {Header}
         <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <LoadingSpinner size="2xl" />
         </div>
       </div>
     );
@@ -173,7 +174,7 @@ export default function PaymentBarChart() {
       <div className="w-full">
         {Header}
         <div className="flex h-[320px] items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <LoadingSpinner size="2xl" />
         </div>
       </div>
     );

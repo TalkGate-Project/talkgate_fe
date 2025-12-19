@@ -9,6 +9,7 @@ import { StatisticsService } from "@/services/statistics";
 import { MembersService } from "@/services/members";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -77,7 +78,7 @@ export default function AssignBarChart() {
   if (waitingForProject) {
     return (
       <div className="flex h-[300px] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="xl" />
       </div>
     );
   }
@@ -93,7 +94,7 @@ export default function AssignBarChart() {
   if (isLoading && !data) {
     return (
       <div className="flex h-[300px] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="xl" />
       </div>
     );
   }

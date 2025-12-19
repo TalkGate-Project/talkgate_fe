@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import EmptyState from "@/components/common/EmptyState";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import {
   AreaChart,
   Area,
@@ -223,7 +224,7 @@ export default function StatsSection() {
       <div className="h-[320px]">
         {waitingForProject ? (
           <div className="flex h-full items-center justify-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+            <LoadingSpinner size="2xl" />
           </div>
         ) : missingProject ? (
           <EmptyState message="프로젝트를 먼저 선택해주세요." />

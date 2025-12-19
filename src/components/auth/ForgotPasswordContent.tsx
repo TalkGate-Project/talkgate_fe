@@ -6,6 +6,7 @@ import { ForgotPasswordService } from "@/services/forgotPassword";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
+import AsyncButton from "@/components/common/AsyncButton";
 
 type Step = "email" | "verify" | "reset" | "done";
 
@@ -22,6 +23,7 @@ export default function ForgotPasswordContent() {
   const [invalid, setInvalid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
@@ -51,12 +53,19 @@ export default function ForgotPasswordContent() {
       {step === "email" && (
         <form
           className="mt-8 w-full space-y-3"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
             setInvalid(false);
-            ForgotPasswordService.requestResetEmail({ email })
-              .then(() => setStep("verify"))
-              .catch(() => setInvalid(true));
+            setIsSubmitting(true);
+            try {
+              await ForgotPasswordService.requestResetEmail({ email });
+              setStep("verify");
+            } catch {
+              setInvalid(true);
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         >
           <div className="text-[#BFBFBF] text-[12px] mb-1">비밀번호를 찾고자 하는 이메일을 입력해주세요.</div>
@@ -69,23 +78,38 @@ export default function ForgotPasswordContent() {
             className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
             autoComplete="email"
           />
-          <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">다음</button>
+          <AsyncButton
+            type="submit"
+            variant="auth"
+            size="md"
+            fullWidth
+            loading={isSubmitting}
+            loadingText="전송 중..."
+            className="mt-2"
+          >
+            다음
+          </AsyncButton>
         </form>
       )}
 
       {step === "verify" && (
         <form
           className="mt-8 w-full space-y-3"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
             setInvalid(false);
-            ForgotPasswordService.verifyIdentity({ email, otp: code })
-              .then((res: any) => {
-                const token = res?.data?.data?.resetToken || res?.data?.resetToken;
-                if (token) setResetToken(String(token));
-                setStep("reset");
-              })
-              .catch(() => setInvalid(true));
+            setIsSubmitting(true);
+            try {
+              const res: any = await ForgotPasswordService.verifyIdentity({ email, otp: code });
+              const token = res?.data?.data?.resetToken || res?.data?.resetToken;
+              if (token) setResetToken(String(token));
+              setStep("reset");
+            } catch {
+              setInvalid(true);
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         >
           <div className="text-[#BFBFBF] text-[12px] mb-1">등록된 핸드폰 번호로 인증번호를 요청하세요.</div>
@@ -113,23 +137,40 @@ export default function ForgotPasswordContent() {
             placeholder="인증번호를 입력하세요"
             className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
           />
-          <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">다음</button>
+          <AsyncButton
+            type="submit"
+            variant="auth"
+            size="md"
+            fullWidth
+            loading={isSubmitting}
+            loadingText="확인 중..."
+            className="mt-2"
+          >
+            다음
+          </AsyncButton>
         </form>
       )}
 
       {step === "reset" && (
         <form
           className="mt-8 w-full space-y-3"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
             setInvalid(false);
             if (!passwordStrong || password !== passwordConfirm) {
               setInvalid(true);
               return;
             }
-            ForgotPasswordService.setNewPassword({ resetToken, newPassword: password })
-              .then(() => setStep("done"))
-              .catch(() => setInvalid(true));
+            setIsSubmitting(true);
+            try {
+              await ForgotPasswordService.setNewPassword({ resetToken, newPassword: password });
+              setStep("done");
+            } catch {
+              setInvalid(true);
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         >
           <div className="text-[#BFBFBF] text-[12px] mb-1">새로운 비밀번호를 입력하세요.</div>
@@ -175,7 +216,17 @@ export default function ForgotPasswordContent() {
               {showPasswordConfirm ? <EyeOnIcon /> : <EyeOffIcon />}
             </button>
           </div>
-          <button type="submit" className="mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold">완료</button>
+          <AsyncButton
+            type="submit"
+            variant="auth"
+            size="md"
+            fullWidth
+            loading={isSubmitting}
+            loadingText="저장 중..."
+            className="mt-2"
+          >
+            완료
+          </AsyncButton>
           <div className="mt-3 text-[12px] text-[#9CA3AF]">영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.</div>
         </form>
       )}

@@ -8,6 +8,7 @@ import MemberStatsFilterModal, { type MemberFilterState } from "@/components/com
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type {
   CustomerAssignmentByMemberResponse,
   CustomerAssignmentMemberRecord,
@@ -173,7 +174,7 @@ export default function AssignMemberTable() {
       <div className="mt-4">
         {Header}
         <div className="flex h-[160px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <LoadingSpinner size="xl" />
         </div>
       </div>
     );

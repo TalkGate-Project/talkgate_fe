@@ -15,6 +15,7 @@ import {
   getDebugState,
 } from "@/lib/auth-utils";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 interface OAuthCallbackContentInnerProps {
   provider: string;
@@ -208,7 +209,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
             <div className="mt-2 text-sm text-gray-400">
               {provider && `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정으로 로그인하고 있습니다.`}
             </div>
-            <div className="mt-4 animate-spin inline-block w-6 h-6 border-2 border-white border-t-transparent rounded-full" />
+            <LoadingSpinner size="sm" variant="white" className="mt-4" />
           </>
         ) : (
           <>

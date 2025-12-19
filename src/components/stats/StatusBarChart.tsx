@@ -7,6 +7,7 @@ import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Toolti
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerNoteStatusRecord, CustomerNoteStatusResponse } from "@/types/statistics";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const COLORS = [
   "#D83232",
@@ -97,7 +98,7 @@ export default function StatusBarChart() {
   if (waitingForProject) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="2xl" />
       </div>
     );
   }
@@ -113,7 +114,7 @@ export default function StatusBarChart() {
   if (isLoading && !data) {
     return (
       <div className="flex h-[320px] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+        <LoadingSpinner size="2xl" />
       </div>
     );
   }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SignupService } from "@/services/signup";
 import Checkbox from "@/components/common/Checkbox";
+import AsyncButton from "@/components/common/AsyncButton";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import type { SignupTokens } from "@/types/signup";
@@ -395,20 +396,24 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
       {/* 약관 동의 영역 끝 */}
 
       {/* 다음 버튼 영역 시작 */}
-      <button
+      <AsyncButton
         type="submit"
-        className="cursor-pointer mt-2 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="auth"
+        size="md"
+        fullWidth
+        loading={isSubmitting}
+        loadingText="처리 중..."
         disabled={
-          isSubmitting ||
           !isEmailConditionMet ||
           !passwordStrong ||
           !passwordMatch ||
           !agreeTerms ||
           !agreePrivacy
         }
+        className="mt-2"
       >
-        {isSubmitting ? "처리 중..." : "다음"}
-      </button>
+        다음
+      </AsyncButton>
       {/* 다음 버튼 영역 끝 */}
     </form>
     // 계정 생성 단계 폼 영역 끝

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { setTokens } from "@/lib/token";
+import AsyncButton from "@/components/common/AsyncButton";
 import type { SignupTokens } from "@/types/signup";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
@@ -76,41 +77,45 @@ export function ProfileStep({
       </div>
 
       {/* 본인인증 버튼 - 피그마 디자인 적용 */}
-      <button
+      <AsyncButton
         type="button"
-        className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold flex items-center justify-center gap-[10px] hover:bg-[#2F2F2F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="auth"
+        size="md"
+        fullWidth
+        loading={isVerifying}
+        loadingText="인증 중..."
         onClick={handleVerification}
-        disabled={isVerifying}
+        leftIcon={
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="5"
+              y="2.5"
+              width="10"
+              height="15"
+              rx="2"
+              stroke="#B0B0B0"
+              strokeWidth="1.5"
+            />
+            <line
+              x1="8"
+              y1="14.5"
+              x2="12"
+              y2="14.5"
+              stroke="#B0B0B0"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        }
       >
-        {/* 스마트폰 아이콘 */}
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="5"
-            y="2.5"
-            width="10"
-            height="15"
-            rx="2"
-            stroke="#B0B0B0"
-            strokeWidth="1.5"
-          />
-          <line
-            x1="8"
-            y1="14.5"
-            x2="12"
-            y2="14.5"
-            stroke="#B0B0B0"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        {isVerifying ? "인증 중..." : "휴대폰 본인인증"}
-      </button>
+        휴대폰 본인인증
+      </AsyncButton>
 
       {/* 건너뛰기 - 피그마 디자인 적용 */}
       <div className="mt-6 flex justify-end">

@@ -17,6 +17,7 @@ import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import MonthPicker from "@/components/common/MonthPicker";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -332,7 +333,7 @@ export default function CalendarSection() {
             <div className="overflow-y-auto flex-1 space-y-3 max-h-[490px]">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+                  <LoadingSpinner size="2xl" />
                 </div>
               ) : missingProject ? (
                 <div className="flex h-full items-center justify-center text-[14px] text-neutral-60">

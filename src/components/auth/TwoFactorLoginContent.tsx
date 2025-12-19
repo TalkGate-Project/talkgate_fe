@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { setSelectedProjectId } from "@/lib/project";
 import AuthLayout from "@/components/auth/AuthLayout";
+import AsyncButton from "@/components/common/AsyncButton";
 
 function TwoFactorLoginContentInner() {
   const router = useRouter();
@@ -12,6 +13,7 @@ function TwoFactorLoginContentInner() {
   const [totpCode, setTotpCode] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const twoFactorToken = searchParams.get("token");
   const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
@@ -29,6 +31,7 @@ function TwoFactorLoginContentInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setInvalid(false);
     setErrorMessage("");
 
@@ -38,6 +41,7 @@ function TwoFactorLoginContentInner() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       console.log("[TwoFactorLogin] 🔑 2FA 로그인 요청 시작");
       const res = await AuthService.twoFactorLogin({
@@ -89,6 +93,8 @@ function TwoFactorLoginContentInner() {
         setErrorMessage("인증에 실패했습니다. 다시 시도해주세요");
         setInvalid(true);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -137,13 +143,18 @@ function TwoFactorLoginContentInner() {
           </p>
         )}
 
-        <button 
-          type="submit" 
-          className="mt-4 w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold hover:bg-[#303030] transition-colors"
+        <AsyncButton
+          type="submit"
+          variant="auth"
+          size="md"
+          fullWidth
+          loading={isSubmitting}
+          loadingText="확인 중..."
           disabled={totpCode.length !== 6}
+          className="mt-4"
         >
           확인
-        </button>
+        </AsyncButton>
       </form>
 
       {/* Back to login link */}

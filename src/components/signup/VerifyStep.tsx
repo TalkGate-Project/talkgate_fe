@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SignupService } from "@/services/signup";
 import { AuthService } from "@/services/auth";
+import AsyncButton from "@/components/common/AsyncButton";
 import type { SignupTokens } from "@/types/signup";
 
 type VerifyStepProps = {
@@ -104,13 +105,16 @@ export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
       {/* 인증번호 입력 + 재전송 영역 끝 */}
 
       {/* 다음 버튼 영역 시작 */}
-      <button
+      <AsyncButton
         type="submit"
-        className="w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isSubmitting}
+        variant="auth"
+        size="md"
+        fullWidth
+        loading={isSubmitting}
+        loadingText="확인 중..."
       >
-        {isSubmitting ? "확인 중..." : "다음"}
-      </button>
+        다음
+      </AsyncButton>
       {/* 다음 버튼 영역 끝 */}
     </form>
     // 이메일 인증 단계 폼 영역 끝

@@ -18,6 +18,7 @@ import type {
   OrganizationTreeNode,
 } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 type Props = {
   open: boolean;
@@ -736,7 +737,7 @@ export default function TeamMemberInfoModal({
             transform: "translate(-50%, -50%)",
           }}
         >
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-neutral-20 border-t-primary-60" />
+          <LoadingSpinner size="2xl" />
           <p className="mt-4 text-[14px] text-neutral-60">
             직원 정보를 불러오는 중...
           </p>
