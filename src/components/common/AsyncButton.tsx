@@ -47,12 +47,13 @@ const variantClasses: Record<AsyncButtonVariant, string> = {
   auth: "bg-[#252525] text-[#D0D0D0] hover:bg-[#2F2F2F]",
 };
 
-const spinnerVariantMap: Record<AsyncButtonVariant, "default" | "white" | "primary" | "neutral"> = {
-  primary: "white",
-  secondary: "neutral",
-  ghost: "neutral",
-  auth: "white",
-};
+// TODO: 버튼 variant에 따른 스피너 색상 매핑 (현재는 default 사용)
+// const spinnerVariantMap: Record<AsyncButtonVariant, "default" | "white" | "primary" | "neutral"> = {
+//   primary: "white",
+//   secondary: "neutral",
+//   ghost: "neutral",
+//   auth: "white",
+// };
 
 /**
  * 비동기 작업을 위한 공용 버튼 컴포넌트
@@ -93,7 +94,6 @@ const AsyncButton = forwardRef<HTMLButtonElement, AsyncButtonProps>(
   ) => {
     const isDisabled = disabled || loading;
     const spinnerSize = spinnerSizeMap[size];
-    const spinnerVariant = spinnerVariantMap[variant];
 
     return (
       <button
@@ -118,7 +118,7 @@ const AsyncButton = forwardRef<HTMLButtonElement, AsyncButtonProps>(
       >
         {loading ? (
           <>
-            <LoadingSpinner size={spinnerSize} variant={spinnerVariant} />
+            <LoadingSpinner size={spinnerSize} />
             {loadingText ?? children}
           </>
         ) : (
