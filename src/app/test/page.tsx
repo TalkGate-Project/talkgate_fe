@@ -161,8 +161,28 @@ export default function TestPage() {
 
         {/* 테이블 스켈레톤 테스트 */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">테이블 스켈레톤</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">테이블 스켈레톤</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/common/TableSkeleton</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">NoticeTable.tsx</code> - rows={5}, columns={["flex", 100, 120]}</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AttendanceTable.tsx</code> - rows={8}, columns={["flex", 120, 80, 100, 100, 100]}</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 이 스켈레톤을 수정하면 위 컴포넌트들의 로딩 상태도 함께 변경됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="mb-4">
               <button
                 onClick={() => handleButtonClick("table", 3000)}
@@ -182,8 +202,27 @@ export default function TestPage() {
 
         {/* 차트 스켈레톤 테스트 */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">차트 스켈레톤</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">차트 스켈레톤</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/common/ChartSkeleton</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">StatsSection.tsx</code> - 기본값 (rows=3)</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 이 스켈레톤을 수정하면 위 컴포넌트의 로딩 상태도 함께 변경됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="mb-4">
               <button
                 onClick={() => handleButtonClick("chart", 3000)}
@@ -207,8 +246,27 @@ export default function TestPage() {
 
         {/* 스케줄 스켈레톤 테스트 */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">스케줄 스켈레톤</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">스케줄 스켈레톤</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/dashboard/ScheduleSkeleton</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">CalendarSection.tsx</code> - 대시보드 달력 & 일정 섹션</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 이 스켈레톤을 수정하면 위 컴포넌트의 로딩 상태도 함께 변경됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="mb-4">
               <button
                 onClick={() => handleButtonClick("schedule", 3000)}
@@ -228,8 +286,27 @@ export default function TestPage() {
 
         {/* 랭킹 스켈레톤 테스트 */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">랭킹 스켈레톤</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">랭킹 스켈레톤</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/dashboard/RankingSkeleton</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">SalesRanking.tsx</code> - 대시보드 이달 판매 랭킹 섹션</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 이 스켈레톤을 수정하면 위 컴포넌트의 로딩 상태도 함께 변경됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="mb-4">
               <button
                 onClick={() => handleButtonClick("ranking", 3000)}

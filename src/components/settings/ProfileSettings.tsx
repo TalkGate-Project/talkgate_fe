@@ -310,7 +310,6 @@ export default function ProfileSettings() {
                 size="sm"
                 onClick={handleSaveProfile}
                 loading={isSaving}
-                loadingText="저장 중..."
                 className="bg-neutral-90 dark:bg-neutral-80 text-white hover:opacity-90"
               >
                 저장

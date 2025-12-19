@@ -110,6 +110,7 @@ export default function Header() {
               <Link
                 key={href}
                 href={href}
+                prefetch={true}
                 className={`text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
                   }`}
               >

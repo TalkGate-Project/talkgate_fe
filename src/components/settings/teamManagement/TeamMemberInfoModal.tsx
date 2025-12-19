@@ -394,7 +394,6 @@ export default function TeamMemberInfoModal({
                   }
                 }}
                 loading={createTeam.isPending}
-                loadingText="저장 중..."
                 className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
               >
                 저장
@@ -500,7 +499,6 @@ export default function TeamMemberInfoModal({
                 size="sm"
                 onClick={handleSaveProfile}
                 loading={isSubmittingProfile}
-                loadingText="저장 중..."
                 className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
               >
                 저장
@@ -717,7 +715,6 @@ export default function TeamMemberInfoModal({
             size="sm"
             onClick={handleAddNote}
             loading={isSubmittingNote}
-            loadingText="저장 중..."
             className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
           >
             저장
