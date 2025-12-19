@@ -25,7 +25,7 @@ export default function TelegramIntegrationModal({
   const handleSubmit = async () => {
     if (!botToken.trim()) {
       showErrorModal({
-        type: "info",
+        type: "error",
         headline: "봇 토큰을 입력해주세요.",
         hideCancel: true,
       });

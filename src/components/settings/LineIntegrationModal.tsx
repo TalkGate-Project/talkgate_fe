@@ -45,8 +45,7 @@ export default function LineIntegrationModal({
         console.error("Failed to fetch webhook URL:", error);
         showErrorModal({
           type: "error",
-          headline: "웹훅 URL 조회에 실패했습니다.",
-          description: "잠시 후 다시 시도해 주세요.",
+          headline: "웹훅 URL 조회에 실패했습니다. 잠시 후 다시 시도해주세요.",
           hideCancel: true,
         });
       } finally {
@@ -79,7 +78,7 @@ export default function LineIntegrationModal({
   const handleSubmit = async () => {
     if (!channelId.trim() || !channelSecret.trim()) {
       showErrorModal({
-        type: "info",
+        type: "error",
         headline: "채널 ID와 시크릿을 모두 입력해주세요.",
         hideCancel: true,
       });

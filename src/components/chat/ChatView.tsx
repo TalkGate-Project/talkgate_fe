@@ -178,7 +178,6 @@ export default function ChatView({ projectId }: Props) {
       showErrorModal({
         title: "알림",
         headline: "연결된 고객 정보가 없습니다.",
-        description: "이 대화에는 연결된 고객 정보가 없습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

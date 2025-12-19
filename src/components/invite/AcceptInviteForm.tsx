@@ -69,8 +69,7 @@ export function AcceptInviteForm() {
     // 그 외 에러는 일반적인 메시지로 표시
     showErrorModal({
       title: "오류 발생",
-      headline: "초대 수락에 실패했습니다.",
-      description: "잠시 후 다시 시도해주세요.",
+      headline: "초대 수락에 실패했습니다. 잠시 후 다시 시도해주세요.",
       confirmText: "확인",
       cancelText: null,
       hideCancel: true,

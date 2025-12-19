@@ -149,7 +149,6 @@ export function InviteLanding() {
       showErrorModal({
         title: "오류 발생",
         headline: "유효하지 않은 초대 토큰입니다.",
-        description: "초대 링크가 만료되었거나 잘못된 링크입니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

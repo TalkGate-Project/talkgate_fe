@@ -49,7 +49,6 @@ export default function CustomersActions({
       showErrorModal({
         title: "알림",
         headline: "업로드 요청이 접수되었습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -61,8 +60,7 @@ export default function CustomersActions({
       console.error(err);
       showErrorModal({
         title: "오류 발생",
-        headline: "업로드에 실패했습니다.",
-        description: "업로드에 실패했습니다.",
+        headline: "업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -108,8 +106,7 @@ export default function CustomersActions({
       console.error(err);
       showErrorModal({
         title: "오류 발생",
-        headline: "다운로드에 실패했습니다.",
-        description: "다운로드에 실패했습니다.",
+        headline: "다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

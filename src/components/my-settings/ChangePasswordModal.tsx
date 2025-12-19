@@ -53,7 +53,6 @@ export default function ChangePasswordModal({
       showErrorModal({
         title: "알림",
         headline: "현재 비밀번호를 입력하세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -64,7 +63,6 @@ export default function ChangePasswordModal({
       showErrorModal({
         title: "알림",
         headline: "비밀번호 요구사항을 충족하지 않습니다.",
-        description: "비밀번호는 최소 8자 이상이며, 대문자, 소문자, 숫자, 특수문자를 모두 포함해야 합니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -75,7 +73,6 @@ export default function ChangePasswordModal({
       showErrorModal({
         title: "알림",
         headline: "새 비밀번호가 일치하지 않습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

@@ -230,7 +230,6 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
                     showErrorModal({
                       title: "알림",
                       headline: "콘솔에서 디버그 로그를 확인하세요.",
-                      description: "",
                       confirmText: "확인",
                       cancelText: null,
                       hideCancel: true,

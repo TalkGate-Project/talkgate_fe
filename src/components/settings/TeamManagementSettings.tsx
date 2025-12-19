@@ -268,8 +268,7 @@ export default function TeamManagementSettings() {
       console.error(err);
       showErrorModal({
         type: "error",
-        headline: "조직 이동에 실패했습니다.",
-        description: "잠시 후 다시 시도해 주세요.",
+        headline: "조직 이동에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
       });
     }

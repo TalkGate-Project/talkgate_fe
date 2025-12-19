@@ -128,8 +128,7 @@ export function useCustomerActions({
           setMessengersLocal(prevList);
           showErrorModal({
             title: "알림",
-            headline: "메신저 삭제에 실패했습니다.",
-            description: "메신저 삭제에 실패했습니다.",
+            headline: "메신저 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,
@@ -306,7 +305,6 @@ export function useCustomerActions({
         showErrorModal({
           title: "오류 발생",
           headline: "상담 내용 삭제에 실패했습니다.",
-          description: "유효하지 않은 상담 내용 ID입니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -331,8 +329,7 @@ export function useCustomerActions({
       } catch (error) {
         showErrorModal({
           title: "오류 발생",
-          headline: "상담 내용 삭제에 실패했습니다.",
-          description: "상담 내용을 삭제하는 중 오류가 발생했습니다.",
+          headline: "상담 내용 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,

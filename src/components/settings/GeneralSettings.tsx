@@ -97,6 +97,7 @@ export default function GeneralSettings() {
       );
       setOriginalServiceName(serviceName);
       showErrorModal({
+        type: "success",
         headline: "프로젝트 이름이 변경되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -104,8 +105,8 @@ export default function GeneralSettings() {
     } catch (error: any) {
       console.error("Failed to update project name:", error);
       showErrorModal({
-        headline: "프로젝트 이름 변경 실패",
-        description: "프로젝트 이름 변경에 실패했습니다.",
+        type: "error",
+        headline: "프로젝트 이름 변경 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -126,6 +127,7 @@ export default function GeneralSettings() {
       );
       setOriginalSubdomain(subdomain);
       showErrorModal({
+        type: "success",
         headline: "서브도메인이 변경되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -133,8 +135,8 @@ export default function GeneralSettings() {
     } catch (error: any) {
       console.error("Failed to update subdomain:", error);
       showErrorModal({
-        headline: "서브도메인 변경 실패",
-        description: "서브도메인 변경에 실패했습니다.",
+        type: "error",
+        headline: "서브도메인 변경 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -150,6 +152,7 @@ export default function GeneralSettings() {
       // 파일 크기 체크 (5MB)
       if (file.size > 5 * 1024 * 1024) {
         showErrorModal({
+          type: "error",
           headline: "파일 크기 초과",
           description: "파일 크기는 5MB를 초과할 수 없습니다.",
           hideCancel: true,
@@ -161,8 +164,8 @@ export default function GeneralSettings() {
       // 파일 타입 체크
       if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
         showErrorModal({
+          type: "error",
           headline: "지원하지 않는 파일 형식",
-          description: "PNG, JPG, WEBP 파일만 업로드 가능합니다.",
           hideCancel: true,
           confirmText: "확인",
         });
@@ -207,6 +210,7 @@ export default function GeneralSettings() {
       
       setOriginalBrandIcon(fileUrl);
       showErrorModal({
+        type: "success",
         headline: "브랜드 아이콘이 업로드되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -214,8 +218,8 @@ export default function GeneralSettings() {
     } catch (error: any) {
       console.error("Failed to upload brand icon:", error);
       showErrorModal({
-        headline: "브랜드 아이콘 업로드 실패",
-        description: "브랜드 아이콘 업로드에 실패했습니다.",
+        type: "error",
+        headline: "브랜드 아이콘 업로드 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -241,6 +245,7 @@ export default function GeneralSettings() {
       setOriginalBrandIcon(null);
       setBrandIconFile(null);
       showErrorModal({
+        type: "success",
         headline: "브랜드 아이콘이 삭제되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -248,8 +253,8 @@ export default function GeneralSettings() {
     } catch (error: any) {
       console.error("Failed to remove brand icon:", error);
       showErrorModal({
-        headline: "브랜드 아이콘 삭제 실패",
-        description: "브랜드 아이콘 삭제에 실패했습니다.",
+        type: "error",
+        headline: "브랜드 아이콘 삭제 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -275,7 +280,8 @@ export default function GeneralSettings() {
     } catch (error: any) {
       console.error("Failed to create status:", error);
       showErrorModal({
-        headline: "처리상태 추가 실패",
+        type: "error",
+        headline: "처리상태 추가 실패. 잠시 후 다시 시도해주세요.",
         description: "처리상태 추가에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",

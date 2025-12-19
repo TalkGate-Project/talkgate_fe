@@ -32,12 +32,10 @@ export function TermsStep({ onComplete }: TermsStepProps) {
     } catch (err: any) {
       console.error("[TermsStep] 약관 동의 실패:", err);
       showErrorModal({
-        title: "오류 발생",
-        headline: "약관 동의에 실패했습니다.",
-        description: "잠시 후 다시 시도해주세요.",
-        confirmText: "확인",
-        cancelText: null,
+        type: "error",
+        headline: "약관 동의에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
+        confirmText: "확인",
       });
     } finally {
       setIsSubmitting(false);

@@ -114,7 +114,6 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
       showErrorModal({
         title: "알림",
         headline: "내용을 입력하세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -125,7 +124,6 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
       showErrorModal({
         title: "알림",
         headline: "시간을 선택하세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -155,7 +153,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
     } catch (e: any) {
       showErrorModal({
         title: "오류 발생",
-        headline: `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다.`,
+        headline: `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다. 잠시 후 다시 시도해주세요.`,
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

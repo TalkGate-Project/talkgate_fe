@@ -43,8 +43,7 @@ export default function TwoFactorSetupModal({
     if (code.length !== 6) {
       showErrorModal({
         type: "error",
-        headline: "인증 코드를 입력하세요",
-        description: "6자리 인증 코드를 입력해주세요.",
+        headline: "인증 코드를 입력해주세요.",
         hideCancel: true,
       });
       return;

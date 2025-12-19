@@ -59,6 +59,7 @@ export default function ProfileSettings() {
     
     if (file.size > 5 * 1024 * 1024) {
       showErrorModal({
+        type: "error",
         headline: "파일 크기 초과",
         description: "파일 크기는 5MB를 초과할 수 없습니다.",
         hideCancel: true,
@@ -69,8 +70,8 @@ export default function ProfileSettings() {
     
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
       showErrorModal({
+        type: "error",
         headline: "지원하지 않는 파일 형식",
-        description: "PNG, JPG, WEBP 파일만 업로드 가능합니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -88,6 +89,7 @@ export default function ProfileSettings() {
       await AssetsService.uploadToS3(uploadUrl, file, file.type);
       setProfileImageUrl(fileUrl);
       showErrorModal({
+        type: "success",
         headline: "프로필 이미지가 업로드되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -95,6 +97,7 @@ export default function ProfileSettings() {
     } catch (error: any) {
       console.error("Failed to upload profile image:", error);
       showErrorModal({
+        type: "error",
         headline: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -135,6 +138,7 @@ export default function ProfileSettings() {
       setIsEditMode(false);
       
       showErrorModal({
+        type: "success",
         headline: "프로필이 수정되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -145,6 +149,7 @@ export default function ProfileSettings() {
     } catch (error: any) {
       console.error("Failed to update profile:", error);
       showErrorModal({
+        type: "error",
         headline: "일시적인 오류가 발생했습니다.",
         hideCancel: true,
         confirmText: "확인",

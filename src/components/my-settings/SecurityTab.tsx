@@ -45,7 +45,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "알림",
           headline: "2단계 인증이 이미 활성화되어 있습니다.",
-          description: "",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -55,7 +54,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "오류 발생",
           headline: "2FA 설정에 실패했습니다.",
-          description: "2FA 설정에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -75,7 +73,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "알림",
         headline: "2단계 인증이 성공적으로 활성화되었습니다!",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -91,7 +88,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "오류 발생",
           headline: "잘못된 인증 코드입니다.",
-          description: "다시 시도해주세요.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -100,7 +96,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "오류 발생",
           headline: "인증에 실패했습니다.",
-          description: "인증에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -120,7 +115,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "알림",
         headline: "인증 코드가 이메일로 발송되었습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -129,7 +123,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "오류 발생",
         headline: "인증 코드 발송에 실패했습니다.",
-        description: "인증 코드 발송에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -149,7 +142,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "알림",
         headline: "2단계 인증이 해제되었습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -165,7 +157,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "알림",
           headline: "2단계 인증이 활성화되어 있지 않습니다.",
-          description: "",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -178,7 +169,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "오류 발생",
           headline: "잘못된 인증 코드입니다.",
-          description: "",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -187,7 +177,6 @@ export default function SecurityTab() {
         showErrorModal({
           title: "오류 발생",
           headline: "2FA 해제에 실패했습니다.",
-          description: "2FA 해제에 실패했습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -205,7 +194,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "알림",
         headline: "비밀번호가 변경되었습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -214,7 +202,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "오류 발생",
         headline: "비밀번호 변경에 실패했습니다.",
-        description: "비밀번호 변경에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -229,7 +216,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "알림",
         headline: "계정이 삭제되었습니다.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -238,7 +224,6 @@ export default function SecurityTab() {
       showErrorModal({
         title: "오류 발생",
         headline: "계정 삭제에 실패했습니다.",
-        description: "계정 삭제에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

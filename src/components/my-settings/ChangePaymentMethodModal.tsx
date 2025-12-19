@@ -68,7 +68,6 @@ export default function ChangePaymentMethodModal({
       showErrorModal({
         title: "알림",
         headline: "모든 필드를 입력해주세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -79,7 +78,6 @@ export default function ChangePaymentMethodModal({
       showErrorModal({
         title: "알림",
         headline: "약관에 동의해주세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

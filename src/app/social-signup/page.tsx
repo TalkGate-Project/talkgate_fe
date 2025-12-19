@@ -33,7 +33,6 @@ function SocialSignupPageContent() {
           showErrorModal({
             title: "접근 권한 없음",
             headline: "권한이 없는 페이지입니다.",
-            description: "소셜 로그인을 통해 접근해주세요.",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,
@@ -48,7 +47,6 @@ function SocialSignupPageContent() {
           showErrorModal({
             title: "접근 권한 없음",
             headline: "이미 회원가입이 완료된 계정입니다.",
-            description: "프로젝트 페이지로 이동합니다.",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,
@@ -65,7 +63,6 @@ function SocialSignupPageContent() {
         showErrorModal({
           title: "접근 권한 없음",
           headline: "권한이 없는 페이지입니다.",
-          description: "소셜 로그인을 통해 접근해주세요.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
