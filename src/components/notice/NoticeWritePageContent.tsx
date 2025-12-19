@@ -7,6 +7,7 @@ import { NoticesService } from "@/services/notices";
 import { getSelectedProjectId } from "@/lib/project";
 import { useMyMember } from "@/hooks/useMyMember";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import AsyncButton from "@/components/common/AsyncButton";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -174,13 +175,17 @@ function NoticeWritePageContentInner() {
             >
               취소
             </button>
-            <button
+            <AsyncButton
+              variant="secondary"
+              size="sm"
               onClick={handleSave}
-              disabled={submitting || loading}
-              className="cursor-pointer w-[66px] h-[34px] bg-foreground text-card rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 transition-colors hover:opacity-90"
+              loading={submitting}
+              disabled={loading}
+              loadingText="저장 중..."
+              className="w-[66px] bg-foreground text-card hover:opacity-90"
             >
-              {submitting ? "저장 중..." : isEditMode ? "수정" : "저장"}
-            </button>
+              {isEditMode ? "수정" : "저장"}
+            </AsyncButton>
           </div>
         </div>
 

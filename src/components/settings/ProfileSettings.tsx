@@ -7,6 +7,7 @@ import { MembersService } from "@/services/members";
 import { AssetsService } from "@/services/assets";
 import type { OrganizationTreeNode } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import AsyncButton from "@/components/common/AsyncButton";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
@@ -304,13 +305,16 @@ export default function ProfileSettings() {
               >
                 취소
               </button>
-              <button 
+              <AsyncButton
+                variant="secondary"
+                size="sm"
                 onClick={handleSaveProfile}
-                disabled={isSaving}
-                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] bg-neutral-90 dark:bg-neutral-80 text-white rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                loading={isSaving}
+                loadingText="저장 중..."
+                className="bg-neutral-90 dark:bg-neutral-80 text-white hover:opacity-90"
               >
-                {isSaving ? "저장 중..." : "저장"}
-              </button>
+                저장
+              </AsyncButton>
             </div>
           )}
         </div>
