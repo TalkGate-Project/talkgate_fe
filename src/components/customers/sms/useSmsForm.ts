@@ -142,7 +142,6 @@ export function useSmsForm() {
           showErrorModal({
             title: "알림",
             headline: "jpg 파일만 첨부할 수 있습니다.",
-            description: "",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,
@@ -294,14 +293,12 @@ export function useSmsForm() {
         } else {
           return {
             success: false,
-            message: "문자 발송에 실패했습니다.",
+            message: "문자 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
           };
         }
       } catch (error: any) {
         console.error("SMS 발송 실패:", error);
-        const errorMessage =
-          error?.data?.message || error?.message || "문자 발송 중 오류가 발생했습니다.";
-        return { success: false, message: errorMessage };
+        return { success: false, message: "문자 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." };
       } finally {
         setSending(false);
       }

@@ -29,7 +29,7 @@ export default function InstagramIntegrationModal({
   const handleSubmit = async () => {
     if (!code.trim()) {
       showErrorModal({
-        type: "info",
+        type: "error",
         headline: "인증 코드를 입력해주세요.",
         hideCancel: true,
       });

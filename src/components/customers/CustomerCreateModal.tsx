@@ -112,7 +112,6 @@ export default function CustomerCreateModal({
       showErrorModal({
         title: "알림",
         headline: "프로젝트를 선택해주세요.",
-        description: "",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -122,8 +121,7 @@ export default function CustomerCreateModal({
     if (!name.trim() || !contact1.trim()) {
       showErrorModal({
         title: "알림",
-        headline: "이름과 연락처1은 필수입니다.",
-        description: "",
+        headline: "필수 정보를 입력해주세요.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,
@@ -162,8 +160,7 @@ export default function CustomerCreateModal({
     } catch (e: any) {
       showErrorModal({
         title: "오류 발생",
-        headline: "고객 등록에 실패했습니다.",
-        description: "고객 등록에 실패했습니다.",
+        headline: "고객 등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

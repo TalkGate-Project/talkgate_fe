@@ -34,14 +34,11 @@ export function PhoneVerificationStep({
       onComplete();
     } catch (err: unknown) {
       console.error("[PhoneVerification] 본인인증 실패:", err);
-      const errorData = err as { data?: { message?: string } };
       showErrorModal({
-        title: "오류 발생",
-        headline: "본인인증에 실패했습니다.",
-        description: errorData?.data?.message || "잠시 후 다시 시도해주세요.",
-        confirmText: "확인",
-        cancelText: null,
+        type: "error",
+        headline: "본인인증에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
+        confirmText: "확인",
       });
     } finally {
       setIsVerifying(false);

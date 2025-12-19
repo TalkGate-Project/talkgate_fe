@@ -213,19 +213,25 @@ export default function MemberSettings() {
       const errorMessage = error?.data?.message || "";
       
       // 영어 에러 메시지를 한글로 변환
-      let displayMessage = "잠시 후 다시 시도해 주세요.";
       if (errorMessage.includes("Invitation already exists")) {
-        displayMessage = "이미 초대중인 이메일입니다.";
+        showErrorModal({
+          type: "error",
+          headline: "이미 초대중인 이메일입니다. 잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+        });
       } else if (errorMessage.includes("already a member")) {
-        displayMessage = "이미 등록된 멤버입니다.";
+        showErrorModal({
+          type: "error",
+          headline: "이미 등록된 멤버입니다. 잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+        });
+      } else {
+        showErrorModal({
+          type: "error",
+          headline: "멤버 초대에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+        });
       }
-      
-      showErrorModal({
-        type: "error",
-        headline: "멤버 초대에 실패했습니다.",
-        description: displayMessage,
-        hideCancel: true,
-      });
     },
   });
 
@@ -248,8 +254,7 @@ export default function MemberSettings() {
     onError: () => {
       showErrorModal({
         type: "error",
-        headline: "멤버 삭제에 실패했습니다.",
-        description: "잠시 후 다시 시도해 주세요.",
+        headline: "멤버 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
       });
     },

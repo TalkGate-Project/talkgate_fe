@@ -143,7 +143,6 @@ export function LoginForm() {
                   showErrorModal({
                     title: "알림",
                     headline: "초대받은 이메일과 다른 계정입니다.",
-                    description: `초대받은 이메일(${pendingInvite.email})로 로그인해주세요.`,
                     confirmText: "확인",
                     cancelText: null,
                     hideCancel: true,
@@ -195,8 +194,7 @@ export function LoginForm() {
               } else {
                 showErrorModal({
                   title: "오류 발생",
-                  headline: "로그인에 실패했습니다.",
-                  description: "이메일 또는 비밀번호를 확인해주세요.",
+                  headline: "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.",
                   confirmText: "확인",
                   cancelText: null,
                   hideCancel: true,

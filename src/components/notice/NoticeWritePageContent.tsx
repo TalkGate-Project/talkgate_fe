@@ -50,7 +50,13 @@ function NoticeWritePageContentInner() {
   useEffect(() => {
     if (!projectId || memberLoading) return;
     if (!isAdminOrSubAdmin) {
-      showErrorModal("공지사항 작성 권한이 없습니다. 관리자 또는 부관리자만 작성할 수 있습니다.");
+      showErrorModal({
+        type: "error",
+        headline: "공지사항 작성 권한이 없습니다. 관리자 또는 부관리자만 작성할 수 있습니다.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
       router.replace("/notices");
     }
   }, [projectId, memberLoading, isAdminOrSubAdmin, router]);

@@ -109,8 +109,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
         } catch (uploadError: any) {
           showErrorModal({
             title: "오류 발생",
-            headline: "이미지 업로드에 실패했습니다.",
-            description: "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+            headline: "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
             confirmText: "확인",
             cancelText: null,
             hideCancel: true,
@@ -138,8 +137,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
       } else {
         showErrorModal({
           title: "오류 발생",
-          headline: "문자 발송에 실패했습니다.",
-          description: result.message || "",
+          headline: "문자 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
@@ -147,11 +145,9 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
       }
     } catch (error: any) {
       console.error("발송 처리 중 오류:", error);
-      const errorMessage = error?.data?.message || error?.message || "문자 발송 중 오류가 발생했습니다.";
       showErrorModal({
         title: "오류 발생",
         headline: "문자 발송 중 오류가 발생했습니다.",
-        description: errorMessage,
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

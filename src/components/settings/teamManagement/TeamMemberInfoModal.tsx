@@ -206,8 +206,8 @@ export default function TeamMemberInfoModal({
     } catch (e: any) {
       console.error(e);
       showErrorModal({
-        headline: "특이사항 추가 실패",
-        description: "일시적인 오류가 발생했습니다.",
+        type: "error",
+        headline: "특이사항 추가 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -220,8 +220,8 @@ export default function TeamMemberInfoModal({
     if (isSubmittingNote) return;
 
     showErrorModal({
-      headline: "특이사항 삭제",
-      description: "이 특이사항을 삭제하시겠습니까?",
+      type: "error",
+      headline: "특이사항을 삭제하시겠습니까?",
       onConfirm: async () => {
         try {
           setIsSubmittingNote(true);
@@ -231,8 +231,8 @@ export default function TeamMemberInfoModal({
         } catch (e: any) {
           console.error(e);
           showErrorModal({
-            headline: "특이사항 삭제 실패",
-            description: "일시적인 오류가 발생했습니다.",
+            type: "error",
+            headline: "특이사항 삭제 실패. 잠시 후 다시 시도해주세요.",
             hideCancel: true,
             confirmText: "확인",
           });
@@ -255,6 +255,7 @@ export default function TeamMemberInfoModal({
       });
       await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
       showErrorModal({
+        type: "success",
         headline: "프로필 정보가 저장되었습니다.",
         hideCancel: true,
         confirmText: "확인",
@@ -265,8 +266,8 @@ export default function TeamMemberInfoModal({
     } catch (e: any) {
       console.error(e);
       showErrorModal({
-        headline: "저장 실패",
-        description: "일시적인 오류가 발생했습니다.",
+        type: "error",
+        headline: "저장 실패. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -320,13 +321,14 @@ export default function TeamMemberInfoModal({
     if (deleteTeam.isPending) return;
     
     showErrorModal({
-      headline: "팀 제거",
-      description: "이 팀을 제거하시겠습니까?",
+      type: "error",
+      headline: "이 팀을 제거하시겠습니까?",
       onConfirm: async () => {
         try {
           await deleteTeam.mutateAsync({ memberId: memberId });
           await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
           showErrorModal({
+            type: "success",
             headline: "팀이 제거되었습니다.",
             hideCancel: true,
             confirmText: "확인",
@@ -334,8 +336,8 @@ export default function TeamMemberInfoModal({
         } catch (err: any) {
           console.error(err);
           showErrorModal({
-            headline: "팀 제거 실패",
-            description: "일시적인 오류가 발생했습니다.",
+            type: "error",
+            headline: "팀 제거 실패. 잠시 후 다시 시도해주세요.",
             hideCancel: true,
             confirmText: "확인",
           });
@@ -381,8 +383,8 @@ export default function TeamMemberInfoModal({
                   } catch (err: any) {
                     console.error(err);
                     showErrorModal({
-                      headline: "팀 생성 실패",
-                      description: "일시적인 오류가 발생했습니다.",
+                      type: "error",
+                      headline: "팀 생성 실패. 잠시 후 다시 시도해주세요.",
                       hideCancel: true,
                       confirmText: "확인",
                     });

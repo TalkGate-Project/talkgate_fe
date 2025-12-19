@@ -540,8 +540,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
               } catch (e: any) {
                 showErrorModal({
                   title: "오류 발생",
-                  headline: "배정에 실패했습니다.",
-                  description: "배정에 실패했습니다.",
+                  headline: "배정에 실패했습니다. 잠시 후 다시 시도해주세요.",
                   confirmText: "확인",
                   cancelText: null,
                   hideCancel: true,

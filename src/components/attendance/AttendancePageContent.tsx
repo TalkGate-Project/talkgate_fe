@@ -57,8 +57,7 @@ function AttendancePageContentInner() {
       // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
       showErrorModal({
         title: "알림",
-        headline: "근태 메뉴는 현재 비활성화되어 있습니다.",
-        description: "대시보드로 이동합니다.",
+        headline: "페이지에 대한 접근 권한이 없습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

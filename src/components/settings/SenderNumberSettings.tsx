@@ -176,11 +176,13 @@ export default function SenderNumberSettings() {
   // 삭제 핸들러 (TODO: API 연동)
   const handleDeleteProjectNumber = async (id: number) => {
     showErrorModal({
+      type: "error",
       headline: "발신번호 삭제",
       description: "이 발신번호를 삭제하시겠습니까?",
       onConfirm: () => {
         // TODO: API 연동 후 구현
         showErrorModal({
+          type: "error",
           headline: "알림",
           description: "발신번호 삭제 API가 아직 구현되지 않았습니다.",
           hideCancel: true,
@@ -236,6 +238,7 @@ export default function SenderNumberSettings() {
       try {
         await SmsService.registerMemberSenderNumber({ verificationToken });
         showErrorModal({
+          type: "success",
           headline: "본인인증 완료",
           description: "본인인증이 완료되어 발신번호가 자동으로 추가되었습니다.",
           hideCancel: true,
@@ -249,15 +252,15 @@ export default function SenderNumberSettings() {
         const errorCode = error?.response?.data?.code;
         if (errorCode === "ALREADY_EXISTS") {
           showErrorModal({
-            headline: "이미 등록된 발신번호",
-            description: "이미 등록된 발신번호입니다.",
+            type: "error",
+            headline: "이미 등록된 발신번호입니다",
             hideCancel: true,
             confirmText: "확인",
           });
         } else {
           showErrorModal({
-            headline: "발신번호 등록 실패",
-            description: "일시적인 오류가 발생했습니다.",
+            type: "error",
+            headline: "발신번호 등록 실패. 잠시 후 다시 시도해주세요.",
             hideCancel: true,
             confirmText: "확인",
           });

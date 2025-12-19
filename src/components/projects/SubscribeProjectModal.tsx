@@ -101,8 +101,7 @@ export default function SubscribeProjectModal({
       console.error("Subscription failed:", error);
       showErrorModal({
         type: "error",
-        headline: "구독에 실패했습니다",
-        description: "다시 시도해주세요.",
+        headline: "구독에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
       });
     } finally {

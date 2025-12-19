@@ -84,8 +84,7 @@ export function initiateSocialLogin(provider: OAuthProvider): void {
     console.error(`[OAuth] ${errorMsg}`);
     showErrorModal({
       type: "error",
-      headline: "소셜 로그인을 사용할 수 없습니다.",
-      description: "서비스 설정 오류가 발생했습니다. 관리자에게 문의해 주세요.",
+      headline: "소셜 로그인을 사용할 수 없습니다. 관리자에게 문의해 주세요.",
       hideCancel: true,
     });
     return;

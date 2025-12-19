@@ -21,8 +21,8 @@ export default function CustomerApiSettings() {
     } catch (err) {
       console.error("Failed to copy endpoint", err);
       showErrorModal({
-        headline: "복사 실패",
-        description: "복사에 실패했습니다. 다시 시도해주세요.",
+        type: "error",
+        headline: "복사에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -37,8 +37,8 @@ export default function CustomerApiSettings() {
     } catch (err) {
       console.error("Failed to copy API key", err);
       showErrorModal({
-        headline: "복사 실패",
-        description: "복사에 실패했습니다. 다시 시도해주세요.",
+        type: "error",
+        headline: "복사에 실패했습니다. 잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -56,8 +56,8 @@ export default function CustomerApiSettings() {
   const handleConfirmRegenerate = () => {
     // TODO: API 연동 후 실제 재발급 로직 구현
     showErrorModal({
-      headline: "API 키 재발급",
-      description: "API 키가 재발급되었습니다. (추후 API 연동 후 실제 구현 예정)",
+      type: "success",
+      headline: "API 키가 재발급되었습니다.",
       hideCancel: true,
       confirmText: "확인",
     });
