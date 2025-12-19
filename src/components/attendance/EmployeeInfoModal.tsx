@@ -17,6 +17,7 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { HRService } from "@/services/hr";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import AsyncButton from "@/components/common/AsyncButton";
 
 type Props = {
   open: boolean;
@@ -357,13 +358,16 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                           }
                           className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
                         />
-                        <button
-                          className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+                        <AsyncButton
+                          variant="secondary"
+                          size="sm"
                           onClick={handleSaveHrData}
-                          disabled={isSubmitting}
+                          loading={isSubmitting}
+                          loadingText="저장 중..."
+                          className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
                         >
                           저장
-                        </button>
+                        </AsyncButton>
                       </div>
                     </div>
                   </div>
@@ -473,13 +477,16 @@ export default function EmployeeInfoModal({ open, onClose, employee }: Props) {
                       }}
                       className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
                     />
-                    <button 
-                      className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+                    <AsyncButton
+                      variant="secondary"
+                      size="sm"
                       onClick={handleAddNote}
-                      disabled={isSubmitting}
+                      loading={isSubmitting}
+                      loadingText="저장 중..."
+                      className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
                     >
                       저장
-                    </button>
+                    </AsyncButton>
                   </div>
                 </div>
               </div>

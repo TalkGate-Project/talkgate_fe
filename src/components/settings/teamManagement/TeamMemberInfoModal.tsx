@@ -19,6 +19,7 @@ import type {
 } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import AsyncButton from "@/components/common/AsyncButton";
 
 type Props = {
   open: boolean;
@@ -369,8 +370,9 @@ export default function TeamMemberInfoModal({
               >
                 취소
               </button>
-              <button
-                type="button"
+              <AsyncButton
+                variant="secondary"
+                size="sm"
                 onClick={async () => {
                   const trimmed = teamNameDraft.trim();
                   if (!trimmed || createTeam.isPending) return;
@@ -391,13 +393,12 @@ export default function TeamMemberInfoModal({
                     });
                   }
                 }}
-                disabled={createTeam.isPending}
-                className={`${
-                  createTeam.isPending ? "cursor-not-allowed" : "cursor-pointer"
-                } h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 disabled:opacity-60`}
+                loading={createTeam.isPending}
+                loadingText="저장 중..."
+                className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
               >
-                {createTeam.isPending ? "저장 중..." : "저장"}
-              </button>
+                저장
+              </AsyncButton>
             </div>
           </div>
         ) : (
@@ -494,14 +495,16 @@ export default function TeamMemberInfoModal({
               >
                 취소
               </button>
-              <button
-                type="button"
+              <AsyncButton
+                variant="secondary"
+                size="sm"
                 onClick={handleSaveProfile}
-                disabled={isSubmittingProfile}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 disabled:opacity-60"
+                loading={isSubmittingProfile}
+                loadingText="저장 중..."
+                className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
               >
-                {isSubmittingProfile ? "저장 중..." : "저장"}
-              </button>
+                저장
+              </AsyncButton>
             </div>
           ) : (
             <button
@@ -709,16 +712,16 @@ export default function TeamMemberInfoModal({
             placeholder="특이사항을 입력하세요"
             className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
           />
-          <button
-            type="button"
+          <AsyncButton
+            variant="secondary"
+            size="sm"
             onClick={handleAddNote}
-            disabled={isSubmittingNote}
-            className={`h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-0 text-[14px] font-semibold hover:opacity-90 ${
-              isSubmittingNote ? "opacity-60 cursor-not-allowed" : ""
-            }`}
+            loading={isSubmittingNote}
+            loadingText="저장 중..."
+            className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
           >
-            {isSubmittingNote ? "저장 중..." : "저장"}
-          </button>
+            저장
+          </AsyncButton>
         </div>
       </section>
     </div>
