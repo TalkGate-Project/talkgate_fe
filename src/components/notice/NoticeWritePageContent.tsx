@@ -181,7 +181,6 @@ function NoticeWritePageContentInner() {
               onClick={handleSave}
               loading={submitting}
               disabled={loading}
-              loadingText="저장 중..."
               className="w-[66px] bg-foreground text-card hover:opacity-90"
             >
               {isEditMode ? "수정" : "저장"}

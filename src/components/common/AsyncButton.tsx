@@ -10,7 +10,7 @@ export type AsyncButtonSize = "sm" | "md" | "lg";
 type AsyncButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** 로딩 상태 */
   loading?: boolean;
-  /** 로딩 중 표시할 텍스트 (없으면 기존 children 유지 + 스피너) */
+  /** 로딩 중 표시할 텍스트 (없으면 스피너만 표시, 큰 버튼에서 사용 권장) */
   loadingText?: string;
   /** 버튼 변형 */
   variant?: AsyncButtonVariant;
@@ -59,16 +59,16 @@ const variantClasses: Record<AsyncButtonVariant, string> = {
  * 비동기 작업을 위한 공용 버튼 컴포넌트
  * 
  * @example
- * // 기본 사용 (로딩 상태)
+ * // 기본 사용 - 로딩 시 스피너만 표시 (작은 버튼에 권장)
  * <AsyncButton loading={isSubmitting}>저장</AsyncButton>
  * 
  * @example
- * // 로딩 텍스트 지정
+ * // 로딩 텍스트 지정 - 큰 버튼(로그인 등)에서 사용
  * <AsyncButton loading={isSubmitting} loadingText="처리 중...">다음</AsyncButton>
  * 
  * @example
- * // 인증 폼 스타일
- * <AsyncButton variant="auth" loading={loading} fullWidth>로그인</AsyncButton>
+ * // 인증 폼 스타일 (fullWidth + loadingText 권장)
+ * <AsyncButton variant="auth" loading={loading} loadingText="로그인 중..." fullWidth>로그인</AsyncButton>
  * 
  * @example
  * // 아이콘 포함
@@ -119,7 +119,7 @@ const AsyncButton = forwardRef<HTMLButtonElement, AsyncButtonProps>(
         {loading ? (
           <>
             <LoadingSpinner size={spinnerSize} />
-            {loadingText ?? children}
+            {loadingText}
           </>
         ) : (
           <>
