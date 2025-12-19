@@ -174,9 +174,9 @@ export default function AssignedCustomersTable() {
                           <path
                             d="M9 5L16 12L9 19"
                             stroke="#B0B0B0"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           />
                         </svg>
                       </button>
