@@ -109,7 +109,7 @@ export default function ChatLeftSidebar({
             {/* Filter */}
             <button
               aria-label="filter"
-              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border"
+              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border dark:!border-[#44444455]"
               onClick={() => setFilterOpen(true)}
             >
               <FilterIcon />

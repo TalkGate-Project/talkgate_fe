@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Inter, Roboto_Mono, Montserrat } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
@@ -55,13 +56,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Middleware에서 설정한 zoom 모드 확인
+  const headersList = headers();
+  const uiZoomMode = headersList.get("x-ui-zoom") || "compact";
+  const initialZoom = uiZoomMode === "normal" ? 1 : 0.8;
+
   return (
     <html lang="ko" data-theme="light">
       <head>
         <link rel="stylesheet" as="style" crossOrigin="" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
         <meta name="robots" content="noindex, nofollow" />
       </head>
-      <body className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}>
+      {/* 
+          Middleware에서 전달된 초기 zoom 값을 body 스타일에 바로 적용하여 
+          초기 로딩 시 깜빡임(FOUC) 방지 및 로그아웃 리다이렉트 시 정확한 zoom 적용 보장
+      */}
+      <body 
+        className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}
+        style={{ zoom: initialZoom } as any}
+      >
         <ErrorFeedbackModalProvider>
           <ConfirmModalProvider>
             <ReactQueryProvider>
@@ -71,7 +84,7 @@ export default function RootLayout({
                     <ConditionalHeader />
                     {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
                     <Suspense fallback={null}>
-                      <UiScaleToggle />
+                      <UiScaleToggle initialZoom={uiZoomMode as "normal" | "compact"} />
                     </Suspense>
                     {/* No fixed padding; header component inserts spacer only when visible */}
                     <div>{children}</div>

@@ -156,6 +156,29 @@ export async function middleware(req: NextRequest) {
   const hasAuthCookie = Boolean(accessToken);
   const protocol = req.nextUrl.protocol;
 
+  // UI Zoom 설정을 위한 헤더 처리
+  // 기본값은 compact (0.8)
+  let uiZoomMode = "compact";
+  
+  // 인증 관련 페이지는 normal (1.0)
+  const isAuthPath = matchesPath(pathname, [
+    "/login", 
+    "/signup", 
+    "/social-signup", 
+    "/forgot-password", 
+    "/invite", 
+    "/auth/callback",
+    "/logout"
+  ]);
+
+  if (isAuthPath) {
+    uiZoomMode = "normal";
+  }
+
+  // Request Headers에 x-ui-zoom 추가
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-ui-zoom", uiZoomMode);
+
   // 개발 환경 감지
   const isDev = isDevelopment(host);
 
@@ -188,7 +211,7 @@ export async function middleware(req: NextRequest) {
       }
     }
 
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ============================================
@@ -253,7 +276,7 @@ export async function middleware(req: NextRequest) {
     
     // 이미 인증된 사용자가 로그인 페이지 접근 시 적절한 페이지로 리다이렉트
     // (클라이언트 측에서 처리하므로 여기서는 pass)
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ============================================
@@ -274,7 +297,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}`));
     }
     
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ============================================
@@ -315,12 +338,12 @@ export async function middleware(req: NextRequest) {
         // 프로젝트 ID가 없거나 다르면 쿠키 설정
         if (!currentProjectId || currentProjectId !== subdomainProjectId) {
           console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
-          const response = NextResponse.next();
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
           setProjectIdCookie(response, req, subdomainProjectId);
           return response;
         }
         
-        return NextResponse.next();
+        return NextResponse.next({ request: { headers: requestHeaders } });
       } else {
         // 서브도메인이 있지만 프로젝트를 찾지 못함 → 프로젝트 선택 페이지로
         console.log(`[Middleware] 유효하지 않은 서브도메인: ${subdomain}`);
@@ -355,17 +378,17 @@ export async function middleware(req: NextRequest) {
         const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
         
         if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-          const response = NextResponse.next();
+          const response = NextResponse.next({ request: { headers: requestHeaders } });
           setProjectIdCookie(response, req, subdomainProjectId);
           return response;
         }
       }
     }
     
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
   
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
