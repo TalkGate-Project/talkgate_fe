@@ -11,6 +11,7 @@ import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import NotificationBell from "./NotificationBell";
 import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
+import { useChatContextSafe } from "@/providers/ChatProvider";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -38,6 +39,8 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
+  const chatContext = useChatContextSafe();
+  const hasUnread = chatContext?.hasUnread ?? false;
 
   // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
   // Hydration 에러 방지를 위해 attendanceReady를 체크
@@ -106,15 +109,25 @@ export default function Header() {
         <nav className="ml-8 flex items-center gap-[26px] h-[17px]">
           {NAV_ITEMS.map(({ label, href }) => {
             const isActive = pathname === href;
+            const isConsult = href === "/consult";
+            const showRedDot = isConsult && hasUnread && mounted;
+            
             return (
               <Link
                 key={href}
                 href={href}
                 prefetch={true}
-                className={`text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
+                className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
                   }`}
               >
                 {label}
+                {/* 안 읽은 메시지가 있을 때 레드닷 표시 */}
+                {showRedDot && (
+                  <span 
+                    className="absolute -top-1.5 -right-2 w-2 h-2 bg-[#D83232] rounded-full"
+                    aria-label="안 읽은 메시지 있음"
+                  />
+                )}
               </Link>
             );
           })}
