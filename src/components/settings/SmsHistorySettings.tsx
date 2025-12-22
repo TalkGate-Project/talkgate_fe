@@ -74,15 +74,6 @@ export default function SmsHistorySettings() {
     setPage(1);
   }, [startDate, endDate, statusFilter, messageTypeFilter]);
 
-  // 필터 초기화
-  const handleResetFilters = () => {
-    setStartDate(null);
-    setEndDate(null);
-    setStatusFilter("");
-    setMessageTypeFilter("");
-    setPage(1);
-  };
-
   // 필터 모달 열기
   const handleOpenFilterModal = () => {
     setIsFilterModalOpen(true);
@@ -91,13 +82,6 @@ export default function SmsHistorySettings() {
   // 필터 모달 닫기
   const handleCloseFilterModal = () => {
     setIsFilterModalOpen(false);
-  };
-
-  // 필터 적용
-  const handleApplyFilters = (status: SmsStatus | "", messageType: SmsMessageType | "") => {
-    setStatusFilter(status);
-    setMessageTypeFilter(messageType);
-    setPage(1);
   };
 
   return (
@@ -131,6 +115,12 @@ export default function SmsHistorySettings() {
                 endDate={endDate}
                 onStartChange={setStartDate}
                 onEndChange={setEndDate}
+                onReset={() => {
+                  // 날짜뿐만 아니라 필터 모달의 필터도 함께 초기화
+                  setStatusFilter("");
+                  setMessageTypeFilter("");
+                  setPage(1);
+                }}
                 showInlineIcon={true}
               />
               
@@ -157,7 +147,8 @@ export default function SmsHistorySettings() {
               onClose={handleCloseFilterModal}
               statusFilter={statusFilter}
               messageTypeFilter={messageTypeFilter}
-              onApply={handleApplyFilters}
+              onStatusChange={setStatusFilter}
+              onMessageTypeChange={setMessageTypeFilter}
             />
 
             {/* 테이블 */}
