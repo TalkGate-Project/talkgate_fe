@@ -23,7 +23,9 @@ export default function ProjectsContent() {
   const [subscribeProject, setSubscribeProject] = useState<any | null>(null);
   const [subdomainError, setSubdomainError] = useState<string | null>(null);
   // 클릭된 프로젝트 ID (로딩 상태 표시 및 중복 클릭 방지용)
-  const [selectingProjectId, setSelectingProjectId] = useState<number | null>(null);
+  const [selectingProjectId, setSelectingProjectId] = useState<number | null>(
+    null
+  );
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -126,8 +128,8 @@ export default function ProjectsContent() {
         {/* Projects row */}
         <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
           {loading && (
-            <div className="col-span-full text-center text-neutral-60">
-              불러오는 중...
+            <div className="col-span-full flex items-center justify-center py-20">
+              <LoadingSpinner size="2xl" />
             </div>
           )}
           {!loading && projects.length === 0 && (
@@ -136,176 +138,187 @@ export default function ProjectsContent() {
           {projects.map((p: any) => {
             const isSelecting = selectingProjectId === p.id;
             const isAnySelecting = selectingProjectId !== null;
-            
+
             return (
-            <div
-              key={p.id}
-              className={`px-7 pt-6 pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
-                isSelecting
-                  ? "border-primary-60 opacity-80"
-                  : isAnySelecting
-                  ? "opacity-50 cursor-not-allowed border-transparent"
-                  : "cursor-pointer border-transparent hover:border-primary-60 hover:translate-y-[-20px]"
-              }`}
-              onClick={() => {
-                // 이미 선택 중인 프로젝트가 있으면 클릭 무시
-                if (isAnySelecting) return;
-                
-                // 구독이 활성화되지 않은 경우 모달 표시
-                if (!p.hasActiveSubscription) {
-                  setSubscribeProject(p);
-                  return;
-                }
+              <div
+                key={p.id}
+                className={`px-7 pt-6 pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
+                  isSelecting
+                    ? "border-primary-60 opacity-80"
+                    : isAnySelecting
+                    ? "opacity-50 cursor-not-allowed border-transparent"
+                    : "cursor-pointer border-transparent hover:border-primary-60 hover:translate-y-[-20px]"
+                }`}
+                onClick={() => {
+                  // 이미 선택 중인 프로젝트가 있으면 클릭 무시
+                  if (isAnySelecting) return;
 
-                // 선택 상태 설정
-                setSelectingProjectId(p.id);
+                  // 구독이 활성화되지 않은 경우 모달 표시
+                  if (!p.hasActiveSubscription) {
+                    setSubscribeProject(p);
+                    return;
+                  }
 
-                // 구독이 활성화된 경우 대시보드로 이동
-                const isDev = isDevelopment();
-                
-                // 개발 환경: 쿠키에 세팅하고 /dashboard로 이동
-                if (isDev) {
+                  // 선택 상태 설정
+                  setSelectingProjectId(p.id);
+
+                  // 구독이 활성화된 경우 대시보드로 이동
+                  const isDev = isDevelopment();
+
+                  // 개발 환경: 쿠키에 세팅하고 /dashboard로 이동
+                  if (isDev) {
+                    setSelectedProjectId(p.id);
+                    setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+                    router.push("/dashboard");
+                    return;
+                  }
+
+                  // 배포 환경: 서브도메인이 있으면 서브도메인으로 이동, 없으면 쿠키 세팅 후 /dashboard로 이동
+                  if (p.subDomain) {
+                    const subdomainUrl = getProjectSubdomainUrl(
+                      p.subDomain,
+                      "/dashboard"
+                    );
+                    if (subdomainUrl) {
+                      // 서브도메인으로 리다이렉트
+                      window.location.href = subdomainUrl;
+                      return;
+                    }
+                  }
+
+                  // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
                   setSelectedProjectId(p.id);
                   setUseAttendanceMenu(p.useAttendanceMenu ?? false);
                   router.push("/dashboard");
-                  return;
-                }
-                
-                // 배포 환경: 서브도메인이 있으면 서브도메인으로 이동, 없으면 쿠키 세팅 후 /dashboard로 이동
-                if (p.subDomain) {
-                  const subdomainUrl = getProjectSubdomainUrl(p.subDomain, "/dashboard");
-                  if (subdomainUrl) {
-                    // 서브도메인으로 리다이렉트
-                    window.location.href = subdomainUrl;
-                    return;
-                  }
-                }
-                
-                // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
-                setSelectedProjectId(p.id);
-                setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                router.push("/dashboard");
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {p.logoUrl ? (
-                    <img
-                      src={p.logoUrl}
-                      alt={`${p.name} 로고`}
-                      width={28}
-                      height={28}
-                      className="w-7 h-7 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-neutral-20" />
-                  )}
-                  <div className="text-[18px] font-semibold text-foreground truncate">
-                    {p.name}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70">
-                      멤버 {p.memberCount ?? 0}명
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {p.logoUrl ? (
+                      <img
+                        src={p.logoUrl}
+                        alt={`${p.name} 로고`}
+                        width={28}
+                        height={28}
+                        className="w-7 h-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-neutral-20" />
+                    )}
+                    <div className="text-[18px] font-semibold text-foreground truncate">
+                      {p.name}
                     </div>
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor: p.hasActiveSubscription 
-                          ? "var(--primary-60)" 
-                          : "var(--danger-40)",
-                      }}
-                    />
+                    <div className="flex items-center gap-2">
+                      <div className="w-[72px] h-[24px] leading-[24px] text-center rounded-[30px] text-[12px] bg-neutral-30 text-neutral-70">
+                        멤버 {p.memberCount ?? 0}명
+                      </div>
+                      <div
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: p.hasActiveSubscription
+                            ? "var(--primary-60)"
+                            : "var(--danger-40)",
+                        }}
+                      />
+                    </div>
                   </div>
+                  {/* 로딩 스피너 */}
+                  {isSelecting && <LoadingSpinner size="sm" />}
                 </div>
-                {/* 로딩 스피너 */}
-                {isSelecting && (
-                  <LoadingSpinner size="sm" />
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-6 mt-5">
-                <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
-                  <div>
-                    <div className="text-[16px] font-semibold text-foreground">
-                      나에게 할당된 고객
+                <div className="grid grid-cols-2 gap-6 mt-5">
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                    <div>
+                      <div className="text-[16px] font-semibold text-foreground">
+                        나에게 할당된 고객
+                      </div>
+                      <div
+                        className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                        style={montserratStyle}
+                      >
+                        {p.assignedCustomerCount ?? 0}건
+                      </div>
                     </div>
-                    <div
-                      className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
-                      style={montserratStyle}
-                    >
-                      {p.assignedCustomerCount ?? 0}건
-                    </div>
+                    <Image
+                      src={
+                        p.hasActiveSubscription
+                          ? projectAssignedCustomerImg
+                          : projectNotAssignedCustomerImg
+                      }
+                      alt="할당 고객 아이콘"
+                      width={60}
+                      height={60}
+                      className="w-[60px] h-[60px]"
+                    />
                   </div>
-                  <Image
-                    src={p.hasActiveSubscription ? projectAssignedCustomerImg : projectNotAssignedCustomerImg}
-                    alt="할당 고객 아이콘"
-                    width={60}
-                    height={60}
-                    className="w-[60px] h-[60px]"
-                  />
-                </div>
-                <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
-                  <div>
-                    <div className="text-[16px] font-semibold text-foreground">
-                      오늘 예약 일정
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                    <div>
+                      <div className="text-[16px] font-semibold text-foreground">
+                        오늘 예약 일정
+                      </div>
+                      <div
+                        className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                        style={montserratStyle}
+                      >
+                        {p.todayScheduleCount ?? 0}건
+                      </div>
                     </div>
-                    <div
-                      className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
-                      style={montserratStyle}
-                    >
-                      {p.todayScheduleCount ?? 0}건
-                    </div>
+                    <Image
+                      src={
+                        p.hasActiveSubscription
+                          ? projectReservedItemImg
+                          : projectNotReservedItemImg
+                      }
+                      alt="예약 일정 아이콘"
+                      width={60}
+                      height={60}
+                      className="w-[60px] h-[60px]"
+                    />
                   </div>
-                  <Image
-                    src={p.hasActiveSubscription ? projectReservedItemImg : projectNotReservedItemImg}
-                    alt="예약 일정 아이콘"
-                    width={60}
-                    height={60}
-                    className="w-[60px] h-[60px]"
-                  />
                 </div>
               </div>
-            </div>
-          );
+            );
           })}
 
           {/* Create new service */}
-          <div
-            className={`rounded-[14px] border-2 border-dashed border-neutral-30 transition-colors duration-200 bg-card p-12 flex flex-col items-center justify-center min-h-[225px] ${
-              loading
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:border-primary-60 cursor-pointer"
-            }`}
-            onClick={() => {
-              if (!loading) {
-                setShowCreate(true);
-              }
-            }}
-          >
-            <div className="w-12 h-12 rounded-[12px] overflow-hidden grid place-items-center">
-              <svg
-                width="48"
-                height="48"
-                viewBox="0 0 48 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="[&_circle]:fill-[var(--neutral-20)] [&_path]:stroke-[var(--neutral-60)]"
-              >
-                <circle cx="24" cy="24" r="24" />
-                <path
-                  d="M24 16V32M32 24L16 24"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+          {!loading && (
+            <div
+              className={`rounded-[14px] border-2 border-dashed border-neutral-30 transition-colors duration-200 bg-card p-12 flex flex-col items-center justify-center min-h-[225px] ${
+                loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:border-primary-60 cursor-pointer"
+              }`}
+              onClick={() => {
+                if (!loading) {
+                  setShowCreate(true);
+                }
+              }}
+            >
+              <div className="w-12 h-12 rounded-[12px] overflow-hidden grid place-items-center">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="[&_circle]:fill-[var(--neutral-20)] [&_path]:stroke-[var(--neutral-60)]"
+                >
+                  <circle cx="24" cy="24" r="24" />
+                  <path
+                    d="M24 16V32M32 24L16 24"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div className="mt-5 text-[16px] font-semibold text-foreground">
+                새 프로젝트 생성
+              </div>
+              <div className="mt-2 text-[16px] font-medium text-neutral-60">
+                새로운 고객관리 프로젝트를 만들어보세요
+              </div>
             </div>
-            <div className="mt-5 text-[16px] font-semibold text-foreground">
-              새 프로젝트 생성
-            </div>
-            <div className="mt-2 text-[16px] font-medium text-neutral-60">
-              새로운 고객관리 프로젝트를 만들어보세요
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -348,4 +361,3 @@ export default function ProjectsContent() {
     </main>
   );
 }
-
