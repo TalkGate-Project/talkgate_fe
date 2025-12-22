@@ -169,7 +169,8 @@ export default function ProjectsContent() {
                   if (isDev) {
                     setSelectedProjectId(p.id);
                     setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                    router.push("/dashboard");
+                    // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
+                    window.location.href = "/dashboard";
                     return;
                   }
 
@@ -189,7 +190,8 @@ export default function ProjectsContent() {
                   // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
                   setSelectedProjectId(p.id);
                   setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                  router.push("/dashboard");
+                  // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
+                  window.location.href = "/dashboard";
                 }}
               >
                 <div className="flex items-center justify-between">
