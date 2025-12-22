@@ -76,9 +76,7 @@ async function handleRequest(
     });
     
     // 요청 헤더 준비
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
 
     // 클라이언트에서 전달된 헤더 확인
     const clientHeaders = request.headers;
@@ -103,6 +101,12 @@ async function handleRequest(
       headers['x-project-id'] = xProjectId;
     }
 
+    // Accept 헤더 전달 (Blob 응답을 위해 중요)
+    const acceptHeader = clientHeaders.get('Accept');
+    if (acceptHeader) {
+      headers['Accept'] = acceptHeader;
+    }
+
     // 요청 본문 처리
     let body: BodyInit | undefined;
     const contentType = clientHeaders.get('content-type');
@@ -113,12 +117,16 @@ async function handleRequest(
         headers['Content-Type'] = 'application/json';
       } else if (contentType?.includes('multipart/form-data')) {
         body = await request.formData();
-        delete headers['Content-Type']; // FormData는 브라우저가 자동 설정
+        // FormData는 브라우저가 자동으로 Content-Type을 설정하므로 헤더에서 제거
       } else if (contentType?.includes('text/')) {
         body = await request.text();
         headers['Content-Type'] = contentType;
-      } else {
+      } else if (contentType) {
         body = await request.blob();
+        headers['Content-Type'] = contentType;
+      } else {
+        // Content-Type이 없는 경우 기본값 설정
+        headers['Content-Type'] = 'application/json';
       }
     }
 
@@ -143,13 +151,21 @@ async function handleRequest(
     // 응답 데이터 읽기
     const contentTypeHeader = response.headers.get('content-type') || '';
     let data: any;
+    let isBlob = false;
 
     if (contentTypeHeader.includes('application/json')) {
       data = await response.json();
     } else if (contentTypeHeader.startsWith('text/')) {
       data = await response.text();
     } else {
+      // Blob 응답 (엑셀 파일 등)
       data = await response.blob();
+      isBlob = true;
+      console.log('[API Proxy] 📦 Blob 응답 수신:', {
+        size: data.size,
+        type: data.type,
+        contentType: contentTypeHeader,
+      });
     }
 
     // 응답 헤더 전달
@@ -158,6 +174,12 @@ async function handleRequest(
     const responseHeaders = new Headers();
     if (contentTypeHeader) {
       responseHeaders.set('Content-Type', contentTypeHeader);
+    }
+    
+    // Content-Disposition 헤더 전달 (파일 다운로드용)
+    const contentDisposition = response.headers.get('content-disposition');
+    if (contentDisposition) {
+      responseHeaders.set('Content-Disposition', contentDisposition);
     }
     
     // 백엔드 응답의 Set-Cookie 헤더 확인 및 전달
@@ -207,12 +229,14 @@ async function handleRequest(
 
               const retryContentType = retryResponse.headers.get('content-type') || '';
               let retryData: any;
+              let retryIsBlob = false;
               if (retryContentType.includes('application/json')) {
                 retryData = await retryResponse.json();
               } else if (retryContentType.startsWith('text/')) {
                 retryData = await retryResponse.text();
               } else {
                 retryData = await retryResponse.blob();
+                retryIsBlob = true;
               }
 
               // NextResponse를 사용하여 쿠키 설정
@@ -231,10 +255,16 @@ async function handleRequest(
                 maxAge: 60 * 60 * 24 * 30, // 30일
               };
 
-              const apiResponse = NextResponse.json(retryData, {
-                status: retryResponse.status,
-                headers: responseHeaders,
-              });
+              // Blob 응답인 경우 NextResponse에 직접 전달
+              const apiResponse = retryIsBlob
+                ? new NextResponse(retryData, {
+                    status: retryResponse.status,
+                    headers: responseHeaders,
+                  })
+                : NextResponse.json(retryData, {
+                    status: retryResponse.status,
+                    headers: responseHeaders,
+                  });
 
               // NextResponse의 cookies API 사용
               if (newAccessToken) {
@@ -260,6 +290,14 @@ async function handleRequest(
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
         error: data,
+      });
+    }
+
+    // Blob 응답인 경우 NextResponse에 직접 전달 (JSON 변환하지 않음)
+    if (isBlob) {
+      return new NextResponse(data, {
+        status: response.status,
+        headers: responseHeaders,
       });
     }
 

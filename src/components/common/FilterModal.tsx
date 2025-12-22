@@ -19,7 +19,7 @@ export type FilterValues = {
     applicationRoute?: string;
     mediaCompany?: string;
     site?: string;
-    categoryIds?: number[];
+    categoryIds?: (number | null)[];
     noteContent?: string;
     applicationDateFrom?: string;
     applicationDateTo?: string;
@@ -45,7 +45,7 @@ type FilterModalProps = {
 export default function FilterModal({ open, onClose, onApply, defaults, teamOptions = [], memberOptions = [], routeOptions = [], mediaOptions = [], siteOptions = [], categoryOptions = [] }: FilterModalProps) {
     const [form, setForm] = useState<FilterValues>(defaults || {});
     useEffect(() => { if (open) setForm(defaults || {}); }, [open, defaults]);
-    const handleCategoryIds = useCallback((ids: number[]) => {
+    const handleCategoryIds = useCallback((ids: (number | null)[]) => {
         setForm((f) => ({ ...f, categoryIds: ids }));
     }, []);
     
@@ -197,15 +197,15 @@ function Pill({ label, onRemove }: { label: string; onRemove: () => void }) {
     );
 }
 
-function arraysEqual(a: number[], b: number[]) {
+function arraysEqual(a: (number | null)[], b: (number | null)[]) {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
     return true;
 }
 
-function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; onChangeIds?: (ids: number[]) => void }) {
+function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: (number | null)[]; onChangeIds?: (ids: (number | null)[]) => void }) {
     const [options, setOptions] = useState<CustomerNoteCategory[]>([]);
-    const [selected, setSelected] = useState<number[]>(defaultIds || []);
+    const [selected, setSelected] = useState<(number | null)[]>(defaultIds || []);
     const [open, setOpen] = useState(false);
     const wrapRef = useRef<HTMLDivElement | null>(null);
     const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -250,7 +250,11 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
             onChangeIds && onChangeIds(selected);
         }
     }, [selected, onChangeIds]);
-    const summaryLabel = selected.length > 0 ? `${selected.length}개 선택됨` : "전체";
+    const selectedCount = selected.filter(id => id !== null).length;
+    const hasGeneral = selected.includes(null);
+    const summaryLabel = selectedCount > 0 || hasGeneral 
+        ? `${selectedCount + (hasGeneral ? 1 : 0)}개 선택됨` 
+        : "전체";
 
     return (
         <div ref={wrapRef} className="relative">
@@ -287,7 +291,12 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
             {selected.length > 0 && (
                 <div className="w-[384px] mt-2 overflow-x-auto no-scrollbar">
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
-                        {selected.map((id) => {
+                        {selected.map((id, index) => {
+                            if (id === null) {
+                                return <Pill key="general" label="일반" onRemove={() => {
+                                    setSelected((prev) => prev.filter((x) => x !== null));
+                                }} />;
+                            }
                             const c = options.find((o) => o.id === id);
                             if (!c) return null;
                             return <Pill key={id} label={c.name} onRemove={() => {
@@ -305,6 +314,29 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: number[]; 
                     className="z-[1000] border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] bg-white dark:bg-neutral-20 shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)] max-h-[240px] overflow-auto"
                     style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: panelPos.width }}
                 >
+                    {/* 일반 옵션 */}
+                    <label
+                        className={`w-full h-[48px] px-6 flex items-center gap-3 text-left rounded-[5px] cursor-pointer ${
+                            selected.includes(null)
+                                ? "bg-primary-10/30 dark:bg-primary-40/20"
+                                : "bg-card dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30"
+                        }`}
+                    >
+                        <Checkbox 
+                            checked={selected.includes(null)} 
+                            onChange={(next) => {
+                                setSelected((prev) => {
+                                    if (next) {
+                                        return prev.includes(null) ? prev : [...prev, null];
+                                    } else {
+                                        return prev.filter((x) => x !== null);
+                                    }
+                                });
+                            }} 
+                            ariaLabel="일반" 
+                        />
+                        <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">일반</span>
+                    </label>
                     {(options || []).map((c) => {
                         const checked = selected.includes(c.id);
                         return (
