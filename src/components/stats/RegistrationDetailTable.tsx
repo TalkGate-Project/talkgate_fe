@@ -4,7 +4,7 @@ import { formatTableDateKR } from "@/utils/format";
 import ApplyTableSkeleton from "./ApplyTableSkeleton";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import Pagination from "@/components/common/Pagination";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -87,13 +87,21 @@ export default function RegistrationDetailTable({
                 </td>
               </tr>
             ) : isLoading ? (
-              <tr>
-                <td colSpan={5} className="text-center py-20">
-                  <div className="flex justify-center">
-                    <LoadingSpinner size="xl" />
-                  </div>
-                </td>
-              </tr>
+              <>
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <TableSkeletonRow
+                    key={`skeleton-${idx}`}
+                    columns={[
+                      { width: "flex", paddingX: 7.5, className: "pl-[30px]" }, // 날짜
+                      { width: "flex", paddingX: 4 }, // 신청 건수
+                      { width: "flex", paddingX: 4 }, // 직접입력
+                      { width: "flex", paddingX: 4 }, // 엑셀 업로드
+                      { width: "flex", paddingX: 4 }, // API
+                    ]}
+                    rowHeight={48}
+                  />
+                ))}
+              </>
             ) : isError ? (
               <tr>
                 <td colSpan={5} className="text-center py-20 text-[14px] text-danger-40">

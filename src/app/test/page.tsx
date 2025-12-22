@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import TableSkeleton from "@/components/common/TableSkeleton";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
@@ -17,6 +18,7 @@ export default function TestPage() {
     button2: false,
     button3: false,
     table: false,
+    tableRow: false,
     chart: false,
     schedule: false,
     ranking: false,
@@ -197,6 +199,162 @@ export default function TestPage() {
             ) : (
               <div className="p-4 text-neutral-60">테이블 데이터 표시 영역</div>
             )}
+          </div>
+        </section>
+
+        {/* 테이블 행 스켈레톤 테스트 */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">테이블 행 스켈레톤 (TableSkeletonRow)</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/common/TableSkeletonRow</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">CustomersTable.tsx</code> - 고객 목록 테이블 (체크박스 포함)</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">RegistrationDetailTable.tsx</code> - 신청통계 상세 데이터 테이블</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 이 스켈레톤을 수정하면 위 컴포넌트들의 로딩 상태도 함께 변경됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="mb-4">
+              <button
+                onClick={() => handleButtonClick("tableRow", 3000)}
+                disabled={loadingStates.tableRow}
+                className="px-4 py-2 bg-neutral-70 text-white rounded hover:bg-neutral-80 disabled:opacity-50"
+              >
+                {loadingStates.tableRow ? "로딩 중..." : "테이블 행 로딩 시뮬레이션"}
+              </button>
+            </div>
+            {loadingStates.tableRow ? (
+              <div className="overflow-hidden rounded-[12px]">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-neutral-20 h-[40px]">
+                      <th className="text-left px-4 pl-[30px] text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">신청 건수</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">직접입력</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: 10 }).map((_, idx) => (
+                      <TableSkeletonRow
+                        key={`skeleton-${idx}`}
+                        columns={[
+                          { width: "flex", paddingX: 7.5, className: "pl-[30px]" }, // 날짜
+                          { width: "flex", paddingX: 4 }, // 신청 건수
+                          { width: "flex", paddingX: 4 }, // 직접입력
+                          { width: "flex", paddingX: 4 }, // 엑셀 업로드
+                          { width: "flex", paddingX: 4 }, // API
+                        ]}
+                        rowHeight={48}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-[12px]">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-neutral-20 h-[40px]">
+                      <th className="text-left px-4 pl-[30px] text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">신청 건수</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">직접입력</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
+                      <th className="text-left px-4 text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-neutral-30/40 dark:!border-[#44444455]">
+                      <td className="px-4 py-3 pl-[30px] text-[14px] font-medium text-foreground opacity-80">2024-01-15</td>
+                      <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">1,234건</td>
+                      <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">567건</td>
+                      <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">456건</td>
+                      <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">211건</td>
+                    </tr>
+                    <tr className="border-b border-neutral-30/40 dark:!border-[#44444455]">
+                      <td className="px-4 py-3 pl-[30px] text-[14px] font-medium text-foreground opacity-80">2024-01-14</td>
+                      <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">1,189건</td>
+                      <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">523건</td>
+                      <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">432건</td>
+                      <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">234건</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          
+          {/* CustomersTable 스타일 예시 */}
+          <div className="mt-6 bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <h3 className="text-lg font-semibold text-neutral-90 mb-4">CustomersTable 스타일 예시 (체크박스 포함)</h3>
+            <div className="overflow-hidden rounded-[12px]">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-neutral-20 text-neutral-60">
+                    <th className="px-6 h-[40px] align-middle rounded-l-[8px]">선택</th>
+                    <th className="px-6 h-[40px] align-middle">이름</th>
+                    <th className="px-4 h-[40px] align-middle">신청경로</th>
+                    <th className="px-4 h-[40px] align-middle">매체사</th>
+                    <th className="px-4 h-[40px] align-middle rounded-r-[8px]">사이트</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingStates.tableRow ? (
+                    Array.from({ length: 5 }).map((_, idx) => (
+                      <TableSkeletonRow
+                        key={`customer-skeleton-${idx}`}
+                        columns={[
+                          { width: 24, paddingX: 6, type: "checkbox" }, // 체크박스
+                          { width: "flex", paddingX: 6 }, // 이름
+                          { width: "flex", paddingX: 4 }, // 신청경로
+                          { width: "flex", paddingX: 4 }, // 매체사
+                          { width: "flex", paddingX: 4 }, // 사이트
+                        ]}
+                        rowHeight={48}
+                      />
+                    ))
+                  ) : (
+                    <>
+                      <tr className="border-b border-[#E2E2E2] dark:!border-[#44444455]">
+                        <td className="px-6 h-[48px]">
+                          <div className="flex items-center h-full">
+                            <div className="w-6 h-6 border-2 border-neutral-30 rounded" />
+                          </div>
+                        </td>
+                        <td className="px-6 h-[48px] align-middle text-neutral-90 opacity-80">홍길동</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">웹사이트</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">네이버</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">example.com</td>
+                      </tr>
+                      <tr className="border-b border-[#E2E2E2] dark:!border-[#44444455]">
+                        <td className="px-6 h-[48px]">
+                          <div className="flex items-center h-full">
+                            <div className="w-6 h-6 border-2 border-neutral-30 rounded" />
+                          </div>
+                        </td>
+                        <td className="px-6 h-[48px] align-middle text-neutral-90 opacity-80">김철수</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">API</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">구글</td>
+                        <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">test.com</td>
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
