@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import type { SmsStatus, SmsMessageType } from "@/types/sms";
 import {
   MESSAGE_TYPE_OPTIONS,
@@ -12,9 +11,12 @@ import {
 interface SmsHistoryFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // 부모 상태를 직접 사용
   statusFilter: SmsStatus | "";
   messageTypeFilter: SmsMessageType | "";
-  onApply: (status: SmsStatus | "", messageType: SmsMessageType | "") => void;
+  // 부모 상태 setter를 직접 받음
+  onStatusChange: (status: SmsStatus | "") => void;
+  onMessageTypeChange: (messageType: SmsMessageType | "") => void;
 }
 
 export default function SmsHistoryFilterModal({
@@ -22,29 +24,15 @@ export default function SmsHistoryFilterModal({
   onClose,
   statusFilter,
   messageTypeFilter,
-  onApply,
+  onStatusChange,
+  onMessageTypeChange,
 }: SmsHistoryFilterModalProps) {
-  const [tempStatusFilter, setTempStatusFilter] = useState<SmsStatus | "">(statusFilter);
-  const [tempMessageTypeFilter, setTempMessageTypeFilter] = useState<SmsMessageType | "">(
-    messageTypeFilter
-  );
-
-  // 모달이 열릴 때 현재 필터 값으로 초기화
-  useEffect(() => {
-    if (isOpen) {
-      setTempStatusFilter(statusFilter);
-      setTempMessageTypeFilter(messageTypeFilter);
-    }
-  }, [isOpen, statusFilter, messageTypeFilter]);
+  // 임시 상태 없이 부모 상태를 직접 사용
 
   const handleReset = () => {
-    setTempStatusFilter("");
-    setTempMessageTypeFilter("");
-  };
-
-  const handleApply = () => {
-    onApply(tempStatusFilter, tempMessageTypeFilter);
-    onClose();
+    // 필터를 "전체"로 초기화
+    onStatusChange("");
+    onMessageTypeChange("");
   };
 
   if (!isOpen) return null;
@@ -97,12 +85,12 @@ export default function SmsHistoryFilterModal({
             <div className="flex flex-row items-center gap-3 flex-wrap">
               {MESSAGE_TYPE_OPTIONS.map((type) => {
                 const value = MESSAGE_TYPE_VALUE_MAP[type];
-                const isSelected = tempMessageTypeFilter === value;
+                const isSelected = messageTypeFilter === value;
                 return (
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setTempMessageTypeFilter(value)}
+                    onClick={() => onMessageTypeChange(value)}
                     className={`cursor-pointer flex flex-row justify-center items-center px-3 py-[6px] gap-[10px] h-[34px] rounded-[5px] transition-colors ${
                       isSelected
                         ? "bg-primary-10 dark:bg-neutral-20 border-2 border-primary-60 dark:border-primary-60/50"
@@ -132,12 +120,12 @@ export default function SmsHistoryFilterModal({
             <div className="flex flex-row items-center gap-3 flex-wrap">
               {STATUS_OPTIONS.map((status) => {
                 const value = STATUS_VALUE_MAP[status];
-                const isSelected = tempStatusFilter === value;
+                const isSelected = statusFilter === value;
                 return (
                   <button
                     key={status}
                     type="button"
-                    onClick={() => setTempStatusFilter(value)}
+                    onClick={() => onStatusChange(value)}
                     className={`cursor-pointer flex flex-row justify-center items-center px-3 py-[6px] gap-[10px] h-[34px] rounded-[5px] transition-colors ${
                       isSelected
                         ? "bg-primary-10 dark:bg-neutral-20 border-2 border-primary-60 dark:border-primary-60/50"
@@ -171,7 +159,7 @@ export default function SmsHistoryFilterModal({
           </button>
           <button
             type="button"
-            onClick={handleApply}
+            onClick={onClose}
             className="cursor-pointer w-[72px] h-[34px] flex justify-center items-center py-[6px] bg-neutral-90 dark:bg-neutral-80 rounded-[5px] text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 tracking-[-0.02em] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
           >
             적용완료
@@ -181,4 +169,3 @@ export default function SmsHistoryFilterModal({
     </>
   );
 }
-
