@@ -138,7 +138,7 @@ export function usePhoneVerification({
         throw new Error("Invalid verification type");
       }
 
-      const { certViewUrl, formData } = response.data;
+      const { certViewUrl, formData } = response.data.data;
 
       // 미리 열어둔 창에 form HTML 작성 후 자동 submit
       const formHtml = createVerificationFormHtml(certViewUrl, formData);
