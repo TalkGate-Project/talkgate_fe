@@ -226,7 +226,7 @@ function NotificationsPageContentInner() {
           {/* 탭 */}
           <div className="px-7 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {(["all", "notice", "customer", "system", "security"] as NotificationCategory[]).map((category) => {
+              {(["all", "notice", "customer"] as NotificationCategory[]).map((category) => {
                 const isActive = activeCategory === category;
                 return (
                   <button
