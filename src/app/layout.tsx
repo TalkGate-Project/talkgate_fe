@@ -51,13 +51,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   // Middleware에서 설정한 zoom 모드 확인
-  const headersList = headers();
+  const headersList = await headers();
   const uiZoomMode = headersList.get("x-ui-zoom") || "compact";
   const initialZoom = uiZoomMode === "normal" ? 1 : 0.8;
 
