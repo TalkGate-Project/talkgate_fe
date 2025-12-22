@@ -5,7 +5,7 @@ import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/
 type FilterChipsProps = {
   filters: CustomerFilters;
   onRemove: (key: keyof CustomerFilters) => void;
-  onRemoveCategory: (id: number) => void;
+  onRemoveCategory: (id: number | null) => void;
   onRemoveDateRange: (type: "application" | "assigned") => void;
   teamOptions?: { label: string; value: number }[];
   memberOptions?: { label: string; value: number }[];
@@ -66,7 +66,8 @@ export default function FilterChips({
   }, []);
 
   // 카테고리 ID로 이름 찾기
-  const getCategoryName = (id: number): string => {
+  const getCategoryName = (id: number | null): string => {
+    if (id === null) return "일반";
     const category = categories.find((c) => c.id === id);
     return category?.name || `카테고리 ${id}`;
   };

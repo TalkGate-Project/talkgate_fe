@@ -8,6 +8,12 @@ export function useCustomersList(params: CustomersListQuery | null) {
   // Build request only when params are available
   const request = useMemo(() => {
     if (!params) return undefined;
+    // categoryIds에서 null을 빈 문자열로 변환 (일반 카테고리)
+    const categoryIds = params.categoryIds?.map((id: number | string) => {
+      if (id === null) return "";
+      if (typeof id === "number") return id;
+      return id; // 이미 문자열인 경우 (빈 문자열 포함)
+    });
     return {
       query: {
         name: params.name,
@@ -19,7 +25,7 @@ export function useCustomersList(params: CustomersListQuery | null) {
         applicationRoute: params.applicationRoute,
         mediaCompany: params.mediaCompany,
         site: params.site,
-        categoryIds: params.categoryIds,
+        categoryIds: categoryIds,
         applicationDateFrom: params.applicationDateFrom,
         applicationDateTo: params.applicationDateTo,
         assignedAtFrom: params.assignedAtFrom,

@@ -325,6 +325,8 @@ export default function CustomersTable({
                     {(() => {
                       // 마지막 상담내용의 카테고리를 찾기
                       const notes = Array.isArray(c.recentNotes) ? c.recentNotes : [];
+                      
+                      // 상담/노트가 없는 경우에만 "-" 표시
                       if (notes.length === 0) return "-";
                       
                       // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
@@ -333,12 +335,12 @@ export default function CustomersTable({
                       );
                       const lastNote = sortedNotes[0];
                       
-                      // categoryId가 없으면 "-" 표시
-                      if (!lastNote.categoryId) return "-";
+                      // 상담/노트가 존재하는데 categoryId가 없거나 카테고리를 찾을 수 없으면 "일반" 표시
+                      if (!lastNote.categoryId) return "일반";
                       
                       // 카테고리 이름 찾기
                       const category = categories.find(cat => cat.id === lastNote.categoryId);
-                      return category?.name || "-";
+                      return category?.name || "일반";
                     })()}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">

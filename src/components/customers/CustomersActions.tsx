@@ -87,7 +87,8 @@ export default function CustomersActions({
       if (appliedForExport.mediaCompany) exportQuery.mediaCompany = appliedForExport.mediaCompany;
       if (appliedForExport.site) exportQuery.site = appliedForExport.site;
       if (appliedForExport.categoryIds && Array.isArray(appliedForExport.categoryIds) && appliedForExport.categoryIds.length > 0) {
-        exportQuery.categoryIds = appliedForExport.categoryIds;
+        // null을 빈 문자열로 변환하여 "일반" 카테고리를 나타냄
+        exportQuery.categoryIds = appliedForExport.categoryIds.map((id: number | null) => id === null ? "" : id);
       }
       if (appliedForExport.applicationDateFrom) exportQuery.applicationDateFrom = appliedForExport.applicationDateFrom;
       if (appliedForExport.applicationDateTo) exportQuery.applicationDateTo = appliedForExport.applicationDateTo;
@@ -96,11 +97,30 @@ export default function CustomersActions({
       
       const blobRes = await CustomersBulkService.exportExcel({ projectId, query: exportQuery });
       const blob = blobRes.data;
-      const url = URL.createObjectURL(blob);
+      
+      // Blob 크기 확인 (디버깅용)
+      console.log('[Excel Download] Blob 수신:', {
+        size: blob.size,
+        type: blob.type,
+      });
+      
+      if (blob.size < 100) {
+        console.warn('[Excel Download] ⚠️ Blob 크기가 너무 작습니다:', blob.size);
+      }
+      
+      // Blob의 MIME 타입이 올바르게 설정되었는지 확인하고, 필요시 재생성
+      const blobType = blob.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      const finalBlob = blob.type === blobType ? blob : new Blob([blob], { type: blobType });
+      
+      const url = URL.createObjectURL(finalBlob);
       const a = document.createElement("a");
       a.href = url;
+      // 한글 파일명 인코딩 처리
       a.download = "customers.xlsx";
+      // 파일명 인코딩을 위한 추가 처리
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error(err);

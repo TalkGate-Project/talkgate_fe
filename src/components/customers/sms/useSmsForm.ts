@@ -253,7 +253,8 @@ export function useSmsForm() {
               applicationRoute: appliedFilters.applicationRoute,
               mediaCompany: appliedFilters.mediaCompany,
               site: appliedFilters.site,
-              categoryIds: appliedFilters.categoryIds,
+              // null을 빈 문자열로 변환하여 "일반" 카테고리를 나타냄
+              categoryIds: appliedFilters.categoryIds?.map((id: number | null) => id === null ? "" : id),
               applicationDateFrom: appliedFilters.applicationDateFrom,
               applicationDateTo: appliedFilters.applicationDateTo,
               assignedAtFrom: appliedFilters.assignedAtFrom,

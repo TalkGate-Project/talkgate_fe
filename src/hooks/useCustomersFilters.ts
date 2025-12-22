@@ -10,7 +10,7 @@ export type CustomerFilters = {
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
-  categoryIds?: number[];
+  categoryIds?: (number | null)[];
   noteContent?: string;
   applicationDateFrom?: string;
   applicationDateTo?: string;
@@ -38,7 +38,7 @@ export function useCustomersFilters(projectId: string | null) {
     }
     function ga(key: string) {
       const vals = searchParams.getAll(key);
-      return vals.length ? vals.map((v) => Number(v)) : undefined;
+      return vals.length ? vals.map((v) => v === "" ? null : Number(v)) : undefined;
     }
     obj.name = g("name");
     obj.contact1 = g("contact1");
@@ -102,7 +102,8 @@ export function useCustomersFilters(projectId: string | null) {
             applicationRoute: applied.applicationRoute,
             mediaCompany: applied.mediaCompany,
             site: applied.site,
-            categoryIds: applied.categoryIds,
+            // null을 빈 문자열로 변환하여 API에 전송
+            categoryIds: applied.categoryIds?.map((id: number | null) => id === null ? "" : id),
             noteContent: applied.noteContent,
             applicationDateFrom: applied.applicationDateFrom,
             applicationDateTo: applied.applicationDateTo,
@@ -136,7 +137,10 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("mediaCompany", filterValues.mediaCompany);
     setIf("site", filterValues.site);
     if (filterValues.categoryIds && filterValues.categoryIds.length) {
-      filterValues.categoryIds.forEach((id) => params.append("categoryIds", String(id)));
+      filterValues.categoryIds.forEach((id) => {
+        // null은 빈 문자열로 변환하여 "일반" 카테고리를 나타냄
+        params.append("categoryIds", id === null ? "" : String(id));
+      });
     }
     setIf("noteContent", filterValues.noteContent);
     setIf("applicationDateFrom", filterValues.applicationDateFrom);
@@ -157,7 +161,7 @@ export function useCustomersFilters(projectId: string | null) {
     setFilters((f) => ({ ...f, [key]: undefined }));
   }
 
-  function removeCategoryFilter(id: number) {
+  function removeCategoryFilter(id: number | null) {
     setFilters((f) => ({
       ...f,
       categoryIds: (f.categoryIds || []).filter((x) => x !== id),
@@ -186,7 +190,7 @@ export function useCustomersFilters(projectId: string | null) {
     applyFilters(updated);
   }
 
-  function removeCategoryFilterAndApply(id: number) {
+  function removeCategoryFilterAndApply(id: number | null) {
     const updated = {
       ...filters,
       categoryIds: (filters.categoryIds || []).filter((x) => x !== id),
