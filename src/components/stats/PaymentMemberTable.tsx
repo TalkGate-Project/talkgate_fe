@@ -237,7 +237,21 @@ export default function PaymentMemberTable() {
         <div>결제 건수</div>
       </div>
       <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card">
-        {showSkeleton && <SkeletonRows columns={4} rows={PAGE_SIZE} />}
+        {showSkeleton && (
+          <>
+            {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
+              <div
+                key={`skeleton-${idx}`}
+                className="h-[56px] grid grid-cols-4 items-center px-[30px] border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
+              >
+                <div className="h-4 bg-neutral-20 rounded" />
+                <div className="h-4 bg-neutral-20 rounded" />
+                <div className="h-4 bg-neutral-20 rounded" />
+                <div className="h-4 bg-neutral-20 rounded" />
+              </div>
+            ))}
+          </>
+        )}
         {showError && (
           <div className="flex h-[120px] items-center justify-center text-[14px] text-danger-40">
             결제 통계를 불러오는 중 오류가 발생했습니다.
@@ -324,21 +338,4 @@ export default function PaymentMemberTable() {
   );
 }
 
-function SkeletonRows({ columns, rows }: { columns: number; rows: number }) {
-  return (
-    <div className="space-y-0">
-      {Array.from({ length: rows }).map((_, rowIdx) => (
-        <div
-          key={rowIdx}
-          className="h-[56px] grid items-center px-[30px]"
-          style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-        >
-          {Array.from({ length: columns }).map((__, colIdx) => (
-            <div key={colIdx} className="h-4 rounded bg-neutral-20 animate-pulse" />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
 

@@ -4,46 +4,7 @@ import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
-
-// 스켈레톤 테이블 Row 컴포넌트
-function SkeletonRow() {
-  return (
-    <tr className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse">
-      <td className="px-6 h-[48px]">
-        <div className="flex items-center h-full">
-          <div className="w-6 h-6 bg-neutral-20 rounded" />
-        </div>
-      </td>
-      <td className="px-6 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-16" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-20" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-16" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-24" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-16" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-14" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-16" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-28" />
-      </td>
-      <td className="px-4 h-[48px] align-middle">
-        <div className="h-4 bg-neutral-20 rounded w-28" />
-      </td>
-    </tr>
-  );
-}
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -263,7 +224,22 @@ export default function CustomersTable({
             {loading && (
               <>
                 {Array.from({ length: 10 }).map((_, idx) => (
-                  <SkeletonRow key={`skeleton-${idx}`} />
+                  <TableSkeletonRow
+                    key={`skeleton-${idx}`}
+                    columns={[
+                      { width: 24, paddingX: 6, type: "checkbox" }, // 체크박스
+                      { width: "flex", paddingX: 6 }, // 이름
+                      { width: "flex", paddingX: 4 }, // 신청경로
+                      { width: "flex", paddingX: 4 }, // 매체사
+                      { width: "flex", paddingX: 4 }, // 사이트
+                      { width: "flex", paddingX: 4 }, // 담당팀
+                      { width: "flex", paddingX: 4 }, // 담당자
+                      { width: "flex", paddingX: 4 }, // 카테고리
+                      { width: "flex", paddingX: 4 }, // 신청시간
+                      { width: "flex", paddingX: 4 }, // 배정시간
+                    ]}
+                    rowHeight={48}
+                  />
                 ))}
               </>
             )}
