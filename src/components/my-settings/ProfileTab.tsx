@@ -2,22 +2,64 @@
 
 import { useState, useEffect } from "react";
 import { useMe } from "@/hooks/useMe";
+// import { useQuery } from "@tanstack/react-query";
 // import Image from "next/image";
 
 import { showErrorModal } from "@/lib/errorModalEvents";
+// TODO: 마이페이지 본인인증 기능 - 백엔드 API 준비 후 활성화
+// import {
+//   usePhoneVerification,
+//   type VerificationResult,
+// } from "@/hooks/usePhoneVerification";
+// import { VerificationService } from "@/services/verification";
 // import defaultProfileImg from "@/assets/images/common/default_profile.png";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
   const [isEditing, setIsEditing] = useState(false);
-  
-  // 개인 설정에서는 유저 이름만 사용
-  const displayName = user?.name || "-";
-  
+
   const [name, setName] = useState(user?.name || "-");
   const [email, setEmail] = useState(user?.email || "");
   const [contact, setContact] = useState(user?.phone || "");
-  const [saving, setSaving] = useState(false);
+
+  // TODO: 마이페이지 본인인증 기능 - 백엔드 sms-sender-number-registration API 준비 후 활성화
+  // 현재 404 에러 발생으로 비활성화 상태
+  // 
+  // 본인인증 상태 조회
+  // const {
+  //   data: verificationData,
+  //   refetch: refetchVerification,
+  //   isLoading: isLoadingVerification,
+  // } = useQuery({
+  //   queryKey: ["verification", "identity"],
+  //   queryFn: async () => {
+  //     const response = await VerificationService.getIdentity();
+  //     return response.data;
+  //   },
+  //   staleTime: 1000 * 60 * 5, // 5분
+  // });
+  //
+  // 본인인증 성공 핸들러
+  // const handleVerificationSuccess = useCallback(
+  //   async (result: VerificationResult) => {
+  //     console.log("[ProfileTab] ✅ 본인인증 성공:", result);
+  //     await Promise.all([refetchVerification(), refetch()]);
+  //     showErrorModal({
+  //       type: "success",
+  //       headline: "본인인증이 완료되었습니다.",
+  //       hideCancel: true,
+  //     });
+  //   },
+  //   [refetchVerification, refetch]
+  // );
+  //
+  // 본인인증 훅 사용 (로그인 상태에서는 sms-sender-number-registration 사용)
+  // x-project-id 헤더는 apiClient가 쿠키에서 자동으로 추가
+  // const { startVerification, isVerifying } = usePhoneVerification({
+  //   type: "sms-sender",
+  //   onSuccess: handleVerificationSuccess,
+  //   onError: handleVerificationError,
+  // });
 
   // user 데이터가 로드되면 상태 업데이트
   useEffect(() => {
@@ -95,7 +137,7 @@ export default function ProfileTab() {
 
       <div className="border-b border-[#E2E2E266]"></div>
 
-      {/* Sub-title and Edit Button Row */}
+      {/* Sub-title and Verification Button Row */}
       <div className="px-7 py-6 flex items-start justify-between mb-1">
         <div>
           <h2 className="text-[16px] font-semibold text-foreground mb-1">
@@ -105,31 +147,93 @@ export default function ProfileTab() {
             프로젝트에서 사용되는 프로필 정보를 설정합니다.
           </p>
         </div>
-        {/* TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정 */}
-        {/* <div className="flex gap-2">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleCancel}
-                disabled={saving}
-                className="cursor-pointer px-3 py-1.5 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-60"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="cursor-pointer px-3 py-1.5 bg-[#1C1C1C] text-white rounded-[5px] text-[14px] font-semibold hover:bg-black/90 transition-colors disabled:opacity-60"
-              >
-                저장
-              </button>
-            </>
+        {/* TODO: 본인인증 버튼 - 백엔드 sms-sender-number-registration API 준비 후 활성화 */}
+        {/* 현재 404 에러 발생으로 비활성화 상태 */}
+        {/* <div className="flex items-center gap-2">
+          {isLoadingVerification ? (
+            <span className="text-[14px] text-neutral-60">로딩 중...</span>
+          ) : verificationData?.isVerified ? (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-[5px] text-[14px] font-medium">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M13.3337 4L6.00033 11.3333L2.66699 8"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                본인인증 완료
+              </span>
+            </div>
           ) : (
             <button
-              onClick={handleEditStart}
-              className="cursor-pointer px-3 py-1.5 border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-neutral-10 transition-colors"
+              onClick={startVerification}
+              disabled={isVerifying}
+              className="cursor-pointer px-3 py-1.5 bg-[#1C1C1C] text-white rounded-[5px] text-[14px] font-semibold hover:bg-black/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
             >
-              프로필 수정
+              {isVerifying ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  인증 중...
+                </>
+              ) : (
+                <>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="4"
+                      y="2"
+                      width="8"
+                      height="12"
+                      rx="1.5"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                    />
+                    <line
+                      x1="6.5"
+                      y1="11.5"
+                      x2="9.5"
+                      y2="11.5"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  본인인증
+                </>
+              )}
             </button>
           )}
         </div> */}

@@ -59,7 +59,7 @@ export default function CustomerDetailModal({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[546px]"
+      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[700px]"
       ariaLabel="고객정보"
     >
       {/* Header */}
@@ -89,7 +89,7 @@ export default function CustomerDetailModal({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0 -mx-2 px-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-h-0 -mx-2 pl-2 pr-4 custom-scrollbar">
         {loading && (
           <div className="py-16 text-center text-neutral-60 dark:text-neutral-60">불러오는 중...</div>
         )}
@@ -170,43 +170,45 @@ export default function CustomerDetailModal({
             onUnlinkConversation={actions.unlinkConversation}
             maxHeight={leftHeight}
           />
-
-          {/* Footer */}
-          <div className="col-span-12 flex justify-end gap-2 pt-2 border-t border-neutral-30 dark:border-neutral-30">
-            <button
-              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
-                hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-              }`}
-              onClick={actions.resetForm}
-              disabled={!hasChanges}
-            >
-              초기화
-            </button>
-            <button
-              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${
-                hasChanges
-                  ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
-                  : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
-              }`}
-              onClick={() => {
-                actions.saveForm().then(() => onClose()).catch((e: any) => {
-                  showErrorModal({
-                    title: "오류 발생",
-                    headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
-                    confirmText: "확인",
-                    cancelText: null,
-                    hideCancel: true,
-                  });
-                });
-              }}
-              disabled={!hasChanges}
-            >
-              적용완료
-            </button>
-          </div>
         </div>
       )}
       </div>
+
+      {/* Footer - 모달 하단에 고정 */}
+      {!loading && detail && (
+        <div className="flex-none flex justify-end gap-2 pt-2 border-t border-neutral-30 dark:border-neutral-30">
+          <button
+            className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
+              hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
+            onClick={actions.resetForm}
+            disabled={!hasChanges}
+          >
+            초기화
+          </button>
+          <button
+            className={`h-[34px] px-4 rounded-[5px] text-body-3 ${
+              hasChanges
+                ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
+                : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
+            }`}
+            onClick={() => {
+              actions.saveForm().then(() => onClose()).catch((e: any) => {
+                showErrorModal({
+                  title: "오류 발생",
+                  headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
+                  confirmText: "확인",
+                  cancelText: null,
+                  hideCancel: true,
+                });
+              });
+            }}
+            disabled={!hasChanges}
+          >
+            적용완료
+          </button>
+        </div>
+      )}
     </BaseModal>
   );
 }

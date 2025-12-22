@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { setTokens } from "@/lib/token";
 import AsyncButton from "@/components/common/AsyncButton";
 import type { SignupTokens } from "@/types/signup";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import {
+  usePhoneVerification,
+  type VerificationResult,
+} from "@/hooks/usePhoneVerification";
 
 type ProfileStepProps = {
   tokens: SignupTokens;
@@ -13,61 +17,90 @@ type ProfileStepProps = {
   onSkip: () => void;
 };
 
-export function ProfileStep({
-  tokens,
-  onComplete,
-  onSkip,
-}: ProfileStepProps) {
+export function ProfileStep({ tokens, onComplete, onSkip }: ProfileStepProps) {
   const queryClient = useQueryClient();
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
 
   // 토큰을 쿠키에 저장하고 React Query 캐시를 무효화하는 공통 함수
-  const saveTokensAndInvalidateCache = async () => {
+  const saveTokensAndInvalidateCache = useCallback(async () => {
     setTokens({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     });
     // 이전 유저 정보 캐시를 제거하고 새 유저 정보로 갱신
     await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
-  };
+  }, [tokens, queryClient]);
 
-  const handleVerification = async () => {
-    setIsVerifying(true);
-    try {
-      // TODO: 실제 본인인증 서비스(PASS, NICE 등) 연동
-      console.log("[ProfileStep] 📱 본인인증 시작");
-      
-      // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      console.log("[ProfileStep] ✅ 본인인증 완료");
-      
+  // 본인인증 성공 핸들러
+  const handleVerificationSuccess = useCallback(
+    async (result: VerificationResult) => {
+      console.log("[ProfileStep] ✅ 본인인증 성공:", result);
+
       // 토큰 저장 및 캐시 무효화
       await saveTokensAndInvalidateCache();
       onComplete();
-    } catch (err: unknown) {
-      console.error("[ProfileStep] 본인인증 실패:", err);
+    },
+    [saveTokensAndInvalidateCache, onComplete]
+  );
+
+  // 본인인증 실패 핸들러
+  const handleVerificationError = useCallback((result: VerificationResult) => {
+    console.error("[ProfileStep] 본인인증 실패:", result);
+
+    // 이미 본인인증이 완료된 경우
+    if (result.code === "IDENTITY_VERIFICATION_ALREADY_EXISTS") {
       showErrorModal({
-        type: "error",
-        headline: "본인인증에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        type: "info",
+        headline: "이미 본인인증이 완료되었습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
-    } finally {
-      setIsVerifying(false);
+      return;
     }
-  };
+
+    // 팝업 차단된 경우
+    if (result.code === "POPUP_BLOCKED") {
+      showErrorModal({
+        type: "error",
+        headline: "팝업이 차단되었습니다.",
+        description: "브라우저 설정에서 팝업 차단을 해제해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      return;
+    }
+
+    // 기타 오류
+    showErrorModal({
+      type: "error",
+      headline: "본인인증에 실패했습니다.",
+      description: result.message || "잠시 후 다시 시도해주세요.",
+      hideCancel: true,
+      confirmText: "확인",
+    });
+  }, []);
+
+  // 본인인증 훅 사용
+  // 회원가입 직후에는 아직 토큰이 쿠키에 없으므로 accessToken을 직접 전달
+  const { startVerification, isVerifying } = usePhoneVerification({
+    type: "account",
+    accessToken: tokens.accessToken,
+    onSuccess: handleVerificationSuccess,
+    onError: handleVerificationError,
+  });
 
   const handleSkip = async () => {
-    setIsVerifying(true);
+    setIsSkipping(true);
     try {
       // 건너뛰기 시에는 본인인증 없이 토큰만 저장 및 캐시 무효화
       await saveTokensAndInvalidateCache();
       onSkip();
     } finally {
-      setIsVerifying(false);
+      setIsSkipping(false);
     }
   };
+
+  const isLoading = isVerifying || isSkipping;
 
   return (
     <div className="w-full mt-8">
@@ -83,8 +116,9 @@ export function ProfileStep({
         size="md"
         fullWidth
         loading={isVerifying}
+        disabled={isLoading}
         loadingText="인증 중..."
-        onClick={handleVerification}
+        onClick={startVerification}
         leftIcon={
           <svg
             width="20"
@@ -123,7 +157,7 @@ export function ProfileStep({
           type="button"
           className="cursor-pointer text-[14px] text-[#808080] hover:text-[#BFBFBF] transition-colors flex items-center gap-1"
           onClick={handleSkip}
-          disabled={isVerifying}
+          disabled={isLoading}
         >
           <span>건너뛰기</span>
           <svg
