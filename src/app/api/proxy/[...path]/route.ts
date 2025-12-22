@@ -80,16 +80,24 @@ async function handleRequest(
       'Content-Type': 'application/json',
     };
 
-    // Authorization 헤더 추가 (httpOnly 쿠키에서 읽은 토큰 사용)
-    if (accessToken) {
+    // 클라이언트에서 전달된 헤더 확인
+    const clientHeaders = request.headers;
+    const clientAuthHeader = clientHeaders.get('Authorization');
+
+    // Authorization 헤더 추가
+    // 1. 클라이언트가 직접 보낸 Authorization 헤더가 있으면 우선 사용 (회원가입 직후 등)
+    // 2. 없으면 httpOnly 쿠키에서 읽은 토큰 사용
+    if (clientAuthHeader) {
+      headers['Authorization'] = clientAuthHeader;
+      console.log('[API Proxy] ✅ 클라이언트 Authorization 헤더 사용');
+    } else if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
-      console.log('[API Proxy] ✅ Authorization 헤더 추가됨');
+      console.log('[API Proxy] ✅ 쿠키 기반 Authorization 헤더 추가됨');
     } else {
-      console.warn('[API Proxy] ⚠️ access_token 쿠키가 없음 - 인증 실패 가능');
+      console.warn('[API Proxy] ⚠️ access_token 없음 - 인증 실패 가능');
     }
 
-    // 클라이언트에서 전달된 헤더 중 필요한 것만 전달 (보안상 중요)
-    const clientHeaders = request.headers;
+    // x-project-id 헤더 전달
     const xProjectId = clientHeaders.get('x-project-id');
     if (xProjectId) {
       headers['x-project-id'] = xProjectId;

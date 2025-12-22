@@ -5,6 +5,46 @@ import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 
+// 스켈레톤 테이블 Row 컴포넌트
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse">
+      <td className="px-6 h-[48px]">
+        <div className="flex items-center h-full">
+          <div className="w-6 h-6 bg-neutral-20 rounded" />
+        </div>
+      </td>
+      <td className="px-6 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-16" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-20" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-16" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-24" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-16" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-14" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-16" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-28" />
+      </td>
+      <td className="px-4 h-[48px] align-middle">
+        <div className="h-4 bg-neutral-20 rounded w-28" />
+      </td>
+    </tr>
+  );
+}
+
 type CustomersTableProps = {
   customers: CustomerListItem[];
   loading: boolean;
@@ -219,6 +259,15 @@ export default function CustomersTable({
             </tr>
           </thead>
           <tbody className="typo-body-3">
+            {/* 로딩 중일 때 스켈레톤 표시 */}
+            {loading && (
+              <>
+                {Array.from({ length: 10 }).map((_, idx) => (
+                  <SkeletonRow key={`skeleton-${idx}`} />
+                ))}
+              </>
+            )}
+            {/* 에러 상태 */}
             {Boolean(error) && !loading && (
               <tr>
                 <td colSpan={10} className="px-6 h-[72px] text-center text-red-500">
@@ -226,7 +275,8 @@ export default function CustomersTable({
                 </td>
               </tr>
             )}
-            {customers.map((c, index) => {
+            {/* 실제 데이터 표시 */}
+            {!loading && customers.map((c, index) => {
               const checked = selectedIds.includes(c.id) || selectionMode === "all";
               const isLastRow = index === customers.length - 1;
               return (
@@ -300,7 +350,7 @@ export default function CustomersTable({
                 </tr>
               );
             })}
-            {customers.length === 0 && !loading && (
+            {!loading && customers.length === 0 && !error && (
               <tr>
                 <td colSpan={10} className="px-6 h-[72px] text-center text-neutral-60">
                   결과가 없습니다

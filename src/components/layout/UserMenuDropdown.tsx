@@ -147,7 +147,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
             router.push("/my-settings");
           }}
         >
-          <div className={isProfileHovered ? "text-primary-60" : "text-neutral-60"}>
+          <div className={`transition-colors ${isProfileHovered ? "text-primary-60" : "text-neutral-60"}`}>
             {variant === "full" ? (
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -194,7 +194,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
           </span>
         </button>
 
-        {/* 프로젝트 선택 */}
+        {/* 프로젝트 선택 - Updated SVG v2 */}
         <button
           className={`cursor-pointer flex items-center ${variant === "full" ? "h-[52px]" : "py-5"} gap-4 px-7 transition-colors ${
             isProjectSelectHovered ? "bg-[var(--notification-unread-bg)]" : ""
@@ -203,49 +203,30 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
           onMouseLeave={() => setIsProjectSelectHovered(false)}
           onClick={handleProjectSelect}
         >
-          <div className={isProjectSelectHovered ? "text-primary-60" : "text-neutral-60"}>
-            {variant === "full" ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4 5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V7C20 7.55228 19.5523 8 19 8H5C4.44772 8 4 7.55228 4 7V5Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M4 13C4 12.4477 4.44772 12 5 12H11C11.5523 12 12 12.4477 12 13V19C12 19.5523 11.5523 20 11 20H5C4.44772 20 4 19.5523 4 19V13Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M16 13C16 12.4477 16.4477 12 17 12H19C19.5523 12 20 12.4477 20 13V19C20 19.5523 19.5523 20 19 20H17C16.4477 20 16 19.5523 16 19V13Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
+          <div className={`transition-colors ${isProjectSelectHovered ? "text-primary-60" : "text-neutral-60"}`}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" key="project-select-icon">
+              <path
+                d="M4 5C4 4.44772 4.44772 4 5 4H19C19.5523 4 20 4.44772 20 5V7C20 7.55228 19.5523 8 19 8H5C4.44772 8 4 7.55228 4 7V5Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M4 13C4 12.4477 4.44772 12 5 12H11C11.5523 12 12 12.4477 12 13V19C12 19.5523 11.5523 20 11 20H5C4.44772 20 4 19.5523 4 19V13Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M16 13C16 12.4477 16.4477 12 17 12H19C19.5523 12 20 12.4477 20 13V19C20 19.5523 19.5523 20 19 20H17C16.4477 20 16 19.5523 16 19V13Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
 
           <span
@@ -269,7 +250,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
             router.push("/my-settings?tab=billing");
           }}
         >
-          <div className={isPaymentHovered ? "text-primary-60" : "text-neutral-60"}>
+          <div className={`transition-colors ${isPaymentHovered ? "text-primary-60" : "text-neutral-60"}`}>
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
               <path
                 d="M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z"
@@ -290,7 +271,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
           </span>
         </button>
 
-        {/* 로그아웃 */}
+        {/* 로그아웃 - Updated SVG v2 */}
         <button
           className={`cursor-pointer flex items-center ${variant === "full" ? "h-[52px]" : "py-5"} gap-4 px-7 transition-colors ${
             isLogoutHovered ? "bg-[var(--notification-unread-bg)]" : ""
@@ -299,10 +280,10 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
           onMouseLeave={() => setIsLogoutHovered(false)}
           onClick={handleLogout}
         >
-          <div className={isLogoutHovered ? "text-primary-60" : "text-neutral-60"}>
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+          <div className={`transition-colors ${isLogoutHovered ? "text-primary-60" : "text-neutral-60"}`}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
-                d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"
+                d="M17 16L21 12M21 12L17 8M21 12L7 12M13 16V17C13 18.6569 11.6569 20 10 20H6C4.34315 20 3 18.6569 3 17V7C3 5.34315 4.34315 4 6 4H10C11.6569 4 13 5.34315 13 7V8"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
