@@ -210,10 +210,10 @@ export type AssignCustomersFilterConditions = {
 
 export type AssignCustomersInput = {
   memberId: number; // target member to assign to
-  assignmentType: "ids" | "filters";
+  assignmentType: "ids" | "filter";
   customerIds?: number[];
   filterConditions?: AssignCustomersFilterConditions;
-  expectedCount?: number;
+  expectedCount?: number; // 필수: assignmentType이 "filter"일 때만
   projectId: string; // header: x-project-id
 };
 

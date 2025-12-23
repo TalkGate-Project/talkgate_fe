@@ -145,7 +145,7 @@ function CustomersPageContentInner() {
       if (selectionMode === "all") {
         // 전체 목록 선택: 필터 기준으로 배정
         await CustomersService.assign({
-          assignmentType: "filters",
+          assignmentType: "filter",
           memberId: targetId as any,
           filterConditions: {
             name: applied.name,
@@ -172,7 +172,6 @@ function CustomersPageContentInner() {
           assignmentType: "ids",
           memberId: targetId as any,
           customerIds: selectedIds,
-          expectedCount: selectedIds.length,
           projectId: projectId!,
         });
       }
@@ -269,6 +268,8 @@ function CustomersPageContentInner() {
         open={isAssignOpen}
         onClose={() => setAssignOpen(false)}
         selectedCustomerIds={selectedIds}
+        selectionMode={selectionMode}
+        totalCount={total}
         onAssign={handleAssign}
         projectId={projectId!}
       />
@@ -284,7 +285,7 @@ function CustomersPageContentInner() {
       <SmsModal
         open={isSmsOpen}
         onClose={() => setSmsOpen(false)}
-        customers={customers.filter((c) => selectedIds.includes(c.id))}
+        customers={selectionMode === "all" ? customers : customers.filter((c) => selectedIds.includes(c.id))}
         selectionMode={selectionMode}
         appliedFilters={applied}
         totalCount={total}
