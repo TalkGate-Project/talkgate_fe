@@ -117,6 +117,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           success: result.success,
           requiresTwoFactor: result.requiresTwoFactor,
           hasTwoFactorToken: !!result.twoFactorToken,
+          isNewUser: result.isNewUser,
         });
         
         // 2FA가 필요한 경우
@@ -131,7 +132,16 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           return;
         }
         
-        // 일반 로그인 성공
+        // 신규 사용자인 경우 → 소셜 회원가입 페이지로 이동
+        if (result.isNewUser) {
+          debugLog("🆕 신규 사용자 감지 - 소셜 회원가입 페이지로 이동");
+          if (mounted) {
+            window.location.replace("/social-signup");
+          }
+          return;
+        }
+        
+        // 일반 로그인 성공 (기존 사용자)
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
         
