@@ -16,6 +16,7 @@ import type {
 import Pagination from "@/components/common/Pagination";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
 const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", ""];
 const ROW_LIMIT = 10;
@@ -210,17 +211,43 @@ export default function AssignedCustomersTable() {
 
 function LoadingTableSkeleton() {
   return (
-    <div className="flex h-full flex-col justify-center gap-3">
-      {Array.from({ length: 5 }).map((_, idx) => (
-        <div key={idx} className="mx-6 flex items-center gap-4">
-          {Array.from({ length: 6 }).map((__, colIdx) => (
-            <span
-              key={colIdx}
-              className="h-5 flex-1 animate-pulse rounded bg-neutral-20"
+    <div className="overflow-hidden">
+      <table className="w-full text-left border-collapse table-fixed">
+        <thead>
+          <tr className="bg-neutral-20 text-neutral-60">
+            {HEADER_LABELS.map((label, index) => (
+              <th
+                key={label}
+                className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${
+                  index === 0
+                    ? "rounded-l-[8px]"
+                    : index === HEADER_LABELS.length - 1
+                    ? "rounded-r-[8px] w-[90px]"
+                    : ""
+                }`}
+              >
+                {label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="typo-body-3">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <TableSkeletonRow
+              key={`skeleton-${idx}`}
+              columns={[
+                { width: "flex", paddingX: 6 }, // 이름
+                { width: "flex", paddingX: 6 }, // 신청경로
+                { width: "flex", paddingX: 6 }, // 매체사
+                { width: "flex", paddingX: 6 }, // 사이트
+                { width: "flex", paddingX: 6 }, // 배정시간
+                { width: 90, paddingX: 6 }, // 화살표 버튼
+              ]}
+              rowHeight={58}
             />
           ))}
-        </div>
-      ))}
+        </tbody>
+      </table>
     </div>
   );
 }
