@@ -9,6 +9,7 @@ import {
   clearPendingInviteInfo,
   type PendingInviteInfo,
 } from "@/lib/invite";
+import { clearTokens } from "@/lib/token";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { EnvelopeAnimation } from "./EnvelopeAnimation";
@@ -226,8 +227,10 @@ export function InviteLanding() {
     };
     savePendingInviteInfo(inviteInfoToSave);
     
-    // 로그아웃 페이지로 이동
-    window.location.href = "/logout?returnUrl=" + encodeURIComponent("/login");
+    // 클라이언트에서 먼저 토큰 쿠키 삭제 (서버 삭제와 병행)
+    clearTokens();
+    // 로그아웃 페이지로 이동 (/logout route는 'redirect' 파라미터 사용)
+    window.location.href = "/logout?redirect=" + encodeURIComponent("/login");
   }
 
   function handleCancelWrongAccount() {

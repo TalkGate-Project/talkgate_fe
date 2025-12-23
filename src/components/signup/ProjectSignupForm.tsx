@@ -7,6 +7,7 @@ import AsyncButton from "@/components/common/AsyncButton";
 import { MembersService } from "@/services/members";
 import { AuthService } from "@/services/auth";
 import { getPendingInviteInfo, clearPendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
+import { clearTokens } from "@/lib/token";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
 
@@ -235,7 +236,10 @@ export function ProjectSignupForm() {
   // 다른 계정 모달 - 로그아웃
   const handleLogoutAndRedirect = () => {
     // 초대 정보는 유지한 채로 로그아웃
-    window.location.href = "/logout?returnUrl=" + encodeURIComponent("/login");
+    // 클라이언트에서 먼저 토큰 쿠키 삭제 (서버 삭제와 병행)
+    clearTokens();
+    // /logout route는 'redirect' 파라미터를 사용
+    window.location.href = "/logout?redirect=" + encodeURIComponent("/login");
   };
 
   // AuthLayout을 한 번만 렌더링하여 zoom 설정이 유지되도록 함
