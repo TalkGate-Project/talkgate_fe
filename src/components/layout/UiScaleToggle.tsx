@@ -53,7 +53,8 @@ export default function UiScaleToggle({ initialZoom }: Props) {
     const authPaths = [
       "/login", 
       "/signup", 
-      "/social-signup", 
+      "/social-signup",
+      "/project-signup", // 프로젝트 가입 페이지 (초대 플로우)
       "/forgot-password", 
       "/invite", 
       "/auth/callback",

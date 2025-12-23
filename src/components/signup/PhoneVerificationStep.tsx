@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import {
+  usePhoneVerification,
+  type VerificationResult,
+} from "@/hooks/usePhoneVerification";
 
 type PhoneVerificationStepProps = {
   onComplete: () => void;
@@ -14,36 +18,60 @@ export function PhoneVerificationStep({
   onSkip,
   guideMessage = "회원가입을 진행해주세요.",
 }: PhoneVerificationStepProps) {
-  const [isVerifying, setIsVerifying] = useState(false);
-
-  const handleVerification = async () => {
-    setIsVerifying(true);
-    try {
-      // TODO: 실제 본인인증 서비스(PASS, NICE 등) 연동
-      // 현재는 임시로 시뮬레이션
-      console.log("[PhoneVerification] 📱 본인인증 시작");
-      
-      // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
-      // 실제 구현 시에는 window.open 또는 SDK 호출
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // 본인인증 성공 시 API 호출
-      // await AuthService.verifyPhone({ verificationToken: "..." });
-      
-      console.log("[PhoneVerification] ✅ 본인인증 완료");
+  // 본인인증 성공 핸들러
+  const handleVerificationSuccess = useCallback(
+    (result: VerificationResult) => {
+      console.log("[PhoneVerificationStep] ✅ 본인인증 성공:", result);
       onComplete();
-    } catch (err: unknown) {
-      console.error("[PhoneVerification] 본인인증 실패:", err);
+    },
+    [onComplete]
+  );
+
+  // 본인인증 실패 핸들러
+  const handleVerificationError = useCallback((result: VerificationResult) => {
+    console.error("[PhoneVerificationStep] 본인인증 실패:", result);
+
+    // 이미 본인인증이 완료된 경우
+    if (result.code === "IDENTITY_VERIFICATION_ALREADY_EXISTS") {
       showErrorModal({
-        type: "error",
-        headline: "본인인증에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        type: "info",
+        headline: "이미 본인인증이 완료되었습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
-    } finally {
-      setIsVerifying(false);
+      // 이미 완료된 경우에도 다음 단계로 진행
+      onComplete();
+      return;
     }
-  };
+
+    // 팝업 차단된 경우
+    if (result.code === "POPUP_BLOCKED") {
+      showErrorModal({
+        type: "error",
+        headline: "팝업이 차단되었습니다.",
+        description: "브라우저 설정에서 팝업 차단을 해제해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      return;
+    }
+
+    // 기타 오류
+    showErrorModal({
+      type: "error",
+      headline: "본인인증에 실패했습니다.",
+      description: result.message || "잠시 후 다시 시도해주세요.",
+      hideCancel: true,
+      confirmText: "확인",
+    });
+  }, [onComplete]);
+
+  // 본인인증 훅 사용 (소셜 로그인 후에는 이미 쿠키에 토큰이 있으므로 accessToken 전달 불필요)
+  const { startVerification, isVerifying } = usePhoneVerification({
+    type: "account",
+    onSuccess: handleVerificationSuccess,
+    onError: handleVerificationError,
+  });
 
   return (
     <div className="w-full">
@@ -56,7 +84,7 @@ export function PhoneVerificationStep({
       <button
         type="button"
         className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold flex items-center justify-center gap-[10px] hover:bg-[#2F2F2F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        onClick={handleVerification}
+        onClick={startVerification}
         disabled={isVerifying}
       >
         {/* 스마트폰 아이콘 */}
