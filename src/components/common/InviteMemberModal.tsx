@@ -8,6 +8,12 @@ interface InviteMemberModalProps {
   onInvite: (email: string, role: "subAdmin" | "member") => void;
 }
 
+// 이메일 형식 validation 함수
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 export default function InviteMemberModal({
   isOpen,
   onClose,
@@ -15,10 +21,46 @@ export default function InviteMemberModal({
 }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"subAdmin" | "member">("member");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  // 이메일 validation 체크
+  const validateEmail = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setEmailError("이메일을 입력해주세요.");
+      return false;
+    }
+    if (!isValidEmail(trimmed)) {
+      setEmailError("올바른 이메일 형식이 아닙니다.");
+      return false;
+    }
+    setEmailError(null);
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    // 이미 touched 상태이고 값이 있으면 실시간 validation
+    if (emailTouched && value.trim()) {
+      validateEmail(value);
+    } else if (emailTouched && !value.trim()) {
+      setEmailError("이메일을 입력해주세요.");
+    } else {
+      setEmailError(null);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    validateEmail(email);
+  };
 
   const handleInvite = () => {
-    if (email.trim()) {
-      onInvite(email.trim(), role);
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && isValidEmail(trimmedEmail)) {
+      onInvite(trimmedEmail, role);
       handleClose();
     }
   };
@@ -26,6 +68,8 @@ export default function InviteMemberModal({
   const handleClose = () => {
     setEmail("");
     setRole("member");
+    setEmailTouched(false);
+    setEmailError(null);
     onClose();
   };
 
@@ -76,10 +120,20 @@ export default function InviteMemberModal({
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              onBlur={handleEmailBlur}
               placeholder="초대할 멤버의 이메일을 입력하세요"
-              className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] bg-card dark:bg-neutral-10 text-ink dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-foreground dark:focus:border-neutral-80"
+              className={`w-full px-3 py-2 border rounded-[5px] text-[14px] bg-card dark:bg-neutral-10 text-ink dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none transition-colors ${
+                emailError
+                  ? "border-red-500 dark:border-red-500 focus:border-red-500 dark:focus:border-red-500"
+                  : "border-neutral-30 dark:border-neutral-30 focus:border-foreground dark:focus:border-neutral-80"
+              }`}
             />
+            {emailError && (
+              <p className="mt-2 text-[13px] text-red-500 dark:text-red-400">
+                {emailError}
+              </p>
+            )}
           </div>
 
           {/* Role Selection */}
@@ -131,9 +185,9 @@ export default function InviteMemberModal({
           </button>
           <button
             onClick={handleInvite}
-            disabled={!email.trim()}
+            disabled={!email.trim() || !!emailError || !isValidEmail(email.trim())}
             className={`cursor-pointer px-4 py-2 rounded-[5px] text-[14px] font-semibold transition-colors ${
-              email.trim()
+              email.trim() && !emailError && isValidEmail(email.trim())
                 ? "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
                 : "bg-gray-300 dark:bg-neutral-20 text-gray-500 dark:text-neutral-50 cursor-not-allowed"
             }`}
