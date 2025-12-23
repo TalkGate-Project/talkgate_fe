@@ -83,8 +83,9 @@ export function SocialSignupForm() {
   const handleWrongAccountCancel = () => {
     console.log("[SocialSignup] ❌ 이메일 불일치 - 취소, 초대 정보 삭제");
     clearPendingInviteInfo();
-    setShowWrongAccountModal(false);
-    router.replace("/projects");
+    // 모달을 닫지 않고 바로 페이지 이동 (페이지 새로고침으로 모달도 자연스럽게 사라짐)
+    // zoom 적용을 위해 전체 페이지 새로고침
+    window.location.replace("/projects");
   };
 
   // 잘못된 계정 모달에서 로그아웃 클릭

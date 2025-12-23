@@ -235,8 +235,9 @@ export function InviteLanding() {
 
   function handleCancelWrongAccount() {
     clearPendingInviteInfo();
-    setShowWrongAccountModal(false);
-    router.replace("/projects");
+    // 모달을 닫지 않고 바로 페이지 이동 (페이지 새로고침으로 모달도 자연스럽게 사라짐)
+    // zoom 적용을 위해 전체 페이지 새로고침
+    window.location.replace("/projects");
   }
 
   return (
