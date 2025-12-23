@@ -113,18 +113,6 @@ export function SocialSignupForm() {
       <AuthLayout ariaLabel="social-signup-area">
         <h1 className="sr-only">회원정보 등록</h1>
 
-        {/* 초대 플로우 안내 */}
-        {isInviteFlow && pendingInvite?.projectName && step === "terms" && (
-          <div className="mb-4 p-3 rounded-lg bg-[#1a3a2a] border border-[#00E272]/30">
-            <p className="text-[#00E272] text-[14px] text-center">
-              "{pendingInvite.projectName}" 프로젝트 초대
-            </p>
-            <p className="text-[#B9B9B9] text-[12px] text-center mt-1">
-              회원정보 등록을 완료해주세요.
-            </p>
-          </div>
-        )}
-
         {/* 단계별 폼 */}
         {step === "terms" && (
           <TermsStep onComplete={handleTermsComplete} />
@@ -134,6 +122,7 @@ export function SocialSignupForm() {
           <PhoneVerificationStep 
             onComplete={handlePhoneComplete}
             onSkip={handlePhoneSkip}
+            isInviteFlow={isInviteFlow}
           />
         )}
       </AuthLayout>
