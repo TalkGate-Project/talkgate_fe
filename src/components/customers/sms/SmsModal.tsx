@@ -63,22 +63,31 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
   // 미리보기 표시용 수신자 번호 (첫 번째 고객)
   const previewRecipient = customers[0]?.contact1 || "010-0000-0000";
 
+  // 실제 수신자 수 계산 (전체 선택 모드일 때 totalCount 사용)
+  const recipientCount = useMemo(() => {
+    return selectionMode === "all" && totalCount !== undefined ? totalCount : customers.length;
+  }, [selectionMode, totalCount, customers.length]);
+
   // 수신자 표시 (최대 2개 + 나머지 수)
   const displayRecipients = useMemo(() => {
     const maxDisplay = 2;
     const displayed = customers.slice(0, maxDisplay);
-    const remaining = customers.length - maxDisplay;
+    // 전체 선택 모드이고 displayed가 비어있으면 remaining을 recipientCount로 설정
+    // 그렇지 않으면 recipientCount에서 displayed.length를 뺌
+    const remaining = displayed.length === 0 && selectionMode === "all" 
+      ? recipientCount 
+      : Math.max(0, recipientCount - displayed.length);
     return { displayed, remaining };
-  }, [customers]);
+  }, [customers, recipientCount, selectionMode]);
 
   // 발송 버튼 활성화 조건
   const canSend = useMemo(() => {
     if (!selectedSender) return false;
     if (!body.trim()) return false;
-    if (customers.length === 0) return false;
+    if (recipientCount === 0) return false;
     if (sendMethod === "scheduled" && (!scheduledDate || !scheduledTime)) return false;
     return true;
-  }, [selectedSender, body, customers.length, sendMethod, scheduledDate, scheduledTime]);
+  }, [selectedSender, body, recipientCount, sendMethod, scheduledDate, scheduledTime]);
 
   // 발송 처리
   const handleSubmit = async () => {
@@ -248,22 +257,30 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
             {/* 수신자 */}
             <div className="mb-5">
               <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">
-                수신자 ({customers.length}명)
+                수신자 ({recipientCount}명)
               </label>
               <div className="flex flex-wrap gap-2">
-                {displayRecipients.displayed.map((customer) => (
-                  <span
-                    key={customer.id}
-                    className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
-                  >
-                    {customer.name} {customer.contact1}
-                  </span>
-                ))}
-                {displayRecipients.remaining > 0 && (
+                {displayRecipients.displayed.length > 0 ? (
+                  <>
+                    {displayRecipients.displayed.map((customer) => (
+                      <span
+                        key={customer.id}
+                        className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
+                      >
+                        {customer.name} {customer.contact1}
+                      </span>
+                    ))}
+                    {displayRecipients.remaining > 0 && (
+                      <span className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70">
+                        +{displayRecipients.remaining}
+                      </span>
+                    )}
+                  </>
+                ) : displayRecipients.remaining > 0 ? (
                   <span className="inline-flex items-center h-[28px] px-3 bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70">
                     +{displayRecipients.remaining}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
 

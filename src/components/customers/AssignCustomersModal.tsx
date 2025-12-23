@@ -15,6 +15,8 @@ export type AssignCustomersModalProps = {
   open: boolean;
   onClose: () => void;
   selectedCustomerIds: number[];
+  selectionMode?: "page" | "all" | null;
+  totalCount?: number;
   onAssign: (targetMemberId: number) => Promise<void>;
   projectId: string;
 };
@@ -243,7 +245,7 @@ function HierarchicalTeamList({
 }
 
 export default function AssignCustomersModal(props: AssignCustomersModalProps) {
-  const { open, onClose, selectedCustomerIds, onAssign, projectId } = props;
+  const { open, onClose, selectedCustomerIds, selectionMode, totalCount, onAssign, projectId } = props;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
@@ -414,7 +416,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           그룹 혹은 팀원에게 고객을 배정할 수 있습니다.
         </div>
         <span className="inline-flex items-center h-[22px] rounded-[30px] bg-primary-10 px-3 text-[12px] text-primary-80 opacity-80">
-          선택된 고객 {selectedCustomerIds.length}
+          선택된 고객 {selectionMode === "all" && totalCount !== undefined ? totalCount : selectedCustomerIds.length}
         </span>
       </div>
 
