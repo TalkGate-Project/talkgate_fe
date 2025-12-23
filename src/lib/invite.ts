@@ -5,14 +5,24 @@ const INVITE_TOKEN_KEY = "tg_invite_token";
 /** 초대 정보 저장 키 */
 const INVITE_INFO_KEY = "tg_invite_info";
 
+/**
+ * 초대 정보 타입 (/v1/members/invitations/verify 응답 기반)
+ */
 export type PendingInviteInfo = {
+  // 필수 필드
   token: string;
   email: string;
   projectName: string;
-  projectId: string | number;
-  inviterName?: string;
-  role?: string;
+  projectId: number;
+  // 선택 필드 (invitation 객체에서 가져옴)
+  id?: number;
+  role?: "admin" | "subAdmin" | "leader" | "member" | string;
+  status?: "pending" | "accepted" | "expired" | string;
   expiresAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // 초대자 정보 (있는 경우)
+  inviterName?: string;
 };
 
 function isBrowser(): boolean {

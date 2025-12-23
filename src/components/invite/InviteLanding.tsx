@@ -9,6 +9,7 @@ import {
   clearPendingInviteInfo,
   type PendingInviteInfo,
 } from "@/lib/invite";
+import { clearTokens } from "@/lib/token";
 import loginBgImg from "@/assets/images/auth/login_bg.png";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { EnvelopeAnimation } from "./EnvelopeAnimation";
@@ -156,18 +157,27 @@ export function InviteLanding() {
       return;
     }
 
-    // 초대 정보를 localStorage에 저장 (모든 경우에 저장)
+    // 초대 정보를 localStorage에 저장 (invitation 객체 전체)
+    // /v1/members/invitations/verify 응답 스키마:
+    // { id, projectId, projectName, role, email, token, expiresAt, status, createdAt, updatedAt }
     const inviteInfoToSave: PendingInviteInfo = {
+      // 필수 필드
       token,
       email: inviteInfo?.email || "",
       projectName: inviteInfo?.projectName || "",
-      projectId: inviteInfo?.projectId || "",
-      inviterName: inviteInfo?.inviterName,
+      projectId: inviteInfo?.projectId || 0,
+      // invitation 객체의 모든 필드
+      id: inviteInfo?.id,
       role: inviteInfo?.role,
+      status: inviteInfo?.status,
       expiresAt: inviteInfo?.expiresAt,
+      createdAt: inviteInfo?.createdAt,
+      updatedAt: inviteInfo?.updatedAt,
+      // 초대자 정보 (있는 경우)
+      inviterName: inviteInfo?.inviterName,
     };
     savePendingInviteInfo(inviteInfoToSave);
-    console.log("[InvitePage] 💾 초대 정보 저장됨:", inviteInfoToSave);
+    console.log("[InvitePage] 💾 초대 정보 전체 저장됨:", inviteInfoToSave);
 
     // 개발용 토큰인 경우
     if (token === DEV_TOKEN) {
@@ -201,20 +211,26 @@ export function InviteLanding() {
 
   // 로그아웃 후 로그인 페이지로 이동
   function handleLogoutAndRedirect() {
-    // 초대 정보는 유지
+    // 초대 정보는 유지 (invitation 객체 전체)
     const inviteInfoToSave: PendingInviteInfo = {
       token,
       email: inviteInfo?.email || "",
       projectName: inviteInfo?.projectName || "",
-      projectId: inviteInfo?.projectId || "",
-      inviterName: inviteInfo?.inviterName,
+      projectId: inviteInfo?.projectId || 0,
+      id: inviteInfo?.id,
       role: inviteInfo?.role,
+      status: inviteInfo?.status,
       expiresAt: inviteInfo?.expiresAt,
+      createdAt: inviteInfo?.createdAt,
+      updatedAt: inviteInfo?.updatedAt,
+      inviterName: inviteInfo?.inviterName,
     };
     savePendingInviteInfo(inviteInfoToSave);
     
-    // 로그아웃 페이지로 이동
-    window.location.href = "/logout?returnUrl=" + encodeURIComponent("/login");
+    // 클라이언트에서 먼저 토큰 쿠키 삭제 (서버 삭제와 병행)
+    clearTokens();
+    // 로그아웃 페이지로 이동 (/logout route는 'redirect' 파라미터 사용)
+    window.location.href = "/logout?redirect=" + encodeURIComponent("/login");
   }
 
   function handleCancelWrongAccount() {

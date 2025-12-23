@@ -16,6 +16,7 @@ import {
 } from "@/lib/auth-utils";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { getPendingInviteInfo, savePendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
 
 interface OAuthCallbackContentInnerProps {
   provider: string;
@@ -33,6 +34,10 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   
   // 세션 스토리지에서 리디렉션 URL 가져오기 (로그인 페이지에서 저장됨)
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  // 초대 플로우 확인
+  const [isInviteFlow, setIsInviteFlow] = useState(false);
+  // 초기화 완료 여부 (초대 정보 복구 등)
+  const [isInitialized, setIsInitialized] = useState(false);
   
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -42,6 +47,32 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // 사용 후 삭제
         sessionStorage.removeItem("tg_redirect_url");
       }
+      
+      // 초대 정보 복구 (소셜 로그인 전 LoginForm에서 백업됨)
+      const inviteBackup = sessionStorage.getItem("tg_invite_backup");
+      if (inviteBackup) {
+        try {
+          const inviteInfo = JSON.parse(inviteBackup) as PendingInviteInfo;
+          // localStorage에 복구
+          savePendingInviteInfo(inviteInfo);
+          console.log("[OAuthCallback] 🔄 초대 정보 복구됨:", inviteInfo);
+          setIsInviteFlow(true);
+        } catch (e) {
+          console.error("[OAuthCallback] 초대 정보 복구 실패:", e);
+        }
+        // 백업 삭제
+        sessionStorage.removeItem("tg_invite_backup");
+      } else {
+        // localStorage에 이미 초대 정보가 있는지 확인
+        const existingInvite = getPendingInviteInfo();
+        if (existingInvite?.token) {
+          console.log("[OAuthCallback] ℹ️ 기존 초대 정보 감지:", existingInvite);
+          setIsInviteFlow(true);
+        }
+      }
+      
+      // 초기화 완료
+      setIsInitialized(true);
     }
   }, []);
 
@@ -70,6 +101,8 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   }, [provider]);
 
   useEffect(() => {
+    // 초기화 완료 전에는 실행하지 않음
+    if (!isInitialized) return;
     // OAuth 에러가 있으면 API 호출 건너뛰기
     if (oauthError) return;
 
@@ -132,16 +165,31 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           return;
         }
         
-        // 신규 사용자인 경우 → 소셜 회원가입 페이지로 이동
+        // 쿠키 설정 안정화를 위한 짧은 지연
+        const stabilizeDelay = () => new Promise(resolve => setTimeout(resolve, 100));
+        
+        // 신규 사용자인 경우 → 소셜 회원가입 페이지로 이동 (약관 동의 → 본인인증 → 프로젝트 가입)
         if (result.isNewUser) {
           debugLog("🆕 신규 사용자 감지 - 소셜 회원가입 페이지로 이동");
           if (mounted) {
+            await stabilizeDelay();
             window.location.replace("/social-signup");
           }
           return;
         }
         
-        // 일반 로그인 성공 (기존 사용자)
+        // 기존 사용자인데 초대 플로우인 경우 → 프로젝트 가입 페이지로 이동
+        // (약관 동의/본인인증은 이미 완료되어 있으므로 프로젝트 가입만 진행)
+        if (isInviteFlow) {
+          debugLog("📨 기존 사용자 + 초대 플로우 - 프로젝트 가입 페이지로 이동");
+          if (mounted) {
+            await stabilizeDelay();
+            window.location.replace("/project-signup");
+          }
+          return;
+        }
+        
+        // 일반 로그인 성공 (기존 사용자, 초대 없음)
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
         
@@ -154,6 +202,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           hasRedirectUrl: !!redirectUrl,
           isAbsoluteUrl,
           redirectUrl,
+          isInviteFlow,
           destination: isAbsoluteUrl ? redirectUrl : "/projects",
         });
         
@@ -208,7 +257,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
     return () => {
       mounted = false;
     };
-  }, [code, provider, callbackUrl, router, oauthError, redirectUrl]);
+  }, [code, provider, callbackUrl, router, oauthError, redirectUrl, isInitialized, isInviteFlow]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">

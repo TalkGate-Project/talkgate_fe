@@ -14,9 +14,10 @@ export async function GET(request: NextRequest) {
   console.log('[Logout Route] 🚪 로그아웃 요청 수신');
 
   // 리다이렉트 URL 결정
-  const redirectUrl = request.nextUrl.searchParams.get('redirect');
-  const host = request.headers.get('host') || '';
+  const redirectParam = request.nextUrl.searchParams.get('redirect');
+  const host = request.headers.get('host') || 'localhost:3000';
   const hostWithoutPort = host.split(':')[0];
+  const protocol = request.nextUrl.protocol || 'https:';
   
   let mainDomain = host;
   
@@ -29,8 +30,20 @@ export async function GET(request: NextRequest) {
     }
   }
   
-  const protocol = request.nextUrl.protocol || 'https:';
-  const finalUrl = redirectUrl || `${protocol}//${mainDomain}/login?logout=success`;
+  // 절대 URL 생성 (NextResponse.redirect는 절대 URL만 허용)
+  let finalUrl: string;
+  if (redirectParam) {
+    // 상대 URL인 경우 절대 URL로 변환
+    if (redirectParam.startsWith('/')) {
+      finalUrl = `${protocol}//${host}${redirectParam}`;
+    } else if (redirectParam.startsWith('http://') || redirectParam.startsWith('https://')) {
+      finalUrl = redirectParam;
+    } else {
+      finalUrl = `${protocol}//${host}/${redirectParam}`;
+    }
+  } else {
+    finalUrl = `${protocol}//${mainDomain}/login?logout=success`;
+  }
 
   console.log('[Logout Route] 🔄 리다이렉트 URL:', finalUrl);
 

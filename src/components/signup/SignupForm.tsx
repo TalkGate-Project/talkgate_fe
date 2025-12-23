@@ -64,10 +64,11 @@ export function SignupForm() {
     // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
     if (isInviteFlow) {
       if (params.tokens) {
-        // 토큰 저장 후 프로젝트 가입 페이지로 이동 (이름/연락처 입력)
-        console.log("[SignupPage] 🎉 초대 플로우 - 토큰 저장 후 프로젝트 가입 페이지로 이동");
-        await saveTokensAndInvalidateCache(params.tokens);
-        window.location.href = "/project-signup";
+        // 토큰을 저장하고 본인인증 단계로 이동
+        // ⚠️ 이메일 인증은 스킵하지만 본인인증은 진행해야 함
+        console.log("[SignupPage] 🎉 초대 플로우 - 이메일 인증 스킵, 본인인증 단계로 이동");
+        setSignupTokens(params.tokens);
+        setStep("profile");
       } else {
         // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
         console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
