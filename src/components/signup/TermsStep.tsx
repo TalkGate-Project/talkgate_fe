@@ -67,7 +67,16 @@ export function TermsStep({ onComplete }: TermsStepProps) {
               }}
               ariaLabel="모두 동의합니다"
             />
-            <span>모두 동의합니다</span>
+            <span 
+              className="cursor-pointer"
+              onClick={() => {
+                const next = !allAgreed;
+                setAgreeTerms(next);
+                setAgreePrivacy(next);
+              }}
+            >
+              모두 동의합니다
+            </span>
           </div>
           <button
             type="button"
@@ -103,7 +112,12 @@ export function TermsStep({ onComplete }: TermsStepProps) {
                 onChange={setAgreeTerms}
                 ariaLabel="이용약관 동의"
               />
-              <span>이용약관에 동의합니다 (필수)</span>
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeTerms(!agreeTerms)}
+              >
+                이용약관에 동의합니다 (필수)
+              </span>
             </div>
             <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
               <Checkbox
@@ -111,7 +125,12 @@ export function TermsStep({ onComplete }: TermsStepProps) {
                 onChange={setAgreePrivacy}
                 ariaLabel="개인정보 처리방침 동의"
               />
-              <span>개인정보처리방침에 동의합니다 (필수)</span>
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreePrivacy(!agreePrivacy)}
+              >
+                개인정보처리방침에 동의합니다 (필수)
+              </span>
             </div>
           </div>
         )}
