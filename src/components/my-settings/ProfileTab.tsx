@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMe } from "@/hooks/useMe";
-// import { useQuery } from "@tanstack/react-query";
-// import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 
 import { showErrorModal } from "@/lib/errorModalEvents";
-// TODO: 마이페이지 본인인증 기능 - 백엔드 API 준비 후 활성화
-// import {
-//   usePhoneVerification,
-//   type VerificationResult,
-// } from "@/hooks/usePhoneVerification";
-// import { VerificationService } from "@/services/verification";
-// import defaultProfileImg from "@/assets/images/common/default_profile.png";
+import {
+  usePhoneVerification,
+  type VerificationResult,
+} from "@/hooks/usePhoneVerification";
+import { VerificationService } from "@/services/verification";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
@@ -22,44 +19,80 @@ export default function ProfileTab() {
   const [email, setEmail] = useState(user?.email || "");
   const [contact, setContact] = useState(user?.phone || "");
 
-  // TODO: 마이페이지 본인인증 기능 - 백엔드 sms-sender-number-registration API 준비 후 활성화
-  // 현재 404 에러 발생으로 비활성화 상태
-  // 
   // 본인인증 상태 조회
-  // const {
-  //   data: verificationData,
-  //   refetch: refetchVerification,
-  //   isLoading: isLoadingVerification,
-  // } = useQuery({
-  //   queryKey: ["verification", "identity"],
-  //   queryFn: async () => {
-  //     const response = await VerificationService.getIdentity();
-  //     return response.data;
-  //   },
-  //   staleTime: 1000 * 60 * 5, // 5분
-  // });
-  //
+  const {
+    data: verificationData,
+    refetch: refetchVerification,
+    isLoading: isLoadingVerification,
+  } = useQuery({
+    queryKey: ["verification", "identity"],
+    queryFn: async () => {
+      const response = await VerificationService.getIdentity();
+      return response.data.data; // ApiSuccessResponse의 data에서 실제 VerificationIdentity 추출
+    },
+    staleTime: 1000 * 60 * 5, // 5분
+  });
+  
   // 본인인증 성공 핸들러
-  // const handleVerificationSuccess = useCallback(
-  //   async (result: VerificationResult) => {
-  //     console.log("[ProfileTab] ✅ 본인인증 성공:", result);
-  //     await Promise.all([refetchVerification(), refetch()]);
-  //     showErrorModal({
-  //       type: "success",
-  //       headline: "본인인증이 완료되었습니다.",
-  //       hideCancel: true,
-  //     });
-  //   },
-  //   [refetchVerification, refetch]
-  // );
-  //
+  const handleVerificationSuccess = useCallback(
+    async (result: VerificationResult) => {
+      console.log("[ProfileTab] ✅ 본인인증 성공:", result);
+      await Promise.all([refetchVerification(), refetch()]);
+      showErrorModal({
+        type: "success",
+        headline: "본인인증이 완료되었습니다.",
+        hideCancel: true,
+      });
+    },
+    [refetchVerification, refetch]
+  );
+
+  // 본인인증 실패 핸들러
+  const handleVerificationError = useCallback((result: VerificationResult) => {
+    console.error("[ProfileTab] 본인인증 실패:", result);
+
+    // 이미 본인인증이 완료된 경우
+    if (result.code === "IDENTITY_VERIFICATION_ALREADY_EXISTS") {
+      showErrorModal({
+        type: "info",
+        headline: "이미 본인인증이 완료되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      // 이미 완료된 경우 상태를 다시 조회
+      refetchVerification();
+      return;
+    }
+
+    // 팝업 차단된 경우
+    if (result.code === "POPUP_BLOCKED") {
+      showErrorModal({
+        type: "error",
+        headline: "팝업이 차단되었습니다.",
+        description: "브라우저 설정에서 팝업 차단을 해제해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      return;
+    }
+
+    // 기타 오류
+    showErrorModal({
+      type: "error",
+      headline: "본인인증에 실패했습니다.",
+      description: result.message || "잠시 후 다시 시도해주세요.",
+      hideCancel: true,
+      confirmText: "확인",
+    });
+  }, [refetchVerification]);
+  
   // 본인인증 훅 사용 (로그인 상태에서는 sms-sender-number-registration 사용)
   // x-project-id 헤더는 apiClient가 쿠키에서 자동으로 추가
-  // const { startVerification, isVerifying } = usePhoneVerification({
-  //   type: "sms-sender",
-  //   onSuccess: handleVerificationSuccess,
-  //   onError: handleVerificationError,
-  // });
+  const { startVerification, isVerifying } = usePhoneVerification({
+    type: "sms-sender",
+    onSuccess: handleVerificationSuccess,
+    onError: handleVerificationError,
+  });
 
   // user 데이터가 로드되면 상태 업데이트
   useEffect(() => {
@@ -147,29 +180,27 @@ export default function ProfileTab() {
             프로젝트에서 사용되는 프로필 정보를 설정합니다.
           </p>
         </div>
-        {/* TODO: 본인인증 버튼 - 백엔드 sms-sender-number-registration API 준비 후 활성화 */}
-        {/* 현재 404 에러 발생으로 비활성화 상태 */}
-        {/* <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           {isLoadingVerification ? (
             <span className="text-[14px] text-neutral-60">로딩 중...</span>
-          ) : verificationData?.isVerified ? (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-[5px] text-[14px] font-medium">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M13.3337 4L6.00033 11.3333L2.66699 8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+          ) : verificationData?.isVerified === true ? (
+            <div className="inline-flex items-center justify-center px-3 py-1.5 gap-[10px] border border-[#E2E2E2] rounded-[5px]">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M16.6667 5L7.50033 14.1667L3.33366 10"
+                  stroke="#B0B0B0"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="text-[14px] font-semibold text-[#000000] leading-[17px] tracking-[-0.02em]">
                 본인인증 완료
               </span>
             </div>
@@ -236,7 +267,7 @@ export default function ProfileTab() {
               )}
             </button>
           )}
-        </div> */}
+        </div>
       </div>
 
       {/* Divider */}

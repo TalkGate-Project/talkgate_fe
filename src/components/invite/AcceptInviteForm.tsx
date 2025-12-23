@@ -127,9 +127,6 @@ export function AcceptInviteForm() {
         <div className="text-[#FDFDFD] text-[14px] font-medium text-center mb-[30px]">
           {inviteInfo.projectName ? (
             <>
-              <span className="font-semibold">"{inviteInfo.projectName}"</span>{" "}
-              프로젝트에 참여합니다.
-              <br />
               <span className="text-[#B9B9B9] text-[13px]">
                 본인인증을 완료해주세요.
               </span>

@@ -287,9 +287,21 @@ export function useSmsForm() {
         const data = (response.data as any)?.data ?? response.data;
         
         if (response.data?.result || data?.smsHistoryId) {
+          const totalRecipients = data?.smsHistory?.totalRecipients || data?.totalRecipients || customers.length;
+          const validContactsCount = data?.validContactsCount;
+          const optedOutCount = data?.optedOutCount || 0;
+          
+          let message = `${totalRecipients}명에게 문자 발송이 요청되었습니다.`;
+          if (validContactsCount !== undefined && validContactsCount !== totalRecipients) {
+            message = `${validContactsCount}명에게 문자 발송이 요청되었습니다.`;
+            if (optedOutCount > 0) {
+              message += ` (수신거부 ${optedOutCount}명 제외)`;
+            }
+          }
+          
           return {
             success: true,
-            message: `${data.totalRecipients || customers.length}명에게 문자 발송이 요청되었습니다.`,
+            message,
           };
         } else {
           return {
