@@ -258,7 +258,7 @@ export function ProjectSignupForm() {
       {isMounted && !isLoading && showWrongAccountModal && (
         <WrongAccountModal
           loggedInEmail={userEmail}
-          inviteEmail={pendingInvite?.email}
+          inviteEmail={pendingInvite?.email ?? null}
           onCancel={handleCancelWrongAccount}
           onLogout={handleLogoutAndRedirect}
         />
