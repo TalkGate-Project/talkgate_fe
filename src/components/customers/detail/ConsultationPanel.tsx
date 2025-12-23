@@ -237,7 +237,7 @@ export default function ConsultationPanel({
                 <div className="flex items-center justify-between gap-2 text-[12px]">
                   <div className="flex items-center gap-x-2">
                     <div
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] ${badgeStyle.bg} ${badgeStyle.text}`}
+                      className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                     >
                       {categoryName}
                     </div>
