@@ -133,20 +133,20 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
       
       if (result.success) {
         showErrorModal({
-          title: "알림",
-          description: "문자 발송이 완료되었습니다.",
+          type: "success",
+          headline: result.message || "문자 발송이 완료되었습니다.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,
-          onConfirm: () => {
-            onSuccess?.();
+          onConfirm: async () => {
+            await onSuccess?.();
             onClose();
           },
         });
       } else {
         showErrorModal({
-          title: "오류 발생",
-          headline: "문자 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          type: "error",
+          headline: result.message || "문자 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
           confirmText: "확인",
           cancelText: null,
           hideCancel: true,

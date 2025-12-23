@@ -142,7 +142,9 @@ function CustomersPageContentInner() {
 
   const handleAssign = async (targetId: number) => {
     try {
-      if (selectionMode === "all") {
+      // 전체목록선택 기능으로 선택한 경우에만 filter 사용
+      // 체크박스로 선택한 경우(selectedIds.length > 0)는 모두 ids 사용
+      if (selectionMode === "all" && selectedIds.length === 0) {
         // 전체 목록 선택: 필터 기준으로 배정
         await CustomersService.assign({
           assignmentType: "filter",
@@ -167,7 +169,7 @@ function CustomersPageContentInner() {
           projectId: projectId!,
         });
       } else {
-        // 현재 페이지 선택: ID 기준으로 배정
+        // 체크박스로 선택한 경우: ID 기준으로 배정
         await CustomersService.assign({
           assignmentType: "ids",
           memberId: targetId as any,
@@ -290,6 +292,10 @@ function CustomersPageContentInner() {
         appliedFilters={applied}
         totalCount={total}
         projectId={projectId!}
+        onSuccess={() => {
+          clearSelection();
+          refetch();
+        }}
       />
       </div>
     </main>
