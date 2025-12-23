@@ -1,10 +1,33 @@
 // 카테고리 배지 스타일 정의 - 5가지 색상
+// 라이트 모드와 다크 모드 색상을 모두 지원
+// opacity는 8자리 hex 값(#RRGGBBAA)으로 처리
+// 텍스트 opacity 0.8 = CC, 배경 opacity 0.9 (다크모드만) = E6
 export const BADGE_STYLES = [
-  { bg: "bg-[#FFEBEB]", text: "text-[#D83232]" }, // 1. Red (부재, 중요, 긴급 등)
-  { bg: "bg-[#FFF5D5]", text: "text-[#976400]" }, // 2. Yellow (재상담, 주의, 보류 등)
-  { bg: "bg-[#E2E2E2]", text: "text-[#595959]" }, // 3. Gray (AS요청, 일반, 기타 등)
-  { bg: "bg-[#D3E1FE]", text: "text-[#4D82F3]" }, // 4. Blue (안내, 양호, 승인 등)
-  { bg: "bg-[#D6FAE8]", text: "text-[#00B55B]" }, // 5. Green (결제완료, 성공, 해결 등)
+  { 
+    // 1. Red (부재, 중요, 긴급 등)
+    bg: "bg-[#FFEBEB] dark:!bg-[#FFEBEBE6]", 
+    text: "text-[#D83232CC] dark:!text-[#8C0000CC]" 
+  },
+  { 
+    // 2. Yellow (재상담, 주의, 보류 등)
+    bg: "bg-[#FFF5D5] dark:!bg-[#FFF5D5E6]", 
+    text: "text-[#976400CC] dark:!text-[#724B00CC]" 
+  },
+  { 
+    // 3. Gray (AS요청, 일반, 기타 등)
+    bg: "bg-[#E2E2E2] dark:!bg-[#B9B9B9]", 
+    text: "text-[#595959CC] dark:!text-[#333333CC]" 
+  },
+  { 
+    // 4. Blue (안내, 양호, 승인 등)
+    bg: "bg-[#D3E1FE] dark:!bg-[#D3E1FEE6]", 
+    text: "text-[#4D82F3CC] dark:!text-[#0037B3CC]" 
+  },
+  { 
+    // 5. Green (결제완료, 성공, 해결 등)
+    bg: "bg-[#D6FAE8] dark:!bg-[#D6FAE8E6]", 
+    text: "text-[#00B55BCC] dark:!text-[#004824CC]" 
+  },
 ] as const;
 
 export type BadgeStyle = (typeof BADGE_STYLES)[number];

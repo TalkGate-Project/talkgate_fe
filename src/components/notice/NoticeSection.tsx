@@ -11,6 +11,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { NoticesService } from "@/services/notices";
 import type { Notice } from "@/types/notices";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
 export default function NoticeSection() {
   const router = useRouter();
@@ -105,13 +106,23 @@ function NoticeEmpty({ message, error }: { message: string; error?: boolean }) {
 
 function NoticeSkeleton() {
   return (
-    <div className="flex flex-col gap-3">
-      {Array.from({ length: 5 }).map((_, idx) => (
-        <div key={idx} className="flex items-center justify-between gap-3 py-4">
-          <span className="h-5 w-48 animate-pulse rounded bg-neutral-20" />
-          <span className="h-5 w-32 animate-pulse rounded bg-neutral-20" />
-        </div>
-      ))}
+    <div className="overflow-hidden">
+      <table className="w-full border-collapse">
+        <tbody>
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <TableSkeletonRow
+              key={`skeleton-${idx}`}
+              columns={[
+                { width: "flex", paddingX: 2.5 }, // 제목 (중요 태그 포함)
+                { width: 120, paddingX: 4 }, // 작성자
+                { width: 110, paddingX: 4 }, // 시간
+              ]}
+              rowHeight={48}
+              className="border-t border-[var(--border)]/60"
+            />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

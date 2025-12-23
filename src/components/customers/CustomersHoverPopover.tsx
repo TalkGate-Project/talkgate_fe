@@ -45,7 +45,7 @@ export default function CustomersHoverPopover({
                   <div className="flex items-center justify-between text-neutral-60 text-[14px]">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] ${badgeStyle.bg} ${badgeStyle.text}`}
+                        className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                       >
                         {categoryName}
                       </span>
