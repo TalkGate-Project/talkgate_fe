@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Notice } from "@/types/notices";
-import TableSkeleton from "@/components/common/TableSkeleton";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import Pagination from "@/components/common/Pagination";
 
 interface NoticeTableProps {
@@ -110,7 +110,24 @@ export default function NoticeTable({
       {/* 테이블 본문 */}
       <div className="mt-0">
         {loading ? (
-          <TableSkeleton rows={5} columns={["flex", 100, 120]} />
+          <div className="overflow-hidden">
+            <table className="w-full border-collapse">
+              <tbody>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <TableSkeletonRow
+                    key={`skeleton-${idx}`}
+                    columns={[
+                      { width: 90, paddingX: 6 }, // 고유번호
+                      { width: "flex", paddingX: 6 }, // 제목
+                      { width: 210, paddingX: 6 }, // 작성자
+                      { width: 160, paddingX: 6 }, // 작성일
+                    ]}
+                    rowHeight={48}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : notices.length === 0 ? (
           <div className="py-12 text-center text-[14px] text-neutral-60">
             등록된 공지사항이 없습니다.
