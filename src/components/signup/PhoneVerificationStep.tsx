@@ -11,12 +11,14 @@ type PhoneVerificationStepProps = {
   onComplete: () => void;
   onSkip: () => void;
   guideMessage?: string; // 안내 문구 커스터마이징
+  isInviteFlow?: boolean; // 초대 플로우인지 여부
 };
 
 export function PhoneVerificationStep({ 
   onComplete, 
   onSkip,
   guideMessage = "회원가입을 진행해주세요.",
+  isInviteFlow = false,
 }: PhoneVerificationStepProps) {
   // 본인인증 성공 핸들러
   const handleVerificationSuccess = useCallback(
@@ -33,14 +35,30 @@ export function PhoneVerificationStep({
 
     // 이미 본인인증이 완료된 경우
     if (result.code === "IDENTITY_VERIFICATION_ALREADY_EXISTS") {
-      showErrorModal({
-        type: "info",
-        headline: "이미 본인인증이 완료되었습니다.",
-        hideCancel: true,
-        confirmText: "확인",
-      });
-      // 이미 완료된 경우에도 다음 단계로 진행
-      onComplete();
+      // 소셜 로그인 + 초대 플로우인 경우: 특별 안내 후 자동 건너뛰기
+      if (isInviteFlow) {
+        showErrorModal({
+          type: "info",
+          headline: "이미 본인인증이 완료된 계정입니다.",
+          description: "본인인증 정보 변경은 가입 후 프로필 설정에서 가능합니다.\n다음 단계로 자동 진행됩니다.",
+          hideCancel: true,
+          confirmText: "확인",
+          onConfirm: () => {
+            // 모달 확인 후 건너뛰기로 다음 단계 진행
+            onSkip();
+          },
+        });
+      } else {
+        // 일반 소셜 로그인의 경우: 기존 안내만 표시
+        showErrorModal({
+          type: "info",
+          headline: "이미 본인인증이 완료되었습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+        // 이미 완료된 경우에도 다음 단계로 진행
+        onComplete();
+      }
       return;
     }
 
@@ -64,7 +82,7 @@ export function PhoneVerificationStep({
       hideCancel: true,
       confirmText: "확인",
     });
-  }, [onComplete]);
+  }, [isInviteFlow, onSkip, onComplete]);
 
   // 본인인증 훅 사용 (소셜 로그인 후에는 이미 쿠키에 토큰이 있으므로 accessToken 전달 불필요)
   const { startVerification, isVerifying } = usePhoneVerification({
