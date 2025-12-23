@@ -1,4 +1,4 @@
-import TableSkeleton from "@/components/common/TableSkeleton";
+import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import Pagination from "@/components/common/Pagination";
 import { AttendanceItem } from "@/types/attendance";
 import { formatHm, computeWorkTime } from "@/utils/attendance";
@@ -86,7 +86,26 @@ export default function AttendanceTable({
       {/* 테이블 본문 */}
       <div>
         {loading ? (
-          <TableSkeleton rows={8} columns={["flex", 120, 80, 100, 100, 100]} />
+          <div className="overflow-hidden">
+            <table className="w-full border-collapse">
+              <tbody>
+                {Array.from({ length: 8 }).map((_, idx) => (
+                  <TableSkeletonRow
+                    key={`skeleton-${idx}`}
+                    columns={[
+                      { width: "flex", paddingX: 7.5 }, // 이름
+                      { width: "flex", paddingX: 7.5 }, // 팀
+                      { width: "flex", paddingX: 7.5 }, // 직급
+                      { width: "flex", paddingX: 7.5 }, // 출근시간
+                      { width: "flex", paddingX: 7.5 }, // 퇴근시간
+                      { width: "flex", paddingX: 7.5 }, // 근무시간
+                    ]}
+                    rowHeight={48}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : error ? (
           <div className="py-12 text-center text-[14px] text-danger-40">
             {error}

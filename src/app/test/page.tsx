@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TableSkeleton from "@/components/common/TableSkeleton";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
@@ -74,7 +73,7 @@ export default function TestPage() {
       <div className="max-w-7xl mx-auto">
         {/* 다크모드 토글 버튼 */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-neutral-90">로딩 상태 테스트 페이지</h1>
+          <h1 className="text-3xl font-bold text-neutral-90">컴포넌트 테스트 페이지</h1>
           <button
             onClick={handleToggleTheme}
             className="px-4 py-2 bg-neutral-90 dark:bg-neutral-20 text-neutral-0 dark:text-neutral-90 rounded-lg hover:opacity-80 transition-opacity flex items-center gap-2"
@@ -161,47 +160,6 @@ export default function TestPage() {
           </div>
         </section>
 
-        {/* 테이블 스켈레톤 테스트 */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-neutral-90">테이블 스켈레톤</h2>
-            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
-              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
-            </div>
-          </div>
-          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-neutral-70 dark:text-neutral-50">
-              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/common/TableSkeleton</code>
-            </p>
-            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
-              <span className="font-semibold">실제 사용 위치:</span>
-            </p>
-            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
-              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">NoticeTable.tsx</code> - rows={5}, columns={["flex", 100, 120]}</li>
-              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AttendanceTable.tsx</code> - rows={8}, columns={["flex", 120, 80, 100, 100, 100]}</li>
-            </ul>
-            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
-              💡 이 스켈레톤을 수정하면 위 컴포넌트들의 로딩 상태도 함께 변경됩니다.
-            </p>
-          </div>
-          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
-            <div className="mb-4">
-              <button
-                onClick={() => handleButtonClick("table", 3000)}
-                disabled={loadingStates.table}
-                className="px-4 py-2 bg-neutral-70 text-white rounded hover:bg-neutral-80 disabled:opacity-50"
-              >
-                {loadingStates.table ? "로딩 중..." : "테이블 로딩 시뮬레이션"}
-              </button>
-            </div>
-            {loadingStates.table ? (
-              <TableSkeleton rows={5} columns={["flex", 120, 100, 150, 100]} />
-            ) : (
-              <div className="p-4 text-neutral-60">테이블 데이터 표시 영역</div>
-            )}
-          </div>
-        </section>
-
         {/* 테이블 행 스켈레톤 테스트 */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4">
@@ -220,6 +178,10 @@ export default function TestPage() {
             <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
               <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">CustomersTable.tsx</code> - 고객 목록 테이블 (체크박스 포함)</li>
               <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">RegistrationDetailTable.tsx</code> - 신청통계 상세 데이터 테이블</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AttendanceTable.tsx</code> - 출퇴근 현황 테이블</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">NoticeTable.tsx</code> - 공지사항 테이블</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AssignMemberTable.tsx</code> - 배정통계 팀원별 테이블</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">PaymentMemberTable.tsx</code> - 결제통계 팀원별 테이블</li>
             </ul>
             <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
               💡 이 스켈레톤을 수정하면 위 컴포넌트들의 로딩 상태도 함께 변경됩니다.
