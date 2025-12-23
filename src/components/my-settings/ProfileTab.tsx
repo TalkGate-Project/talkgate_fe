@@ -184,7 +184,7 @@ export default function ProfileTab() {
           {isLoadingVerification ? (
             <span className="text-[14px] text-neutral-60">로딩 중...</span>
           ) : verificationData?.isVerified === true ? (
-            <div className="inline-flex items-center justify-center px-3 py-1.5 gap-[10px] border border-[#E2E2E2] rounded-[5px]">
+            <div className="inline-flex items-center justify-center px-3 py-1.5 gap-[10px] border border-border rounded-[5px] dark:bg-white/10">
               <svg
                 width="20"
                 height="20"
@@ -194,13 +194,14 @@ export default function ProfileTab() {
               >
                 <path
                   d="M16.6667 5L7.50033 14.1667L3.33366 10"
-                  stroke="#B0B0B0"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="text-neutral-60"
                 />
               </svg>
-              <span className="text-[14px] font-semibold text-[#000000] leading-[17px] tracking-[-0.02em]">
+              <span className="text-[14px] font-semibold text-foreground leading-[17px] tracking-[-0.02em]">
                 본인인증 완료
               </span>
             </div>
