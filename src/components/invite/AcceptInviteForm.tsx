@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MembersService } from "@/services/members";
 import {
   getPendingInviteInfo,
   getPendingInviteToken,
-  clearPendingInviteInfo,
 } from "@/lib/invite";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
@@ -37,47 +35,7 @@ export function AcceptInviteForm() {
     });
   }, [router]);
 
-  // 초대 수락 API 호출 및 에러 처리 공통 함수
-  const acceptInvitation = async () => {
-    if (!inviteInfo?.token) return;
-
-    await MembersService.acceptInvitation({
-      token: inviteInfo.token,
-    });
-
-    // 성공 시 초대 정보 삭제
-    clearPendingInviteInfo();
-
-    // 프로젝트 선택 페이지로 이동
-    router.replace("/projects");
-  };
-
-  // 에러 처리 공통 함수
-  const handleAcceptError = (err: unknown) => {
-    console.error("[AcceptInvite] 초대 수락 실패:", err);
-    const errorData = err as { data?: { code?: string; message?: string } };
-    const errorCode = errorData?.data?.code;
-
-    // 이미 수락된 초대인 경우 - 에러 없이 프로젝트 페이지로 이동
-    // (회원가입 시 invitationToken이 포함되면 백엔드에서 자동으로 초대 수락 처리됨)
-    if (errorCode === "INVITATION_ALREADY_ACCEPTED") {
-      console.log("[AcceptInvite] ℹ️ 이미 수락된 초대 - 프로젝트 페이지로 이동");
-      clearPendingInviteInfo();
-      router.replace("/projects");
-      return;
-    }
-
-    // 그 외 에러는 일반적인 메시지로 표시
-    showErrorModal({
-      title: "오류 발생",
-      headline: "초대 수락에 실패했습니다. 잠시 후 다시 시도해주세요.",
-      confirmText: "확인",
-      cancelText: null,
-      hideCancel: true,
-    });
-  };
-
-  // 본인인증 후 프로젝트 참여
+  // 본인인증 후 프로젝트 가입 페이지로 이동
   const handleVerification = async () => {
     if (!inviteInfo?.token) return;
 
@@ -89,29 +47,32 @@ export function AcceptInviteForm() {
       // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      console.log("[AcceptInvite] ✅ 본인인증 완료");
+      console.log("[AcceptInvite] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동");
 
-      // 초대 수락 API 호출 (본인인증 완료 후)
-      await acceptInvitation();
+      // 본인인증 완료 후 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
+      // 초대 수락은 프로젝트 가입 완료 후 처리됨
+      router.replace("/project-signup");
     } catch (err: unknown) {
-      handleAcceptError(err);
+      console.error("[AcceptInvite] 본인인증 실패:", err);
+      showErrorModal({
+        title: "오류 발생",
+        headline: "본인인증에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 건너뛰기 (본인인증 없이 프로젝트 참여)
-  const handleSkip = async () => {
+  // 건너뛰기 (본인인증 없이 프로젝트 가입 페이지로 이동)
+  const handleSkip = () => {
     if (!inviteInfo?.token) return;
 
-    setIsSubmitting(true);
-    try {
-      await acceptInvitation();
-    } catch (err: unknown) {
-      handleAcceptError(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    console.log("[AcceptInvite] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동");
+    // 본인인증 없이 프로젝트 가입 페이지로 이동
+    router.replace("/project-signup");
   };
 
   if (!inviteInfo) {

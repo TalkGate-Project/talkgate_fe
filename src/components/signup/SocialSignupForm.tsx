@@ -33,13 +33,13 @@ export function SocialSignupForm() {
 
   // 휴대폰 인증 완료 또는 스킵
   const handlePhoneComplete = () => {
-    console.log("[SocialSignup] ✅ 휴대폰 인증 완료 → 완료 처리");
-    completeSignup();
+    console.log("[SocialSignup] ✅ 휴대폰 인증 완료 → 프로젝트 가입 페이지로 이동");
+    router.replace("/project-signup");
   };
 
   const handlePhoneSkip = () => {
-    console.log("[SocialSignup] ⏭️ 휴대폰 인증 스킵 → 완료 처리");
-    completeSignup();
+    console.log("[SocialSignup] ⏭️ 휴대폰 인증 스킵 → 프로젝트 가입 페이지로 이동");
+    router.replace("/project-signup");
   };
 
   // 회원가입 완료 후 리다이렉트

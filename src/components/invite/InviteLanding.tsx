@@ -176,14 +176,14 @@ export function InviteLanding() {
       return;
     }
 
-    // 로그인된 상태이고 이메일이 일치하는 경우 → 초대 수락 페이지로 이동
+    // 로그인된 상태이고 이메일이 일치하는 경우 → 프로젝트 가입 페이지로 이동 (이름/연락처 입력)
     if (isLoggedIn && loggedInEmail) {
       const inviteEmail = inviteInfo?.email?.toLowerCase();
       const userEmail = loggedInEmail?.toLowerCase();
       
       if (inviteEmail === userEmail) {
-        console.log("[InvitePage] ✅ 이메일 일치 - 초대 수락 페이지로 이동");
-        router.replace("/invite/accept");
+        console.log("[InvitePage] ✅ 이메일 일치 - 프로젝트 가입 페이지로 이동");
+        router.replace("/project-signup");
         return;
       }
     }

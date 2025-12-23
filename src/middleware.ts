@@ -36,6 +36,12 @@ const AUTHENTICATED_OPTIONAL_SUBDOMAIN_PATHS = [
   "/my-settings",
 ];
 
+// 인증 필수 + 소셜 회원가입 관련 경로 (서브도메인 불필요)
+const SOCIAL_SIGNUP_PATHS = [
+  "/social-signup",
+  "/project-signup",
+];
+
 /**
  * 개발 환경인지 확인합니다.
  */
@@ -165,6 +171,7 @@ export async function middleware(req: NextRequest) {
     "/login", 
     "/signup", 
     "/social-signup", 
+    "/project-signup",
     "/forgot-password", 
     "/invite", 
     "/auth/callback",
@@ -387,6 +394,31 @@ export async function middleware(req: NextRequest) {
     
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
+
+  // ============================================
+  // 5. 인증 필수 + 소셜 회원가입 관련 경로 (/social-signup, /project-signup)
+  //    - 비인증 시 로그인으로
+  //    - 서브도메인 있으면 메인 도메인으로 리다이렉트
+  // ============================================
+  if (matchesPath(pathname, SOCIAL_SIGNUP_PATHS)) {
+    // 비인증 시 로그인으로
+    if (!hasAuthCookie) {
+      if (subdomain) {
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+      }
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    
+    // 서브도메인이 있으면 메인 도메인으로 리다이렉트
+    if (subdomain) {
+      console.log(`[Middleware] 소셜 회원가입 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
+      return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}${req.nextUrl.search}`));
+    }
+    
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
   
   return NextResponse.next({ request: { headers: requestHeaders } });
 }
@@ -408,6 +440,9 @@ export const config = {
     '/projects/:path*',
     // 인증만 필요한 경로
     '/my-settings/:path*',
+    // 소셜 회원가입 관련 경로
+    '/social-signup/:path*',
+    '/project-signup/:path*',
     // 비회원 전용 경로 (서브도메인 체크용)
     '/login/:path*',
     '/signup/:path*',

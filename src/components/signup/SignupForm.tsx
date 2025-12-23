@@ -60,14 +60,14 @@ export function SignupForm() {
     setAccountEmail(params.email);
     setAccountPassword(params.password);
     
-    // 초대 플로우인 경우 이메일 인증 스킵 + 휴대폰 본인인증도 스킵
-    // 휴대폰 본인인증은 /invite/accept에서 한번만 받음 (중복 방지)
+    // 초대 플로우인 경우 이메일 인증 스킵
+    // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
     if (isInviteFlow) {
       if (params.tokens) {
-        // 토큰 저장 후 바로 초대 수락 페이지로 이동
-        console.log("[SignupPage] 🎉 초대 플로우 - 토큰 저장 후 초대 수락 페이지로 바로 이동");
+        // 토큰 저장 후 프로젝트 가입 페이지로 이동 (이름/연락처 입력)
+        console.log("[SignupPage] 🎉 초대 플로우 - 토큰 저장 후 프로젝트 가입 페이지로 이동");
         await saveTokensAndInvalidateCache(params.tokens);
-        window.location.href = "/invite/accept";
+        window.location.href = "/project-signup";
       } else {
         // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
         console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
@@ -87,39 +87,16 @@ export function SignupForm() {
   };
 
   const handleProfileComplete = () => {
-    // 초대 플로우인 경우 → 초대 수락 페이지로 이동
-    if (isInviteFlow) {
-      console.log("[SignupPage] 🎉 초대 플로우 회원가입 완료 → 초대 수락 페이지로 이동");
-      window.location.href = "/invite/accept";
-      return;
-    }
-    
-    if (redirectUrl) {
-      // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-      console.log("[SignupPage] ✅ 회원가입 성공 + 리디렉션 URL 있음 →", redirectUrl);
-      window.location.href = redirectUrl;
-    } else {
-      router.replace("/projects");
-    }
-    setStep("done");
+    // 본인인증 완료 후 → 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
+    // 초대 플로우든 일반 플로우든 동일하게 프로젝트 가입 페이지로
+    console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동");
+    window.location.href = "/project-signup";
   };
 
   const handleProfileSkip = () => {
-    // 초대 플로우인 경우 → 초대 수락 페이지로 이동
-    if (isInviteFlow) {
-      console.log("[SignupPage] 🎉 초대 플로우 회원가입 완료 (스킵) → 초대 수락 페이지로 이동");
-      window.location.href = "/invite/accept";
-      return;
-    }
-    
-    if (redirectUrl) {
-      // 리디렉션 URL이 있으면 해당 URL로 이동 (랜딩 페이지 등)
-      console.log("[SignupPage] ✅ 회원가입 성공 (스킵) + 리디렉션 URL 있음 →", redirectUrl);
-      window.location.href = redirectUrl;
-    } else {
-      router.replace("/projects");
-    }
-    setStep("done");
+    // 본인인증 스킵 후 → 프로젝트 가입 페이지로 이동
+    console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동");
+    window.location.href = "/project-signup";
   };
 
   return (
