@@ -213,7 +213,7 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className={`typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''}`}
+                  className={`typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""}`}
                 >
                   {h}
                 </th>
@@ -298,7 +298,7 @@ export default function CustomersTable({
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedMemberName || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90 text-center">
                     {(() => {
                       // 마지막 상담내용의 카테고리를 찾기
                       const notes = Array.isArray(c.recentNotes) ? c.recentNotes : [];
