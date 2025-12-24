@@ -53,7 +53,7 @@ export type CustomersListQuery = {
   applicationRoute?: string;
   mediaCompany?: string;
   site?: string;
-  categoryIds?: (number | string)[]; // number 또는 빈 문자열("") - 빈 문자열은 "일반" 카테고리를 의미
+  categoryIds?: (number | string)[]; // number 또는 문자열 "null" - "null"은 "일반" 카테고리를 의미
   applicationDateFrom?: string; // YYYY-MM-DD
   applicationDateTo?: string;   // YYYY-MM-DD
   assignedAtFrom?: string;      // YYYY-MM-DD
