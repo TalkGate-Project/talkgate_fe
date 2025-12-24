@@ -394,7 +394,7 @@ export default function TeamMemberInfoModal({
                   }
                 }}
                 loading={createTeam.isPending}
-                className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
+                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
               >
                 저장
               </AsyncButton>
@@ -499,7 +499,7 @@ export default function TeamMemberInfoModal({
                 size="sm"
                 onClick={handleSaveProfile}
                 loading={isSubmittingProfile}
-                className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
+                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
               >
                 저장
               </AsyncButton>
@@ -715,7 +715,7 @@ export default function TeamMemberInfoModal({
             size="sm"
             onClick={handleAddNote}
             loading={isSubmittingNote}
-            className="bg-neutral-90 text-neutral-0 hover:bg-neutral-80"
+            className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
           >
             저장
           </AsyncButton>
