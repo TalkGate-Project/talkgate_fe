@@ -3,6 +3,13 @@
  */
 
 /**
+ * 알림 아이콘 경로
+ * 브라우저 Notification API는 .ico 파일을 지원하지 않을 수 있으므로 PNG 형식 사용
+ * favicon.ico를 기반으로 한 PNG 파일을 public/notification-icon.png에 배치해야 합니다.
+ */
+const NOTIFICATION_ICON_PATH = "/notification-icon.png";
+
+/**
  * 브라우저 알림 권한 요청
  * @returns 권한 상태 ('granted' | 'denied' | 'default')
  */
@@ -41,10 +48,10 @@ export function showBrowserNotification(
     return;
   }
 
-  // 기본 옵션 설정
+  // 기본 옵션 설정 (favicon 기반 아이콘 사용)
   const defaultOptions: NotificationOptions = {
-    icon: "/main_logo.png",
-    badge: "/main_logo.png",
+    icon: NOTIFICATION_ICON_PATH,
+    badge: NOTIFICATION_ICON_PATH,
     tag: "talkgate-chat-notification",
     requireInteraction: false,
     ...options,
@@ -79,8 +86,8 @@ export function showChatNotification(
 
   showBrowserNotification(title, {
     body,
-    icon: "/main_logo.png",
-    badge: "/main_logo.png",
+    icon: NOTIFICATION_ICON_PATH,
+    badge: NOTIFICATION_ICON_PATH,
     tag: `chat-${Date.now()}`, // 각 알림을 고유하게 식별
   });
 }
