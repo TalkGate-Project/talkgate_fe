@@ -10,9 +10,11 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
 import type {
   ConversationsListEvent,
   NewMessageEvent,
@@ -87,6 +89,7 @@ export function useChatContextSafe() {
 // ============================================
 export default function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
+  const pathname = usePathname();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
@@ -113,6 +116,15 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
   // 현재 활성 대화방 ID (읽음 처리용)
   const activeConversationIdRef = useRef<number | null>(null);
+
+  // 알림 권한 요청 (초기 마운트 시 한 번만)
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      requestNotificationPermission().catch((err) => {
+        console.warn("Failed to request notification permission:", err);
+      });
+    }
+  }, []);
 
   // 총 안 읽은 메시지 수 계산
   const totalUnreadCount = useMemo(() => {
@@ -305,6 +317,24 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       setConversations((prev) => {
         const existingConv = prev.find((c) => c.id === (conversation?.id || messageConvId));
 
+        // 브라우저 알림 표시 (상담 페이지가 아니고, 수신 메시지이고, 활성 대화방이 아닐 때)
+        const isConsultPage = pathname === "/consult";
+        const isIncomingMessage = message?.direction === "incoming";
+        const isNotActiveConversation = messageConvId !== activeId;
+        
+        if (!isConsultPage && isIncomingMessage && isNotActiveConversation) {
+          // 대화방 이름과 메시지 내용 추출
+          const conversationName = conversation?.name || existingConv?.name || "알 수 없는 대화방";
+          const messageContent = message?.content || 
+            (message?.type === "image" ? "이미지" : 
+             message?.type === "file" ? message?.fileName || "파일" :
+             message?.type === "video" ? "동영상" :
+             message?.type === "audio" ? "음성" :
+             "새 메시지");
+          
+          showChatNotification(conversationName, messageContent);
+        }
+
         if (conversation) {
           const others = prev.filter((c) => c.id !== conversation.id);
           const isActiveConversation = conversation.id === activeId;
@@ -383,7 +413,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socket.off("messagesMarkedRead", handleMessagesMarkedRead as any);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [projectId, filters.status, filters.platform]);
+  }, [projectId, filters.status, filters.platform, pathname]);
 
   // Context 값
   const value: ChatContextType = {
