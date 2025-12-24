@@ -106,7 +106,7 @@ export default function GeneralSettings() {
       console.error("Failed to update project name:", error);
       showErrorModal({
         type: "error",
-        headline: "프로젝트 이름 변경 실패. 잠시 후 다시 시도해주세요.",
+        headline: "프로젝트 이름 변경 실패.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -136,7 +136,7 @@ export default function GeneralSettings() {
       console.error("Failed to update subdomain:", error);
       showErrorModal({
         type: "error",
-        headline: "서브도메인 변경 실패. 잠시 후 다시 시도해주세요.",
+        headline: "서브도메인 변경 실패.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -219,7 +219,7 @@ export default function GeneralSettings() {
       console.error("Failed to upload brand icon:", error);
       showErrorModal({
         type: "error",
-        headline: "브랜드 아이콘 업로드 실패. 잠시 후 다시 시도해주세요.",
+        headline: "브랜드 아이콘 업로드 실패.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -254,7 +254,7 @@ export default function GeneralSettings() {
       console.error("Failed to remove brand icon:", error);
       showErrorModal({
         type: "error",
-        headline: "브랜드 아이콘 삭제 실패. 잠시 후 다시 시도해주세요.",
+        headline: "브랜드 아이콘 삭제 실패.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -281,8 +281,7 @@ export default function GeneralSettings() {
       console.error("Failed to create status:", error);
       showErrorModal({
         type: "error",
-        headline: "처리상태 추가 실패. 잠시 후 다시 시도해주세요.",
-        description: "처리상태 추가에 실패했습니다.",
+        headline: "잠시 후 다시 시도해주세요.",
         hideCancel: true,
         confirmText: "확인",
       });

@@ -216,7 +216,7 @@ export default function ConsultationChannelSettings() {
           console.error("Failed to disconnect messenger:", error);
           showErrorModal({
             type: "error",
-            headline: "연동 해제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            headline: "연동 해제에 실패했습니다.",
             hideCancel: true,
           });
         }
@@ -261,7 +261,7 @@ export default function ConsultationChannelSettings() {
       console.error("Failed to integrate messenger:", error);
       showErrorModal({
         type: "error",
-        headline: "메신저 연동에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        headline: "메신저 연동에 실패했습니다.",
         hideCancel: true,
       });
       throw error;

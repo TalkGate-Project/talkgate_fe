@@ -216,13 +216,13 @@ export default function MemberSettings() {
       if (errorMessage.includes("Invitation already exists")) {
         showErrorModal({
           type: "error",
-          headline: "이미 초대중인 이메일입니다. 잠시 후 다시 시도해주세요.",
+          headline: "이미 초대중인 이메일입니다.",
           hideCancel: true,
         });
       } else if (errorMessage.includes("already a member")) {
         showErrorModal({
           type: "error",
-          headline: "이미 등록된 멤버입니다. 잠시 후 다시 시도해주세요.",
+          headline: "이미 등록된 멤버입니다.",
           hideCancel: true,
         });
       } else {
