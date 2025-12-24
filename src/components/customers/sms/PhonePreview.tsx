@@ -158,13 +158,22 @@ export default function PhonePreview({
           {/* 메시지 내용 - 왼쪽 정렬 (상대방 메시지 스타일) */}
           <div className="px-4 pt-2 pb-4 flex flex-col items-start">
             <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[85%]">
-              {(title || contentType === "advertising") && (
-                <div className="font-semibold text-[14px] text-ink dark:text-neutral-90 mb-2">
-                  {contentType === "advertising"
-                    ? `(광고) ${title || "제목없음"}`
-                    : title}
-                </div>
-              )}
+              {(() => {
+                const hasValidTitle = title.trim().length > 0;
+                const shouldShowTitle = hasValidTitle || contentType === "advertising";
+                
+                if (!shouldShowTitle) return null;
+                
+                return (
+                  <div className="font-semibold text-[14px] text-ink dark:text-neutral-90 mb-2">
+                    {contentType === "advertising"
+                      ? hasValidTitle
+                        ? `(광고) ${title}`
+                        : "제목없음"
+                      : title}
+                  </div>
+                );
+              })()}
               <div className="text-[13px] leading-[20px] text-neutral-80 dark:text-neutral-70 whitespace-pre-wrap break-words">
                 <span className="block mb-1">[Web발신]</span>
                 {contentType === "advertising" && (
