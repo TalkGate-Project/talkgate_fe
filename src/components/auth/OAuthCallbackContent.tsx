@@ -171,6 +171,10 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // 신규 사용자인 경우 → 소셜 회원가입 페이지로 이동 (약관 동의 → 본인인증 → 프로젝트 가입)
         if (result.isNewUser) {
           debugLog("🆕 신규 사용자 감지 - 소셜 회원가입 페이지로 이동");
+          // 초대 플로우인 경우 소셜 로그인 플랫폼 정보를 sessionStorage에 저장 (계정 불일치 시 안내용)
+          if (isInviteFlow && typeof window !== "undefined") {
+            sessionStorage.setItem("tg_last_social_provider", provider);
+          }
           if (mounted) {
             await stabilizeDelay();
             window.location.replace("/social-signup");
@@ -182,6 +186,10 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // (약관 동의/본인인증은 이미 완료되어 있으므로 프로젝트 가입만 진행)
         if (isInviteFlow) {
           debugLog("📨 기존 사용자 + 초대 플로우 - 프로젝트 가입 페이지로 이동");
+          // 소셜 로그인 플랫폼 정보를 sessionStorage에 저장 (계정 불일치 시 안내용)
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("tg_last_social_provider", provider);
+          }
           if (mounted) {
             await stabilizeDelay();
             window.location.replace("/project-signup");
