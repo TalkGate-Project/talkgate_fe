@@ -42,8 +42,7 @@ const defaultTexts: Record<FeedbackModalType, {
   error: {
     title: "오류 발생",
     headline: "일시적인 오류가 발생했습니다.",
-    description:
-      "데이터를 불러오거나 이동하는 과정에서 예상치 못한 문제가 발생했습니다. 불편하시겠지만 잠시 기다린 후 새로고침(Refresh) 버튼을 눌러 다시 시도해 주시기 바랍니다.",
+    description: "잠시 후 다시 시도해주세요.",
     confirmText: "확인",
     cancelText: "취소",
   },
