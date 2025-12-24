@@ -240,19 +240,19 @@ export default function InvitedMemberSettings() {
       if (errorMessage.includes("Invitation already exists")) {
         showErrorModal({
           type: "error",
-          headline: "이미 초대중인 이메일입니다. 잠시 후 다시 시도해주세요.",
+          headline: "이미 초대중인 이메일입니다.",
           hideCancel: true,
         });
       } else if (errorMessage.includes("already a member")) {
         showErrorModal({
           type: "error",
-          headline: "이미 등록된 멤버입니다. 잠시 후 다시 시도해주세요.",
+          headline: "이미 등록된 멤버입니다.",
           hideCancel: true,
         });
       } else {
         showErrorModal({
           type: "error",
-          headline: "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          headline: "알 수 없는 오류가 발생했습니다.",
           hideCancel: true,
         });
       }
