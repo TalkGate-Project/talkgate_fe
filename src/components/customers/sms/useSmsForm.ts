@@ -15,6 +15,7 @@ export function useSmsForm() {
   // 폼 상태 - 발신번호는 "source-id" 형식의 복합 키로 관리
   const [selectedSenderKey, setSelectedSenderKey] = useState<string | null>(null);
   const [contentType, setContentType] = useState<ContentType>("informational");
+  const [businessName, setBusinessName] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [imageFiles, setImageFiles] = useState<ImageFileWithPreview[]>([]);
@@ -183,6 +184,7 @@ export function useSmsForm() {
   // 폼 초기화 (ref를 사용하여 의존성 제거)
   const handleReset = useCallback(() => {
     setContentType("informational");
+    setBusinessName("");
     setTitle("");
     setBody("");
     // 이미지 미리보기 URL 정리 (ref 사용으로 의존성 제거)
@@ -264,6 +266,7 @@ export function useSmsForm() {
             senderNumberType: selectedSender.source,
             senderNumberId: selectedSender.id,
             advertisementType: contentType,
+            serviceName: contentType === "advertising" ? businessName : undefined,
             title: title.trim() || undefined,
             content: body,
             scheduledAt,
@@ -277,6 +280,7 @@ export function useSmsForm() {
             senderNumberType: selectedSender.source,
             senderNumberId: selectedSender.id,
             advertisementType: contentType,
+            serviceName: contentType === "advertising" ? businessName : undefined,
             title: title.trim() || undefined,
             content: body,
             scheduledAt,
@@ -326,6 +330,7 @@ export function useSmsForm() {
     senderNumbers,
     loadingSenders,
     contentType,
+    businessName,
     title,
     body,
     imageFiles,
@@ -338,6 +343,7 @@ export function useSmsForm() {
     // 세터
     handleSenderChange,
     setContentType,
+    setBusinessName,
     setTitle,
     setBody,
     setSendMethod,

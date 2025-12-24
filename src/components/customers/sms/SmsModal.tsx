@@ -11,6 +11,7 @@ import RadioButton from "./RadioButton";
 import { MAX_IMAGES } from "./types";
 import type { SmsModalProps } from "./types";
 import { AssetsService } from "@/services/assets";
+import { ProjectsService } from "@/services/projects";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function SmsModal({ open, onClose, customers, onSuccess, selectionMode, appliedFilters, totalCount, projectId }: SmsModalProps) {
@@ -20,6 +21,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
     senderNumbers,
     loadingSenders,
     contentType,
+    businessName,
     title,
     body,
     imageFiles,
@@ -30,6 +32,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
     sending,
     handleSenderChange,
     setContentType,
+    setBusinessName,
     setTitle,
     setBody,
     setSendMethod,
@@ -52,13 +55,25 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
     // 열릴 때
     if (open && !prevOpenRef.current) {
       loadSenderNumbers();
+
+      // 프로젝트 정보 로드 (상호명 설정용)
+      ProjectsService.detailById()
+        .then((res) => {
+          const project = (res.data as any)?.data ?? res.data;
+          if (project?.name) {
+            setBusinessName(project.name);
+          }
+        })
+        .catch((err) => {
+          console.error("프로젝트 정보 로드 실패:", err);
+        });
     }
     // 닫힐 때 (true -> false)
     if (!open && prevOpenRef.current) {
       handleReset();
     }
     prevOpenRef.current = open;
-  }, [open, loadSenderNumbers, handleReset]);
+  }, [open, loadSenderNumbers, handleReset, setBusinessName]);
 
   // 미리보기 표시용 수신자 번호 (첫 번째 고객)
   const previewRecipient = customers[0]?.contact1 || "010-0000-0000";
@@ -333,6 +348,22 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                   <span className="text-[14px] text-ink dark:text-neutral-90">정보성</span>
                 </label>
               </div>
+
+              {/* 광고성 선택 시 상호명 입력 필드 노출 */}
+              {contentType === "advertising" && (
+                <div className="mt-3">
+                  <label className="block text-[13px] leading-[16px] text-neutral-60 dark:text-neutral-60 mb-2">
+                    상호명
+                  </label>
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="상호명을 입력하세요"
+                    className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-card dark:bg-neutral-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
+                  />
+                </div>
+              )}
             </div>
 
             {/* 제목 (LMS/MMS) */}
@@ -556,10 +587,13 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
           {/* 우측 미리보기 영역 */}
           <div className="flex-1 min-w-0 max-w-[384px]">
             <PhonePreview
+              senderNumber={selectedSender?.phoneNumber ?? "010-0000-0000"}
               recipientNumber={previewRecipient}
               title={title}
               body={body}
               imageFiles={imageFiles}
+              contentType={contentType}
+              businessName={businessName}
             />
           </div>
         </div>
