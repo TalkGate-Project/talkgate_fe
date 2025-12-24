@@ -142,7 +142,11 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     key: "customer-api",
     label: "고객등록 API",
     icon: CustomerApiIcon,
-    // 모든 사용자 접근 가능
+    // 어드민만 접근 가능
+    canAccess: ({ role, isLoading }) => {
+      if (isLoading) return false;
+      return isAdmin(role);
+    },
   },
 ];
 

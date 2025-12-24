@@ -45,6 +45,7 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
 // 권한이 필요한 탭 목록 (admin/subAdmin만 접근 가능)
 const ADMIN_ONLY_TABS: SettingsTab[] = [
   "general",
+  "customer-api",
 ];
 
 // 유효한 탭인지 확인하는 함수
@@ -65,6 +66,12 @@ function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): bo
 
   // 일반 탭은 **총관리자(admin)**만, my API 데이터가 없는 경우에도 차단
   if (tab === "general") {
+    if (!member) return false;
+    return isAdmin(role);
+  }
+
+  // 고객등록 API 탭은 **총관리자(admin)**만 접근 가능
+  if (tab === "customer-api") {
     if (!member) return false;
     return isAdmin(role);
   }
