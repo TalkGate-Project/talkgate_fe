@@ -1,21 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { ProjectsService } from "@/services/projects";
 import ApiKeyRegenerateModal from "./ApiKeyRegenerateModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
-const API_ENDPOINT_PLACEHOLDER = "https://api.talkgate.im/v1/projects/proj_1fdx73abc123/customers";
-const API_KEY_PLACEHOLDER = "TGK-1a9d6sd9a6sd96asd9a6sd9a6sd9as6d";
-
 export default function CustomerApiSettings() {
+  const [projectId] = useSelectedProjectId();
   const [showKey, setShowKey] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const [keyCopyState, setKeyCopyState] = useState<"idle" | "copied">("idle");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiKey, setApiKey] = useState<string>("");
+  const [apiEndpoint, setApiEndpoint] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  // API 데이터 로드
+  useEffect(() => {
+    const fetchApiData = async () => {
+      if (!projectId) return;
+      
+      setLoading(true);
+      try {
+        const headers = { "x-project-id": projectId };
+        
+        // API Key와 Endpoint를 병렬로 가져오기
+        const [apiKeyResponse, endpointResponse] = await Promise.all([
+          ProjectsService.getApiKey(headers),
+          ProjectsService.getExternalApiEndpoint(headers),
+        ]);
+
+        if (apiKeyResponse.data?.data?.apiKey) {
+          setApiKey(apiKeyResponse.data.data.apiKey);
+        }
+
+        if (endpointResponse.data?.data?.endpoint) {
+          setApiEndpoint(endpointResponse.data.data.endpoint);
+        }
+      } catch (err) {
+        console.error("Failed to fetch API data", err);
+        showErrorModal({
+          type: "error",
+          headline: "API 정보를 불러오는데 실패했습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApiData();
+  }, [projectId]);
 
   const handleCopyEndpoint = async () => {
+    if (!apiEndpoint) return;
+    
     try {
-      await navigator.clipboard.writeText(API_ENDPOINT_PLACEHOLDER);
+      await navigator.clipboard.writeText(apiEndpoint);
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 1500);
     } catch (err) {
@@ -30,8 +73,10 @@ export default function CustomerApiSettings() {
   };
 
   const handleCopyKey = async () => {
+    if (!apiKey) return;
+    
     try {
-      await navigator.clipboard.writeText(API_KEY_PLACEHOLDER);
+      await navigator.clipboard.writeText(apiKey);
       setKeyCopyState("copied");
       setTimeout(() => setKeyCopyState("idle"), 1500);
     } catch (err) {
@@ -53,14 +98,32 @@ export default function CustomerApiSettings() {
     setIsModalOpen(false);
   };
 
-  const handleConfirmRegenerate = () => {
-    // TODO: API 연동 후 실제 재발급 로직 구현
-    showErrorModal({
-      type: "success",
-      headline: "API 키가 재발급되었습니다.",
-      hideCancel: true,
-      confirmText: "확인",
-    });
+  const handleConfirmRegenerate = async () => {
+    if (!projectId) return;
+
+    try {
+      const headers = { "x-project-id": projectId };
+      const response = await ProjectsService.regenerateApiKey(headers);
+
+      if (response.data?.data?.apiKey) {
+        setApiKey(response.data.data.apiKey);
+        setIsModalOpen(false);
+        showErrorModal({
+          type: "success",
+          headline: "API 키가 재발급되었습니다.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to regenerate API key", err);
+      showErrorModal({
+        type: "error",
+        headline: "API 키 재발급에 실패했습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
   };
 
   return (
@@ -90,13 +153,15 @@ export default function CustomerApiSettings() {
           <div className="flex items-center h-[50px] gap-2 bg-neutral-10 rounded-[5px] px-6">
             <input
               type="text"
-              value={API_ENDPOINT_PLACEHOLDER}
+              value={loading ? "로딩 중..." : apiEndpoint || ""}
               readOnly
-              className="flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em]"
+              disabled={loading}
+              className="flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] disabled:text-neutral-50"
             />
             <button
               onClick={handleCopyEndpoint}
-              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
+              disabled={loading || !apiEndpoint}
+              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copyState === "copied" ? "복사됨" : "복사"}
             </button>
@@ -114,20 +179,23 @@ export default function CustomerApiSettings() {
           >
             <input
               type="text"
-              value={API_KEY_PLACEHOLDER}
+              value={loading ? "로딩 중..." : apiKey || ""}
               readOnly
-              className={`flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] transition-filter ${showKey ? "filter-none" : "blur-sm"}`}
+              disabled={loading}
+              className={`flex-1 bg-transparent text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] transition-filter disabled:text-neutral-50 ${showKey ? "filter-none" : "blur-sm"}`}
             />
             <div className="flex items-center gap-4">
               <button
                 onClick={handleCopyKey}
-                className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10"
+                disabled={loading || !apiKey}
+                className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {keyCopyState === "copied" ? "복사됨" : "복사"}
               </button>
               <button
                 onClick={handleOpenModal}
-                className="cursor-pointer w-[60px] h-[34px] rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90"
+                disabled={loading}
+                className="cursor-pointer w-[60px] h-[34px] rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 재발급
               </button>

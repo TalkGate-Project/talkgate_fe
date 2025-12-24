@@ -126,7 +126,7 @@ export default function ApiKeyRegenerateModal({
             onClick={handleConfirm}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 tracking-[-0.02em] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
           >
-            계정 재발급
+            API 키 재발급
           </button>
         </div>
       </div>
