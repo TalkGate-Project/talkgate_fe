@@ -5,6 +5,7 @@ import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -297,13 +298,13 @@ export default function CustomersTable({
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedMemberName || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="px-4 h-[48px] align-middle text-neutral-90">
                     {(() => {
                       // 마지막 상담내용의 카테고리를 찾기
                       const notes = Array.isArray(c.recentNotes) ? c.recentNotes : [];
                       
                       // 상담/노트가 없는 경우에만 "-" 표시
-                      if (notes.length === 0) return "-";
+                      if (notes.length === 0) return <span className="opacity-80">-</span>;
                       
                       // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
                       const sortedNotes = [...notes].sort((a, b) => 
@@ -311,12 +312,19 @@ export default function CustomersTable({
                       );
                       const lastNote = sortedNotes[0];
                       
-                      // 상담/노트가 존재하는데 categoryId가 없거나 카테고리를 찾을 수 없으면 "일반" 표시
-                      if (!lastNote.categoryId) return "일반";
+                      // 카테고리 정보 확인
+                      const categoryId = lastNote.categoryId;
+                      const category = categories.find(cat => cat.id === categoryId);
+                      const categoryName = category?.name || "일반";
+                      const badgeStyle = getBadgeStyle(categoryName, categoryId || 0);
                       
-                      // 카테고리 이름 찾기
-                      const category = categories.find(cat => cat.id === lastNote.categoryId);
-                      return category?.name || "일반";
+                      return (
+                        <span
+                          className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                        >
+                          {categoryName}
+                        </span>
+                      );
                     })()}
                   </td>
                   <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
