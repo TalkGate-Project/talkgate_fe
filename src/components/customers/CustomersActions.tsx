@@ -87,8 +87,8 @@ export default function CustomersActions({
       if (appliedForExport.mediaCompany) exportQuery.mediaCompany = appliedForExport.mediaCompany;
       if (appliedForExport.site) exportQuery.site = appliedForExport.site;
       if (appliedForExport.categoryIds && Array.isArray(appliedForExport.categoryIds) && appliedForExport.categoryIds.length > 0) {
-        // null을 빈 문자열로 변환하여 "일반" 카테고리를 나타냄
-        exportQuery.categoryIds = appliedForExport.categoryIds.map((id: number | null) => id === null ? "" : id);
+        // null을 문자열 "null"로 변환하여 "일반" 카테고리를 나타냄
+        exportQuery.categoryIds = appliedForExport.categoryIds.map((id: number | null) => id === null ? "null" : id);
       }
       if (appliedForExport.applicationDateFrom) exportQuery.applicationDateFrom = appliedForExport.applicationDateFrom;
       if (appliedForExport.applicationDateTo) exportQuery.applicationDateTo = appliedForExport.applicationDateTo;
@@ -112,11 +112,19 @@ export default function CustomersActions({
       const blobType = blob.type || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
       const finalBlob = blob.type === blobType ? blob : new Blob([blob], { type: blobType });
       
+      // 파일명 생성: customer_YYYY-MM-DD_HH.xlsx 형식
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hour = String(now.getHours()).padStart(2, '0');
+      const fileName = `customer_${year}-${month}-${day}_${hour}.xlsx`;
+      
       const url = URL.createObjectURL(finalBlob);
       const a = document.createElement("a");
       a.href = url;
       // 한글 파일명 인코딩 처리
-      a.download = "customers.xlsx";
+      a.download = fileName;
       // 파일명 인코딩을 위한 추가 처리
       document.body.appendChild(a);
       a.click();

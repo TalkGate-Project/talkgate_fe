@@ -38,7 +38,11 @@ export function useCustomersFilters(projectId: string | null) {
     }
     function ga(key: string) {
       const vals = searchParams.getAll(key);
-      return vals.length ? vals.map((v) => v === "" ? null : Number(v)) : undefined;
+      return vals.length ? vals.map((v) => {
+        if (v === "" || v === "null") return null;
+        const num = Number(v);
+        return isNaN(num) ? null : num;
+      }) : undefined;
     }
     obj.name = g("name");
     obj.contact1 = g("contact1");
@@ -102,8 +106,8 @@ export function useCustomersFilters(projectId: string | null) {
             applicationRoute: applied.applicationRoute,
             mediaCompany: applied.mediaCompany,
             site: applied.site,
-            // null을 빈 문자열로 변환하여 API에 전송
-            categoryIds: applied.categoryIds?.map((id: number | null) => id === null ? "" : id),
+            // null을 문자열 "null"로 변환하여 API에 전송 (일반 카테고리)
+            categoryIds: applied.categoryIds?.map((id: number | null) => id === null ? "null" : id),
             noteContent: applied.noteContent,
             applicationDateFrom: applied.applicationDateFrom,
             applicationDateTo: applied.applicationDateTo,
@@ -138,8 +142,8 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("site", filterValues.site);
     if (filterValues.categoryIds && filterValues.categoryIds.length) {
       filterValues.categoryIds.forEach((id) => {
-        // null은 빈 문자열로 변환하여 "일반" 카테고리를 나타냄
-        params.append("categoryIds", id === null ? "" : String(id));
+        // null은 문자열 "null"로 변환하여 "일반" 카테고리를 나타냄
+        params.append("categoryIds", id === null ? "null" : String(id));
       });
     }
     setIf("noteContent", filterValues.noteContent);
