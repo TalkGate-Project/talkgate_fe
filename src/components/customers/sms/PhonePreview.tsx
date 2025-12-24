@@ -1,21 +1,26 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import type { ImageFileWithPreview } from "./types";
+import type { ImageFileWithPreview, ContentType } from "./types";
 import { usePhoneDragScroll } from "./usePhoneDragScroll";
 
 type PhonePreviewProps = {
-  recipientNumber: string;
+  senderNumber: string; // Recipient number -> Sender number for display
+  recipientNumber?: string; // Keep this just in case, but we display senderNumber at top
   title: string;
   body: string;
   imageFiles: ImageFileWithPreview[];
+  contentType: ContentType;
+  businessName: string;
 };
 
 export default function PhonePreview({
-  recipientNumber,
+  senderNumber,
   title,
   body,
   imageFiles,
+  contentType,
+  businessName,
 }: PhonePreviewProps) {
   const { phoneScreenRef, dragHandlers } = usePhoneDragScroll();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,25 +148,38 @@ export default function PhonePreview({
           style={{ cursor: "grab" }}
           {...dragHandlers}
         >
-          {/* 수신번호 */}
+          {/* 수신번호 (사실 발신번호가 표시되어야 함) */}
           <div className="flex justify-center py-3 sticky top-0 bg-white dark:bg-neutral-0 z-[1]">
             <span className="inline-flex items-center h-[28px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-60">
-              {recipientNumber}
+              {senderNumber || "010-0000-0000"}
             </span>
           </div>
 
           {/* 메시지 내용 - 왼쪽 정렬 (상대방 메시지 스타일) */}
           <div className="px-4 pt-2 pb-4 flex flex-col items-start">
             <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[85%]">
-              {title && (
+              {(title || contentType === "advertising") && (
                 <div className="font-semibold text-[14px] text-ink dark:text-neutral-90 mb-2">
-                  {title}
+                  {contentType === "advertising"
+                    ? `(광고) ${title || "제목없음"}`
+                    : title}
                 </div>
               )}
               <div className="text-[13px] leading-[20px] text-neutral-80 dark:text-neutral-70 whitespace-pre-wrap break-words">
+                <span className="block mb-1">[Web발신]</span>
+                {contentType === "advertising" && (
+                  <span className="block mb-1">
+                    (광고){businessName ? `[${businessName}]` : ""}
+                  </span>
+                )}
                 {body || (
                   <span className="text-neutral-50 dark:text-neutral-50">
                     메시지 내용이 여기에 표시됩니다.
+                  </span>
+                )}
+                {contentType === "advertising" && (
+                  <span className="block mt-2 text-neutral-60 dark:text-neutral-60">
+                    수신거부 080-880-4005
                   </span>
                 )}
               </div>

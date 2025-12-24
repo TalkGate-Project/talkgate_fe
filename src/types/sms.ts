@@ -43,6 +43,7 @@ export type SendSmsInput = {
   senderNumberType: SenderNumberType;
   senderNumberId: number;
   advertisementType: SmsAdvertisementType;
+  serviceName?: string; // 광고성 문자일 경우 필수
   title?: string;                          // LMS/MMS에서 사용
   content: string;
   scheduledAt: string;                     // ISO 8601 형식 (필수! 즉시 발송 시 현재 시간)

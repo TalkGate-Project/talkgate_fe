@@ -191,7 +191,7 @@ export default function ChatMainView({
   const canDrop = Boolean(activeConversation && connected && onDropFile);
 
   return (
-    <div className="max-w-[688px] flex justify-center h-full">
+    <div className="flex-1 flex justify-center h-full">
       <div 
         className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col relative"
         onDragEnter={canDrop ? handleDragEnter : undefined}
