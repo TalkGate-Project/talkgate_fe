@@ -268,7 +268,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
             <div className="mt-2 text-sm text-gray-400">
               {provider && `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정으로 로그인하고 있습니다.`}
             </div>
-            <LoadingSpinner size="sm" className="mt-4" />
+            <div className="flex justify-center">
+              <LoadingSpinner size="sm" className="mt-4" />
+            </div>
           </>
         ) : (
           <>
