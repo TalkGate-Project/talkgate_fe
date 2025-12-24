@@ -105,6 +105,11 @@ export function SocialSignupForm() {
         <WrongAccountModal
           loggedInEmail={loggedInEmail}
           inviteEmail={pendingInvite?.email || null}
+          socialProvider={
+            typeof window !== "undefined"
+              ? (sessionStorage.getItem("tg_last_social_provider") as "naver" | "kakao" | "google" | null)
+              : null
+          }
           onCancel={handleWrongAccountCancel}
           onLogout={handleWrongAccountLogout}
         />

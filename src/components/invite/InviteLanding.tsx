@@ -256,6 +256,11 @@ export function InviteLanding() {
         <WrongAccountModal
           loggedInEmail={loggedInEmail}
           inviteEmail={inviteInfo?.email}
+          socialProvider={
+            typeof window !== "undefined"
+              ? (sessionStorage.getItem("tg_last_social_provider") as "naver" | "kakao" | "google" | null)
+              : null
+          }
           onCancel={handleCancelWrongAccount}
           onLogout={handleLogoutAndRedirect}
         />

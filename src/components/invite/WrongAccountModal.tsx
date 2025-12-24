@@ -3,6 +3,7 @@
 type WrongAccountModalProps = {
   loggedInEmail: string | null;
   inviteEmail: string | null;
+  socialProvider?: "naver" | "kakao" | "google" | null;
   onCancel: () => void;
   onLogout: () => void;
 };
@@ -10,44 +11,97 @@ type WrongAccountModalProps = {
 export function WrongAccountModal({
   loggedInEmail,
   inviteEmail,
+  socialProvider,
   onCancel,
   onLogout,
 }: WrongAccountModalProps) {
+  // 소셜 로그인 플랫폼 이름 변환
+  const getProviderName = (provider: string | null | undefined): string => {
+    switch (provider) {
+      case "naver":
+        return "네이버";
+      case "kakao":
+        return "카카오";
+      case "google":
+        return "구글";
+      default:
+        return "소셜 로그인";
+    }
+  };
+
+  const providerName = getProviderName(socialProvider);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-[#1C1C1C] rounded-[12px] p-8 max-w-[400px] w-full mx-4 shadow-2xl border border-[#333]">
-        <div className="text-center">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
+        onClick={onCancel}
+      />
+      <div className="relative w-[500px] rounded-[14px] bg-white dark:bg-neutral-10">
+        <div className="px-8 pt-7 pb-6">
           {/* 경고 아이콘 */}
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#FF5A5A]/10 flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#FF5A5A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="mt-6 flex justify-center">
+            <div className="flex items-center justify-center rounded-full">
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 40 40"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
+                  stroke="#D83232"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
           </div>
           
-          <h2 className="text-[18px] font-semibold text-white mb-3">
+          {/* 제목 */}
+          <p className="mt-6 text-center text-[18px] font-semibold leading-[21px] text-danger-40">
             현재 다른 계정으로 로그인되어 있어 진행할 수 없어요.
-          </h2>
-          <p className="text-[14px] text-[#B9B9B9] mb-2">
-            현재 <span className="text-white font-medium">{loggedInEmail}</span>로 로그인되어 있습니다.
-          </p>
-          <p className="text-[14px] text-[#B9B9B9] mb-6">
-            초대받은 이메일 <span className="text-white font-medium">{inviteEmail}</span>로 로그인해주세요.
           </p>
           
-          <div className="flex gap-3">
-            <button
-              className="cursor-pointer flex-1 h-[40px] rounded-[6px] border border-[#555] text-[#D0D0D0] text-[14px] font-medium hover:bg-[#2a2a2a] transition-colors"
-              onClick={onCancel}
-            >
-              취소
-            </button>
-            <button
-              className="cursor-pointer flex-1 h-[40px] rounded-[6px] bg-[#FF5A5A] text-white text-[14px] font-semibold hover:bg-[#e54a4a] transition-colors"
-              onClick={onLogout}
-            >
-              로그아웃
-            </button>
+          {/* 설명 */}
+          <div className="mt-4 space-y-2">
+            <p className="text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
+              현재 <span className="font-semibold">{loggedInEmail}</span>로 로그인되어 있습니다.
+            </p>
+            <p className="text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
+              {socialProvider ? (
+                <>
+                  {providerName}에서 초대받은 이메일 <span className="font-semibold">{inviteEmail}</span> 계정으로 로그인한 후, 소셜 로그인을 다시 시도해주세요.
+                </>
+              ) : (
+                <>
+                  초대받은 이메일 <span className="font-semibold">{inviteEmail}</span>로 로그인해주세요.
+                </>
+              )}
+            </p>
           </div>
+        </div>
+        
+        {/* 구분선 */}
+        <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
+        
+        {/* 버튼 영역 */}
+        <div className="flex justify-end gap-3 px-8 py-4">
+          <button
+            type="button"
+            className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80"
+            onClick={onCancel}
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] bg-danger-40 px-3 text-[14px] font-semibold tracking-[-0.02em] text-white"
+            onClick={onLogout}
+          >
+            로그아웃
+          </button>
         </div>
       </div>
     </div>
