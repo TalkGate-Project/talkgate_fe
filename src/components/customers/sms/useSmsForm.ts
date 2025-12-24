@@ -311,7 +311,7 @@ export function useSmsForm() {
         }
       } catch (error: any) {
         console.error("SMS 발송 실패:", error);
-        return { success: false, message: "문자 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." };
+        return { success: false, message: "문자 발송 중 오류가 발생했습니다." };
       } finally {
         setSending(false);
       }

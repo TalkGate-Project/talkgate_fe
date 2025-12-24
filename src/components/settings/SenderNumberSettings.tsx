@@ -260,7 +260,7 @@ export default function SenderNumberSettings() {
         } else {
           showErrorModal({
             type: "error",
-            headline: "발신번호 등록 실패. 잠시 후 다시 시도해주세요.",
+            headline: "발신번호 등록 실패.",
             hideCancel: true,
             confirmText: "확인",
           });
