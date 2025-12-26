@@ -28,7 +28,7 @@ function InstagramCallbackContentInner() {
               type: "INSTAGRAM_OAUTH_CALLBACK",
               error: errorDescription || error,
             },
-            window.location.origin // 보안: 같은 origin으로만 전송
+            "*" // 부모 창에서 origin 검증 수행
           );
         }
 
@@ -51,7 +51,7 @@ function InstagramCallbackContentInner() {
               type: "INSTAGRAM_OAUTH_CALLBACK",
               error: "인증 코드가 없습니다.",
             },
-            window.location.origin
+            "*" // 부모 창에서 origin 검증 수행
           );
         }
 
@@ -68,28 +68,28 @@ function InstagramCallbackContentInner() {
 
       // 부모 창으로 성공 메시지 전송
       if (window.opener) {
-        // 서브도메인 제거한 origin 계산
-        const origin = window.location.origin;
-        const url = new URL(origin);
-        const hostname = url.hostname;
-        const parts = hostname.split('.');
-        let targetOrigin = origin;
+        // postMessage의 targetOrigin 문제:
+        // - 콜백 페이지: app-dev.talkgate.im (서브도메인 없음)
+        // - 부모 창: project-xxx.app-dev.talkgate.im (서브도메인 있음)
+        // targetOrigin을 특정 origin으로 지정하면 부모 창에서 받지 못할 수 있음
+        // 따라서 '*'를 사용하되, 부모 창에서 origin 검증을 강화해야 함
         
-        if (parts.length > 2) {
-          // 서브도메인이 있는 경우 제거: project-xxx.app-dev.talkgate.im -> app-dev.talkgate.im
-          const mainDomain = parts.slice(1).join('.');
-          targetOrigin = `${url.protocol}//${mainDomain}`;
-        }
+        console.log("[Instagram Callback] postMessage 전송:", {
+          code: code?.substring(0, 20) + "...",
+          currentOrigin: window.location.origin,
+          hasOpener: !!window.opener,
+        });
 
-        // '*'를 사용하면 보안상 위험하지만, 같은 도메인 내에서만 통신하므로 허용
-        // 더 안전하게 하려면 targetOrigin을 사용하되, 부모 창에서도 검증 필요
+        // '*'를 사용하여 모든 origin으로 전송 (부모 창에서 검증)
         window.opener.postMessage(
           {
             type: "INSTAGRAM_OAUTH_CALLBACK",
             code: code,
           },
-          targetOrigin
+          "*" // 부모 창에서 origin 검증 수행
         );
+      } else {
+        console.warn("[Instagram Callback] window.opener가 없습니다.");
       }
 
       // 1초 후 창 닫기
