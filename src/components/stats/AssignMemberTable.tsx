@@ -199,7 +199,7 @@ export default function AssignMemberTable() {
         <div>팀</div>
         <div>배정 건수</div>
       </div>
-      <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card border-b border-neutral-30/40">
+      <div className="divide-y divide-[#44444455] min-h-[280px] bg-card border-b border-[#44444455]">
         {showSkeleton && (
           <>
             {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
