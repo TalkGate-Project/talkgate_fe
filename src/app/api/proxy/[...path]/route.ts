@@ -60,18 +60,41 @@ async function handleRequest(
     const url = `${apiBaseUrl}${apiPath}${request.nextUrl.search}`;
 
     // httpOnly 쿠키에서 토큰 읽기
+    // Next.js cookies()는 현재 요청의 쿠키만 읽을 수 있음
+    // 서브도메인 간 쿠키 공유가 제대로 설정되어 있다면 cookies()로 읽을 수 있어야 함
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('tg_access_token')?.value;
-    const refreshToken = cookieStore.get('tg_refresh_token')?.value;
+    let accessToken = cookieStore.get('tg_access_token')?.value;
+    let refreshToken = cookieStore.get('tg_refresh_token')?.value;
+    
+    // cookies()로 읽지 못한 경우, request headers의 Cookie 헤더에서 직접 파싱 시도
+    // (서브도메인 쿠키 공유 문제가 있을 수 있음)
+    if (!accessToken) {
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          if (key && value) {
+            acc[key] = decodeURIComponent(value);
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        
+        accessToken = cookies['tg_access_token'] || accessToken;
+        refreshToken = cookies['tg_refresh_token'] || refreshToken;
+      }
+    }
     
     // 디버깅: 쿠키 읽기 확인
     const allCookies = cookieStore.getAll();
+    const cookieHeader = request.headers.get('cookie');
     console.log('[API Proxy] 🍪 쿠키 상태:', {
       path: apiPath,
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
       accessTokenPreview: accessToken ? `${accessToken.slice(0, 20)}...` : null,
-      allCookieNames: allCookies.map(c => c.name),
+      cookieStoreNames: allCookies.map(c => c.name),
+      cookieHeaderExists: !!cookieHeader,
+      cookieHeaderPreview: cookieHeader ? cookieHeader.substring(0, 100) + '...' : null,
       host: request.headers.get('host'),
     });
     
