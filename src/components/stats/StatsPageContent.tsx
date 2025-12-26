@@ -49,6 +49,8 @@ function StatsPageContentInner() {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
     return Number.isFinite(initial) && initial > 0 ? initial : 1;
   });
+  const [applyStartDate, setApplyStartDate] = useState<Date | null>(null);
+  const [applyEndDate, setApplyEndDate] = useState<Date | null>(null);
 
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
@@ -115,8 +117,22 @@ function StatsPageContentInner() {
   // Project state
   const hasProject = projectReady && Boolean(projectId);
 
+  // Date range helper for API
+  const formatDateForAPI = (date: Date | null): string | null => {
+    if (!date) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const applyDateRange = {
+    startDate: formatDateForAPI(applyStartDate),
+    endDate: formatDateForAPI(applyEndDate),
+  };
+
   // Data hooks
-  const registration = useStatsRegistration(projectId, applyPage);
+  const registration = useStatsRegistration(projectId, applyPage, applyDateRange);
   const assignment = useStatsAssignment(projectId);
 
   const chartData =
@@ -212,6 +228,21 @@ function StatsPageContentInner() {
                 currentPage={applyPage}
                 totalPages={registration.totalPages}
                 onPageChange={setApplyPageQS}
+                startDate={applyStartDate}
+                endDate={applyEndDate}
+                onStartDateChange={(date) => {
+                  setApplyStartDate(date);
+                  setApplyPage(1);
+                }}
+                onEndDateChange={(date) => {
+                  setApplyEndDate(date);
+                  setApplyPage(1);
+                }}
+                onDateReset={() => {
+                  setApplyStartDate(null);
+                  setApplyEndDate(null);
+                  setApplyPage(1);
+                }}
               />
             </section>
           </>

@@ -6,14 +6,36 @@ import type { CustomerRegistrationResponse, CustomerRegistrationRecord } from "@
 
 const APPLY_TABLE_LIMIT = 10;
 
-export function useStatsRegistration(projectId: string | null, page: number) {
+type DateRange = {
+  startDate: string | null; // YYYY-MM-DD
+  endDate: string | null;   // YYYY-MM-DD
+};
+
+export function useStatsRegistration(
+  projectId: string | null,
+  page: number,
+  dateRange?: DateRange
+) {
+  // Only use date range if both dates are provided
+  const hasDateFilter = Boolean(dateRange?.startDate && dateRange?.endDate);
+
   const tableQuery = useQuery<
     CustomerRegistrationResponse,
     Error,
     CustomerRegistrationResponse,
-    ["stats", "registration", "table", { projectId: string | null; page: number; limit: number }]
+    ["stats", "registration", "table", { projectId: string | null; page: number; limit: number; startDate?: string; endDate?: string }]
   >({
-    queryKey: ["stats", "registration", "table", { projectId, page, limit: APPLY_TABLE_LIMIT }],
+    queryKey: [
+      "stats",
+      "registration",
+      "table",
+      {
+        projectId,
+        page,
+        limit: APPLY_TABLE_LIMIT,
+        ...(hasDateFilter && { startDate: dateRange!.startDate!, endDate: dateRange!.endDate! }),
+      },
+    ],
     enabled: Boolean(projectId),
     placeholderData: (previous) => previous,
     queryFn: async () => {
@@ -22,21 +44,30 @@ export function useStatsRegistration(projectId: string | null, page: number) {
         projectId,
         page,
         limit: APPLY_TABLE_LIMIT,
+        ...(hasDateFilter && { startDate: dateRange!.startDate!, endDate: dateRange!.endDate! }),
       });
       return res.data;
     },
   });
 
   const chartQuery = useQuery<CustomerRegistrationResponse>({
-    queryKey: ["stats", "registration", "chart", projectId, page],
+    queryKey: [
+      "stats",
+      "registration",
+      "chart",
+      projectId,
+      hasDateFilter ? dateRange!.startDate : null,
+      hasDateFilter ? dateRange!.endDate : null,
+    ],
     enabled: Boolean(projectId),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.customerRegistration({
         projectId,
-        page,
-        limit: APPLY_TABLE_LIMIT,
+        page: 1,
+        limit: 1000, // Get all data for chart when date range is specified
+        ...(hasDateFilter && { startDate: dateRange!.startDate!, endDate: dateRange!.endDate! }),
       });
       return res.data;
     },
