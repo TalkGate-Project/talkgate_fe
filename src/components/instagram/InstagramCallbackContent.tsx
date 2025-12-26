@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { MessengerIntegrationService } from "@/services/messengerIntegration";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 function InstagramCallbackContentInner() {
@@ -11,54 +10,92 @@ function InstagramCallbackContentInner() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        // URL에서 code 파라미터 가져오기
-        const code = searchParams.get("code");
-        
-        if (!code) {
-          setStatus("error");
-          setMessage("인증 코드가 없습니다.");
-          return;
-        }
+    const handleCallback = () => {
+      // URL에서 code 파라미터 가져오기
+      const code = searchParams.get("code");
+      const error = searchParams.get("error");
+      const errorDescription = searchParams.get("error_description");
 
-        // localStorage에서 projectId 가져오기 (부모 창에서 설정해야 함)
-        const projectId = localStorage.getItem("selectedProjectId");
-        
-        if (!projectId) {
-          setStatus("error");
-          setMessage("프로젝트 ID가 없습니다.");
-          return;
-        }
-
-        // 인스타그램 연동 API 호출
-        await MessengerIntegrationService.instagram(
-          { code },
-          { "x-project-id": projectId }
-        );
-
-        setStatus("success");
-        setMessage("인스타그램 연동이 완료되었습니다.");
-
-        // 1초 후 부모 창 새로고침 및 현재 창 닫기
-        setTimeout(() => {
-          if (window.opener) {
-            window.opener.location.reload();
-          }
-          window.close();
-        }, 1000);
-      } catch (error: any) {
-        console.error("Instagram integration failed:", error);
+      // 에러가 있는 경우
+      if (error) {
         setStatus("error");
-        setMessage(
-          error?.data?.message || "인스타그램 연동에 실패했습니다."
-        );
+        setMessage(errorDescription || "인증에 실패했습니다.");
         
-        // 3초 후 창 닫기
+        // 부모 창으로 에러 메시지 전송
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              type: "INSTAGRAM_OAUTH_CALLBACK",
+              error: errorDescription || error,
+            },
+            window.location.origin // 보안: 같은 origin으로만 전송
+          );
+        }
+
+        // 2초 후 창 닫기
         setTimeout(() => {
           window.close();
-        }, 3000);
+        }, 2000);
+        return;
       }
+
+      // code가 없는 경우
+      if (!code) {
+        setStatus("error");
+        setMessage("인증 코드가 없습니다.");
+        
+        // 부모 창으로 에러 메시지 전송
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              type: "INSTAGRAM_OAUTH_CALLBACK",
+              error: "인증 코드가 없습니다.",
+            },
+            window.location.origin
+          );
+        }
+
+        // 2초 후 창 닫기
+        setTimeout(() => {
+          window.close();
+        }, 2000);
+        return;
+      }
+
+      // 성공: 부모 창으로 code 전송
+      setStatus("success");
+      setMessage("인증이 완료되었습니다. 잠시 후 창이 닫힙니다.");
+
+      // 부모 창으로 성공 메시지 전송
+      if (window.opener) {
+        // 서브도메인 제거한 origin 계산
+        const origin = window.location.origin;
+        const url = new URL(origin);
+        const hostname = url.hostname;
+        const parts = hostname.split('.');
+        let targetOrigin = origin;
+        
+        if (parts.length > 2) {
+          // 서브도메인이 있는 경우 제거: project-xxx.app-dev.talkgate.im -> app-dev.talkgate.im
+          const mainDomain = parts.slice(1).join('.');
+          targetOrigin = `${url.protocol}//${mainDomain}`;
+        }
+
+        // '*'를 사용하면 보안상 위험하지만, 같은 도메인 내에서만 통신하므로 허용
+        // 더 안전하게 하려면 targetOrigin을 사용하되, 부모 창에서도 검증 필요
+        window.opener.postMessage(
+          {
+            type: "INSTAGRAM_OAUTH_CALLBACK",
+            code: code,
+          },
+          targetOrigin
+        );
+      }
+
+      // 1초 후 창 닫기
+      setTimeout(() => {
+        window.close();
+      }, 1000);
     };
 
     handleCallback();

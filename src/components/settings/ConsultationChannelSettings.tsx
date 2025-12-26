@@ -8,6 +8,7 @@ import TelegramIntegrationModal from "./TelegramIntegrationModal";
 import type { Platform, MessengerIntegration } from "@/types/messengerIntegration";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { env } from "@/lib/env";
 const channels = [
   {
     id: "instagram" as Platform,
@@ -124,6 +125,105 @@ export default function ConsultationChannelSettings() {
     fetchIntegrations();
   }, [projectId, mounted]);
 
+  // Instagram OAuth 콜백에서 postMessage 받기
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      // 보안: origin 검증
+      // 콜백 페이지는 서브도메인 없는 URL (예: app-dev.talkgate.im)
+      // 부모 창은 서브도메인 있는 URL일 수 있음 (예: project-xxx.app-dev.talkgate.im)
+      // 서브도메인을 제거한 메인 도메인으로 비교
+      try {
+        const eventUrl = new URL(event.origin);
+        const currentUrl = new URL(window.location.origin);
+        
+        // 서브도메인 제거한 메인 도메인 계산
+        const getMainDomain = (hostname: string): string => {
+          const parts = hostname.split('.');
+          // app-dev.talkgate.im -> app-dev.talkgate.im
+          // project-xxx.app-dev.talkgate.im -> app-dev.talkgate.im
+          if (parts.length > 2) {
+            // 서브도메인이 있는 경우 제거 (첫 번째 부분 제거)
+            return parts.slice(1).join('.');
+          }
+          return hostname;
+        };
+        
+        const eventMainDomain = getMainDomain(eventUrl.hostname);
+        const currentMainDomain = getMainDomain(currentUrl.hostname);
+        
+        // 프로토콜과 메인 도메인 일치 확인
+        if (eventUrl.protocol !== currentUrl.protocol || eventMainDomain !== currentMainDomain) {
+          console.warn("[Instagram] 허용되지 않은 origin:", event.origin, "expected:", currentMainDomain);
+          return;
+        }
+      } catch {
+        // URL 파싱 실패 시 무시
+        return;
+      }
+
+      // Instagram 콜백 메시지 확인
+      if (event.data?.type === "INSTAGRAM_OAUTH_CALLBACK") {
+        const { code, error } = event.data;
+
+        if (error) {
+          console.error("[Instagram] OAuth 에러:", error);
+          showErrorModal({
+            type: "error",
+            headline: "인스타그램 연동에 실패했습니다.",
+            hideCancel: true,
+          });
+          return;
+        }
+
+        if (!code) {
+          showErrorModal({
+            type: "error",
+            headline: "인증 코드를 받지 못했습니다.",
+            hideCancel: true,
+          });
+          return;
+        }
+
+        // 프로젝트 ID 확인
+        if (!projectId) {
+          showErrorModal({
+            type: "error",
+            headline: "프로젝트 ID가 없습니다.",
+            hideCancel: true,
+          });
+          return;
+        }
+
+        // 인스타그램 연동 API 호출
+        try {
+          const response = await MessengerIntegrationService.instagram(
+            { code },
+            { "x-project-id": projectId }
+          );
+
+          if (response?.data?.data) {
+            setIntegrations((prev) => [...prev, response.data.data]);
+            showErrorModal({
+              type: "success",
+              headline: "인스타그램 연동이 완료되었습니다.",
+              hideCancel: true,
+            });
+          }
+        } catch (error: any) {
+          console.error("Failed to integrate Instagram:", error);
+          showErrorModal({
+            type: "error",
+            headline: "인스타그램 연동에 실패했습니다.",
+            hideCancel: true,
+          });
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [projectId]);
+
   const channels = [
     {
       id: "instagram" as Platform,
@@ -161,8 +261,27 @@ export default function ConsultationChannelSettings() {
 
   const handleInstagramConnect = () => {
     // Instagram OAuth URL 구성
-    const clientId = "622214674056498";
-    const redirectUri = `${window.location.origin}/instagram/callback`;
+    const clientId = env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "622214674056498"; // fallback for backward compatibility
+    
+    // 서브도메인 없이 콜백 URI 생성 (NEXT_PUBLIC_SITE_URL 사용)
+    // NEXT_PUBLIC_SITE_URL이 없으면 현재 origin에서 서브도메인 제거
+    let siteUrl = env.NEXT_PUBLIC_SITE_URL;
+    if (!siteUrl) {
+      const origin = window.location.origin;
+      // 서브도메인 제거: https://project-xxx.app-dev.talkgate.im -> https://app-dev.talkgate.im
+      const url = new URL(origin);
+      const hostname = url.hostname;
+      const parts = hostname.split('.');
+      if (parts.length > 2) {
+        // 서브도메인이 있는 경우 제거 (첫 번째 부분 제거)
+        const mainDomain = parts.slice(1).join('.');
+        siteUrl = `${url.protocol}//${mainDomain}`;
+      } else {
+        siteUrl = origin;
+      }
+    }
+    const redirectUri = `${siteUrl}/instagram/callback`;
+    
     const scope = [
       "instagram_business_basic",
       "instagram_business_manage_messages",
@@ -170,6 +289,15 @@ export default function ConsultationChannelSettings() {
       "instagram_business_content_publish",
       "instagram_business_manage_insights",
     ].join(",");
+
+    if (!clientId) {
+      showErrorModal({
+        type: "error",
+        headline: "Instagram Client ID가 설정되지 않았습니다.",
+        hideCancel: true,
+      });
+      return;
+    }
 
     const instagramAuthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${clientId}&redirect_uri=${encodeURIComponent(
       redirectUri

@@ -162,7 +162,7 @@ export default function CommonSenderNumberModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
             aria-label="닫기"
           >
             <svg
@@ -174,7 +174,8 @@ export default function CommonSenderNumberModal({
             >
               <path
                 d="M18 6L6 18M6 6L18 18"
-                stroke="#666666"
+                stroke="currentColor"
+                className="text-neutral-60 dark:text-neutral-60"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -221,7 +222,7 @@ export default function CommonSenderNumberModal({
                   <button
                     type="button"
                     onClick={() => fileInput1Ref.current?.click()}
-                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 bg-white text-[14px] font-medium text-neutral-90 hover:bg-neutral-10 transition-colors"
+                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
                   >
                     파일선택
                   </button>
@@ -247,7 +248,7 @@ export default function CommonSenderNumberModal({
                   <button
                     type="button"
                     onClick={() => fileInput2Ref.current?.click()}
-                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 bg-white text-[14px] font-medium text-neutral-90 hover:bg-neutral-10 transition-colors"
+                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
                   >
                     파일선택
                   </button>
@@ -305,7 +306,7 @@ export default function CommonSenderNumberModal({
                   <button
                     type="button"
                     onClick={() => fileInput3Ref.current?.click()}
-                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 bg-white text-[14px] font-medium text-neutral-90 hover:bg-neutral-10 transition-colors"
+                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
                   >
                     파일선택
                   </button>
@@ -331,7 +332,7 @@ export default function CommonSenderNumberModal({
                   <button
                     type="button"
                     onClick={() => fileInput4Ref.current?.click()}
-                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 bg-white text-[14px] font-medium text-neutral-90 hover:bg-neutral-10 transition-colors"
+                    className="h-[38px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
                   >
                     파일선택
                   </button>
@@ -357,7 +358,7 @@ export default function CommonSenderNumberModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="h-[42px] px-6 rounded-[5px] border border-neutral-30 bg-white text-[14px] font-semibold text-neutral-90 hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-[42px] px-6 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             취소
           </button>
@@ -365,7 +366,7 @@ export default function CommonSenderNumberModal({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="h-[42px] px-6 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 dark:text-neutral-90 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-[42px] px-6 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "등록 중..." : "등록"}
           </button>

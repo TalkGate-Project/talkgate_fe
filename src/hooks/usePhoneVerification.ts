@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { VerificationService } from "@/services/verification";
 import type { VerificationFormData } from "@/types/verification";
+import { getVerificationErrorMessage } from "@/utils/errorMessages";
 
 type VerificationType = "account" | "sms-sender";
 
@@ -160,13 +161,13 @@ export function usePhoneVerification({
       authWindow.close();
       setIsVerifying(false);
 
+      // 사용자 친화적인 에러 메시지로 변환
+      const userFriendlyMessage = getVerificationErrorMessage(error);
+
       onError?.({
         success: false,
         code: "API_ERROR",
-        message:
-          error instanceof Error
-            ? error.message
-            : "본인인증 시작 중 오류가 발생했습니다.",
+        message: userFriendlyMessage,
       });
     }
   }, [isVerifying, type, accessToken, onError]);
