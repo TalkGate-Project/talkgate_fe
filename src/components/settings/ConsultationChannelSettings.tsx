@@ -146,12 +146,20 @@ export default function ConsultationChannelSettings() {
         // 서브도메인 제거한 메인 도메인 계산
         const getMainDomain = (hostname: string): string => {
           const parts = hostname.split('.');
-          // app-dev.talkgate.im -> app-dev.talkgate.im
-          // project-xxx.app-dev.talkgate.im -> app-dev.talkgate.im
-          if (parts.length > 2) {
-            // 서브도메인이 있는 경우 제거 (첫 번째 부분 제거)
+          
+          // 이미 메인 도메인인 경우 (app-dev.talkgate.im, app.talkgate.im 등)
+          // parts.length가 3이고, 첫 번째가 'app' 또는 'app-dev'로 시작하면 메인 도메인
+          if (parts.length === 3 && (parts[0] === 'app' || parts[0] === 'app-dev')) {
+            return hostname;
+          }
+          
+          // 서브도메인이 있는 경우 (project-xxx.app-dev.talkgate.im)
+          // 첫 번째 부분을 제거하여 메인 도메인 추출
+          if (parts.length > 3) {
             return parts.slice(1).join('.');
           }
+          
+          // parts.length가 2 이하인 경우 (localhost 등)는 그대로 반환
           return hostname;
         };
         
