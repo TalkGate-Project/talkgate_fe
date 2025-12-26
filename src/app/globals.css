@@ -375,6 +375,10 @@
   }
 }
 
+html, body {
+  overflow-x: hidden; /* 삼성 인터넷 등 일부 모바일 브라우저에서 가로 스크롤 방지 */
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);

@@ -155,9 +155,36 @@ function matchesPath(pathname: string, paths: string[]): boolean {
   return paths.some(p => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+/**
+ * User-Agent를 분석하여 모바일 기기인지 확인합니다.
+ */
+function isMobileDevice(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+  
+  // 일반적인 모바일 기기 패턴
+  const mobilePatterns = [
+    /Android/i,
+    /webOS/i,
+    /iPhone/i,
+    /iPad/i,
+    /iPod/i,
+    /BlackBerry/i,
+    /Windows Phone/i,
+    /Opera Mini/i,
+    /IEMobile/i,
+    /Mobile/i,
+    /mobile/i,
+    /Tablet/i,
+    /SamsungBrowser/i,  // 삼성 인터넷 브라우저 (데스크톱 모드에서도 감지)
+  ];
+  
+  return mobilePatterns.some(pattern => pattern.test(userAgent));
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host") || "";
+  const userAgent = req.headers.get("user-agent");
   const accessToken = req.cookies.get("tg_access_token")?.value;
   const hasAuthCookie = Boolean(accessToken);
   const protocol = req.nextUrl.protocol;
@@ -166,7 +193,13 @@ export async function middleware(req: NextRequest) {
   // 기본값은 compact (0.8)
   let uiZoomMode = "compact";
   
-  // 인증 관련 페이지는 normal (1.0)
+  // 1. 모바일 기기는 무조건 normal (1.0) - 서버사이드에서 User-Agent로 감지
+  const isMobile = isMobileDevice(userAgent);
+  if (isMobile) {
+    uiZoomMode = "normal";
+  }
+  
+  // 2. 인증 관련 페이지는 normal (1.0)
   const isAuthPath = matchesPath(pathname, [
     "/login", 
     "/signup", 
