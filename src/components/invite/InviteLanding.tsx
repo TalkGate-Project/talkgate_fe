@@ -14,6 +14,7 @@ import loginBgImg from "@/assets/images/auth/login_bg.png";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { EnvelopeAnimation } from "./EnvelopeAnimation";
 import { WrongAccountModal } from "./WrongAccountModal";
+import { getUserFriendlyErrorMessage } from "@/utils/errorMessages";
 
 // 개발용 토큰 - 백엔드 없이 UI 테스트용
 const DEV_TOKEN = "developmentmastertoken";
@@ -122,9 +123,9 @@ export function InviteLanding() {
           setLoggedInEmail(null);
         }
       } catch (e: any) {
-        setError(
-          e?.data?.message || e?.message || "초대 정보를 확인할 수 없습니다."
-        );
+        // 사용자 친화적인 에러 메시지로 변환
+        const userFriendlyMessage = getUserFriendlyErrorMessage(e);
+        setError(userFriendlyMessage || "초대 정보를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.");
       } finally {
         if (mounted) setLoading(false);
       }

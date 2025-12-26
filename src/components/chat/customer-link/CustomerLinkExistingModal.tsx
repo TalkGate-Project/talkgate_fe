@@ -93,9 +93,8 @@ export default function CustomerLinkExistingModal({
     try {
       await onLink(selectedId);
     } catch (err: any) {
-      const message =
-        err instanceof Error ? err.message : "고객 연동에 실패했습니다.";
-      setError(message);
+      // 사용자 친화적인 에러 메시지 사용
+      setError("고객 연동에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLinking(false);
     }

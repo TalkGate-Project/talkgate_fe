@@ -16,6 +16,24 @@ export type AppEnv = {
    */
   NEXT_PUBLIC_KAKAO_REST_API_KEY?: string;
   NEXT_PUBLIC_NAVER_CLIENT_ID?: string;
+  /**
+   * Instagram OAuth Client ID (Facebook App ID)
+   * 
+   * Redirect URI:
+   * - 프로덕션: https://app.talkgate.im/instagram/callback
+   * - 개발: https://app-dev.talkgate.im/instagram/callback, http://localhost:3000/instagram/callback
+   */
+  NEXT_PUBLIC_INSTAGRAM_CLIENT_ID?: string;
+  /**
+   * 사이트 기본 URL (서브도메인 제외)
+   * Instagram OAuth 콜백 URI 생성에 사용
+   * 
+   * 예시:
+   * - 프로덕션: https://app.talkgate.im
+   * - 개발: https://app-dev.talkgate.im
+   * - 로컬: http://localhost:3000
+   */
+  NEXT_PUBLIC_SITE_URL?: string;
 };
 
 function readString(key: keyof AppEnv, fallback?: string): string {
@@ -73,6 +91,8 @@ const apiBaseUrl = "https://api-dev.talkgate.im";
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || undefined;
 const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
 const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
+const instagramClientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || undefined;
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || undefined;
 
 export const env: AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
@@ -86,6 +106,8 @@ export const env: AppEnv = {
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: googleClientId,
   NEXT_PUBLIC_KAKAO_REST_API_KEY: kakaoClientId,
   NEXT_PUBLIC_NAVER_CLIENT_ID: naverClientId,
+  NEXT_PUBLIC_INSTAGRAM_CLIENT_ID: instagramClientId,
+  NEXT_PUBLIC_SITE_URL: siteUrl,
 };
 
 

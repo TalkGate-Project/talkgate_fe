@@ -17,6 +17,7 @@ import {
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getPendingInviteInfo, savePendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
+import { getAuthErrorMessage } from "@/utils/errorMessages";
 
 interface OAuthCallbackContentInnerProps {
   provider: string;
@@ -91,7 +92,12 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   useEffect(() => {
     if (oauthError) {
       debugLog("❌ OAuth 에러 파라미터 감지", { error: oauthError, description: errorDescription });
-      setError(`소셜 로그인이 취소되었거나 오류가 발생했습니다. (${oauthError})`);
+      // 사용자 친화적인 메시지로 변환
+      if (oauthError === "access_denied" || oauthError === "user_cancelled") {
+        setError("소셜 로그인이 취소되었습니다.");
+      } else {
+        setError("소셜 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      }
     }
   }, [oauthError, errorDescription]);
 
@@ -234,7 +240,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
       } catch (e: any) {
         markLoginError(provider, e);
         
-        // 상세한 에러 정보 수집
+        // 상세한 에러 정보 수집 (로그용)
         const errorMessage = e?.data?.message || e?.message || "알 수 없는 오류";
         const errorCode = e?.data?.code || e?.status || "";
         
@@ -252,7 +258,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         }
         
         if (mounted) {
-          setError(`로그인에 실패했습니다. ${errorCode ? `(${errorCode})` : ""} ${errorMessage}`);
+          // 사용자 친화적인 에러 메시지로 변환
+          const userFriendlyMessage = getAuthErrorMessage(e);
+          setError(userFriendlyMessage);
           
           // 개발 환경에서 디버그 정보 표시
           if (process.env.NODE_ENV === "development") {
