@@ -190,12 +190,12 @@ export default function CustomerLinkExistingModal({
                     "전화번호",
                     "담당팀",
                     "담당자",
-                    "시간",
+                    "등록일",
                     "연동",
                   ].map((h, i) => (
                     <th
                       key={h}
-                      className={`px-6 h-[40px] text-[16px] font-medium ${
+                      className={`px-4 h-[40px] text-[16px] font-medium ${
                         i === 0
                           ? "rounded-l-[8px]"
                           : i === 6
@@ -240,27 +240,27 @@ export default function CustomerLinkExistingModal({
                 {!loading &&
                   customers.map((c) => (
                     <tr key={c.id} className="border-b border-neutral-20">
-                      <td className="px-6 h-[56px] align-middle text-neutral-90">
+                      <td className="px-4 h-[56px] align-middle text-neutral-90">
                         {c.name}
                       </td>
-                      <td className="px-6 h-[56px] align-middle text-neutral-60">
-                        -
+                      <td className="px-4 h-[56px] align-middle text-neutral-60">
+                        {c.ageRange || "-"}
                       </td>
-                      <td className="px-6 h-[56px] align-middle">
+                      <td className="px-4 h-[56px] align-middle">
                         <span className="font-semibold">
                           {c.contact1 || "-"}
                         </span>
                       </td>
-                      <td className="px-6 h-[56px] align-middle text-neutral-60">
+                      <td className="px-4 h-[56px] align-middle text-neutral-60">
                         {c.assignedMember?.team?.name || "-"}
                       </td>
-                      <td className="px-6 h-[56px] align-middle text-neutral-60">
+                      <td className="px-4 h-[56px] align-middle text-neutral-60">
                         {c.assignedMember?.name || "-"}
                       </td>
-                      <td className="px-6 h-[56px] align-middle text-neutral-60">
-                        -
+                      <td className="px-4 h-[56px] align-middle text-neutral-60">
+                        {c.createdAt ? c.createdAt.slice(0, 10) : "-"}
                       </td>
-                      <td className="px-6 h-[56px] align-middle">
+                      <td className="px-4 h-[56px] align-middle">
                         <button
                           className="cursor-pointer h-[28px] px-3 rounded-[6px] bg-neutral-90 text-[13px] text-neutral-0"
                           onClick={() => onLink(c.id)}
