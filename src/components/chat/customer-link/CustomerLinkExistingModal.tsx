@@ -161,7 +161,7 @@ export default function CustomerLinkExistingModal({
                 disabled={loading}
               />
               <svg
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50"
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-neutral-50"
                 width="20"
                 height="20"
                 viewBox="0 0 20 20"
@@ -262,7 +262,7 @@ export default function CustomerLinkExistingModal({
                       </td>
                       <td className="px-6 h-[56px] align-middle">
                         <button
-                          className="h-[28px] px-3 rounded-[6px] bg-neutral-90 text-[13px] text-neutral-0"
+                          className="cursor-pointer h-[28px] px-3 rounded-[6px] bg-neutral-90 text-[13px] text-neutral-0"
                           onClick={() => onLink(c.id)}
                           disabled={linking}
                         >
