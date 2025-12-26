@@ -585,7 +585,7 @@ export default function GeneralSettings() {
         
         <div className="border-t border-neutral-30 mb-3"></div>
         
-        <div className="flex items-center justify-between py-3 px-6 bg-[rgba(214,250,232,0.3)] rounded-[5px] h-[48px]">
+        <div className="flex items-center justify-between py-3 px-6 bg-[rgba(214,250,232,0.3)] dark:bg-[rgba(214,250,232,0.1)] rounded-[5px] h-[48px]">
           <span className="text-[16px] font-semibold text-foreground leading-[19px]">근태 메뉴 사용</span>
           <button
             onClick={handleToggleAttendance}
