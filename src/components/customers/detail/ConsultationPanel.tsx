@@ -241,9 +241,9 @@ export default function ConsultationPanel({
                     >
                       {categoryName}
                     </div>
-                    {/* 노트를 작성한 담당자 이름이 우선, 없으면 고객 이름을 표시 */}
+                    {/* 노트를 작성한 담당자 이름이 우선, 없으면 빈 문자열 */}
                     <span className="text-[12px] text-neutral-80 dark:text-neutral-70">
-                      {n.memberName || customerName}
+                      {n.memberName || ""}
                     </span>
                   </div>
                   <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
@@ -316,4 +316,3 @@ export default function ConsultationPanel({
     </div>
   );
 }
-

@@ -13,6 +13,7 @@ import {
   RemoveCustomerMessengerInput,
   BasicSuccessResponse,
   AddCustomerNoteInput,
+  AddCustomerNoteResponse,
   RemoveCustomerNoteInput,
   AddCustomerPaymentHistoryInput,
   RemoveCustomerPaymentHistoryInput,
@@ -89,7 +90,7 @@ export const CustomersService = {
   // 상담 노트 추가/삭제
   addNote(input: AddCustomerNoteInput) {
     const { projectId, ...body } = input;
-    return apiClient.post<BasicSuccessResponse>(`/v1/customers/notes`, body, {
+    return apiClient.post<AddCustomerNoteResponse>(`/v1/customers/notes`, body, {
       headers: { "x-project-id": projectId },
     });
   },

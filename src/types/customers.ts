@@ -272,6 +272,11 @@ export type AddCustomerNoteInput = {
   projectId: string; // header
 };
 
+export type AddCustomerNoteResponse = {
+  result: true;
+  data: RecentNote;
+};
+
 export type RemoveCustomerNoteInput = {
   noteId: number;
   projectId: string; // header
@@ -306,5 +311,3 @@ export type RemoveCustomerScheduleInput = {
   scheduleId: number;
   projectId: string; // header
 };
-
-

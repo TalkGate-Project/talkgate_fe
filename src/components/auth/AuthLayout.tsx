@@ -83,109 +83,154 @@ export default function AuthLayout({
 
   return (
     <>
-      {/* 전체 화면 배경 레이어 (단색 fallback) */}
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          backgroundColor: AUTH_BODY_BG,
-        }}
-        aria-hidden="true"
-      />
-      
-      {/* 배경 이미지 레이어 (zoom이 항상 1이므로 cover로 충분) */}
-      <div
-        className="fixed inset-0 -z-[9]"
-        style={{
-          backgroundImage: `url('${loginBgImg.src}')`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-        aria-hidden="true"
-      />
-      
-      {/* 메인 컨테이너 */}
-      <main
-        className="min-h-screen flex items-center justify-center relative"
-      >
-        {/* 중앙 정렬 컨테이너 */}
-        <div 
-          className="flex items-center justify-center gap-[clamp(40px,8vw,200px)]"
+      {/* ==================================================================================== */}
+      {/* 1. Desktop Layout (lg 이상) - 기존 코드 100% 보존 + lg:block hidden */}
+      {/* ==================================================================================== */}
+      <div className="hidden lg:block">
+        {/* 전체 화면 배경 레이어 (단색 fallback) */}
+        <div
+          className="fixed inset-0 -z-10"
           style={{
-            width: "100%",
-            maxWidth: "1600px",
-            paddingInline: "40px",
+            backgroundColor: AUTH_BODY_BG,
           }}
+          aria-hidden="true"
+        />
+        
+        {/* 배경 이미지 레이어 */}
+        <div
+          className="fixed inset-0 -z-[9]"
+          style={{
+            backgroundImage: `url('${loginBgImg.src}')`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+          aria-hidden="true"
+        />
+        
+        {/* 메인 컨테이너 */}
+        <main
+          className="min-h-screen flex items-center justify-center relative"
         >
-          {/* 좌측 브랜드 영역 */}
-          <div className="hidden lg:flex flex-col items-start flex-shrink-0">
-            <TalkGateLogoLarge />
-            <div 
-              className="text-white font-medium"
-              style={{
-                marginTop: "30px",
-                fontSize: "32px",
-                lineHeight: "38px",
-              }}
-            >
-              "Your Gateway to Smarter Sales"
-            </div>
-          </div>
-
-          {/* 우측 카드 영역 */}
-          <div
-            className="flex-shrink-0 relative flex items-center justify-center overflow-hidden"
+          {/* 중앙 정렬 컨테이너 */}
+          <div 
+            className="flex items-center justify-center gap-[clamp(40px,8vw,200px)]"
             style={{
-              width: "min(92vw, 564px)",
-              height: "100vh",
+              width: "100%",
+              maxWidth: "1600px",
+              paddingInline: "40px",
             }}
           >
-            {/* Strap - 화면 상단부터 form 컨테이너 상단까지 배치 */}
+            {/* 좌측 브랜드 영역 */}
+            <div className="flex flex-col items-start flex-shrink-0">
+              <TalkGateLogoLarge />
+              <div 
+                className="text-white font-medium"
+                style={{
+                  marginTop: "30px",
+                  fontSize: "32px",
+                  lineHeight: "38px",
+                }}
+              >
+                "Your Gateway to Smarter Sales"
+              </div>
+            </div>
+
+            {/* 우측 카드 영역 */}
             <div
-              className="absolute left-1/2 -translate-x-[41%] z-[0]"
+              className="flex-shrink-0 relative flex items-center justify-center overflow-hidden"
               style={{
-                top: `${strapTop}px`,
-                width: "41%",
-                height: "calc(50vh + var(--card-padding-top, 310px) + 80px)",
-                backgroundImage: `url('${loginCardStrap.src}')`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "top center",
-                backgroundSize: "100% auto",
-                zIndex: 1,
-                pointerEvents: "none",
-              }}
-              aria-hidden="true"
-            />
-            
-            {/* Form 컨테이너 - contents 배경 이미지로 감싸기 (고정 위치) */}
-            <div
-              className="relative mx-auto flex flex-col items-center !px-[90px] rounded-b-[24px] overflow-hidden z-[1]"
-              aria-label={ariaLabel}
-              style={{
-                width: "564px",
-                maxWidth: "calc(100% - 20px)",
-                height: "1000px",
-                backgroundImage: `url('${loginCardContents.src}')`,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center 80px",
-                backgroundSize: "110% auto",
-                padding: "var(--card-padding-top, 310px) 0 var(--card-padding-bottom, 100px) 0",
-                zIndex: 2,
+                width: "564px", // 기존 width style 복구
+                height: "100vh",
               }}
             >
-              {/* 워드마크 로고 */}
-              {showLogo && (
-                <div style={{ marginBottom: "50px" }}>
-                  <TalkGateLogoWordmark />
-                </div>
-              )}
+              {/* Strap */}
+              <div
+                className="absolute left-1/2 -translate-x-[41%] z-[0]"
+                style={{
+                  top: `${strapTop}px`,
+                  width: "41%",
+                  height: "calc(50vh + var(--card-padding-top, 310px) + 80px)",
+                  backgroundImage: `url('${loginCardStrap.src}')`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "top center",
+                  backgroundSize: "100% auto",
+                  zIndex: 1,
+                  pointerEvents: "none",
+                }}
+                aria-hidden="true"
+              />
               
-              {/* 페이지별 콘텐츠 */}
-              {children}
+              {/* Form 컨테이너 */}
+              <div
+                className="relative mx-auto flex flex-col items-center !px-[25px] md:!px-[90px] rounded-b-[24px] overflow-hidden z-[1]"
+                aria-label={ariaLabel}
+                style={{
+                  width: "564px",
+                  maxWidth: "calc(100% - 20px)",
+                  height: "1000px",
+                  backgroundImage: `url('${loginCardContents.src}')`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center 80px",
+                  backgroundSize: "110% auto",
+                  padding: "var(--card-padding-top, 310px) 0 var(--card-padding-bottom, 100px) 0",
+                  zIndex: 2,
+                }}
+              >
+                {/* 워드마크 로고 */}
+                {showLogo && (
+                  <div style={{ marginBottom: "50px" }}>
+                    <TalkGateLogoWordmark />
+                  </div>
+                )}
+                
+                {/* 페이지별 콘텐츠 - 데스크탑에서는 children 그대로 렌더링 */}
+                {children}
+              </div>
             </div>
           </div>
+        </main>
+      </div>
+
+      {/* ==================================================================================== */}
+      {/* 2. Mobile Layout (lg 미만) - 완전 별도 구현 (3번 시안) */}
+      {/* ==================================================================================== */}
+      <div className="block lg:hidden min-h-screen relative overflow-hidden">
+        {/* 배경 이미지: 전체 화면 채움 */}
+        <div
+          className="fixed inset-0 -z-[9]"
+          style={{
+            backgroundImage: `url('${loginCardContents.src}')`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "top center",
+          }}
+          aria-hidden="true"
+        >
+          {/* 어두운 오버레이 & 그라데이션 */}
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
         </div>
-      </main>
+
+        {/* 모바일 컨텐츠 영역 */}
+        <main className="min-h-screen flex flex-col items-center justify-center px-6 w-full relative z-10">
+          {/* 워드마크 로고 */}
+          {showLogo && (
+            <div className="mb-10">
+              <TalkGateLogoWordmark />
+            </div>
+          )}
+          
+          {/* 
+            폼 컨테이너 
+            - 모바일에서는 카드가 아니라 투명 배경에 폼만 띄움
+            - width 제한(max-w-[384px])을 두어 너무 늘어나지 않게 함
+          */}
+          <div className="w-full max-w-[384px]">
+            {children}
+          </div>
+        </main>
+      </div>
     </>
   );
 }

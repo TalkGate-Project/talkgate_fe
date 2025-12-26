@@ -68,12 +68,12 @@ export default function ProjectsContent() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-[1422px] mx-auto pt-[90px] pb-24 ">
-        <h1 className="text-[32px] leading-[38px] font-bold text-foreground text-center mb-6">
+    <main className="min-h-screen bg-background px-6 md:px-0">
+      <div className="max-w-[1422px] mx-auto pt-6 md:pt-[90px] pb-24 ">
+        <h1 className="text-[18px] md:text-[32px] leading-[38px] font-bold text-foreground text-center mb-6">
           프로젝트 선택
         </h1>
-        <p className="text-[18px] leading-[21px] text-neutral-60 text-center">
+        <p className="text-[14px] md:text-[18px] leading-[21px] text-neutral-60 text-center">
           관리할 프로젝트를 선택하거나 새로운 프로젝트를 생성하세요
         </p>
 
@@ -228,7 +228,7 @@ export default function ProjectsContent() {
                   {isSelecting && <LoadingSpinner size="sm" />}
                 </div>
                 <div className="grid grid-cols-2 gap-6 mt-5">
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
                       <div className="text-[16px] font-semibold text-foreground">
                         나에게 할당된 고객
@@ -252,7 +252,29 @@ export default function ProjectsContent() {
                       className="w-[60px] h-[60px]"
                     />
                   </div>
-                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 flex items-center justify-between">
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
+                    <div className="text-[16px] font-semibold text-foreground">
+                      나에게 할당된 고객
+                    </div>
+                    <div
+                      className="mt-2 flex items-center justify-between gap-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                      style={montserratStyle}
+                    >
+                      <span>{p.assignedCustomerCount ?? 0}건</span>
+                      <Image
+                        src={
+                          p.hasActiveSubscription
+                            ? projectAssignedCustomerImg
+                            : projectNotAssignedCustomerImg
+                        }
+                        alt="할당 고객 아이콘"
+                        width={60}
+                        height={60}
+                        className="w-[60px] h-[60px]"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
                       <div className="text-[16px] font-semibold text-foreground">
                         오늘 예약 일정
@@ -275,6 +297,28 @@ export default function ProjectsContent() {
                       height={60}
                       className="w-[60px] h-[60px]"
                     />
+                  </div>
+                  <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
+                    <div className="text-[16px] font-semibold text-foreground">
+                      오늘 예약 일정
+                    </div>
+                    <div
+                      className="mt-2 flex items-center justify-between gap-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                      style={montserratStyle}
+                    >
+                      <span>{p.todayScheduleCount ?? 0}건</span>
+                      <Image
+                        src={
+                          p.hasActiveSubscription
+                            ? projectReservedItemImg
+                            : projectNotReservedItemImg
+                        }
+                        alt="예약 일정 아이콘"
+                        width={60}
+                        height={60}
+                        className="w-[60px] h-[60px]"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
