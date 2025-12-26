@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { CustomerRegistrationRecord } from "@/types/statistics";
 import { formatTableDateKR } from "@/utils/format";
-import ApplyTableSkeleton from "./ApplyTableSkeleton";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import Pagination from "@/components/common/Pagination";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
@@ -16,6 +14,11 @@ type RegistrationDetailTableProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  startDate: Date | null;
+  endDate: Date | null;
+  onStartDateChange: (date: Date | null) => void;
+  onEndDateChange: (date: Date | null) => void;
+  onDateReset: () => void;
 };
 
 function TableEmptyState({ message }: { message: string }) {
@@ -34,26 +37,12 @@ export default function RegistrationDetailTable({
   currentPage,
   totalPages,
   onPageChange,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onDateReset,
 }: RegistrationDetailTableProps) {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-
-  const handleReset = () => {
-    setStartDate(null);
-    setEndDate(null);
-    // TODO: API 호출로 필터 초기화
-  };
-
-  const handleStartChange = (date: Date | null) => {
-    setStartDate(date);
-    // TODO: API 호출로 필터 적용
-  };
-
-  const handleEndChange = (date: Date | null) => {
-    setEndDate(date);
-    // TODO: API 호출로 필터 적용
-  };
-
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -61,9 +50,9 @@ export default function RegistrationDetailTable({
         <DateRangePicker
           startDate={startDate}
           endDate={endDate}
-          onStartChange={handleStartChange}
-          onEndChange={handleEndChange}
-          onReset={handleReset}
+          onStartChange={onStartDateChange}
+          onEndChange={onEndDateChange}
+          onReset={onDateReset}
           showInlineIcon
         />
       </div>
