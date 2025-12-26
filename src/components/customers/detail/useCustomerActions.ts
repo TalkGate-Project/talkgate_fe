@@ -265,29 +265,25 @@ export function useCustomerActions({
     async (categoryId: number | null, note: string) => {
       if (!detail) return;
 
-      await CustomersService.addNote({
+      const res = await CustomersService.addNote({
         customerId: detail.id,
         categoryId,
         note,
         projectId: getProjectId(),
       });
 
-      setDetail((prev) =>
-        prev
-          ? {
-              ...prev,
-              notes: [
-                {
-                  id: Math.random(),
-                  categoryId,
-                  note,
-                  createdAt: new Date().toISOString(),
-                },
-                ...prev.notes,
-              ],
-            }
-          : prev
-      );
+      const newNote = res.data?.data;
+
+      if (newNote) {
+        setDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                notes: [newNote, ...prev.notes],
+              }
+            : prev
+        );
+      }
     },
     [detail, setDetail]
   );
