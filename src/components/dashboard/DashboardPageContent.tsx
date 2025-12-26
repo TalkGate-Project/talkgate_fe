@@ -118,7 +118,7 @@ function DashboardContentInner() {
           loading={bannerLoading}
         />
 
-        <div className="mt-9 grid grid-cols-1 gap-6 md:gap-9 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-9 grid grid-cols-2 gap-6 md:gap-9 md:grid-cols-4 lg:grid-cols-4">
           {cards.map((card) => (
             <KpiCard
               key={card.label}
