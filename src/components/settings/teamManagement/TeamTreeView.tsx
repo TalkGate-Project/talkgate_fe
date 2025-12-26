@@ -57,8 +57,8 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
       return (
         <div className="flex flex-col items-center">
-          {/* 팀/부서 배지 (리더일 경우) */}
-          {isLeader && (
+          {/* 팀/부서 배지 (리더일 경우) 또는 높이 맞춤용 빈 공간 */}
+          {isLeader ? (
             <TeamNameBadge
               label={item.department ?? ""}
               className="mb-1"
@@ -68,6 +68,22 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               }}
               title={item.department}
             />
+          ) : (
+            <div
+              className="mb-1 flex justify-center"
+              style={{
+                height: `${TOKENS.node.badge.h}px`,
+                minWidth: `${TOKENS.node.badge.w}px`,
+              }}
+            >
+              <div
+                className="bg-border"
+                style={{
+                  width: `${TOKENS.connector.width}px`,
+                  height: "100%",
+                }}
+              />
+            </div>
           )}
 
           {/* 노드 카드 */}
@@ -148,28 +164,41 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
                 {/* 자식 노드들 컨테이너 */}
                 <div className="relative flex flex-col items-center">
-                  {/* 수평 연결선 (자식이 2개 이상일 때) */}
-                  {children.length > 1 && (
-                    <div
-                      className="absolute bg-border"
-                      style={{
-                        height: `${TOKENS.connector.width}px`,
-                        top: 0,
-                        // 첫 번째 자식 중앙에서 마지막 자식 중앙까지
-                        // 자식 컨테이너의 첫번째/마지막 자식의 중앙을 기준으로 함
-                        left: `calc(${TOKENS.node.leader.w / 2}px + ${HORIZONTAL_GAP / 2}px)`,
-                        right: `calc(${TOKENS.node.leader.w / 2}px + ${HORIZONTAL_GAP / 2}px)`,
-                      }}
-                    />
-                  )}
-
                   {/* 자식 노드들 (가로 배치) */}
                   <div
                     className="flex items-start"
                     style={{ gap: `${HORIZONTAL_GAP}px` }}
                   >
-                    {children.map((child) => (
-                      <div key={child.id} className="flex flex-col items-center">
+                    {children.map((child, index) => (
+                      <div key={child.id} className="flex flex-col items-center relative">
+                        {/* 수평 연결선 (각 자식이 자신의 영역 위로 그림) */}
+                        {children.length > 1 && (
+                          <>
+                            {/* 왼쪽 라인 (첫번째 자식 제외) */}
+                            {index > 0 && (
+                              <div
+                                className="absolute bg-border top-0"
+                                style={{
+                                  height: `${TOKENS.connector.width}px`,
+                                  left: `-${HORIZONTAL_GAP / 2}px`,
+                                  right: "50%",
+                                }}
+                              />
+                            )}
+                            {/* 오른쪽 라인 (마지막 자식 제외) */}
+                            {index < children.length - 1 && (
+                              <div
+                                className="absolute bg-border top-0"
+                                style={{
+                                  height: `${TOKENS.connector.width}px`,
+                                  left: "50%",
+                                  right: `-${HORIZONTAL_GAP / 2}px`,
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
+
                         {/* 수평선에서 자식으로 내려오는 수직 연결선 */}
                         <div
                           className="bg-border"
