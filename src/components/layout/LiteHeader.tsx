@@ -65,8 +65,8 @@ export default function LiteHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50">
-      <div className="mx-auto max-w-[1410px] w-full h-full px-0 flex items-center">
+    <header className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50" style={{ zoom: 1 }}>
+      <div className="mx-auto w-full lg:max-w-[1410px] h-full px-4 lg:px-0 flex items-center justify-between lg:justify-start">
         {/* 좌측: 로그인으로 이동하는 브랜드 로고 */}
         <div className="flex items-center h-full">
           <Image src="/main_logo.png" alt="Talkgate" width={102} height={24} />
