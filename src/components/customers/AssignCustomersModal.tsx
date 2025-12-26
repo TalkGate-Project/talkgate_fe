@@ -428,9 +428,9 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </div>
         
         {/* 검색 및 태그 영역 */}
-        <div className="mb-4 flex-shrink-0">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="relative flex-1">
+        <div className="mb-[30px] flex-shrink-0">
+          <div className="flex items-center gap-[10px] mb-3">
+            <div className="relative">
               <input
                 type="text"
                 value={inputValue}
@@ -441,7 +441,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                   }
                 }}
                 placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full max-w-[294px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full max-w-[296px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
               />
             </div>
             <button

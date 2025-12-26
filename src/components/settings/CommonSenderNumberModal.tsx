@@ -162,7 +162,7 @@ export default function CommonSenderNumberModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
+            className="cursor-pointer w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
             aria-label="닫기"
           >
             <svg
