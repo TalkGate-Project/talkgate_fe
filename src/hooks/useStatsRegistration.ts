@@ -73,12 +73,14 @@ export function useStatsRegistration(
     },
   });
 
+  // 일간 모드: 현재 페이지의 테이블 데이터만 그래프에 표시
   const chartDailyData = useMemo(() => {
-    const records = chartQuery.data?.data.data === null ? [] : (chartQuery.data?.data.data ?? []);
+    const records = tableQuery.data?.data.data === null ? [] : (tableQuery.data?.data.data ?? []);
     const sorted = [...records].sort((a, b) => new Date(a.statisticsDate).getTime() - new Date(b.statisticsDate).getTime());
     return sorted.map((item) => ({ x: formatChartDay(item.statisticsDate), y: item.totalCount }));
-  }, [chartQuery.data]);
+  }, [tableQuery.data]);
 
+  // 월간 모드: 전체 데이터를 월별로 집계
   const chartMonthlyData = useMemo(() => {
     const records = chartQuery.data?.data.data === null ? [] : (chartQuery.data?.data.data ?? []);
     const map = new Map<string, number>();
@@ -105,8 +107,13 @@ export function useStatsRegistration(
     rows,
     totalCount,
     totalPages,
-    showChartSkeleton: chartQuery.isLoading && !chartQuery.data,
-    showChartError: chartQuery.isError && !chartQuery.isFetching,
+    // 일간 모드용 스켈레톤 상태 (tableQuery 기반)
+    showDailyChartSkeleton: tableQuery.isLoading && !tableQuery.data,
+    showDailyChartError: tableQuery.isError && !tableQuery.isFetching,
+    // 월간 모드용 스켈레톤 상태 (chartQuery 기반)
+    showMonthlyChartSkeleton: chartQuery.isLoading && !chartQuery.data,
+    showMonthlyChartError: chartQuery.isError && !chartQuery.isFetching,
+    // 테이블용 스켈레톤 상태
     showTableSkeleton: tableQuery.isLoading && !tableQuery.data,
     showTableError: tableQuery.isError && !tableQuery.isFetching,
   };
