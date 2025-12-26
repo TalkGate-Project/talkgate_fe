@@ -212,8 +212,16 @@ function StatsPageContentInner() {
               <div className="mt-4 h-[300px]">
                 <RegistrationChart
                   data={chartData}
-                  isLoading={registration.showChartSkeleton}
-                  isError={registration.showChartError}
+                  isLoading={
+                    applyMode === "daily"
+                      ? registration.showDailyChartSkeleton
+                      : registration.showMonthlyChartSkeleton
+                  }
+                  isError={
+                    applyMode === "daily"
+                      ? registration.showDailyChartError
+                      : registration.showMonthlyChartError
+                  }
                   hasProject={hasProject}
                 />
               </div>
