@@ -148,12 +148,12 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   return (
     <section
-      className="surface rounded-[32px] p-6 md:p-8 md:pl-[64px] md:pr-[76px] shadow-[6px_6px_54px_rgba(0,0,0,0.05)] h-[178px]"
+      className="surface rounded-[20px] md:rounded-[32px] px-5 py-6 md:p-8 md:pl-[64px] md:pr-[76px] shadow-[6px_6px_54px_rgba(0,0,0,0.05)] md:h-[178px]"
       style={{
         background: gradient,
       }}
     >
-      <div className="flex items-start justify-between gap-6 h-full">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6 h-full">
         {/* Left: badge + title + quote */}
         <div className="min-w-0">
           <div className="flex items-center gap-3">
@@ -176,7 +176,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                 </span>
               </div>
             )}
-            <div className="text-[16px] font-medium leading-[19px] tracking-[-0.02em] text-neutral-90">
+            <div className="text-[14px] md:text-[16px] lg:text-[16px] font-medium leading-[19px] tracking-[-0.02em] text-neutral-90">
               {loading || !projectReady ? (
                 <span className="inline-flex h-5 w-40 animate-pulse rounded bg-neutral-20" />
               ) : (
@@ -184,72 +184,78 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
               )}
             </div>
           </div>
-          <h1 className="mt-[12px] text-[32px] leading-[38px] font-bold tracking-[-0.114286px] text-foreground">
+          <h1 className="mt-3 md:mt-[12px] text-[24px] md:text-[32px] lg:text-[32px] leading-[30px] md:leading-[38px] font-bold tracking-[-0.114286px] text-foreground">
             {loading ? (
               <span className="inline-flex h-8 w-60 animate-pulse rounded bg-neutral-20" />
             ) : (
               <>안녕하세요, {displayName} 👋</>
             )}
           </h1>
-          <p className="mt-[14px] text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
+          <p className="mt-2 md:mt-[14px] text-[14px] md:text-[18px] leading-[18px] md:leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-6 w-80 animate-pulse rounded bg-neutral-20" />
             ) : todayQuote ? (
-              <>“{todayQuote}”</>
+              <>"{todayQuote}"</>
             ) : (
               "-"
             )}
           </p>
         </div>
 
-        {/* Right: actions + timestamp */}
-        <div className="flex flex-col items-end gap-3 justify-between h-full">
-          <div></div>
-          {showAttendance && (
-            <div className="flex items-center gap-3">
-              {isCheckedIn ? (
-                  // Checked In State
-                  <div className="flex items-center gap-3">
-                      <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center gap-2">
-                          {/* <div className="w-2 h-2 rounded-full bg-success-40 animate-pulse"></div> */}
-                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
-                            🕑 근무중 {elapsedTime}
-                          </span>
-                      </div>
-                      <button 
-                          onClick={handleToggleAttendance}
-                          disabled={checkOutMutation.isPending}
-                          className="h-[34px] px-3 rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-10 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                          {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
-                      </button>
-                  </div>
-              ) : (
-                  // Checked Out State (Default)
-                  <>
-                      <div className="h-[34px] px-3 rounded-[5px] border border-neutral-60 flex items-center justify-center">
-                           <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
-                             ● 퇴근상태
-                           </span>
-                      </div>
-                      <button 
-                          onClick={handleToggleAttendance}
-                          disabled={checkInMutation.isPending}
-                          className="h-[34px] px-3 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                      >
-                          {checkInMutation.isPending ? "처리중..." : "출근하기"}
-                      </button>
-                  </>
-              )}
-            </div>
-          )}
-          <div className="text-[18px] leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
+        {/* Right (Desktop) / Bottom (Mobile): timestamp + actions */}
+        <div className="flex flex-col-reverse md:flex-col items-start md:items-end gap-3 md:justify-between md:h-full">
+          {/* Timestamp - 모바일에서는 출퇴근 위에, 데스크톱에서는 하단 */}
+          <div className="text-[14px] md:text-[18px] leading-[17px] md:leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-5 w-44 animate-pulse rounded bg-neutral-20" />
             ) : (
               formattedDateString
             )}
           </div>
+          
+          {/* Spacer for desktop layout */}
+          <div className="hidden md:block" />
+          
+          {/* Attendance buttons */}
+          {showAttendance && (
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {isCheckedIn ? (
+                  // Checked In State
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                      {/* 모바일: 퇴근하기 먼저 / 데스크톱: 근무중 먼저 */}
+                      <button 
+                          onClick={handleToggleAttendance}
+                          disabled={checkOutMutation.isPending}
+                          className="md:order-2 h-[48px] md:h-[34px] px-6 md:px-3 rounded-[8px] md:rounded-[5px] border border-[#808080] bg-neutral-90 text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                          {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
+                      </button>
+                      <div className="md:order-1 flex-1 md:flex-none h-[48px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center gap-2">
+                          <span className="text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
+                            🕑 근무중 {elapsedTime}
+                          </span>
+                      </div>
+                  </div>
+              ) : (
+                  // Checked Out State (Default)
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                      {/* 모바일: 출근하기 먼저 / 데스크톱: 퇴근상태 먼저 */}
+                      <button 
+                          onClick={handleToggleAttendance}
+                          disabled={checkInMutation.isPending}
+                          className="md:order-2 h-[48px] md:h-[34px] px-6 md:px-3 rounded-[8px] md:rounded-[5px] text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                          {checkInMutation.isPending ? "처리중..." : "출근하기"}
+                      </button>
+                      <div className="md:order-1 flex-1 md:flex-none h-[48px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center">
+                           <span className="text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
+                             ● 퇴근상태
+                           </span>
+                      </div>
+                  </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>
