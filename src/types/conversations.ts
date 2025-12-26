@@ -135,6 +135,8 @@ export type UnconnectedCustomer = {
   name: string;
   contact1?: string | null;
   contact2?: string | null;
+  ageRange?: string;
+  createdAt?: string;
   assignedMember?: {
     id: number;
     name: string;
