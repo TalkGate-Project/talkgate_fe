@@ -152,7 +152,7 @@ function DashboardContentInner() {
             </div>
 
             <div className="mt-4 md:mt-9 mb-7 grid grid-cols-12 gap-0 md:gap-9 px-6 md:px-0">
-              <div className="col-span-12 lg:col-span-6">
+              <div className="col-span-12 lg:col-span-6 mb-4 md:mb-0">
                 <NoticeSection />
               </div>
               <div className="col-span-12 lg:col-span-6">

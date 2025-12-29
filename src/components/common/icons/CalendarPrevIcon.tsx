@@ -5,27 +5,27 @@ interface CalendarPrevIconProps {
 export default function CalendarPrevIcon({ className = "" }: CalendarPrevIconProps) {
   return (
     <svg
-      width="36"
-      height="36"
-      viewBox="0 0 36 36"
+      width="18"
+      height="18"
+      className={`md:w-9 md:h-9 ${className}`}
+      viewBox="0 0 18 18"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
       aria-hidden
     >
       <rect
         x="0.5"
         y="0.5"
-        width="35"
-        height="35"
-        rx="5.5"
+        width="17"
+        height="17"
+        rx="4.5"
         stroke="#E2E2E2"
         className="calendar-icon-border"
       />
       <path
-        d="M21.0001 24.8077L14.0001 17.8077L21.0001 10.8077"
+        d="M10.5 12.5L7 9L10.5 5.5"
         stroke="#B0B0B0"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="calendar-icon-arrow"

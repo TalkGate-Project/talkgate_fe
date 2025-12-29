@@ -145,35 +145,35 @@ export default function CalendarSection() {
 
   return (
     <Panel
-      title={<span className="typo-title-4">달력 & 일정</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold">달력 & 일정</span>}
       action={
         <div className="flex items-center gap-2">
           <button
             onClick={goPrev}
-            className="cursor-pointer w-[36px] h-[36px] grid place-items-center"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center"
           >
             <CalendarPrevIcon />
           </button>
-          <div className="w-[110px]">
+          <div className="w-[90px] md:w-[120px]">
             <MonthPicker
               value={current}
               onChange={(date) => date && setCurrent(date)}
               dateFormat="yyyy.MM"
-              className="font-montserrat font-bold text-[18px] leading-[22px] tracking-[1px] text-center border-none bg-transparent h-[34px] p-0 cursor-pointer text-foreground focus:ring-0"
+              className="font-montserrat font-bold text-[14px] md:text-[18px] leading-[22px] tracking-[1px] text-center border-none bg-transparent h-[34px] p-0 cursor-pointer text-foreground focus:ring-0"
             />
           </div>
           <button
             onClick={goNext}
-            className="cursor-pointer w-[36px] h-[36px] grid place-items-center"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center"
           >
             <CalendarNextIcon />
           </button>
         </div>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-4 md:px-7 pt-[22px]"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-2 md:pt-[22px]"
       style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
-      bodyClassName="px-4 md:px-6 pb-6 pt-4"
+      bodyClassName="px-4 md:px-6 pb-6 pt-2 md:pt-4"
     >
       <div className="w-full max-w-[1324px] gap-3 grid lg:flex lg:items-stretch">
         {/* Calendar grid */}
@@ -205,9 +205,9 @@ export default function CalendarSection() {
                 cell.date.getMonth() === today.getMonth() &&
                 cell.date.getDate() === today.getDate();
               const borderClass = isSelected
-                ? "border border-primary-60"
-                : "border border-[#E2E2E266] dark:border-[#33333366]";
-              const backgroundClass = isPrevMonth ? "bg-neutral-10" : "bg-card";
+                ? "md:border md:border-primary-60"
+                : "md:border md:border-[#E2E2E266] dark:md:border-[#33333366]";
+              const backgroundClass = "bg-card";
               const key = format(cell.date, "yyyy-MM-dd");
               const daySchedules = schedulesByDay.get(key) ?? [];
               return (
@@ -228,7 +228,7 @@ export default function CalendarSection() {
                   className={`cursor-pointer relative min-h-[45px] md:min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
-                    className={`font-montserrat font-medium text-[14px] md:text-[16px] leading-[20px] ml-2 md:ml-3 mt-1 md:mt-2 ${
+                    className={`font-montserrat font-medium text-[14px] md:text-[16px] leading-[20px] flex items-center justify-center md:items-start md:justify-start md:ml-3 mt-1 md:mt-2 ${
                       isPrevMonth ? "text-figma-muted" : "text-neutral-70"
                     }`}
                     style={montserratStyle}
@@ -245,7 +245,7 @@ export default function CalendarSection() {
                     )}
                   </div>
                   {/* 모바일: circle만 표시, 데스크톱: 텍스트와 함께 표시 */}
-                  <div className="ml-2 md:ml-4 mr-1 md:mr-2 flex-1 flex flex-col justify-center gap-0.5 md:gap-1 pb-1 md:pb-3">
+                  <div className="flex-1 flex flex-col justify-center items-center md:items-start md:ml-4 md:mr-2 gap-0.5 md:gap-1 pb-1 md:pb-3">
                     {/* 모바일: circle만 표시 */}
                     <div className="flex items-center gap-1 md:hidden justify-center flex-wrap">
                       {daySchedules.slice(0, 4).map((schedule, idx) => (
@@ -342,7 +342,7 @@ export default function CalendarSection() {
                 )
               </div>
               <button
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[12px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 whitespace-nowrap"
+                className="cursor-pointer h-[24px] md:h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[12px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 whitespace-nowrap"
                 onClick={() => setShowCreate(true)}
               >
                 일정추가
