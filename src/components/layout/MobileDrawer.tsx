@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import { useMyMember } from "@/hooks/useMyMember";
 
 // 아이콘 컴포넌트들
 import {
@@ -29,6 +30,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const pathname = usePathname();
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
+  const { isAdminOrSubAdmin } = useMyMember();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +42,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { label: "상담", href: "/consult", icon: <ConsultIcon /> },
     { label: "고객목록", href: "/customers", icon: <CustomerListIcon /> },
     { label: "통계", href: "/stats", icon: <StatsIcon /> },
-    ...(attendanceReady && showAttendanceMenu 
+    // useAttendanceMenu가 true여도 admin이나 subAdmin이 아니면 근태 메뉴는 사용할 수 없음
+    ...(attendanceReady && showAttendanceMenu && isAdminOrSubAdmin 
       ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }] 
       : []),
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },

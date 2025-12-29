@@ -107,9 +107,20 @@ export default function AttendanceTable({
             </table>
           </div>
         ) : error ? (
-          <div className="py-12 text-center text-[14px] text-danger-40">
-            {error}
-          </div>
+          // 권한 관련 에러는 이미 상위에서 리디렉션 처리되므로 여기서는 표시하지 않음
+          error.includes("Only admin") || 
+          error.includes("admin can perform") ||
+          error.includes("권한") ||
+          error.includes("permission") ||
+          error.includes("access denied") ? (
+            <div className="py-12 text-center text-[14px] text-neutral-60">
+              데이터를 불러올 수 없습니다.
+            </div>
+          ) : (
+            <div className="py-12 text-center text-[14px] text-danger-40">
+              {error}
+            </div>
+          )
         ) : rows.length === 0 ? (
           <div className="py-12 text-center text-[14px] text-neutral-60">
             근태 데이터가 없습니다.

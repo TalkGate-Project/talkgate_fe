@@ -11,6 +11,7 @@ import AttendanceHeader from "@/components/attendance/AttendanceHeader";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import { getSelectedProjectId } from "@/lib/project";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import { useMyMember } from "@/hooks/useMyMember";
 import type { AttendanceRecord } from "@/types/attendance";
 import { AttendanceItem } from "@/types/attendance";
 import { useAttendanceList } from "@/hooks/useAttendanceList";
@@ -23,6 +24,7 @@ function AttendancePageContentInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isAttendanceMenuEnabled, attendanceReady] = useAttendanceMenu();
+  const { isAdminOrSubAdmin, loading: memberLoading } = useMyMember();
 
   const [projectId, setProjectId] = useState<string | null>(null);
   const { date: selectedDate, setDate: setSelectedDate, navigateDate } = useAttendanceDate();
@@ -49,24 +51,15 @@ function AttendancePageContentInner() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 20;
   }, [searchParams]);
 
-  // 근태 메뉴 사용 여부 체크
+  // 근태 메뉴 사용 여부 및 권한 체크
   useEffect(() => {
-    if (!attendanceReady) return;
+    if (!attendanceReady || memberLoading) return;
 
-    if (!isAttendanceMenuEnabled) {
-      // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
-      showErrorModal({
-        title: "알림",
-        headline: "페이지에 대한 접근 권한이 없습니다.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-        onConfirm: () => {
-          router.replace("/dashboard");
-        },
-      });
+    // 근태 메뉴가 비활성화되었거나 admin/subAdmin이 아닌 경우 대시보드로 리다이렉트
+    if (!isAttendanceMenuEnabled || !isAdminOrSubAdmin) {
+      router.replace("/dashboard");
     }
-  }, [isAttendanceMenuEnabled, attendanceReady, router]);
+  }, [isAttendanceMenuEnabled, attendanceReady, isAdminOrSubAdmin, memberLoading, router]);
 
   useEffect(() => {
     const id = getSelectedProjectId();
@@ -110,6 +103,19 @@ function AttendancePageContentInner() {
     limit,
   });
 
+  // 권한 관련 에러가 발생한 경우 대시보드로 리디렉션
+  useEffect(() => {
+    if (error && (
+      error.includes("Only admin") || 
+      error.includes("admin can perform") ||
+      error.includes("권한") ||
+      error.includes("permission") ||
+      error.includes("access denied")
+    )) {
+      router.replace("/dashboard");
+    }
+  }, [error, router]);
+
   // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
   const filteredData = useMemo(() => {
     return rows.filter((r) => {
@@ -134,8 +140,8 @@ function AttendancePageContentInner() {
     setEmployeeModalOpen(true);
   };
 
-  // 근태 메뉴가 준비되지 않았거나 비활성화된 경우 로딩 표시
-  if (!attendanceReady || !isAttendanceMenuEnabled) {
+  // 근태 메뉴가 준비되지 않았거나 비활성화되었거나 권한이 없는 경우 로딩 표시
+  if (!attendanceReady || memberLoading || !isAttendanceMenuEnabled || !isAdminOrSubAdmin) {
     return (
       <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
         <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
