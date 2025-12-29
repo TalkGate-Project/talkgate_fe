@@ -6,13 +6,12 @@ import { format } from "date-fns";
 import AttendanceFilterModal, {
   AttendanceFilterState,
 } from "@/components/attendance/AttendanceFilterModal";
-import EmployeeInfoModal from "@/components/attendance/EmployeeInfoModal";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import AttendanceHeader from "@/components/attendance/AttendanceHeader";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import { getSelectedProjectId } from "@/lib/project";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import { useMyMember } from "@/hooks/useMyMember";
-import type { AttendanceRecord } from "@/types/attendance";
 import { AttendanceItem } from "@/types/attendance";
 import { useAttendanceList } from "@/hooks/useAttendanceList";
 import { useAttendanceDate } from "@/hooks/useAttendanceDate";
@@ -35,8 +34,7 @@ function AttendancePageContentInner() {
     position: "all",
   });
   const [isEmployeeModalOpen, setEmployeeModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] =
-    useState<AttendanceRecord | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
   // 쿼리스트링에서 페이지와 limit 가져오기
   const currentPage = useMemo(() => {
@@ -127,16 +125,7 @@ function AttendancePageContentInner() {
   }, [filters, rows]);
 
   const handleEmployeeClick = (employee: AttendanceItem) => {
-    const mapped: AttendanceRecord = {
-      id: employee.memberId, // Use memberId instead of attendance record id
-      name: employee.memberName,
-      team: employee.teamName,
-      position: String(employee.role),
-      clockIn: formatHm(employee.attendanceAt),
-      clockOut: formatHm(employee.leaveAt),
-      workTime: computeWorkTime(employee.attendanceAt, employee.leaveAt) || "-",
-    };
-    setSelectedEmployee(mapped);
+    setSelectedMemberId(employee.memberId);
     setEmployeeModalOpen(true);
   };
 
@@ -190,14 +179,17 @@ function AttendancePageContentInner() {
         />
 
         {/* Employee Info Modal */}
-        <EmployeeInfoModal
-          open={isEmployeeModalOpen}
-          onClose={() => {
-            setEmployeeModalOpen(false);
-            setSelectedEmployee(null);
-          }}
-          employee={selectedEmployee}
-        />
+        {selectedMemberId && (
+          <TeamMemberInfoModal
+            open={isEmployeeModalOpen}
+            onClose={() => {
+              setEmployeeModalOpen(false);
+              setSelectedMemberId(null);
+            }}
+            memberId={selectedMemberId}
+            projectId={projectId}
+          />
+        )}
       </div>
     </main>
   );
