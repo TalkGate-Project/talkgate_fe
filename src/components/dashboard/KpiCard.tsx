@@ -54,7 +54,7 @@ export default function KpiCard({
   return (
     <>
       <div
-        className={`hidden surface rounded-[14px] pl-7 pt-7 pr-4 min-h-[120px] md:flex justify-between ${
+        className={`hidden surface rounded-[14px] pl-4 md:pl-7 pt-4 md:pt-7 pr-4 md:pr-4 md:min-h-[120px] md:flex justify-between ${
           className ?? ""
         }`}
         style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
@@ -97,11 +97,11 @@ export default function KpiCard({
         </div>
       </div>
 
-      <div className={`surface rounded-[14px] pl-7 pt-7 pr-4 min-h-[120px] md:hidden flex flex-col justify-between ${className ?? ""}`}>
+      <div className={`surface rounded-[14px] pl-4 md:pl-7 pt-4 md:pt-7 pr-4 md:pr-4 pb-4 md:pb-0 md:min-h-[120px] md:hidden flex flex-col justify-between ${className ?? ""}`}>
         <div className="text-title-4 font-semibold text-neutral-90">{label}</div>
         {/* 모바일에선 formattedValue 과 icon 을 가로로 한 줄에 보여준다. */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-[28px] leading-[34px] tracking-[1px] text-foreground font-bold" style={montserratStyle}>
+        <div className="flex items-end justify-between gap-2 mt-[6px]">
+          <div className="text-[18px] leading-[1] tracking-[1px] text-foreground font-bold" style={montserratStyle}>
             {formattedValue}
           </div>
           {icon}

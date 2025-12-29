@@ -171,23 +171,20 @@ export default function CalendarSection() {
         </div>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-7 pt-[22px]"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-[22px]"
       style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
-      bodyClassName="px-6 pb-6 pt-4"
+      bodyClassName="px-4 md:px-6 pb-6 pt-4"
     >
-      <div className="w-[1324px] gap-3 grid lg:flex lg:items-stretch">
+      <div className="w-full max-w-[1324px] gap-3 grid lg:flex lg:items-stretch">
         {/* Calendar grid */}
         <div className="order-2 lg:order-1 lg:w-[912px] flex flex-col">
           {/* Week header bar */}
           <div className="mb-3 bg-neutral-20 rounded-[12px]">
-            <div
-              className="grid"
-              style={{ gridTemplateColumns: "repeat(7, 130px)" }}
-            >
+            <div className="grid grid-cols-7">
               {days.map((d) => (
                 <div
                   key={d}
-                  className="h-10 grid place-items-center text-neutral-60 typo-title-4"
+                  className="h-10 grid place-items-center text-neutral-60 typo-title-4 text-[11px] md:text-[14px]"
                 >
                   {d}
                 </div>
@@ -195,10 +192,7 @@ export default function CalendarSection() {
             </div>
           </div>
           {/* Days */}
-          <div
-            className="grid gap-0"
-            style={{ gridTemplateColumns: "repeat(7, 130px)" }}
-          >
+          <div className="grid grid-cols-7 gap-0">
             {cells.map((cell, i) => {
               const isPrevMonth = !cell.inCurrent;
               const isSelected =
@@ -231,18 +225,18 @@ export default function CalendarSection() {
                       );
                     }
                   }}
-                  className={`cursor-pointer relative min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
+                  className={`cursor-pointer relative min-h-[45px] md:min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
                 >
                   <div
-                    className={`font-montserrat font-medium text-[16px] leading-[20px] ml-3 mt-2 ${
+                    className={`font-montserrat font-medium text-[14px] md:text-[16px] leading-[20px] ml-2 md:ml-3 mt-1 md:mt-2 ${
                       isPrevMonth ? "text-figma-muted" : "text-neutral-70"
                     }`}
                     style={montserratStyle}
                   >
                     {isToday ? (
-                      <div className="relative w-[24px] h-[24px] flex items-center justify-center">
-                        <div className="absolute w-[24px] h-[24px] bg-[#252525] dark:bg-[#F5F5F5] rounded-full" />
-                        <span className="relative text-[#FFFFFF] dark:text-[#111111] font-normal">
+                      <div className="relative w-[20px] h-[20px] md:w-[24px] md:h-[24px] flex items-center justify-center">
+                        <div className="absolute w-full h-full bg-[#252525] dark:bg-[#F5F5F5] rounded-full" />
+                        <span className="relative text-[#FFFFFF] dark:text-[#111111] font-normal text-[12px] md:text-[14px]">
                           {cell.date.getDate()}
                         </span>
                       </div>
@@ -250,41 +244,60 @@ export default function CalendarSection() {
                       cell.date.getDate()
                     )}
                   </div>
-                  <div className="ml-4 mr-2 flex-1 flex flex-col justify-center gap-1 pb-3">
-                    {daySchedules.slice(0, 2).map((schedule, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0"
-                      >
+                  {/* 모바일: circle만 표시, 데스크톱: 텍스트와 함께 표시 */}
+                  <div className="ml-2 md:ml-4 mr-1 md:mr-2 flex-1 flex flex-col justify-center gap-0.5 md:gap-1 pb-1 md:pb-3">
+                    {/* 모바일: circle만 표시 */}
+                    <div className="flex items-center gap-1 md:hidden justify-center flex-wrap">
+                      {daySchedules.slice(0, 4).map((schedule, idx) => (
                         <span
-                          className="w-3 h-3 rounded-full shrink-0"
+                          key={idx}
+                          className="w-2 h-2 rounded-full shrink-0"
                           style={{
                             background:
                               schedule.colorCode || COLORS[idx % COLORS.length],
                           }}
                         />
-                        <span
-                          className="truncate font-medium"
-                          style={{ maxWidth: 102 }}
-                        >
-                          {schedule.description ||
-                            schedule.customer?.name ||
-                            "일정"}
+                      ))}
+                      {daySchedules.length > 4 && (
+                        <span className="text-[8px] text-neutral-60 font-medium">
+                          +{daySchedules.length - 4}
                         </span>
-                      </div>
-                    ))}
-                    {daySchedules.length > 2 && (
-                      <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60">
-                        그 외&nbsp;
-                        <span
-                          className="font-montserrat"
-                          style={montserratStyle}
+                      )}
+                    </div>
+                    {/* 데스크톱: 텍스트와 함께 표시 */}
+                    <div className="hidden md:flex flex-col gap-1">
+                      {daySchedules.slice(0, 2).map((schedule, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0"
                         >
-                          {daySchedules.length - 2}
-                        </span>
-                        건
-                      </div>
-                    )}
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{
+                              background:
+                                schedule.colorCode || COLORS[idx % COLORS.length],
+                            }}
+                          />
+                          <span className="truncate font-medium">
+                            {schedule.description ||
+                              schedule.customer?.name ||
+                              "일정"}
+                          </span>
+                        </div>
+                      ))}
+                      {daySchedules.length > 2 && (
+                        <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60">
+                          그 외&nbsp;
+                          <span
+                            className="font-montserrat"
+                            style={montserratStyle}
+                          >
+                            {daySchedules.length - 2}
+                          </span>
+                          건
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -295,42 +308,48 @@ export default function CalendarSection() {
         {/* Right schedule list */}
         <aside
           className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]"
-          style={{ minHeight: `${calendarHeight}px` }}
         >
-          <div className="bg-neutral-10 rounded-[12px] p-7 h-full relative flex flex-col">
-            <div className="flex items-center justify-between mb-5 gap-2">
-              <div className="typo-title-2">
+          <div 
+            className="bg-neutral-10 rounded-[12px] p-4 md:p-7 h-full relative flex flex-col min-h-[182px]"
+            style={{ 
+              ...(typeof window !== 'undefined' && window.innerWidth >= 1024 ? { minHeight: `${calendarHeight}px` } : {})
+            }}
+          >
+            <div className="flex items-center justify-between mb-3 md:mb-5 gap-2">
+              <div className="text-[14px] md:typo-title-2 font-semibold md:font-normal">
                 {selectedDate ? (
                   <>
                     <span
-                      className="font-montserrat tracking-[1px]"
+                      className="font-montserrat tracking-[1px] text-[14px] md:text-[18px]"
                       style={montserratStyle}
                     >
                       {format(selectedDate, "MM.dd")}
                     </span>
                     &nbsp;&nbsp;
-                    {format(selectedDate, "EEEE", { locale: ko })}
+                    <span className="text-[14px] md:text-[18px]">
+                      {format(selectedDate, "EEEE", { locale: ko })}
+                    </span>
                   </>
                 ) : (
                   "일정"
                 )}{" "}
                 (
                 {
-                  <span className="font-montserrat" style={montserratStyle}>
+                  <span className="font-montserrat text-[14px] md:text-[18px]" style={montserratStyle}>
                     {selectedSchedules.length}
                   </span>
                 }
                 )
               </div>
               <button
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[12px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 whitespace-nowrap"
                 onClick={() => setShowCreate(true)}
               >
-                일정 추가
+                일정추가
               </button>
             </div>
-            <div className="border-t border-[#E2E2E255] dark:border-[#44444455] mb-3"></div>
-            <div className="overflow-y-auto flex-1 space-y-3 max-h-[490px]">
+            <div className="border-t border-[#E2E2E255] dark:border-[#44444455] mb-2 md:mb-3"></div>
+            <div className="overflow-y-auto flex-1 space-y-2 md:space-y-3 max-h-[182px] md:max-h-[490px]">
               {waitingForProject ? (
                 <div className="flex h-full items-center justify-center">
                   <LoadingSpinner size="2xl" />
@@ -357,8 +376,7 @@ export default function CalendarSection() {
                   return (
                     <div
                       key={schedule.id}
-                      className="flex items-center gap-4 bg-card rounded-[12px] p-4 min-w-0 cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-0 transition-colors"
-                      style={{ maxWidth: 304 }}
+                      className="flex items-center gap-2 md:gap-4 bg-card rounded-[8px] md:rounded-[12px] p-3 md:p-4 min-w-0 cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-0 transition-colors"
                       onClick={() => {
                         if (hasCustomer) {
                           setSelectedCustomerId(schedule.customer!.id);
@@ -368,17 +386,17 @@ export default function CalendarSection() {
                       }}
                     >
                       <span
-                        className="leading-[1] w-4 h-4 rounded-full shrink-0"
+                        className="leading-[1] w-3 h-3 md:w-4 md:h-4 rounded-full shrink-0"
                         style={{
                           background:
                             schedule.colorCode ||
                             COLORS[schedule.id % COLORS.length],
                         }}
                       />
-                      <span className="leading-[1] typo-body-2 text-neutral-60 w-[60px] text-left self-center shrink-0 font-montserrat">
+                      <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left self-center shrink-0 font-montserrat">
                         {formatTimeFromISO(schedule.scheduleTime)}
                       </span>
-                      <span className="leading-[1] typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
+                      <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
                         {schedule.description ||
                           schedule.customer?.name ||
                           "일정"}
@@ -392,8 +410,9 @@ export default function CalendarSection() {
                         }}
                       >
                         <svg
-                          width="16"
-                          height="16"
+                          width="14"
+                          height="14"
+                          className="md:w-4 md:h-4"
                           viewBox="0 0 16 16"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"

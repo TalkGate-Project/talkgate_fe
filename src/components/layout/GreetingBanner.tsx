@@ -148,7 +148,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
 
   return (
     <section
-      className="surface rounded-[20px] md:rounded-[32px] px-5 py-6 md:p-8 md:pl-[64px] md:pr-[76px] shadow-[6px_6px_54px_rgba(0,0,0,0.05)] md:h-[178px]"
+      className="surface md:rounded-[20px] lg:rounded-[32px] px-5 py-6 md:p-8 md:pl-[64px] md:pr-[76px] shadow-[6px_6px_54px_rgba(0,0,0,0.05)] md:h-[178px]"
       style={{
         background: gradient,
       }}

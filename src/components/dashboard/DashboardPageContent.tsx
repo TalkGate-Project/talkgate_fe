@@ -46,7 +46,7 @@ function PaymentAmountDisplay({ formattedValue }: { formattedValue: string }) {
             {index > 0 && <span className="text-[28px] leading-[34px]"> </span>}
             <span>{digits}</span>
             {suffixWithWon && (
-              <span className="text-[20px] font-semibold leading-[28px] tracking-[0.5px]">
+              <span className="text-[14px] md:text-[20px] font-semibold leading-[1] md:leading-[34px] tracking-[0.5px]">
                 {suffixWithWon}
               </span>
             )}
@@ -111,14 +111,14 @@ function DashboardContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-background text-foreground">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-6">
+      <div className="mx-auto max-w-[1324px] w-full px-0 pt-0 md:pt-9 pb-6">
         <GreetingBanner
           userName={member?.name ?? member?.email ?? null}
           todayQuote={summary?.todayQuote ?? null}
           loading={bannerLoading}
         />
 
-        <div className="mt-9 grid grid-cols-2 gap-6 md:gap-9 md:grid-cols-4 lg:grid-cols-4">
+        <div className="mt-4 md:mt-9 grid grid-cols-2 gap-4 md:gap-6 md:gap-9 md:grid-cols-4 lg:grid-cols-4 px-6 md:px-0">
           {cards.map((card) => (
             <KpiCard
               key={card.label}
@@ -131,13 +131,13 @@ function DashboardContentInner() {
         </div>
 
         {missingProject ? (
-          <div className="mt-12 flex h-[240px] items-center justify-center rounded-[16px] border border-dashed border-neutral-30 bg-card text-neutral-60">
+          <div className="mt-4 md:mt-12 flex h-[240px] items-center justify-center rounded-[16px] border border-dashed border-neutral-30 bg-card text-neutral-60">
             프로젝트를 먼저 선택해주세요.
           </div>
         ) : (
           <>
-            <div className="mt-9 grid grid-cols-12 gap-9">
-              <div className="col-span-12 lg:col-span-9">
+            <div className="mt-4 md:mt-9 grid grid-cols-12 gap-0 md:gap-9 px-6 md:px-0">
+              <div className="col-span-12 lg:col-span-9 mb-4 md:mb-0">
                 <AssignedCustomersTable />
               </div>
               <div className="col-span-12 lg:col-span-3">
@@ -145,13 +145,13 @@ function DashboardContentInner() {
               </div>
             </div>
 
-            <div className="mt-9 grid grid-cols-12 gap-6">
+            <div className="mt-4 md:mt-9 grid grid-cols-12 gap-6 px-6 md:px-0">
               <div className="col-span-12">
                 <CalendarSection />
               </div>
             </div>
 
-            <div className="mt-9 mb-7 grid grid-cols-12 gap-9">
+            <div className="mt-4 md:mt-9 mb-7 grid grid-cols-12 gap-0 md:gap-9 px-6 md:px-0">
               <div className="col-span-12 lg:col-span-6">
                 <NoticeSection />
               </div>
