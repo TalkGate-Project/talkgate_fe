@@ -407,7 +407,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="border-t border-neutral-30 px-4 md:px-7 pt-4 md:pt-[18px] pb-4 md:pb-3 flex items-center justify-between md:justify-end gap-3">
+        <div className="md:border-t md:border-neutral-30 px-4 md:px-7 pt-4 md:pt-[18px] pb-4 md:pb-3 flex items-center justify-between md:justify-end gap-3">
           <button
             className="cursor-pointer h-[34px] flex-1 md:flex-none md:w-[50px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold text-foreground bg-card disabled:opacity-50"
             onClick={() => !submitting && onClose()}
