@@ -468,7 +468,7 @@ export default function GeneralSettings() {
                 placeholder="myservice"
                 disabled={isSaving}
               />
-              <span className="text-[14px] text-ink font-medium ml-2 tracking-[-0.02em]">.talkgate.im</span>
+              <span className="text-[14px] text-ink font-medium ml-2 tracking-[-0.02em]">.app.talkgate.im</span>
             </div>
             <button 
               onClick={handleUpdateSubdomain}

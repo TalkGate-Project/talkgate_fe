@@ -349,7 +349,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                       className="w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 pr-[85px] text-[14px] font-medium leading-[17px] text-foreground bg-card"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium leading-[17px] text-foreground">
-                      .talkgate.im
+                      .app.talkgate.im
                     </span>
                   </div>
                   <button

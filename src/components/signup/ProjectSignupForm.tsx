@@ -79,6 +79,14 @@ export function ProjectSignupForm() {
     async function init() {
       console.log("[ProjectSignup] 🚀 초기화 시작");
       
+      // 초대 플로우가 아닌 경우 프로젝트 선택 페이지로 리다이렉트
+      const invite = getPendingInviteInfo();
+      if (!invite?.token) {
+        console.log("[ProjectSignup] ⚠️ 초대 플로우가 아님 - 프로젝트 선택 페이지로 이동");
+        router.replace("/projects");
+        return;
+      }
+      
       // 사용자 정보 확인 (재시도 포함)
       const success = await checkUserEmail();
       
