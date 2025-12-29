@@ -88,16 +88,29 @@ export function SignupForm() {
   };
 
   const handleProfileComplete = () => {
-    // 본인인증 완료 후 → 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
-    // 초대 플로우든 일반 플로우든 동일하게 프로젝트 가입 페이지로
-    console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동");
-    window.location.href = "/project-signup";
+    // 본인인증 완료 후
+    if (isInviteFlow) {
+      // 초대 플로우: 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
+      console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동 (초대 플로우)");
+      window.location.href = "/project-signup";
+    } else {
+      // 일반 플로우: 프로젝트 가입 페이지 스킵하고 바로 프로젝트 선택 페이지로
+      console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 선택 페이지로 이동 (일반 플로우)");
+      window.location.href = "/projects";
+    }
   };
 
   const handleProfileSkip = () => {
-    // 본인인증 스킵 후 → 프로젝트 가입 페이지로 이동
-    console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동");
-    window.location.href = "/project-signup";
+    // 본인인증 스킵 후
+    if (isInviteFlow) {
+      // 초대 플로우: 프로젝트 가입 페이지로 이동
+      console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동 (초대 플로우)");
+      window.location.href = "/project-signup";
+    } else {
+      // 일반 플로우: 프로젝트 가입 페이지 스킵하고 바로 프로젝트 선택 페이지로
+      console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 선택 페이지로 이동 (일반 플로우)");
+      window.location.href = "/projects";
+    }
   };
 
   return (
