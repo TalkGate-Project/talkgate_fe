@@ -70,7 +70,7 @@ export default function ProjectsContent() {
   return (
     <main className="min-h-screen bg-background px-6 md:px-0">
       <div className="max-w-[1422px] mx-auto pt-6 md:pt-[90px] pb-24 ">
-        <h1 className="text-[18px] md:text-[32px] leading-[38px] font-bold text-foreground text-center mb-6">
+        <h1 className="text-[18px] md:text-[32px] leading-[38px] font-bold text-foreground text-center mb-3 md:mb-6 lg:mb-6">
           프로젝트 선택
         </h1>
         <p className="text-[14px] md:text-[18px] leading-[21px] text-neutral-60 text-center">
@@ -126,7 +126,7 @@ export default function ProjectsContent() {
         )}
 
         {/* Projects row */}
-        <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+        <div className="mt-6 md:mt-9 lg:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 md:gap-y-10">
           {loading && (
             <div className="col-span-full flex items-center justify-center py-20">
               <LoadingSpinner size="2xl" />
@@ -142,7 +142,7 @@ export default function ProjectsContent() {
             return (
               <div
                 key={p.id}
-                className={`px-7 pt-6 pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
+                className={`px-4 md:px-7 pt-4 md:pt-6 pb-4 md:pb-[30px] md:min-w-[646px] rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.37)] dark:shadow-[0px_18px_28px_0px_rgba(9,30,66,0.1)] bg-card border transition-all duration-300 ease-out ${
                   isSelecting
                     ? "border-primary-60 opacity-80"
                     : isAnySelecting
@@ -227,14 +227,14 @@ export default function ProjectsContent() {
                   {/* 로딩 스피너 */}
                   {isSelecting && <LoadingSpinner size="sm" />}
                 </div>
-                <div className="grid grid-cols-2 gap-6 mt-5">
+                <div className="grid grid-cols-2 gap-3 md:gap-6 mt-5">
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
-                      <div className="text-[16px] font-semibold text-foreground">
+                      <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                         나에게 할당된 고객
                       </div>
                       <div
-                        className="mt-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                        className="mt-2 text-[18px] md:text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
                         style={montserratStyle}
                       >
                         {p.assignedCustomerCount ?? 0}건
@@ -253,14 +253,14 @@ export default function ProjectsContent() {
                     />
                   </div>
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
-                    <div className="text-[16px] font-semibold text-foreground">
+                    <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                       나에게 할당된 고객
                     </div>
                     <div
                       className="mt-2 flex items-center justify-between gap-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
                       style={montserratStyle}
                     >
-                      <span>{p.assignedCustomerCount ?? 0}건</span>
+                      <span className="text-[18px] md:text-[28px]">{p.assignedCustomerCount ?? 0}건</span>
                       <Image
                         src={
                           p.hasActiveSubscription
@@ -268,15 +268,14 @@ export default function ProjectsContent() {
                             : projectNotAssignedCustomerImg
                         }
                         alt="할당 고객 아이콘"
-                        width={60}
-                        height={60}
-                        className="w-[60px] h-[60px]"
+                        width={32}
+                        height={32}
                       />
                     </div>
                   </div>
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
                     <div>
-                      <div className="text-[16px] font-semibold text-foreground">
+                      <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                         오늘 예약 일정
                       </div>
                       <div
@@ -299,14 +298,14 @@ export default function ProjectsContent() {
                     />
                   </div>
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 md:hidden">
-                    <div className="text-[16px] font-semibold text-foreground">
+                    <div className="text-[13px] md:text-[16px] font-semibold text-foreground">
                       오늘 예약 일정
                     </div>
                     <div
-                      className="mt-2 flex items-center justify-between gap-2 text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
+                      className="mt-2 flex items-center justify-between gap-2 text-[18px] md:text-[28px] font-bold tracking-[1px] text-foreground font-montserrat"
                       style={montserratStyle}
                     >
-                      <span>{p.todayScheduleCount ?? 0}건</span>
+                      <span className="text-[18px] md:text-[28px]">{p.todayScheduleCount ?? 0}건</span>
                       <Image
                         src={
                           p.hasActiveSubscription
@@ -314,9 +313,8 @@ export default function ProjectsContent() {
                             : projectNotReservedItemImg
                         }
                         alt="예약 일정 아이콘"
-                        width={60}
-                        height={60}
-                        className="w-[60px] h-[60px]"
+                        width={32}
+                        height={32}
                       />
                     </div>
                   </div>
@@ -357,10 +355,10 @@ export default function ProjectsContent() {
                   />
                 </svg>
               </div>
-              <div className="mt-5 text-[16px] font-semibold text-foreground">
+              <div className="mt-5 text-[14px] md:text-[16px] font-semibold text-foreground">
                 새 프로젝트 생성
               </div>
-              <div className="mt-2 text-[16px] font-medium text-neutral-60">
+              <div className="mt-2 text-[13px] md:text-[16px] font-medium text-neutral-60">
                 새로운 고객관리 프로젝트를 만들어보세요
               </div>
             </div>
