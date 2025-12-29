@@ -129,7 +129,7 @@ export default function StatsSection() {
   return (
     <Panel
       title={
-        <div className="flex gap-2 typo-title-4 relative">
+        <div className="flex gap-2 text-[14px] md:typo-title-4 font-semibold relative">
           <span>주간 매출 통계</span>
           <div
             className="relative"
@@ -211,15 +211,15 @@ export default function StatsSection() {
       action={
         <button
           onClick={() => router.push("/stats?tab=payment")}
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+          className="cursor-pointer h-[24px] md:h-[34px] w-[42px] md:w-auto md:px-3 rounded-[5px] border border-border bg-card text-[11px] md:text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
         >
           더보기
         </button>
       }
       className="rounded-[14px]"
       style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
-      headerClassName="flex items-center justify-between px-7 pt-[22px]"
-      bodyClassName="px-6 pb-6 pt-4"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
+      bodyClassName="px-4 md:px-6 pb-4 md:pb-6 pt-4 md:pt-4"
     >
       <div className="h-[320px]">
         {waitingForProject ? (

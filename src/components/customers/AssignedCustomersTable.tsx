@@ -72,19 +72,19 @@ export default function AssignedCustomersTable() {
 
   return (
     <Panel
-      title={<span className="typo-title-4">새로 배정된 고객</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold">새로 배정된 고객</span>}
       action={
         <button
           onClick={() => router.push("/customers")}
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+          className="cursor-pointer h-[24px] md:h-[34px] w-[42px] md:w-auto md:px-3 rounded-[5px] border border-border bg-card text-[11px] md:text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
         >
           더보기
         </button>
       }
       className="rounded-[14px]"
       style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
-      headerClassName="flex items-center justify-between px-7 pt-[22px]"
-      bodyClassName="px-7 pb-6 pt-4 flex h-full flex-col gap-4"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
+      bodyClassName="px-4 md:px-7 pb-4 md:pb-6 pt-4 md:pt-4 flex h-full flex-col gap-4"
     >
       <div
         className="flex-1 overflow-hidden rounded-[12px] bg-card"

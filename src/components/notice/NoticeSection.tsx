@@ -41,13 +41,13 @@ export default function NoticeSection() {
 
   return (
     <Panel
-      title={<span className="typo-title-4">공지사항</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold">공지사항</span>}
       action={
-        <button onClick={() => router.push("/notices")} className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
+        <button onClick={() => router.push("/notices")} className="cursor-pointer h-[24px] md:h-[34px] w-[42px] md:w-auto md:px-3 rounded-[5px] border border-border bg-card text-[11px] md:text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10">더보기</button>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-7 pt-[22px]"
-      bodyClassName="px-7 pb-7 pt-5"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
+      bodyClassName="px-4 md:px-7 pb-4 md:pb-7 pt-4 md:pt-5"
       style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
     >
       {waitingForProject ? (
@@ -68,11 +68,11 @@ export default function NoticeSection() {
             <div
               key={n.id}
               onClick={() => router.push(`/notice/${n.id}`)}
-              className="cursor-pointer px-[10px] flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer md:px-[10px] flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 {n.important && (
-                  <span className="px-2 py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">
+                  <span className="md:px-2 md:py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">
                     중요
                   </span>
                 )}
@@ -81,10 +81,10 @@ export default function NoticeSection() {
                 </span>
               </div>
               <div className="flex items-center gap-8 flex-none pl-4">
-                <span className="typo-body-2 text-foreground opacity-80 w-[120px] shrink-0 text-left truncate">
+                <span className="typo-body-2 text-foreground opacity-80 md:w-[120px] shrink-0 text-left truncate">
                   {n.authorName ?? "-"}
                 </span>
-                <span className="typo-body-2 text-foreground opacity-80 w-[110px] shrink-0 text-right">
+                <span className="typo-body-2 text-foreground opacity-80 md:w-[110px] shrink-0 text-right">
                   {formatNoticeTime(n.createdAt)}
                 </span>
               </div>

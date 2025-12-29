@@ -59,17 +59,17 @@ export default function SalesRanking() {
 
   return (
     <Panel
-      title={<span className="typo-title-4">이달 판매 랭킹</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold">이달 판매 랭킹</span>}
       action={
         <button
           onClick={() => router.push(`/stats?tab=ranking&rank=${mode}`)}
-          className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border bg-card text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
+          className="cursor-pointer h-[24px] md:h-[34px] w-[42px] md:w-auto md:px-3 rounded-[5px] border border-border bg-card text-[11px] md:text-[14px] font-semibold tracking-[-0.02em] text-foreground transition-colors hover:bg-neutral-10"
         >
           더보기
         </button>
       }
       className="rounded-[14px]"
-      headerClassName="flex items-center justify-between px-7 pt-[22px]"
+      headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
       style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
     >
       <div className="w-full bg-neutral-20 rounded-[12px] px-3 py-2 grid grid-cols-2">

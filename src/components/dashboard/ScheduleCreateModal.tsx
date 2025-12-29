@@ -167,13 +167,13 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
+      containerClassName="relative w-full h-full md:w-[440px] md:h-auto rounded-[14px] bg-white dark:bg-neutral-10 flex flex-col md:max-h-[90vh]"
       ariaLabel={isEditMode ? "일정 수정" : "일정 추가"}
     >
         {/* Header */}
-        <div className="px-7 pt-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">{isEditMode ? "일정 수정" : "일정 추가"}</div>
+        <div className="px-4 md:px-7 pt-4 md:pt-6">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
+            <div className="text-[14px] md:text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">{isEditMode ? "일정 수정" : "일정 추가"}</div>
             <button
               aria-label="close"
               onClick={() => !submitting && onClose()}
@@ -193,10 +193,10 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
               className="cursor-pointer flex-shrink-0"
               aria-label="이전 날짜"
             >
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" className="fill-white dark:fill-neutral-20"/>
-                <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" className="stroke-neutral-30 dark:stroke-neutral-30"/>
-                <path d="M21 24.8076L14 17.8076L21 10.8076" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="18" height="18" className="md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0.5" y="0.5" width="17" height="17" rx="4.5" className="fill-white dark:fill-neutral-20"/>
+                <rect x="0.5" y="0.5" width="17" height="17" rx="4.5" className="stroke-neutral-30 dark:stroke-neutral-30"/>
+                <path d="M10.5 12.5L7 9L10.5 5.5" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
             
@@ -206,7 +206,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
                   value={current}
                   onChange={(d) => d && setCurrent(d)}
                   dateFormat="yyyy - MM - dd (EEE)"
-                  className="text-center font-pretendard font-bold text-[16px] leading-[19px] text-ink dark:text-neutral-80"
+                  className="text-center font-pretendard font-bold text-[14px] md:text-[16px] leading-[19px] text-ink dark:text-neutral-80"
               />
             </div>
             
@@ -217,25 +217,25 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
               className="cursor-pointer flex-shrink-0"
               aria-label="다음 날짜"
             >
-              <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" className="fill-white dark:fill-neutral-20"/>
-                <rect x="0.5" y="-0.5" width="35" height="35" rx="5.5" transform="matrix(-1 0 0 1 36 1)" className="stroke-neutral-30 dark:stroke-neutral-30"/>
-                <path d="M15 24.8076L22 17.8076L15 10.8076" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="18" height="18" className="md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0.5" y="-0.5" width="17" height="17" rx="4.5" transform="matrix(-1 0 0 1 18 1)" className="fill-white dark:fill-neutral-20"/>
+                <rect x="0.5" y="-0.5" width="17" height="17" rx="4.5" transform="matrix(-1 0 0 1 18 1)" className="stroke-neutral-30 dark:stroke-neutral-30"/>
+                <path d="M7.5 12.5L11 9L7.5 5.5" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
         </div>
 
         {/* Body */}
-        <div className="px-7 pt-4">
+        <div className="px-4 md:px-7 pt-4 flex-1 overflow-y-auto">
           {/* Time row */}
           <div className="mb-2 text-[14px] font-medium tracking-[0.2px] text-neutral-60">시간</div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="relative flex-1 md:flex-none">
               <select
                 value={ampm}
                 onChange={(e) => setAmpm(e.target.value as any)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
+                className="appearance-none w-full md:w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
                 style={{ lineHeight: '17px' }}
               >
                 <option>오전</option>
@@ -247,11 +247,11 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
                 </svg>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative flex-1 md:flex-none">
               <select
                 value={hour}
                 onChange={(e) => setHour(e.target.value)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
+                className="appearance-none w-full md:w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
                 style={{ lineHeight: '17px' }}
               >
                 <option value="" disabled hidden>
@@ -267,11 +267,11 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
                 </svg>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative flex-1 md:flex-none">
               <select
                 value={minute}
                 onChange={(e) => setMinute(e.target.value)}
-                className="appearance-none w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
+                className="appearance-none w-full md:w-[106px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 pr-8 text-[14px] font-medium tracking-[-0.02em] text-ink dark:text-neutral-80 cursor-pointer bg-card dark:bg-neutral-10"
                 style={{ lineHeight: '17px' }}
               >
                 <option value="" disabled hidden>
@@ -323,7 +323,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
         <div className="mt-6 border-t border-neutral-30 dark:border-neutral-30" />
 
         {/* Footer */}
-        <div className="bottom-6 right-6 flex items-center justify-end gap-3 px-7 py-3">
+        <div className="flex items-center justify-end gap-3 px-4 md:px-7 py-3 md:py-3">
           <button
             onClick={() => !submitting && onClose()}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-30"

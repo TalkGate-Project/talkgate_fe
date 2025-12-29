@@ -101,8 +101,8 @@ export default function BaseModal({ onClose, children, overlayClassName = "", co
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="min-h-full flex items-center justify-center p-4">
-        <div ref={containerRef} tabIndex={-1} className={containerClassName}>
+      <div className="min-h-full flex items-center justify-center p-4 md:p-4">
+        <div ref={containerRef} tabIndex={-1} className={`w-full h-full md:w-auto md:h-auto ${containerClassName}`}>
           {children}
         </div>
       </div>
