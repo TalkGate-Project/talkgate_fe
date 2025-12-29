@@ -201,7 +201,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC] md:block hidden" />
       <div className="relative bg-card dark:bg-neutral-10 md:rounded-[14px] md:w-[848px] md:h-[597px] w-full h-full md:max-h-[597px] flex flex-col">
         {/* 헤더 */}
-        <div className="flex items-center px-4 md:px-7 pt-4 md:pt-0">
+        <div className="flex items-center px-4 md:px-7 pt-4 md:pt-0 mb-[18px] md:mb-0">
           {/* 모바일: 뒤로가기 버튼 */}
           <button
             aria-label="back"
@@ -309,7 +309,11 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="mt-2 text-center text-[14px] font-medium text-neutral-60">PNG, JPG, SVG 파일 (최대 5MB) · 정사각형 이미지 권장</div>
+                <div className="mt-2 text-center text-[14px] font-medium text-neutral-60">
+                  PNG, JPG, SVG 파일
+                  <br className="md:hidden" />
+                  (최대 5MB) · 정사각형 이미지 권장
+                </div>
                 <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={onFileChange} />
               </div>
 
