@@ -81,7 +81,8 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   const projectName = currentProject?.name || "프로젝트";
   const projectLogoUrl = currentProject?.logoUrl;
   
-  // 출퇴근 버튼 표시 여부: useAttendanceMenu가 true이고, admin/subAdmin이 아닐 때만 표시
+  // 출퇴근 버튼 표시 여부: 
+  // 근태 메뉴를 사용하는 상태이면서 members/my API로 얻은 유저의 role이 관리자급(admin/subAdmin)이 아닐 경우에만 표시
   const showAttendance = isAttendanceMenuEnabled && shouldShowAttendanceButton(currentRole);
 
   // Attendance Logic
