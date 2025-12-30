@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import {
+  getNotificationSettings,
+  saveNotificationSettings,
+  type NotificationSettings,
+} from "@/utils/notificationSettings";
 
 interface ToggleProps {
   enabled: boolean;
@@ -16,7 +22,7 @@ function Toggle({ enabled, onChange }: ToggleProps) {
       }`}
     >
       <div
-        className={`w-4 h-4 rounded-full bg-neutral-0 transition-transform ${
+        className={`w-4 h-4 rounded-full bg-neutral-0 dark:bg-neutral-90 transition-transform ${
           enabled ? "translate-x-4" : "translate-x-0"
         }`}
       />
@@ -25,8 +31,47 @@ function Toggle({ enabled, onChange }: ToggleProps) {
 }
 
 export default function NotificationTab() {
-  const [consultationChatEnabled, setConsultationChatEnabled] = useState(true);
-  const [newsEnabled, setNewsEnabled] = useState(true);
+  const [projectId, ready] = useSelectedProjectId();
+  // 초기 렌더링 시 깜빡임 방지를 위해 off 상태로 시작
+  const [consultationChatEnabled, setConsultationChatEnabled] = useState(false);
+  const [newsEnabled, setNewsEnabled] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // 프로젝트가 준비되면 해당 프로젝트의 설정 로드
+  useEffect(() => {
+    if (!ready) return;
+    
+    const settings = getNotificationSettings(projectId);
+    setConsultationChatEnabled(settings.consultationChat);
+    setNewsEnabled(settings.news);
+    setIsInitialized(true);
+  }, [projectId, ready]);
+
+  // 상담 채팅 알림 설정 변경 핸들러
+  const handleConsultationChatChange = (enabled: boolean) => {
+    if (!ready || !projectId) return;
+    
+    setConsultationChatEnabled(enabled);
+    const settings = getNotificationSettings(projectId);
+    const newSettings: NotificationSettings = {
+      ...settings,
+      consultationChat: enabled,
+    };
+    saveNotificationSettings(newSettings, projectId);
+  };
+
+  // 새로운 소식 알림 설정 변경 핸들러
+  const handleNewsChange = (enabled: boolean) => {
+    if (!ready || !projectId) return;
+    
+    setNewsEnabled(enabled);
+    const settings = getNotificationSettings(projectId);
+    const newSettings: NotificationSettings = {
+      ...settings,
+      news: enabled,
+    };
+    saveNotificationSettings(newSettings, projectId);
+  };
 
   return (
     <div className="bg-card rounded-[14px] pb-[140px]">
@@ -51,7 +96,7 @@ export default function NotificationTab() {
           </div>
           <Toggle
             enabled={consultationChatEnabled}
-            onChange={setConsultationChatEnabled}
+            onChange={handleConsultationChatChange}
           />
         </div>
 
@@ -70,7 +115,7 @@ export default function NotificationTab() {
           </div>
           <Toggle
             enabled={newsEnabled}
-            onChange={setNewsEnabled}
+            onChange={handleNewsChange}
           />
         </div>
       </div>
