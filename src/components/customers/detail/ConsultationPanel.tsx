@@ -233,7 +233,7 @@ export default function ConsultationPanel({
             return (
               <div
                 key={n.id}
-                className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 relative"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
               >
                 <div className="flex items-center justify-between gap-2 text-[12px]">
                   <div className="flex items-center gap-x-2">
