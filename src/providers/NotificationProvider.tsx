@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { notificationSocket } from "@/lib/notificationSocket";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import type { NewNotificationEvent } from "@/types/notifications";
+import { isNotificationEnabled } from "@/utils/notificationSettings";
 
 // Browser notification permission status
 export type NotificationPermission = "default" | "granted" | "denied";
@@ -92,6 +93,24 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
   // Handle new notification event
   const handleNewNotification = useCallback((event: NewNotificationEvent) => {
+    // 알림 설정 확인 (새로운 소식 알림이 켜져 있는지)
+    // 현재 프로젝트 ID를 사용하여 프로젝트별 설정 확인
+    const currentProjectId = projectId;
+    const isNewsNotificationEnabled = isNotificationEnabled("news", currentProjectId);
+    
+    if (!isNewsNotificationEnabled) {
+      // 알림 설정이 꺼져 있으면 브라우저 알림을 표시하지 않음
+      // 하지만 이벤트는 여전히 발행하여 UI 업데이트는 진행
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("tg:new-notification", {
+            detail: event,
+          })
+        );
+      }
+      return;
+    }
+
     // Show browser notification
     showBrowserNotification(event.notification);
 
@@ -104,7 +123,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
         })
       );
     }
-  }, []);
+  }, [projectId]);
 
   // Connect to notification WebSocket when project is ready
   useEffect(() => {

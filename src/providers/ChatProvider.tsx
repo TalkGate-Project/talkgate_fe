@@ -15,6 +15,7 @@ import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
+import { isNotificationEnabled } from "@/utils/notificationSettings";
 import type {
   ConversationsListEvent,
   NewMessageEvent,
@@ -317,12 +318,14 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       setConversations((prev) => {
         const existingConv = prev.find((c) => c.id === (conversation?.id || messageConvId));
 
-        // 브라우저 알림 표시 (상담 페이지가 아니고, 수신 메시지이고, 활성 대화방이 아닐 때)
+        // 브라우저 알림 표시 (상담 페이지가 아니고, 수신 메시지이고, 활성 대화방이 아니고, 알림 설정이 켜져 있을 때)
         const isConsultPage = pathname === "/consult";
         const isIncomingMessage = message?.direction === "incoming";
         const isNotActiveConversation = messageConvId !== activeId;
+        const currentProjectId = projectId ? String(projectId) : null;
+        const isChatNotificationEnabled = isNotificationEnabled("consultationChat", currentProjectId);
         
-        if (!isConsultPage && isIncomingMessage && isNotActiveConversation) {
+        if (!isConsultPage && isIncomingMessage && isNotActiveConversation && isChatNotificationEnabled) {
           // 대화방 이름과 메시지 내용 추출
           const conversationName = conversation?.name || existingConv?.name || "알 수 없는 대화방";
           const messageContent = message?.content || 
