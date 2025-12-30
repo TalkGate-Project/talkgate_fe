@@ -313,7 +313,7 @@ export default function InvitedMemberSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] pb-7 min-h-[70dvh]">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 min-h-[70dvh]">
       {/* Header */}
       <div className="flex items-center justify-between px-7 h-[76px]">
         <h1 className="text-[24px] font-bold text-foreground dark:text-neutral-80 leading-5">

@@ -53,14 +53,16 @@ export default function MySettingsClient() {
 
   return (
     <div className="flex gap-6">
-      {/* 사이드바 */}
-      <MySettingsSidebar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-      />
+      {/* 사이드바 - 모바일에서 숨김 */}
+      <div className="hidden lg:block">
+        <MySettingsSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+        />
+      </div>
       
       {/* 메인 컨텐츠 */}
-      <div className="flex-1">
+      <div className="flex-1 w-full lg:w-auto">
         <ActiveComponent />
       </div>
     </div>

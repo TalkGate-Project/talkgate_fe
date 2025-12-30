@@ -104,7 +104,7 @@ export default function BillingTab() {
   }
 
   return (
-    <div className="bg-card rounded-[14px]">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px]">
       <div className="space-y-6">
         {/* 페이지 제목 */}
         <div className="px-7 pt-7">

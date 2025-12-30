@@ -317,7 +317,7 @@ export default function MemberSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] pb-7">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
       {/* Header */}
       <div className="flex items-center justify-between px-7 h-[76px]">
         <h1 className="text-[24px] font-bold text-foreground leading-5">

@@ -140,7 +140,7 @@ export default function SettingsClient() {
   if (!mounted || loading) {
     return (
       <div className="flex gap-8">
-        <div className="w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
+        <div className="hidden lg:block w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
           <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
             <div className="h-5 w-32 bg-neutral-20 rounded mb-2 animate-pulse" />
             <div className="h-4 w-40 bg-neutral-20 rounded animate-pulse" />
@@ -154,7 +154,7 @@ export default function SettingsClient() {
             ))}
           </div>
         </div>
-        <div className="flex-1 bg-card rounded-[14px] p-7">
+        <div className="flex-1 w-full lg:w-auto bg-card rounded-[14px] p-7">
           <div className="h-6 w-40 bg-neutral-20 rounded mb-4 animate-pulse" />
           <div className="h-40 bg-neutral-20 rounded animate-pulse" />
         </div>
@@ -166,14 +166,16 @@ export default function SettingsClient() {
 
   return (
     <div className="flex gap-8">
-      {/* 사이드바 */}
-      <SettingsSidebar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-      />
+      {/* 사이드바 - 모바일에서 숨김 */}
+      <div className="hidden lg:block">
+        <SettingsSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+        />
+      </div>
       
       {/* 메인 컨텐츠 */}
-      <div className="flex-1">
+      <div className="flex-1 w-full lg:w-auto">
         <ActiveComponent />
       </div>
     </div>

@@ -313,7 +313,7 @@ export default function SenderNumberSettings() {
         onSuccess={handleCommonSenderSuccess}
       />
 
-      <div className="bg-card rounded-[14px] pb-7">
+      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
         {/* Title */}
         <h1 className="px-7 text-[24px] font-bold text-ink dark:text-neutral-80 h-[76px] flex items-center border-b border-neutral-30 dark:border-neutral-30">
           발신번호 등록

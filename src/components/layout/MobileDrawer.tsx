@@ -1,13 +1,17 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { ProjectsService } from "@/services/projects";
+import { isAdmin } from "@/utils/permissions";
+import type { MemberRole } from "@/types/members";
 
 // 아이콘 컴포넌트들
 import {
@@ -21,21 +25,281 @@ import {
   CloseIcon,
 } from "@/components/icons";
 
+// MySettings 아이콘들
+import ProfileIcon from "@/components/my-settings/icons/ProfileIcon";
+import NotificationIcon from "@/components/my-settings/icons/NotificationIcon";
+import BillingIcon from "@/components/my-settings/icons/BillingIcon";
+import SecurityIcon from "@/components/my-settings/icons/SecurityIcon";
+
+// Settings 아이콘들
+import GeneralIcon from "@/components/settings/icons/GeneralIcon";
+import SettingsProfileIcon from "@/components/settings/icons/ProfileIcon";
+import ConsultationChannelIcon from "@/components/settings/icons/ConsultationChannelIcon";
+import MemberIcon from "@/components/settings/icons/MemberIcon";
+import InvitedMemberIcon from "@/components/settings/icons/InvitedMemberIcon";
+import TeamIcon from "@/components/settings/icons/TeamIcon";
+import OrganizationManagementIcon from "@/components/settings/icons/OrganizationManagementIcon";
+import CustomerApiIcon from "@/components/settings/icons/CustomerApiIcon";
+import BatchRegistrationIcon from "@/components/settings/icons/BatchRegistrationIcon";
+import SenderNumberIcon from "@/components/settings/icons/SenderNumberIcon";
+import SmsHistoryIcon from "@/components/settings/icons/SmsHistoryIcon";
+import SmsIcon from "@/components/settings/icons/SmsIcon";
+
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+type MySettingsTab = "profile" | "notification" | "billing" | "security";
+type SettingsTab =
+  | "general"
+  | "profile"
+  | "consultation-channel"
+  | "sender-numbers"
+  | "member"
+  | "invited-member"
+  | "customer-api"
+  | "team-management"
+  | "batch-registration"
+  | "sms-history";
+
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin } = useMyMember();
+  const { isAdminOrSubAdmin, member, loading: memberLoading } = useMyMember();
   const [mounted, setMounted] = useState(false);
+  const [projectId] = useSelectedProjectId();
+  const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 프로젝트 정보 로드 (settings 페이지용)
+  useEffect(() => {
+    const fetchProjectInfo = async () => {
+      if (!projectId || pathname !== "/settings") return;
+      
+      try {
+        const projectResponse = await ProjectsService.detailById({
+          "x-project-id": projectId,
+        });
+        
+        if (projectResponse.data?.data) {
+          const project = projectResponse.data.data;
+          setProjectLogoUrl(project.logoUrl || null);
+          setProjectName(project.name || "거래소 텔레마케팅 관리");
+        }
+      } catch (error) {
+        console.error("Failed to fetch project info:", error);
+      }
+    };
+    
+    fetchProjectInfo();
+  }, [projectId, pathname]);
+
+  // MySettings 메뉴 아이템
+  const MY_SETTINGS_ITEMS: Array<{ key: MySettingsTab; label: string; icon: React.ComponentType<{ isActive: boolean }> }> = [
+    { key: "profile", label: "프로필", icon: ProfileIcon },
+    { key: "notification", label: "알림", icon: NotificationIcon },
+    { key: "billing", label: "구독관리", icon: BillingIcon },
+    { key: "security", label: "보안", icon: SecurityIcon },
+  ];
+
+  // Settings 메뉴 아이템 타입
+  type SettingsSidebarItem = {
+    key: SettingsTab | null;
+    label: string;
+    icon: React.ComponentType<{ isActive: boolean }>;
+    canAccess?: (params: { role: MemberRole | undefined; isLoading: boolean }) => boolean;
+    children?: SettingsSidebarItem[];
+    isParent?: boolean;
+  };
+
+  const SETTINGS_ITEMS: SettingsSidebarItem[] = [
+    {
+      key: "general",
+      label: "일반",
+      icon: GeneralIcon,
+      canAccess: ({ role, isLoading }) => {
+        if (isLoading) return false;
+        return isAdmin(role);
+      },
+    },
+    {
+      key: "profile",
+      label: "프로필",
+      icon: SettingsProfileIcon,
+    },
+    {
+      key: "consultation-channel",
+      label: "상담채널",
+      icon: ConsultationChannelIcon,
+    },
+    {
+      key: null,
+      label: "조직관리",
+      icon: OrganizationManagementIcon,
+      isParent: true,
+      children: [
+        {
+          key: "team-management",
+          label: "팀",
+          icon: TeamIcon,
+        },
+        {
+          key: "member",
+          label: "멤버",
+          icon: MemberIcon,
+        },
+        {
+          key: "invited-member",
+          label: "초대중인 멤버",
+          icon: InvitedMemberIcon,
+        },
+      ],
+    },
+    {
+      key: null,
+      label: "문자",
+      icon: SmsIcon,
+      isParent: true,
+      children: [
+        {
+          key: "sender-numbers",
+          label: "발신번호 등록",
+          icon: SenderNumberIcon,
+        },
+        {
+          key: "sms-history",
+          label: "문자 발송 이력",
+          icon: SmsHistoryIcon,
+        },
+      ],
+    },
+    {
+      key: "batch-registration",
+      label: "일괄 등록 이력",
+      icon: BatchRegistrationIcon,
+    },
+    {
+      key: "customer-api",
+      label: "고객등록 API",
+      icon: CustomerApiIcon,
+      canAccess: ({ role, isLoading }) => {
+        if (isLoading) return false;
+        return isAdmin(role);
+      },
+    },
+  ];
+
+  // Settings 메뉴 필터링
+  const visibleSettingsItems = useMemo(() => {
+    const filterVisibleItems = (items: SettingsSidebarItem[]): SettingsSidebarItem[] => {
+      return items
+        .map((item) => {
+          const canAccess = !item.canAccess || item.canAccess({ role: member?.role, isLoading: memberLoading });
+          
+          if (!canAccess) return null;
+
+          if (item.children) {
+            const filteredChildren = filterVisibleItems(item.children);
+            if (filteredChildren.length === 0) return null;
+            return { ...item, children: filteredChildren };
+          }
+
+          return item;
+        })
+        .filter((item): item is SettingsSidebarItem => item !== null);
+    };
+
+    return filterVisibleItems(SETTINGS_ITEMS);
+  }, [member?.role, memberLoading]);
+
+  // 현재 활성 탭 확인
+  const currentMySettingsTab = useMemo(() => {
+    if (pathname !== "/my-settings") return null;
+    const tabParam = searchParams.get("tab");
+    const validTabs: MySettingsTab[] = ["profile", "notification", "billing", "security"];
+    return validTabs.includes(tabParam as MySettingsTab) ? (tabParam as MySettingsTab) : "profile";
+  }, [pathname, searchParams]);
+
+  const currentSettingsTab = useMemo(() => {
+    if (pathname !== "/settings") return null;
+    const tabParam = searchParams.get("tab");
+    const validTabs: SettingsTab[] = [
+      "general", "profile", "consultation-channel", "sender-numbers",
+      "member", "invited-member", "customer-api", "team-management",
+      "batch-registration", "sms-history"
+    ];
+    return validTabs.includes(tabParam as SettingsTab) ? (tabParam as SettingsTab) : (isAdmin(member?.role) ? "general" : "profile");
+  }, [pathname, searchParams, member?.role]);
+
+  // MySettings 탭 변경 핸들러
+  const handleMySettingsTabChange = useCallback((tab: MySettingsTab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.push(`/my-settings?${params.toString()}`);
+    onClose();
+  }, [router, searchParams, onClose]);
+
+  // Settings 탭 변경 핸들러
+  const handleSettingsTabChange = useCallback((tab: SettingsTab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.push(`/settings?${params.toString()}`);
+    onClose();
+  }, [router, searchParams, onClose]);
+
+  // Settings 부모 항목 토글
+  const toggleSettingsParent = useCallback((label: string) => {
+    setExpandedParents((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Settings 항목이 활성화되어 있는지 확인
+  const isSettingsItemActive = useCallback((item: SettingsSidebarItem): boolean => {
+    if (!currentSettingsTab) return false;
+    if (item.key === currentSettingsTab) return true;
+    if (item.children) {
+      return item.children.some((child) => child.key === currentSettingsTab);
+    }
+    return false;
+  }, [currentSettingsTab]);
+
+  // 현재 활성 탭이 하위 항목인지 확인하고 부모를 확장
+  useEffect(() => {
+    if (pathname !== "/settings" || !currentSettingsTab) return;
+    
+    const parentLabels = new Set<string>();
+    SETTINGS_ITEMS.forEach((item) => {
+      if (item.children) {
+        const hasActiveChild = item.children.some((child) => child.key === currentSettingsTab);
+        if (hasActiveChild) {
+          parentLabels.add(item.label);
+        }
+      }
+    });
+    if (parentLabels.size > 0) {
+      setExpandedParents((prev) => {
+        const newSet = new Set(prev);
+        parentLabels.forEach((label) => newSet.add(label));
+        return newSet;
+      });
+    }
+  }, [currentSettingsTab, pathname]);
 
   const MENU_ITEMS = [
     { label: "대시보드", href: "/dashboard", icon: <DashboardIcon /> },
@@ -49,6 +313,62 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },
     { label: "설정", href: "/settings", icon: <SettingsIcon /> },
   ];
+
+
+  // Settings 메뉴 렌더링 (재귀)
+  const renderSettingsItem = (item: SettingsSidebarItem, level: number = 0) => {
+    const IconComponent = item.icon;
+    const isActive = isSettingsItemActive(item);
+    const isExpanded = item.isParent && expandedParents.has(item.label);
+    const hasChildren = item.children && item.children.length > 0;
+
+    return (
+      <div key={item.label}>
+        <button
+          onClick={() => {
+            if (item.isParent) {
+              toggleSettingsParent(item.label);
+            } else if (item.key) {
+              handleSettingsTabChange(item.key);
+            }
+          }}
+          className={`cursor-pointer w-full h-[52px] flex items-center gap-3 pr-8 text-left transition-colors rounded-[4px] ${
+            level > 0 ? "pl-[60px]" : "pl-5"
+          } ${
+            isActive
+              ? "bg-primary-10/30 text-primary-80"
+              : "text-neutral-70 hover:bg-neutral-10"
+          }`}
+        >
+          <IconComponent isActive={isActive} />
+          <span className="text-[16px] font-medium flex-1">{item.label}</span>
+          {hasChildren && (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+            >
+              <path
+                d="M4 6L8 10L12 6"
+                stroke={isActive ? "#00E272" : "#B0B0B0"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
+        {hasChildren && isExpanded && (
+          <div>
+            {item.children!.map((child) => renderSettingsItem(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
 
   return (
     <AnimatePresence>
@@ -76,67 +396,135 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             {/* Header Area inside Drawer */}
             <div className="p-[23px] pb-4">
               <div className="flex justify-between items-center mb-6">
-                {/* Logo Area */}
-                <div className="flex items-center">
-                  {/* 라이트 모드 로고 */}
-                  <Image 
-                    src="/main_logo_dark.png" 
-                    alt="Talkgate" 
-                    width={102} 
-                    height={24} 
-                    className="h-6 w-auto dark:hidden" 
-                  />
-                  {/* 다크 모드 로고 */}
-                  <Image 
-                    src="/main_logo.png" 
-                    alt="Talkgate" 
-                    width={102} 
-                    height={24} 
-                    className="h-6 w-auto hidden dark:block" 
-                  />
-                </div>
+                {/* Logo Area - 일반 메뉴일 때만 표시 */}
+                {pathname !== "/my-settings" && pathname !== "/settings" ? (
+                  <div className="flex items-center">
+                    {/* 라이트 모드 로고 */}
+                    <Image 
+                      src="/main_logo_dark.png" 
+                      alt="Talkgate" 
+                      width={102} 
+                      height={24} 
+                      className="h-6 w-auto dark:hidden" 
+                    />
+                    {/* 다크 모드 로고 */}
+                    <Image 
+                      src="/main_logo.png" 
+                      alt="Talkgate" 
+                      width={102} 
+                      height={24} 
+                      className="h-6 w-auto hidden dark:block" 
+                    />
+                  </div>
+                ) : pathname === "/my-settings" ? (
+                  <div className="flex-1">
+                    <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
+                    <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
+                  </div>
+                ) : (
+                  <div className="flex-1">
+                    <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
+                    <div className="flex items-center gap-3">
+                      {projectLogoUrl ? (
+                        <img
+                          src={projectLogoUrl}
+                          alt={`${projectName} 로고`}
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
+                      )}
+                      <p className="text-[14px] text-neutral-60">{projectName}</p>
+                    </div>
+                  </div>
+                )}
                  
                 <button onClick={onClose} className="p-1 text-neutral-90 dark:text-neutral-70">
                   <CloseIcon />
                 </button>
               </div>
 
-              {/* Total User Info */}
-              <div className="flex items-center gap-2 mb-8">
-                <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-30 overflow-hidden">
-                  <div className="w-full h-full bg-primary-40" /> 
-                </div>
-                <span className="text-[14px] font-medium text-neutral-90 dark:text-neutral-70">Total User</span>
-              </div>
-               
-              <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50 mb-6" />
+              {/* Total User Info - 일반 메뉴일 때만 표시 */}
+              {pathname !== "/my-settings" && pathname !== "/settings" && (
+                <>
+                  <div className="flex items-center gap-2 mb-8">
+                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-30 overflow-hidden">
+                      <div className="w-full h-full bg-primary-40" /> 
+                    </div>
+                    <span className="text-[14px] font-medium text-neutral-90 dark:text-neutral-70">Total User</span>
+                  </div>
+                   
+                  <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50 mb-6" />
+                </>
+              )}
 
-              {/* Menu Items */}
-              <nav className="flex flex-col gap-1">
-                {MENU_ITEMS.map((item) => {
-                  const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onClose}
-                      className={`flex items-center gap-4 px-5 py-3 rounded-[4px] transition-colors ${
-                        isActive 
-                          ? "bg-primary-10/30 dark:bg-primary-10/10 text-primary-60" 
-                          : "text-neutral-60 dark:text-neutral-50 hover:bg-neutral-10 dark:hover:bg-neutral-20"
-                      }`}
-                    >
-                      <div className={`${isActive ? "text-primary-60" : "text-neutral-50 dark:text-neutral-50"}`}>
-                        {item.icon}
-                      </div>
-                      <span className={`text-[16px] font-medium ${isActive ? "font-bold text-primary-60" : "text-neutral-60 dark:text-neutral-60"}`}>
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
+              {/* Menu Items - 페이지에 따라 다른 메뉴 표시 */}
+              {pathname === "/my-settings" ? (
+                <nav className="flex flex-col gap-1">
+                  {MY_SETTINGS_ITEMS.map((item) => {
+                    const IconComponent = item.icon;
+                    const isActive = currentMySettingsTab === item.key;
+                    
+                    return (
+                      <button
+                        key={item.key}
+                        onClick={() => handleMySettingsTabChange(item.key)}
+                        className={`cursor-pointer w-full flex items-center gap-3 px-5 py-3 text-left transition-colors rounded-[4px] ${
+                          isActive
+                            ? "bg-primary-10/30 text-primary-60"
+                            : "text-neutral-70 hover:bg-neutral-10"
+                        }`}
+                      >
+                        <IconComponent isActive={isActive} />
+                        <span className="text-[14px] font-medium">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              ) : pathname === "/settings" ? (
+                <nav className="flex flex-col gap-1">
+                  {!mounted || memberLoading ? (
+                    <>
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-5 py-3">
+                          <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
+                          <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    visibleSettingsItems.map((item) => renderSettingsItem(item))
+                  )}
+                </nav>
+              ) : (
+                <nav className="flex flex-col gap-1">
+                  {MENU_ITEMS.map((item) => {
+                    const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));
+                    
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className={`flex items-center gap-4 px-5 py-3 rounded-[4px] transition-colors ${
+                          isActive 
+                            ? "bg-primary-10/30 dark:bg-primary-10/10 text-primary-60" 
+                            : "text-neutral-60 dark:text-neutral-50 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                        }`}
+                      >
+                        <div className={`${isActive ? "text-primary-60" : "text-neutral-50 dark:text-neutral-50"}`}>
+                          {item.icon}
+                        </div>
+                        <span className={`text-[16px] font-medium ${isActive ? "font-bold text-primary-60" : "text-neutral-60 dark:text-neutral-60"}`}>
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              )}
             </div>
           </motion.div>
         </>
