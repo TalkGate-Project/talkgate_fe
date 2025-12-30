@@ -44,7 +44,13 @@ export default function ChatView({ projectId }: Props) {
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileEmojiButtonRef = useRef<HTMLButtonElement>(null);
+  // 채팅방별 입력 내용 저장
+  const inputByConversationRef = useRef<Map<number, string>>(new Map());
+  // 현재 활성 채팅방의 입력 내용
   const [input, setInput] = useState("");
+  // 이전 activeId 추적 (채팅방 전환 감지용)
+  const prevActiveIdRef = useRef<number | null>(null);
 
   // 화면 폭에 따른 레이아웃 제어 (1440px 이상: 기존 3컬럼, 미만: AI 도우미 플로팅)
   const [isWideLayout, setIsWideLayout] = useState(true);
@@ -113,6 +119,40 @@ export default function ChatView({ projectId }: Props) {
       setLinkStep(null);
     }
   }, [linkStep, activeConversation]);
+
+  // 쿼리스트링 변경 감지: conversationId가 제거되면 activeId와 모달 상태 초기화
+  // (브라우저 뒤로가기 등으로 쿼리스트링이 변경된 경우 처리)
+  useEffect(() => {
+    const currentConvId = searchParams.get("conversationId");
+    const convIdNumber = currentConvId ? Number(currentConvId) : null;
+    const isValidConvId = convIdNumber !== null && Number.isFinite(convIdNumber);
+    
+    // 쿼리스트링에 conversationId가 없는데 activeId가 있으면 초기화
+    // (뒤로가기로 상담 목록으로 돌아온 경우)
+    if (!currentConvId && activeId) {
+      setActiveId(null);
+      // 모달 상태도 초기화
+      setLinkStep(null);
+      setCustomerDetailOpen(false);
+      setUnlinkModalOpen(false);
+      setIsAiSidebarOpen(false);
+      return;
+    }
+    
+    // 쿼리스트링에 conversationId가 있는데 activeId와 다르면 동기화
+    // (URL 직접 입력 또는 딥링크로 접근한 경우)
+    if (isValidConvId && activeId !== convIdNumber) {
+      // filteredConversations에 해당 conversationId가 있는지 확인
+      const exists = filteredConversations.some((c) => c.id === convIdNumber);
+      if (exists) {
+        setActiveId(convIdNumber);
+      } else {
+        // 존재하지 않으면 activeId를 null로 설정 (필터 변경 등으로 목록에서 사라진 경우)
+        setActiveId(null);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // 1440px 기준으로 레이아웃 전환
   useEffect(() => {
@@ -198,10 +238,23 @@ export default function ChatView({ projectId }: Props) {
     setCustomerDetailOpen(true);
   }, [activeConversation]);
 
+  // 입력 내용 변경 핸들러 (채팅방별 입력 내용 자동 저장)
+  const handleInputChange = useCallback((value: string) => {
+    setInput(value);
+    // 현재 활성 채팅방의 입력 내용 업데이트
+    if (activeId) {
+      inputByConversationRef.current.set(activeId, value);
+    }
+  }, [activeId]);
+
   function onSend() {
     if (!input.trim()) return;
     send(input);
     setInput("");
+    // 현재 채팅방의 입력 내용도 초기화
+    if (activeId) {
+      inputByConversationRef.current.set(activeId, "");
+    }
   }
 
   function handleEmojiButtonClick() {
@@ -210,21 +263,46 @@ export default function ChatView({ projectId }: Props) {
       setEmojiPickerOpen(false);
       return;
     }
-    if (emojiButtonRef.current) {
-      const rect = emojiButtonRef.current.getBoundingClientRect();
+    
+    // 모바일/데스크탑 버튼 중 활성화된 버튼 찾기
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+    const activeButton = isMobile && mobileEmojiButtonRef.current 
+      ? mobileEmojiButtonRef.current 
+      : emojiButtonRef.current;
+    
+    if (activeButton) {
+      const rect = activeButton.getBoundingClientRect();
       // body zoom(컴팩트 0.8 / 기본 1) 기준으로 위치 보정
       const zoom = getBodyZoom();
-      setEmojiPickerPosition({
-        x: (rect.left - 150) / zoom,
-        y: rect.top / zoom,
-      });
+      // 모바일에서는 입력 필드 내부 오른쪽에 있으므로 위치 조정
+      if (isMobile && mobileEmojiButtonRef.current) {
+        // 모바일: 이모지 피커를 버튼 위쪽에 표시, x축을 왼쪽으로 100px 이동
+        setEmojiPickerPosition({
+          x: (rect.right - 100) / zoom,
+          y: rect.top / zoom,
+        });
+      } else if (emojiButtonRef.current) {
+        // 데스크탑: 기존 위치 계산
+        const desktopRect = emojiButtonRef.current.getBoundingClientRect();
+        setEmojiPickerPosition({
+          x: (desktopRect.left - 150) / zoom,
+          y: desktopRect.top / zoom,
+        });
+      }
     }
     setEmojiPickerMode("compact");
     setEmojiPickerOpen(true);
   }
 
   function handleEmojiSelect(emoji: string) {
-    setInput((prev) => prev + emoji);
+    setInput((prev) => {
+      const newValue = prev + emoji;
+      // 현재 활성 채팅방의 입력 내용 업데이트
+      if (activeId) {
+        inputByConversationRef.current.set(activeId, newValue);
+      }
+      return newValue;
+    });
   }
 
   // 첨부파일용 파일 입력
@@ -294,15 +372,59 @@ export default function ChatView({ projectId }: Props) {
     }
   }, [statusFilter, filteredConversations, activeId, setActiveId]);
 
+  // 채팅방별 입력 내용 관리
+  useEffect(() => {
+    const prevActiveId = prevActiveIdRef.current;
+    
+    // 채팅방이 변경되었을 때만 처리
+    if (prevActiveId !== activeId) {
+      // 이전 채팅방의 입력 내용 저장 (현재 input 값)
+      if (prevActiveId !== null) {
+        // 현재 input 값을 가져와서 저장
+        setInput((currentInput) => {
+          // 보내지 않은 메시지가 있으면 저장
+          if (currentInput.trim()) {
+            inputByConversationRef.current.set(prevActiveId, currentInput);
+          }
+          return currentInput;
+        });
+      }
+      
+      // 새로운 채팅방으로 전환 시 저장된 입력 내용 복원
+      if (activeId !== null) {
+        // 저장된 입력 내용이 있으면 복원, 없으면 빈 문자열
+        const savedInput = inputByConversationRef.current.get(activeId) || "";
+        setInput(savedInput);
+      } else {
+        // 채팅방을 나갔을 때 입력 내용 초기화
+        setInput("");
+      }
+      
+      // 이전 activeId 업데이트
+      prevActiveIdRef.current = activeId;
+    }
+  }, [activeId]);
+
   // 선택과 conversationId 파라미터 동기화 유지
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
+    const currentConvId = params.get("conversationId");
+    
     if (activeId) {
+      // conversationId가 없을 때 추가하는 경우: push (히스토리 추가)
+      // conversationId가 있을 때 변경하는 경우: replace (같은 페이지 내 전환)
       params.set("conversationId", String(activeId));
-      router.replace(`?${params.toString()}`, { scroll: false });
+      if (currentConvId && currentConvId !== String(activeId)) {
+        // 다른 대화로 전환: replace
+        router.replace(`?${params.toString()}`, { scroll: false });
+      } else if (!currentConvId) {
+        // 대화 선택: push (히스토리 추가)
+        router.push(`?${params.toString()}`, { scroll: false });
+      }
     } else if (params.has("conversationId")) {
+      // conversationId 제거: push (상담 목록으로 돌아가기, 히스토리 추가)
       params.delete("conversationId");
-      router.replace(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`, { scroll: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
@@ -312,7 +434,8 @@ export default function ChatView({ projectId }: Props) {
     setActiveId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("conversationId");
-    router.replace(`?${params.toString()}`, { scroll: false });
+    // push를 사용하여 히스토리에 추가 (뒤로가기 시 상담 목록으로 이동)
+    router.push(`?${params.toString()}`, { scroll: false });
   }, [setActiveId, searchParams, router]);
 
   return (
@@ -343,7 +466,7 @@ export default function ChatView({ projectId }: Props) {
           connected={connected}
           socketError={socketError}
           input={input}
-          setInput={setInput}
+          setInput={handleInputChange}
           onSend={onSend}
           onOpenLinkFlow={openLinkFlow}
           onOpenUnlinkModal={openUnlinkModal}
@@ -354,6 +477,7 @@ export default function ChatView({ projectId }: Props) {
           onAttachFile={onAttachFile}
           onClickEmoji={handleEmojiButtonClick}
           emojiButtonRef={emojiButtonRef}
+          mobileEmojiButtonRef={mobileEmojiButtonRef}
           emojiPickerOpen={emojiPickerOpen}
           loadOlderMessages={loadOlderMessages}
           isMessagesLoading={isMessagesLoading}

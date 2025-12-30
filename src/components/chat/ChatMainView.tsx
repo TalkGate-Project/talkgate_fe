@@ -29,6 +29,7 @@ type Props = {
   onAttachFile: () => void;
   onClickEmoji: () => void;
   emojiButtonRef: React.RefObject<HTMLButtonElement | null>;
+  mobileEmojiButtonRef?: React.RefObject<HTMLButtonElement | null>;
   emojiPickerOpen: boolean;
   loadOlderMessages: () => void;
   isMessagesLoading: boolean;
@@ -53,6 +54,7 @@ export default function ChatMainView({
   onAttachFile,
   onClickEmoji,
   emojiButtonRef,
+  mobileEmojiButtonRef,
   emojiPickerOpen,
   loadOlderMessages,
   isMessagesLoading,
@@ -235,28 +237,35 @@ export default function ChatMainView({
             {/* 모바일 뒤로가기 버튼 */}
             <button
               onClick={onCloseConversation}
-              className="lg:hidden cursor-pointer p-1 -ml-1 mr-1"
+              className="lg:hidden cursor-pointer p-1 -ml-1 mr-1 text-neutral-90 dark:text-neutral-70"
+              aria-label="뒤로가기"
             >
               <svg
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M19 12H5M12 19l-7-7 7-7" />
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
             {activeConversation ? (
               <>
-                <ConversationAvatar
-                  name={activeConversation.name}
-                  profileUrl={activeConversation.profileUrl}
-                  size="md"
-                />
+                {/* 프로필 썸네일: 데스크탑에서만 표시 */}
+                <div className="hidden lg:block">
+                  <ConversationAvatar
+                    name={activeConversation.name}
+                    profileUrl={activeConversation.profileUrl}
+                    size="md"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center leading-[24px] gap-2">
                     <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
@@ -829,6 +838,7 @@ export default function ChatMainView({
           connected={connected && Boolean(activeConversation)}
           onClickEmoji={onClickEmoji}
           emojiButtonRef={emojiButtonRef}
+          mobileEmojiButtonRef={mobileEmojiButtonRef}
           emojiPickerOpen={emojiPickerOpen}
           onAttachImage={onAttachImage}
           onAttachFile={onAttachFile}
