@@ -272,7 +272,7 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-card dark:bg-neutral-0 rounded-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
+    <div className="bg-card dark:bg-neutral-0 rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
       {/* 헤더 */}
       <div className="px-7 flex items-center justify-between h-[76px]">
          <h1 className="text-[24px] font-bold text-ink dark:text-neutral-80 leading-[20px]">프로필</h1>

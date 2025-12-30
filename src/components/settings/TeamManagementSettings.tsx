@@ -350,7 +350,7 @@ export default function TeamManagementSettings() {
   }
 
   return (
-    <div className="w-full h-full bg-card rounded-[14px] pb-7 overflow-hidden flex flex-col">
+    <div className="w-full h-full bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
       <div className="mx-7 h-px bg-neutral-30 mb-3" />
 

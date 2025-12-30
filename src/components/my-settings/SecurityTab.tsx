@@ -234,7 +234,7 @@ export default function SecurityTab() {
   return (
     <>
       {/* First Box - 2-Step Verification */}
-      <div className="bg-card rounded-[14px] mb-6">
+      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] mb-6">
         {/* Title */}
         <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
           보안 설정

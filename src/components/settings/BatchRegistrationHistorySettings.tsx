@@ -176,7 +176,7 @@ export default function BatchRegistrationHistorySettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] pb-7">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
       {/* Title */}
       <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
         일괄 등록 이력

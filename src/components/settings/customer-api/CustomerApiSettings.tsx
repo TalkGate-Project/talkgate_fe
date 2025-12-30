@@ -127,7 +127,7 @@ export default function CustomerApiSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] pb-7 flex flex-col h-full">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 flex flex-col h-full">
       <h1 className="text-[24px] font-bold text-foreground px-7 leading-[1] h-[76px] flex items-center">
         고객등록 API
       </h1>

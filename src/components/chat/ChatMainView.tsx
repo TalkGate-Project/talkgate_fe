@@ -193,7 +193,7 @@ export default function ChatMainView({
   return (
     <div className="flex-1 flex justify-center h-full">
       <div 
-        className="min-w-[688px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col relative"
+        className="w-full lg:min-w-[688px] h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative"
         onDragEnter={canDrop ? handleDragEnter : undefined}
         onDragLeave={canDrop ? handleDragLeave : undefined}
         onDragOver={canDrop ? handleDragOver : undefined}
@@ -230,8 +230,26 @@ export default function ChatMainView({
           </div>
         )}
         {/* Header */}
-        <div className="px-7 py-[15px] flex items-center justify-between border-b border-border">
-          <div className="flex items-center gap-4">
+        <div className="px-4 md:px-7 py-3 md:py-[15px] flex items-center justify-between border-b border-border">
+          <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+            {/* 모바일 뒤로가기 버튼 */}
+            <button
+              onClick={onCloseConversation}
+              className="lg:hidden cursor-pointer p-1 -ml-1 mr-1"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
             {activeConversation ? (
               <>
                 <ConversationAvatar
@@ -239,17 +257,17 @@ export default function ChatMainView({
                   profileUrl={activeConversation.profileUrl}
                   size="md"
                 />
-                <div>
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center leading-[24px] gap-2">
-                    <span className="text-[20px] font-bold text-ink">
+                    <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
                       {activeConversation.name}
                     </span>
                     <div className="shrink-0 w-5 h-5">
                       <PlatformIcon platform={activeConversation.platform} />
                     </div>
                   </div>
-                  <div className="text-[12px] text-neutral-60">
-                    ID : {activeConversation.platformConversationId || "-"}
+                  <div className="text-[12px] text-neutral-60 truncate">
+                    {activeConversation.platformConversationId || "-"}
                   </div>
                 </div>
               </>
@@ -261,7 +279,8 @@ export default function ChatMainView({
               - 대화방 선택 시 getConversationById로 customerId 포함된 상세 정보 조회
               - linkCustomer API 호출 후 로컬 상태 즉시 업데이트 (Optimistic UI)
           */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
+            {/* 모바일에서는 연동 버튼과 상담완료 버튼만 표시 */}
             <button
               className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${
                 activeConversation?.customerId
@@ -275,13 +294,13 @@ export default function ChatMainView({
             {activeConversation && activeConversation.customerId && (
               <button 
                 onClick={onOpenCustomerDetail}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="hidden md:block cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 고객정보
               </button>
             )}
             <button
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-[34px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               onClick={onCloseConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"
@@ -296,7 +315,7 @@ export default function ChatMainView({
         {/* Messages area */}
         {activeConversation ? (
           <div
-            className="flex-1 overflow-auto p-7 space-y-5"
+            className="flex-1 overflow-auto p-4 md:p-7 space-y-4 md:space-y-5"
             ref={messagesScrollRef}
             onScroll={onMessagesScroll}
           >

@@ -421,7 +421,7 @@ export default function GeneralSettings() {
   return (
     <div className="space-y-8">
       {/* 일반설정 - 프로젝트 이름 */}
-      <div className="bg-card rounded-[14px] shadow-sm pb-7">
+      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-7">
         <h1 className="text-[24px] font-bold text-neutral-90 leading-[20px] px-7 h-[76px] flex items-center">
           일반설정
         </h1>

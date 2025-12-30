@@ -30,7 +30,7 @@ export default function ChatInputBar({
   disabled = false,
 }: Props) {
   return (
-    <div className="h-[76px] px-6 border-t border-border dark:border-neutral-30">
+    <div className="h-[76px] px-3 md:px-6 border-t border-border dark:border-neutral-30">
       <div className="h-full flex items-center gap-1">
         <input
           value={input}
@@ -41,7 +41,7 @@ export default function ChatInputBar({
               onSend();
             }
           }}
-          className="flex-1 h-[44px] rounded-[8px] px-4 text-[14px] outline-none disabled:cursor-not-allowed"
+          className="flex-1 h-[44px] rounded-[8px] px-3 md:px-4 text-[14px] outline-none disabled:cursor-not-allowed"
           placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
           disabled={disabled}
         />
@@ -116,7 +116,7 @@ export default function ChatInputBar({
           </svg>
         </button>
         <button
-          className="cursor-pointer h-[34px] text-[14px] px-3 rounded-[8px] bg-neutral-90 text-neutral-20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer h-[34px] text-[12px] md:text-[14px] px-2 md:px-3 rounded-[8px] bg-neutral-90 text-neutral-20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           onClick={onSend}
           disabled={disabled || !connected}
         >

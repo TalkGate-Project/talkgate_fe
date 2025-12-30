@@ -74,7 +74,7 @@ export default function NotificationTab() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] pb-[140px]">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-[140px]">
       {/* Title */}
       <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
         알림 설정
