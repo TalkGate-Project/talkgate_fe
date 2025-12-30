@@ -28,4 +28,42 @@ export function formatDateTime(dateInput?: string | Date | number | null): strin
   return date.format("YYYY-MM-DD HH:mm");
 }
 
+/**
+ * 날짜를 한국어 형식 "YYYY. MM. DD." 형식으로 포맷합니다.
+ * @param dateString - 날짜 문자열
+ * @returns 포맷된 날짜 문자열 (예: "2025. 09. 15.")
+ */
+export function formatDateKR(dateString?: string | null): string {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date
+    .toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\. /g, ". ");
+}
+
+/**
+ * 날짜와 시간을 한국어 형식 "YYYY. MM. DD. HH:mm:ss" 형식으로 포맷합니다.
+ * @param dateString - 날짜 문자열
+ * @returns 포맷된 날짜+시간 문자열 (예: "2025. 09. 15. 14:20:30")
+ */
+export function formatDateTimeKR(dateString?: string | null): string {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date
+    .toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+    .replace(/\. /g, ". ");
+}
 

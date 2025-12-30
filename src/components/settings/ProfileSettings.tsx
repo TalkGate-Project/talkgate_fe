@@ -310,7 +310,7 @@ export default function ProfileSettings() {
                 size="sm"
                 onClick={handleSaveProfile}
                 loading={isSaving}
-                className="bg-neutral-90 dark:bg-neutral-80 text-white hover:opacity-90"
+                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-10 hover:bg-neutral-80 dark:hover:bg-neutral-70"
               >
                 저장
               </AsyncButton>

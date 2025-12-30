@@ -59,7 +59,7 @@ export default function CustomerDetailModal({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-[92vw] max-w-[1284px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[700px]"
+      containerClassName="relative w-[92vw] max-w-[1284px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:h-[90vh] lg:h-[546px] xl:h-[700px]"
       ariaLabel="고객정보"
     >
       {/* Header */}
@@ -91,7 +91,7 @@ export default function CustomerDetailModal({
 
       <div className="flex-1 overflow-y-auto min-h-0 -mx-2 pl-2 pr-4 custom-scrollbar">
         {loading && (
-          <div className="py-16 text-center text-neutral-60 dark:text-neutral-60">불러오는 중...</div>
+          <div className="py-16 text-center text-neutral-60 dark:text-neutral-60 min-w-[600px]">불러오는 중...</div>
         )}
 
         {!loading && detail && (
