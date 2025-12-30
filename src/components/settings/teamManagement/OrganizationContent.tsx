@@ -96,7 +96,8 @@ export default function OrganizationContent({
   };
 
   const renderOrgNode = (node: OrgNode, index: number = 0) => {
-    const isNodeLeader = node.role === "leader" || node.id === memberId;
+    // role이 "leader"인 경우에만 팀장으로 표시 (팀원은 회색 배경)
+    const isNodeLeader = node.role === "leader";
     const indent = getIndent(node.level);
     const connectorLeft = getConnectorLeft(node.level);
     const hasChildren = node.children && node.children.length > 0;
