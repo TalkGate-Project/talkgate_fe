@@ -50,3 +50,9 @@ export interface MoveTeamInput {
   memberId: number;
   newParentId: number;
 }
+
+export interface UpdateTeamInput {
+  projectId: string | number;
+  memberId: number;
+  teamName: string;
+}
