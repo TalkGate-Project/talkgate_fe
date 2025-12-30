@@ -132,6 +132,17 @@ export default function ChatView({ projectId }: Props) {
     }
   }, [isWideLayout, isAiSidebarOpen]);
 
+  // AI 사이드바 닫기 이벤트 리스너
+  useEffect(() => {
+    const handleCloseAiSidebar = () => {
+      setIsAiSidebarOpen(false);
+    };
+    window.addEventListener("close-ai-sidebar", handleCloseAiSidebar);
+    return () => {
+      window.removeEventListener("close-ai-sidebar", handleCloseAiSidebar);
+    };
+  }, []);
+
   const openLinkFlow = useCallback(() => {
     if (!activeId) {
       notify("error", "대화방을 먼저 선택해주세요.");
@@ -296,45 +307,59 @@ export default function ChatView({ projectId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
+  // 모바일에서 채팅방 닫기
+  const handleCloseConversationMobile = useCallback(() => {
+    setActiveId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("conversationId");
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [setActiveId, searchParams, router]);
+
   return (
     <div className="flex gap-8 h-full relative">
-      <ChatLeftSidebar
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        filterOpen={filterOpen}
-        setFilterOpen={setFilterOpen}
-        conversations={conversations}
-        activeId={activeId}
-        onSelectConversation={setActiveId}
-        loadMoreConversations={loadMoreConversations}
-        hasMoreConversations={conversationsPage.hasMore}
-      />
+      {/* 모바일: 리스트가 기본, 채팅방 선택 시 오버레이 */}
+      <div className={`lg:block ${activeId ? "hidden lg:block" : "block"} w-full lg:w-auto h-full`}>
+        <ChatLeftSidebar
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          filterOpen={filterOpen}
+          setFilterOpen={setFilterOpen}
+          conversations={conversations}
+          activeId={activeId}
+          onSelectConversation={setActiveId}
+          loadMoreConversations={loadMoreConversations}
+          hasMoreConversations={conversationsPage.hasMore}
+        />
+      </div>
 
-      <ChatMainView
-        activeConversation={activeConversation}
-        messages={messages}
-        banner={banner}
-        connected={connected}
-        socketError={socketError}
-        input={input}
-        setInput={setInput}
-        onSend={onSend}
-        onOpenLinkFlow={openLinkFlow}
-        onOpenUnlinkModal={openUnlinkModal}
-        onOpenCustomerDetail={openCustomerDetail}
-        onCloseConversation={closeConversation}
-        attachmentUploading={attachmentUploading}
-        onAttachImage={onAttachImage}
-        onAttachFile={onAttachFile}
-        onClickEmoji={handleEmojiButtonClick}
-        emojiButtonRef={emojiButtonRef}
-        emojiPickerOpen={emojiPickerOpen}
-        loadOlderMessages={loadOlderMessages}
-        isMessagesLoading={isMessagesLoading}
-        onDropFile={sendAttachment}
-      />
+      {/* 모바일: 채팅방이 오버레이로 표시 */}
+      <div className={`lg:block ${activeId ? "block" : "hidden lg:block"} absolute lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-background lg:bg-transparent`}>
+        <ChatMainView
+          activeConversation={activeConversation}
+          messages={messages}
+          banner={banner}
+          connected={connected}
+          socketError={socketError}
+          input={input}
+          setInput={setInput}
+          onSend={onSend}
+          onOpenLinkFlow={openLinkFlow}
+          onOpenUnlinkModal={openUnlinkModal}
+          onOpenCustomerDetail={openCustomerDetail}
+          onCloseConversation={handleCloseConversationMobile}
+          attachmentUploading={attachmentUploading}
+          onAttachImage={onAttachImage}
+          onAttachFile={onAttachFile}
+          onClickEmoji={handleEmojiButtonClick}
+          emojiButtonRef={emojiButtonRef}
+          emojiPickerOpen={emojiPickerOpen}
+          loadOlderMessages={loadOlderMessages}
+          isMessagesLoading={isMessagesLoading}
+          onDropFile={sendAttachment}
+        />
+      </div>
 
       {/* 1440px 이상: 기존 우측 사이드바 사용 */}
       {isWideLayout && (
@@ -342,21 +367,23 @@ export default function ChatView({ projectId }: Props) {
       )}
 
       {/* 1440px 미만: 플로팅 버튼 + 모달 형태의 AI 상담 도우미 */}
-      {!isWideLayout && (
+      {/* 모바일에서는 채팅방이 열려있을 때만 AI 버튼 표시 */}
+      {!isWideLayout && activeId && (
         <>
           {/* 플로팅 버튼 */}
           <button
             type="button"
             aria-label="open-ai-assistant"
-            className="fixed bottom-[94px] right-8 z-[80] cursor-pointer"
+            className="fixed bottom-[94px] right-4 md:right-8 z-[80] cursor-pointer flex flex-col items-center gap-1"
             onClick={() => setIsAiSidebarOpen(true)}
           >
             <svg
               width="68"
-              height="79"
+              height="68"
               viewBox="0 0 68 79"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
+              className="w-[68px] h-[68px]"
             >
               <g filter="url(#filter0_d_190_1531)">
                 <circle
@@ -434,8 +461,8 @@ export default function ChatView({ projectId }: Props) {
                 className="absolute inset-0 bg-black/20"
                 onClick={() => setIsAiSidebarOpen(false)}
               />
-              <div className="absolute bottom-44 right-0 w-[320px] max-w-[90vw]">
-                <div className="h-full min-h-[420px] max-h-[80vh]">
+              <div className="absolute bottom-0 md:bottom-44 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[420px] md:max-h-[80vh]">
+                <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg overflow-hidden flex flex-col">
                   <ChatRightSidebar
                     projectId={projectId}
                     conversationId={activeId}

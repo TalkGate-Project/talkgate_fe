@@ -68,19 +68,13 @@ export default function ChatFilterModal({
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      {/* POP-UP 440x336 centered */}
+      {/* 모바일: 전체 너비, 데스크탑: 고정 너비 */}
       <div
-        className="absolute"
-        style={{
-          width: 440,
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] md:w-[440px] max-h-[90vh] overflow-y-auto"
       >
-        <div className="relative w-full h-full bg-neutral-0 dark:bg-neutral-10 rounded-[14px]">
+        <div className="relative w-full bg-neutral-0 dark:bg-neutral-10 rounded-[14px]">
           {/* Header */}
-          <div className="px-7 pt-6 pb-[30px] flex items-center justify-between">
+          <div className="px-4 md:px-7 pt-4 md:pt-6 pb-4 md:pb-[30px] flex items-center justify-between">
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">
               필터설정
             </h2>
@@ -108,15 +102,15 @@ export default function ChatFilterModal({
           </div>
 
           {/* Body */}
-          <div className="px-7 space-y-6 mb-[30px]">
+          <div className="px-4 md:px-7 space-y-5 md:space-y-6 mb-4 md:mb-[30px]">
             {/* 메신저 아이콘 */}
             <div>
               <div className="text-[14px] text-medium text-neutral-60 mb-2">메신저</div>
-              <div className="flex items-center gap-3">
+              <div className="grid grid-cols-4 md:flex md:items-center gap-2 md:gap-3">
                 {/* 전체 버튼 */}
                 <button
                   onClick={() => setMessenger("all")}
-                  className={`cursor-pointer w-[48px] h-[34px] rounded-[5px] border text-[14px] ${
+                  className={`cursor-pointer w-full md:w-[48px] h-[34px] rounded-[5px] border text-[14px] ${
                     messenger === "all"
                       ? "border-2 border-primary-40 bg-primary-10/30 font-bold"
                       : "border-border bg-card dark:bg-neutral-10"
@@ -130,7 +124,7 @@ export default function ChatFilterModal({
                     <button
                       key={it.key}
                       onClick={() => setMessenger(it.key)}
-                      className={`cursor-pointer w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
+                      className={`cursor-pointer w-full md:w-[44px] h-[34px] rounded-[5px] border grid place-items-center ${
                         messenger === it.key
                           ? "border-2 border-primary-40 bg-primary-10/30 dark:!bg-primary-10/10"
                           : "border-border bg-card dark:bg-neutral-10"
@@ -251,9 +245,9 @@ export default function ChatFilterModal({
           </div>
 
           {/* Footer */}
-          <div className="px-7 py-3 flex items-center justify-end gap-3 border-t border-neutral-30">
+          <div className="px-4 md:px-7 py-3 flex items-center justify-end gap-2 md:gap-3 border-t border-neutral-30">
             <button
-              className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 dark:bg-neutral-10"
+              className="cursor-pointer flex-1 md:flex-none md:w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 dark:bg-neutral-10"
               onClick={() => {
                 setMessenger("all");
                 setStatuses([]);
@@ -262,7 +256,7 @@ export default function ChatFilterModal({
               초기화
             </button>
             <button
-              className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
+              className="cursor-pointer flex-1 md:flex-none md:w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
               onClick={() => onApply({ messenger, statuses })}
             >
               적용완료

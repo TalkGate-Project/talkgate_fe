@@ -16,12 +16,12 @@ export default function CustomerLinkModeModal({
   return (
     <div className="fixed inset-0 z-[120]">
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[440px] -translate-x-1/2 -translate-y-1/2">
-        <div className="relative w-full rounded-[16px] bg-neutral-0 dark:bg-neutral-10 px-7 py-6">
+      <div className="absolute left-1/2 top-1/2 w-[calc(100%-32px)] md:w-[440px] max-w-[440px] -translate-x-1/2 -translate-y-1/2 max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full rounded-[16px] bg-neutral-0 dark:bg-neutral-10 px-4 md:px-7 py-4 md:py-6">
           <button
             aria-label="close"
             onClick={onClose}
-            className="cursor-pointer absolute right-6 top-6 h-8 w-8 rounded-full"
+            className="cursor-pointer absolute right-4 md:right-6 top-4 md:top-6 h-8 w-8 rounded-full"
           >
             <svg
               width="24"
@@ -39,17 +39,17 @@ export default function CustomerLinkModeModal({
               />
             </svg>
           </button>
-          <h2 className="text-[18px] font-semibold text-foreground">
+          <h2 className="text-[18px] font-semibold text-foreground pr-8">
             고객 연동 방식 선택
           </h2>
-          <p className="mt-[30px] text-[14px] text-neutral-60 text-center">
+          <p className="mt-4 md:mt-[30px] text-[14px] text-neutral-60 text-center">
             고객 정보 연동 방식을 선택해주세요.
           </p>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-4 md:mt-5 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <button
               onClick={() => onSelect("create")}
-              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
+              className="cursor-pointer group h-[156px] w-full md:max-w-[186px] mx-auto rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-4 md:p-[18px] text-left transition-all hover:-translate-y-1 hover:border-primary-60 hover:shadow-[0_12px_32px_rgba(0,201,126,0.18)]"
               style={{
                 background: "var(--customer-link-create-gradient)",
               }}
@@ -126,7 +126,7 @@ export default function CustomerLinkModeModal({
 
             <button
               onClick={() => onSelect("existing")}
-              className="cursor-pointer group h-[156px] max-w-[186px] rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
+              className="cursor-pointer group h-[156px] w-full md:max-w-[186px] mx-auto rounded-[14px] border border-neutral-30 dark:border-neutral-30 p-4 md:p-[18px] text-left transition-all hover:-translate-y-1 hover:border-secondary-40 hover:shadow-[0_12px_32px_rgba(77,130,243,0.18)]"
               style={{
                 background: "var(--customer-link-existing-gradient)",
               }}

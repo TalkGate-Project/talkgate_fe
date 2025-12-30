@@ -101,10 +101,10 @@ export default function ChatLeftSidebar({
   };
 
   return (
-    <div className="max-w-[286px] h-full">
-      <div className="w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
-        <div className="px-7 pt-[26px] pb-[18px] flex items-center justify-between shrink-0">
-          <h2 className="text-[16px] font-bold text-neutral-90">상담 채팅</h2>
+    <div className="w-full lg:max-w-[286px] h-full">
+      <div className="w-full lg:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
+        <div className="px-4 md:px-7 pt-4 md:pt-[26px] pb-3 md:pb-[18px] flex items-center justify-between shrink-0">
+          <h2 className="text-[16px] font-bold text-neutral-90">상담채팅</h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
             <button
@@ -143,8 +143,8 @@ export default function ChatLeftSidebar({
           onApply={() => setFilterOpen(false)}
         />
         {/* Tabs */}
-        <div className="px-5">
-          <div className="grid grid-cols-3 gap-2 bg-neutral-20 dark:bg-neutral-20 rounded-[12px] px-3 py-2">
+        <div className="px-4 md:px-5">
+          <div className="grid grid-cols-3 gap-2 bg-neutral-20 dark:bg-neutral-20 rounded-[12px] px-2 md:px-3 py-2">
             <button
               className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
                 statusFilter === "all"
@@ -196,7 +196,7 @@ export default function ChatLeftSidebar({
         {/* List/Album */}
         {viewMode === "list" ? (
           <div
-            className="mt-3 flex-1 overflow-auto min-h-0"
+            className="mt-2 md:mt-3 flex-1 overflow-auto min-h-0"
             ref={convScrollRef}
             onScroll={onConversationsScroll}
           >
@@ -239,7 +239,7 @@ export default function ChatLeftSidebar({
                 return (
                   <button
                     key={c.id}
-                    className={`cursor-pointer w-full text-left px-4 py-4 h-[72px] border-t border-neutral-20 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-10 ${
+                    className={`cursor-pointer w-full text-left px-3 md:px-4 py-3 md:py-4 h-[72px] border-t border-neutral-20 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-10 ${
                       activeId === c.id ? "bg-neutral-10 dark:bg-neutral-10" : ""
                     }`}
                     onClick={() => handleConversationClick(c)}
@@ -286,13 +286,13 @@ export default function ChatLeftSidebar({
             )}
           </div>
         ) : (
-          <div className="mt-4 flex-1 overflow-auto px-4 min-h-0">
+          <div className="mt-2 md:mt-4 flex-1 overflow-auto px-3 md:px-4 min-h-0">
             {filteredConversations.length === 0 ? (
               <div className="h-full flex items-center justify-center text-neutral-60 text-[14px]">
                 대기중인 상담이 없습니다.
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {filteredConversations.map((c) => (
                   <Tooltip key={c.id} content={c.name} position="top" className="w-full h-full block">
                     <button

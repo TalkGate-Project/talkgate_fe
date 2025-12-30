@@ -1,10 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import BaseModal from "@/components/common/BaseModal";
 import { ConversationsService } from "@/services/conversations";
 import Pagination from "@/components/common/Pagination";
 import type { UnconnectedCustomer } from "@/types/conversations";
+
+// Simple scroll lock for fullscreen modals
+function lockBodyScroll() {
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+}
+
+function unlockBodyScroll() {
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
+}
 
 type Props = {
   open: boolean;
@@ -74,6 +84,22 @@ export default function CustomerLinkExistingModal({
     fetchCustomers(1, "");
   }, [open, fetchCustomers]);
 
+  useEffect(() => {
+    if (open) {
+      lockBodyScroll();
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape" && !linking) {
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKey);
+      return () => {
+        window.removeEventListener("keydown", handleKey);
+        unlockBodyScroll();
+      };
+    }
+  }, [open, linking, onClose]);
+
   const totalPages = useMemo(() => {
     if (total === 0) return 1;
     return Math.max(1, Math.ceil(total / PAGE_LIMIT));
@@ -106,23 +132,39 @@ export default function CustomerLinkExistingModal({
   const canNext = page < totalPages;
 
   return (
-    <BaseModal
-      onClose={() => (!linking ? onClose() : undefined)}
-      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-[848px] rounded-[14px] bg-neutral-0 dark:bg-neutral-10"
-      ariaLabel="기존 고객과 연동"
-    >
-      <div className="relative w-full h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-3">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90">
-            고객연동
-          </h2>
-          <button
-            aria-label="close"
-            onClick={() => !linking && onClose()}
-            className="cursor-pointer w-6 h-6 grid place-items-center"
-          >
+    <div className="fixed inset-0 z-[100] bg-black/30 dark:bg-[#000000CC]">
+      <div className="w-full h-full bg-neutral-0 dark:bg-neutral-10 flex flex-col">
+        <div className="relative w-full h-full flex flex-col">
+          {/* Header with back button */}
+          <div className="flex items-center gap-3 px-4 md:px-6 pt-4 md:pt-6 pb-3 shrink-0 border-b border-[#E2E2E266]">
+            <button
+              onClick={() => !linking && onBack()}
+              className="flex items-center gap-2 text-neutral-90 dark:text-neutral-70 hover:text-neutral-90 transition-colors"
+              aria-label="뒤로가기"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span className="text-[16px] font-medium">고객목록</span>
+            </button>
+            <div className="flex-1" />
+            <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90 absolute left-1/2 -translate-x-1/2">
+              고객연동
+            </h2>
+            <button
+              aria-label="close"
+              onClick={() => !linking && onClose()}
+              className="cursor-pointer w-6 h-6 grid place-items-center"
+            >
             <svg
               width="24"
               height="24"
@@ -140,16 +182,16 @@ export default function CustomerLinkExistingModal({
             </svg>
           </button>
         </div>
-        <div className="mt-[18px] leading-[1] px-6 pb-3 text-[14px] text-neutral-60">
+        <div className="mt-3 md:mt-[18px] leading-[1] px-4 md:px-6 pb-3 text-[14px] text-neutral-60 shrink-0">
           현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다.
         </div>
 
-        <div className="border-b border-[#E2E2E266] mx-7 mb-3"></div>
+        <div className="border-b border-[#E2E2E266] mx-4 md:mx-7 mb-3 shrink-0"></div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-4 md:pb-6 min-h-0">
           {/* Search */}
-          <div className="mb-3 max-w-[188px] flex items-center gap-3">
+          <div className="mb-3 w-full md:max-w-[188px] flex items-center gap-3">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -179,8 +221,9 @@ export default function CustomerLinkExistingModal({
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-hidden rounded-[12px] min-h-[340px]">
+          {/* Table - 데스크탑, 모바일은 카드 리스트 */}
+          {/* 데스크탑 테이블 */}
+          <div className="hidden md:block overflow-hidden rounded-[12px] min-h-[340px]">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-neutral-20 text-neutral-60">
@@ -275,8 +318,62 @@ export default function CustomerLinkExistingModal({
             </table>
           </div>
 
+          {/* 모바일 카드 리스트 */}
+          <div className="md:hidden space-y-3 min-h-[340px]">
+            {loading &&
+              Array.from({ length: PAGE_LIMIT }).map((_, idx) => (
+                <div
+                  key={`sk-${idx}`}
+                  className="bg-card rounded-[12px] p-4 border border-neutral-20 animate-pulse"
+                >
+                  <div className="h-4 bg-neutral-20 rounded mb-2 w-1/3"></div>
+                  <div className="h-3 bg-neutral-20 rounded w-1/2"></div>
+                </div>
+              ))}
+            {!loading && customers.length === 0 && (
+              <div className="h-[64px] flex items-center justify-center text-neutral-60 text-[14px]">
+                연동 가능한 고객이 없습니다.
+              </div>
+            )}
+            {!loading &&
+              customers.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-card rounded-[12px] p-4 border border-neutral-20"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="text-[16px] font-semibold text-neutral-90 mb-1">
+                        {c.name}
+                      </div>
+                      <div className="text-[14px] text-neutral-60">
+                        {c.ageRange && <span className="mr-3">연령: {c.ageRange}</span>}
+                        <span className="font-semibold">{c.contact1 || "-"}</span>
+                      </div>
+                    </div>
+                    <button
+                      className="cursor-pointer h-[28px] px-3 rounded-[6px] bg-neutral-90 text-[13px] text-neutral-0 shrink-0 ml-3"
+                      onClick={() => onLink(c.id)}
+                      disabled={linking}
+                    >
+                      연동
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-4 text-[12px] text-neutral-60 pt-2 border-t border-neutral-20">
+                    <span>담당팀: {c.assignedMember?.team?.name || "-"}</span>
+                    <span>담당자: {c.assignedMember?.name || "-"}</span>
+                  </div>
+                  {c.createdAt && (
+                    <div className="text-[12px] text-neutral-60 mt-1">
+                      등록일: {c.createdAt.slice(0, 10)}
+                    </div>
+                  )}
+                </div>
+              ))}
+          </div>
+
           {/* Pagination (bottom bar style) */}
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex items-center justify-between shrink-0">
             <span className="text-[14px] text-neutral-60">
               총 {total.toLocaleString()}건
             </span>
@@ -286,9 +383,9 @@ export default function CustomerLinkExistingModal({
               onPageChange={(n) => fetchCustomers(n, searchKeyword)}
               disabled={loading}
             />
-            <div className="min-w-[100px]"></div>
+            <div className="min-w-[100px] hidden md:block"></div>
           </div>
-          <div className="border-t border-[#E2E2E266] w-full mt-4 pt-3 flex items-center justify-end">
+          <div className="border-t border-[#E2E2E266] w-full mt-4 pt-3 flex items-center justify-end shrink-0">
             <button
               className="cursor-pointer h-[34px] px-4 rounded-[6px] border border-neutral-30 text-[14px]"
               onClick={onClose}
@@ -305,7 +402,8 @@ export default function CustomerLinkExistingModal({
             </div>
           )}
         </div>
+        </div>
       </div>
-    </BaseModal>
+    </div>
   );
 }
