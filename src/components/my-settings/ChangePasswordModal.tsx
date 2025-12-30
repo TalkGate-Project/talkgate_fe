@@ -91,7 +91,12 @@ export default function ChangePasswordModal({
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
 
       {/* Modal */}
-      <div className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px]">
+      <div 
+        className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px]"
+        style={{
+          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
+        }}
+      >
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -106,18 +111,19 @@ export default function ChangePasswordModal({
           >
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="#959595"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              className="dark:stroke-[#959595]"
             />
           </svg>
         </button>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="px-7 pt-6 pb-0">
           {/* Header */}
-          <div className="text-[18px] font-semibold text-foreground mb-6">
+          <div className="text-[18px] font-semibold text-foreground dark:text-[#FDFDFD] mb-6">
             비밀번호 변경
           </div>
 
@@ -125,7 +131,7 @@ export default function ChangePasswordModal({
           <div className="space-y-4 mb-6">
             {/* 현재 비밀번호 */}
             <div>
-              <label className="block text-[14px] font-medium text-foreground mb-2">
+              <label className="block text-[14px] font-medium text-foreground dark:text-[#B9B9B9] mb-2 tracking-[0.2px]">
                 현재 비밀번호
               </label>
               <div className="relative">
@@ -134,15 +140,15 @@ export default function ChangePasswordModal({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, current: true })}
-                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full h-[34px] px-3 pr-12 bg-card dark:bg-neutral-10 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] text-foreground dark:text-[#B9B9B9] placeholder:text-neutral-60 dark:placeholder:text-[#B9B9B9] focus:outline-none focus:border-foreground dark:focus:border-[#4D4D4D] tracking-[-0.02em]"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer text-[#959595] dark:text-[#959595]"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   aria-label={showCurrentPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
-                  {showCurrentPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+                  {showCurrentPassword ? <EyeOnIcon className="text-[#959595]" /> : <EyeOffIcon className="text-[#959595]" />}
                 </button>
               </div>
               {touched.current && !currentPassword && (
@@ -152,7 +158,7 @@ export default function ChangePasswordModal({
 
             {/* 새 비밀번호 */}
             <div>
-              <label className="block text-[14px] font-medium text-foreground mb-2">
+              <label className="block text-[14px] font-medium text-foreground dark:text-[#B9B9B9] mb-2 tracking-[0.2px]">
                 새 비밀번호
               </label>
               <div className="relative">
@@ -161,15 +167,15 @@ export default function ChangePasswordModal({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, new: true })}
-                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full h-[34px] px-3 pr-12 bg-card dark:bg-neutral-10 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] text-foreground dark:text-[#B9B9B9] placeholder:text-neutral-60 dark:placeholder:text-[#B9B9B9] focus:outline-none focus:border-foreground dark:focus:border-[#4D4D4D] tracking-[-0.02em]"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer text-[#959595] dark:text-[#959595]"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   aria-label={showNewPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
-                  {showNewPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+                  {showNewPassword ? <EyeOnIcon className="text-[#959595]" /> : <EyeOffIcon className="text-[#959595]" />}
                 </button>
               </div>
               {touched.new && newPassword && !isPasswordValid && (
@@ -188,7 +194,7 @@ export default function ChangePasswordModal({
 
             {/* 새 비밀번호 확인 */}
             <div>
-              <label className="block text-[14px] font-medium text-foreground mb-2">
+              <label className="block text-[14px] font-medium text-foreground dark:text-[#B9B9B9] mb-2 tracking-[0.2px]">
                 새 비밀번호 확인
               </label>
               <div className="relative">
@@ -197,15 +203,15 @@ export default function ChangePasswordModal({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onBlur={() => setTouched({ ...touched, confirm: true })}
-                  className="w-full px-3 py-2 pr-12 bg-card border border-border rounded-[5px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full h-[34px] px-3 pr-12 bg-card dark:bg-neutral-10 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] text-foreground dark:text-[#B9B9B9] placeholder:text-neutral-60 dark:placeholder:text-[#B9B9B9] focus:outline-none focus:border-foreground dark:focus:border-[#4D4D4D] tracking-[-0.02em]"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer text-[#959595] dark:text-[#959595]"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   aria-label={showConfirmPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                 >
-                  {showConfirmPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+                  {showConfirmPassword ? <EyeOnIcon className="text-[#959595]" /> : <EyeOffIcon className="text-[#959595]" />}
                 </button>
               </div>
               {touched.confirm && confirmPassword && !passwordsMatch && (
@@ -218,28 +224,28 @@ export default function ChangePasswordModal({
           </div>
 
           {/* Password Requirements */}
-          <div className="bg-muted rounded-[5px] p-4 mb-6">
-            <div className="text-[12px] text-neutral-60 space-y-1">
+          <div className="mb-6">
+            <div className="text-[14px] text-neutral-60 dark:text-[#B9B9B9] space-y-1 tracking-[0.2px]">
               <div>• 비밀번호는 최소 8자 이상이어야 합니다.</div>
               <div>• 대문자, 소문자, 숫자, 특수문자를 모두 포함하여 입력해 주세요.</div>
             </div>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={handleClose}
-              className="px-4 py-2 bg-card border border-border rounded-[5px] text-[14px] font-semibold text-foreground hover:bg-muted cursor-pointer"
-            >
-              취소
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="px-4 py-2 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 cursor-pointer"
-            >
-              비밀번호 변경
-            </button>
-          </div>
+        {/* Action Buttons Section */}
+        <div className="border-t border-border dark:border-[#4D4D4D] px-7 py-3 flex justify-end gap-3">
+          <button
+            onClick={handleClose}
+            className="h-[34px] px-3 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] bg-card dark:bg-transparent hover:bg-muted dark:hover:bg-neutral-20 cursor-pointer tracking-[-0.02em]"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="h-[34px] px-3 bg-neutral-90 dark:bg-[#F5F5F5] text-white dark:text-[#333333] rounded-[5px] text-[14px] font-semibold hover:opacity-90 dark:hover:opacity-80 cursor-pointer tracking-[-0.02em]"
+          >
+            비밀번호 변경
+          </button>
         </div>
       </div>
     </div>

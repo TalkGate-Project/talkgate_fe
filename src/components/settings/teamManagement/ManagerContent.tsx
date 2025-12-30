@@ -102,7 +102,7 @@ export default function ManagerContent({
                       realName: e.target.value,
                     }))
                   }
-                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
+                  className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-foreground dark:bg-neutral-20"
                 />
               ) : (
                 <span className="text-[14px] font-medium text-foreground leading-6">
@@ -162,7 +162,7 @@ export default function ManagerContent({
                       address: e.target.value,
                     }))
                   }
-                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
+                  className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-foreground dark:bg-neutral-20"
                 />
               ) : (
                 <span className="flex-1 text-[14px] font-medium text-foreground leading-6">
