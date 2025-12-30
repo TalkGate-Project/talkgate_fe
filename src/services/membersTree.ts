@@ -41,10 +41,8 @@ export const MembersTreeService = {
 
   async deleteTeam(input: DeleteTeamInput) {
     const { projectId, memberId } = input;
-    await apiClient.request("/v1/members-tree/team", {
-      method: "DELETE",
+    await apiClient.delete(`/v1/members-tree/team/${memberId}`, {
       headers: { "x-project-id": String(projectId) },
-      body: { memberId },
     });
   },
 

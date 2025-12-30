@@ -205,6 +205,8 @@ export default function TeamMemberInfoModal({
         memberId: memberId,
         teamName: trimmed,
       });
+      // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
       setTeamCreateMode(false);
       setTeamNameDraft("");
     } catch (err: any) {
@@ -259,6 +261,7 @@ export default function TeamMemberInfoModal({
         memberId: memberId,
         teamName: trimmed,
       });
+      // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
       await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
       setTeamEditMode(false);
       showErrorModal({
