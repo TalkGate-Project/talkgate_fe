@@ -64,3 +64,17 @@ export function useDeleteTeamMutation(projectId?: string | number | null) {
     },
   });
 }
+
+export function useUpdateTeamMutation(projectId?: string | number | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { memberId: number; teamName: string }) => {
+      if (!projectId) throw new Error("프로젝트가 선택되지 않았습니다.");
+      return MembersTreeService.updateTeam({ ...input, projectId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
+    },
+  });
+}

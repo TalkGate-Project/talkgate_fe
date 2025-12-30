@@ -21,6 +21,12 @@ type Props = {
   onDeleteTeam: () => void;
   isCreatingTeam: boolean;
   isDeletingTeam: boolean;
+  teamEditMode: boolean;
+  setTeamEditMode: (mode: boolean) => void;
+  teamEditDraft: string;
+  setTeamEditDraft: (draft: string) => void;
+  onUpdateTeam: () => Promise<void>;
+  isUpdatingTeam: boolean;
 };
 
 // 모든 노드 ID를 수집하는 헬퍼 함수
@@ -51,6 +57,12 @@ export default function OrganizationContent({
   onDeleteTeam,
   isCreatingTeam,
   isDeletingTeam,
+  teamEditMode,
+  setTeamEditMode,
+  teamEditDraft,
+  setTeamEditDraft,
+  onUpdateTeam,
+  isUpdatingTeam,
 }: Props) {
   // 모든 노드를 기본적으로 열린 상태로 초기화
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(() => {
@@ -252,17 +264,64 @@ export default function OrganizationContent({
         ))}
       {canDeleteTeam && (
         <div className="flex items-center gap-2">
-          <span className="text-[14px] text-foreground">{teamName}</span>
-          <button
-            type="button"
-            onClick={onDeleteTeam}
-            disabled={isDeletingTeam}
-            className={`${
-              isDeletingTeam ? "cursor-not-allowed" : "cursor-pointer"
-            } h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card disabled:opacity-60`}
-          >
-            {isDeletingTeam ? "제거 중..." : "팀 제거"}
-          </button>
+          {teamEditMode ? (
+            <>
+              <input
+                value={teamEditDraft}
+                onChange={(e) => setTeamEditDraft(e.target.value)}
+                placeholder="팀이름을 입력하세요"
+                className="h-[34px] flex-1 max-w-[240px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTeamEditMode(false);
+                    setTeamEditDraft(teamName || "");
+                  }}
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
+                >
+                  취소
+                </button>
+                <AsyncButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={onUpdateTeam}
+                  loading={isUpdatingTeam}
+                  className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+                >
+                  저장
+                </AsyncButton>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="text-[14px] text-foreground">{teamName}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTeamEditMode(true);
+                  setTeamEditDraft(teamName || "");
+                }}
+                className="cursor-pointer w-6 h-6 grid place-items-center hover:opacity-80 transition-opacity"
+                aria-label="팀 이름 수정"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20.2677 3.73223L20.9748 3.02513V3.02513L20.2677 3.73223ZM6.5 21.0355V22.0355C6.76522 22.0355 7.01957 21.9301 7.20711 21.7426L6.5 21.0355ZM3 21.0355H2C2 21.5878 2.44772 22.0355 3 22.0355V21.0355ZM3 17.4644L2.29289 16.7573C2.10536 16.9448 2 17.1992 2 17.4644H3ZM16.7322 3.73223L17.4393 4.43934C18.0251 3.85355 18.9748 3.85355 19.5606 4.43934L20.2677 3.73223L20.9748 3.02513C19.608 1.65829 17.3919 1.65829 16.0251 3.02513L16.7322 3.73223ZM20.2677 3.73223L19.5606 4.43934C20.1464 5.02513 20.1464 5.97487 19.5606 6.56066L20.2677 7.26777L20.9748 7.97487C22.3417 6.60804 22.3417 4.39196 20.9748 3.02513L20.2677 3.73223ZM20.2677 7.26777L19.5606 6.56066L5.79289 20.3284L6.5 21.0355L7.20711 21.7426L20.9748 7.97487L20.2677 7.26777ZM6.5 21.0355V20.0355H3V21.0355V22.0355H6.5V21.0355ZM16.7322 3.73223L16.0251 3.02513L2.29289 16.7573L3 17.4644L3.70711 18.1715L17.4393 4.43934L16.7322 3.73223ZM3 17.4644H2V21.0355H3H4V17.4644H3ZM15.2322 5.23223L14.5251 5.93934L18.0606 9.47487L18.7677 8.76777L19.4748 8.06066L15.9393 4.52513L15.2322 5.23223Z" fill="#B0B0B0"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={onDeleteTeam}
+                disabled={isDeletingTeam}
+                className={`${
+                  isDeletingTeam ? "cursor-not-allowed" : "cursor-pointer"
+                } h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card disabled:opacity-60`}
+              >
+                {isDeletingTeam ? "제거 중..." : "팀 제거"}
+              </button>
+            </>
+          )}
         </div>
       )}
 

@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useMyMember } from "@/hooks/useMyMember";
-import { useCreateTeamMutation, useDeleteTeamMutation } from "@/hooks/useMembersTree";
+import { useCreateTeamMutation, useDeleteTeamMutation, useUpdateTeamMutation } from "@/hooks/useMembersTree";
 import { HRService } from "@/services/hr";
 import type { HrNote } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -37,6 +37,8 @@ export default function TeamMemberInfoModal({
   const [noteInput, setNoteInput] = useState("");
   const [teamCreateMode, setTeamCreateMode] = useState(false);
   const [teamNameDraft, setTeamNameDraft] = useState("");
+  const [teamEditMode, setTeamEditMode] = useState(false);
+  const [teamEditDraft, setTeamEditDraft] = useState("");
   const [profileEditMode, setProfileEditMode] = useState(false);
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
@@ -47,6 +49,7 @@ export default function TeamMemberInfoModal({
   });
   const createTeam = useCreateTeamMutation(projectId);
   const deleteTeam = useDeleteTeamMutation(projectId);
+  const updateTeam = useUpdateTeamMutation(projectId);
   const projectIdString = projectId !== null ? String(projectId) : null;
   const { isAdminOrSubAdmin } = useMyMember(projectIdString);
 
@@ -61,6 +64,8 @@ export default function TeamMemberInfoModal({
     setNoteInput("");
     setTeamCreateMode(false);
     setTeamNameDraft("");
+    setTeamEditMode(false);
+    setTeamEditDraft("");
     setProfileEditMode(false);
     setHrFormData({
       realName: member.hrData?.realName ?? "",
@@ -200,6 +205,8 @@ export default function TeamMemberInfoModal({
         memberId: memberId,
         teamName: trimmed,
       });
+      // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
       setTeamCreateMode(false);
       setTeamNameDraft("");
     } catch (err: any) {
@@ -240,6 +247,38 @@ export default function TeamMemberInfoModal({
         }
       },
     });
+  };
+
+  const handleUpdateTeam = async () => {
+    const trimmed = teamEditDraft.trim();
+    if (!trimmed || updateTeam.isPending) return;
+    if (trimmed === member?.teamInfo?.name) {
+      setTeamEditMode(false);
+      return;
+    }
+    try {
+      await updateTeam.mutateAsync({
+        memberId: memberId,
+        teamName: trimmed,
+      });
+      // 멤버 상세 정보 쿼리 무효화하여 최신 데이터 반영
+      await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
+      setTeamEditMode(false);
+      showErrorModal({
+        type: "success",
+        headline: "팀 이름이 변경되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } catch (err: any) {
+      console.error(err);
+      showErrorModal({
+        type: "error",
+        headline: "팀 이름 변경 실패. 잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
   };
 
   // 팀 생성 권한: subAdmin 이상만 가능 (팀장이 아닌 경우에만)
@@ -502,6 +541,12 @@ export default function TeamMemberInfoModal({
                 onDeleteTeam={handleDeleteTeam}
                 isCreatingTeam={createTeam.isPending}
                 isDeletingTeam={deleteTeam.isPending}
+                teamEditMode={teamEditMode}
+                setTeamEditMode={setTeamEditMode}
+                teamEditDraft={teamEditDraft}
+                setTeamEditDraft={setTeamEditDraft}
+                onUpdateTeam={handleUpdateTeam}
+                isUpdatingTeam={updateTeam.isPending}
               />
             ) : isAdminOrSubAdmin ? (
               <ManagerContent
@@ -535,6 +580,12 @@ export default function TeamMemberInfoModal({
                 onDeleteTeam={handleDeleteTeam}
                 isCreatingTeam={createTeam.isPending}
                 isDeletingTeam={deleteTeam.isPending}
+                teamEditMode={teamEditMode}
+                setTeamEditMode={setTeamEditMode}
+                teamEditDraft={teamEditDraft}
+                setTeamEditDraft={setTeamEditDraft}
+                onUpdateTeam={handleUpdateTeam}
+                isUpdatingTeam={updateTeam.isPending}
               />
             )}
           </section>
