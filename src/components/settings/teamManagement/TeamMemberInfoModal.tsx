@@ -8,18 +8,13 @@ import { useMemberDetail } from "@/hooks/useMemberDetail";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useCreateTeamMutation, useDeleteTeamMutation } from "@/hooks/useMembersTree";
 import { HRService } from "@/services/hr";
-import DatePicker from "@/components/common/DatePicker";
-import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
-import TeamNameBadge from "@/components/common/TeamNameBadge";
-import type {
-  MemberDetail,
-  HrNote,
-  TeamChangeLog,
-  OrganizationTreeNode,
-} from "@/types/members";
+import type { HrNote } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import AsyncButton from "@/components/common/AsyncButton";
+import RoleBadge from "./RoleBadge";
+import OrganizationContent from "./OrganizationContent";
+import ManagerContent from "./ManagerContent";
+import { initialFromName, getRoleLabel, transformOrgTree } from "./memberInfoUtils";
 
 type Props = {
   open: boolean;
@@ -29,107 +24,6 @@ type Props = {
 };
 
 type TabKey = "organization" | "manager";
-
-type OrgNode = {
-  id: number;
-  name: string;
-  avatar: string;
-  role: "leader" | "member" | string;
-  department?: string;
-};
-
-function Badge({
-  label,
-  variant,
-}: {
-  label: string;
-  variant?: "primary" | "secondary" | "neutral";
-}) {
-  const styles = {
-    primary: { background: "#D6FAE8", color: "#00B55B" },
-    secondary: { background: "#D3E1FE", color: "#4D82F3" },
-    neutral: { background: "#E2E2E2", color: "#595959" },
-  } as const;
-  const tone = styles[variant ?? "secondary"];
-  return (
-    <span
-      className="px-3 py-1 rounded-[30px] text-[12px] font-medium leading-[1]"
-      style={{ background: tone.background, color: tone.color, opacity: 0.8 }}
-    >
-      {label}
-    </span>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-2">
-      <span className="text-[14px] text-neutral-60">{label}</span>
-      <span className="text-[14px] font-medium text-foreground">{value}</span>
-    </div>
-  );
-}
-
-function initialFromName(name: string): string {
-  if (!name) return "?";
-  const trimmed = name.trim();
-  if (!trimmed) return "?";
-  return trimmed.charAt(0);
-}
-
-function formatDate(dateString: string): string {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date
-    .toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .replace(/\. /g, ". ");
-}
-
-function formatDateTime(dateString: string): string {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date
-    .toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })
-    .replace(/\. /g, ". ");
-}
-
-function flattenOrgTree(node: OrganizationTreeNode | undefined): OrgNode[] {
-  if (!node) return [];
-  const result: OrgNode[] = [];
-
-  // 본인 추가
-  result.push({
-    id: node.id,
-    name: node.name,
-    avatar: initialFromName(node.name),
-    role: node.role,
-    department: node.teamName,
-  });
-
-  // descendants 추가
-  (node.descendants ?? []).forEach((child) => {
-    result.push({
-      id: child.id,
-      name: child.name,
-      avatar: initialFromName(child.name),
-      role: child.role,
-      department: child.teamName,
-    });
-  });
-
-  return result;
-}
 
 export default function TeamMemberInfoModal({
   open,
@@ -153,18 +47,15 @@ export default function TeamMemberInfoModal({
   });
   const createTeam = useCreateTeamMutation(projectId);
   const deleteTeam = useDeleteTeamMutation(projectId);
-  // projectId를 string | null로 변환 (number인 경우 문자열로 변환)
   const projectIdString = projectId !== null ? String(projectId) : null;
   const { isAdminOrSubAdmin } = useMyMember(projectIdString);
 
-  // API로 멤버 상세 정보 가져오기
   const { member, isLoading, isError } = useMemberDetail(
     open ? memberId : null
   );
 
   useEffect(() => {
     if (!open || !member) return;
-    // 권한이 없으면 항상 organization 탭으로 설정
     setTab("organization");
     setLocalNotes(member.hrNotes ?? []);
     setNoteInput("");
@@ -178,7 +69,6 @@ export default function TeamMemberInfoModal({
     });
   }, [member, open]);
 
-  // 권한이 없는데 manager 탭에 있으면 organization으로 변경
   useEffect(() => {
     if (tab === "manager" && !isAdminOrSubAdmin) {
       setTab("organization");
@@ -200,7 +90,6 @@ export default function TeamMemberInfoModal({
         note: trimmed,
       });
       await queryClient.invalidateQueries({ queryKey: ["members", "detail", memberId] });
-      // API 응답으로 받은 노트를 로컬 상태에 추가
       if (response.data?.data) {
         setLocalNotes((prev) => [response.data.data, ...prev]);
       }
@@ -218,7 +107,7 @@ export default function TeamMemberInfoModal({
     }
   };
 
-  const handleRemoveNote = async (noteId: number) => {
+  const handleRemoveNote = (noteId: number) => {
     if (isSubmittingNote) return;
 
     showErrorModal({
@@ -303,25 +192,30 @@ export default function TeamMemberInfoModal({
     }
   };
 
-  // 팀 생성 권한: subAdmin 이상만 가능 (팀장이 아닌 경우에만)
-  const isTargetLeader =
-    member?.role === "leader" ||
-    member?.role === "admin" ||
-    member?.role === "subAdmin";
-  const canCreateTeam = isAdminOrSubAdmin && !isTargetLeader;
-  
-  // 멤버가 팀장인지 확인
-  const isLeader = member?.role === "leader";
-  
-  // 팀 제거 권한: subAdmin 이상이고, 대상이 팀장이고, 팀이 있는 경우
-  const canDeleteTeam = isAdminOrSubAdmin && isLeader && member?.teamInfo?.name;
+  const handleCreateTeam = async () => {
+    const trimmed = teamNameDraft.trim();
+    if (!trimmed || createTeam.isPending) return;
+    try {
+      await createTeam.mutateAsync({
+        memberId: memberId,
+        teamName: trimmed,
+      });
+      setTeamCreateMode(false);
+      setTeamNameDraft("");
+    } catch (err: any) {
+      console.error(err);
+      showErrorModal({
+        type: "error",
+        headline: "팀 생성 실패. 잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
+  };
 
-  // 조직도 노드 계산
-  const teamNodes = flattenOrgTree(member?.organizationTree);
-
-  const handleDeleteTeam = async () => {
+  const handleDeleteTeam = () => {
     if (deleteTeam.isPending) return;
-    
+
     showErrorModal({
       type: "error",
       headline: "이 팀을 제거하시겠습니까?",
@@ -348,381 +242,21 @@ export default function TeamMemberInfoModal({
     });
   };
 
-  const organizationContent = (
-    <section className="border border-border rounded-[12px] p-5 space-y-5 dark:bg-neutral-10">
-      {canCreateTeam && (
-        teamCreateMode ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              value={teamNameDraft}
-              onChange={(e) => setTeamNameDraft(e.target.value)}
-              placeholder="팀이름을 입력하세요"
-              className="h-[34px] w-full max-w-[240px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
-            />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setTeamCreateMode(false);
-                  setTeamNameDraft("");
-                }}
-                className="h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
-              >
-                취소
-              </button>
-              <AsyncButton
-                variant="secondary"
-                size="sm"
-                onClick={async () => {
-                  const trimmed = teamNameDraft.trim();
-                  if (!trimmed || createTeam.isPending) return;
-                  try {
-                    await createTeam.mutateAsync({
-                      memberId: memberId,
-                      teamName: trimmed,
-                    });
-                    setTeamCreateMode(false);
-                    setTeamNameDraft("");
-                  } catch (err: any) {
-                    console.error(err);
-                    showErrorModal({
-                      type: "error",
-                      headline: "팀 생성 실패. 잠시 후 다시 시도해주세요.",
-                      hideCancel: true,
-                      confirmText: "확인",
-                    });
-                  }
-                }}
-                loading={createTeam.isPending}
-                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
-              >
-                저장
-              </AsyncButton>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setTeamCreateMode(true)}
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-secondary-60 text-[14px] font-semibold text-white"
-          >
-            팀 생성
-          </button>
-        )
-      )}
-      {canDeleteTeam && (
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] text-foreground">{member?.teamInfo?.name}</span>
-          <button
-            type="button"
-            onClick={handleDeleteTeam}
-            disabled={deleteTeam.isPending}
-            className={`${
-              deleteTeam.isPending ? "cursor-not-allowed" : "cursor-pointer"
-            } h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card disabled:opacity-60`}
-          >
-            {deleteTeam.isPending ? "제거 중..." : "팀 제거"}
-          </button>
-        </div>
-      )}
+  // 팀 생성 권한: subAdmin 이상만 가능 (팀장이 아닌 경우에만)
+  const isTargetLeader =
+    member?.role === "leader" ||
+    member?.role === "admin" ||
+    member?.role === "subAdmin";
+  const canCreateTeam = isAdminOrSubAdmin && !isTargetLeader;
 
-      <div className="space-y-3">
-        <span className="block text-[16px] font-semibold text-foreground">
-          조직도
-        </span>
-        <div className="space-y-2">
-          {teamNodes.map((node) => {
-            const isNodeLeader = node.role === "leader" || node.id === memberId;
-            return (
-              <div
-                key={node.id}
-                className={`flex items-center gap-3 px-5 py-3 rounded-[12px] ${
-                  isNodeLeader ? "bg-team-leader-highlight" : "bg-neutral-10 dark:bg-neutral-25"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full text-white text-[14px] font-semibold flex items-center justify-center ${
-                    isNodeLeader ? "bg-primary-80" : "bg-neutral-60"
-                  }`}
-                >
-                  {node.avatar}
-                </div>
-                <span className="text-[14px] font-medium text-foreground">
-                  {node.name}
-                </span>
-                {isNodeLeader && node.department && (
-                  <TeamNameBadge label={node.department} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
+  // 멤버가 팀장인지 확인
+  const isLeader = member?.role === "leader";
 
-  const roleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "관리자";
-      case "subAdmin":
-        return "부관리자";
-      case "leader":
-        return "팀장";
-      case "member":
-        return "팀원";
-      default:
-        return role;
-    }
-  };
+  // 팀 제거 권한: subAdmin 이상이고, 대상이 팀장이고, 팀이 있는 경우
+  const canDeleteTeam = isAdminOrSubAdmin && isLeader && member?.teamInfo?.name;
 
-  const managerContent = (
-    <div className="border border-border rounded-[12px] p-7 dark:bg-neutral-10">
-      {/* 프로필 정보 Section */}
-      <section className="pb-6">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
-            프로필 정보
-          </span>
-          {profileEditMode ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCancelProfileEdit}
-                disabled={isSubmittingProfile}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card disabled:opacity-60"
-              >
-                취소
-              </button>
-              <AsyncButton
-                variant="secondary"
-                size="sm"
-                onClick={handleSaveProfile}
-                loading={isSubmittingProfile}
-                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
-              >
-                저장
-              </AsyncButton>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setProfileEditMode(true)}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
-            >
-              수정
-            </button>
-          )}
-        </div>
-        <div className="h-[1px] bg-border opacity-50 mb-4" />
-        <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                이름
-              </span>
-              {profileEditMode ? (
-                <input
-                  type="text"
-                  value={hrFormData.realName}
-                  onChange={(e) =>
-                    setHrFormData((prev) => ({ ...prev, realName: e.target.value }))
-                  }
-                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
-                />
-              ) : (
-                <span className="text-[14px] font-medium text-foreground leading-6">
-                  {member?.hrData?.realName || member?.name || "-"}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                직책
-              </span>
-              <span className="text-[14px] font-medium text-foreground leading-6">
-                {roleLabel(member?.role ?? "")}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                생년월일
-              </span>
-              {profileEditMode ? (
-                <div className="relative flex-1">
-                  <DatePicker
-                    value={hrFormData.birthDate}
-                    onChange={(d) =>
-                      setHrFormData((prev) => ({ ...prev, birthDate: d }))
-                    }
-                    minDate={new Date(1950, 0, 1)}
-                    className="cursor-pointer pr-10"
-                  />
-                  <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
-                </div>
-              ) : (
-                <span className="text-[14px] font-medium text-foreground leading-6">
-                  {member?.hrData?.birth || "-"}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                입사일
-              </span>
-              <span className="text-[14px] font-medium text-foreground leading-6">
-                {member?.createdAt ? formatDate(member.createdAt) : "-"}
-              </span>
-            </div>
-            <div className="col-span-2 flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                주소
-              </span>
-              {profileEditMode ? (
-                <input
-                  type="text"
-                  value={hrFormData.address}
-                  onChange={(e) =>
-                    setHrFormData((prev) => ({ ...prev, address: e.target.value }))
-                  }
-                  className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground bg-card"
-                />
-              ) : (
-                <span className="flex-1 text-[14px] font-medium text-foreground leading-6">
-                  {member?.hrData?.address || "-"}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 팀 변경 이력 Section */}
-      <section className="pb-6">
-        <div className="mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
-            팀 변경 이력
-          </span>
-        </div>
-        <div className="h-[1px] bg-border opacity-50 mb-4" />
-        <div className="space-y-3">
-          {(member?.teamChangeLogs ?? []).length > 0 ? (
-            member?.teamChangeLogs.map((history) => (
-              <div
-                key={history.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 flex items-center gap-4"
-              >
-                <span className="text-[14px] text-neutral-60 whitespace-nowrap">
-                  {formatDate(history.createdAt)}
-                </span>
-                <Badge
-                  label={history.previousTeamName || "미배정"}
-                  variant="neutral"
-                />
-                {history.newTeamName && (
-                  <>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 18L15 12L9 6"
-                        stroke="#B0B0B0"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <Badge label={history.newTeamName} variant="primary" />
-                  </>
-                )}
-                <span className="ml-auto text-[14px] text-neutral-60">
-                  {history.type === "teamMove" ? "팀이동" : history.type}
-                </span>
-              </div>
-            ))
-          ) : (
-            <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-25 rounded-[12px] text-[14px] text-neutral-60">
-              팀 변경 이력이 없습니다.
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 특이사항 Section */}
-      <section>
-        <div className="mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
-            특이사항
-          </span>
-        </div>
-        <div className="h-[1px] bg-border opacity-50 mb-4" />
-        {localNotes.length > 0 ? (
-          <div className="space-y-3 mb-4">
-            {localNotes.map((note) => (
-              <div key={note.id} className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-[14px] text-foreground">
-                    <span className="text-neutral-60">
-                      {formatDateTime(note.createdAt)}
-                    </span>
-                  </div>
-                  <button
-                    className="cursor-pointer w-5 h-5 text-neutral-50 hover:text-neutral-60"
-                    onClick={() => handleRemoveNote(note.id)}
-                    disabled={isSubmittingNote}
-                    aria-label="특이사항 삭제"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15.832 5.83333L15.1093 15.9521C15.047 16.8243 14.3212 17.5 13.4468 17.5H6.55056C5.67616 17.5 4.95043 16.8243 4.88813 15.9521L4.16536 5.83333M8.33203 9.16667V14.1667M11.6654 9.16667V14.1667M12.4987 5.83333V3.33333C12.4987 2.8731 12.1256 2.5 11.6654 2.5H8.33203C7.87179 2.5 7.4987 2.8731 7.4987 3.33333V5.83333M3.33203 5.83333H16.6654"
-                        stroke="#B0B0B0"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-[14px] text-foreground">{note.note}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="px-4 py-3 bg-neutral-10 rounded-[12px] text-[14px] text-neutral-60 mb-4">
-            등록된 특이사항이 없습니다.
-          </div>
-        )}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={noteInput}
-            onChange={(e) => setNoteInput(e.target.value)}
-            placeholder="특이사항을 입력하세요"
-            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
-          />
-          <AsyncButton
-            variant="secondary"
-            size="sm"
-            onClick={handleAddNote}
-            loading={isSubmittingNote}
-            className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
-          >
-            저장
-          </AsyncButton>
-        </div>
-      </section>
-    </div>
-  );
+  // 조직도 노드 계산 (계층 구조 유지)
+  const orgTreeRoot = transformOrgTree(member?.organizationTree);
 
   // 로딩 상태
   if (isLoading) {
@@ -733,6 +267,7 @@ export default function TeamMemberInfoModal({
           className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
+            minWidth: 600,
             height: 400,
             transform: "translate(-50%, -50%)",
           }}
@@ -756,6 +291,7 @@ export default function TeamMemberInfoModal({
           className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
+            minWidth: 600,
             height: 400,
             transform: "translate(-50%, -50%)",
           }}
@@ -783,6 +319,7 @@ export default function TeamMemberInfoModal({
         className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col"
         style={{
           width: 904,
+          minWidth: 600,
           maxHeight: "90vh",
           transform: "translate(-50%, -50%)",
         }}
@@ -833,8 +370,8 @@ export default function TeamMemberInfoModal({
                     <span className="text-[18px] font-semibold text-foreground">
                       {member.name}
                     </span>
-                    <Badge
-                      label={roleLabel(member.role)}
+                    <RoleBadge
+                      label={getRoleLabel(member.role)}
                       variant={isLeader ? "primary" : "neutral"}
                     />
                   </div>
@@ -885,7 +422,7 @@ export default function TeamMemberInfoModal({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {member.teamInfo && (
-                      <Badge label={member.teamInfo.name} variant="secondary" />
+                      <RoleBadge label={member.teamInfo.name} variant="secondary" />
                     )}
                   </div>
                 </div>
@@ -911,7 +448,6 @@ export default function TeamMemberInfoModal({
                   }`}
                 />
               </button>
-              {/* 관리자 정보 탭 - subAdmin 이상만 볼 수 있음 */}
               {isAdminOrSubAdmin && (
                 <button
                   type="button"
@@ -951,7 +487,56 @@ export default function TeamMemberInfoModal({
                 </button>
               )}
             </div>
-            {tab === "organization" ? organizationContent : (isAdminOrSubAdmin ? managerContent : organizationContent)}
+            {tab === "organization" ? (
+              <OrganizationContent
+                memberId={memberId}
+                orgTreeRoot={orgTreeRoot}
+                canCreateTeam={canCreateTeam}
+                canDeleteTeam={Boolean(canDeleteTeam)}
+                teamName={member?.teamInfo?.name}
+                teamCreateMode={teamCreateMode}
+                setTeamCreateMode={setTeamCreateMode}
+                teamNameDraft={teamNameDraft}
+                setTeamNameDraft={setTeamNameDraft}
+                onCreateTeam={handleCreateTeam}
+                onDeleteTeam={handleDeleteTeam}
+                isCreatingTeam={createTeam.isPending}
+                isDeletingTeam={deleteTeam.isPending}
+              />
+            ) : isAdminOrSubAdmin ? (
+              <ManagerContent
+                member={member}
+                localNotes={localNotes}
+                noteInput={noteInput}
+                setNoteInput={setNoteInput}
+                onAddNote={handleAddNote}
+                onRemoveNote={handleRemoveNote}
+                isSubmittingNote={isSubmittingNote}
+                profileEditMode={profileEditMode}
+                setProfileEditMode={setProfileEditMode}
+                hrFormData={hrFormData}
+                setHrFormData={setHrFormData}
+                onSaveProfile={handleSaveProfile}
+                onCancelProfileEdit={handleCancelProfileEdit}
+                isSubmittingProfile={isSubmittingProfile}
+              />
+            ) : (
+              <OrganizationContent
+                memberId={memberId}
+                orgTreeRoot={orgTreeRoot}
+                canCreateTeam={canCreateTeam}
+                canDeleteTeam={Boolean(canDeleteTeam)}
+                teamName={member?.teamInfo?.name}
+                teamCreateMode={teamCreateMode}
+                setTeamCreateMode={setTeamCreateMode}
+                teamNameDraft={teamNameDraft}
+                setTeamNameDraft={setTeamNameDraft}
+                onCreateTeam={handleCreateTeam}
+                onDeleteTeam={handleDeleteTeam}
+                isCreatingTeam={createTeam.isPending}
+                isDeletingTeam={deleteTeam.isPending}
+              />
+            )}
           </section>
         </div>
 
