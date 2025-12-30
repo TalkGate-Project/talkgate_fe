@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import AsyncButton from "@/components/common/AsyncButton";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -22,6 +23,20 @@ type Props = {
   isDeletingTeam: boolean;
 };
 
+// 모든 노드 ID를 수집하는 헬퍼 함수
+function collectAllNodeIds(node: OrgNode | null): Set<number> {
+  const ids = new Set<number>();
+  if (!node) return ids;
+  
+  const traverse = (n: OrgNode) => {
+    ids.add(n.id);
+    n.children.forEach((child) => traverse(child));
+  };
+  
+  traverse(node);
+  return ids;
+}
+
 export default function OrganizationContent({
   memberId,
   orgTreeRoot,
@@ -37,11 +52,43 @@ export default function OrganizationContent({
   isCreatingTeam,
   isDeletingTeam,
 }: Props) {
+  // 모든 노드를 기본적으로 열린 상태로 초기화
+  const [expandedNodes, setExpandedNodes] = useState<Set<number>>(() => {
+    if (orgTreeRoot) {
+      return collectAllNodeIds(orgTreeRoot);
+    }
+    return new Set();
+  });
+
+  // orgTreeRoot가 변경되면 모든 노드를 다시 열린 상태로 초기화
+  useEffect(() => {
+    if (orgTreeRoot) {
+      const allNodeIds = collectAllNodeIds(orgTreeRoot);
+      // 모든 노드 ID를 확장 상태로 설정
+      setExpandedNodes(allNodeIds);
+    } else {
+      setExpandedNodes(new Set());
+    }
+  }, [orgTreeRoot]);
+
+  const toggleNode = (nodeId: number) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
   const renderOrgNode = (node: OrgNode, index: number = 0) => {
     const isNodeLeader = node.role === "leader" || node.id === memberId;
     const indent = getIndent(node.level);
     const connectorLeft = getConnectorLeft(node.level);
     const hasChildren = node.children && node.children.length > 0;
+    const isExpanded = expandedNodes.has(node.id);
 
     return (
       <div key={node.id} className="relative mb-2">
@@ -75,6 +122,67 @@ export default function OrganizationContent({
           }`}
           style={{ marginLeft: `${indent}px` }}
         >
+          {hasChildren && (
+            <button
+              onClick={() => toggleNode(node.id)}
+              className="w-[26px] h-[26px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              aria-label={isExpanded ? "접기" : "펼치기"}
+            >
+              {isExpanded ? (
+                // 열렸을 때: 아래쪽 화살표 (v)
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="25.5"
+                    y="0.5"
+                    width="25"
+                    height="25"
+                    rx="5.5"
+                    transform="rotate(90 25.5 0.5)"
+                    stroke="#E2E2E2"
+                  />
+                  <path
+                    d="M7.16536 10.5L12.9987 16.3333L18.832 10.5"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                // 닫혔을 때: 오른쪽 화살표 (>)
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="0.5"
+                    y="0.5"
+                    width="25"
+                    height="25"
+                    rx="5.5"
+                    transform="matrix(0 -1 -1 0 26 26)"
+                    stroke="#E2E2E2"
+                  />
+                  <path
+                    d="M10.5 18.8332L16.3333 12.9998L10.5 7.1665"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
           <div
             className={`w-8 h-8 rounded-full text-white text-[14px] font-semibold flex items-center justify-center ${
               isNodeLeader ? "bg-primary-80" : "bg-neutral-60"
@@ -89,7 +197,7 @@ export default function OrganizationContent({
             <TeamNameBadge label={node.department} />
           )}
         </div>
-        {hasChildren && (
+        {hasChildren && isExpanded && (
           <div className="mt-2">
             {node.children.map((child, childIndex) =>
               renderOrgNode(child, childIndex)
@@ -175,4 +283,3 @@ export default function OrganizationContent({
     </section>
   );
 }
-

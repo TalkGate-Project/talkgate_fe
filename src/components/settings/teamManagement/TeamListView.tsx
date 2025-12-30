@@ -53,7 +53,32 @@ export default function TeamListView({
   matchingIds = new Set(),
   expandedForSearch = new Set(),
 }: Props) {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  // 모든 노드를 기본적으로 열린 상태로 초기화
+  const collectAllItemIds = useCallback((items: TeamMember[]): Set<string> => {
+    const ids = new Set<string>();
+    const traverse = (nodes: TeamMember[]) => {
+      nodes.forEach((node) => {
+        ids.add(node.id);
+        if (node.children && node.children.length > 0) {
+          traverse(node.children);
+        }
+      });
+    };
+    traverse(items);
+    return ids;
+  }, []);
+
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
+    return collectAllItemIds(data);
+  });
+
+  // data가 변경되면 모든 노드를 다시 열린 상태로 초기화
+  useEffect(() => {
+    if (data.length > 0) {
+      const allIds = collectAllItemIds(data);
+      setExpandedItems(allIds);
+    }
+  }, [data, collectAllItemIds]);
 
   // 검색어 유무에 따라 확장 상태 결정
   const currentExpanded = useMemo(() => {
@@ -139,23 +164,62 @@ export default function TeamListView({
               {hasVisibleChildren && (
                 <button
                   onClick={() => toggleExpand(item.id)}
-                  className={`w-6 h-6 flex items-center justify-center border border-border rounded-[5px] hover:bg-neutral-10 transition-colors ${
-                    isExpanded ? "" : "rotate-[-90deg]"
-                  }`}
+                  className="w-[26px] h-[26px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  aria-label={isExpanded ? "접기" : "펼치기"}
                 >
-                  <svg
-                    className="w-6 h-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      d="M9 18L15 12L9 6"
-                      stroke="var(--neutral-60)"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {isExpanded ? (
+                    // 열렸을 때: 아래쪽 화살표 (v)
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 26 26"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        x="25.5"
+                        y="0.5"
+                        width="25"
+                        height="25"
+                        rx="5.5"
+                        transform="rotate(90 25.5 0.5)"
+                        stroke="#E2E2E2"
+                      />
+                      <path
+                        d="M7.16536 10.5L12.9987 16.3333L18.832 10.5"
+                        stroke="#B0B0B0"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    // 닫혔을 때: 오른쪽 화살표 (>)
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 26 26"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        x="0.5"
+                        y="0.5"
+                        width="25"
+                        height="25"
+                        rx="5.5"
+                        transform="matrix(0 -1 -1 0 26 26)"
+                        stroke="#E2E2E2"
+                      />
+                      <path
+                        d="M10.5 18.8332L16.3333 12.9998L10.5 7.1665"
+                        stroke="#B0B0B0"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
                 </button>
               )}
               <div
