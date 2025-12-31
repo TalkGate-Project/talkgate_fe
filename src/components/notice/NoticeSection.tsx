@@ -63,28 +63,33 @@ export default function NoticeSection() {
       ) : showEmpty ? (
         <NoticeEmpty message={data?.notices === null ? "공지사항 데이터가 없습니다." : "등록된 공지사항이 없습니다."} />
       ) : (
-        <div className="divide-y divide-[var(--border)]/60 border-t border-[var(--border)]/60">
+        <div className="overflow-hidden border-t border-[var(--border)]/60">
           {notices.map((n) => (
             <div
               key={n.id}
               onClick={() => router.push(`/notice/${n.id}`)}
-              className="cursor-pointer md:px-[10px] flex items-center justify-between py-4 hover:bg-neutral-10 transition-colors"
+              className="cursor-pointer flex items-center py-4 hover:bg-neutral-10 transition-colors border-t border-[var(--border)]/60 first:border-t-0"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              {/* 제목 영역 - flex-1로 남은 공간 사용 */}
+              <div className="flex-1 flex items-center gap-3 min-w-0 px-0 md:px-[10px]">
                 {n.important && (
-                  <span className="md:px-2 md:py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40">
+                  <span className="min-w-[30px] h-[18px] md:px-2 md:py-1 rounded-[5px] text-[12px] leading-[14px] bg-danger-10 text-danger-40 flex items-center justify-center flex-shrink-0">
                     중요
                   </span>
                 )}
-                <span className="typo-body-2 text-foreground opacity-80 truncate">
+                <span className="typo-body-2 text-foreground opacity-80 truncate min-w-0">
                   {n.title}
                 </span>
               </div>
-              <div className="flex items-center gap-8 flex-none pl-4">
-                <span className="typo-body-2 text-foreground opacity-80 md:w-[120px] shrink-0 text-left truncate">
+              {/* 작성자 영역 - 고정 너비 */}
+              <div className="w-[70px] md:w-[100px] px-2 md:px-[10px] flex-shrink-0">
+                <span className="typo-body-2 text-foreground opacity-80 truncate block">
                   {n.authorName ?? "-"}
                 </span>
-                <span className="typo-body-2 text-foreground opacity-80 md:w-[110px] shrink-0 text-right">
+              </div>
+              {/* 시간 영역 - 고정 너비 (개행 방지를 위해 넓게) */}
+              <div className="w-[90px] md:w-[130px] px-0 md:px-[10px] text-right flex-shrink-0">
+                <span className="typo-body-2 text-foreground opacity-80 whitespace-nowrap">
                   {formatNoticeTime(n.createdAt)}
                 </span>
               </div>
@@ -114,8 +119,8 @@ function NoticeSkeleton() {
               key={`skeleton-${idx}`}
               columns={[
                 { width: "flex", paddingX: 2.5 }, // 제목 (중요 태그 포함)
-                { width: 120, paddingX: 4 }, // 작성자
-                { width: 110, paddingX: 4 }, // 시간
+                { width: 100, paddingX: 2.5 }, // 작성자
+                { width: 130, paddingX: 2.5 }, // 시간
               ]}
               rowHeight={48}
               className="border-t border-[var(--border)]/60"
