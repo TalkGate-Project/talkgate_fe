@@ -169,13 +169,14 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = convCursor;
+    
     socket.emit("getConversations", {
       limit: 20,
       status: filters.status === "all" ? undefined : filters.status,
-      platform: filters.platform,
+      platform: filters.platform || "",
       cursor: convCursor,
     });
-  }, [convHasMore, convCursor, filters]);
+  }, [convHasMore, convCursor, filters.status, filters.platform]);
 
   // ============================================
   // 소켓 연결 및 이벤트 핸들링
@@ -218,7 +219,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socket.emit("getConversations", {
         limit: 20,
         status: filters.status === "all" ? undefined : filters.status,
-        platform: filters.platform,
+        platform: filters.platform || "",
       });
     };
 
