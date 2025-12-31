@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BaseModal from "./BaseModal";
 
 interface ServiceDeleteModalProps {
   isOpen: boolean;
@@ -40,16 +41,17 @@ export default function ServiceDeleteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
-
-      {/* Modal */}
-      <div className="relative w-[848px] bg-card dark:bg-neutral-10 rounded-[14px]">
+    <BaseModal
+      onClose={handleClose}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      containerClassName="w-full max-w-[848px] bg-card dark:bg-neutral-10 rounded-[14px]"
+      ariaLabel="프로젝트 삭제확인"
+    >
+      <div className="relative">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center"
+          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center z-10"
         >
           <svg
             width="24"
@@ -101,7 +103,7 @@ export default function ServiceDeleteModal({
             <div className="text-danger-40 dark:text-danger-40 text-[18px] font-semibold mb-2">
               정말로 프로젝트를 삭제하시겠습니까?
             </div>
-            <div className="text-ink dark:text-neutral-80 text-[14px] font-medium">
+            <div className="hidden md:block text-ink dark:text-neutral-80 text-[14px] font-medium">
               이 작업은 <span className="font-bold">되돌릴 수 없으며,</span>{" "}
               다음 데이터가 영구적으로 삭제됩니다
             </div>
@@ -144,23 +146,24 @@ export default function ServiceDeleteModal({
         <div className="flex justify-end gap-3 px-7 py-3">
           <button
             onClick={handleClose}
-            className="cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+            className="flex-1 md:flex-none cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20"
           >
             취소
           </button>
           <button
             onClick={handleConfirm}
             disabled={!isConfirmed}
-            className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
+            className={`flex-1 md:flex-none cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors ${
               isConfirmed
                 ? "bg-danger-40 dark:bg-danger-40 text-white hover:bg-danger-60 dark:hover:bg-danger-60 cursor-pointer"
                 : "bg-neutral-50 dark:bg-neutral-50 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
             }`}
           >
-            프로젝트 삭제
+            <span className="hidden md:inline">프로젝트 삭제</span>
+            <span className="block md:hidden">확인</span>
           </button>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
