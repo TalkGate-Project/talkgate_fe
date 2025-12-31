@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { ProjectsService } from "@/services/projects";
 import ProfileIcon from "./icons/ProfileIcon";
 import NotificationIcon from "./icons/NotificationIcon";
 import BillingIcon from "./icons/BillingIcon";
@@ -36,12 +41,52 @@ const SIDEBAR_ITEMS = [
 ];
 
 export default function MySettingsSidebar({ activeTab, onTabChange }: MySettingsSidebarProps) {
+  const [projectId] = useSelectedProjectId();
+  const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+
+  // 프로젝트 정보 로드
+  useEffect(() => {
+    const fetchProjectInfo = async () => {
+      if (!projectId) return;
+      
+      try {
+        const projectResponse = await ProjectsService.detailById({
+          "x-project-id": projectId,
+        });
+        
+        if (projectResponse.data?.data) {
+          const project = projectResponse.data.data;
+          setProjectLogoUrl(project.logoUrl || null);
+          setProjectName(project.name || "거래소 텔레마케팅 관리");
+        }
+      } catch (error) {
+        console.error("Failed to fetch project info:", error);
+      }
+    };
+    
+    fetchProjectInfo();
+  }, [projectId]);
+
   return (
-    <div className="w-[280px] max-h-[362px] bg-card rounded-[14px]">
+    <div className="w-[280px] max-h-[362px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
       {/* 헤더 */}
-      <div className="mb-2 border-b border-border opacity-70 p-7">
-        <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
-        <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
+      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40 dark:!border-[#44444455]">
+        <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">개인 설정</h2>
+        <div className="flex items-center gap-3">
+          {projectLogoUrl ? (
+            <img
+              src={projectLogoUrl}
+              alt={`${projectName} 로고`}
+              width={28}
+              height={28}
+              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
+          )}
+          <p className="text-[14px] text-neutral-60">{projectName}</p>
+        </div>
       </div>
 
       {/* 탭 목록 - 모든 사용자에게 모든 탭 표시 */}
