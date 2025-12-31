@@ -517,7 +517,7 @@ export default function GeneralSettings() {
                   className="cursor-pointer absolute -top-2 -right-2 w-5 h-5 bg-foreground border-2 border-neutral-30 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3L9 9M9 3L3 9" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M3 3L9 9M9 3L3 9" stroke="white" className="dark:stroke-black" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 </button>
               )}
