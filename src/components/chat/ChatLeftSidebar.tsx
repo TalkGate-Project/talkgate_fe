@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/lib/realtime";
-import ChatFilterModal from "./ChatFilterModal";
+import ChatFilterModal, { type ChatFilterDefaults } from "./ChatFilterModal";
 import FilterIcon from "./icons/FilterIcon";
 import ListViewIcon from "./icons/ListViewIcon";
 import AlbumViewIcon from "./icons/AlbumViewIcon";
@@ -23,6 +23,8 @@ type Props = {
   onSelectConversation: (id: number) => void;
   loadMoreConversations: () => void;
   hasMoreConversations?: boolean;
+  filterDefaults?: ChatFilterDefaults;
+  onFilterApply?: (filters: ChatFilterDefaults) => void;
 };
 
 export default function ChatLeftSidebar({
@@ -37,6 +39,8 @@ export default function ChatLeftSidebar({
   onSelectConversation,
   loadMoreConversations,
   hasMoreConversations = true,
+  filterDefaults,
+  onFilterApply,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,7 +113,7 @@ export default function ChatLeftSidebar({
             {/* Filter */}
             <button
               aria-label="filter"
-              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border dark:!border-[#44444455]"
+              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border dark:!border-neutral-50"
               onClick={() => setFilterOpen(true)}
             >
               <FilterIcon />
@@ -139,8 +143,9 @@ export default function ChatLeftSidebar({
         </div>
         <ChatFilterModal
           open={filterOpen}
+          defaults={filterDefaults}
           onClose={() => setFilterOpen(false)}
-          onApply={() => setFilterOpen(false)}
+          onApply={onFilterApply || (() => setFilterOpen(false))}
         />
         {/* Tabs */}
         <div className="px-4 md:px-5">

@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Checkbox from "@/components/common/Checkbox";
+
+function getBodyZoom(): number {
+  if (typeof document === "undefined") return 1;
+  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+  const parsed = Number.parseFloat(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
 
 export type Messenger =
   | "all"
@@ -34,6 +42,8 @@ export default function ChatFilterModal({
   const [statuses, setStatuses] = useState<string[]>(defaults?.statuses ?? []);
   const [statusOpen, setStatusOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -41,11 +51,30 @@ export default function ChatFilterModal({
     setStatuses(defaults?.statuses ?? []);
   }, [open, defaults]);
 
+  // Dropdown 위치 계산
+  useEffect(() => {
+    if (!statusOpen || !buttonRef.current) {
+      setDropdownPosition(null);
+      return;
+    }
+
+    const zoom = getBodyZoom();
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    setDropdownPosition({
+      top: (buttonRect.bottom + 8) / zoom,
+      left: buttonRect.left / zoom,
+      width: buttonRect.width / zoom,
+    });
+  }, [statusOpen]);
+
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (!statusOpen) return;
-      if (!dropdownRef.current) return;
-      if (!dropdownRef.current.contains(e.target as Node)) setStatusOpen(false);
+      if (!dropdownRef.current || !buttonRef.current) return;
+      const target = e.target as Node;
+      if (!dropdownRef.current.contains(target) && !buttonRef.current.contains(target)) {
+        setStatusOpen(false);
+      }
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -58,9 +87,9 @@ export default function ChatFilterModal({
     { key: "telegram", label: "텔레그램", icon: "/telegram.png" },
     { key: "instagram", label: "인스타그램", icon: "/instagram.png" },
     { key: "line", label: "네이버앱", icon: "/naver_line.png" },
-    { key: "kakao", label: "카카오톡", icon: "/kakao_icon.png" },
-    { key: "facebook", label: "페이스북", icon: "/facebook.png" },
-    { key: "x", label: "트위터(X)", icon: "/x_twitter.png" },
+    // { key: "kakao", label: "카카오톡", icon: "/kakao_icon.png" },
+    // { key: "facebook", label: "페이스북", icon: "/facebook.png" },
+    // { key: "x", label: "트위터(X)", icon: "/x_twitter.png" },
   ];
 
   const statusOptions = ["일반", "부재", "재상담", "관리중", "AS요청"] as const;
@@ -144,9 +173,10 @@ export default function ChatFilterModal({
             </div>
 
             {/* 처리상태 멀티 선택 */}
-            <div ref={dropdownRef} className="relative">
+            <div className="relative">
               <div className="text-[14px] text-medium text-neutral-60 mb-2">처리상태</div>
               <button
+                ref={buttonRef}
                 type="button"
                 onClick={() => setStatusOpen((v) => !v)}
                 className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between bg-neutral-0 dark:bg-neutral-10"
@@ -209,14 +239,22 @@ export default function ChatFilterModal({
                 </div>
               )}
 
-              {statusOpen && (
-                <div className="absolute left-0 right-0 z-10 mt-2 bg-neutral-0 border border-neutral-30 rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3">
+              {statusOpen && dropdownPosition && typeof window !== "undefined" && createPortal(
+                <div
+                  ref={dropdownRef}
+                  className="fixed z-[200] bg-neutral-0 dark:bg-neutral-10 border border-neutral-30 rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3"
+                  style={{
+                    top: `${dropdownPosition.top}px`,
+                    left: `${dropdownPosition.left}px`,
+                    width: `${dropdownPosition.width}px`,
+                  }}
+                >
                   {statusOptions.map((opt) => {
                     const checked = statuses.includes(opt);
                     return (
                       <label
                         key={opt}
-                        className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer ${
+                        className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer mb-1 last:mb-0 ${
                           checked
                             ? "border-2 border-primary-40 bg-primary-10/30"
                             : "border-border bg-card dark:bg-neutral-10"
@@ -239,7 +277,8 @@ export default function ChatFilterModal({
                       </label>
                     );
                   })}
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           </div>

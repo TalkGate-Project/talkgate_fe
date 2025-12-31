@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Conversation } from "@/lib/realtime";
 import { useChatController } from "@/hooks/useChatController";
+import { useChatContext } from "@/providers/ChatProvider";
 import EmojiPicker from "./EmojiPicker";
 import ChatLeftSidebar from "./ChatLeftSidebar";
 import ChatMainView from "./ChatMainView";
 import ChatRightSidebar from "./ChatRightSidebar";
+import ChatFilterModal, { type ChatFilterDefaults, type Messenger } from "./ChatFilterModal";
 import CustomerLinkModeModal from "./customer-link/CustomerLinkModeModal";
 import CustomerLinkExistingModal from "./customer-link/CustomerLinkExistingModal";
 import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
@@ -81,6 +83,60 @@ export default function ChatView({ projectId }: Props) {
   const platformQuery = (searchParams.get("platform") || "").toLowerCase();
   const platform = platformMap[platformQuery];
 
+  // 필터 모달용 상태
+  const [filterDefaults, setFilterDefaults] = useState<ChatFilterDefaults>(() => {
+    const messengerMap: Record<string, Messenger> = {
+      telegram: "telegram",
+      instagram: "instagram",
+      line: "line",
+    };
+    return {
+      messenger: platform ? (messengerMap[platform] || "all") : "all",
+      statuses: [],
+    };
+  });
+
+  // URL 쿼리 파라미터 변경 시 filterDefaults 동기화
+  useEffect(() => {
+    const messengerMap: Record<string, Messenger> = {
+      telegram: "telegram",
+      instagram: "instagram",
+      line: "line",
+    };
+    setFilterDefaults(prev => ({
+      ...prev,
+      messenger: platform ? (messengerMap[platform] || "all") : "all",
+    }));
+  }, [platform]);
+
+  // setFilters를 먼저 가져오기 (handleFilterApply에서 사용하기 위해)
+  const { setFilters } = useChatContext();
+
+  // 필터 적용 핸들러
+  const handleFilterApply = useCallback((filters: ChatFilterDefaults) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // platform 파라미터 업데이트
+    const platformValue = filters.messenger === "all" ? undefined : filters.messenger as "line" | "telegram" | "instagram" | undefined;
+    if (platformValue) {
+      params.set("platform", platformValue);
+    } else {
+      params.delete("platform");
+    }
+    
+    // URL 업데이트
+    router.replace(`?${params.toString()}`, { scroll: false });
+    
+    // 필터 상태 저장 (나중에 statuses를 categoryIds로 변환할 때 사용)
+    setFilterDefaults(filters);
+    
+    // 모달 닫기
+    setFilterOpen(false);
+    
+    // setFilters를 명시적으로 호출하여 소켓 재요청 트리거
+    setFilters({ platform: platformValue });
+  }, [searchParams, router, setFilterOpen, setFilters]);
+
   // 쿼리 파라미터를 통한 딥링크 지원
   const paramConversationId = Number(searchParams.get("conversationId") || "");
   const paramCustomerId = Number(searchParams.get("customerId") || "");
@@ -90,7 +146,6 @@ export default function ChatView({ projectId }: Props) {
   const desiredCustomerIdRef = useRef<number | null>(
     Number.isFinite(paramCustomerId) ? paramCustomerId : null
   );
-
   const {
     connected,
     socketError,
@@ -454,6 +509,8 @@ export default function ChatView({ projectId }: Props) {
           onSelectConversation={setActiveId}
           loadMoreConversations={loadMoreConversations}
           hasMoreConversations={conversationsPage.hasMore}
+          filterDefaults={filterDefaults}
+          onFilterApply={handleFilterApply}
         />
       </div>
 
