@@ -10,6 +10,7 @@ import AlbumViewIcon from "./icons/AlbumViewIcon";
 import PlatformIcon from "./icons/PlatformIcon";
 import ConversationAvatar from "./ConversationAvatar";
 import Tooltip from "@/components/common/Tooltip";
+import DraftMessageIcon from "./icons/DraftMessageIcon";
 
 type Props = {
   statusFilter: "all" | "active" | "closed";
@@ -25,6 +26,7 @@ type Props = {
   hasMoreConversations?: boolean;
   filterDefaults?: ChatFilterDefaults;
   onFilterApply?: (filters: ChatFilterDefaults) => void;
+  conversationsWithDraft?: Set<number>;
 };
 
 export default function ChatLeftSidebar({
@@ -41,6 +43,7 @@ export default function ChatLeftSidebar({
   hasMoreConversations = true,
   filterDefaults,
   onFilterApply,
+  conversationsWithDraft = new Set(),
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -279,6 +282,8 @@ export default function ChatLeftSidebar({
                             <div className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-danger-40 text-white text-[12px] font-medium">
                               {c.unreadCount}
                             </div>
+                          ) : conversationsWithDraft.has(c.id) ? (
+                            <DraftMessageIcon />
                           ) : (
                             <div className="w-5 h-5" />
                           )}
@@ -313,6 +318,8 @@ export default function ChatLeftSidebar({
                           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white dark:text-black text-[12px]">
                             {c.unreadCount}
                           </span>
+                        ) : conversationsWithDraft.has(c.id) ? (
+                          <DraftMessageIcon />
                         ) : null}
                       </div>
                       <div className="px-2 text-center w-full">

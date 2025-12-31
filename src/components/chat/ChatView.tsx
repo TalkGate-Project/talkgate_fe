@@ -53,6 +53,8 @@ export default function ChatView({ projectId }: Props) {
   const [input, setInput] = useState("");
   // 이전 activeId 추적 (채팅방 전환 감지용)
   const prevActiveIdRef = useRef<number | null>(null);
+  // 작성 중인 메시지가 있는 채팅방 ID Set을 state로 관리 (리렌더링 트리거용)
+  const [conversationsWithDraft, setConversationsWithDraft] = useState<Set<number>>(new Set());
 
   // 화면 폭에 따른 레이아웃 제어 (1440px 이상: 기존 3컬럼, 미만: AI 도우미 플로팅)
   const [isWideLayout, setIsWideLayout] = useState(true);
@@ -293,22 +295,23 @@ export default function ChatView({ projectId }: Props) {
     setCustomerDetailOpen(true);
   }, [activeConversation]);
 
-  // 입력 내용 변경 핸들러 (채팅방별 입력 내용 자동 저장)
+  // 입력 내용 변경 핸들러
   const handleInputChange = useCallback((value: string) => {
     setInput(value);
-    // 현재 활성 채팅방의 입력 내용 업데이트
-    if (activeId) {
-      inputByConversationRef.current.set(activeId, value);
-    }
-  }, [activeId]);
+  }, []);
 
   function onSend() {
     if (!input.trim()) return;
     send(input);
     setInput("");
-    // 현재 채팅방의 입력 내용도 초기화
+    // 현재 채팅방의 작성 중인 메시지 제거
     if (activeId) {
-      inputByConversationRef.current.set(activeId, "");
+      inputByConversationRef.current.delete(activeId);
+      setConversationsWithDraft((prev) => {
+        const next = new Set(prev);
+        next.delete(activeId);
+        return next;
+      });
     }
   }
 
@@ -427,7 +430,6 @@ export default function ChatView({ projectId }: Props) {
     }
   }, [statusFilter, filteredConversations, activeId, setActiveId]);
 
-  // 채팅방별 입력 내용 관리
   useEffect(() => {
     const prevActiveId = prevActiveIdRef.current;
     
@@ -440,6 +442,15 @@ export default function ChatView({ projectId }: Props) {
           // 보내지 않은 메시지가 있으면 저장
           if (currentInput.trim()) {
             inputByConversationRef.current.set(prevActiveId, currentInput);
+            setConversationsWithDraft((prev) => new Set(prev).add(prevActiveId));
+          } else {
+            // 빈 문자열이면 제거
+            inputByConversationRef.current.delete(prevActiveId);
+            setConversationsWithDraft((prev) => {
+              const next = new Set(prev);
+              next.delete(prevActiveId);
+              return next;
+            });
           }
           return currentInput;
         });
@@ -459,6 +470,38 @@ export default function ChatView({ projectId }: Props) {
       prevActiveIdRef.current = activeId;
     }
   }, [activeId]);
+
+  // 입력 내용 변경 시 저장 및 conversationsWithDraft 업데이트
+  useEffect(() => {
+    if (activeId === null) {
+      // activeId가 null이면 conversationsWithDraft에서 제거
+      setConversationsWithDraft((prev) => {
+        const next = new Set(prev);
+        inputByConversationRef.current.forEach((_, id) => {
+          if (!inputByConversationRef.current.get(id)?.trim()) {
+            next.delete(id);
+          } else {
+            next.add(id);
+          }
+        });
+        return next;
+      });
+      return;
+    }
+    
+    // 현재 활성 채팅방의 입력 내용 저장
+    if (input.trim()) {
+      inputByConversationRef.current.set(activeId, input);
+      setConversationsWithDraft((prev) => new Set(prev).add(activeId));
+    } else {
+      inputByConversationRef.current.delete(activeId);
+      setConversationsWithDraft((prev) => {
+        const next = new Set(prev);
+        next.delete(activeId);
+        return next;
+      });
+    }
+  }, [input, activeId]);
 
   // 선택과 conversationId 파라미터 동기화 유지
   useEffect(() => {
@@ -511,6 +554,7 @@ export default function ChatView({ projectId }: Props) {
           hasMoreConversations={conversationsPage.hasMore}
           filterDefaults={filterDefaults}
           onFilterApply={handleFilterApply}
+          conversationsWithDraft={conversationsWithDraft}
         />
       </div>
 
