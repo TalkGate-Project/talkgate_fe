@@ -5,7 +5,10 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { MessengerIntegrationService } from "@/services/messengerIntegration";
 import LineIntegrationModal from "./LineIntegrationModal";
 import TelegramIntegrationModal from "./TelegramIntegrationModal";
-import type { Platform, MessengerIntegration } from "@/types/messengerIntegration";
+import type {
+  Platform,
+  MessengerIntegration,
+} from "@/types/messengerIntegration";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { env } from "@/lib/env";
@@ -45,29 +48,39 @@ function ChannelCard({
   onDisconnect,
 }: ChannelCardProps) {
   return (
-    <div className="flex items-center justify-between px-6 py-5 border border-neutral-30 rounded-[12px] min-h-[132px]">
+    <div className="flex items-center justify-between px-3 md:px-6 py-4 md:py-5 border border-neutral-30 rounded-lg min-h-[84px] md:min-h-[132px]">
       {/* Left Content - Icon and Text */}
       <div className="flex items-center">
         {/* Text Content */}
-        <div>
+        <div className="flex items-center md:block gap-3 md:gap-0">
           {/* Icon */}
           <div className="w-8 h-8 mb-2">{icon}</div>
-          {/* Channel Name */}
-          <h3 className="text-[16px] font-semibold text-foreground mb-1 leading-6">
-            {name}
-          </h3>
 
-          {/* Description */}
-          <p className="text-[14px] font-medium text-neutral-60 leading-6">
-            {description}
-          </p>
+          <div>
+            {/* Channel Name */}
+            <h3 className="flex items-center md:block gap-2 md:gap-0 text-[16px] font-semibold text-foreground mb-1 leading-6">
+              {name}
+              {isConnected && (
+                <div className="flex md:hidden items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
+                  <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
+                    연결됨
+                  </span>
+                </div>
+              )}
+            </h3>
+
+            {/* Description */}
+            <p className="text-[14px] font-medium text-neutral-60 leading-6">
+              {description}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Right Content - Status and Button */}
       <div className="flex items-center gap-3">
         {isConnected && (
-          <div className="flex items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
+          <div className="hidden md:flex items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
             <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
               연결됨
             </span>
@@ -142,30 +155,33 @@ export default function ConsultationChannelSettings() {
       try {
         const eventUrl = new URL(event.origin);
         const currentUrl = new URL(window.location.origin);
-        
+
         // 서브도메인 제거한 메인 도메인 계산
         const getMainDomain = (hostname: string): string => {
-          const parts = hostname.split('.');
-          
+          const parts = hostname.split(".");
+
           // 이미 메인 도메인인 경우 (app-dev.talkgate.im, app.talkgate.im 등)
           // parts.length가 3이고, 첫 번째가 'app' 또는 'app-dev'로 시작하면 메인 도메인
-          if (parts.length === 3 && (parts[0] === 'app' || parts[0] === 'app-dev')) {
+          if (
+            parts.length === 3 &&
+            (parts[0] === "app" || parts[0] === "app-dev")
+          ) {
             return hostname;
           }
-          
+
           // 서브도메인이 있는 경우 (project-xxx.app-dev.talkgate.im)
           // 첫 번째 부분을 제거하여 메인 도메인 추출
           if (parts.length > 3) {
-            return parts.slice(1).join('.');
+            return parts.slice(1).join(".");
           }
-          
+
           // parts.length가 2 이하인 경우 (localhost 등)는 그대로 반환
           return hostname;
         };
-        
+
         const eventMainDomain = getMainDomain(eventUrl.hostname);
         const currentMainDomain = getMainDomain(currentUrl.hostname);
-        
+
         console.log("[Instagram] Origin 검증:", {
           eventOrigin: event.origin,
           eventMainDomain,
@@ -174,9 +190,12 @@ export default function ConsultationChannelSettings() {
           protocolMatch: eventUrl.protocol === currentUrl.protocol,
           domainMatch: eventMainDomain === currentMainDomain,
         });
-        
+
         // 프로토콜과 메인 도메인 일치 확인
-        if (eventUrl.protocol !== currentUrl.protocol || eventMainDomain !== currentMainDomain) {
+        if (
+          eventUrl.protocol !== currentUrl.protocol ||
+          eventMainDomain !== currentMainDomain
+        ) {
           console.warn("[Instagram] 허용되지 않은 origin:", {
             eventOrigin: event.origin,
             eventMainDomain,
@@ -292,7 +311,7 @@ export default function ConsultationChannelSettings() {
   const handleInstagramConnect = () => {
     // Instagram OAuth URL 구성
     const clientId = env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "622214674056498"; // fallback for backward compatibility
-    
+
     // 서브도메인 없이 콜백 URI 생성 (NEXT_PUBLIC_SITE_URL 사용)
     // NEXT_PUBLIC_SITE_URL이 없으면 현재 origin에서 서브도메인 제거
     let siteUrl = env.NEXT_PUBLIC_SITE_URL;
@@ -301,17 +320,17 @@ export default function ConsultationChannelSettings() {
       // 서브도메인 제거: https://project-xxx.app-dev.talkgate.im -> https://app-dev.talkgate.im
       const url = new URL(origin);
       const hostname = url.hostname;
-      const parts = hostname.split('.');
+      const parts = hostname.split(".");
       if (parts.length > 2) {
         // 서브도메인이 있는 경우 제거 (첫 번째 부분 제거)
-        const mainDomain = parts.slice(1).join('.');
+        const mainDomain = parts.slice(1).join(".");
         siteUrl = `${url.protocol}//${mainDomain}`;
       } else {
         siteUrl = origin;
       }
     }
     const redirectUri = `${siteUrl}/instagram/callback`;
-    
+
     const scope = [
       "instagram_business_basic",
       "instagram_business_manage_messages",
@@ -431,19 +450,31 @@ export default function ConsultationChannelSettings() {
       case "instagram":
         return (
           <div className="w-8 h-8">
-            <img src="/icons/platform/instagram.png" alt="Instagram" className="w-full h-full" /> 
+            <img
+              src="/icons/platform/instagram.png"
+              alt="Instagram"
+              className="w-full h-full"
+            />
           </div>
         );
       case "telegram":
         return (
           <div className="w-8 h-8">
-            <img src="/icons/platform/telegram.png" alt="Telegram" className="w-full h-full" />
+            <img
+              src="/icons/platform/telegram.png"
+              alt="Telegram"
+              className="w-full h-full"
+            />
           </div>
         );
       case "line":
         return (
           <div className="w-8 h-8">
-            <img src="/icons/platform/line.png" alt="Line" className="w-full h-full" />
+            <img
+              src="/icons/platform/line.png"
+              alt="Line"
+              className="w-full h-full"
+            />
           </div>
         );
       default:
@@ -470,8 +501,8 @@ export default function ConsultationChannelSettings() {
   return (
     <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between px-7 h-[76px]">
-        <h1 className="text-[24px] font-bold text-foreground leading-5">
+      <div className="flex items-center justify-between px-6 md:px-7 py-4.5 md:py-0 md:h-[76px]">
+        <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-5">
           상담 채널 연동
         </h1>
         <div className="flex items-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
@@ -485,7 +516,7 @@ export default function ConsultationChannelSettings() {
       <div className="w-full h-[1px] bg-neutral-30 opacity-70 mb-[30px]"></div>
 
       {/* Channel Cards Grid */}
-      <div className="grid grid-cols-2 gap-6 px-7">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 px-6 md:px-7">
         {channels.map((channel) => (
           <ChannelCard
             key={channel.id}

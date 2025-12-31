@@ -139,10 +139,16 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     status?: "all" | "active" | "closed"; 
     platform?: "line" | "telegram" | "instagram" | undefined 
   }) => {
-    setFiltersState(prev => ({
-      status: newFilters.status ?? prev.status,
-      platform: newFilters.platform !== undefined ? newFilters.platform : prev.platform,
-    }));
+    setFiltersState(prev => {
+      const nextStatus = newFilters.status !== undefined ? newFilters.status : prev.status;
+      // platform은 명시적으로 undefined를 전달할 수 있도록 처리
+      // newFilters에 platform이 없으면(undefined) 이전 값 유지, 있으면(undefined 포함) 업데이트
+      const nextPlatform = "platform" in newFilters ? newFilters.platform : prev.platform;
+      return {
+        status: nextStatus,
+        platform: nextPlatform,
+      };
+    });
   }, []);
 
   // 소켓 인스턴스 접근
@@ -170,12 +176,19 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = convCursor;
     
-    socket.emit("getConversations", {
+    const requestPayload: any = {
       limit: 20,
-      status: filters.status === "all" ? undefined : filters.status,
-      platform: filters.platform || "",
       cursor: convCursor,
-    });
+    };
+    
+    if (filters.status !== "all") {
+      requestPayload.status = filters.status;
+    }
+    
+    // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
+    requestPayload.platform = filters.platform || "";
+    
+    socket.emit("getConversations", requestPayload);
   }, [convHasMore, convCursor, filters.status, filters.platform]);
 
   // ============================================
@@ -216,11 +229,18 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       convLoadingRef.current = true;
       lastConvCursorRequestedRef.current = undefined;
 
-      socket.emit("getConversations", {
+      const requestPayload: any = {
         limit: 20,
-        status: filters.status === "all" ? undefined : filters.status,
-        platform: filters.platform || "",
-      });
+      };
+      
+      if (filters.status !== "all") {
+        requestPayload.status = filters.status;
+      }
+      
+      // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
+      requestPayload.platform = filters.platform || "";
+
+      socket.emit("getConversations", requestPayload);
     };
 
     // 연결 상태 핸들러
@@ -417,7 +437,36 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socket.off("messagesMarkedRead", handleMessagesMarkedRead as any);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [projectId, filters.status, filters.platform, pathname]);
+  }, [projectId, pathname]);
+
+  // ============================================
+  // 필터 변경 시 대화 목록 재요청
+  // ============================================
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !projectId || !connected) return;
+
+    // 필터가 변경되면 대화 목록을 다시 요청
+    // 상태 초기화
+    setConversations([]);
+    setConvCursor(undefined);
+    setConvHasMore(false);
+    convLoadingRef.current = true;
+    lastConvCursorRequestedRef.current = undefined;
+
+    const requestPayload: any = {
+      limit: 20,
+    };
+    
+    if (filters.status !== "all") {
+      requestPayload.status = filters.status;
+    }
+    
+    // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
+    requestPayload.platform = filters.platform || "";
+
+    socket.emit("getConversations", requestPayload);
+  }, [filters.status, filters.platform, projectId, connected]);
 
   // Context 값
   const value: ChatContextType = {
