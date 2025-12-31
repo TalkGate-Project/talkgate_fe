@@ -410,7 +410,7 @@ export default function GeneralSettings() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
-        <div className="md:bg-card rounded-[14px] shadow-sm p-6 md:p-7 animate-pulse">
+        <div className="md:bg-card md:rounded-[14px] md:shadow-sm p-6 md:p-7 animate-pulse">
           <div className="h-6 bg-neutral-20 rounded w-1/4 mb-4"></div>
           <div className="h-10 bg-neutral-20 rounded"></div>
         </div>
@@ -421,7 +421,7 @@ export default function GeneralSettings() {
   return (
     <div className="md:space-y-8">
       {/* 일반설정 - 프로젝트 이름 */}
-      <div className="md:bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-5 md:pb-7">
+      <div className="md:bg-card md:rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] md:shadow-sm pb-5 md:pb-7">
         <h1 className="text-[18px] py-[18px] md:py-0 md:text-[24px] font-bold text-neutral-90 leading-[20px] px-6 md:px-7 md:h-[76px] flex items-center">
           일반설정
         </h1>
@@ -434,7 +434,7 @@ export default function GeneralSettings() {
             type="text"
             value={serviceName}
             onChange={(e) => setServiceName(e.target.value)}
-            className="flex-1 px-3 py-2 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+            className="flex-1 px-3 md:py-2 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
             placeholder="이름"
             disabled={isSaving}
           />
@@ -443,13 +443,20 @@ export default function GeneralSettings() {
             disabled={isSaving || serviceName === originalServiceName}
             className="px-3 py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? "변경중..." : "이름변경"}
+            {isSaving ? (
+              "변경중..."
+            ) : (
+              <>
+                <span className="md:hidden">변경</span>
+                <span className="hidden md:inline">이름변경</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* 브랜드 아이콘 및 도메인 */}
-      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
+      <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px]">
         <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">브랜드 아이콘 및 도메인</h3>
         <p className="hidden md:block text-[14px] text-neutral-60 font-medium mb-3 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
         
@@ -458,24 +465,31 @@ export default function GeneralSettings() {
         {/* 서브 도메인 */}
         <div className="mb-3">
           <label className="text-[14px] text-ink font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
-          <div className="flex gap-3 mb-2">
-            <div className="flex-1 relative items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
+          <div className="flex gap-3 mb-2 max-h-[34px]">
+            <div className="flex-1 relative items-center px-3 border border-neutral-30 rounded-[5px] bg-card">
               <input
                 type="text"
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value)}
-                className="text-[14px] text-ink bg-transparent focus:outline-none tracking-[-0.02em] w-full max-w-[120px] md:max-w-[500px] lg:max-w-[700px]"
+                className="text-[14px] leading-[34px] text-ink bg-transparent focus:outline-none tracking-[-0.02em] w-full max-w-[120px] md:max-w-[500px] lg:max-w-[700px]"
                 placeholder="myservice"
                 disabled={isSaving}
               />
-              <span className="text-[14px] text-ink font-medium absolute right-0 top-2.5 my-auto mr-2 tracking-[-0.02em] pointer-events-none">.app.talkgate.im</span>
+              <span className="text-[14px] text-ink font-medium absolute right-0 top-1.5 my-auto mr-2 tracking-[-0.02em] pointer-events-none">.app.talkgate.im</span>
             </div>
             <button 
               onClick={handleUpdateSubdomain}
               disabled={isSaving || subdomain === originalSubdomain}
               className="px-3 py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? "변경중..." : "이름변경"}
+              {isSaving ? (
+                "변경중..."
+              ) : (
+                <>
+                  <span className="md:hidden">변경</span>
+                  <span className="hidden md:inline">이름변경</span>
+                </>
+              )}
             </button>
           </div>
           <ul className="text-[14px] text-neutral-60 font-medium space-y-1 leading-6">
@@ -524,16 +538,16 @@ export default function GeneralSettings() {
             </div>
           </div>
           <p className="text-[14px] text-neutral-60 font-medium text-center mt-2 leading-6">
-            • PNG, JPG, WEBP파일 (최대 5MB)
+            • PNG, JPG, WEBP파일 (최대 5MB)<br className="block md:hidden" />
             • 정사각형 이미지 권장
           </p>
         </div>
       </div>
 
       {/* 처리상태 관리 */}
-      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
+      <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px] mt-5 md:mt-0">
         <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">처리상태 관리</h3>
-        <p className="text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
+        <p className="hidden md:block text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
         
         <div className="border-t border-neutral-30 mb-3"></div>
         
@@ -557,7 +571,7 @@ export default function GeneralSettings() {
         {/* 상태 목록 */}
         <div className="space-y-3">
           {statuses.map((status) => (
-            <div key={status.id} className="flex items-center justify-between py-2 px-6 bg-neutral-10 rounded-[5px] h-[50px]">
+            <div key={status.id} className="flex items-center justify-between py-2 px-4 md:px-6 bg-neutral-10 rounded-[5px] h-[50px]">
               <span className="text-[16px] font-semibold text-foreground leading-[19px]">{status.name}</span>
               <div className="flex gap-3">
                 <button
@@ -579,9 +593,9 @@ export default function GeneralSettings() {
       </div>
 
       {/* 프로젝트 기능 */}
-      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
+      <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px] mt-5 md:mt-0">
         <h3 className="text-[16px] font-semibold text-foreground mb-[10px] tracking-[0.2px] leading-[1]">프로젝트 기능</h3>
-        <p className="text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
+        <p className="hidden md:block text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
         
         <div className="border-t border-neutral-30 mb-3"></div>
         
@@ -600,17 +614,16 @@ export default function GeneralSettings() {
       </div>
 
       {/* 프로젝트 삭제 */}
-      <div className="md:bg-card rounded-[14px] shadow-sm p-6 md:p-7">
+      <div className="md:bg-card md:rounded-[14px] md:shadow-sm p-6 md:p-7">
         <div className="flex items-center gap-3 mb-[6px]">
           <h3 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">프로젝트 삭제</h3>
           <span className="w-[44px] bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">
             주의
           </span>
         </div>
-        <p className="text-[14px] text-danger-40 dark:text-danger-40 font-medium mb-3 tracking-[0.2px] leading-[1]">
+        <p className="hidden md:block text-[14px] text-danger-40 dark:text-danger-40 font-medium mb-3 tracking-[0.2px] leading-[1]">
           프로젝트를 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
         </p>
-        
         <div className="border-t border-neutral-30 dark:border-neutral-30 mb-3"></div>
         
         <div className="flex items-center justify-between py-3 px-6 bg-[rgba(255,235,235,0.5)] dark:bg-neutral-20 rounded-[5px] h-[48px]">
@@ -622,6 +635,9 @@ export default function GeneralSettings() {
             프로젝트 삭제
           </button>
         </div>
+        <p className="block md:hidden text-[14px] text-danger-40 dark:text-danger-40 font-medium mt-2 mb-3 tracking-[0.2px] leading-[1]">
+          프로젝트를 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+        </p>
       </div>
 
       {/* Service Delete Modal */}
