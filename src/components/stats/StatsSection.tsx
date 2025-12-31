@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
@@ -64,6 +64,41 @@ function getWeekLabel(dateString: string): string {
   return `${month}월 ${weekName}`;
 }
 
+// 모바일용: 날짜로부터 "N월N주" 형식의 레이블을 생성하는 함수
+function getWeekLabelMobile(dateString: string): string {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+
+  const month = date.getMonth() + 1; // 1-12
+  const dayOfMonth = date.getDate(); // 1-31
+  const weekDay = date.getDay(); // 0(일) ~ 6(토)
+
+  // 해당 월의 첫날
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstDayOfWeek = firstDay.getDay(); // 0(일) ~ 6(토)
+
+  // 해당 월에서 현재 주의 시작 요일(weekDay)과 같은 요일이 처음 나오는 날짜를 찾기
+  let firstOccurrence = 1;
+  if (firstDayOfWeek <= weekDay) {
+    firstOccurrence = 1 + (weekDay - firstDayOfWeek);
+  } else {
+    firstOccurrence = 1 + (7 - firstDayOfWeek + weekDay);
+  }
+
+  // 첫 번째 발생일부터 현재 날짜까지 몇 주가 지났는지 계산
+  let weekNumber;
+  if (dayOfMonth < firstOccurrence) {
+    // 현재 날짜가 이번 달의 첫 번째 해당 요일보다 이전이면 이전 달 주차
+    // 이 경우 이전 달로 표시해야 하지만, 간단하게 처리
+    const prevMonth = month === 1 ? 12 : month - 1;
+    return `${prevMonth}월마지막`;
+  } else {
+    weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+  }
+
+  return `${month}월${weekNumber}주`;
+}
+
 export default function StatsSection() {
   const router = useRouter();
   const [projectId, projectReady] = useSelectedProjectId();
@@ -72,10 +107,23 @@ export default function StatsSection() {
   const missingProject = projectReady && !projectId;
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { data, isLoading, isError, isFetching } =
     useQuery<CustomerPaymentWeeklyResponse>({
@@ -97,12 +145,14 @@ export default function StatsSection() {
     const records = data?.data.data === null ? [] : data?.data.data ?? [];
     return records
       .map((item) => ({
-        label: getWeekLabel(item.weekStartDate),
+        label: isMobile
+          ? getWeekLabelMobile(item.weekStartDate)
+          : getWeekLabel(item.weekStartDate),
         amount: item.totalAmount,
         count: item.paymentCount,
       }))
       .reverse();
-  }, [data]);
+  }, [data, isMobile]);
 
   // Compute dynamic domain and max value for labeling/highlighting
   const { domainMin, domainMax, maxAmount, maxIndex } = useMemo(() => {
@@ -247,7 +297,7 @@ export default function StatsSection() {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
-              margin={{ left: 46, right: 12, top: 42, bottom: 12 }}
+              margin={{ left: isMobile ? 12 : 46, right: 12, top: 42, bottom: 12 }}
               onMouseMove={(state) => {
                 if (state && state.isTooltipActive) {
                   const idx = state.activeTooltipIndex;

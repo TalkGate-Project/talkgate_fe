@@ -5,7 +5,7 @@ import SettingsClient from "@/components/settings/SettingsClient";
 
 export default function SettingsPageContent() {
   return (
-    <main className="bg-background pt-9 pb-12">
+    <main className="bg-background md:pt-9 md:pb-12">
       <div className="container mx-auto max-w-[1324px] px-0 md:px-4">
         <Suspense fallback={
           <div className="flex gap-6">

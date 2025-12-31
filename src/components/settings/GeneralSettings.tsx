@@ -410,7 +410,7 @@ export default function GeneralSettings() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
-        <div className="bg-card rounded-[14px] shadow-sm p-7 animate-pulse">
+        <div className="md:bg-card rounded-[14px] shadow-sm p-6 md:p-7 animate-pulse">
           <div className="h-6 bg-neutral-20 rounded w-1/4 mb-4"></div>
           <div className="h-10 bg-neutral-20 rounded"></div>
         </div>
@@ -419,17 +419,17 @@ export default function GeneralSettings() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="md:space-y-8">
       {/* 일반설정 - 프로젝트 이름 */}
-      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-7">
-        <h1 className="text-[24px] font-bold text-neutral-90 leading-[20px] px-7 h-[76px] flex items-center">
+      <div className="md:bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-5 md:pb-7">
+        <h1 className="text-[18px] py-[18px] md:py-0 md:text-[24px] font-bold text-neutral-90 leading-[20px] px-6 md:px-7 md:h-[76px] flex items-center">
           일반설정
         </h1>
         <div className="border-t border-neutral-30 mb-6"></div>
-        <h3 className="text-[16px] font-semibold text-foreground mb-3 tracking-[0.2px] leading-[1] px-7">프로젝트 이름</h3>
-        <div className="border-t border-neutral-30 mb-3 mx-7"></div>
-        <h6 className="text-[14px] text-neutral-60 font-medium mb-2 tracking-[0.2px] leading-[1] px-7">이름</h6>
-        <div className="flex gap-3 px-7">
+        <h3 className="text-[16px] font-semibold text-foreground mb-3 tracking-[0.2px] leading-[1] px-6 md:px-7">프로젝트 이름</h3>
+        <div className="border-t border-neutral-30 mb-3 mx-6 md:mx-7"></div>
+        <h6 className="text-[14px] text-neutral-60 font-medium mb-2 tracking-[0.2px] leading-[1] px-6 md:px-7">이름</h6>
+        <div className="flex gap-3 px-6 md:px-7">
           <input
             type="text"
             value={serviceName}
@@ -449,9 +449,9 @@ export default function GeneralSettings() {
       </div>
 
       {/* 브랜드 아이콘 및 도메인 */}
-      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
         <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">브랜드 아이콘 및 도메인</h3>
-        <p className="text-[14px] text-neutral-60 font-medium mb-3 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
+        <p className="hidden md:block text-[14px] text-neutral-60 font-medium mb-3 tracking-[0.2px]">브랜드 아이콘과 도메인을 설정합니다.</p>
         
         <div className="border-t border-neutral-30 mb-3"></div>
 
@@ -459,16 +459,16 @@ export default function GeneralSettings() {
         <div className="mb-3">
           <label className="text-[14px] text-ink font-medium mb-2 block tracking-[0.2px]">서브 도메인</label>
           <div className="flex gap-3 mb-2">
-            <div className="flex-1 flex items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
+            <div className="flex-1 relative items-center px-3 py-2 border border-neutral-30 rounded-[5px] bg-card">
               <input
                 type="text"
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value)}
-                className="flex-1 text-[14px] text-ink bg-transparent focus:outline-none tracking-[-0.02em]"
+                className="text-[14px] text-ink bg-transparent focus:outline-none tracking-[-0.02em] w-full max-w-[120px] md:max-w-[500px] lg:max-w-[700px]"
                 placeholder="myservice"
                 disabled={isSaving}
               />
-              <span className="text-[14px] text-ink font-medium ml-2 tracking-[-0.02em]">.app.talkgate.im</span>
+              <span className="text-[14px] text-ink font-medium absolute right-0 top-2.5 my-auto mr-2 tracking-[-0.02em] pointer-events-none">.app.talkgate.im</span>
             </div>
             <button 
               onClick={handleUpdateSubdomain}
@@ -531,7 +531,7 @@ export default function GeneralSettings() {
       </div>
 
       {/* 처리상태 관리 */}
-      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
         <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">처리상태 관리</h3>
         <p className="text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
         
@@ -579,7 +579,7 @@ export default function GeneralSettings() {
       </div>
 
       {/* 프로젝트 기능 */}
-      <div className="bg-card rounded-[14px] shadow-sm px-7 py-[30px]">
+      <div className="md:bg-card rounded-[14px] shadow-sm px-6 md:px-7 md:py-[30px]">
         <h3 className="text-[16px] font-semibold text-foreground mb-[10px] tracking-[0.2px] leading-[1]">프로젝트 기능</h3>
         <p className="text-[14px] text-neutral-60 mb-3 tracking-[0.2px] leading-[12px]">출퇴근 기능 및 근태메뉴를 활성화 합니다.</p>
         
@@ -600,7 +600,7 @@ export default function GeneralSettings() {
       </div>
 
       {/* 프로젝트 삭제 */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
+      <div className="md:bg-card rounded-[14px] shadow-sm p-6 md:p-7">
         <div className="flex items-center gap-3 mb-[6px]">
           <h3 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">프로젝트 삭제</h3>
           <span className="w-[44px] bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">
