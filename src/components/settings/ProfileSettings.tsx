@@ -272,56 +272,87 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="bg-card dark:bg-neutral-0 rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-[26px] min-h-[728px] relative">
+    <div className="bg-card dark:bg-neutral-0 md:rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-sm pb-6.5 md:min-h-[728px] relative">
       {/* 헤더 */}
-      <div className="px-7 flex items-center justify-between h-[76px]">
-         <h1 className="text-[24px] font-bold text-ink dark:text-neutral-80 leading-[20px]">프로필</h1>
+      <div className="px-6 md:px-7 flex items-center justify-between py-4.5 md:py-0 md:h-[76px]">
+         <h1 className="text-[18px] md:text-[24px] font-bold text-ink dark:text-neutral-80 leading-[20px]">프로필</h1>
+         <div className="block md:hidden">
+           {!isEditMode ? (
+              <button 
+                onClick={() => setIsEditMode(true)}
+                className="cursor-pointer flex items-center justify-center px-[12px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors h-[34px]"
+              >
+                수정
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                >
+                  취소
+                </button>
+                <AsyncButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleSaveProfile}
+                  loading={isSaving}
+                  className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-10 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+                >
+                  저장
+                </AsyncButton>
+              </div>
+            )}
+         </div>
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40 mb-[26px]"></div>
+      <div className="w-full h-[1px] bg-neutral-30/40 dark:bg-neutral-30/40 mb-4.5 md:mb-6.5"></div>
 
       {/* 프로필 정보 섹션 */}
       <div className="mb-5">
         {/* 프로필 정보 헤더 */}
-        <div className="flex items-center justify-between px-7 mb-[26px]">
+        <div className="flex items-center justify-between px-6 md:px-7 mb-1 md:mb-6.5">
           <div>
             <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80 mb-[6px]">프로필 정보</h2>
-            <p className="text-[14px] text-neutral-60 dark:text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
+            <p className="hidden md:block text-[14px] text-neutral-60 dark:text-neutral-60">프로젝트에서 사용되는 프로필 정보를 설정합니다.</p>
           </div>
-          {!isEditMode ? (
-            <button 
-              onClick={() => setIsEditMode(true)}
-              className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors h-[34px]"
-            >
-              프로필 수정
-            </button>
-          ) : (
-            <div className="flex gap-2">
+          <div className="hidden md:block">
+            {!isEditMode ? (
               <button 
-                onClick={handleCancelEdit}
-                disabled={isSaving}
-                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                onClick={() => setIsEditMode(true)}
+                className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors h-[34px]"
               >
-                취소
+                프로필 수정
               </button>
-              <AsyncButton
-                variant="secondary"
-                size="sm"
-                onClick={handleSaveProfile}
-                loading={isSaving}
-                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-10 hover:bg-neutral-80 dark:hover:bg-neutral-70"
-              >
-                저장
-              </AsyncButton>
-            </div>
-          )}
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  className="cursor-pointer flex items-center justify-center px-[12px] py-[6px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+                >
+                  취소
+                </button>
+                <AsyncButton
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleSaveProfile}
+                  loading={isSaving}
+                  className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-10 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+                >
+                  저장
+                </AsyncButton>
+              </div>
+            )}
+          </div>
         </div>
         
-        <div className="mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-[54px]"></div>
+        <div className="mx-6 md:mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-5 md:mb-[54px]"></div>
 
         {/* 프로필 썸네일 - 중앙 정렬 */}
-        <div className="flex justify-center mb-[54px]">
+        <div className="flex justify-center mb-5 md:mb-[54px]">
           <div className="relative flex flex-col items-center gap-[24px]">
             <label 
               htmlFor="profile-image-upload"
@@ -351,10 +382,10 @@ export default function ProfileSettings() {
         </div>
 
         {/* 입력 필드들 - 2열 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-[20px] max-w-[792px] mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 md:gap-y-5 max-w-[792px] mx-auto px-4">
           {/* 이름 */}
-          <div className="relative">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">이름</label>
+          <div className="flex flex-col">
+            <label className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">이름</label>
             <input
               type="text"
               value={name}
@@ -365,8 +396,8 @@ export default function ProfileSettings() {
           </div>
 
           {/* 이메일 (읽기 전용) */}
-          <div className="relative">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
+          <div className="flex flex-col">
+            <label className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">
               이메일
             </label>
             <input
@@ -379,8 +410,8 @@ export default function ProfileSettings() {
           </div>
 
           {/* 연락처 */}
-          <div className="relative mt-[25px]">
-            <label className="absolute left-0 top-[-25px] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">연락처</label>
+          <div className="flex flex-col">
+            <label className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-2">연락처</label>
             <input
               type="tel"
               value={phone}
@@ -393,7 +424,7 @@ export default function ProfileSettings() {
       </div>
 
       {/* 조직정보 섹션 */}
-      <div className="max-w-[792px] mx-auto px-4 mt-[45px]">
+      <div className="max-w-[792px] mx-auto px-4 md:mt-[45px]">
         <h2 className="text-[14px] font-medium text-neutral-60 dark:text-neutral-60 mb-[10px]">조직정보</h2>
         
         {/* 조직 트리 렌더링 */}
