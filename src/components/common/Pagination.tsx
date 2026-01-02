@@ -1,42 +1,67 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 type Props = {
   page: number;
   totalPages: number;
   onPageChange: (next: number) => void;
   disabled?: boolean;
-  maxButtons?: number; // default 10
+  maxButtons?: number; // default 10 (desktop), 5 (mobile)
   className?: string;
 };
 
-export default function Pagination({ page, totalPages, onPageChange, disabled = false, maxButtons = 10, className = "" }: Props) {
+export default function Pagination({ page, totalPages, onPageChange, disabled = false, maxButtons, className = "" }: Props) {
+  const [effectiveMaxButtons, setEffectiveMaxButtons] = useState(10);
+
+  // 모바일에서는 5개, 데스크탑에서는 10개 표시
+  useEffect(() => {
+    const updateMaxButtons = () => {
+      // maxButtons prop이 명시적으로 전달된 경우 그대로 사용
+      if (maxButtons !== undefined) {
+        setEffectiveMaxButtons(maxButtons);
+        return;
+      }
+
+      // prop이 없으면 화면 크기에 따라 결정 (md 브레이크포인트: 768px)
+      const isMobile = window.innerWidth < 768;
+      setEffectiveMaxButtons(isMobile ? 5 : 10);
+    };
+
+    updateMaxButtons();
+
+    // 리사이즈 이벤트 리스너 등록
+    window.addEventListener("resize", updateMaxButtons);
+    return () => window.removeEventListener("resize", updateMaxButtons);
+  }, [maxButtons]);
+
   const safeTotal = Math.max(1, totalPages || 1);
   const clampedPage = Math.min(Math.max(1, page || 1), safeTotal);
 
   // 페이지 번호를 계산하는 로직
   const getPageNumbers = (): (number | string)[] => {
-    if (safeTotal <= maxButtons) {
-      // 전체 페이지가 maxButtons 이하면 모두 표시
+    if (safeTotal <= effectiveMaxButtons) {
+      // 전체 페이지가 effectiveMaxButtons 이하면 모두 표시
       return Array.from({ length: safeTotal }, (_, i) => i + 1);
     }
 
     const pages: (number | string)[] = [];
     const sideButtons = 2; // 첫/끝에서 보여줄 버튼 수
-    const middleButtons = maxButtons - 4; // 양쪽 ellipsis와 첫/끝 페이지를 제외한 중간 버튼 수
+    const middleButtons = effectiveMaxButtons - 4; // 양쪽 ellipsis와 첫/끝 페이지를 제외한 중간 버튼 수
 
     // 항상 첫 페이지 포함
     pages.push(1);
 
     if (clampedPage <= sideButtons + middleButtons / 2) {
       // 시작 부분에 있을 때
-      for (let i = 2; i < maxButtons - 1; i++) {
+      for (let i = 2; i < effectiveMaxButtons - 1; i++) {
         pages.push(i);
       }
       pages.push("...");
     } else if (clampedPage >= safeTotal - sideButtons - middleButtons / 2) {
       // 끝 부분에 있을 때
       pages.push("...");
-      for (let i = safeTotal - maxButtons + 3; i < safeTotal; i++) {
+      for (let i = safeTotal - effectiveMaxButtons + 3; i < safeTotal; i++) {
         pages.push(i);
       }
     } else {
