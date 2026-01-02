@@ -55,7 +55,7 @@ export default function DateRangePicker({
     maxDate?: Date | null,
     minDate?: Date | null
   ) => (
-    <div className="w-[175px] relative">
+    <div className="flex-1 min-w-0 md:w-[175px] md:flex-none relative">
       <DatePicker
         key={pickerKey}
         value={value}
@@ -89,32 +89,30 @@ export default function DateRangePicker({
   );
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="flex items-center gap-3">
-        {renderDatePicker(
-          startKey,
-          startDate,
-          handleStartChange,
-          "연도 . 월 . 일",
-          undefined,
-          endDate
-        )}
-        <span className="text-[14px] font-medium text-neutral-90">-</span>
-        {renderDatePicker(
-          endKey,
-          endDate,
-          handleEndChange,
-          "연도 . 월 . 일",
-          undefined,
-          undefined,
-          startDate
-        )}
-      </div>
+    <div className={`flex items-center gap-2 md:gap-3 flex-wrap md:flex-nowrap ${className}`}>
+      {renderDatePicker(
+        startKey,
+        startDate,
+        handleStartChange,
+        "연도 . 월 . 일",
+        undefined,
+        endDate
+      )}
+      <span className="text-[14px] font-medium text-neutral-90 flex-shrink-0">-</span>
+      {renderDatePicker(
+        endKey,
+        endDate,
+        handleEndChange,
+        "연도 . 월 . 일",
+        undefined,
+        undefined,
+        startDate
+      )}
       <button
         type="button"
         onClick={handleReset}
         disabled={disabled}
-        className="h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
       >
         초기화
       </button>
