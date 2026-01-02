@@ -230,7 +230,7 @@ export default function OrganizationContent({
               value={teamNameDraft}
               onChange={(e) => setTeamNameDraft(e.target.value)}
               placeholder="팀이름을 입력하세요"
-              className="h-[34px] w-full max-w-[240px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
+              className="h-[34px] w-full max-w-[240px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card dark:!bg-neutral-10"
             />
             <div className="flex items-center gap-2">
               <button
@@ -239,7 +239,7 @@ export default function OrganizationContent({
                   setTeamCreateMode(false);
                   setTeamNameDraft("");
                 }}
-                className="h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
+                className="h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card dark:!bg-neutral-10"
               >
                 취소
               </button>
@@ -317,7 +317,7 @@ export default function OrganizationContent({
                 disabled={isDeletingTeam}
                 className={`${
                   isDeletingTeam ? "cursor-not-allowed" : "cursor-pointer"
-                } h-[34px] px-3 ml-2 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card disabled:opacity-60`}
+                } h-[34px] px-3 ml-2 rounded-[5px] border border-border text-[14px] font-semibold text-neutral-60 bg-card dark:!bg-neutral-10 disabled:opacity-60`}
               >
                 {isDeletingTeam ? "제거 중..." : "팀 제거"}
               </button>
