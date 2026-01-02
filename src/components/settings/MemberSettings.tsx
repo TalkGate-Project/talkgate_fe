@@ -437,7 +437,7 @@ export default function MemberSettings() {
         </div>
         
         {/* Desktop Header */}
-        <div className="hidden md:block bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center">
+        <div className="hidden md:block bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-10 leading-10 flex items-center">
           <div className="flex items-center w-full">
             <div className="w-[280px] min-w-[280px] flex-none text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               멤버

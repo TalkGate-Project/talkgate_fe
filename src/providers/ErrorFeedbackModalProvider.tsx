@@ -177,13 +177,13 @@ export default function ErrorFeedbackModalProvider({
     <ErrorModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-5 md:p-0">
           <div
             className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
             onClick={hide}
           />
-          <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
-            <div className="px-8 pt-7 pb-6">
+          <div className="relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
+            <div className="px-4 md:px-8 pt-7 pb-6">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
                   {state.title}
@@ -301,7 +301,7 @@ export default function ErrorFeedbackModalProvider({
               )}
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
-            <div className="flex justify-end gap-3 px-8 py-4">
+            <div className="flex justify-end gap-3 px-4 md:px-8 py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"

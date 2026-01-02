@@ -595,7 +595,7 @@ export default function TeamMemberInfoModal({
           <button
             type="button"
             onClick={handleReset}
-            className="h-[34px] px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
+            className="h-[34px] px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card dark:bg-neutral-10"
           >
             초기화
           </button>
