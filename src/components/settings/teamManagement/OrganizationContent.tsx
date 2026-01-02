@@ -98,8 +98,9 @@ export default function OrganizationContent({
   const renderOrgNode = (node: OrgNode, index: number = 0) => {
     // role이 "leader"인 경우에만 팀장으로 표시 (팀원은 회색 배경)
     const isNodeLeader = node.role === "leader";
-    const indent = getIndent(node.level);
-    const connectorLeft = getConnectorLeft(node.level);
+    // 모바일에서 1rem(16px) 들여쓰기, 데스크탑에서 기존 값 사용
+    const indent = node.level * 16; // 모바일: 16px per level
+    const connectorLeft = (node.level - 1) * 16; // 모바일: 16px per level
     const hasChildren = node.children && node.children.length > 0;
     const isExpanded = expandedNodes.has(node.id);
 
@@ -108,32 +109,38 @@ export default function OrganizationContent({
         {node.level > 0 && (
           <>
             <div
-              className="absolute left-0 top-0 bottom-0 w-px bg-border"
+              className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
               style={{
                 left: `${connectorLeft}px`,
+                '--desktop-connector-left': `${getConnectorLeft(node.level)}px`,
                 top:
                   index === 0
                     ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset
                     : 0,
-              }}
+              } as React.CSSProperties}
             />
             <div
-              className="absolute h-px bg-border"
+              className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
               style={{
                 left: `${connectorLeft}px`,
+                '--desktop-connector-left': `${getConnectorLeft(node.level)}px`,
+                '--desktop-horizontal-width': `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
                 top: HIERARCHY_LIST_TOKENS.connector.horizontalTop,
-                width: HIERARCHY_LIST_TOKENS.connector.horizontalWidth,
-              }}
+                width: '16px' // 모바일: 16px
+              } as React.CSSProperties}
             />
           </>
         )}
         <div
-          className={`flex items-center gap-3 px-5 py-3 rounded-[12px] ${
+          className={`flex items-center gap-3 px-5 py-3 rounded-[12px] md:!ml-[var(--desktop-indent)] ${
             isNodeLeader
               ? "bg-team-leader-highlight"
               : "bg-neutral-10 dark:bg-neutral-25"
           }`}
-          style={{ marginLeft: `${indent}px` }}
+          style={{ 
+            marginLeft: `${indent}px`,
+            '--desktop-indent': `${getIndent(node.level)}px`,
+          } as React.CSSProperties}
         >
           {hasChildren && (
             <button

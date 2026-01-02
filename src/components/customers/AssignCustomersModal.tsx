@@ -155,41 +155,47 @@ function HierarchicalTeamList({
       const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
       const isExpanded = currentExpanded.has(item.id);
       const level = item.level ?? 0;
-      const indent = getIndent(level);
-      const connectorLeft = getConnectorLeft(level);
+      // 모바일에서 1rem(16px) 들여쓰기, 데스크탑에서 기존 값 사용
+      const indent = level * 16; // 모바일: 16px per level
+      const connectorLeft = (level - 1) * 16; // 모바일: 16px per level
       const isSelected = selectedId === Number(item.id);
 
       return (
         <div key={item.id} className="relative mb-2">
           {level > 0 && (
             <>
-              <div
-                className="absolute left-0 top-0 bottom-0 w-px bg-border"
-                style={{
-                  left: `${connectorLeft}px`,
-                  // Match the visual style from TeamListView
-                  top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0,
-                }}
-              />
-              <div
-                className="absolute h-px bg-border"
-                style={{ 
-                  left: `${connectorLeft}px`, 
-                  top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
-                  width: HIERARCHY_LIST_TOKENS.connector.horizontalWidth 
-                }}
-              />
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
+                  style={{
+                    left: `${connectorLeft}px`,
+                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
+                    top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0,
+                  } as React.CSSProperties}
+                />
+                <div
+                  className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
+                  style={{ 
+                    left: `${connectorLeft}px`,
+                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
+                    '--desktop-horizontal-width': `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
+                    top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
+                    width: '16px' // 모바일: 16px
+                  } as React.CSSProperties}
+                />
             </>
           )}
           <div
-            className={`h-[52px] flex items-center px-6 gap-4 border rounded-[12px] cursor-pointer transition-all ${
+            className={`h-[52px] flex items-center px-4 md:px-6 gap-3 md:gap-4 border rounded-[12px] cursor-pointer transition-all md:!ml-[var(--desktop-indent)] ${
               item.isLeader ? "bg-primary-10/30 dark:bg-primary-10/20" : "bg-card dark:bg-neutral-10"
             } ${
               isSelected
                 ? "border-[#51F8A5] border-2"
                 : "border-neutral-30 dark:border-neutral-30 hover:border-primary-60"
             }`}
-            style={{ marginLeft: `${indent}px` }}
+            style={{ 
+              marginLeft: `${indent}px`,
+              '--desktop-indent': `${getIndent(level)}px`,
+            } as React.CSSProperties}
             onClick={() => onSelect(Number(item.id))}
           >
             {hasVisibleChildren ? (
@@ -386,13 +392,21 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     <BaseModal
       onClose={() => !loading && onClose()}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-[848px] md:w-[848px] max-w-[92vw] max-h-[90vh] rounded-[14px] bg-card dark:bg-neutral-10 p-6 flex flex-col"
+      containerClassName="relative w-full h-full md:w-[848px] md:h-auto md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 p-4 md:p-6 flex flex-col"
       ariaLabel="고객 배정"
+      fullScreenOnMobile={true}
     >
       {/* Header row */}
       <div className="flex items-center justify-between flex-shrink-0">
-        <div className="text-[18px] font-bold text-neutral-90 dark:text-neutral-90">고객 배정</div>
-        <div onClick={onClose} className="cursor-pointer">
+        <div className="flex items-center gap-2">
+          <button onClick={onClose} className="md:hidden cursor-pointer p-1 -ml-1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" className="text-neutral-90 dark:text-neutral-90" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="text-[18px] font-bold text-neutral-90 dark:text-neutral-90">고객배정</div>
+        </div>
+        <div onClick={onClose} className="hidden md:block cursor-pointer">
           <svg
             width="24"
             height="24"
@@ -411,7 +425,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           </svg>
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-3 flex-shrink-0">
+      <div className="hidden mt-3 md:flex md:items-center md:gap-3 md:flex-shrink-0">
         <div className="text-[14px] text-neutral-60 dark:text-neutral-60">
           그룹 혹은 팀원에게 고객을 배정할 수 있습니다.
         </div>
@@ -422,15 +436,19 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
 
       <hr className="mt-3 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
-      <div className="mt-[30px] flex-1 overflow-hidden flex flex-col">
-        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0">
-          팀원 배정
+      <div className="mt-4 md:mt-[30px] flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0 flex justify-between md:block">
+          <span className="md:hidden">그룹</span>
+          <span className="hidden md:inline">팀원 배정</span>
+          <span className="md:hidden inline-flex items-center h-[22px] rounded-[30px] bg-primary-10 px-3 text-[12px] text-primary-80 opacity-80">
+            선택된 고객 {selectionMode === "all" && totalCount !== undefined ? totalCount : selectedCustomerIds.length}명
+          </span>
         </div>
         
         {/* 검색 및 태그 영역 */}
-        <div className="mb-[30px] flex-shrink-0">
-          <div className="flex items-center gap-[10px] mb-3">
-            <div className="relative">
+        <div className="mb-4 md:mb-[30px] flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-[10px] mb-3">
+            <div className="relative flex-1 md:flex-none">
               <input
                 type="text"
                 value={inputValue}
@@ -440,14 +458,25 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                     executeSearch();
                   }
                 }}
-                placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full min-w-[248px] max-w-[296px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground"
+                placeholder="직원, 팀 이름을 검색하세요"
+                className="w-full md:min-w-[248px] md:max-w-[296px] px-3 h-[40px] md:h-[34px] border border-border rounded-[8px] md:rounded-[5px] text-[14px] text-foreground bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground"
               />
+              <button
+                type="button"
+                onClick={executeSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 md:hidden cursor-pointer p-1"
+                aria-label="검색"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="8" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="m21 21-4.35-4.35" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
             <button
               type="button"
               onClick={executeSearch}
-              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+              className="hidden md:block cursor-pointer w-[66px] h-[34px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold"
             >
               검색
             </button>
@@ -472,7 +501,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
           )}
         </div>
 
-        <div className="flex-1 overflow-auto pr-2">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-2">
           {isLoading ? (
             <div className="text-center text-neutral-60 dark:text-neutral-60 py-10">
               불러오는 중...
@@ -510,10 +539,10 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
         </div>
       </div>
 
-      <hr className="mt-6 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
+      <hr className="mt-4 md:mt-6 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
       <div className="mt-4 flex items-center justify-between gap-2 flex-shrink-0">
-        <div className="text-[13px] text-neutral-70 dark:text-neutral-60">
+        <div className="text-[13px] text-neutral-70 dark:text-neutral-60 hidden md:block">
           {/* {targetId ? (
             <>
               배정 대상 ID: <b>{targetId}</b>
@@ -522,16 +551,16 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
             <>배정 대상을 선택하세요</>
           )} */}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full md:w-auto">
           <button
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10"
+            className="cursor-pointer flex-1 md:flex-none h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10"
             onClick={onClose}
             disabled={loading}
           >
             취소
           </button>
           <button
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 text-[14px] font-semibold disabled:opacity-50"
+            className="cursor-pointer flex-1 md:flex-none h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 text-[14px] font-semibold disabled:opacity-50"
             disabled={loading || !targetId}
             onClick={async () => {
               if (!targetId) return;

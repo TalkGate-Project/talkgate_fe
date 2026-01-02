@@ -196,18 +196,18 @@ function CustomersPageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
       {/* Top panel: title + search */}
       <Panel
-        className="rounded-[14px] mb-9"
+        className="rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] mb-0 md:mb-9"
         title={
           <div className="flex items-end gap-3">
-            <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
-            <span className="w-px h-4 bg-neutral-60 opacity-40" />
-            <p className="text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
+            <h1 className="text-[20px] md:text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
+            <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-40" />
+            <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-7 pb-[22px] pt-[30px] border-t border-neutral-30"
+        bodyClassName="px-4 md:px-7 md:pb-[22px] md:pt-[30px] md:border-t md:border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -227,21 +227,23 @@ function CustomersPageContentInner() {
 
       {/* Bottom panel: actions (top-right) + table */}
       <Panel
-        className="rounded-[14px]"
+        className="rounded-[14px] md:rounded-[14px] rounded-t-[14px]"
         action={
           <CustomersActions
             projectId={projectId}
             appliedFilters={applied}
             selectedIds={selectedIds}
             selectionMode={selectionMode}
+            total={total}
+            selectedCount={selectionMode === "all" ? total : selectedIds.length}
             onUploadSuccess={refetch}
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
           />
         }
-        headerClassName="px-7 py-6"
-        bodyClassName="px-7 pb-4 pt-0"
+        headerClassName="px-4 md:px-7 py-4 md:py-6"
+        bodyClassName="px-0 md:px-7 pb-4 md:pb-4 pt-0 overflow-x-auto"
       >
         <CustomersTable
           customers={customers}

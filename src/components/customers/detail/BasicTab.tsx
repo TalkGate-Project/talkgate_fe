@@ -201,9 +201,9 @@ export default function BasicTab({
       <div className="md:col-span-2">
         <div className="text-[16px] font-semibold text-neutral-90 mb-3">메신저 계정</div>
         <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <div className="w-[120px]">
+        <div className="flex flex-col gap-2 min-w-0">
+          <div className="flex gap-2 min-w-0">
+            <div className="min-w-[106px] flex-shrink-0 md:min-w-0 md:w-[120px]">
               <SelectField
                 value={newMessengerType}
                 onChange={(e) => setNewMessengerType(e.target.value)}
@@ -219,11 +219,11 @@ export default function BasicTab({
               value={newMessengerAccount}
               onChange={(e) => setNewMessengerAccount(e.target.value)}
               placeholder="계정 ID를 입력하세요"
-              className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+              className="flex-1 min-w-0 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             />
             <button
               type="button"
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
+              className="cursor-pointer min-w-[48px] flex-shrink-0 h-[34px] md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
               onClick={handleAddMessenger}
             >
               추가

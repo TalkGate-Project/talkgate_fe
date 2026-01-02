@@ -64,6 +64,11 @@ export default function CustomersTable({
   }, []);
 
   const handleMouseEnter = (e: React.MouseEvent, customer: CustomerListItem) => {
+    // 모바일에서는 호버 미리보기 비활성화
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return;
+    }
+    
     if (hoverHideRef.current) {
       clearTimeout(hoverHideRef.current);
       hoverHideRef.current = null;
@@ -93,6 +98,11 @@ export default function CustomersTable({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    // 모바일에서는 호버 미리보기 비활성화
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      return;
+    }
+    
     if (!hoverInfo) return;
     const { clientX, clientY } = e;
 
@@ -172,8 +182,8 @@ export default function CustomersTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-6 h-[40px] align-middle rounded-l-[8px]">
-                <div className="flex items-center justify-start relative" ref={dropdownRef}>
+              <th className="px-4 md:px-6 h-[40px] align-middle rounded-l-[8px]">
+                <div className="flex items-center justify-center md:justify-start relative" ref={dropdownRef}>
                   <div onClick={handleCheckboxClick} className="cursor-pointer flex items-center">
                     <Checkbox
                       checked={allSelectedOnPage || selectionMode === "all"}
@@ -200,6 +210,7 @@ export default function CustomersTable({
                   )}
                 </div>
               </th>
+              {/* 데스크탑: 모든 열 */}
               {[
                 "이름",
                 "신청경로",
@@ -213,11 +224,15 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className={`typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""}`}
+                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""}`}
                 >
                   {h}
                 </th>
               ))}
+              {/* 모바일: 이름, 전화번호, 담당자만 표시 */}
+              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px]">이름</th>
+              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px]">전화번호</th>
+              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px] rounded-r-[8px]">담당자</th>
             </tr>
           </thead>
           <tbody className="typo-body-3">
@@ -225,29 +240,40 @@ export default function CustomersTable({
             {loading && (
               <>
                 {Array.from({ length: 10 }).map((_, idx) => (
-                  <TableSkeletonRow
-                    key={`skeleton-${idx}`}
-                    columns={[
-                      { width: 24, paddingX: 6, type: "checkbox" }, // 체크박스
-                      { width: "flex", paddingX: 6 }, // 이름
-                      { width: "flex", paddingX: 4 }, // 신청경로
-                      { width: "flex", paddingX: 4 }, // 매체사
-                      { width: "flex", paddingX: 4 }, // 사이트
-                      { width: "flex", paddingX: 4 }, // 담당팀
-                      { width: "flex", paddingX: 4 }, // 담당자
-                      { width: "flex", paddingX: 4 }, // 카테고리
-                      { width: "flex", paddingX: 4 }, // 신청시간
-                      { width: "flex", paddingX: 4 }, // 배정시간
-                    ]}
-                    rowHeight={48}
-                  />
+                    <tr key={`skeleton-${idx}`} className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse">
+                      {/* 데스크탑: 모든 열 */}
+                      <td className="hidden md:table-cell px-4 md:px-6" style={{ height: "48px", paddingLeft: "24px", paddingRight: "24px" }}>
+                        <div className="flex items-center justify-start h-full">
+                          <div className="w-6 h-6 bg-neutral-20 rounded" />
+                        </div>
+                      </td>
+                      {Array.from({ length: 9 }).map((_, colIdx) => (
+                        <td key={colIdx} className="hidden md:table-cell px-4" style={{ height: "48px" }}>
+                          <div className="h-4 bg-neutral-20 rounded" style={{ flex: 1 }} />
+                        </td>
+                      ))}
+                      {/* 모바일: 체크박스, 이름, 전화번호, 담당자 */}
+                      <td className="md:hidden px-4" style={{ height: "48px" }}>
+                        <div className="flex items-center justify-center h-full">
+                          <div className="w-6 h-6 bg-neutral-20 rounded" />
+                        </div>
+                      </td>
+                    {Array.from({ length: 3 }).map((_, colIdx) => (
+                      <td key={`mobile-${colIdx}`} className="md:hidden px-4" style={{ height: "48px" }}>
+                        <div className="h-4 bg-neutral-20 rounded" style={{ flex: 1 }} />
+                      </td>
+                    ))}
+                  </tr>
                 ))}
               </>
             )}
             {/* 에러 상태 */}
             {Boolean(error) && !loading && (
               <tr>
-                <td colSpan={10} className="px-6 h-[72px] text-center text-red-500">
+                <td colSpan={10} className="px-6 h-[72px] text-center text-red-500 md:table-cell">
+                  데이터를 불러오지 못했습니다
+                </td>
+                <td colSpan={4} className="md:hidden px-6 h-[72px] text-center text-red-500">
                   데이터를 불러오지 못했습니다
                 </td>
               </tr>
@@ -259,14 +285,29 @@ export default function CustomersTable({
               return (
                 <tr
                   key={c.id}
-                  className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${hoveredId === c.id ? "bg-neutral-10" : ""}`}
+                  className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${hoveredId === c.id ? "md:bg-neutral-10" : ""}`}
                   style={!isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}}
-                  onMouseEnter={(e) => handleMouseEnter(e, c)}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
+                  onMouseEnter={(e) => {
+                    // 모바일에서는 호버 이벤트 비활성화
+                    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+                      handleMouseEnter(e, c);
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    // 모바일에서는 호버 이벤트 비활성화
+                    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+                      handleMouseMove(e);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    // 모바일에서는 호버 이벤트 비활성화
+                    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+                      handleMouseLeave();
+                    }
+                  }}
                 >
-                  <td className="px-6 h-[48px]">
-                    <div className="flex items-center h-full">
+                  <td className="px-4 md:px-6 h-[48px]">
+                    <div className="flex items-center justify-center md:justify-start h-full">
                       <Checkbox
                         checked={checked}
                         onChange={(next) => onSelect(c.id, next)}
@@ -275,7 +316,8 @@ export default function CustomersTable({
                       />
                     </div>
                   </td>
-                  <td className="px-6 h-[48px] align-middle text-neutral-90 opacity-80">
+                  {/* 데스크탑: 모든 열 */}
+                  <td className="hidden md:table-cell px-6 h-[48px] align-middle text-neutral-90 opacity-80">
                     <button
                       className="cursor-pointer text-inherit"
                       onClick={() => onCustomerClick(c.id)}
@@ -283,22 +325,22 @@ export default function CustomersTable({
                       {c.name || "-"}
                     </button>
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.applicationRoute || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.mediaCompany || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.site || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedTeamName || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {c.assignedMemberName || "-"}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 text-center">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 text-center">
                     {(() => {
                       // 마지막 상담내용의 카테고리를 찾기
                       const notes = Array.isArray(c.recentNotes) ? c.recentNotes : [];
@@ -327,18 +369,36 @@ export default function CustomersTable({
                       );
                     })()}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {formatDateTime(c.applicationDate || c.createdAt)}
                   </td>
-                  <td className="px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {formatDateTime(c.assignedAt)}
+                  </td>
+                  {/* 모바일: 이름, 전화번호, 담당자만 표시 */}
+                  <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <button
+                      className="cursor-pointer text-inherit"
+                      onClick={() => onCustomerClick(c.id)}
+                    >
+                      {c.name || "-"}
+                    </button>
+                  </td>
+                  <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
+                    {c.contact1 || "-"}
+                  </td>
+                  <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
+                    {c.assignedMemberName || "-"}
                   </td>
                 </tr>
               );
             })}
             {!loading && customers.length === 0 && !error && (
               <tr>
-                <td colSpan={10} className="px-6 h-[72px] text-center text-neutral-60">
+                <td colSpan={10} className="hidden md:table-cell px-6 h-[72px] text-center text-neutral-60">
+                  결과가 없습니다
+                </td>
+                <td colSpan={4} className="md:hidden px-6 h-[72px] text-center text-neutral-60">
                   결과가 없습니다
                 </td>
               </tr>
