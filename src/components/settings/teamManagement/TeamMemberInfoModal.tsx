@@ -300,17 +300,9 @@ export default function TeamMemberInfoModal({
   // 로딩 상태
   if (isLoading) {
     return createPortal(
-      <div className="fixed inset-0 z-[100]">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div
-          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
-          style={{
-            width: 904,
-            minWidth: 600,
-            height: 400,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
+        <div className="relative w-full h-full md:w-[904px] md:h-[400px] md:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
           <LoadingSpinner size="2xl" />
           <p className="mt-4 text-[14px] text-neutral-60">
             직원 정보를 불러오는 중...
@@ -324,17 +316,9 @@ export default function TeamMemberInfoModal({
   // 에러 상태
   if (isError || !member) {
     return createPortal(
-      <div className="fixed inset-0 z-[100]">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div
-          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
-          style={{
-            width: 904,
-            minWidth: 600,
-            height: 400,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
+        <div className="relative w-full h-full md:w-[904px] md:h-[400px] md:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
           <p className="text-[14px] text-neutral-60">
             직원 정보를 불러오는 중 오류가 발생했습니다.
           </p>
@@ -352,26 +336,45 @@ export default function TeamMemberInfoModal({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-      <div
-        className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col"
-        style={{
-          width: 904,
-          minWidth: 600,
-          maxHeight: "90vh",
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        <header className="px-6 pt-4 pb-[10px] flex items-center justify-between">
-          <h1 className="text-[18px] font-semibold leading-[1] text-foreground">
-            직원정보
-          </h1>
+      <div className="relative w-full h-full md:w-[904px] md:min-w-[600px] md:max-h-[90vh] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col">
+        <header className="h-[64px] md:h-auto px-4 md:px-6 pt-4 md:pt-4 pb-[10px] flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {/* 모바일 뒤로가기 버튼 */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="md:hidden cursor-pointer w-6 h-6 flex items-center justify-center hover:opacity-70 transition-opacity"
+              aria-label="뒤로가기"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  className="text-neutral-90 dark:text-neutral-80"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <h1 className="text-[18px] font-semibold leading-[1] text-foreground">
+              직원정보
+            </h1>
+          </div>
+          {/* 데스크탑 닫기 버튼 */}
           <button
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10"
+            className="hidden md:flex cursor-pointer w-6 h-6 grid place-items-center rounded hover:bg-neutral-10"
           >
             <svg
               width="24"
@@ -391,22 +394,22 @@ export default function TeamMemberInfoModal({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
-          <section className="mb-8">
-            <h2 className="text-[16px] font-semibold leading-[1] text-foreground mb-3">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
+          <section className="mb-6 md:mb-8">
+            <h2 className="text-[14px] md:text-[16px] font-semibold leading-[1] text-foreground mb-3">
               기본 정보
             </h2>
             <div className="h-[1px] bg-border opacity-50 mb-4" />
             <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 h-full min-h-[72px]">
-              <div className="flex items-start gap-4 h-full">
-                <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[84px]" : "min-h-[72px]"} flex items-center justify-center`}>
+              <div className="flex items-start gap-3 md:gap-4 h-full">
+                <div className={`h-full ${member.teamInfo && member.teamInfo.name ? "min-h-[84px]" : "min-h-[72px]"} flex items-center justify-center flex-shrink-0`}>
                   <div className="w-12 h-12 rounded-full bg-primary-80 text-neutral-0 flex items-center justify-center text-[18px] font-semibold">
                     {initialFromName(member.name)}
                   </div>
                 </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[18px] font-semibold text-foreground">
+                <div className="flex-1 space-y-2 min-w-0">
+                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                    <span className="text-[16px] md:text-[18px] font-semibold text-foreground">
                       {member.name}
                     </span>
                     <RoleBadge
@@ -414,7 +417,7 @@ export default function TeamMemberInfoModal({
                       variant={isLeader ? "primary" : "neutral"}
                     />
                   </div>
-                  <div className="flex flex-wrap items-center gap-6 text-[14px] text-neutral-60">
+                  <div className="flex flex-wrap items-center gap-4 md:gap-6 text-[13px] md:text-[14px] text-neutral-60">
                     <div className="flex items-center gap-2">
                       <svg
                         width="20"
@@ -438,7 +441,7 @@ export default function TeamMemberInfoModal({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{member.email || "-"}</span>
+                      <span className="truncate">{member.email || "-"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <svg
@@ -470,11 +473,11 @@ export default function TeamMemberInfoModal({
           </section>
 
           <section>
-            <div className="flex gap-6 mb-6">
+            <div className="flex gap-4 md:gap-6 mb-4 md:mb-6">
               <button
                 type="button"
                 onClick={() => setTab("organization")}
-                className={`cursor-pointer relative pb-2 text-[16px] font-semibold transition-colors ${
+                className={`cursor-pointer relative pb-2 text-[14px] md:text-[16px] font-semibold transition-colors ${
                   tab === "organization" ? "text-foreground" : "text-neutral-60"
                 }`}
               >
@@ -491,14 +494,15 @@ export default function TeamMemberInfoModal({
                 <button
                   type="button"
                   onClick={() => setTab("manager")}
-                  className={`cursor-pointer relative flex items-center gap-2 pb-2 text-[16px] font-semibold transition-colors ${
+                  className={`cursor-pointer relative flex items-center gap-1.5 md:gap-2 pb-2 text-[14px] md:text-[16px] font-semibold transition-colors ${
                     tab === "manager" ? "text-foreground" : "text-neutral-60"
                   }`}
                 >
                   관리자 정보
                   <svg
-                    width="16"
-                    height="16"
+                    width="14"
+                    height="14"
+                    className="md:w-4 md:h-4"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -591,18 +595,18 @@ export default function TeamMemberInfoModal({
           </section>
         </div>
 
-        <footer className="px-6 py-4 border-t border-border flex justify-end gap-3">
+        <footer className="px-4 md:px-6 py-4 border-t border-border flex justify-end gap-2 md:gap-3 flex-shrink-0">
           <button
             type="button"
             onClick={handleReset}
-            className="h-[34px] px-4 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card dark:bg-neutral-10"
+            className="h-[34px] px-3 md:px-4 rounded-[5px] border border-border text-[13px] md:text-[14px] font-semibold text-foreground bg-card dark:bg-neutral-10"
           >
             초기화
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="h-[34px] px-4 rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-0"
+            className="h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 text-[13px] md:text-[14px] font-semibold text-neutral-0"
           >
             적용완료
           </button>

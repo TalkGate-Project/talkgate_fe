@@ -105,13 +105,15 @@ export default function TeamListView({
   }, [searchTerm]);
 
   const renderItems = useCallback(
-    (items: TeamMember[], parentIndex: number = 0) => {
+    (items: TeamMember[], parentPath: string = "") => {
       // 검색 중일 때 visibleIds에 포함된 아이템만 필터링
       const filteredItems = visibleIds 
         ? items.filter((item) => visibleIds.has(item.id))
         : items;
       
-      return filteredItems.map((item, index) => {
+      return filteredItems.map((item) => {
+        // parentId를 포함한 경로로 고유성 보장 (같은 ID가 다른 부모 아래에 있을 수 있음)
+        const itemPath = parentPath ? `${parentPath}/${item.id}` : item.id;
         const hasChildren = Boolean(item.children && item.children.length);
         // 자식들 중 표시될 것이 있는지 확인
         const visibleChildren = visibleIds && item.children
@@ -126,7 +128,7 @@ export default function TeamListView({
         const isDragging = dragState.draggedItemId === item.id;
 
         return (
-          <div key={item.id} className="relative mb-2">
+          <div key={itemPath} className="relative mb-2">
             {level > 0 && (
               <>
                 <div
@@ -242,7 +244,7 @@ export default function TeamListView({
               )}
             </div>
             {hasVisibleChildren && isExpanded && item.children && (
-              <div className="mt-2">{renderItems(item.children, index)}</div>
+              <div className="mt-2">{renderItems(item.children, itemPath)}</div>
             )}
           </div>
         );

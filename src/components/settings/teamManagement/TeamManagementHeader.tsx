@@ -8,18 +8,18 @@ type Props = {
 export default function TeamManagementHeader({ viewMode, onChange }: Props) {
   return (
     <div className="">
-      <div className="flex justify-between items-center px-7 h-[76px]">
-        <h1 className="font-bold text-[24px] leading-[20px] text-foreground">
+      <div className="flex justify-between items-center px-4 md:px-7 h-[64px] md:h-[76px]">
+        <h1 className="font-bold text-[20px] md:text-[24px] leading-[20px] text-foreground">
           팀관리
         </h1>
       </div>
-      <div className="w-full h-px bg-neutral-30 mb-6 opacity-70" />
-      <div className="flex justify-between items-center mb-3 px-7">
+      <div className="w-full h-px bg-neutral-30 mb-4 md:mb-6 opacity-70" />
+      <div className="flex justify-between items-center mb-3 px-4 md:px-7">
         <div>
-          <h2 className="font-semibold mb-2 text-[16px] leading-[19px] text-foreground tracking-[0.2px]">
+          <h2 className="font-semibold md:mb-2 text-[14px] md:text-[16px] leading-[19px] text-foreground tracking-[0.2px]">
             조직도 정보
           </h2>
-          <p className="text-[14px] leading-[17px] text-neutral-60 tracking-[0.2px]">
+          <p className="hidden md:block text-[14px] leading-[17px] text-neutral-60 tracking-[0.2px]">
             조직 및 멤버를 드래그하여 자유롭게 이동할 수 있습니다.
           </p>
         </div>

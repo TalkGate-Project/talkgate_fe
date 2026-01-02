@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { DragEvent, MouseEvent, WheelEvent, ReactElement } from "react";
+import type { DragEvent, MouseEvent, WheelEvent, TouchEvent, ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TeamMember } from "@/types/teams";
 import { DragHandlers, DragState } from "@/hooks/useTeamTree";
@@ -23,6 +23,8 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
+  const touchStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const lastTouchDistanceRef = useRef<number | null>(null);
 
   const onWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     if (!e.ctrlKey) return;
@@ -46,6 +48,58 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   const onMouseUp = useCallback(() => {
     isPanningRef.current = false;
+  }, []);
+
+  // 모바일 터치 핸들러
+  const onTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 1) {
+      // 단일 터치: 팬 시작
+      const touch = e.touches[0];
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        panX: pan.x,
+        panY: pan.y,
+      };
+      lastTouchDistanceRef.current = null;
+    } else if (e.touches.length === 2) {
+      // 두 손가락: 줌 시작
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+      lastTouchDistanceRef.current = distance;
+      touchStartRef.current = null;
+    }
+  }, [pan.x, pan.y]);
+
+  const onTouchMove = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && touchStartRef.current) {
+      // 단일 터치: 팬
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaY = touch.clientY - touchStartRef.current.y;
+      setPan({
+        x: touchStartRef.current.panX + deltaX,
+        y: touchStartRef.current.panY + deltaY,
+      });
+    } else if (e.touches.length === 2 && lastTouchDistanceRef.current !== null) {
+      // 두 손가락: 줌
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+      const scale = distance / lastTouchDistanceRef.current;
+      setZoom((prev) => {
+        const next = Math.min(2, Math.max(0.6, prev * scale));
+        lastTouchDistanceRef.current = distance;
+        return Number(next.toFixed(2));
+      });
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    touchStartRef.current = null;
+    lastTouchDistanceRef.current = null;
   }, []);
 
   // 노드 카드만 렌더링 (배지 + 카드)
@@ -88,11 +142,10 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
           {/* 노드 카드 */}
           <div
-            className={`group relative flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 ${
+            className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 md:min-w-[148px] min-w-[120px] ${
               isLeader ? "bg-team-leader-highlight" : "bg-neutral-10"
             } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
-              minWidth: `${TOKENS.node.leader.w}px`,
               height: `${TOKENS.node.leader.h}px`,
             }}
             draggable
@@ -133,12 +186,14 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   // 트리 노드 렌더링 (재귀) - 모든 자식을 가로로 배치
   const renderNode = useCallback(
-    (item: TeamMember): ReactElement => {
+    (item: TeamMember, path: string = ""): ReactElement => {
       const children = item.children ?? [];
       const hasChildren = children.length > 0;
+      // parentId를 포함한 경로로 고유성 보장 (같은 ID가 다른 부모 아래에 있을 수 있음)
+      const nodePath = path ? `${path}/${item.id}` : item.id;
 
       return (
-        <div key={item.id} className="flex flex-col items-center">
+        <div key={nodePath} className="flex flex-col items-center">
           {/* 현재 노드 카드 */}
           {renderNodeCard(item)}
 
@@ -146,7 +201,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
           <AnimatePresence initial={false}>
             {hasChildren && (
               <motion.div
-                key={`${item.id}-children`}
+                key={`${nodePath}-children`}
                 className="flex flex-col items-center"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -155,44 +210,36 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
               >
                 {/* 부모에서 내려오는 수직 연결선 */}
                 <div
-                  className="bg-border"
+                  className="bg-border md:h-[20px] h-[12px]"
                   style={{
                     width: `${TOKENS.connector.width}px`,
-                    height: `${TOKENS.spacing.vertical}px`,
                   }}
                 />
 
                 {/* 자식 노드들 컨테이너 */}
                 <div className="relative flex flex-col items-center">
                   {/* 자식 노드들 (가로 배치) */}
-                  <div
-                    className="flex items-start"
-                    style={{ gap: `${HORIZONTAL_GAP}px` }}
-                  >
-                    {children.map((child, index) => (
-                      <div key={child.id} className="flex flex-col items-center relative">
+                  <div className="flex items-start gap-4 md:gap-8">
+                    {children.map((child) => (
+                      <div key={`${nodePath}/${child.id}`} className="flex flex-col items-center relative">
                         {/* 수평 연결선 (각 자식이 자신의 영역 위로 그림) */}
                         {children.length > 1 && (
                           <>
                             {/* 왼쪽 라인 (첫번째 자식 제외) */}
-                            {index > 0 && (
+                            {children.indexOf(child) > 0 && (
                               <div
-                                className="absolute bg-border top-0"
+                                className="absolute bg-border top-0 md:left-[-16px] left-[-8px] md:right-[50%] right-[50%]"
                                 style={{
                                   height: `${TOKENS.connector.width}px`,
-                                  left: `-${HORIZONTAL_GAP / 2}px`,
-                                  right: "50%",
                                 }}
                               />
                             )}
                             {/* 오른쪽 라인 (마지막 자식 제외) */}
-                            {index < children.length - 1 && (
+                            {children.indexOf(child) < children.length - 1 && (
                               <div
-                                className="absolute bg-border top-0"
+                                className="absolute bg-border top-0 md:left-[50%] left-[50%] md:right-[-16px] right-[-8px]"
                                 style={{
                                   height: `${TOKENS.connector.width}px`,
-                                  left: "50%",
-                                  right: `-${HORIZONTAL_GAP / 2}px`,
                                 }}
                               />
                             )}
@@ -201,14 +248,13 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
                         {/* 수평선에서 자식으로 내려오는 수직 연결선 */}
                         <div
-                          className="bg-border"
+                          className="bg-border md:h-[20px] h-[12px]"
                           style={{
                             width: `${TOKENS.connector.width}px`,
-                            height: `${TOKENS.spacing.vertical}px`,
                           }}
                         />
                         {/* 자식 노드 (재귀) */}
-                        {renderNode(child)}
+                        {renderNode(child, nodePath)}
                       </div>
                     ))}
                   </div>
@@ -223,7 +269,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   );
 
   const tree = useMemo(
-    () => data.map((item) => <div key={item.id}>{renderNode(item)}</div>),
+    () => data.map((item) => <div key={`root/${item.id}`}>{renderNode(item)}</div>),
     [data, renderNode]
   );
 
@@ -231,11 +277,11 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   if (data.length === 0) {
     return (
       <div
-        className="relative min-h-[500px] min-w-[400px] max-w-[712px] overflow-auto flex items-center justify-center"
+        className="relative min-h-[300px] min-w-0 max-w-full overflow-auto flex items-center justify-center md:min-h-[500px] md:min-w-[400px] md:max-w-[712px]"
         role="tree"
         aria-label="조직도 트리"
       >
-        <div className="text-center text-neutral-60 text-[14px]">
+        <div className="text-center text-neutral-60 text-[13px] md:text-[14px]">
           <p className="">표시할 조직 정보가 없습니다.</p>
         </div>
       </div>
@@ -244,15 +290,18 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   return (
     <div
-      className="relative min-h-[500px] min-w-[400px] max-w-[712px] overflow-auto"
+      className="relative min-h-[300px] min-w-0 max-w-full overflow-auto md:min-h-[500px] md:min-w-[400px] md:max-w-[712px]"
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       role="tree"
       aria-label="조직도 트리"
     >
-      <div className="p-8 inline-block min-w-max">
+      <div className="p-4 md:p-8 inline-block min-w-max">
         <div
           className="relative"
           style={{
@@ -261,7 +310,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
             width: "max-content",
           }}
         >
-          <div className="flex flex-nowrap gap-16 items-start" style={{ width: "max-content" }}>
+          <div className="flex flex-nowrap gap-8 md:gap-16 items-start" style={{ width: "max-content" }}>
             {tree}
           </div>
         </div>

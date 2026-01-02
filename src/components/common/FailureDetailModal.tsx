@@ -25,7 +25,7 @@ function FailureCard({ errorCode, errorMessage, count }: FailureCardProps) {
       <div className="text-[14px] font-semibold leading-5 text-danger-40 dark:text-danger-40 truncate w-full" title={displayMessage}>
         {displayMessage}
       </div>
-      <div className="text-[14px] font-medium leading-5 text-neutral-60 dark:text-neutral-60">
+      <div className="text-[14px] font-medium leading-5 text-neutral-90 dark:text-neutral-80">
         {count}행
       </div>
     </div>
@@ -127,18 +127,57 @@ export default function FailureDetailModal({
     }).replace(/\./g, ".").replace(/, /g, " ");
   };
 
+  const formatDateTimeMobile = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day} ${hour}:${minute}`;
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 dark:bg-[#000000CC]">
-      {/* Modal */}
-      <div className="relative w-[848px] max-h-[668px] bg-card dark:bg-neutral-10 rounded-[14px]">
+    <div className="fixed inset-0 z-50 bg-black/30 dark:bg-[#000000CC] flex items-center justify-center">
+      {/* Modal - 모바일: 전체 화면, 데스크탑: 고정 너비 */}
+      <div className="relative w-full h-full md:w-[848px] md:h-auto md:max-h-[668px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-7 pt-6 pb-[30px]">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">
-            실패 내역 상세보기
-          </h2>
+        <div className="flex items-center justify-between px-4 md:px-7 h-[64px] md:h-auto md:pt-6 md:pb-[30px] flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-0">
+            {/* 모바일 뒤로가기 버튼 */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="md:hidden cursor-pointer w-6 h-6 flex items-center justify-center hover:opacity-70 transition-opacity"
+              aria-label="뒤로가기"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  className="text-neutral-90 dark:text-neutral-80"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <h2 className="text-[18px] font-semibold leading-[21px] text-ink dark:text-neutral-80">
+              실패 내역 상세보기
+            </h2>
+          </div>
+          {/* 데스크탑 닫기 버튼 */}
           <button
             onClick={onClose}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-60 dark:text-neutral-60"
+            className="hidden md:flex cursor-pointer w-6 h-6 items-center justify-center text-neutral-60 dark:text-neutral-60"
+            aria-label="닫기"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
               <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -147,10 +186,10 @@ export default function FailureDetailModal({
         </div>
 
         {/* Divider */}
-        <div className="mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30"></div>
+        <div className="mx-4 md:mx-7 h-[1px] bg-neutral-30 dark:bg-neutral-30 flex-shrink-0"></div>
 
         {/* Content */}
-        <div className="px-7 pt-[13px]">
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 pt-4 md:pt-[13px] pb-4 md:pb-0">
           {isLoading ? (
             <div className="flex items-center justify-center h-[500px]">
               <div className="text-neutral-60 dark:text-neutral-60">로딩 중...</div>
@@ -158,21 +197,21 @@ export default function FailureDetailModal({
           ) : jobDetail ? (
             <>
               {/* File Information */}
-              <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 mb-[23px]">
-                <div className="flex items-start justify-between">
+              <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 mb-4 md:mb-[23px]">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 md:gap-0">
                   <div className="flex-1 min-w-0">
-                    <div className="text-[16px] font-semibold leading-[19px] text-ink dark:text-neutral-80 mb-1 truncate" title={jobDetail.fileName}>
+                    <div className="text-[14px] md:text-[16px] font-semibold leading-[17px] md:leading-[19px] text-ink dark:text-neutral-80 mb-1 truncate" title={jobDetail.fileName}>
                       {jobDetail.fileName}
                     </div>
-                    <div className="text-[14px] font-medium leading-[17px] text-neutral-60 dark:text-neutral-60">
-                      업로드 시간 : {formatDateTime(jobDetail.createdAt)}
+                    <div className="text-[13px] md:text-[14px] font-medium leading-[16px] md:leading-[17px] text-neutral-60 dark:text-neutral-60">
+                      업로드 시간: <span className="md:hidden">{formatDateTimeMobile(jobDetail.createdAt)}</span><span className="hidden md:inline">{formatDateTime(jobDetail.createdAt)}</span>
                     </div>
                   </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <div className="text-[14px] font-medium leading-[17px] text-neutral-60 dark:text-neutral-60 mb-1">
+                  <div className="text-left md:text-right md:ml-4 md:shrink-0">
+                    <div className="text-[13px] md:text-[14px] font-medium leading-[16px] md:leading-[17px] text-neutral-60 dark:text-neutral-60 mb-1">
                       총 {jobDetail.failureCount}건의 실패 항목
                     </div>
-                    <div className="text-[14px] font-medium leading-[17px] text-neutral-50 dark:text-neutral-50">
+                    <div className="text-[12px] md:text-[14px] font-medium leading-[14px] md:leading-[17px] text-neutral-50 dark:text-neutral-50">
                       *최대 20개 항목까지 표시됩니다.
                     </div>
                   </div>
@@ -181,7 +220,7 @@ export default function FailureDetailModal({
 
               {/* Failure Grid */}
               <div 
-                className="mb-6 overflow-y-auto max-h-[336px] pr-2"
+                className="mb-4 md:mb-6 overflow-y-auto md:max-h-[336px] pr-2"
                 style={{
                   scrollbarWidth: 'thin',
                   scrollbarColor: '#D0D0D0 transparent',
@@ -192,7 +231,7 @@ export default function FailureDetailModal({
                     실패 항목이 없습니다.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-[14px]">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-[14px]">
                     {groupedFailures.map((failure, index) => (
                       <FailureCard
                         key={index}
@@ -206,10 +245,10 @@ export default function FailureDetailModal({
               </div>
 
               {/* Divider */}
-              <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-[13px]"></div>
+              <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 mb-3 md:mb-[13px]"></div>
 
               {/* Footer Buttons */}
-              <div className="flex justify-end gap-3 mb-3">
+              <div className="flex justify-end gap-3 mb-3 md:mb-3 flex-shrink-0">
                 <button
                   onClick={onClose}
                   className="cursor-pointer px-3 py-[6px] h-[34px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
