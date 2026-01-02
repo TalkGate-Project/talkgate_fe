@@ -280,7 +280,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   // 모든 팀(department) 목록 - teamsData에서 가져옴
   const allDepartments = useMemo(() => {
     if (!teamsData) return [];
-    return teamsData.map((team) => team.name);
+    return teamsData.map((team) => ({ id: team.id, name: team.name }));
   }, [teamsData]);
 
   const lowerSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -456,16 +456,16 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
             <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-30 scrollbar-track-transparent pb-1">
               {allDepartments.map((tag) => (
                 <button
-                  key={tag}
+                  key={tag.id}
                   type="button"
-                  onClick={() => handleDepartmentClick(tag)}
+                  onClick={() => handleDepartmentClick(tag.name)}
                   className={`px-3 py-1 rounded-[30px] leading-[1] max-h-[22px] flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
-                    selectedDepartment === tag
+                    selectedDepartment === tag.name
                       ? "bg-secondary-40 text-neutral-0"
                       : "bg-neutral-30 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-60 hover:bg-neutral-40 dark:hover:bg-neutral-40"
                   }`}
                 >
-                  <span className="text-[12px] font-medium leading-[1] whitespace-nowrap">{tag}</span>
+                  <span className="text-[12px] font-medium leading-[1] whitespace-nowrap">{tag.name}</span>
                 </button>
               ))}
             </div>
