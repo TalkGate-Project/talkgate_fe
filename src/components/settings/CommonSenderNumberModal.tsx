@@ -148,21 +148,44 @@ export default function CommonSenderNumberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-[600px] bg-white dark:bg-neutral-10 rounded-[14px] pt-7 mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full h-full md:w-[600px] md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] md:max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 px-7">
-          <h2 className="text-[20px] font-bold text-neutral-90">
+        <div className="h-[64px] flex items-center px-4 md:px-7 md:border-b md:border-neutral-30 dark:md:border-neutral-30 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="md:hidden cursor-pointer w-6 h-6 flex items-center justify-center hover:opacity-70 transition-opacity mr-2"
+            aria-label="뒤로가기"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 19L8 12L15 5"
+                stroke="currentColor"
+                className="text-neutral-90 dark:text-neutral-80"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <h2 className="text-[18px] md:text-[20px] font-semibold md:font-bold text-neutral-90 dark:text-neutral-80">
             공통 발신번호 추가
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer w-8 h-8 flex items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
+            className="hidden md:flex cursor-pointer ml-auto w-8 h-8 items-center justify-center rounded hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
             aria-label="닫기"
           >
             <svg
@@ -185,10 +208,10 @@ export default function CommonSenderNumberModal({
         </div>
 
         {/* Content */}
-        <div className="space-y-6 px-7">
+        <div className="flex-1 overflow-y-auto space-y-6 px-4 md:px-7 pt-4 md:pt-7 pb-4">
           {/* 발신번호 입력 */}
           <div>
-            <label className="block text-[14px] font-semibold text-neutral-90 mb-2">
+            <label className="block text-[14px] font-semibold text-neutral-90 dark:text-neutral-80 mb-2">
               발신번호
             </label>
             <input
@@ -196,37 +219,37 @@ export default function CommonSenderNumberModal({
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="010-1234-5678"
-              className="w-full h-[42px] px-4 rounded-[5px] border border-neutral-30 text-[14px] text-neutral-90 placeholder:text-neutral-40 focus:outline-none focus:border-neutral-60"
+              className="w-full h-[42px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] text-neutral-90 dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
             />
-            <p className="mt-1.5 text-[12px] text-neutral-60">
+            <p className="mt-1.5 text-[12px] text-neutral-60 dark:text-neutral-60">
               하이픈 (-)을 포함하여 입력하세요.
             </p>
           </div>
 
           {/* 필요 서류 */}
           <div>
-            <h3 className="text-[16px] font-bold text-neutral-90 mb-4">
+            <h3 className="text-[16px] font-bold text-neutral-90 dark:text-neutral-80 mb-4">
               필요 서류
             </h3>
 
             <div className="space-y-4">
               {/* 서류 1 */}
               <div>
-                <label className="block text-[14px] font-medium text-neutral-90 mb-2">
+                <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-2">
                   1. 통신서비스 이용증명원
                 </label>
-                <p className="text-[12px] text-neutral-60 mb-2">
+                <p className="text-[12px] text-neutral-60 dark:text-neutral-60 mb-2">
                   가입확인서, 이용계약등록증명서 등
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => fileInput1Ref.current?.click()}
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
                   >
                     파일선택
                   </button>
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
                     {file1 ? file1.name : "선택된 파일 없음"}
                   </span>
                   <input
@@ -241,18 +264,18 @@ export default function CommonSenderNumberModal({
 
               {/* 서류 2 */}
               <div>
-                <label className="block text-[14px] font-medium text-neutral-90 mb-2">
+                <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-2">
                   2. 사업자등록증 또는 법인등기부등본
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => fileInput2Ref.current?.click()}
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
                   >
                     파일선택
                   </button>
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
                     {file2 ? file2.name : "선택된 파일 없음"}
                   </span>
                   <input
@@ -267,10 +290,10 @@ export default function CommonSenderNumberModal({
 
               {/* 서류 3 */}
               <div>
-                <label className="block text-[14px] font-medium text-neutral-90 mb-3">
+                <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-3">
                   3. 대표자 신분증 사본 or 담당자 신분증 사본
                 </label>
-                <div className="flex items-center gap-4 mb-2">
+                <div className="flex items-center gap-4 mb-2 flex-wrap">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <button
                       type="button"
@@ -289,7 +312,7 @@ export default function CommonSenderNumberModal({
                         </svg>
                       )}
                     </button>
-                    <span className="text-[14px] text-neutral-90">
+                    <span className="text-[14px] text-neutral-90 dark:text-neutral-80">
                       대표자 신분증 사본
                     </span>
                   </label>
@@ -311,20 +334,20 @@ export default function CommonSenderNumberModal({
                         </svg>
                       )}
                     </button>
-                    <span className="text-[14px] text-neutral-90">
+                    <span className="text-[14px] text-neutral-90 dark:text-neutral-80">
                       담당자 신분증 사본
                     </span>
                   </label>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => fileInput3Ref.current?.click()}
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
                   >
                     파일선택
                   </button>
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
                     {file3 ? file3.name : "선택된 파일 없음"}
                   </span>
                   <input
@@ -339,18 +362,18 @@ export default function CommonSenderNumberModal({
 
               {/* 서류 4 */}
               <div>
-                <label className="block text-[14px] font-medium text-neutral-90 mb-2">
+                <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-2">
                   4. 재직증명서
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => fileInput4Ref.current?.click()}
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
                   >
                     파일선택
                   </button>
-                  <span className="text-[14px] text-neutral-60">
+                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
                     {file4 ? file4.name : "선택된 파일 없음"}
                   </span>
                   <input
@@ -367,12 +390,12 @@ export default function CommonSenderNumberModal({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 justify-end mt-8 px-7 border-t border-neutral-30 dark:border-neutral-30 py-3">
+        <div className="flex gap-2 justify-end px-4 md:px-7 py-3 border-t border-neutral-30 dark:border-neutral-30 flex-shrink-0">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="cursor-pointer w-[48px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[48px] md:w-[48px] h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             취소
           </button>
@@ -380,7 +403,7 @@ export default function CommonSenderNumberModal({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[48px] md:w-[48px] h-[34px] rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "등록 중..." : "등록"}
           </button>
