@@ -277,7 +277,7 @@ export default function SenderNumberSettings() {
     loadProjectNumbers(); // 목록 새로고침
   };
 
-  // 날짜 포맷팅
+  // 날짜 포맷팅 (데스크탑용)
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -291,6 +291,21 @@ export default function SenderNumberSettings() {
         })
         .replace(/\. /g, "-")
         .replace(".", "");
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // 날짜 포맷팅 (모바일용 - YYYY-MM-DD HH:mm 형식)
+  const formatDateMobile = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
     } catch {
       return dateStr;
     }
@@ -313,42 +328,54 @@ export default function SenderNumberSettings() {
         onSuccess={handleCommonSenderSuccess}
       />
 
-      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
+      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7">
         {/* Title */}
-        <h1 className="px-7 text-[24px] font-bold text-ink dark:text-neutral-80 h-[76px] flex items-center border-b border-neutral-30 dark:border-neutral-30">
+        <h1 className="px-4 md:px-7 text-[18px] md:text-[24px] font-bold text-ink dark:text-neutral-80 py-4 md:py-0 md:h-[76px] flex items-center border-b border-neutral-30 dark:border-neutral-30">
           발신번호 등록
         </h1>
 
       {showProjectMissing ? (
-        <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60">
+        <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60 px-4 md:px-7">
           프로젝트를 먼저 선택해주세요.
         </div>
       ) : (
-        <div className="px-7 pt-[23px]">
+        <div className="px-6 md:px-7 pt-4 md:pt-[23px]">
           {/* 공통 발신번호 섹션 */}
-          <div className="mb-[30px]">
-            <div className="flex items-center justify-between mb-4 border-b border-neutral-30 dark:border-neutral-30 pb-3">
+          <div className="mb-6 md:mb-[30px]">
+            <div className="flex items-center justify-between mb-4 border-b border-neutral-30 dark:border-neutral-30 pb-3 gap-3">
               <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80">
                 공통 발신번호
               </h2>
               <button
                 type="button"
                 onClick={handleAddProjectNumber}
-                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
+                className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[12px] md:text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors whitespace-nowrap"
               >
                 +발신번호 추가
               </button>
             </div>
 
-            {/* 테이블 헤더 */}
-            <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center mb-1">
-              <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+            {/* 테이블 헤더 - 모바일/데스크탑 분리 */}
+            {/* Mobile Header */}
+            <div className="md:hidden bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-4 h-[40px] flex items-center mb-1">
+              <div className="w-[140px] flex-none text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
                 발신번호
               </div>
               <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
                 상태
               </div>
-              <div className="w-[160px]"></div>
+              <div className="w-8 flex-none"></div>
+            </div>
+            
+            {/* Desktop Header */}
+            <div className="hidden md:flex bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] items-center mb-1">
+              <div className="flex-1 min-w-0 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+                발신번호
+              </div>
+              <div className="flex-1 min-w-0 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+                상태
+              </div>
+              <div className="w-[160px] flex-shrink-0"></div>
             </div>
 
             {/* 테이블 바디 */}
@@ -365,27 +392,54 @@ export default function SenderNumberSettings() {
                 {projectNumbers.map((num, index) => {
                   const isLastRow = index === projectNumbers.length - 1;
                   return (
-                  <div
-                    key={num.id}
-                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
-                  >
-                    <div className="flex-1 text-[14px] text-ink dark:text-neutral-80">
-                      {num.number}
-                    </div>
-                    <div className="flex-1 flex items-center">
-                      <StatusBadge
-                        status={num.status as ProjectSenderNumberStatus}
-                      />
-                      {num.status === "rejected" && (
-                        <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
+                    <div key={num.id}>
+                      {/* Desktop View */}
+                      <div className="hidden md:flex items-center px-10 h-[52px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]">
+                        <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
+                          {num.number}
+                        </div>
+                        <div className="flex-1 min-w-0 flex items-center">
+                          <StatusBadge
+                            status={num.status as ProjectSenderNumberStatus}
+                          />
+                          {num.status === "rejected" && (
+                            <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
+                          )}
+                        </div>
+                        <div className="w-[160px] flex-shrink-0 flex justify-end">
+                          <DeleteButton
+                            onClick={() => handleDeleteProjectNumber(num.id)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Mobile View */}
+                      <div className="md:hidden flex items-center py-3 pl-3 pr-4">
+                        <div className="w-[140px] flex-none min-w-0">
+                          <div className="text-[14px] text-ink dark:text-neutral-80 font-semibold truncate">
+                            {num.number}
+                          </div>
+                        </div>
+                        <div className="flex-1 flex items-center gap-1">
+                          <StatusBadge
+                            status={num.status as ProjectSenderNumberStatus}
+                          />
+                          {num.status === "rejected" && (
+                            <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
+                          )}
+                        </div>
+                        <div className="w-8 flex-none flex items-center justify-center">
+                          <DeleteButton
+                            onClick={() => handleDeleteProjectNumber(num.id)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Divider - 마지막 행 제외 */}
+                      {!isLastRow && (
+                        <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50"></div>
                       )}
                     </div>
-                    <div className="w-[160px] flex justify-end">
-                      <DeleteButton
-                        onClick={() => handleDeleteProjectNumber(num.id)}
-                      />
-                    </div>
-                  </div>
                   );
                 })}
               </div>
@@ -396,28 +450,40 @@ export default function SenderNumberSettings() {
 
           {/* 개인 발신번호 섹션 */}
           <div>
-            <div className="flex items-center justify-between mb-4 border-b border-neutral-30 dark:border-neutral-30 pb-3">
+            <div className="flex items-center justify-between mb-4 border-b border-neutral-30 dark:border-neutral-30 pb-3 gap-3">
               <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80">
                 개인 발신번호
               </h2>
               <button
                 type="button"
                 onClick={handleAddMemberNumber}
-                className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
+                className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[12px] md:text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors whitespace-nowrap"
               >
                 +발신번호 추가
               </button>
             </div>
               
-            {/* 테이블 헤더 */}
-            <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center mb-1">
-              <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+            {/* 테이블 헤더 - 모바일/데스크탑 분리 */}
+            {/* Mobile Header */}
+            <div className="md:hidden bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-4 h-[40px] flex items-center mb-1">
+              <div className="w-[140px] flex-none text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
                 발신번호
               </div>
               <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
                 등록일
               </div>
-              <div className="w-[160px]"></div>
+              <div className="w-8 flex-none"></div>
+            </div>
+            
+            {/* Desktop Header */}
+            <div className="hidden md:flex bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] items-center mb-1">
+              <div className="flex-1 min-w-0 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+                발신번호
+              </div>
+              <div className="flex-1 min-w-0 text-[14px] font-medium text-neutral-60 dark:text-neutral-60">
+                등록일
+              </div>
+              <div className="w-[160px] flex-shrink-0"></div>
             </div>
 
             {/* 테이블 바디 */}
@@ -434,22 +500,46 @@ export default function SenderNumberSettings() {
                 {memberNumbers.map((num, index) => {
                   const isLastRow = index === memberNumbers.length - 1;
                   return (
-                  <div
-                    key={num.id}
-                    className={`px-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
-                  >
-                    <div className="flex-1 text-[14px] text-ink dark:text-neutral-80">
-                      {num.phoneNumber}
+                    <div key={num.id}>
+                      {/* Desktop View */}
+                      <div className="hidden md:flex items-center px-10 h-[52px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]">
+                        <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
+                          {num.phoneNumber}
+                        </div>
+                        <div className="flex-1 min-w-0 text-[14px] text-neutral-60 dark:text-neutral-60">
+                          {formatDate(num.createdAt)}
+                        </div>
+                        <div className="w-[160px] flex-shrink-0 flex justify-end">
+                          <DeleteButton
+                            onClick={() => handleDeleteMemberNumber(num.id)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Mobile View */}
+                      <div className="md:hidden flex items-center py-3 pl-3 pr-4">
+                        <div className="w-[140px] flex-none min-w-0">
+                          <div className="text-[14px] text-ink dark:text-neutral-80 font-semibold truncate">
+                            {num.phoneNumber}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[12px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+                            {formatDateMobile(num.createdAt)}
+                          </div>
+                        </div>
+                        <div className="w-8 flex-none flex items-center justify-center">
+                          <DeleteButton
+                            onClick={() => handleDeleteMemberNumber(num.id)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Divider - 마지막 행 제외 */}
+                      {!isLastRow && (
+                        <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50"></div>
+                      )}
                     </div>
-                    <div className="flex-1 text-[14px] text-neutral-60 dark:text-neutral-60">
-                      {formatDate(num.createdAt)}
-                    </div>
-                    <div className="w-[160px] flex justify-end">
-                      <DeleteButton
-                        onClick={() => handleDeleteMemberNumber(num.id)}
-                      />
-                    </div>
-                  </div>
                   );
                 })}
               </div>
