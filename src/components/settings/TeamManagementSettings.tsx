@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import TeamManagementHeader from "./teamManagement/TeamManagementHeader";
 import TeamListView from "./teamManagement/TeamListView";
 import TeamTreeView from "./teamManagement/TeamTreeView";
@@ -91,6 +92,7 @@ export default function TeamManagementSettings() {
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [isUnassignedDrawerOpen, setIsUnassignedDrawerOpen] = useState(false);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -352,13 +354,13 @@ export default function TeamManagementSettings() {
   return (
     <div className="w-full h-full bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
-      <div className="mx-7 h-px bg-neutral-30 mb-3" />
+      <div className="mx-4 md:mx-7 h-px bg-neutral-30 mb-3" />
 
       {/* 검색 및 태그 영역 (스크롤되지 않는 상단 고정 영역) */}
       {viewMode === "list" && (
-        <div className="px-7 mb-[30px] flex-shrink-0">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="relative">
+        <div className="px-4 md:px-7 mb-4 md:mb-[30px] flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-4 mb-3">
+            <div className="relative flex-1 md:flex-none">
               <input
                 type="text"
                 value={inputValue}
@@ -369,13 +371,13 @@ export default function TeamManagementSettings() {
                   }
                 }}
                 placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full min-w-[280px] max-w-[294px] px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full md:min-w-[280px] md:max-w-[294px] px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[13px] md:text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
               />
             </div>
             <button
               type="button"
               onClick={executeSearch}
-              className="cursor-pointer w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold"
+              className="cursor-pointer w-[60px] md:w-[66px] h-[34px] bg-neutral-90 text-neutral-0 rounded-[5px] text-[13px] md:text-[14px] font-semibold flex-shrink-0"
             >
               검색
             </button>
@@ -403,7 +405,7 @@ export default function TeamManagementSettings() {
 
       {/* 스크롤 가능한 리스트 영역 */}
       {viewMode === "list" ? (
-        <div className="flex-1 px-7 overflow-y-auto min-h-0 max-h-[538px]">
+        <div className="flex-1 px-4 md:px-7 overflow-y-auto min-h-0 max-h-[538px]">
           <TeamListView
             data={filteredByDepartment}
             dragHandlers={dragHandlers}
@@ -416,7 +418,7 @@ export default function TeamManagementSettings() {
           />
         </div>
       ) : (
-        <div className="flex-1 mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444]">
+        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative">
           {/* 트리 뷰 영역 */}
           <div className="flex-1 min-w-0 overflow-hidden">
             <div className="h-full overflow-x-auto overflow-y-auto max-h-[600px]">
@@ -424,46 +426,117 @@ export default function TeamManagementSettings() {
             </div>
           </div>
           
-          {/* 미배정 멤버 리스트 영역 */}
+          {/* 미배정 멤버 리스트 영역 - 데스크탑 */}
           {unassignedMembers.length > 0 && (
-            <div className="flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
-              <div className="flex-1 overflow-y-auto max-h-[520px]">
-                <UnassignedMembersList 
-                  data={unassignedMembers} 
-                  dragHandlers={dragHandlers} 
-                  dragState={dragState} 
-                  onMemberClick={handleMemberClick} 
-                />
+            <>
+              <div className="hidden md:flex flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
+                <div className="flex-1 overflow-y-auto max-h-[520px]">
+                  <UnassignedMembersList 
+                    data={unassignedMembers} 
+                    dragHandlers={dragHandlers} 
+                    dragState={dragState} 
+                    onMemberClick={handleMemberClick} 
+                  />
+                </div>
               </div>
-            </div>
+              
+              {/* 모바일: 미배정 멤버 열기 버튼 */}
+              <button
+                type="button"
+                onClick={() => setIsUnassignedDrawerOpen(true)}
+                className="md:hidden fixed bottom-6 right-4 w-12 h-12 rounded-full bg-neutral-90 text-neutral-0 flex items-center justify-center shadow-lg z-40"
+                aria-label="미배정 멤버 보기"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </>
           )}
         </div>
       )}
 
+      {/* 모바일: 미배정 멤버 드로워 */}
+      <AnimatePresence>
+        {isUnassignedDrawerOpen && unassignedMembers.length > 0 && (
+          <>
+            {/* Dimmed Background */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsUnassignedDrawerOpen(false)}
+              className="fixed inset-0 bg-black/30 dark:bg-black/50 z-[100] md:hidden"
+            />
+            {/* Drawer Content */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-[280px] bg-card dark:bg-neutral-10 z-[101] shadow-lg overflow-y-auto md:hidden"
+            >
+              {/* Header */}
+              <div className="h-[64px] flex items-center justify-between px-4 border-b border-neutral-30 flex-shrink-0">
+                <h3 className="text-[18px] font-semibold text-foreground">미배정 멤버</h3>
+                <button
+                  type="button"
+                  onClick={() => setIsUnassignedDrawerOpen(false)}
+                  className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-60"
+                  aria-label="닫기"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+              {/* Content */}
+              <div className="p-4">
+                <UnassignedMembersList 
+                  data={unassignedMembers} 
+                  dragHandlers={dragHandlers} 
+                  dragState={dragState} 
+                  onMemberClick={(member) => {
+                    handleMemberClick(member);
+                    setIsUnassignedDrawerOpen(false);
+                  }} 
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {pendingMove && pendingMoveInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-card rounded-[16px] shadow-xl w-[420px] p-6">
-            <h2 className="text-[18px] font-bold text-foreground mb-4">조직 이동 확인</h2>
-            <div className="rounded-[12px] bg-neutral-10 px-4 py-5 mb-5 flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-card rounded-[12px] md:rounded-[16px] shadow-xl w-full max-w-[420px] p-4 md:p-6">
+            <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-4">조직 이동 확인</h2>
+            <div className="rounded-[12px] bg-neutral-10 px-3 md:px-4 py-4 md:py-5 mb-4 md:mb-5 flex flex-col gap-3 md:gap-4">
               <div>
                 <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 항목</span>
-                <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-card text-[14px] font-semibold text-foreground">
+                <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-card text-[13px] md:text-[14px] font-semibold text-foreground">
                   {pendingMoveInfo.source.name}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1">
+              <div className="flex items-center justify-between gap-2 md:gap-3">
+                <div className="flex-1 min-w-0">
                   <span className="block text-[12px] font-medium text-neutral-60 mb-1">현재 위치</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-warning-10 text-[14px] font-semibold text-warning-60">
+                  <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-[6px] bg-warning-10 text-[12px] md:text-[14px] font-semibold text-warning-60 truncate">
                     {pendingMoveInfo.currentParent ? `${pendingMoveInfo.currentParent.name} (${pendingMoveInfo.currentParent.department})` : "루트"}
                   </span>
                 </div>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <svg width="20" height="20" className="md:w-6 md:h-6 flex-shrink-0" viewBox="0 0 24 24" fill="none">
                   <path d="M9 18L15 12L9 6" stroke="var(--neutral-50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 위치</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-primary-10 text-[14px] font-semibold text-primary-80">
+                  <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-[6px] bg-primary-10 text-[12px] md:text-[14px] font-semibold text-primary-80 truncate">
                     {`${pendingMoveInfo.target.name} (${pendingMoveInfo.target.department})`}
                   </span>
                 </div>
@@ -472,14 +545,14 @@ export default function TeamManagementSettings() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={cancelMove}
-                className="px-4 py-2 rounded-[5px] border border-border text-[14px] font-semibold text-foreground"
+                className="px-3 md:px-4 py-2 rounded-[5px] border border-border text-[13px] md:text-[14px] font-semibold text-foreground"
                 disabled={moveMutation.isPending}
               >
                 취소
               </button>
               <button
                 onClick={confirmMove}
-                className="px-4 py-2 rounded-[5px] bg-neutral-90 text-neutral-0 text-[14px] font-semibold"
+                className="px-3 md:px-4 py-2 rounded-[5px] bg-neutral-90 text-neutral-0 text-[13px] md:text-[14px] font-semibold"
                 disabled={moveMutation.isPending}
               >
                 {moveMutation.isPending ? "이동 중..." : "조직이동"}

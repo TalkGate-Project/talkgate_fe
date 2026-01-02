@@ -107,12 +107,65 @@ export default function BatchRegistrationHistorySettings() {
     }).replace(/\. /g, "-").replace(".", "");
   };
 
+  const formatDateTimeMobile = (dateString: string | null) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const year = date.getFullYear().toString().slice(-2);
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day} ${hour}:${minute}`;
+  };
+
   function RecordRow({ record }: { record: BulkJob }) {
     const isFailureZero = record.failureCount === 0;
 
     return (
       <>
-        <div className="flex items-center h-12 gap-3 pl-10">
+        {/* 모바일 카드 */}
+        <div className="md:hidden bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[12px] p-4 mb-3">
+          {/* 상단: 파일명(왼쪽), 날짜/시간(오른쪽) */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[14px] font-semibold text-neutral-90 dark:text-neutral-80 leading-[17px] flex-1 min-w-0 truncate" title={record.fileName}>
+              {record.fileName}
+            </div>
+            <div className="text-[14px] font-semibold text-neutral-60 dark:text-neutral-60 opacity-80 flex-shrink-0 ml-2 leading-[17px]">
+              {formatDateTimeMobile(record.createdAt)}
+            </div>
+          </div>
+
+          {/* 하단: 성공/실패 정보(왼쪽), 상태 뱃지와 업로더 이름(오른쪽) */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">성공</span>
+              <span className="text-[14px] font-bold text-primary-80 leading-[14px]">
+                {record.successCount}
+              </span>
+              <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">실패</span>
+              <span 
+                onClick={() => record.failureCount > 0 && handleFailureClick(record.id)}
+                className={`text-[14px] font-bold leading-[14px] ${
+                  isFailureZero 
+                    ? "text-primary-80"
+                    : "text-secondary-60 underline cursor-pointer"
+                }`}
+              >
+                {record.failureCount}
+              </span>
+              <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">상태</span>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+              <StatusBadge status={record.status} />
+              <span className="text-[14px] font-semibold text-neutral-90 dark:text-neutral-80 opacity-80 leading-[17px]">
+                {record.memberName}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 데스크탑 테이블 행 */}
+        <div className="hidden md:flex items-center h-12 gap-3 pl-10">
           {/* 파일명 */}
           <div className="w-[150px] text-[14px] font-semibold text-neutral-90 opacity-80 leading-[17px] shrink-0 truncate" title={record.fileName}>
             {record.fileName}
@@ -156,8 +209,8 @@ export default function BatchRegistrationHistorySettings() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="w-full h-[0.4px] bg-neutral-30"></div>
+        {/* Divider (데스크탑만) */}
+        <div className="hidden md:block w-full h-[0.4px] bg-neutral-30"></div>
       </>
     );
   }
@@ -165,7 +218,7 @@ export default function BatchRegistrationHistorySettings() {
   if (isLoading) {
     return (
       <div className="bg-card rounded-[14px] pb-7">
-        <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
+        <h1 className="px-4 md:px-7 text-[20px] md:text-[24px] font-bold text-neutral-90 h-[64px] md:h-[76px] flex items-center">
           일괄 등록 이력
         </h1>
         <div className="flex items-center justify-center h-64">
@@ -176,29 +229,29 @@ export default function BatchRegistrationHistorySettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 flex flex-col min-h-screen md:min-h-0 md:pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-neutral-90 h-[76px] flex items-center">
+      <h1 className="px-4 md:px-7 text-[20px] md:text-[24px] font-bold text-neutral-90 h-[64px] md:h-[76px] flex items-center flex-shrink-0">
         일괄 등록 이력
       </h1>
 
-      <div className="border-b border-neutral-30/40"></div>
+      <div className="border-b border-neutral-30/40 flex-shrink-0"></div>
 
       {/* Sub-title */}
-      <h2 className="px-7 pt-[30px] text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px]">
+      <h2 className="px-4 md:px-7 pt-4 md:pt-[30px] text-[14px] md:text-[16px] font-semibold text-foreground mb-1 tracking-[0.2px] flex-shrink-0">
         일괄 고객 등록 이력
       </h2>
 
       {/* Description */}
-      <p className="px-7 text-[14px] font-medium text-neutral-60 leading-5 mb-2">
+      <p className="px-4 md:px-7 text-[13px] md:text-[14px] font-medium text-neutral-60 leading-5 mb-2 flex-shrink-0">
         엑셀 파일을 통한 고객 정보 일괄 등록 이력을 확인할 수 있습니다.
       </p>
 
       {/* Divider */}
-      <div className="mx-7 h-px bg-neutral-30 mb-6"></div>
+      <div className="mx-4 md:mx-7 h-px bg-neutral-30 mb-4 md:mb-6 flex-shrink-0"></div>
 
-      {/* Table Header */}
-      <div className="mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center gap-3">
+      {/* Table Header (데스크탑만) */}
+      <div className="hidden md:flex mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] items-center gap-3 flex-shrink-0">
         <div className="w-[162px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] shrink-0">
           파일명
         </div>
@@ -222,22 +275,33 @@ export default function BatchRegistrationHistorySettings() {
         </div>
       </div>
 
-      {/* Record List */}
-      <div className="px-10">
+      {/* Record List - 모바일에서 flex-1로 남은 공간 채우기 */}
+      <div className="px-4 md:px-10 flex-1 flex flex-col min-h-0">
         {records.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-neutral-60">
+          <div className="flex items-center justify-center h-32 text-neutral-60 flex-shrink-0">
             등록된 이력이 없습니다.
           </div>
         ) : (
-          records.map((record) => (
-            <RecordRow key={record.id} record={record} />
-          ))
+          <>
+            {/* 모바일 카드 리스트 - 스크롤 가능하도록 */}
+            <div className="md:hidden space-y-3 flex-1 overflow-y-auto min-h-0">
+              {records.map((record) => (
+                <RecordRow key={record.id} record={record} />
+              ))}
+            </div>
+            {/* 데스크탑 테이블 */}
+            <div className="hidden md:block flex-shrink-0">
+              {records.map((record) => (
+                <RecordRow key={record.id} record={record} />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - 하단 고정 */}
       {totalPages > 0 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-4 md:mt-4 flex-shrink-0">
           <Pagination
             page={currentPage}
             totalPages={totalPages}

@@ -48,11 +48,11 @@ export default function ManagerContent({
   isSubmittingProfile,
 }: Props) {
   return (
-    <div className="border border-border rounded-[12px] p-7 dark:bg-neutral-10">
+    <div className="border border-border rounded-[12px] p-4 md:p-7 dark:bg-neutral-10">
       {/* 프로필 정보 Section */}
-      <section className="pb-6">
+      <section className="pb-4 md:pb-6">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
+          <span className="text-[14px] md:text-[16px] font-semibold text-foreground">
             프로필 정보
           </span>
           {profileEditMode ? (
@@ -61,7 +61,7 @@ export default function ManagerContent({
                 type="button"
                 onClick={onCancelProfileEdit}
                 disabled={isSubmittingProfile}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card disabled:opacity-60"
+                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[13px] md:text-[14px] font-semibold text-foreground bg-card disabled:opacity-60"
               >
                 취소
               </button>
@@ -70,7 +70,7 @@ export default function ManagerContent({
                 size="sm"
                 onClick={onSaveProfile}
                 loading={isSubmittingProfile}
-                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+                className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 text-[13px] md:text-[14px]"
               >
                 저장
               </AsyncButton>
@@ -79,7 +79,7 @@ export default function ManagerContent({
             <button
               type="button"
               onClick={() => setProfileEditMode(true)}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[14px] font-semibold text-foreground bg-card"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-border text-[13px] md:text-[14px] font-semibold text-foreground bg-card"
             >
               수정
             </button>
@@ -87,10 +87,11 @@ export default function ManagerContent({
         </div>
         <div className="h-[1px] bg-border opacity-50 mb-4" />
         <div className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4">
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
-                이름
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 md:gap-x-4 md:gap-y-2">
+            {/* 실명 */}
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-0">
+              <span className="text-[13px] md:text-[14px] text-neutral-60 leading-[17px] md:leading-6 md:w-[100px]">
+                실명
               </span>
               {profileEditMode ? (
                 <input
@@ -102,15 +103,16 @@ export default function ManagerContent({
                       realName: e.target.value,
                     }))
                   }
-                  className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-foreground dark:bg-neutral-20"
+                  className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[13px] md:text-[14px] text-foreground dark:bg-neutral-20"
                 />
               ) : (
-                <span className="text-[14px] font-medium text-foreground leading-6">
+                <span className="text-[13px] md:text-[14px] font-medium text-foreground leading-[17px] md:leading-6">
                   {member?.hrData?.realName || member?.name || "-"}
                 </span>
               )}
             </div>
-            <div className="flex items-center">
+            {/* 직책 (데스크탑만) */}
+            <div className="hidden md:flex items-center">
               <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 직책
               </span>
@@ -118,8 +120,9 @@ export default function ManagerContent({
                 {getRoleLabel(member?.role ?? "")}
               </span>
             </div>
-            <div className="flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
+            {/* 생년월일 */}
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-0">
+              <span className="text-[13px] md:text-[14px] text-neutral-60 leading-[17px] md:leading-6 md:w-[100px]">
                 생년월일
               </span>
               {profileEditMode ? (
@@ -130,17 +133,18 @@ export default function ManagerContent({
                       setHrFormData((prev) => ({ ...prev, birthDate: d }))
                     }
                     minDate={new Date(1950, 0, 1)}
-                    className="cursor-pointer pr-10"
+                    className="cursor-pointer pr-10 h-[34px] text-[13px] md:text-[14px]"
                   />
                   <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
                 </div>
               ) : (
-                <span className="text-[14px] font-medium text-foreground leading-6">
+                <span className="text-[13px] md:text-[14px] font-medium text-foreground leading-[17px] md:leading-6">
                   {member?.hrData?.birth || "-"}
                 </span>
               )}
             </div>
-            <div className="flex items-center">
+            {/* 입사일 (데스크탑만) */}
+            <div className="hidden md:flex items-center">
               <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
                 입사일
               </span>
@@ -148,24 +152,35 @@ export default function ManagerContent({
                 {member?.createdAt ? formatDateKR(member.createdAt) : "-"}
               </span>
             </div>
-            <div className="col-span-2 flex items-center">
-              <span className="w-[100px] text-[14px] text-neutral-60 leading-6">
+            {/* 주소 */}
+            <div className="col-span-1 md:col-span-2 flex flex-col md:flex-row md:items-center gap-2 md:gap-0">
+              <span className="text-[13px] md:text-[14px] text-neutral-60 leading-[17px] md:leading-6 md:w-[100px]">
                 주소
               </span>
               {profileEditMode ? (
-                <input
-                  type="text"
-                  value={hrFormData.address}
-                  onChange={(e) =>
-                    setHrFormData((prev) => ({
-                      ...prev,
-                      address: e.target.value,
-                    }))
-                  }
-                  className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-foreground dark:bg-neutral-20"
-                />
+                <div className="flex gap-2 flex-1">
+                  <input
+                    type="text"
+                    value={hrFormData.address}
+                    onChange={(e) =>
+                      setHrFormData((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
+                    className="flex-1 h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[13px] md:text-[14px] text-foreground dark:bg-neutral-20"
+                  />
+                  <button
+                    type="button"
+                    onClick={onSaveProfile}
+                    disabled={isSubmittingProfile}
+                    className="h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 text-[13px] md:text-[14px] font-semibold leading-[17px] disabled:opacity-60 whitespace-nowrap"
+                  >
+                    저장
+                  </button>
+                </div>
               ) : (
-                <span className="flex-1 text-[14px] font-medium text-foreground leading-6">
+                <span className="flex-1 text-[13px] md:text-[14px] font-medium text-foreground leading-[17px] md:leading-6">
                   {member?.hrData?.address || "-"}
                 </span>
               )}
@@ -175,9 +190,9 @@ export default function ManagerContent({
       </section>
 
       {/* 팀 변경 이력 Section */}
-      <section className="pb-6">
+      <section className="pb-4 md:pb-6">
         <div className="mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
+          <span className="text-[14px] md:text-[16px] font-semibold text-foreground">
             팀 변경 이력
           </span>
         </div>
@@ -187,42 +202,89 @@ export default function ManagerContent({
             member?.teamChangeLogs.map((history) => (
               <div
                 key={history.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4 flex items-center gap-4"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[8px] md:rounded-[12px] p-3 md:p-4"
               >
-                <span className="text-[14px] text-neutral-60 whitespace-nowrap">
-                  {formatDateKR(history.createdAt)}
-                </span>
-                <RoleBadge
-                  label={history.previousTeamName || "미배정"}
-                  variant="neutral"
-                />
-                {history.newTeamName && (
-                  <>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 18L15 12L9 6"
-                        stroke="#B0B0B0"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                {/* 모바일 레이아웃 */}
+                <div className="md:hidden flex flex-col gap-3">
+                  {/* 날짜 */}
+                  <div className="text-[13px] text-neutral-60">
+                    {formatDateKR(history.createdAt)}
+                  </div>
+                  {/* 팀 정보 영역 */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1.5">
+                      <RoleBadge
+                        label={history.previousTeamName || "미배정"}
+                        variant="neutral"
                       />
-                    </svg>
-                    <RoleBadge label={history.newTeamName} variant="primary" />
-                  </>
-                )}
-                <span className="ml-auto text-[14px] text-neutral-60">
-                  {history.type === "teamMove" ? "팀이동" : history.type}
-                </span>
+                    </div>
+                    {history.newTeamName && (
+                      <>
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="flex-shrink-0"
+                        >
+                          <path
+                            d="M9 18L15 12L9 6"
+                            stroke="#B0B0B0"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <div className="flex flex-col gap-1.5">
+                          <RoleBadge label={history.newTeamName} variant="primary" />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {/* 변경 타입 */}
+                  <div className="text-[13px] text-neutral-60">
+                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type}
+                  </div>
+                </div>
+                {/* 데스크탑 레이아웃 */}
+                <div className="hidden md:flex items-center gap-4">
+                  <span className="text-[14px] text-neutral-60 whitespace-nowrap">
+                    {formatDateKR(history.createdAt)}
+                  </span>
+                  <RoleBadge
+                    label={history.previousTeamName || "미배정"}
+                    variant="neutral"
+                  />
+                  {history.newTeamName && (
+                    <>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="flex-shrink-0"
+                      >
+                        <path
+                          d="M9 18L15 12L9 6"
+                          stroke="#B0B0B0"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <RoleBadge label={history.newTeamName} variant="primary" />
+                    </>
+                  )}
+                  <span className="ml-auto text-[14px] text-neutral-60 whitespace-nowrap">
+                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type}
+                  </span>
+                </div>
               </div>
             ))
           ) : (
-            <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-25 rounded-[12px] text-[14px] text-neutral-60">
+            <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-25 rounded-[12px] text-[13px] md:text-[14px] text-neutral-60">
               팀 변경 이력이 없습니다.
             </div>
           )}
@@ -232,7 +294,7 @@ export default function ManagerContent({
       {/* 특이사항 Section */}
       <section>
         <div className="mb-3">
-          <span className="text-[16px] font-semibold text-foreground">
+          <span className="text-[14px] md:text-[16px] font-semibold text-foreground">
             특이사항
           </span>
         </div>
@@ -242,16 +304,16 @@ export default function ManagerContent({
             {localNotes.map((note) => (
               <div
                 key={note.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] p-4"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[8px] md:rounded-[12px] p-3 md:p-4"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-[14px] text-foreground">
+                  <div className="flex items-center gap-2 text-[13px] md:text-[14px] text-foreground">
                     <span className="text-neutral-60">
                       {formatDateTimeKR(note.createdAt)}
                     </span>
                   </div>
                   <button
-                    className="cursor-pointer w-5 h-5 text-neutral-50 hover:text-neutral-60"
+                    className="cursor-pointer w-5 h-5 text-neutral-50 hover:text-neutral-60 flex-shrink-0"
                     onClick={() => onRemoveNote(note.id)}
                     disabled={isSubmittingNote}
                     aria-label="특이사항 삭제"
@@ -273,12 +335,12 @@ export default function ManagerContent({
                     </svg>
                   </button>
                 </div>
-                <p className="text-[14px] text-foreground">{note.note}</p>
+                <p className="text-[13px] md:text-[14px] text-foreground">{note.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="px-4 py-3 bg-neutral-10 rounded-[12px] text-[14px] text-neutral-60 mb-4">
+          <div className="px-4 py-3 bg-neutral-10 rounded-[12px] text-[13px] md:text-[14px] text-neutral-60 mb-4">
             등록된 특이사항이 없습니다.
           </div>
         )}
@@ -288,14 +350,14 @@ export default function ManagerContent({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="특이사항을 입력하세요"
-            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 dark:bg-neutral-10"
+            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[13px] md:text-[14px] text-foreground placeholder:text-neutral-60 dark:bg-neutral-10"
           />
           <AsyncButton
             variant="secondary"
             size="sm"
             onClick={onAddNote}
             loading={isSubmittingNote}
-            className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70"
+            className="bg-neutral-90 dark:bg-neutral-80 text-white dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 text-[13px] md:text-[14px] h-[34px] px-3"
           >
             저장
           </AsyncButton>
