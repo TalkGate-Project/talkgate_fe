@@ -9,6 +9,7 @@ type BaseModalProps = {
   overlayClassName?: string;
   containerClassName?: string;
   ariaLabel?: string;
+  fullScreenOnMobile?: boolean;
 };
 
 // Simple shared counter to handle nested modals scroll lock
@@ -38,7 +39,7 @@ function unlockBodyScroll() {
   }
 }
 
-export default function BaseModal({ onClose, children, overlayClassName = "", containerClassName = "", ariaLabel = "dialog" }: BaseModalProps) {
+export default function BaseModal({ onClose, children, overlayClassName = "", containerClassName = "", ariaLabel = "dialog", fullScreenOnMobile = false }: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function BaseModal({ onClose, children, overlayClassName = "", co
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="min-h-full flex items-center justify-center p-4 md:p-4">
+      <div className={`min-h-full flex items-center justify-center ${fullScreenOnMobile ? "p-0 md:p-4" : "p-4 md:p-4"}`}>
         <div ref={containerRef} tabIndex={-1} className={`w-full h-full md:w-auto md:h-auto ${containerClassName}`}>
           {children}
         </div>
