@@ -686,8 +686,8 @@ export default function ChatView({ projectId }: Props) {
                 className="absolute inset-0 bg-black/20"
                 onClick={() => setIsAiSidebarOpen(false)}
               />
-              <div className="absolute bottom-0 md:bottom-44 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[420px] md:max-h-[80vh]">
-                <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg overflow-hidden flex flex-col">
+              <div className="absolute bottom-0 md:bottom-44 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[420px] md:max-h-[80vh] flex flex-col">
+                <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg overflow-hidden flex flex-col min-h-0">
                   <ChatRightSidebar
                     projectId={projectId}
                     conversationId={activeId}
