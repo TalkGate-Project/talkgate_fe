@@ -86,12 +86,19 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
             <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
             {/* Modal container (centered) */}
-            <div className="absolute left-1/2 top-1/2" style={{ width: 848, transform: "translate(-50%, -50%)" }}>
-                <div className="relative w-full h-full bg-white dark:bg-neutral-10 rounded-[14px]">
+            <div className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[848px] md:h-auto md:max-h-[90vh]" style={{ transform: "md:translate(-50%, -50%)" }}>
+                <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col">
                     {/* Header */}
-                    <div className="px-7 pt-7 pb-3 flex items-center justify-between">
-                        <h2 className="text-[18px] leading-[21px] font-semibold text-black dark:text-neutral-80">필터추가</h2>
-                        <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center text-[#111827] dark:text-neutral-70">
+                    <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-2">
+                            <button onClick={onClose} className="md:hidden cursor-pointer p-1 -ml-1">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black dark:text-neutral-80" />
+                                </svg>
+                            </button>
+                            <h2 className="text-[18px] leading-[21px] font-semibold text-black dark:text-neutral-80">필터추가</h2>
+                        </div>
+                        <button aria-label="close" onClick={onClose} className="hidden md:block cursor-pointer w-6 h-6 grid place-items-center text-[#111827] dark:text-neutral-70">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 18L18 6M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
@@ -99,8 +106,8 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                     </div>
 
                     {/* Body */}
-                    <div className="px-7 pt-[18px] space-y-3 overflow-auto pb-7">
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                    <div className="flex-1 overflow-auto px-4 md:px-7 pt-[18px] space-y-3 pb-7">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
 
@@ -111,10 +118,10 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                             <LabeledSelect label="사이트" options={siteOptions} placeholder="전체" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
 
                             {/* 상담 내용 */}
-                            <div className="col-span-2">
+                            <div className="col-span-1 md:col-span-2">
                                 <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 내용</label>
-                                <div className="border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] px-3 py-2 h-[34px] flex items-start bg-white dark:bg-neutral-20">
-                                    <textarea value={form.noteContent || ""} onChange={(e) => setForm((f) => ({ ...f, noteContent: e.target.value || undefined }))} className="w-full h-[66px] resize-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] dark:placeholder:text-neutral-60 text-[#000] dark:text-neutral-80 bg-transparent" placeholder="상담 내용을 작성해주세요" />
+                                <div className="border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] px-3 py-2 min-h-[66px] flex items-start bg-white dark:bg-neutral-20">
+                                    <textarea value={form.noteContent || ""} onChange={(e) => setForm((f) => ({ ...f, noteContent: e.target.value || undefined }))} className="w-full min-h-[66px] resize-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-[#808080] dark:placeholder:text-neutral-60 text-[#000] dark:text-neutral-80 bg-transparent" placeholder="상담 내용을 작성해주세요" />
                                 </div>
                             </div>
 
@@ -145,10 +152,10 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-[#E2E2E2] dark:border-[#444444]" />
-                    <div className="px-7 py-3 flex items-center justify-end gap-3">
-                        <button className="cursor-pointer w-[60px] h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => setForm({})}>초기화</button>
-                        <button className="cursor-pointer w-[72px] h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>적용완료</button>
+                    <div className="border-t border-[#E2E2E2] dark:border-[#444444] shrink-0" />
+                    <div className="px-4 md:px-7 py-3 flex items-center justify-end gap-3 shrink-0">
+                        <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => setForm({})}>초기화</button>
+                        <button className="cursor-pointer w-[72px] md:w-[72px] h-[40px] md:h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>확인</button>
                     </div>
                 </div>
             </div>
@@ -161,7 +168,7 @@ function LabeledSelect({ label, options, placeholder, value, onChange, freeText 
         <div>
             <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
             <div className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20">
-                <div className="flex flex-row items-center p-0 gap-[30px] w-[360px] h-[17px]">
+                <div className="flex flex-row items-center p-0 gap-[30px] w-full md:w-[360px] h-[17px]">
                     {freeText ? (
                         <input value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60" placeholder={placeholder} />
                     ) : (
@@ -289,7 +296,7 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: (number | 
 
             {/* Selected pills - ensure dropdown overlays them when open */}
             {selected.length > 0 && (
-                <div className="w-[384px] mt-2 overflow-x-auto no-scrollbar">
+                <div className="w-full md:w-[384px] mt-2 overflow-x-auto no-scrollbar">
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
                         {selected.map((id, index) => {
                             if (id === null) {
@@ -374,18 +381,18 @@ function DateRange({
     onEndChange: (date: Date | null) => void; 
 }) {
     return (
-        <div className="flex items-center gap-3">
-            <div className="relative w-[175px]">
-                <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10" />
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+            <div className="relative flex-1 md:w-[175px]">
+                <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10 w-full" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
                     </svg>
                 </div>
             </div>
-            <span className="text-[14px] text-[#000] dark:text-neutral-80">-</span>
-            <div className="relative w-[175px]">
-                <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10" />
+            <span className="text-[14px] text-[#000] dark:text-neutral-80 hidden md:inline">-</span>
+            <div className="relative flex-1 md:w-[175px]">
+                <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10 w-full" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>

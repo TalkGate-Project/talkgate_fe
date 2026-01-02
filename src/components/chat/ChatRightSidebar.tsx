@@ -182,10 +182,10 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
 
   return (
     <div className="w-full md:max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col">
-      <div className="px-4 md:px-7 py-4 md:py-5 flex items-center justify-between border-b border-border dark:border-neutral-30">
+      <div className="px-4 md:px-7 py-4 md:py-5 flex items-center justify-between border-b border-border dark:border-neutral-30 shrink-0">
         <div className="flex items-center gap-2">
           <Image src="/icon-ai.png" alt="Talkgate" width={18} height={22} />
-          <h3 className="text-[18px] md:text-[20px] font-bold">AI상담도우미</h3>
+          <h3 className="text-[18px] md:text-[20px] font-bold">Talkgate AI</h3>
           <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
         </div>
         {/* 모바일 닫기 버튼 */}
@@ -213,7 +213,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       </div>
 
       <div
-        className="flex-1 overflow-auto px-4 md:px-7 py-4 space-y-3 max-[1439px]:min-h-[200px] max-[1439px]:max-h-[360px]"
+        className="flex-1 overflow-auto px-4 md:px-7 py-4 space-y-3 min-h-0"
         ref={messagesScrollRef}
       >
         {!hasActiveConversation ? (
@@ -292,7 +292,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         )}
       </div>
 
-      <div className="h-[76px] px-3 md:px-4 border-t border-border dark:border-neutral-30">
+      <div className="h-[76px] px-3 md:px-4 border-t border-border dark:border-neutral-30 shrink-0 md:relative md:bottom-auto">
         <div className="h-full flex items-center gap-2">
           <input
             className="flex-1 h-[40px] px-2 md:px-3 text-[14px] outline-none bg-transparent border-0 disabled:cursor-not-allowed"

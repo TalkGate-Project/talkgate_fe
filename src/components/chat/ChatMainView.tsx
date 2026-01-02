@@ -232,7 +232,7 @@ export default function ChatMainView({
           </div>
         )}
         {/* Header */}
-        <div className="px-4 md:px-7 py-3 md:py-[15px] flex items-center justify-between border-b border-border">
+        <div className="px-4 md:px-7 py-3 md:py-[15px] flex items-center justify-between border-b border-border shrink-0">
           <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
             {/* 모바일 뒤로가기 버튼 */}
             <button
@@ -324,7 +324,7 @@ export default function ChatMainView({
         {/* Messages area */}
         {activeConversation ? (
           <div
-            className="flex-1 overflow-auto p-4 md:p-7 space-y-4 md:space-y-5"
+            className="flex-1 overflow-auto p-4 md:p-7 space-y-4 md:space-y-5 min-h-0"
             ref={messagesScrollRef}
             onScroll={onMessagesScroll}
           >

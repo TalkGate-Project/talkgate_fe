@@ -122,8 +122,9 @@ export default function TeamListView({
         const hasVisibleChildren = Boolean(visibleChildren && visibleChildren.length);
         const isExpanded = currentExpanded.has(item.id);
         const level = item.level ?? 0;
-        const indent = getIndent(level);
-        const connectorLeft = getConnectorLeft(level);
+        // 모바일에서 1rem(16px) 들여쓰기, 데스크탑에서 기존 값 사용
+        const indent = level * 16; // 모바일: 16px per level
+        const connectorLeft = (level - 1) * 16; // 모바일: 16px per level
         const isDragOver = dragState.dragOverItemId === item.id;
         const isDragging = dragState.draggedItemId === item.id;
 
@@ -132,30 +133,35 @@ export default function TeamListView({
             {level > 0 && (
               <>
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-px bg-border"
+                  className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
                   style={{ 
                     left: `${connectorLeft}px`,
-                    // 첫 번째 아이템은 상단 여백(mt-2)만큼 선을 위로 올려서 연결
+                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
                     top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0 
-                  }}
+                  } as React.CSSProperties}
                 />
                 <div
-                  className="absolute h-px bg-border"
+                  className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
                   style={{ 
-                    left: `${connectorLeft}px`, 
+                    left: `${connectorLeft}px`,
+                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
+                    '--desktop-horizontal-width': `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
                     top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
-                    width: HIERARCHY_LIST_TOKENS.connector.horizontalWidth 
-                  }}
+                    width: '16px' // 모바일: 16px
+                  } as React.CSSProperties}
                 />
               </>
             )}
             <div
-              className={`h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all ${
+              className={`h-[60px] flex items-center px-6 gap-4 border border-border rounded-[12px] cursor-move transition-all md:!ml-[var(--desktop-indent)] ${
                 item.isLeader
                   ? "bg-team-leader-highlight"
                   : "bg-card"
               } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
-              style={{ marginLeft: `${indent}px` }}
+              style={{ 
+                marginLeft: `${indent}px`,
+                '--desktop-indent': `${getIndent(level)}px`,
+              } as React.CSSProperties}
               draggable
               onDragStart={(e) => dragHandlers.handleDragStart(e, item)}
               onDragOver={(e) => dragHandlers.handleDragOver(e, item.id)}
