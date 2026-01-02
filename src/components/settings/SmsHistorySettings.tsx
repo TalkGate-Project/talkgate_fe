@@ -9,6 +9,7 @@ import Pagination from "@/components/common/Pagination";
 import StatusBadge from "./sms-history/StatusBadge";
 import MessageTypeBadge from "./sms-history/MessageTypeBadge";
 import SmsHistoryFilterModal from "./sms-history/SmsHistoryFilterModal";
+import SmsHistoryDetailModal from "./sms-history/SmsHistoryDetailModal";
 import { PAGE_SIZE } from "./sms-history/constants";
 import { formatDateTime, dateToISOString } from "./sms-history/utils";
 import { SMS_STATUS_LABEL } from "@/types/sms";
@@ -30,6 +31,8 @@ export default function SmsHistorySettings() {
   
   // 모달 상태
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState<SmsHistory | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const showProjectMissing = ready && !projectId;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -83,6 +86,18 @@ export default function SmsHistorySettings() {
   // 필터 모달 닫기
   const handleCloseFilterModal = () => {
     setIsFilterModalOpen(false);
+  };
+
+  // 상세 모달 열기
+  const handleOpenDetailModal = (history: SmsHistory) => {
+    setSelectedHistory(history);
+    setIsDetailModalOpen(true);
+  };
+
+  // 상세 모달 닫기
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedHistory(null);
   };
 
   // 모바일용 메시지 유형 뱃지 (CSS 참고 - padding 2px 4px, height 18px)
@@ -213,6 +228,13 @@ export default function SmsHistorySettings() {
               onMessageTypeChange={setMessageTypeFilter}
             />
 
+            {/* 상세 정보 모달 */}
+            <SmsHistoryDetailModal
+              isOpen={isDetailModalOpen}
+              onClose={handleCloseDetailModal}
+              history={selectedHistory}
+            />
+
             {/* 모바일 카드 리스트 */}
             <div className="md:hidden space-y-3">
               {loading ? (
@@ -227,7 +249,8 @@ export default function SmsHistorySettings() {
                 histories.map((history) => (
                   <div
                     key={history.id}
-                    className="bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[12px] p-4 relative"
+                    onClick={() => handleOpenDetailModal(history)}
+                    className="bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[12px] p-4 relative cursor-pointer hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors"
                   >
                     {/* 첫 번째 줄: 발신번호, 메시지 유형 뱃지, 날짜/시간 */}
                     <div className="flex items-center justify-between mb-2">
@@ -321,7 +344,8 @@ export default function SmsHistorySettings() {
                     return (
                       <div
                         key={history.id}
-                        className={`px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]`}
+                        onClick={() => handleOpenDetailModal(history)}
+                        className={`px-4 pl-10 h-[52px] flex items-center hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455] cursor-pointer`}
                       >
                         <div className="flex-[2] text-[14px] text-ink dark:text-neutral-80 text-left">
                           {formatDateTime(history.scheduledAt || history.createdAt)}
