@@ -111,7 +111,7 @@ export default function TeamListView({
         ? items.filter((item) => visibleIds.has(item.id))
         : items;
       
-      return filteredItems.map((item) => {
+      return filteredItems.map((item, index) => {
         // parentId를 포함한 경로로 고유성 보장 (같은 ID가 다른 부모 아래에 있을 수 있음)
         const itemPath = parentPath ? `${parentPath}/${item.id}` : item.id;
         const hasChildren = Boolean(item.children && item.children.length);
