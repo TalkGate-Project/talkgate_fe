@@ -241,18 +241,62 @@ export default function ProfileSettings() {
                 {isRoot && hasChildren && (
                     <button 
                         onClick={() => setIsOrgExpanded(!isOrgExpanded)}
-                        className="w-[24px] h-[24px] flex items-center justify-center cursor-pointer"
+                        className="w-[26px] h-[26px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        aria-label={isOrgExpanded ? "접기" : "펼치기"}
                     >
-                         <svg 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={`transform transition-transform ${isOrgExpanded ? "" : "rotate-180"}`}
-                        >
-                             <path d="M6 9L12 15L18 9" stroke="currentColor" className="text-neutral-50 dark:text-neutral-50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                         </svg>
+                        {isOrgExpanded ? (
+                            // 열렸을 때: 아래쪽 화살표 (v)
+                            <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 26 26"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <rect
+                                    x="25.5"
+                                    y="0.5"
+                                    width="25"
+                                    height="25"
+                                    rx="5.5"
+                                    transform="rotate(90 25.5 0.5)"
+                                    stroke="#E2E2E2"
+                                />
+                                <path
+                                    d="M7.16536 10.5L12.9987 16.3333L18.832 10.5"
+                                    stroke="#B0B0B0"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        ) : (
+                            // 닫혔을 때: 오른쪽 화살표 (>)
+                            <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 26 26"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <rect
+                                    x="0.5"
+                                    y="0.5"
+                                    width="25"
+                                    height="25"
+                                    rx="5.5"
+                                    transform="matrix(0 -1 -1 0 26 26)"
+                                    stroke="#E2E2E2"
+                                />
+                                <path
+                                    d="M10.5 18.8332L16.3333 12.9998L10.5 7.1665"
+                                    stroke="#B0B0B0"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        )}
                     </button>
                 )}
             </div>
