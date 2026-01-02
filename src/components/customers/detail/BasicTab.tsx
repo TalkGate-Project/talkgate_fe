@@ -234,7 +234,7 @@ export default function BasicTab({
               {messengers.map((m, idx) => (
                 <div
                   key={`${m.messenger}-${m.account}-${idx}`}
-                  className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 py-3"
+                  className="flex items-center justify-between bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     <MessengerBadge messenger={m.messenger} />

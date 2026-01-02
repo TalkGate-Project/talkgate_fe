@@ -441,7 +441,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
                   }
                 }}
                 placeholder="직원 및 팀 이름을 검색하세요"
-                className="w-full max-w-[296px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground"
+                className="w-full min-w-[248px] max-w-[296px] px-3 h-[34px] border border-border rounded-[5px] text-[14px] text-foreground bg-card dark:bg-neutral-10 focus:outline-none focus:border-foreground"
               />
             </div>
             <button

@@ -412,7 +412,7 @@ export default function SalesTab({
             return (
               <div
                 key={sc.id}
-                className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]"
               >
                 
                 <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">

@@ -146,7 +146,7 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
                   width="35"
                   height="35"
                   rx="5.5"
-                  fill="white"
+                  className="fill-white dark:fill-[#111111]"
                 />
                 <rect
                   x="0.5"
@@ -155,10 +155,12 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
                   height="35"
                   rx="5.5"
                   stroke="#E2E2E2"
+                  className="dark:stroke-[#4D4D4D]"
                 />
                 <path
                   d="M21 24.8077L14 17.8077L21 10.8077"
                   stroke="#B0B0B0"
+                  className="dark:stroke-[#959595]"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -246,11 +248,12 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
                   height="35"
                   rx="5.5"
                   transform="rotate(90 35.5 0.5)"
-                  stroke="#E2E2E2"
+                  className="fill-white dark:fill-[#111111] stroke-[#E2E2E2] dark:stroke-[#4D4D4D]"
                 />
                 <path
                   d="M11.1914 21L18.1914 14L25.1914 21"
                   stroke="#B0B0B0"
+                  className="dark:stroke-[#959595]"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -276,11 +279,12 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
                   height="35"
                   rx="5.5"
                   transform="matrix(0 -1 -1 0 36 36)"
-                  stroke="#E2E2E2"
+                  className="fill-white dark:fill-[#111111] stroke-[#E2E2E2] dark:stroke-[#4D4D4D]"
                 />
                 <path
                   d="M11.1914 15L18.1914 22L25.1914 15"
                   stroke="#B0B0B0"
+                  className="dark:stroke-[#959595]"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"

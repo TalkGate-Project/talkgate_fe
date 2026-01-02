@@ -303,7 +303,7 @@ export default function TeamMemberInfoModal({
       <div className="fixed inset-0 z-[100]">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
         <div
-          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
+          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
             minWidth: 600,
@@ -327,7 +327,7 @@ export default function TeamMemberInfoModal({
       <div className="fixed inset-0 z-[100]">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
         <div
-          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
+          className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
           style={{
             width: 904,
             minWidth: 600,
@@ -355,7 +355,7 @@ export default function TeamMemberInfoModal({
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
       <div
-        className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-10 rounded-[14px] overflow-hidden flex flex-col"
+        className="absolute left-1/2 top-1/2 bg-white dark:bg-neutral-0 rounded-[14px] overflow-hidden flex flex-col"
         style={{
           width: 904,
           minWidth: 600,
