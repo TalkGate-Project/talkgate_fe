@@ -11,6 +11,7 @@ import MessageTypeBadge from "./sms-history/MessageTypeBadge";
 import SmsHistoryFilterModal from "./sms-history/SmsHistoryFilterModal";
 import { PAGE_SIZE } from "./sms-history/constants";
 import { formatDateTime, dateToISOString } from "./sms-history/utils";
+import { SMS_STATUS_LABEL } from "@/types/sms";
 
 export default function SmsHistorySettings() {
   const [projectId, ready] = useSelectedProjectId();
@@ -84,16 +85,73 @@ export default function SmsHistorySettings() {
     setIsFilterModalOpen(false);
   };
 
+  // 모바일용 메시지 유형 뱃지 (CSS 참고 - padding 2px 4px, height 18px)
+  const MobileMessageTypeBadge = ({ type }: { type: SmsMessageType }) => {
+    const config: Record<SmsMessageType, { bgColor: string; textColor: string }> = {
+      SMS: {
+        bgColor: "bg-[#D3E1FE]",
+        textColor: "text-[#4D82F3]",
+      },
+      LMS: {
+        bgColor: "bg-[#D3E1FE]",
+        textColor: "text-[#4D82F3]",
+      },
+      MMS: {
+        bgColor: "bg-[#FFF5D5]",
+        textColor: "text-[#976400]",
+      },
+    };
+    const { bgColor, textColor } = config[type] || config.SMS;
+    return (
+      <span
+        className={`inline-flex items-center justify-center h-[18px] px-1 py-0.5 rounded-[5px] text-[12px] font-medium ${bgColor} ${textColor} opacity-80`}
+      >
+        {type}
+      </span>
+    );
+  };
+
+  // 모바일용 상태 뱃지 (CSS 참고 - padding 4px 12px, height 22px, rounded-[30px])
+  const MobileStatusBadge = ({ status }: { status: SmsStatus }) => {
+    const config: Record<SmsStatus, { bgColor: string; textColor: string }> = {
+      pending: {
+        bgColor: "bg-[#F3F4F6]",
+        textColor: "text-[#4B5563]",
+      },
+      processing: {
+        bgColor: "bg-[#D3E1FE]",
+        textColor: "text-[#4D82F3]",
+      },
+      success: {
+        bgColor: "bg-[#D6FAE8]",
+        textColor: "text-[#00B55B]",
+      },
+      failed: {
+        bgColor: "bg-[#FFEBEB]",
+        textColor: "text-[#D83232]",
+      },
+    };
+    const { bgColor, textColor } = config[status] || config.processing;
+    const label = SMS_STATUS_LABEL[status] || status;
+    return (
+      <span
+        className={`inline-flex items-center justify-center h-[22px] px-3 py-1 rounded-[30px] text-[12px] font-medium ${bgColor} ${textColor} opacity-80`}
+      >
+        {label}
+      </span>
+    );
+  };
+
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7">
       {/* Title */}
-      <h1 className="px-7 text-[24px] font-bold text-ink dark:text-neutral-80 h-[76px] flex items-center border-b border-neutral-30 dark:border-neutral-30">
+      <h1 className="px-4 md:px-7 text-[18px] md:text-[24px] font-bold text-ink dark:text-neutral-80 py-4 md:py-0 md:h-[76px] flex items-center border-b border-neutral-30 dark:border-neutral-30">
         문자 발송 이력
       </h1>
 
-      <div className="px-7">
-        {/* 설명 */}
-        <div className="mb-6 border-b border-neutral-30 dark:border-neutral-30 pt-[30px] pb-3">
+      <div className="px-4 md:px-7">
+        {/* 설명 - 데스크탑만 표시 */}
+        <div className="hidden md:block mb-6 border-b border-neutral-30 dark:border-neutral-30 pt-[30px] pb-3">
           <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80 mb-1">
             문자 발송 이력
           </h2>
@@ -109,36 +167,40 @@ export default function SmsHistorySettings() {
         ) : (
           <>
             {/* 필터 영역 */}
-            <div className="flex flex-wrap items-center gap-3 my-6">
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onStartChange={setStartDate}
-                onEndChange={setEndDate}
-                onReset={() => {
-                  // 날짜뿐만 아니라 필터 모달의 필터도 함께 초기화
-                  setStatusFilter("");
-                  setMessageTypeFilter("");
-                  setPage(1);
-                }}
-                showInlineIcon={true}
-              />
+            <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-3 my-4 md:my-6">
+              <div className="md:flex-none">
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartChange={setStartDate}
+                  onEndChange={setEndDate}
+                  onReset={() => {
+                    // 날짜뿐만 아니라 필터 모달의 필터도 함께 초기화
+                    setStatusFilter("");
+                    setMessageTypeFilter("");
+                    setPage(1);
+                  }}
+                  showInlineIcon={true}
+                />
+              </div>
               
-              <button
-                type="button"
-                onClick={handleOpenFilterModal}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] text-[14px] font-medium text-ink dark:text-neutral-80 border border-neutral-30 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
-              >
-                필터추가
-              </button>
-              
-              <button
-                type="button"
-                onClick={loadHistories}
-                className="cursor-pointer h-[34px] px-4 rounded-[5px] text-[14px] font-medium text-neutral-0 dark:text-neutral-0 bg-neutral-90 dark:bg-neutral-80 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
-              >
-                검색
-              </button>
+              <div className="flex gap-2 md:gap-3">
+                <button
+                  type="button"
+                  onClick={handleOpenFilterModal}
+                  className="cursor-pointer flex-1 md:flex-none h-[34px] px-3 rounded-[5px] text-[14px] font-medium text-ink dark:text-neutral-80 border border-neutral-30 dark:border-neutral-30 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                >
+                  필터추가
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={loadHistories}
+                  className="cursor-pointer flex-1 md:flex-none h-[34px] px-4 rounded-[5px] text-[14px] font-medium text-neutral-0 dark:text-neutral-0 bg-neutral-90 dark:bg-neutral-80 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
+                >
+                  검색
+                </button>
+              </div>
             </div>
 
             {/* 필터 모달 */}
@@ -151,8 +213,70 @@ export default function SmsHistorySettings() {
               onMessageTypeChange={setMessageTypeFilter}
             />
 
-            {/* 테이블 */}
-            <div className="overflow-x-auto">
+            {/* 모바일 카드 리스트 */}
+            <div className="md:hidden space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60">
+                  로딩 중...
+                </div>
+              ) : histories.length === 0 ? (
+                <div className="flex items-center justify-center h-40 text-[14px] text-neutral-60 dark:text-neutral-60 border border-dashed border-neutral-30 dark:border-neutral-30 rounded-[10px]">
+                  문자 발송 이력이 없습니다.
+                </div>
+              ) : (
+                histories.map((history) => (
+                  <div
+                    key={history.id}
+                    className="bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[12px] p-4 relative"
+                  >
+                    {/* 첫 번째 줄: 발신번호, 메시지 유형 뱃지, 날짜/시간 */}
+                    <div className="flex items-center justify-between mb-2">
+                      {/* 좌측: 발신번호 + 메시지 유형 뱃지 */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="text-[14px] font-semibold text-neutral-90 dark:text-neutral-80 leading-[17px]">
+                          {history.senderPhoneNumber}
+                        </div>
+                        {/* 메시지 유형 뱃지 (발신번호 바로 오른쪽) */}
+                        <MobileMessageTypeBadge type={history.messageType} />
+                      </div>
+                      {/* 우측: 날짜/시간 */}
+                      <div className="text-[14px] font-semibold text-neutral-90 dark:text-neutral-80 opacity-80 flex-shrink-0 ml-2 leading-[17px]">
+                        {formatDateTime(history.scheduledAt || history.createdAt)}
+                      </div>
+                    </div>
+
+                    {/* 하단: 고객/성공/실패/정보성 또는 광고성/상태 */}
+                    <div className="flex items-center justify-between">
+                      {/* 좌측: 고객/성공/실패/정보성 또는 광고성 */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">고객</span>
+                        <span className="text-[14px] font-bold text-neutral-90 dark:text-neutral-80 leading-[14px]">
+                          {history.totalRecipients > 99 ? `+99` : history.totalRecipients}
+                        </span>
+                        <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">성공</span>
+                        <span className="text-[14px] font-bold text-neutral-90 dark:text-neutral-80 leading-[14px]">
+                          {history.successCount}
+                        </span>
+                        <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">실패</span>
+                        <span className="text-[14px] font-bold text-neutral-90 dark:text-neutral-80 leading-[14px]">
+                          {history.failCount}
+                        </span>
+                        <span className="text-[13px] font-medium text-neutral-90 dark:text-neutral-80 leading-[16px]">
+                          {history.advertisementType === "informational" ? "정보성" : "광고성"}
+                        </span>
+                      </div>
+                      {/* 우측: 상태 뱃지 */}
+                      <div className="flex-shrink-0 ml-2">
+                        <MobileStatusBadge status={history.status} />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 데스크탑 테이블 */}
+            <div className="hidden md:block overflow-x-auto">
               {/* 테이블 헤더 */}
               <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-4 pl-10 h-[40px] flex items-center mb-1">
                 <div className="flex-[2] text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
@@ -231,7 +355,7 @@ export default function SmsHistorySettings() {
             </div>
 
             {/* 페이지네이션 */}
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center mt-4 md:mt-6">
               <Pagination
                 page={page}
                 totalPages={totalPages}
