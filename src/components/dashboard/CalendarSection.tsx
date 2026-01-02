@@ -225,10 +225,10 @@ export default function CalendarSection() {
                       );
                     }
                   }}
-                  className={`cursor-pointer relative min-h-[45px] md:min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors`}
+                  className={`cursor-pointer relative min-h-[45px] md:min-h-[93px] ${borderClass} ${backgroundClass} flex flex-col transition-colors overflow-hidden`}
                 >
                   <div
-                    className={`font-montserrat font-medium text-[14px] md:text-[16px] leading-[20px] flex items-center justify-center md:items-start md:justify-start md:ml-3 mt-1 md:mt-2 ${
+                    className={`font-montserrat font-medium text-[14px] md:text-[16px] leading-[20px] flex items-center justify-center md:items-start md:justify-start md:ml-3 mt-1 md:mt-2 shrink-0 ${
                       isPrevMonth ? "text-figma-muted" : "text-neutral-70"
                     }`}
                     style={montserratStyle}
@@ -245,9 +245,9 @@ export default function CalendarSection() {
                     )}
                   </div>
                   {/* 모바일: circle만 표시, 데스크톱: 텍스트와 함께 표시 */}
-                  <div className="flex-1 flex flex-col justify-center items-center md:items-start md:ml-4 md:mr-2 gap-0.5 md:gap-1 pb-1 md:pb-3">
+                  <div className="flex-1 flex flex-col justify-center items-center md:items-start md:ml-4 md:mr-2 gap-0.5 md:gap-1 pb-1 md:pb-3 min-w-0 w-full overflow-hidden">
                     {/* 모바일: circle만 표시 */}
-                    <div className="flex items-center gap-1 md:hidden justify-center flex-wrap">
+                    <div className="flex items-center gap-1 md:hidden justify-center flex-wrap max-w-full">
                       {daySchedules.slice(0, 4).map((schedule, idx) => (
                         <span
                           key={idx}
@@ -259,17 +259,17 @@ export default function CalendarSection() {
                         />
                       ))}
                       {daySchedules.length > 4 && (
-                        <span className="text-[8px] text-neutral-60 font-medium">
+                        <span className="text-[8px] text-neutral-60 font-medium shrink-0">
                           +{daySchedules.length - 4}
                         </span>
                       )}
                     </div>
                     {/* 데스크톱: 텍스트와 함께 표시 */}
-                    <div className="hidden md:flex flex-col gap-1">
+                    <div className="hidden md:flex flex-col gap-1 w-full min-w-0">
                       {daySchedules.slice(0, 2).map((schedule, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0"
+                          className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0 w-full"
                         >
                           <span
                             className="w-3 h-3 rounded-full shrink-0"
@@ -278,7 +278,7 @@ export default function CalendarSection() {
                                 schedule.colorCode || COLORS[idx % COLORS.length],
                             }}
                           />
-                          <span className="truncate font-medium">
+                          <span className="truncate font-medium min-w-0 flex-1" style={{ maxWidth: 'calc(100% - 40px)' }}>
                             {schedule.description ||
                               schedule.customer?.name ||
                               "일정"}
@@ -286,7 +286,7 @@ export default function CalendarSection() {
                         </div>
                       ))}
                       {daySchedules.length > 2 && (
-                        <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60">
+                        <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60 shrink-0">
                           그 외&nbsp;
                           <span
                             className="font-montserrat"
