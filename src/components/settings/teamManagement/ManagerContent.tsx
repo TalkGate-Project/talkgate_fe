@@ -288,7 +288,7 @@ export default function ManagerContent({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="특이사항을 입력하세요"
-            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card"
+            className="flex-1 h-[34px] px-3 border border-border rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 dark:bg-neutral-10"
           />
           <AsyncButton
             variant="secondary"

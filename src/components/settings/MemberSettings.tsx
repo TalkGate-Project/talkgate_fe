@@ -53,7 +53,8 @@ function MemberRow({
 
   return (
     <>
-      <div className="flex items-center py-3 px-10 h-[80px]">
+      {/* Desktop View */}
+      <div className="hidden md:flex items-center py-3 px-10 h-[80px]">
         {/* Member Info */}
         <div 
           className="flex items-center gap-4 w-[280px] min-w-[280px] flex-none cursor-pointer hover:opacity-80 transition-opacity"
@@ -115,6 +116,75 @@ function MemberRow({
               <svg
                 width="24"
                 height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+                  stroke="#B0B0B0"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile View - 테이블 형식 3개 열 */}
+      <div className="md:hidden flex items-center py-3 pl-0.5 pr-4">
+        {/* 이메일 열 - 프로필 썸네일 + 이름 + 이메일 */}
+        <div 
+          className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => onInfoClick(member.id)}
+        >
+          {/* Avatar */}
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[16px] flex-shrink-0 ${
+              isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
+            }`}
+          >
+            {avatar}
+          </div>
+
+          {/* Name and Email */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[14px] font-semibold text-neutral-90 truncate">
+                {member.name}
+              </span>
+              {isTargetAdmin && (
+                <span className="px-1.5 py-0.5 bg-primary-10 text-primary-80 text-[11px] font-medium rounded-[5px] flex-shrink-0">
+                  Admin
+                </span>
+              )}
+            </div>
+            <div className="text-[12px] text-neutral-60 font-medium truncate">
+              {member.email || `ID: ${member.userId}`}
+            </div>
+          </div>
+        </div>
+
+        {/* 역할 열 */}
+        <div className="w-[60px] flex-none text-[14px] font-medium text-neutral-90 text-left">
+          {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
+        </div>
+
+        {/* 삭제 버튼 열 */}
+        <div className="w-8 flex-none flex items-center justify-center">
+          {showDeleteButton && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(member.id);
+              }}
+              className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded transition-colors"
+            >
+              <svg
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -317,20 +387,20 @@ export default function MemberSettings() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7">
+    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7">
       {/* Header */}
-      <div className="flex items-center justify-between px-7 h-[76px]">
-        <h1 className="text-[24px] font-bold text-foreground leading-5">
+      <div className="flex items-center justify-between px-4 md:px-7 py-4 md:py-0 md:h-[76px] gap-3 md:gap-0">
+        <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-5">
           팀 멤버 관리
         </h1>
         
         {/* 버튼 영역 - 권한에 따라 다른 버튼 표시 */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* 프로젝트 탈퇴 버튼 - leader/member만 표시 */}
           {canLeaveProject && (
             <button
               onClick={handleLeaveProject}
-              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
+              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors whitespace-nowrap"
             >
               프로젝트 탈퇴
             </button>
@@ -340,7 +410,7 @@ export default function MemberSettings() {
           {isAdminOrSubAdmin && (
             <button
               onClick={handleInviteMember}
-              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors"
+              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors whitespace-nowrap"
             >
               멤버초대
             </button>
@@ -349,11 +419,25 @@ export default function MemberSettings() {
       </div>
 
       {/* Divider */}
-      <div className="w-full h-[1px] bg-neutral-30 opacity-70 mb-6 px-7"></div>
+      <div className="w-full h-[1px] bg-neutral-30 opacity-70 mb-4 md:mb-6 px-4 md:px-7"></div>
 
-      <div className="px-7">
-        {/* Table Header */}
-        <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center">
+      <div className="px-4 md:px-7">
+        {/* Table Header - 모바일: 3개 열, 데스크탑: 5개 열 */}
+        {/* Mobile Header */}
+        <div className="md:hidden bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-4 h-[40px] flex items-center">
+          <div className="flex items-center w-full">
+            <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+              이메일
+            </div>
+            <div className="w-[60px] flex-none text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+              역할
+            </div>
+            <div className="w-8 flex-none"></div>
+          </div>
+        </div>
+        
+        {/* Desktop Header */}
+        <div className="hidden md:block bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-10 leading-10 flex items-center">
           <div className="flex items-center w-full">
             <div className="w-[280px] min-w-[280px] flex-none text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               멤버
@@ -374,7 +458,7 @@ export default function MemberSettings() {
         {/* Member List */}
         <div className="space-y-0">
           {members.length === 0 ? (
-            <div className="py-8 text-center text-neutral-60">
+            <div className="py-8 text-center text-neutral-60 text-[14px]">
               멤버가 없습니다.
             </div>
           ) : (
@@ -392,7 +476,7 @@ export default function MemberSettings() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center mt-4 md:mt-8">
         <Pagination
           page={currentPage}
           totalPages={totalPages}
