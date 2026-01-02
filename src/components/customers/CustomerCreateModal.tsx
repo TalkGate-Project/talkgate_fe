@@ -174,7 +174,7 @@ export default function CustomerCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-[848px] h-[523px] rounded-[14px] bg-card dark:bg-neutral-10"
+      containerClassName="relative w-[848px] md:w-[848px] h-[523px] rounded-[14px] bg-card dark:bg-neutral-10"
       ariaLabel="고객 등록"
     >
       <div className="relative w-full h-full flex flex-col">
