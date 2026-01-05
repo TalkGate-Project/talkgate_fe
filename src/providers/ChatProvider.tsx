@@ -176,18 +176,11 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = convCursor;
     
-    const requestPayload: any = {
-      limit: 20,
-      cursor: convCursor,
-    };
-    
-    if (filters.status !== "all") {
-      requestPayload.status = filters.status;
-    }
-    
-    // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
-    requestPayload.platform = filters.platform || "";
-    
+    const requestPayload: any = { limit: 20, cursor: convCursor };
+    if (filters.status !== "all") requestPayload.status = filters.status;
+    // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
+    if (filters.platform !== undefined) requestPayload.platform = filters.platform;
+
     socket.emit("getConversations", requestPayload);
   }, [convHasMore, convCursor, filters.status, filters.platform]);
 
@@ -229,16 +222,10 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       convLoadingRef.current = true;
       lastConvCursorRequestedRef.current = undefined;
 
-      const requestPayload: any = {
-        limit: 20,
-      };
-      
-      if (filters.status !== "all") {
-        requestPayload.status = filters.status;
-      }
-      
-      // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
-      requestPayload.platform = filters.platform || "";
+      const requestPayload: any = { limit: 20 };
+      if (filters.status !== "all") requestPayload.status = filters.status;
+      // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
+      if (filters.platform !== undefined) requestPayload.platform = filters.platform;
 
       socket.emit("getConversations", requestPayload);
     };
@@ -289,7 +276,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       convLoadingRef.current = false;
       lastConvCursorRequestedRef.current = undefined;
 
-      if (requestedCursor) {
+      if (requestedCursor !== undefined) {
         // 페이징: 기존 목록에 추가
         setConversations((prev) => {
           const existingIds = new Set(prev.map((c) => c.id));
@@ -454,16 +441,10 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = undefined;
 
-    const requestPayload: any = {
-      limit: 20,
-    };
-    
-    if (filters.status !== "all") {
-      requestPayload.status = filters.status;
-    }
-    
-    // platform이 undefined이면 빈 문자열로 보냄 (전체 필터)
-    requestPayload.platform = filters.platform || "";
+    const requestPayload: any = { limit: 20 };
+    if (filters.status !== "all") requestPayload.status = filters.status;
+    // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
+    if (filters.platform !== undefined) requestPayload.platform = filters.platform;
 
     socket.emit("getConversations", requestPayload);
   }, [filters.status, filters.platform, projectId, connected]);
