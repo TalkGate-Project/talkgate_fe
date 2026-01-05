@@ -190,10 +190,10 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
             <button
               type="button"
               onClick={() => setCurrent((prev) => subDays(prev, 1))}
-              className="cursor-pointer flex-shrink-0"
+              className="w-[34px] h-[34px] cursor-pointer flex-shrink-0"
               aria-label="이전 날짜"
             >
-              <svg width="18" height="18" className="md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" className="w-8.5 h-8.5 md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="0.5" y="0.5" width="17" height="17" rx="4.5" className="fill-white dark:fill-neutral-20"/>
                 <rect x="0.5" y="0.5" width="17" height="17" rx="4.5" className="stroke-neutral-30 dark:stroke-neutral-30"/>
                 <path d="M10.5 12.5L7 9L10.5 5.5" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -214,10 +214,10 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
             <button
               type="button"
               onClick={() => setCurrent((prev) => addDays(prev, 1))}
-              className="cursor-pointer flex-shrink-0"
+              className="w-[34px] h-[34px] cursor-pointer flex-shrink-0"
               aria-label="다음 날짜"
             >
-              <svg width="18" height="18" className="md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" className="w-8.5 h-8.5 md:w-9 md:h-9" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="0.5" y="-0.5" width="17" height="17" rx="4.5" transform="matrix(-1 0 0 1 18 1)" className="fill-white dark:fill-neutral-20"/>
                 <rect x="0.5" y="-0.5" width="17" height="17" rx="4.5" transform="matrix(-1 0 0 1 18 1)" className="stroke-neutral-30 dark:stroke-neutral-30"/>
                 <path d="M7.5 12.5L11 9L7.5 5.5" stroke="currentColor" className="text-neutral-60 dark:text-neutral-60" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -304,7 +304,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
           {/* Color */}
           <div className="mt-6">
             <div className="mb-3 text-[14px] font-medium tracking-[0.2px] text-neutral-60 dark:text-neutral-60">컬러</div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 pb-0.5">
               {COLOR_PALETTE.map((c) => (
                 <button
                   key={c}
