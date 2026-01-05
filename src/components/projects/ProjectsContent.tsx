@@ -181,6 +181,10 @@ export default function ProjectsContent() {
                       "/dashboard"
                     );
                     if (subdomainUrl) {
+                      // 서브도메인으로 이동하기 전에 현재 프로젝트 컨텍스트(프로젝트 ID/근태 메뉴 사용 여부)를 쿠키로 기록
+                      // - localStorage는 origin(도메인)이 달라지면 공유되지 않으므로 쿠키 기반 공유가 필요
+                      setSelectedProjectId(p.id);
+                      setUseAttendanceMenu(p.useAttendanceMenu ?? false);
                       // 서브도메인으로 리다이렉트
                       window.location.href = subdomainUrl;
                       return;

@@ -2,9 +2,16 @@
 
 const COOKIE_KEY = "tg_selected_project_id";
 const ATTENDANCE_STORAGE_KEY = "tg_use_attendance_menu";
+const ATTENDANCE_COOKIE_KEY = "tg_use_attendance_menu";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+function getCookieValue(name: string): string | null {
+  if (!isBrowser()) return null;
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
 }
 
 /**
@@ -55,8 +62,7 @@ export function setSelectedProjectId(projectId: string | number) {
 
 export function getSelectedProjectId(): string | null {
   if (!isBrowser()) return null;
-  const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_KEY}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]) : null;
+  return getCookieValue(COOKIE_KEY);
 }
 
 /**
@@ -95,6 +101,8 @@ export function setUseAttendanceMenu(useAttendance: boolean) {
   if (!isBrowser()) return;
   try {
     localStorage.setItem(ATTENDANCE_STORAGE_KEY, String(useAttendance));
+    // 서브도메인 이동 시에도 동일한 값을 사용할 수 있도록 쿠키에도 저장
+    document.cookie = `${ATTENDANCE_COOKIE_KEY}=${encodeURIComponent(String(useAttendance))}; ${cookieAttrs()}`;
     window.dispatchEvent(
       new CustomEvent("tg:attendance-menu-change", {
         detail: { useAttendanceMenu: useAttendance },
@@ -109,7 +117,20 @@ export function getUseAttendanceMenu(): boolean {
   if (!isBrowser()) return false;
   try {
     const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-    return stored === "true";
+    if (stored === "true" || stored === "false") return stored === "true";
+
+    // localStorage에 값이 없으면(다른 origin 최초 진입 등) 쿠키 값을 사용
+    const cookieValue = getCookieValue(ATTENDANCE_COOKIE_KEY);
+    const fromCookie = cookieValue === "true";
+
+    // 다음 호출부터는 localStorage에서도 바로 읽을 수 있게 동기화
+    if (cookieValue === "true" || cookieValue === "false") {
+      try {
+        localStorage.setItem(ATTENDANCE_STORAGE_KEY, cookieValue);
+      } catch {}
+    }
+
+    return fromCookie;
   } catch (e) {
     console.error("Failed to get attendance menu state:", e);
     return false;
@@ -120,6 +141,15 @@ export function clearUseAttendanceMenu() {
   if (!isBrowser()) return;
   try {
     localStorage.removeItem(ATTENDANCE_STORAGE_KEY);
+
+    const attrs: string[] = ["Max-Age=0", "Path=/"];
+    if (window.location.protocol === "https:") {
+      attrs.push("Secure");
+      if (isProductionDomain()) {
+        attrs.push("Domain=.talkgate.im");
+      }
+    }
+    document.cookie = `${ATTENDANCE_COOKIE_KEY}=; ${attrs.join("; ")}`;
   } catch (e) {
     console.error("Failed to clear attendance menu state:", e);
   }

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { setProjectIdCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
+import { setProjectIdCookie, setAttendanceMenuCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
@@ -276,6 +276,14 @@ export async function middleware(req: NextRequest) {
           if (!currentProjectId || currentProjectId !== subdomainProjectId) {
             setProjectIdCookie(response, req, subdomainProjectId);
           }
+          // 근태 메뉴 사용 여부도 쿠키로 설정 (서브도메인 최초 진입 시 localStorage는 비어있을 수 있음)
+          if (typeof project.useAttendanceMenu === "boolean") {
+            const currentAttendance = req.cookies.get("tg_use_attendance_menu")?.value;
+            const nextAttendance = String(project.useAttendanceMenu);
+            if (currentAttendance !== nextAttendance) {
+              setAttendanceMenuCookie(response, req, project.useAttendanceMenu);
+            }
+          }
           return response;
         } else {
           // 유효하지 않은 서브도메인 → 프로젝트 선택 페이지로
@@ -374,15 +382,28 @@ export async function middleware(req: NextRequest) {
       if (project) {
         const subdomainProjectId = String(project.id);
         const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
-        
-        // 프로젝트 ID가 없거나 다르면 쿠키 설정
-        if (!currentProjectId || currentProjectId !== subdomainProjectId) {
-          console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
+
+        const currentAttendance = req.cookies.get("tg_use_attendance_menu")?.value;
+        const nextAttendance =
+          typeof project.useAttendanceMenu === "boolean" ? String(project.useAttendanceMenu) : null;
+
+        const shouldSetProjectId = !currentProjectId || currentProjectId !== subdomainProjectId;
+        const shouldSetAttendance = nextAttendance !== null && currentAttendance !== nextAttendance;
+
+        if (shouldSetProjectId || shouldSetAttendance) {
+          if (shouldSetProjectId) {
+            console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
+          }
           const response = NextResponse.next({ request: { headers: requestHeaders } });
-          setProjectIdCookie(response, req, subdomainProjectId);
+          if (shouldSetProjectId) {
+            setProjectIdCookie(response, req, subdomainProjectId);
+          }
+          if (shouldSetAttendance && nextAttendance !== null) {
+            setAttendanceMenuCookie(response, req, nextAttendance === "true");
+          }
           return response;
         }
-        
+
         return NextResponse.next({ request: { headers: requestHeaders } });
       } else {
         // 서브도메인이 있지만 프로젝트를 찾지 못함 → 프로젝트 선택 페이지로
@@ -416,10 +437,22 @@ export async function middleware(req: NextRequest) {
       if (project) {
         const subdomainProjectId = String(project.id);
         const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
-        
-        if (!currentProjectId || currentProjectId !== subdomainProjectId) {
+
+        const currentAttendance = req.cookies.get("tg_use_attendance_menu")?.value;
+        const nextAttendance =
+          typeof project.useAttendanceMenu === "boolean" ? String(project.useAttendanceMenu) : null;
+
+        const shouldSetProjectId = !currentProjectId || currentProjectId !== subdomainProjectId;
+        const shouldSetAttendance = nextAttendance !== null && currentAttendance !== nextAttendance;
+
+        if (shouldSetProjectId || shouldSetAttendance) {
           const response = NextResponse.next({ request: { headers: requestHeaders } });
-          setProjectIdCookie(response, req, subdomainProjectId);
+          if (shouldSetProjectId) {
+            setProjectIdCookie(response, req, subdomainProjectId);
+          }
+          if (shouldSetAttendance && nextAttendance !== null) {
+            setAttendanceMenuCookie(response, req, nextAttendance === "true");
+          }
           return response;
         }
       }
