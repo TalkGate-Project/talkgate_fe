@@ -25,7 +25,7 @@ export default function AttendanceTable({
   onFilterClick,
 }: AttendanceTableProps) {
   return (
-    <div className="bg-card rounded-[14px] p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+    <div className="bg-card rounded-none md:rounded-[14px] px-6 pt-4 md:pt-7 md:p-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {/* 헤더 영역 */}
       <div className="flex items-center gap-3 mb-[30px]">
         <h2 className="text-[18px] font-semibold text-neutral-90">
@@ -62,23 +62,23 @@ export default function AttendanceTable({
       </div>
 
       {/* 테이블 헤더 */}
-      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-[30px]">
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-1 md:px-[30px] text-center md:text-left">
+        <div className="flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           이름
         </div>
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+        <div className="hidden md:flex flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           팀
         </div>
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+        <div className="hidden md:flex flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           직급
         </div>
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+        <div className="flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           출근시간
         </div>
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+        <div className="flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           퇴근시간
         </div>
-        <div className="flex-1 text-[16px] font-medium leading-[1] text-neutral-60">
+        <div className="flex-1 text-[13px] md:text-[16px] font-medium leading-[1] text-neutral-60">
           근무시간
         </div>
       </div>
@@ -94,8 +94,8 @@ export default function AttendanceTable({
                     key={`skeleton-${idx}`}
                     columns={[
                       { width: "flex", paddingX: 7.5 }, // 이름
-                      { width: "flex", paddingX: 7.5 }, // 팀
-                      { width: "flex", paddingX: 7.5 }, // 직급
+                      { width: "flex", paddingX: 7.5, className: "hidden md:table-cell" }, // 팀
+                      { width: "flex", paddingX: 7.5, className: "hidden md:table-cell" }, // 직급
                       { width: "flex", paddingX: 7.5 }, // 출근시간
                       { width: "flex", paddingX: 7.5 }, // 퇴근시간
                       { width: "flex", paddingX: 7.5 }, // 근무시간
@@ -129,7 +129,7 @@ export default function AttendanceTable({
           rows.map((record, index) => (
             <div key={record.memberId || index}>
               <div
-                className="flex items-center py-4 px-[30px] hover:bg-neutral-10 cursor-pointer transition-colors"
+                className="flex items-center py-4 px-1 md:px-[30px] text-center md:text-left hover:bg-neutral-10 cursor-pointer transition-colors"
                 onClick={() => onRowClick(record)}
               >
                 {/* 이름 */}
@@ -137,11 +137,11 @@ export default function AttendanceTable({
                   {record.memberName || "-"}
                 </div>
                 {/* 팀 */}
-                <div className="flex-1 text-[14px] font-medium leading-[1] text-neutral-90 opacity-80">
+                <div className="hidden md:flex flex-1 text-[14px] font-medium leading-[1] text-neutral-90 opacity-80">
                   {record.teamName || "-"}
                 </div>
                 {/* 직급 */}
-                <div className="flex-1 text-[14px] font-medium leading-[1] text-neutral-90 opacity-80">
+                <div className="hidden md:flex flex-1 text-[14px] font-medium leading-[1] text-neutral-90 opacity-80">
                   {record.role === "leader"
                     ? "리더"
                     : record.role === "member"
