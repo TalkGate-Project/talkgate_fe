@@ -227,9 +227,19 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
             <div className="flex justify-start">
               <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
                 <div className="text-[13px] leading-[20px]">
-                  Talkgate AI 연결되었습니다.
+                  본 AI가 제공하는 답변은 일반적인 정보 제공을 목적으로 하며,
                   <br />
-                  무엇을 도와드릴까요?
+                  투자 권유, 투자 자문 또는 금융상품에 대한 매수·매도 추천이 아닙니다.
+                  <br />
+                  <br />
+                  본 답변은 특정 개인의 투자 목적, 재무 상태, 위험 선호도를
+                  <br />
+                  고려하지 않으며, 투자 판단에 대한 최종 책임은 이용자에게 있습니다.
+                  <br />
+                  <br />
+                  Talkgate 및 주식회사 핑크코브라는
+                  <br />
+                  AI 답변의 내용으로 발생한 투자 손실 또는 법적 책임을 부담하지 않습니다.
                 </div>
               </div>
             </div>
