@@ -386,12 +386,12 @@ export default function SalesTab({
           <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60">
             일정내용
           </div>
-          <div className="flex flex-col md:flex-row gap-2">
+          <div className="flex gap-2">
             <input
               value={scheduleDesc}
               onChange={(e) => setScheduleDesc(e.target.value)}
               placeholder="일정내용을 추가하세요"
-              className="flex-1 h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
             <button
               className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"

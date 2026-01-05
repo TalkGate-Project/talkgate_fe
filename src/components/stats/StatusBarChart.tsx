@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList, Cell } from "recharts";
 
@@ -27,6 +27,16 @@ export default function StatusBarChart() {
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerNoteStatusResponse>({
     queryKey: ["stats", "note-status", projectId],
@@ -138,7 +148,7 @@ export default function StatusBarChart() {
   return (
     <div className="w-full h-[320px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 30, right: 16, left: 0, bottom: 56 }} barCategoryGap="20%">
+        <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 16, left: 0, bottom: 56 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="label"

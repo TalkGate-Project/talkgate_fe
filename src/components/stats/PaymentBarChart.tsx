@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
@@ -41,7 +41,17 @@ export default function PaymentBarChart() {
   const formattedEnd = endDate ? formatDate(endDate) : defaultRange.endDate;
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { data: teamsData } = useTeams(projectId);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate: formattedStart, endDate: formattedEnd }],
@@ -131,7 +141,7 @@ export default function PaymentBarChart() {
   // Header (subtitle + 날짜 선택 영역) - 항상 표시
   const Header = (
     <div className="mb-3 flex items-center justify-between">
-      <h3 className="text-[16px] font-semibold text-foreground">팀별 결제 현황</h3>
+      <h3 className="hidden md:block text-[16px] font-semibold text-foreground">팀별 결제 현황</h3>
       <DateRangePicker
         startDate={startDate}
         endDate={endDate}
@@ -210,7 +220,7 @@ export default function PaymentBarChart() {
       {Header}
       <div className="h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 56 }}>
+          <BarChart data={chartData} margin={{ top: 10, right: isMobile ? 0 : 16, left: 0, bottom: 56 }}>
           <defs>
             <linearGradient id="payGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.75} />

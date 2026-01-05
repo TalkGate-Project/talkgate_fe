@@ -151,27 +151,34 @@ function StatsPageContentInner() {
               <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
                 통계
               </h1>
-              <span className="w-px h-4 bg-neutral-60 opacity-60" />
-              <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
+              <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
+              <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
                 고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요
               </p>
             </div>
           }
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
-          <div className="h-[48px] bg-neutral-20 rounded-[8px] px-3 flex items-center">
-            <div className="flex items-center gap-2">
+          <div className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3">
+            <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0">
               {TAB_ITEMS.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`h-[30px] rounded-[5px] px-8 text-[16px] cursor-pointer ${
+                  className={`flex flex-col items-start gap-3 h-[33px] md:h-[30px] md:flex-row md:items-center md:rounded-[5px] md:px-8 text-[16px] leading-[19px] tracking-[0.2px] cursor-pointer whitespace-nowrap ${
                     active === t.key
-                      ? "bg-card text-foreground font-bold"
-                      : "text-neutral-60"
+                      ? "text-ink md:bg-card md:text-foreground font-semibold md:font-bold"
+                      : "text-neutral-60 font-medium md:font-normal"
                   }`}
                 >
-                  {t.label}
+                  <span>{t.label}</span>
+                  <div
+                    className={`h-[2px] w-full md:hidden ${
+                      active === t.key 
+                        ? "bg-neutral-100 dark:bg-neutral-80" 
+                        : "bg-neutral-100 dark:bg-neutral-80 opacity-0"
+                    }`}
+                  />
                 </button>
               ))}
             </div>
@@ -183,10 +190,10 @@ function StatsPageContentInner() {
           <>
             <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <div className="flex items-center justify-between">
-                <h2 className="text-[18px] font-semibold text-neutral-90">
+                <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                   신청통계
                 </h2>
-                <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
+                <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                   <button
                     className={`cursor-pointer min-h-[31px] rounded-[6px] text-[14px] ${
                       applyMode === "daily"
@@ -260,10 +267,10 @@ function StatsPageContentInner() {
         {active === "assign" && (
           <section className="surface rounded-[14px] px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between h-[48px]">
-              <h2 className="text-[18px] font-semibold text-neutral-90">
+              <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 배정통계
               </h2>
-              <div className="w-[248px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
+              <div className="w-full md:max-w-[248px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     assignMode === "team"
@@ -298,10 +305,10 @@ function StatsPageContentInner() {
         {active === "payment" && (
           <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between">
-              <h2 className="text-[18px] font-semibold text-neutral-90">
+              <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 결제통계
               </h2>
-              <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
+              <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     paymentMode === "team"
@@ -336,7 +343,7 @@ function StatsPageContentInner() {
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
           <section className="surface rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-            <h2 className="text-[18px] font-semibold text-neutral-90">
+            <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
               처리상태통계
             </h2>
             <div className="mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
@@ -353,14 +360,14 @@ function StatsPageContentInner() {
           <section className="surface rounded-[14px] px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-start justify-between">
               <div className="pt-[11px]">
-                <h2 className="text-[18px] font-semibold text-neutral-90">
+                <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                   전체랭킹
                 </h2>
                 <p className="mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
                   지난달 데이터를 집계하여 랭킹을 산정합니다.
                 </p>
               </div>
-              <div className="w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
+              <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     rankingMode === "team"
