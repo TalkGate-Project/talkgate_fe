@@ -18,6 +18,38 @@ export function formatCurrencyKR(value: number): string {
   return "0";
 }
 
+/**
+ * 모바일용 한글 단위 변환 (만, 억, 조 지원)
+ * 예: 18,000,000 -> "1,800만", 1,000,000,000 -> "10억", 1,000,000,000,000 -> "1조"
+ */
+export function formatCurrencyKRMobile(value: number): string {
+  if (value >= 1000000000000) {
+    // 1조 이상
+    const jo = Math.floor(value / 1000000000000);
+    const eok = Math.floor((value % 1000000000000) / 100000000);
+    if (eok > 0) {
+      return `${jo}조 ${eok}억`;
+    }
+    return `${jo}조`;
+  } else if (value >= 100000000) {
+    // 1억 이상
+    const eok = Math.floor(value / 100000000);
+    const man = Math.floor((value % 100000000) / 10000);
+    if (man > 0) {
+      return `${eok}억 ${man.toLocaleString("ko-KR")}만`;
+    }
+    return `${eok}억`;
+  } else if (value >= 10000) {
+    // 1만 이상
+    const man = Math.floor(value / 10000);
+    return `${man.toLocaleString("ko-KR")}만`;
+  } else if (value > 0) {
+    // 1만 미만
+    return value.toLocaleString("ko-KR");
+  }
+  return "0";
+}
+
 export function formatRankChange(change: number | null | undefined): string {
   if (change === null || change === undefined) return "-";
   if (change === 0) return "유지";

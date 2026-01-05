@@ -142,13 +142,13 @@ function StatsPageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12">
         {/* Top panel with tabs */}
         <Panel
           className="rounded-none md:rounded-[14px] md:mb-9"
           title={
             <div className="flex items-end gap-4">
-              <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
+              <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
                 통계
               </h1>
               <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
@@ -341,14 +341,14 @@ function StatsPageContentInner() {
 
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
-          <section className="surface md:rounded-[14px] px-6 md:px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 md:py-[30px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
               처리상태통계
             </h2>
-            <div className="mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
+            <div className="md:mt-4 md:mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
               상태별 분포
             </div>
-            <div className="mt-[96px]">
+            <div className="mt-6 md:mt-[96px]">
               <StatusBarChart />
             </div>
           </section>
@@ -356,13 +356,13 @@ function StatsPageContentInner() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-4 md:px-7 md:pt-[17px] pb-4 md:pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-start justify-between">
               <div className="pt-[11px]">
                 <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                   전체랭킹
                 </h2>
-                <p className="mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
+                <p className="hidden md:block mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
                   지난달 데이터를 집계하여 랭킹을 산정합니다.
                 </p>
               </div>
@@ -392,7 +392,7 @@ function StatsPageContentInner() {
 
             <MyRankingCard projectId={projectId} mode={rankingMode} />
 
-            <div className="mt-6">
+            <div className="mt-4 md:mt-6">
               <div className="text-[16px] font-semibold text-neutral-90 mb-3">
                 {rankingMode === "team" ? "팀별 랭킹" : "팀원별 랭킹"}
               </div>

@@ -60,14 +60,31 @@ export default function StatusBarChart() {
         value,
         percent,
         color: COLORS[index % COLORS.length],
+        originalIndex: index, // 원본 인덱스 저장
       };
     });
   }, [data]);
 
+  // 모바일에서 데이터를 5개씩 청크로 나누기
+  const chartChunks = useMemo(() => {
+    if (!isMobile || chartData.length <= 5) {
+      return [chartData];
+    }
+    const chunks: typeof chartData[] = [];
+    for (let i = 0; i < chartData.length; i += 5) {
+      chunks.push(chartData.slice(i, i + 5));
+    }
+    return chunks;
+  }, [chartData, isMobile]);
+
   // Y축 도메인 계산 (최댓값에 14% 여유 추가)
-  const yDomain = useMemo(() => {
-    const maxValue = Math.max(...chartData.map(d => d.value), 0);
+  const getYDomain = (data: typeof chartData) => {
+    const maxValue = Math.max(...data.map(d => d.value), 0);
     return [0, Math.ceil(maxValue * 1.14)];
+  };
+
+  const yDomain = useMemo(() => {
+    return getYDomain(chartData);
   }, [chartData]);
 
   // X축: 라벨 + 하단 퍼센트(소수 1자리, 예: 11.9%)
@@ -145,40 +162,57 @@ export default function StatusBarChart() {
     );
   }
 
+  const renderChart = (data: typeof chartData, chunkIndex: number = 0) => {
+    const chunkYDomain = getYDomain(data);
+    return (
+      <div key={chunkIndex} className={`w-full ${isMobile && chartChunks.length > 1 ? 'h-[320px]' : 'h-[320px]'} ${isMobile && chunkIndex > 0 ? 'mt-8' : ''}`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 30, right: isMobile ? 0 : 16, left: 0, bottom: 56 }} barCategoryGap="20%">
+            <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              interval={0}
+              tick={renderXAxisTick}
+            />
+            {/* 왼쪽 축 라벨 제거 */}
+            <YAxis hide domain={chunkYDomain} />
+            <Tooltip
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const p = payload[0].payload as { label: string; value: number };
+                return (
+                  <div className="rounded-[6px] bg-card border border-border px-3 py-1 text-[12px] text-foreground shadow-lg">
+                    {p.label}: {p.value.toLocaleString()}건
+                  </div>
+                );
+              }}
+            />
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={42}>
+              {data.map((entry: any, index) => {
+                // 원본 인덱스를 사용하여 색상 매핑
+                const colorIndex = entry.originalIndex ?? index;
+                return (
+                  <Cell key={`${entry.label}-${index}`} fill={COLORS[colorIndex % COLORS.length]} />
+                );
+              })}
+              <LabelList dataKey="value" position="top" style={{ fill: "var(--neutral-60)", fontSize: 12 }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  };
+
   return (
-    <div className="w-full h-[320px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 16, left: 0, bottom: 56 }} barCategoryGap="20%">
-          <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-          <XAxis
-            dataKey="label"
-            axisLine={false}
-            tickLine={false}
-            interval={0}
-            tick={renderXAxisTick}
-          />
-          {/* 왼쪽 축 라벨 제거 */}
-          <YAxis hide domain={yDomain} />
-          <Tooltip
-            cursor={{ fill: "rgba(0,0,0,0.04)" }}
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null;
-              const p = payload[0].payload as { label: string; value: number };
-              return (
-                <div className="rounded-[6px] bg-card border border-border px-3 py-1 text-[12px] text-foreground shadow-lg">
-                  {p.label}: {p.value.toLocaleString()}건
-                </div>
-              );
-            }}
-          />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={42}>
-            {chartData.map((entry, index) => (
-              <Cell key={`${entry.label}-${index}`} fill={entry.color} />
-            ))}
-            <LabelList dataKey="value" position="top" style={{ fill: "var(--neutral-60)", fontSize: 12 }} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="w-full">
+      {isMobile && chartChunks.length > 1 ? (
+        chartChunks.map((chunk, index) => renderChart(chunk, index))
+      ) : (
+        renderChart(chartData)
+      )}
     </div>
   );
 }
