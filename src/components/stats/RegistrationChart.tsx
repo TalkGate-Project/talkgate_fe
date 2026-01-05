@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, LabelList } from "recharts";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
@@ -11,6 +14,17 @@ type RegistrationChartProps = {
 };
 
 export default function RegistrationChart({ data, isLoading, isError, hasProject }: RegistrationChartProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   if (!hasProject) {
     return (
       <div className="flex h-full items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
@@ -45,7 +59,7 @@ export default function RegistrationChart({ data, isLoading, isError, hasProject
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 30, right: 16, bottom: 0, left: 16 }}>
+      <LineChart data={data} margin={{ top: 30, right: isMobile ? 0 : 16, bottom: 0, left: isMobile ? 0 : 16 }}>
         <defs>
           <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.6} />

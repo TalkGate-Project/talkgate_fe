@@ -7,6 +7,7 @@ import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import Pagination from "@/components/common/Pagination";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { formatCurrencyKRMobile } from "@/utils/format";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -82,24 +83,25 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
 
   return (
     <div>
-      <div className="bg-neutral-10 rounded-[12px] px-7 py-5">
-        <div className="space-y-3">
+      <div className="bg-neutral-10 rounded-[12px] px-3 py-3 md:px-7 md:py-5">
+        <div className="space-y-2 md:space-y-3">
           {rows.map((row) => {
             const previousAmount = row.previousTotalAmount ?? 0;
             const diff = row.totalAmount - previousAmount;
-            const changeLabel = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
+            const changeLabelWeb = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
+            const changeLabelMobile = diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`;
             
             return (
-              <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-5 justify-between">
-                <div className="flex items-center gap-10">
+              <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-3 md:px-5 justify-between">
+                <div className="flex items-center gap-4 md:gap-10">
                   {row.rank === 1 ? (
-                    <RankingGoldIcon className="w-[60px] h-[60px]" />
+                    <RankingGoldIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
                   ) : row.rank === 2 ? (
-                    <RankingSilverIcon className="w-[60px] h-[60px]" />
+                    <RankingSilverIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
                   ) : row.rank === 3 ? (
-                    <RankingBronzeIcon className="w-[60px] h-[60px]" />
+                    <RankingBronzeIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
                   ) : (
-                    <div className="w-[60px] h-[60px] rounded-[12px] bg-neutral-10 grid place-items-center text-[18px] font-bold text-neutral-60">
+                    <div className="w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-[12px] bg-neutral-10 grid place-items-center text-[16px] md:text-[18px] font-bold text-neutral-60">
                       #{row.rank}
                     </div>
                   )}
@@ -107,17 +109,21 @@ export default function TeamRankingList({ projectId }: TeamRankingListProps) {
                     <button
                       onClick={() => handleTeamClick(row.leaderMemberId)}
                       disabled={!row.leaderMemberId}
-                      className={`text-[18px] leading-[21px] font-bold text-neutral-90 text-left ${
+                      className={`text-[16px] md:text-[18px] leading-[21px] font-bold text-neutral-90 text-left ${
                         row.leaderMemberId ? "cursor-pointer hover:underline" : "cursor-default"
                       }`}
                     >
                       {row.teamName ?? "소속없음"}
                     </button>
-                    <div className="mt-3 leading-[1] text-[14px] text-neutral-90">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</div>
+                    <div className="mt-2 md:mt-3 leading-[1] text-[12px] md:text-[14px] text-neutral-90">
+                      <span className="hidden md:inline">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</span>
+                      <span className="md:hidden">₩ {formatCurrencyKRMobile(row.totalAmount)}원</span>
+                    </div>
                   </div>
                 </div>
-                <div className="px-3 py-1 h-[25px] rounded-[30px] grid place-items-center text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
-                  <span className="dark:opacity-80">{changeLabel}</span>
+                <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+                  <span className="dark:opacity-80 hidden md:inline">{changeLabelWeb}</span>
+                  <span className="dark:opacity-80 md:hidden">{changeLabelMobile}</span>
                 </div>
               </div>
             );

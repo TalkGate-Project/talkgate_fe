@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
 import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
+import Pagination from "@/components/common/Pagination";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
@@ -153,24 +154,13 @@ export default function PaymentMemberTable() {
   const totalCount = memberPayload?.totalCount ?? 0;
   const limit = memberPayload?.limit ?? PAGE_SIZE;
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
-  // 페이지네이션 10개 윈도우
-  const pageNumbers = useMemo(() => {
-    const maxPagesToShow = 10;
-    const halfRange = Math.floor(maxPagesToShow / 2);
-    let start = Math.max(1, page - halfRange);
-    const end = Math.min(totalPages, start + maxPagesToShow - 1);
-    if (end - start + 1 < maxPagesToShow) {
-      start = Math.max(1, end - maxPagesToShow + 1);
-    }
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  }, [page, totalPages]);
 
   const showSkeleton = memberQuery.isLoading && !memberQuery.data;
   const showError = memberQuery.isError && !memberQuery.isFetching;
   const showEmpty = !showSkeleton && !showError && (memberPayload?.data === null || rows.length === 0);
 
   const Header = (
-    <div className="mb-3 flex items-center justify-between">
+    <div className="mb-3 flex flex-col md:flex-row md:items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="text-[16px] font-semibold text-foreground">팀원별 결제 현황</div>
         <button
@@ -189,6 +179,7 @@ export default function PaymentMemberTable() {
           </svg>
         </button>
       </div>
+      <div className="h-0 border-b border-neutral-30 md:hidden my-3"></div>
       {/* Date range picker */}
       <DateRangePicker
         startDate={startDate ? new Date(startDate) : null}
@@ -230,7 +221,7 @@ export default function PaymentMemberTable() {
   return (
     <div className="">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-4 items-center px-[30px] text-[16px] text-neutral-70 font-medium">
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}>
         <div>이름</div>
         <div>팀</div>
         <div>결제금액</div>
@@ -242,7 +233,8 @@ export default function PaymentMemberTable() {
             {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
               <div
                 key={`skeleton-${idx}`}
-                className="h-[56px] grid grid-cols-4 items-center px-[30px] border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
+                className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4 border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
+                style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}
               >
                 <div className="h-4 bg-neutral-20 rounded" />
                 <div className="h-4 bg-neutral-20 rounded" />
@@ -265,7 +257,7 @@ export default function PaymentMemberTable() {
         {!showSkeleton && !showError && rows.map((row, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid grid-cols-4 items-center px-[30px]">
+            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4" style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}>
               <button
                 onClick={() => handleMemberClick(row.memberId)}
                 className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
@@ -282,36 +274,13 @@ export default function PaymentMemberTable() {
           );
         })}
       </div>
-      <div className="mt-6 flex items-center justify-center gap-2">
-        <button
-          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-          disabled={page <= 1}
-          aria-label="이전 페이지"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        {pageNumbers.map((num) => (
-          <button
-            key={num}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${num === page ? 'bg-foreground text-card font-normal' : 'text-neutral-60 font-normal'}`}
-            onClick={() => setPage(num)}
-          >
-            {num}
-          </button>
-        ))}
-        <button
-          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-          disabled={page >= totalPages}
-          aria-label="다음 페이지"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          disabled={memberQuery.isLoading}
+        />
       </div>
       <MemberStatsFilterModal
         open={open}

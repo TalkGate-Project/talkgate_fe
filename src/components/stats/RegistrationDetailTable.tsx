@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { CustomerRegistrationRecord } from "@/types/statistics";
 import { formatTableDateKR } from "@/utils/format";
 import DateRangePicker from "@/components/common/DateRangePicker";
@@ -43,10 +46,26 @@ export default function RegistrationDetailTable({
   onEndDateChange,
   onDateReset,
 }: RegistrationDetailTableProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const skeletonCount = isMobile ? 7 : 10;
+
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h3 className="text-[18px] font-semibold text-foreground">상세 데이터</h3>
+        <div className="md:hidden border-b border-neutral-30 h-0 my-3">
+          <br/>
+        </div>
         <DateRangePicker
           startDate={startDate}
           endDate={endDate}
@@ -61,11 +80,11 @@ export default function RegistrationDetailTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-neutral-20 h-[40px]">
-              <th className="text-left px-4 pl-[30px] text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
-              <th className="text-left px-4 text-[16px] font-medium text-neutral-70">신청 건수</th>
-              <th className="text-left px-4 text-[16px] font-medium text-neutral-70">직접입력</th>
-              <th className="text-left px-4 text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
-              <th className="text-left px-4 text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
+              <th className="text-center md:text-left px-1 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">신청 건수</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">직접입력</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
             </tr>
           </thead>
           <tbody>
@@ -77,7 +96,7 @@ export default function RegistrationDetailTable({
               </tr>
             ) : isLoading ? (
               <>
-                {Array.from({ length: 10 }).map((_, idx) => (
+                {Array.from({ length: skeletonCount }).map((_, idx) => (
                   <TableSkeletonRow
                     key={`skeleton-${idx}`}
                     columns={[
@@ -106,11 +125,11 @@ export default function RegistrationDetailTable({
             ) : (
               rows.map((row, index) => (
                 <tr key={row.id} className="border-b border-neutral-30/40 dark:!border-[#44444455]">
-                  <td className="px-4 py-3 pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
-                  <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
-                  <td className="px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
-                  <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
-                  <td className="px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.apiCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left pl-1 md:pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.apiCount)}건</td>
                 </tr>
               ))
             )}

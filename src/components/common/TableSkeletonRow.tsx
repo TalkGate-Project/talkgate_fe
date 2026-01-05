@@ -42,7 +42,7 @@ export default function TableSkeletonRow({
   className = "",
 }: TableSkeletonRowProps) {
   return (
-    <tr className={`border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse ${className}`}>
+    <tr className={`text-center md:text-left border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse ${className}`}>
       {columns.map((col, idx) => {
         const paddingX = col.paddingX ?? 4;
         

@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+"use client";
+
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { StatisticsService } from "@/services/statistics";
 import { formatChartDay, formatChartMonth } from "@/utils/format";
 import type { CustomerRegistrationResponse, CustomerRegistrationRecord } from "@/types/statistics";
 
-const APPLY_TABLE_LIMIT = 10;
+const APPLY_TABLE_LIMIT_DESKTOP = 10;
+const APPLY_TABLE_LIMIT_MOBILE = 7;
 
 type DateRange = {
   startDate: string | null; // YYYY-MM-DD
@@ -16,6 +19,19 @@ export function useStatsRegistration(
   page: number,
   dateRange?: DateRange
 ) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const limit = isMobile ? APPLY_TABLE_LIMIT_MOBILE : APPLY_TABLE_LIMIT_DESKTOP;
+
   // Only use date range if both dates are provided
   const hasDateFilter = Boolean(dateRange?.startDate && dateRange?.endDate);
 
@@ -32,7 +48,7 @@ export function useStatsRegistration(
       {
         projectId,
         page,
-        limit: APPLY_TABLE_LIMIT,
+        limit,
         ...(hasDateFilter && { startDate: dateRange!.startDate!, endDate: dateRange!.endDate! }),
       },
     ],
@@ -43,7 +59,7 @@ export function useStatsRegistration(
       const res = await StatisticsService.customerRegistration({
         projectId,
         page,
-        limit: APPLY_TABLE_LIMIT,
+        limit,
         ...(hasDateFilter && { startDate: dateRange!.startDate!, endDate: dateRange!.endDate! }),
       });
       return res.data;
@@ -96,8 +112,8 @@ export function useStatsRegistration(
   const payload = tableQuery.data?.data;
   const rows: CustomerRegistrationRecord[] = payload?.data === null ? [] : (payload?.data ?? []);
   const totalCount = payload?.totalCount ?? 0;
-  const limit = payload?.limit ?? APPLY_TABLE_LIMIT;
-  const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+  const actualLimit = payload?.limit ?? limit;
+  const totalPages = Math.max(1, Math.ceil(totalCount / actualLimit));
 
   return {
     tableQuery,

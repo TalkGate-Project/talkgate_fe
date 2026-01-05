@@ -49,11 +49,21 @@ export default function MemberStatsFilterModal({
 
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
   const [localSort, setLocalSort] = useState<SortValue>(defaults.sort);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setLocalTeam(defaults.team);
     setLocalSort(defaults.sort);
   }, [defaults.team, defaults.sort]);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   if (!open || typeof document === "undefined") return null;
 
@@ -61,11 +71,11 @@ export default function MemberStatsFilterModal({
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
       <div
-        className="absolute left-1/2 top-1/2 bg-card dark:bg-neutral-10 rounded-[14px]"
-        style={{ width: 480, transform: "translate(-50%, -50%)" }}
+        className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto bg-card dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] md:w-[480px] flex flex-col max-h-[90vh] md:max-h-none"
+        style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}
       >
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-4 md:px-6 py-4 flex items-center justify-between shrink-0">
           <div className="text-[18px] font-semibold text-foreground">{title}</div>
           <button
             onClick={onClose}
@@ -90,9 +100,9 @@ export default function MemberStatsFilterModal({
           </button>
         </div>
         {/* Body */}
-        <div className="px-6 py-4 space-y-6">
+        <div className="px-4 md:px-6 py-4 space-y-4 md:space-y-6 overflow-y-auto flex-1">
           <div>
-            <div className="text-[14px] text-neutral-60 mb-3">팀별</div>
+            <div className="text-[14px] text-neutral-60 mb-2 md:mb-3">팀별</div>
             <div className="flex flex-wrap gap-2">
             {availableTeamOptions.map((opt, index) => (
                 <button
@@ -116,7 +126,7 @@ export default function MemberStatsFilterModal({
             </div>
           </div>
           <div>
-            <div className="text-[14px] text-neutral-60 mb-3">정렬</div>
+            <div className="text-[14px] text-neutral-60 mb-2 md:mb-3">정렬</div>
             <div className="flex gap-2">
               {availableSortOptions.map((opt) => (
                 <button
@@ -135,7 +145,7 @@ export default function MemberStatsFilterModal({
           </div>
         </div>
         {/* Footer */}
-        <div className="px-6 py-3 flex justify-end gap-2 border-t border-border">
+        <div className="px-4 md:px-6 py-3 flex justify-end gap-2 border-t border-border shrink-0">
           <button
             className="cursor-pointer h-[32px] text-[14px] px-4 rounded-[6px] border border-border text-foreground bg-card"
             onClick={() => {
