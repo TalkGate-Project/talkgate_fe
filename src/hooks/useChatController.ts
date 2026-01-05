@@ -118,7 +118,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       setIsMessagesLoading(false);
       lastMsgCursorRequestedRef.current = undefined;
 
-      if (requestedCursor) {
+      if (requestedCursor !== undefined) {
         // 페이징: 기존 메시지 뒤에 이전 메시지 추가
         setMessages((prev) => {
           const existingIds = new Set(prev.map((m) => m.id));
