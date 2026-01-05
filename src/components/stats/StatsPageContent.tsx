@@ -233,7 +233,7 @@ function StatsPageContentInner() {
               </div>
             </section>
 
-            <section className="mt-9 surface md:rounded-[14px] pt-6 px-6 md:px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+            <section className="md:mt-9 surface md:rounded-[14px] pt-6 px-6 md:px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
