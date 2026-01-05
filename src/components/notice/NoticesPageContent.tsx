@@ -65,17 +65,19 @@ function NoticesPageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12">
         {/* 검색 및 글쓰기 패널 */}
         <NoticeSearchPanel
           searchTerm={searchInput}
           onSearchTermChange={setSearchInput}
           onSearch={handleSearch}
           canWrite={isAdminOrSubAdmin}
+          showImportantOnly={important ?? false}
+          onImportantFilterChange={handleImportantFilterChange}
         />
 
         {/* 공지사항 목록 테이블 */}
-        <div className="mt-9">
+        <div className="md:mt-9">
           <NoticeTable
             notices={notices ?? []}
             loading={loading}

@@ -36,10 +36,10 @@ export default function NoticeTable({
     router.push(href);
   };
 
-  const renderDate = (value: string) => {
+  const renderDate = (value: string, formatString: string) => {
     if (!value) return "-";
     try {
-      return format(new Date(value), "yyyy-MM-dd");
+      return format(new Date(value), formatString);
     } catch (error) {
       console.error("Failed to format notice date", error);
       return "-";
@@ -47,14 +47,14 @@ export default function NoticeTable({
   };
 
   return (
-    <div className="bg-card rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)]">
+    <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 pt-4 md:pt-[30px] pb-6 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {/* Title & Filter */}
-      <div className="flex items-center justify-between mb-7">
+      <div className="hidden md:flex items-center justify-between mb-7">
         <h2 className="text-[18px] font-semibold text-neutral-90">
           공지사항
         </h2>
         
-        {/* 중요 공지만 보기 체크박스 */}
+        {/* 중요 공지만 보기 체크박스 (데스크탑만) */}
         {onImportantFilterChange && (
           <label className="flex items-center gap-2 cursor-pointer">
             <div className="relative">
@@ -94,15 +94,15 @@ export default function NoticeTable({
       </div>
 
       {/* 테이블 헤더 */}
-      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6 mb-0">
-        <div className="w-[90px] text-[16px] text-center">
+      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-5 md:px-6 mb-0">
+        <div className="hidden md:block w-[90px] text-[13px] md:text-[16px] text-center">
           　
         </div>
-        <div className="flex-1 text-[16px] font-medium text-neutral-60">제목</div>
-        <div className="w-[210px] text-[16px] font-medium text-neutral-60 text-left">
+        <div className="flex-1 text-[13px] md:text-[16px] font-medium text-neutral-60">제목</div>
+        <div className="w-[80px] md:w-[210px] text-[13px] md:text-[16px] font-medium text-neutral-60 text-left">
           작성자
         </div>
-        <div className="w-[160px] text-[16px] font-medium text-neutral-60 text-left">
+        <div className="w-[70px] md:w-[160px] text-[13px] md:text-[16px] font-medium text-neutral-60 text-left">
           작성일
         </div>
       </div>
@@ -117,10 +117,10 @@ export default function NoticeTable({
                   <TableSkeletonRow
                     key={`skeleton-${idx}`}
                     columns={[
-                      { width: 90, paddingX: 6 }, // 고유번호
+                      { width: 90, paddingX: 6, className: "hidden md:table-cell" }, // 고유번호
                       { width: "flex", paddingX: 6 }, // 제목
-                      { width: 210, paddingX: 6 }, // 작성자
-                      { width: 160, paddingX: 6 }, // 작성일
+                      { width: 80, paddingX: 6, className: "md:w-[210px]" }, // 작성자
+                      { width: 70, paddingX: 6, className: "md:w-[160px]" }, // 작성일
                     ]}
                     rowHeight={48}
                   />
@@ -136,38 +136,39 @@ export default function NoticeTable({
           notices.map((notice, index) => (
             <div key={notice.id}>
               <div
-                className="max-h-[48px] flex items-center py-[18px] px-6 hover:bg-neutral-10 cursor-pointer transition-colors "
+                className="max-h-[48px] flex items-center py-[18px] px-3 md:px-6 hover:bg-neutral-10 cursor-pointer transition-colors"
                 onClick={() => handleNoticeClick(notice)}
               >
                 {/* 고유번호 영역 */}
-                <div className="w-[90px] text-[14px] font-medium text-foreground opacity-80 text-center leading-[1]">
+                <div className="hidden md:block w-[90px] text-[14px] font-medium text-foreground opacity-80 text-center leading-[1]">
                   {notice.id}
                 </div>
 
                 {/* 제목 영역 */}
-                <div className="flex-1 flex items-center gap-3 leading-[1]">
+                <div className="flex-1 flex items-center gap-2 md:gap-3 leading-[1] min-w-0">
                   {/* 중요 태그 */}
                   {notice.important && (
-                    <div className="px-3 py-1 bg-danger-10 rounded-[30px]">
+                    <div className="px-2 md:px-3 py-1 bg-danger-10 rounded-[30px] flex-shrink-0">
                       <span className="text-[12px] font-medium text-danger-40 leading-[1]">
                         중요
                       </span>
                     </div>
                   )}
                   {/* 제목 */}
-                  <span className="text-[14px] font-medium text-foreground opacity-80">
+                  <span className="text-[14px] font-medium text-foreground opacity-80 truncate">
                     {notice.title}
                   </span>
                 </div>
 
                 {/* 작성자 */}
-                <div className="w-[210px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1]">
-                  {notice.authorName}
+                <div className="w-[80px] md:w-[210px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1] flex-shrink-0">
+                  <span className="truncate block">{notice.authorName}</span>
                 </div>
 
                 {/* 작성일 */}
-                <div className="w-[160px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1]">
-                  {renderDate(notice.createdAt)}
+                <div className="w-[70px] md:w-[160px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1] flex-shrink-0 whitespace-nowrap">
+                  <span className="md:hidden">{renderDate(notice.createdAt, "yy.MM.dd")}</span>
+                  <span className="hidden md:inline">{renderDate(notice.createdAt, "yyyy-MM-dd")}</span>
                 </div>
               </div>
 

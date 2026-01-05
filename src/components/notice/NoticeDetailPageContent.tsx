@@ -108,8 +108,8 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
 
   if (error || !notice) {
     return (
-      <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-        <div className="bg-card rounded-[14px] p-6 text-center">
+      <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
+        <div className="bg-card rounded-none md:rounded-[14px] p-4 md:p-6 text-center">
           <p className="mb-4 text-[14px] text-danger-40">
             {error || "공지사항을 찾을 수 없습니다."}
           </p>
@@ -125,61 +125,37 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
   }
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-      <div className="bg-card rounded-[14px] px-7 py-[22px]">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-4">
+    <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
+      <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 py-4 md:py-[22px]">
+        <div className="flex items-center justify-between mb-4 md:mb-5">
+          <div className="flex items-center gap-3 md:gap-4">
             <button
               onClick={handleBackToList}
-              className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center"
+              className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center flex-shrink-0"
             >
               <svg
-                width="36"
-                height="36"
-                viewBox="0 0 36 36"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <rect
-                  x="0.5"
-                  y="0.5"
-                  width="35"
-                  height="35"
-                  rx="5.5"
-                  className="fill-white dark:fill-[#111111]"
-                />
-                <rect
-                  x="0.5"
-                  y="0.5"
-                  width="35"
-                  height="35"
-                  rx="5.5"
-                  stroke="#E2E2E2"
-                  className="dark:stroke-[#4D4D4D]"
-                />
                 <path
-                  d="M21 24.8077L14 17.8077L21 10.8077"
-                  stroke="#B0B0B0"
-                  className="dark:stroke-[#959595]"
+                  d="M15 19L8 12L15 5"
+                  stroke="black"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="dark:stroke-neutral-60"
                 />
               </svg>
             </button>
-            {notice.important && (
-              <div className="px-3 py-1 bg-danger-10 rounded-[30px] max-h-[24px] leading-[14px]">
-                <span className="text-[12px] font-medium text-danger-40 leading-[14px]">
-                  중요
-                </span>
-              </div>
-            )}
-            <h1 className="text-[24px] font-bold text-foreground">
-              {notice.title}
+            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground">
+              공지사항
             </h1>
           </div>
           {canEdit && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <button
                 onClick={handleEdit}
                 className="cursor-pointer w-[66px] h-[34px] bg-card border border-border text-foreground rounded-[5px] text-[14px] font-semibold disabled:opacity-60"
@@ -198,9 +174,25 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
           )}
         </div>
 
-        <div className="border-t border-border mb-5" />
+        <div className="border-t border-border mb-4 md:mb-5" />
 
-        <div className="flex items-center gap-6 mb-5 text-[14px] text-neutral-60">
+        {/* 중요 태그 및 제목 */}
+        <div className="mb-4 md:mb-5">
+          <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+            {notice.important && (
+              <div className="px-3 py-1 bg-danger-10 rounded-[30px] flex-shrink-0">
+                <span className="text-[12px] font-medium text-danger-40 leading-[1]">
+                  중요
+                </span>
+              </div>
+            )}
+            <h2 className="text-[18px] md:text-[24px] font-bold text-foreground">
+              {notice.title}
+            </h2>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 md:gap-6 mb-4 md:mb-5 text-[14px] text-neutral-60">
           <div className="leading-[1]">
             <span className="font-medium">작성일: </span>
             <span>{formattedDate}</span>
@@ -211,15 +203,15 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
           </div>
         </div>
 
-        <div className="border-t border-border mb-[30px]" />
+        <div className="border-t border-border mb-6 md:mb-[30px]" />
 
-        <div className="mb-8 min-h-[400px]">
+        <div className="mb-6 md:mb-8 min-h-[400px]">
           <div className="text-[14px] text-foreground leading-6 whitespace-pre-line">
             {notice.content}
           </div>
         </div>
 
-        <div className="border-t border-border mb-6" />
+        <div className="border-t border-border mb-4 md:mb-6" />
 
         {(deleteError || listErrorMessage) && (
           <div className="mb-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[13px] text-danger-40">
@@ -227,8 +219,8 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-end gap-2 md:gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={handlePrevious}
               disabled={!neighbours.prev || listLoading || deleting}
