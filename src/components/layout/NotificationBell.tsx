@@ -219,11 +219,20 @@ export default function NotificationBell() {
         )}
       </button>
 
+      {/* 모바일 오버레이 배경 */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="absolute -right-4 top-[50px] w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50">
+        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
           {/* 헤더 */}
-          <div className="px-[30px] pb-5 border-b border-border flex items-center justify-between">
+          <div className="px-5 md:px-[30px] pb-5 border-b border-border flex items-center justify-between">
             <span className="text-[16px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
               새로운 소식
             </span>
