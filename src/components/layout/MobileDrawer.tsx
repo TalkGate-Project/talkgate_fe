@@ -11,7 +11,6 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
 import { isAdmin } from "@/utils/permissions";
-import type { MemberRole } from "@/types/members";
 
 // 아이콘 컴포넌트들
 import {
@@ -31,19 +30,8 @@ import NotificationIcon from "@/components/my-settings/icons/NotificationIcon";
 import BillingIcon from "@/components/my-settings/icons/BillingIcon";
 import SecurityIcon from "@/components/my-settings/icons/SecurityIcon";
 
-// Settings 아이콘들
-import GeneralIcon from "@/components/settings/icons/GeneralIcon";
-import SettingsProfileIcon from "@/components/settings/icons/ProfileIcon";
-import ConsultationChannelIcon from "@/components/settings/icons/ConsultationChannelIcon";
-import MemberIcon from "@/components/settings/icons/MemberIcon";
-import InvitedMemberIcon from "@/components/settings/icons/InvitedMemberIcon";
-import TeamIcon from "@/components/settings/icons/TeamIcon";
-import OrganizationManagementIcon from "@/components/settings/icons/OrganizationManagementIcon";
-import CustomerApiIcon from "@/components/settings/icons/CustomerApiIcon";
-import BatchRegistrationIcon from "@/components/settings/icons/BatchRegistrationIcon";
-import SenderNumberIcon from "@/components/settings/icons/SenderNumberIcon";
-import SmsHistoryIcon from "@/components/settings/icons/SmsHistoryIcon";
-import SmsIcon from "@/components/settings/icons/SmsIcon";
+// Settings 상수 및 타입
+import { SETTINGS_ITEMS, type SettingsTab, type SettingsSidebarItem } from "@/components/settings/constants";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -51,17 +39,6 @@ interface MobileDrawerProps {
 }
 
 type MySettingsTab = "profile" | "notification" | "billing" | "security";
-type SettingsTab =
-  | "general"
-  | "profile"
-  | "consultation-channel"
-  | "sender-numbers"
-  | "member"
-  | "invited-member"
-  | "customer-api"
-  | "team-management"
-  | "batch-registration"
-  | "sms-history";
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const pathname = usePathname();
@@ -80,10 +57,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     setMounted(true);
   }, []);
 
-  // 프로젝트 정보 로드 (settings 페이지용)
+  // 프로젝트 정보 로드
   useEffect(() => {
     const fetchProjectInfo = async () => {
-      if (!projectId || pathname !== "/settings") return;
+      if (!projectId) return;
       
       try {
         const projectResponse = await ProjectsService.detailById({
@@ -101,7 +78,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     };
     
     fetchProjectInfo();
-  }, [projectId, pathname]);
+  }, [projectId]);
 
   // MySettings 메뉴 아이템
   const MY_SETTINGS_ITEMS: Array<{ key: MySettingsTab; label: string; icon: React.ComponentType<{ isActive: boolean }> }> = [
@@ -109,93 +86,6 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { key: "notification", label: "알림", icon: NotificationIcon },
     { key: "billing", label: "구독관리", icon: BillingIcon },
     { key: "security", label: "보안", icon: SecurityIcon },
-  ];
-
-  // Settings 메뉴 아이템 타입
-  type SettingsSidebarItem = {
-    key: SettingsTab | null;
-    label: string;
-    icon: React.ComponentType<{ isActive: boolean }>;
-    canAccess?: (params: { role: MemberRole | undefined; isLoading: boolean }) => boolean;
-    children?: SettingsSidebarItem[];
-    isParent?: boolean;
-  };
-
-  const SETTINGS_ITEMS: SettingsSidebarItem[] = [
-    {
-      key: "general",
-      label: "일반",
-      icon: GeneralIcon,
-      canAccess: ({ role, isLoading }) => {
-        if (isLoading) return false;
-        return isAdmin(role);
-      },
-    },
-    {
-      key: "profile",
-      label: "프로필",
-      icon: SettingsProfileIcon,
-    },
-    {
-      key: "consultation-channel",
-      label: "상담채널",
-      icon: ConsultationChannelIcon,
-    },
-    {
-      key: null,
-      label: "조직관리",
-      icon: OrganizationManagementIcon,
-      isParent: true,
-      children: [
-        {
-          key: "team-management",
-          label: "팀",
-          icon: TeamIcon,
-        },
-        {
-          key: "member",
-          label: "멤버",
-          icon: MemberIcon,
-        },
-        {
-          key: "invited-member",
-          label: "초대중인 멤버",
-          icon: InvitedMemberIcon,
-        },
-      ],
-    },
-    {
-      key: null,
-      label: "문자",
-      icon: SmsIcon,
-      isParent: true,
-      children: [
-        {
-          key: "sender-numbers",
-          label: "발신번호 등록",
-          icon: SenderNumberIcon,
-        },
-        {
-          key: "sms-history",
-          label: "문자 발송 이력",
-          icon: SmsHistoryIcon,
-        },
-      ],
-    },
-    {
-      key: "batch-registration",
-      label: "일괄 등록 이력",
-      icon: BatchRegistrationIcon,
-    },
-    {
-      key: "customer-api",
-      label: "고객등록 API",
-      icon: CustomerApiIcon,
-      canAccess: ({ role, isLoading }) => {
-        if (isLoading) return false;
-        return isAdmin(role);
-      },
-    },
   ];
 
   // Settings 메뉴 필터링
@@ -284,14 +174,15 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     if (pathname !== "/settings" || !currentSettingsTab) return;
     
     const parentLabels = new Set<string>();
-    SETTINGS_ITEMS.forEach((item) => {
+    // SETTINGS_ITEMS는 상수이므로 dependency에 포함할 필요 없음
+    for (const item of SETTINGS_ITEMS) {
       if (item.children) {
         const hasActiveChild = item.children.some((child) => child.key === currentSettingsTab);
         if (hasActiveChild) {
           parentLabels.add(item.label);
         }
       }
-    });
+    }
     if (parentLabels.size > 0) {
       setExpandedParents((prev) => {
         const newSet = new Set(prev);
@@ -394,34 +285,19 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             style={{ zoom: 1 }}
           >
             {/* Header Area inside Drawer */}
-            <div className="p-[23px] pb-4">
-              <div className="flex justify-between items-center mb-6">
-                {/* Logo Area - 일반 메뉴일 때만 표시 */}
-                {pathname !== "/my-settings" && pathname !== "/settings" ? (
-                  <div className="flex items-center">
-                    {/* 라이트 모드 로고 */}
-                    <Image 
-                      src="/main_logo_dark.png" 
-                      alt="Talkgate" 
-                      width={102} 
-                      height={24} 
-                      className="h-6 w-auto dark:hidden" 
-                    />
-                    {/* 다크 모드 로고 */}
-                    <Image 
-                      src="/main_logo.png" 
-                      alt="Talkgate" 
-                      width={102} 
-                      height={24} 
-                      className="h-6 w-auto hidden dark:block" 
-                    />
-                  </div>
-                ) : pathname === "/my-settings" ? (
+            <div className={pathname === "/settings" || (pathname !== "/my-settings" && pathname !== "/settings") ? "pt-7 pb-4" : "p-[23px] pb-4"}>
+              <div className={`flex justify-between items-start ${
+                pathname === "/settings" || (pathname !== "/my-settings" && pathname !== "/settings") 
+                  ? "px-7 pb-7 mb-1" 
+                  : "mb-6"
+              }`}>
+                {/* Header Content */}
+                {pathname === "/my-settings" ? (
                   <div className="flex-1">
                     <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
                     <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
                   </div>
-                ) : (
+                ) : pathname === "/settings" ? (
                   <div className="flex-1">
                     <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">프로젝트 설정</h2>
                     <div className="flex items-center gap-3">
@@ -439,26 +315,47 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                       <p className="text-[14px] text-neutral-60">{projectName}</p>
                     </div>
                   </div>
+                ) : (
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      {/* 라이트 모드 로고 */}
+                      <Image 
+                        src="/main_logo_dark.png" 
+                        alt="Talkgate" 
+                        width={102} 
+                        height={24} 
+                        className="h-6 w-auto dark:hidden" 
+                      />
+                      {/* 다크 모드 로고 */}
+                      <Image 
+                        src="/main_logo.png" 
+                        alt="Talkgate" 
+                        width={102} 
+                        height={24} 
+                        className="h-6 w-auto hidden dark:block" 
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {projectLogoUrl ? (
+                        <img
+                          src={projectLogoUrl}
+                          alt={`${projectName} 로고`}
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
+                      )}
+                      <p className="text-[14px] text-neutral-60">{projectName}</p>
+                    </div>
+                  </div>
                 )}
                  
-                <button onClick={onClose} className="p-1 text-neutral-90 dark:text-neutral-70">
+                <button onClick={onClose} className="p-1 text-neutral-90 dark:text-neutral-70 flex-shrink-0">
                   <CloseIcon />
                 </button>
               </div>
-
-              {/* Total User Info - 일반 메뉴일 때만 표시 */}
-              {pathname !== "/my-settings" && pathname !== "/settings" && (
-                <>
-                  <div className="flex items-center gap-2 mb-8">
-                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-neutral-30 overflow-hidden">
-                      <div className="w-full h-full bg-primary-40" /> 
-                    </div>
-                    <span className="text-[14px] font-medium text-neutral-90 dark:text-neutral-70">Total User</span>
-                  </div>
-                   
-                  <div className="w-full h-[1px] bg-neutral-30 dark:bg-neutral-30 opacity-50 mb-6" />
-                </>
-              )}
 
               {/* Menu Items - 페이지에 따라 다른 메뉴 표시 */}
               {pathname === "/my-settings" ? (

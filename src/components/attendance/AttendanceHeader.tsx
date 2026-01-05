@@ -15,27 +15,27 @@ export default function AttendanceHeader({
 }: AttendanceHeaderProps) {
   return (
     <Panel
-      className="rounded-[14px] mb-9"
+      className="rounded-none md:rounded-[14px] md:mb-9"
       title={
         <div className="flex items-end gap-4">
-          <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
+          <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
             근태
           </h1>
-          <span className="w-px h-4 bg-neutral-60 opacity-60" />
-          <p className="text-[18px] leading-[20px] font-medium text-neutral-60">
+          <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
+          <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
             직원들의 출퇴근 현황을 확인하고 관리하세요
           </p>
         </div>
       }
-      bodyClassName="px-7 py-[30px]  border-t border-neutral-30"
+      bodyClassName="px-6 md:px-7 pb-4 md:py-7.5 border-t-0 md:border-t border-b md:border-b-0 border-neutral-30"
     >
       {/* Date selector */}
       <div className="flex justify-center w-full">
-        <div className="w-full h-[48px] bg-neutral-20 rounded-[8px] px-3 flex justify-center items-center gap-3">
+        <div className="w-full h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 flex justify-center items-center gap-3 ">
           {/* Previous button */}
           <button
             onClick={() => onNavigateDate("prev")}
-            className="cursor-pointer w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+            className="cursor-pointer min-w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
@@ -49,19 +49,19 @@ export default function AttendanceHeader({
           </button>
 
           {/* Date display */}
-          <div className="px-8 py-[4px] bg-card rounded-[5px]">
+          <div className="md:px-8 h-[34px] md:h-auto md:py-[4px] bg-card rounded-[5px]">
             <DatePicker
               value={new Date(selectedDate)}
               onChange={(d) => d && onDateChange(d)}
               dateFormat="yyyy - MM - dd (EEE)"
-              className="text-center font-bold text-[16px] text-foreground border-none bg-transparent h-auto p-0 cursor-pointer w-full focus:ring-0"
+              className="text-center font-bold text-[16px] text-foreground dark:!bg-[#111111] h-[34px] md:h-auto p-0 cursor-pointer w-full focus:ring-0 border border-neutral-30 md:border-none"
             />
           </div>
 
           {/* Next button */}
           <button
             onClick={() => onNavigateDate("next")}
-            className="cursor-pointer w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
+            className="cursor-pointer min-w-[34px] h-[32px] bg-card border border-border rounded-[5px] flex items-center justify-center"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path

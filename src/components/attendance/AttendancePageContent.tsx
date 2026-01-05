@@ -114,12 +114,39 @@ function AttendancePageContentInner() {
     }
   }, [error, router]);
 
+  // 근태 데이터에서 고유한 팀 목록 추출
+  const teamOptions = useMemo(() => {
+    const teamSet = new Set<string>();
+    rows.forEach((row) => {
+      const teamName = row.teamName?.trim() || null;
+      if (teamName) {
+        teamSet.add(teamName);
+      } else {
+        teamSet.add("배정되지않음");
+      }
+    });
+    
+    const teamList = Array.from(teamSet).sort((a, b) => {
+      // "배정되지않음"은 맨 뒤로
+      if (a === "배정되지않음") return 1;
+      if (b === "배정되지않음") return -1;
+      return a.localeCompare(b, "ko");
+    });
+    
+    return [
+      { label: "전체", value: "all" },
+      ...teamList.map((team) => ({ label: team, value: team })),
+    ];
+  }, [rows]);
+
   // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
   const filteredData = useMemo(() => {
     return rows.filter((r) => {
-      const teamMatch = filters.team === "all" || r.teamName === filters.team;
+      const teamMatch = filters.team === "all" || (filters.team === "배정되지않음" ? !r.teamName?.trim() : r.teamName === filters.team);
       const positionMatch =
-        filters.position === "all" || String(r.role) === filters.position;
+        filters.position === "all" || 
+        (filters.position === "팀장" && r.role === "leader") ||
+        (filters.position === "팀원" && r.role === "member");
       return teamMatch && positionMatch;
     });
   }, [filters, rows]);
@@ -144,7 +171,7 @@ function AttendancePageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12">
         {/* Top panel: title + date selector */}
         <AttendanceHeader
           selectedDate={selectedDate}
@@ -176,6 +203,7 @@ function AttendancePageContentInner() {
             setFilterOpen(false);
           }}
           defaults={filters}
+          teamOptions={teamOptions}
         />
 
         {/* Employee Info Modal */}

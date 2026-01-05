@@ -144,11 +144,40 @@ function NoticeWritePageContentInner() {
   }
 
   return (
-    <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-      <div className="bg-card rounded-[14px] py-[26px]">
+    <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12 pb-20 md:pb-12">
+      <div className="bg-card rounded-none md:rounded-[14px] py-4 md:py-[26px]">
         {/* 헤더 영역 */}
-        <div className="flex items-center justify-between mb-6 px-7">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center md:justify-between mb-4 md:mb-6 px-4 md:px-7">
+          {/* 모바일: 뒤로가기 + 제목 */}
+          <div className="md:hidden flex items-center gap-3">
+            <button
+              onClick={handleCancel}
+              className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center flex-shrink-0"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="black"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="dark:stroke-neutral-60"
+                />
+              </svg>
+            </button>
+            <h1 className="text-[18px] font-bold text-foreground">
+              {isEditMode ? "공지사항 수정" : "글쓰기"}
+            </h1>
+          </div>
+
+          {/* 웹: 제목 + 중요 공지 설정 */}
+          <div className="hidden md:flex items-center gap-4">
             <h1 className="text-[24px] font-bold text-foreground">
               {isEditMode ? "공지사항 수정" : "공지사항"}
             </h1>
@@ -166,8 +195,22 @@ function NoticeWritePageContentInner() {
             </div>
           </div>
 
-          {/* 버튼들 */}
-          <div className="flex items-center gap-3">
+          {/* 모바일: 중요 공지 설정 */}
+          <div className="md:hidden flex items-center gap-2 ml-2">
+            <Checkbox
+              checked={isImportant}
+              onChange={setIsImportant}
+              size={24}
+              ariaLabel="중요 공지 설정"
+              disabled={submitting}
+            />
+            <span className="text-[14px] font-medium text-neutral-60">
+              중요공지 설정
+            </span>
+          </div>
+
+          {/* 웹: 버튼들 */}
+          <div className="hidden md:flex items-center gap-3">
             <button
               onClick={handleCancel}
               className="cursor-pointer w-[66px] h-[34px] bg-card border border-border text-foreground rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] transition-colors hover:bg-neutral-10"
@@ -189,50 +232,71 @@ function NoticeWritePageContentInner() {
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-neutral-30 mb-8" />
+        <div className="border-t border-neutral-30 mb-6 md:mb-8" />
 
-        <div className="px-7">
+        <div className="px-4 md:px-7">
           {error && (
-          <div className="mb-6 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="py-12 text-center text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</div>
-        ) : (
-          <>
-            {/* 제목 입력 */}
-            <div className="mb-5">
-              <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
-                제목
-              </label>
-              <input
-                type="text"
-                placeholder="제목을 입력하세요"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                disabled={submitting}
-                className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground disabled:bg-neutral-10 disabled:text-neutral-60"
-              />
+            <div className="mb-6 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
+              {error}
             </div>
+          )}
 
-            {/* 내용 입력 */}
-            <div>
-              <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
-                내용
-              </label>
-              <textarea
-                placeholder="내용을 입력하세요"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                disabled={submitting}
-                className="w-full h-[407px] px-3 py-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground resize-none disabled:bg-neutral-10 disabled:text-neutral-60"
-              />
-            </div>
-          </>
-        )}
+          {loading ? (
+            <div className="py-12 text-center text-[14px] text-neutral-60">공지사항을 불러오는 중입니다...</div>
+          ) : (
+            <>
+              {/* 제목 입력 */}
+              <div className="mb-5">
+                <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
+                  제목
+                </label>
+                <input
+                  type="text"
+                  placeholder="제목을 입력하세요"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={submitting}
+                  className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground disabled:bg-neutral-10 disabled:text-neutral-60"
+                />
+              </div>
+
+              {/* 내용 입력 */}
+              <div>
+                <label className="block text-[14px] font-medium text-neutral-60 leading-[1] mb-2">
+                  내용
+                </label>
+                <textarea
+                  placeholder="내용을 입력하세요"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  disabled={submitting}
+                  className="w-full h-[300px] md:h-[407px] px-3 py-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground placeholder:text-neutral-60 bg-card focus:outline-none focus:border-foreground resize-none disabled:bg-neutral-10 disabled:text-neutral-60"
+                />
+              </div>
+            </>
+          )}
         </div>
+      </div>
+
+      {/* 모바일: 하단 고정 버튼 */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-neutral-30 px-4 py-3 flex items-center gap-2 z-10">
+        <button
+          onClick={handleCancel}
+          className="flex-1 h-[34px] bg-card border border-border text-foreground rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] transition-colors hover:bg-neutral-10 disabled:opacity-60"
+          disabled={submitting}
+        >
+          취소
+        </button>
+        <AsyncButton
+          variant="secondary"
+          size="sm"
+          onClick={handleSave}
+          loading={submitting}
+          disabled={loading}
+          className="flex-1 h-[34px] bg-foreground text-card hover:opacity-90"
+        >
+          {isEditMode ? "수정" : "확인"}
+        </AsyncButton>
       </div>
     </main>
   );
@@ -242,8 +306,8 @@ export default function NoticeWritePageContent() {
   return (
     <Suspense
       fallback={
-        <main className="container mx-auto max-w-[1324px] pt-6 pb-12">
-          <div className="bg-card rounded-[14px] p-6">
+        <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
+          <div className="bg-card rounded-none md:rounded-[14px] p-4 md:p-6">
             <div className="text-center text-neutral-60">불러오는 중...</div>
           </div>
         </main>
