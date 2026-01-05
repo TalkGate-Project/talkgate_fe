@@ -160,9 +160,9 @@ function StatsPageContentInner() {
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
           <div className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3 relative">
-            {/* 전체 연속된 기본 border */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#F0F0F0] dark:bg-neutral-30 md:hidden" />
             <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0 relative">
+              {/* 전체 연속된 기본 border - 탭 전체 너비를 커버하도록 내부 컨테이너에 적용 */}
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#F0F0F0] dark:bg-neutral-30 md:hidden" />
               {TAB_ITEMS.map((t) => (
                 <button
                   key={t.key}
