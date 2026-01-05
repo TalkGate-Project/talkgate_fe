@@ -125,12 +125,16 @@ export default function AssignBarChart() {
     );
   }
 
+  // 모바일에서 그래프 최소 너비 계산 (각 바당 최소 100px)
+  const minChartWidth = isMobile ? Math.max(100 * chartData.length, 300) : undefined;
+
   return (
     <>
       <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
-      <div className="h-[310px] mt-[94px]">
-        <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 20, bottom: 30, left: isMobile ? 0 : 20 }} barCategoryGap="20%">
+      <div className={`h-[310px] mt-[94px] ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
+        <div className="h-full" style={isMobile ? { minWidth: `${minChartWidth}px` } : { width: '100%' }}>
+          <ResponsiveContainer width={isMobile ? minChartWidth : "100%"} height="100%">
+          <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 20, bottom: 30, left: isMobile ? 0 : 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
             dataKey="name"
@@ -211,6 +215,7 @@ export default function AssignBarChart() {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+        </div>
       </div>
       {selectedMemberId !== null && (
         <TeamMemberInfoModal

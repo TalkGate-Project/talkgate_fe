@@ -80,11 +80,11 @@ export default function RegistrationDetailTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-neutral-20 h-[40px]">
-              <th className="text-left px-1 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
-              <th className="text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">신청 건수</th>
-              <th className="text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">직접입력</th>
-              <th className="text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
-              <th className="text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
+              <th className="text-center md:text-left px-1 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">신청 건수</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">직접입력</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">엑셀 업로드</th>
+              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-r-[8px]">API</th>
             </tr>
           </thead>
           <tbody>
@@ -125,11 +125,11 @@ export default function RegistrationDetailTable({
             ) : (
               rows.map((row, index) => (
                 <tr key={row.id} className="border-b border-neutral-30/40 dark:!border-[#44444455]">
-                  <td className="px-1 md:px-4 py-3 pl-3 md:pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
-                  <td className="px-1 md:px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
-                  <td className="px-1 md:px-4 py-3 text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
-                  <td className="px-1 md:px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
-                  <td className="px-1 md:px-4 py-3 text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.apiCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left pl-1 md:pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.directInputCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.excelUploadCount)}건</td>
+                  <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-semibold text-foreground opacity-80">{NUMBER_FORMATTER.format(row.apiCount)}건</td>
                 </tr>
               ))
             )}

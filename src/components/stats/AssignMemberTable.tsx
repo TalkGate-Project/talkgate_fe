@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
 import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
+import Pagination from "@/components/common/Pagination";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
@@ -127,22 +128,6 @@ export default function AssignMemberTable() {
   const rows: CustomerAssignmentMemberRecord[] = memberPayload?.data === null ? [] : (memberPayload?.data ?? []);
   const totalCount = memberPayload?.totalCount ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  
-  // 페이지네이션: 현재 페이지 기준 10개씩만 표시
-  const pageNumbers = useMemo(() => {
-    const maxPagesToShow = 10;
-    const halfRange = Math.floor(maxPagesToShow / 2);
-    
-    let startPage = Math.max(1, page - halfRange);
-    const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-    
-    // 끝 페이지가 10개 미만이면 시작 페이지 조정
-    if (endPage - startPage + 1 < maxPagesToShow) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-    
-    return Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx);
-  }, [totalPages, page]);
 
   const showSkeleton = memberQuery.isLoading && !memberQuery.data;
   const showError = memberQuery.isError && !memberQuery.isFetching;
@@ -194,18 +179,19 @@ export default function AssignMemberTable() {
   return (
     <div className="mt-4">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid grid-cols-3 items-center px-[30px] text-[16px] text-neutral-70 font-medium">
-        <div>이름</div>
-        <div>팀</div>
-        <div>배정 건수</div>
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}>
+        <div className="md:col-span-1">이름</div>
+        <div className="md:col-span-1">팀</div>
+        <div className="md:col-span-1">배정 건수</div>
       </div>
-      <div className="divide-y divide-[#44444455] min-h-[280px] bg-card border-b border-[#44444455]">
+      <div className="divide-y divide-[#44444433] min-h-[280px] bg-card border-b border-[#44444455]">
         {showSkeleton && (
           <>
             {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
               <div
                 key={`skeleton-${idx}`}
-                className="h-[48px] grid grid-cols-3 items-center px-[30px] border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
+                className="h-[48px] grid items-center px-[30px] border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse md:grid-cols-3"
+                style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}
               >
                 <div className="h-4 bg-neutral-20 rounded" />
                 <div className="h-4 bg-neutral-20 rounded" />
@@ -227,7 +213,7 @@ export default function AssignMemberTable() {
         {!showSkeleton && !showError && rows.map((r, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid grid-cols-3 items-center px-[30px]">
+            <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid items-center pl-5 md:px-[30px] md:grid-cols-3" style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}>
               <button
                 onClick={() => handleMemberClick(r.memberId)}
                 className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
@@ -243,40 +229,13 @@ export default function AssignMemberTable() {
           );
         })}
       </div>
-      <div className="mt-6 flex items-center justify-center gap-2">
-        <button
-          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-          disabled={page <= 1}
-          aria-label="이전 페이지"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        {pageNumbers.map((num) => (
-          <button
-            key={num}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] ${
-              num === page 
-                ? 'bg-foreground text-card font-normal' 
-                : 'text-neutral-60 font-normal'
-            }`}
-            onClick={() => setPage(num)}
-          >
-            {num}
-          </button>
-        ))}
-        <button
-          className="w-6 h-6 flex items-center justify-center disabled:opacity-50"
-          onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-          disabled={page >= totalPages}
-          aria-label="다음 페이지"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18L15 12L9 6" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          disabled={memberQuery.isLoading}
+        />
       </div>
       <MemberStatsFilterModal
         open={open}

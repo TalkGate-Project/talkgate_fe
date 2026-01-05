@@ -44,7 +44,18 @@ type FilterModalProps = {
 
 export default function FilterModal({ open, onClose, onApply, defaults, teamOptions = [], memberOptions = [], routeOptions = [], mediaOptions = [], siteOptions = [], categoryOptions = [] }: FilterModalProps) {
     const [form, setForm] = useState<FilterValues>(defaults || {});
+    const [isMobile, setIsMobile] = useState(false);
+    
     useEffect(() => { if (open) setForm(defaults || {}); }, [open, defaults]);
+    
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
     const handleCategoryIds = useCallback((ids: (number | null)[]) => {
         setForm((f) => ({ ...f, categoryIds: ids }));
     }, []);
@@ -86,7 +97,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
             <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
             {/* Modal container (centered) */}
-            <div className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[848px] md:h-auto md:max-h-[90vh]" style={{ transform: "md:translate(-50%, -50%)" }}>
+            <div className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[848px] md:h-auto md:max-h-[90vh]" style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}>
                 <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col">
                     {/* Header */}
                     <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">

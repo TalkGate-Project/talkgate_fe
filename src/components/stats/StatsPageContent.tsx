@@ -142,10 +142,10 @@ function StatsPageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 pb-12">
         {/* Top panel with tabs */}
         <Panel
-          className="rounded-[14px] mb-9"
+          className="rounded-none md:rounded-[14px] md:mb-9"
           title={
             <div className="flex items-end gap-4">
               <h1 className="text-[24px] leading-[20px] font-bold text-neutral-90">
@@ -159,26 +159,25 @@ function StatsPageContentInner() {
           }
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
-          <div className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3">
-            <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0">
+          <div className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3 relative">
+            {/* 전체 연속된 기본 border */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#F0F0F0] dark:bg-neutral-30 md:hidden" />
+            <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0 relative">
               {TAB_ITEMS.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className={`flex flex-col items-start gap-3 h-[33px] md:h-[30px] md:flex-row md:items-center md:rounded-[5px] md:px-8 text-[16px] leading-[19px] tracking-[0.2px] cursor-pointer whitespace-nowrap ${
+                  className={`flex flex-col items-start gap-3 h-[33px] md:h-[30px] md:flex-row md:items-center md:rounded-[5px] md:px-8 text-[16px] leading-[19px] tracking-[0.2px] cursor-pointer whitespace-nowrap relative ${
                     active === t.key
                       ? "text-ink md:bg-card md:text-foreground font-semibold md:font-bold"
                       : "text-neutral-60 font-medium md:font-normal"
                   }`}
                 >
                   <span>{t.label}</span>
-                  <div
-                    className={`h-[2px] w-full md:hidden ${
-                      active === t.key 
-                        ? "bg-neutral-100 dark:bg-neutral-80" 
-                        : "bg-neutral-100 dark:bg-neutral-80 opacity-0"
-                    }`}
-                  />
+                  {/* 활성 탭 border (검은색, 기본 border 위에 표시) */}
+                  {active === t.key && (
+                    <div className="h-[2px] w-full md:hidden bg-neutral-100 dark:bg-neutral-80 absolute bottom-0 left-0" />
+                  )}
                 </button>
               ))}
             </div>
@@ -188,7 +187,7 @@ function StatsPageContentInner() {
         {/* Apply Tab: 신청통계 */}
         {active === "apply" && (
           <>
-            <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+            <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <div className="flex items-center justify-between">
                 <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                   신청통계
@@ -234,7 +233,7 @@ function StatsPageContentInner() {
               </div>
             </section>
 
-            <section className="mt-9 surface rounded-[14px] pt-6 px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+            <section className="mt-9 surface md:rounded-[14px] pt-6 px-6 md:px-7 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
               <RegistrationDetailTable
                 rows={registration.rows}
                 isLoading={registration.showTableSkeleton}
@@ -265,7 +264,7 @@ function StatsPageContentInner() {
 
         {/* Assign Tab: 배정통계 */}
         {active === "assign" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between h-[48px]">
               <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 배정통계
@@ -303,7 +302,7 @@ function StatsPageContentInner() {
 
         {/* Payment Tab: 결제통계 */}
         {active === "payment" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between">
               <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 결제통계
@@ -342,7 +341,7 @@ function StatsPageContentInner() {
 
         {/* Status Tab: 처리상태 */}
         {active === "status" && (
-          <section className="surface rounded-[14px] px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 py-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
               처리상태통계
             </h2>
@@ -357,7 +356,7 @@ function StatsPageContentInner() {
 
         {/* Ranking Tab: 전체랭킹 */}
         {active === "ranking" && (
-          <section className="surface rounded-[14px] px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+          <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-start justify-between">
               <div className="pt-[11px]">
                 <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
