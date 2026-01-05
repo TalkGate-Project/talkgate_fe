@@ -79,6 +79,22 @@ export function setProjectIdCookie(
 }
 
 /**
+ * 근태 메뉴 사용 여부 쿠키를 설정합니다.
+ * - 로컬스토리지는 origin(도메인) 단위로 분리되므로, 서브도메인 간 공유가 필요한 값은 쿠키로도 유지합니다.
+ */
+export function setAttendanceMenuCookie(
+  response: NextResponse,
+  request: NextRequest,
+  useAttendanceMenu: boolean
+): void {
+  const cookieOptions = getCookieOptions(request);
+  response.cookies.set('tg_use_attendance_menu', String(useAttendanceMenu), {
+    ...cookieOptions,
+    maxAge: 60 * 60 * 24 * 30, // 30일
+  });
+}
+
+/**
  * 모든 인증 관련 쿠키를 삭제합니다.
  * 서브도메인과 메인 도메인 모두에서 삭제를 시도합니다.
  * 
@@ -98,6 +114,7 @@ export function deleteAuthCookies(
     'tg_access_token',
     'tg_refresh_token',
     'tg_selected_project_id',
+    'tg_use_attendance_menu',
   ];
 
   // 정확한 쿠키 옵션으로 삭제 (설정할 때와 동일한 옵션 사용)
