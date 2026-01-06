@@ -74,49 +74,53 @@ export default function NotificationTab() {
   };
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-[140px]">
+    <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px]">
       {/* Title */}
-      <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
+      <h1 className="px-4 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
         알림 설정
       </h1>
 
       <div className="border-b border-[#E2E2E266]"></div>
 
       {/* Notification Settings */}
-      <div className="px-7 py-6">
+      <div className="px-4 md:px-7 py-4 md:py-6">
         {/* 상담 채팅 */}
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1">
-            <div className="text-[16px] font-semibold text-foreground mb-1">
+        <div className="flex items-center justify-between py-4 md:py-4">
+          <div className="flex-1 min-w-0 pr-4">
+            <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
               상담 채팅
             </div>
-            <div className="text-[14px] font-medium text-neutral-60">
+            <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
               상담 채팅에서 실시간 알림을 받습니다.
             </div>
           </div>
-          <Toggle
-            enabled={consultationChatEnabled}
-            onChange={handleConsultationChatChange}
-          />
+          <div className="flex-shrink-0">
+            <Toggle
+              enabled={consultationChatEnabled}
+              onChange={handleConsultationChatChange}
+            />
+          </div>
         </div>
 
         {/* Divider */}
-        <div className="w-full border-b border-[#E2E2E266] my-4"></div>
+        <div className="w-full border-b border-[#E2E2E266] my-4 md:my-4"></div>
 
         {/* 새로운 소식 */}
         <div className="flex items-center justify-between py-4">
-          <div className="flex-1">
-            <div className="text-[16px] font-semibold text-foreground mb-1">
+          <div className="flex-1 min-w-0 pr-4">
+            <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
               새로운 소식
             </div>
-            <div className="text-[14px] font-medium text-neutral-60">
+            <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
               새로운 소식에서 실시간 알림을 받습니다.
             </div>
           </div>
-          <Toggle
-            enabled={newsEnabled}
-            onChange={handleNewsChange}
-          />
+          <div className="flex-shrink-0">
+            <Toggle
+              enabled={newsEnabled}
+              onChange={handleNewsChange}
+            />
+          </div>
         </div>
       </div>
     </div>

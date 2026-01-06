@@ -92,7 +92,7 @@ export default function ChangePasswordModal({
 
       {/* Modal */}
       <div 
-        className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px]"
+        className="relative w-full max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4 md:mx-0"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -121,7 +121,7 @@ export default function ChangePasswordModal({
         </button>
 
         {/* Content */}
-        <div className="px-7 pt-6 pb-0">
+        <div className="px-4 md:px-7 pt-6 pb-0">
           {/* Header */}
           <div className="text-[18px] font-semibold text-foreground dark:text-[#FDFDFD] mb-6">
             비밀번호 변경
@@ -233,16 +233,16 @@ export default function ChangePasswordModal({
         </div>
 
         {/* Action Buttons Section */}
-        <div className="border-t border-border dark:border-[#4D4D4D] px-7 py-3 flex justify-end gap-3">
+        <div className="border-t border-border dark:border-[#4D4D4D] px-4 md:px-7 py-3 flex gap-3">
           <button
             onClick={handleClose}
-            className="h-[34px] px-3 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] bg-card dark:bg-transparent hover:bg-muted dark:hover:bg-neutral-20 cursor-pointer tracking-[-0.02em]"
+            className="h-[34px] px-3 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] bg-card dark:bg-transparent hover:bg-muted dark:hover:bg-neutral-20 cursor-pointer tracking-[-0.02em] flex-1 md:flex-initial"
           >
             취소
           </button>
           <button
             onClick={handleConfirm}
-            className="h-[34px] px-3 bg-neutral-90 dark:bg-[#F5F5F5] text-white dark:text-[#333333] rounded-[5px] text-[14px] font-semibold hover:opacity-90 dark:hover:opacity-80 cursor-pointer tracking-[-0.02em]"
+            className="h-[34px] px-3 bg-neutral-90 dark:bg-[#F5F5F5] text-white dark:text-[#333333] rounded-[5px] text-[14px] font-semibold hover:opacity-90 dark:hover:opacity-80 cursor-pointer tracking-[-0.02em] flex-1 md:flex-initial md:ml-auto"
           >
             비밀번호 변경
           </button>

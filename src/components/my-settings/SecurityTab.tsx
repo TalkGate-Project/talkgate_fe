@@ -234,102 +234,112 @@ export default function SecurityTab() {
   return (
     <>
       {/* First Box - 2-Step Verification */}
-      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] mb-6">
+      <div className="bg-card rounded-none md:rounded-[14px] md:mb-6">
         {/* Title */}
-        <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
+        <h1 className="px-4 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
           보안 설정
         </h1>
 
-        <div className="border-b border-border opacity-70"></div>
+        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
 
-        <div className="px-7 py-[30px]">
-          <h2 className="text-[16px] font-semibold text-foreground mb-1">
+        <div className="px-4 md:px-7 py-3 md:py-[30px] h-[90px] md:h-auto">
+          <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
             2단계 인증
           </h2>
           
           {/* Divider */}
-          <div className="w-full h-[1px] bg-border my-3"></div>
+          <div className="w-full h-[1px] bg-border my-3 hidden md:block"></div>
 
-          <div className="flex items-center justify-between py-3 pl-6 pr-4">
-            <div className="flex-1">
-              <div className="text-[16px] font-semibold text-foreground mb-1">
+          <div className="flex items-center justify-between h-full md:h-auto py-0 md:py-3 pl-2 md:pl-6 pr-2 md:pr-4 gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
                 2단계 인증 (2FA)
               </div>
-              <div className="text-[14px] font-medium text-neutral-60">
+              <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
                 로그인 시 추가 보안 인증을 사용합니다.
               </div>
             </div>
-            {twoFactorEnabled ? (
-              <button
-                onClick={() => setShowDisableModal(true)}
-                className="w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                disabled={loading}
-              >
-                연결해제
-              </button>
-            ) : (
-              <button
-                onClick={handleStartSetup}
-                className="w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                disabled={loading}
-              >
-                {loading ? "로딩 중..." : "연결하기"}
-              </button>
-            )}
+            <div className="flex-shrink-0">
+              {twoFactorEnabled ? (
+                <button
+                  onClick={() => setShowDisableModal(true)}
+                  className="w-[70px] md:w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  disabled={loading}
+                >
+                  연결해제
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartSetup}
+                  className="w-[70px] md:w-[72px] h-[34px] bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-semibold rounded-[5px] hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  disabled={loading}
+                >
+                  {loading ? "로딩 중..." : "연결하기"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
+        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Second Box - Change Password */}
-      <div className="bg-card rounded-[14px] mb-6">
-        <div className="px-7 py-6">
-          <h2 className="text-[16px] font-semibold text-foreground mb-1">
+      <div className="bg-card rounded-none md:rounded-[14px] md:mb-6">
+        <div className="px-4 md:px-7 py-3 md:py-6 h-[90px] md:h-auto">
+          <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
             비밀번호 변경
           </h2>
-          <p className="text-[14px] font-medium text-neutral-60 mb-3">
+          <p className="hidden md:block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-3">
             비밀번호를 안전하게 관리하여 계정을 보호하세요.
           </p>
 
           {/* Divider */}
-          <div className="w-full h-[1px] bg-border mb-3"></div>
+          <div className="w-full h-[1px] bg-border mb-3 hidden md:block"></div>
 
-          <div className="flex items-center justify-between pt-2 px-6">
-            <div className="text-[16px] font-semibold text-foreground">
+          <div className="flex items-center justify-between h-full md:h-auto pt-0 md:pt-2 px-2 md:px-6 gap-3">
+            <div className="text-[14px] md:text-[16px] font-semibold text-foreground flex-1 min-w-0">
               비밀번호 변경
             </div>
             <button 
               onClick={() => setShowChangePwModal(true)} 
-              className="cursor-pointer px-3 py-1.5 bg-neutral-90 text-white text-[14px] font-semibold dark:text-neutral-0 rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap"
+              className="cursor-pointer px-2 md:px-3 py-1 md:py-1.5 bg-neutral-90 text-white text-[12px] md:text-[14px] font-semibold dark:text-neutral-0 rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap flex-shrink-0 h-[34px]"
             >
               비밀번호 변경
             </button>
           </div>
         </div>
+        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-card rounded-[14px] shadow-sm p-7">
-        <div className="flex items-center gap-3 mb-[6px]">
-          <h2 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[1]">계정 삭제</h2>
-          <span className="w-[44px] bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] text-center h-[22px] leading-[22px] opacity-80">
-            주의
-          </span>
+      <div className="bg-card rounded-none md:rounded-[14px] shadow-sm pb-[140px] md:pb-7">
+        <div className="border-t border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="px-4 md:px-7 py-3 md:py-6 h-[90px] md:h-auto">
+          <div className="flex items-center justify-between h-full md:h-auto gap-3">
+            {/* Left side: Title + Badge and Description */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-2">
+                <h2 className="text-[14px] md:text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
+                <span className="inline-flex items-center justify-center px-3 py-1 bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] h-[22px] opacity-80 flex-shrink-0">
+                  주의
+                </span>
+              </div>
+              <p className="text-[12px] md:text-[14px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
+                계정을 삭제하면 모든 데이터가 영구적<br className="md:hidden" />으로 삭제되며 복구할 수 없습니다.
+              </p>
+            </div>
+            {/* Right side: Button */}
+            <div className="flex-shrink-0">
+              <button 
+                onClick={() => setShowDeleteAccountModal(true)}
+                className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[12px] md:text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] h-[34px] whitespace-nowrap"
+              >
+                계정 삭제
+              </button>
+            </div>
+          </div>
         </div>
-        <p className="text-[14px] text-danger-40 dark:text-danger-40 font-medium mb-3 tracking-[0.2px] leading-[1]">
-          계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
-        </p>
-
-        <div className="border-t border-neutral-30 dark:border-neutral-30 mb-3"></div>
-
-        <div className="flex items-center justify-between py-3 px-6 bg-[rgba(255,235,235,0.5)] dark:bg-neutral-20 rounded-[5px] h-[48px]">
-          <span className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 leading-[19px]">계정 삭제</span>
-          <button 
-            onClick={() => setShowDeleteAccountModal(true)}
-            className="cursor-pointer px-3 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] h-[34px]"
-          >
-            계정 삭제
-          </button>
-        </div>
+        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Modals */}

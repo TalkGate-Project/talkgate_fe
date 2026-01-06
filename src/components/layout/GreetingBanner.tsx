@@ -204,8 +204,8 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
         </div>
 
         {/* Right (Desktop) / Bottom (Mobile): timestamp + actions */}
-        <div className="flex flex-col-reverse md:flex-col items-start md:items-end gap-3 md:justify-between md:h-full">
-          {/* Timestamp - 모바일에서는 출퇴근 위에, 데스크톱에서는 하단 */}
+        <div className="flex flex-col md:flex-col items-start md:items-end gap-3 md:justify-between md:h-full">
+          {/* Timestamp - 모바일에서는 상단, 데스크톱에서는 하단 */}
           <div className="text-[14px] md:text-[18px] leading-[17px] md:leading-[21px] font-medium tracking-[-0.04em] text-figma-muted">
             {loading ? (
               <span className="inline-flex h-5 w-44 animate-pulse rounded bg-neutral-20" />
@@ -217,7 +217,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
           {/* Spacer for desktop layout */}
           <div className="hidden md:block" />
           
-          {/* Attendance buttons */}
+          {/* Attendance buttons - 모바일에서는 가장 아래 */}
           {showAttendance && (
             <div className="flex items-center gap-3 w-full md:w-auto">
               {isCheckedIn ? (
@@ -227,12 +227,12 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                       <button 
                           onClick={handleToggleAttendance}
                           disabled={checkOutMutation.isPending}
-                          className="md:order-2 h-[48px] md:h-[34px] px-6 md:px-3 rounded-[8px] md:rounded-[5px] border border-[#808080] bg-neutral-90 text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                       >
                           {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
                       </button>
-                      <div className="md:order-1 flex-1 md:flex-none h-[48px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center gap-2">
-                          <span className="text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-90">
+                      <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center gap-2">
+                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 truncate">
                             🕑 근무중 {elapsedTime}
                           </span>
                       </div>
@@ -244,12 +244,12 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                       <button 
                           onClick={handleToggleAttendance}
                           disabled={checkInMutation.isPending}
-                          className="md:order-2 h-[48px] md:h-[34px] px-6 md:px-3 rounded-[8px] md:rounded-[5px] text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                       >
                           {checkInMutation.isPending ? "처리중..." : "출근하기"}
                       </button>
-                      <div className="md:order-1 flex-1 md:flex-none h-[48px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center">
-                           <span className="text-[16px] md:text-[14px] font-semibold tracking-[-0.02em] text-danger-40">
+                      <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center">
+                           <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40 truncate">
                              ● 퇴근상태
                            </span>
                       </div>

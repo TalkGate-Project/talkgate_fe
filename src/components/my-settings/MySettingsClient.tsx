@@ -52,7 +52,7 @@ export default function MySettingsClient() {
   const ActiveComponent = TAB_COMPONENTS[activeTab];
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-0 md:gap-6">
       {/* 사이드바 - 모바일에서 숨김 */}
       <div className="hidden lg:block">
         <MySettingsSidebar 

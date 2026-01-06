@@ -184,114 +184,123 @@ function NotificationsPageContentInner() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[1324px] px-6 pt-9 pb-24">
-        {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
-        <section className="bg-card rounded-[14px]">
-          <div className="px-7 py-7">
-            <div className="flex items-center gap-4">
-              <h1 className="text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
-              <div className="w-px h-4 bg-neutral-60" />
-              <p className="text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
-            </div>
-          </div>
-          <div className="h-px bg-border" />
-          <div className="px-7 py-[30px]">
-            {/* 세그먼트 컨트롤 */}
-            <div className="inline-flex items-center px-3 h-[48px] gap-2 bg-neutral-20 rounded-[12px]">
-              <button
-                onClick={() => setShowUnreadOnly(false)}
-                className={`cursor-pointer h-[31px] px-8 rounded-[5px] text-[16px] tracking-[-0.02em] ${
-                  !showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-neutral-60"
-                }`}
-              >
-                전체 ({counts.all})
-              </button>
-              <button
-                onClick={() => setShowUnreadOnly(true)}
-                className={`cursor-pointer h-[31px] px-8 rounded-[5px] text-[16px] tracking-[-0.02em] ${
-                  showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-foreground opacity-80"
-                }`}
-              >
-                미읽음 ({counts.unread})
-              </button>
-            </div>
-          </div>
-          <div className="h-px bg-border" />
-        </section>
-
-        <div className="h-6" />
-
-        {/* 하단 컨테이너: 탭 + 목록 */}
-        <section className="bg-card rounded-[14px]">
-          {/* 탭 */}
-          <div className="px-7 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {(["all", "notice", "customer"] as NotificationCategory[]).map((category) => {
-                const isActive = activeCategory === category;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryChange(category)}
-                    className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border ${
-                      isActive
-                        ? "bg-notification-unread border-2 border-notification-unread font-semibold text-foreground"
-                        : "border-neutral-30 font-medium text-foreground opacity-80"
-                    }`}
-                  >
-                    {categoryLabels[category]} {category !== "all" && counts[category]}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              onClick={handleMarkAllAsRead}
-              className="h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold"
-            >
-              모두 읽음 처리
-            </button>
-          </div>
-
-          {/* 리스트 */}
-          <div className="px-7 pt-1 pb-6">
-            {loading ? (
-              <div className="text-center py-12 text-neutral-60">불러오는 중...</div>
-            ) : filteredNotifications.length === 0 ? (
-              <div className="text-center py-12 text-neutral-60">알림이 없습니다.</div>
-            ) : (
-              <div className="space-y-3">
-                {filteredNotifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`box-border flex items-center gap-4 px-6 py-5 rounded-[12px] border cursor-pointer transition-colors ${
-                      !notification.read
-                        ? "bg-notification-unread border-notification-unread hover:opacity-90"
-                        : "bg-card border-neutral-30 hover:bg-neutral-10"
-                    }`}
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center">
-                      {getIcon(notification.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground">
-                          {notification.title}
-                        </span>
-                        {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60" />}
-                      </div>
-                      <p className="mt-1 text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60">
-                        {notification.content}
-                      </p>
-                    </div>
-                    <div className="text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 text-right">
-                      {formatTime(notification.createdAt)}
-                    </div>
-                  </div>
-                ))}
+      <div className="mx-auto max-w-[1324px] px-0 md:px-6 pt-0 md:pt-9 md:pb-24">
+        {/* 모바일: 하나의 배경으로 통합, 데스크탑: 두 개의 section으로 분리 */}
+        <div className="bg-card md:rounded-[14px]">
+          {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
+          <section className="md:rounded-[14px]">
+            <div className="px-4 md:px-7 py-4 md:py-7">
+              <div className="flex items-center justify-between gap-2 md:gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
+                  <h1 className="text-[18px] md:text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
+                  <div className="hidden md:block w-px h-4 bg-neutral-60" />
+                  <p className="hidden md:block text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
+                </div>
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="md:hidden h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap"
+                >
+                  모두 읽음
+                </button>
               </div>
-            )}
-          </div>
-        </section>
+            </div>
+            <div className="h-px bg-border" />
+            <div className="px-4 md:px-7 py-4 md:py-[30px]">
+              {/* 세그먼트 컨트롤 */}
+              <div className="flex md:inline-flex items-center px-3 h-[48px] gap-2 bg-neutral-20 rounded-[12px] w-full md:w-auto">
+                <button
+                  onClick={() => setShowUnreadOnly(false)}
+                  className={`cursor-pointer h-[31px] flex-1 md:flex-none px-6 md:px-8 rounded-[5px] text-[14px] md:text-[16px] tracking-[-0.02em] ${
+                    !showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-neutral-60"
+                  }`}
+                >
+                  전체 ({counts.all})
+                </button>
+                <button
+                  onClick={() => setShowUnreadOnly(true)}
+                  className={`cursor-pointer h-[31px] flex-1 md:flex-none px-6 md:px-8 rounded-[5px] text-[14px] md:text-[16px] tracking-[-0.02em] ${
+                    showUnreadOnly ? "bg-card font-bold text-foreground" : "font-medium text-foreground opacity-80"
+                  }`}
+                >
+                  미읽음 ({counts.unread})
+                </button>
+              </div>
+            </div>
+            <div className="h-px bg-border" />
+          </section>
+
+          {/* 하단 컨테이너: 탭 + 목록 */}
+          <section className="md:rounded-[14px]">
+            {/* 탭 */}
+            <div className="px-4 md:px-7 py-3 md:py-4 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 md:gap-3 overflow-x-auto flex-1 min-w-0">
+                {(["all", "notice", "customer"] as NotificationCategory[]).map((category) => {
+                  const isActive = activeCategory === category;
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryChange(category)}
+                      className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border flex-shrink-0 ${
+                        isActive
+                          ? "bg-notification-unread border-2 border-notification-unread font-semibold text-foreground"
+                          : "border-neutral-30 font-medium text-foreground opacity-80"
+                      }`}
+                    >
+                      {categoryLabels[category]} {category !== "all" && counts[category]}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={handleMarkAllAsRead}
+                className="hidden md:block h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap"
+              >
+                모두 읽음 처리
+              </button>
+            </div>
+
+            {/* 리스트 */}
+            <div className="px-4 md:px-7 pt-1 pb-6">
+              {loading ? (
+                <div className="text-center py-12 text-neutral-60">불러오는 중...</div>
+              ) : filteredNotifications.length === 0 ? (
+                <div className="text-center py-12 text-neutral-60">알림이 없습니다.</div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`box-border flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 md:py-5 rounded-[12px] border cursor-pointer transition-colors ${
+                        !notification.read
+                          ? "bg-notification-unread border-notification-unread hover:opacity-90"
+                          : "bg-card border-neutral-30 hover:bg-neutral-10"
+                      }`}
+                    >
+                      <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                        {getIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[14px] md:text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground truncate">
+                            {notification.title}
+                          </span>
+                          {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60 flex-shrink-0" />}
+                        </div>
+                        <p className="mt-1 text-[13px] md:text-[14px] leading-[20px] md:leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 line-clamp-2">
+                          {notification.content}
+                        </p>
+                      </div>
+                      <div className="text-[12px] md:text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 text-right flex-shrink-0 whitespace-nowrap">
+                        {formatTime(notification.createdAt)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );
