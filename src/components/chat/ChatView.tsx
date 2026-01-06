@@ -94,7 +94,7 @@ export default function ChatView({ projectId }: Props) {
     };
     return {
       messenger: platform ? (messengerMap[platform] || "all") : "all",
-      statuses: [],
+      categoryIds: undefined,
     };
   });
 
@@ -129,14 +129,17 @@ export default function ChatView({ projectId }: Props) {
     // URL 업데이트
     router.replace(`?${params.toString()}`, { scroll: false });
     
-    // 필터 상태 저장 (나중에 statuses를 categoryIds로 변환할 때 사용)
+    // 필터 상태 저장
     setFilterDefaults(filters);
     
     // 모달 닫기
     setFilterOpen(false);
     
     // setFilters를 명시적으로 호출하여 소켓 재요청 트리거
-    setFilters({ platform: platformValue });
+    setFilters({ 
+      platform: platformValue,
+      categoryIds: filters.categoryIds,
+    });
   }, [searchParams, router, setFilterOpen, setFilters]);
 
   // 쿼리 파라미터를 통한 딥링크 지원

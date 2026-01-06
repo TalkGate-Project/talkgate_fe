@@ -120,4 +120,72 @@ showErrorModal({
 - 환경 변수는 배포 플랫폼의 Secret/Env에 설정하고, `NEXT_PUBLIC_*`만 공개됩니다.
 - 캐시 정책과 데이터 일관성은 API 스펙에 따라 개별 훅/클라이언트 옵션으로 조정합니다.
 
+### 12. 상담 카테고리 필터 패턴
+
+**"일반" 카테고리 처리 원칙:**
+
+상담 카테고리 필터에서 "일반"은 백엔드 API에 존재하지 않는 특수한 카테고리입니다. UI에서는 "일반" 옵션을 표시하되, 백엔드로 전달할 때는 `null` 값을 사용합니다.
+
+**구현 규칙:**
+
+1. **타입 정의**: `categoryIds`는 `(number | null)[]` 타입을 사용합니다. `null`은 "일반" 카테고리를 의미합니다.
+
+```typescript
+// ✅ GOOD
+export type ChatFilterDefaults = {
+  categoryIds?: (number | null)[]; // null은 "일반" 카테고리를 의미
+};
+```
+
+2. **UI 구현**: 드롭다운에서 "일반" 옵션을 별도로 표시하고, 선택 시 배열에 `null`을 추가합니다.
+
+```typescript
+// ✅ GOOD - "일반" 옵션 추가
+<label>
+  <Checkbox
+    checked={categoryIds.includes(null)}
+    onChange={(next) =>
+      setCategoryIds((prev) => {
+        if (next) {
+          return prev.includes(null) ? prev : [...prev, null];
+        } else {
+          return prev.filter((x) => x !== null);
+        }
+      })
+    }
+    ariaLabel="일반"
+  />
+  <span>일반</span>
+</label>
+```
+
+3. **선택된 항목 표시**: 선택된 카테고리를 표시할 때 `null`이면 "일반"으로 표시합니다.
+
+```typescript
+// ✅ GOOD - 선택된 항목 표시
+{categoryIds.map((id) => {
+  if (id === null) {
+    return <Pill key="general" label="일반" onRemove={...} />;
+  }
+  const category = categoryOptions.find((c) => c.id === id);
+  return <Pill key={id} label={category.name} onRemove={...} />;
+})}
+```
+
+4. **백엔드 전달**: 배열에 `null`이 포함되어 있으면 그대로 전달합니다. 소켓을 통한 JSON 전달은 `null`을 그대로 직렬화합니다.
+
+```typescript
+// ✅ GOOD - 소켓을 통한 전달 (JSON 본문)
+const requestPayload: any = { limit: 20 };
+if (filters.categoryIds && filters.categoryIds.length > 0) {
+  requestPayload.categoryIds = filters.categoryIds; // [1, 2, null] 그대로 전달
+}
+socket.emit("getConversations", requestPayload);
+```
+
+**참고:**
+- HTTP 쿼리 파라미터로 전달하는 경우 (예: `useCustomersList`), `null`을 문자열 `"null"`로 변환해야 할 수 있습니다.
+- 소켓을 통한 JSON 본문 전달은 `null`을 그대로 전달하면 됩니다.
+- 이 패턴은 `FilterModal.tsx`의 `CategorySelector`와 `ChatFilterModal.tsx`에서 일관되게 사용됩니다.
+
 
