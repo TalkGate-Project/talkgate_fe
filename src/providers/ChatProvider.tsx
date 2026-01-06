@@ -60,9 +60,10 @@ type ChatContextType = {
   filters: {
     status: "all" | "active" | "closed";
     platform: "line" | "telegram" | "instagram" | undefined;
+    categoryIds?: (number | null)[]; // null은 "일반" 카테고리를 의미
   };
   /** 필터 변경 */
-  setFilters: (filters: { status?: "all" | "active" | "closed"; platform?: "line" | "telegram" | "instagram" | undefined }) => void;
+  setFilters: (filters: { status?: "all" | "active" | "closed"; platform?: "line" | "telegram" | "instagram" | undefined; categoryIds?: (number | null)[] }) => void;
 };
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -113,7 +114,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const [filters, setFiltersState] = useState<{
     status: "all" | "active" | "closed";
     platform: "line" | "telegram" | "instagram" | undefined;
-  }>({ status: "all", platform: undefined });
+    categoryIds?: (number | null)[]; // null은 "일반" 카테고리를 의미
+  }>({ status: "all", platform: undefined, categoryIds: undefined });
 
   // 현재 활성 대화방 ID (읽음 처리용)
   const activeConversationIdRef = useRef<number | null>(null);
@@ -137,16 +139,20 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   // 필터 변경 함수
   const setFilters = useCallback((newFilters: { 
     status?: "all" | "active" | "closed"; 
-    platform?: "line" | "telegram" | "instagram" | undefined 
+    platform?: "line" | "telegram" | "instagram" | undefined;
+    categoryIds?: (number | null)[]; // null은 "일반" 카테고리를 의미
   }) => {
     setFiltersState(prev => {
       const nextStatus = newFilters.status !== undefined ? newFilters.status : prev.status;
       // platform은 명시적으로 undefined를 전달할 수 있도록 처리
       // newFilters에 platform이 없으면(undefined) 이전 값 유지, 있으면(undefined 포함) 업데이트
       const nextPlatform = "platform" in newFilters ? newFilters.platform : prev.platform;
+      // categoryIds는 명시적으로 전달된 경우에만 업데이트
+      const nextCategoryIds = "categoryIds" in newFilters ? newFilters.categoryIds : prev.categoryIds;
       return {
         status: nextStatus,
         platform: nextPlatform,
+        categoryIds: nextCategoryIds,
       };
     });
   }, []);
@@ -180,9 +186,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     if (filters.status !== "all") requestPayload.status = filters.status;
     // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
     if (filters.platform !== undefined) requestPayload.platform = filters.platform;
+    // categoryIds가 있으면 포함
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      requestPayload.categoryIds = filters.categoryIds;
+    }
 
     socket.emit("getConversations", requestPayload);
-  }, [convHasMore, convCursor, filters.status, filters.platform]);
+  }, [convHasMore, convCursor, filters.status, filters.platform, filters.categoryIds]);
 
   // ============================================
   // 소켓 연결 및 이벤트 핸들링
@@ -226,6 +236,10 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       if (filters.status !== "all") requestPayload.status = filters.status;
       // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
       if (filters.platform !== undefined) requestPayload.platform = filters.platform;
+      // categoryIds가 있으면 포함
+      if (filters.categoryIds && filters.categoryIds.length > 0) {
+        requestPayload.categoryIds = filters.categoryIds;
+      }
 
       socket.emit("getConversations", requestPayload);
     };
@@ -445,9 +459,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     if (filters.status !== "all") requestPayload.status = filters.status;
     // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
     if (filters.platform !== undefined) requestPayload.platform = filters.platform;
+    // categoryIds가 있으면 포함
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      requestPayload.categoryIds = filters.categoryIds;
+    }
 
     socket.emit("getConversations", requestPayload);
-  }, [filters.status, filters.platform, projectId, connected]);
+  }, [filters.status, filters.platform, filters.categoryIds, projectId, connected]);
 
   // Context 값
   const value: ChatContextType = {

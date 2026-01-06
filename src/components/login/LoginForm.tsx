@@ -346,7 +346,7 @@ export function LoginForm() {
       </div>
 
       {/* Signup link */}
-      <div className="mt-6 text-[13px] text-[#BFBFBF]">
+      <div className="mt-6 text-[13px] text-[#BFBFBF] text-center">
         계정이 없으신가요?{' '}
         <button
           type="button"

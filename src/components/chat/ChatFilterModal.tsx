@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Checkbox from "@/components/common/Checkbox";
+import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
+import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
@@ -22,7 +24,7 @@ export type Messenger =
 
 export type ChatFilterDefaults = {
   messenger?: Messenger;
-  statuses?: string[]; // ex) ["일반","부재"]
+  categoryIds?: (number | null)[]; // ex) [1, 2, null] - null은 "일반" 카테고리를 의미
 };
 
 export default function ChatFilterModal({
@@ -39,8 +41,9 @@ export default function ChatFilterModal({
   const [messenger, setMessenger] = useState<Messenger>(
     defaults?.messenger ?? "all"
   );
-  const [statuses, setStatuses] = useState<string[]>(defaults?.statuses ?? []);
-  const [statusOpen, setStatusOpen] = useState(false);
+  const [categoryIds, setCategoryIds] = useState<(number | null)[]>(defaults?.categoryIds ?? []);
+  const [categoryOptions, setCategoryOptions] = useState<CustomerNoteCategory[]>([]);
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -48,12 +51,23 @@ export default function ChatFilterModal({
   useEffect(() => {
     if (!open) return;
     setMessenger(defaults?.messenger ?? "all");
-    setStatuses(defaults?.statuses ?? []);
+    setCategoryIds(defaults?.categoryIds ?? []);
   }, [open, defaults]);
+
+  // 카테고리 목록 가져오기
+  useEffect(() => {
+    CustomerNoteCategoriesService.list().then((res) => {
+      const arr = (res.data as any)?.data ?? (res.data as any);
+      setCategoryOptions(Array.isArray(arr) ? arr : []);
+    }).catch((err) => {
+      console.error("Failed to load categories:", err);
+      setCategoryOptions([]);
+    });
+  }, []);
 
   // Dropdown 위치 계산
   useEffect(() => {
-    if (!statusOpen || !buttonRef.current) {
+    if (!categoryOpen || !buttonRef.current) {
       setDropdownPosition(null);
       return;
     }
@@ -65,20 +79,20 @@ export default function ChatFilterModal({
       left: buttonRect.left / zoom,
       width: buttonRect.width / zoom,
     });
-  }, [statusOpen]);
+  }, [categoryOpen]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!statusOpen) return;
+      if (!categoryOpen) return;
       if (!dropdownRef.current || !buttonRef.current) return;
       const target = e.target as Node;
       if (!dropdownRef.current.contains(target) && !buttonRef.current.contains(target)) {
-        setStatusOpen(false);
+        setCategoryOpen(false);
       }
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
-  }, [statusOpen]);
+  }, [categoryOpen]);
 
   if (!open) return null;
 
@@ -92,7 +106,6 @@ export default function ChatFilterModal({
     // { key: "x", label: "트위터(X)", icon: "/x_twitter.png" },
   ];
 
-  const statusOptions = ["일반", "부재", "재상담", "관리중", "AS요청"] as const;
 
   return (
     <div className="fixed inset-0 z-[100]">
@@ -172,19 +185,19 @@ export default function ChatFilterModal({
               </div>
             </div>
 
-            {/* 처리상태 멀티 선택 */}
+            {/* 상담 카테고리 멀티 선택 */}
             <div className="relative">
-              <div className="text-[14px] text-medium text-neutral-60 mb-2">처리상태</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">상담 카테고리</div>
               <button
                 ref={buttonRef}
                 type="button"
-                onClick={() => setStatusOpen((v) => !v)}
+                onClick={() => setCategoryOpen((v) => !v)}
                 className="w-full h-[34px] border border-neutral-30 rounded-[5px] px-3 flex items-center justify-between bg-neutral-0 dark:bg-neutral-10"
               >
                 <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-90 opacity-90">
-                  {statuses.length
-                    ? `${statuses.length}개 선택됨`
-                    : "상태 선택"}
+                  {categoryIds.length
+                    ? `${categoryIds.length}개 선택됨`
+                    : "카테고리 선택"}
                 </span>
                 <svg
                   width="10"
@@ -192,7 +205,7 @@ export default function ChatFilterModal({
                   viewBox="0 0 10 8"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`${statusOpen ? "rotate-180" : ""}`}
+                  className={`${categoryOpen ? "rotate-180" : ""}`}
                 >
                   <path
                     d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z"
@@ -202,44 +215,82 @@ export default function ChatFilterModal({
                 </svg>
               </button>
 
-              {statuses.length > 0 && (
+              {categoryIds.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  {statuses.map((s) => (
-                    <span
-                      key={s}
-                      className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
-                    >
-                      {s}
-                      <button
-                        className="ml-2 w-3 h-3 grid place-items-center"
-                        aria-label="remove"
-                        onClick={() =>
-                          setStatuses((prev) => prev.filter((x) => x !== s))
-                        }
-                      >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                  {categoryIds.map((id, index) => {
+                    if (id === null) {
+                      return (
+                        <span
+                          key="general"
+                          className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
                         >
-                          <path
-                            d="M3 9L9 3M3 3L9 9"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="stroke-primary-80"
-                          />
-                        </svg>
-                      </button>
-                    </span>
-                  ))}
+                          일반
+                          <button
+                            className="ml-2 w-3 h-3 grid place-items-center"
+                            aria-label="remove"
+                            onClick={() =>
+                              setCategoryIds((prev) => prev.filter((x) => x !== null))
+                            }
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3 9L9 3M3 3L9 9"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="stroke-primary-80"
+                              />
+                            </svg>
+                          </button>
+                        </span>
+                      );
+                    }
+                    const category = categoryOptions.find((c) => c.id === id);
+                    if (!category) return null;
+                    return (
+                      <span
+                        key={id}
+                        className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
+                      >
+                        {category.name}
+                        <button
+                          className="ml-2 w-3 h-3 grid place-items-center"
+                          aria-label="remove"
+                          onClick={() =>
+                            setCategoryIds((prev) => prev.filter((x) => x !== id))
+                          }
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3 9L9 3M3 3L9 9"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="stroke-primary-80"
+                            />
+                          </svg>
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
-              {statusOpen && dropdownPosition && typeof window !== "undefined" && createPortal(
+              {categoryOpen && dropdownPosition && typeof window !== "undefined" && createPortal(
                 <div
                   ref={dropdownRef}
                   className="fixed z-[200] bg-neutral-0 dark:bg-neutral-10 border border-neutral-30 rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3"
@@ -249,11 +300,36 @@ export default function ChatFilterModal({
                     width: `${dropdownPosition.width}px`,
                   }}
                 >
-                  {statusOptions.map((opt) => {
-                    const checked = statuses.includes(opt);
+                  {/* 일반 옵션 */}
+                  <label
+                    className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer mb-1 ${
+                      categoryIds.includes(null)
+                        ? "border-2 border-primary-40 bg-primary-10/30"
+                        : "border-border bg-card dark:bg-neutral-10"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={categoryIds.includes(null)}
+                      onChange={(next) =>
+                        setCategoryIds((prev) => {
+                          if (next) {
+                            return prev.includes(null) ? prev : [...prev, null];
+                          } else {
+                            return prev.filter((x) => x !== null);
+                          }
+                        })
+                      }
+                      ariaLabel="일반"
+                    />
+                    <span className="text-[14px] text-neutral-90">
+                      일반
+                    </span>
+                  </label>
+                  {categoryOptions.map((category) => {
+                    const checked = categoryIds.includes(category.id);
                     return (
                       <label
-                        key={opt}
+                        key={category.id}
                         className={`flex items-center gap-3 h-[34px] px-3 rounded-[5px] border cursor-pointer mb-1 last:mb-0 ${
                           checked
                             ? "border-2 border-primary-40 bg-primary-10/30"
@@ -263,16 +339,16 @@ export default function ChatFilterModal({
                         <Checkbox
                           checked={checked}
                           onChange={(next) =>
-                            setStatuses((prev) =>
+                            setCategoryIds((prev) =>
                               next
-                                ? [...prev, opt]
-                                : prev.filter((x) => x !== opt)
+                                ? [...prev, category.id]
+                                : prev.filter((x) => x !== category.id)
                             )
                           }
-                          ariaLabel={opt}
+                          ariaLabel={category.name}
                         />
                         <span className="text-[14px] text-neutral-90">
-                          {opt}
+                          {category.name}
                         </span>
                       </label>
                     );
@@ -289,14 +365,14 @@ export default function ChatFilterModal({
               className="cursor-pointer flex-1 md:flex-none md:w-[60px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 bg-neutral-0 dark:bg-neutral-10"
               onClick={() => {
                 setMessenger("all");
-                setStatuses([]);
+                setCategoryIds([]);
               }}
             >
               초기화
             </button>
             <button
               className="cursor-pointer flex-1 md:flex-none md:w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em]"
-              onClick={() => onApply({ messenger, statuses })}
+              onClick={() => onApply({ messenger, categoryIds: categoryIds.length > 0 ? categoryIds : undefined })}
             >
               적용완료
             </button>
