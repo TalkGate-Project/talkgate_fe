@@ -161,18 +161,126 @@ export default function ProfileTab() {
     });
   };
 
+  // 본인인증 버튼 컴포넌트 (재사용)
+  const VerificationButton = () => {
+    if (isLoadingVerification) {
+      return (
+        <span className="text-[12px] md:text-[14px] text-neutral-60">로딩 중...</span>
+      );
+    }
+    
+    if (verificationData?.isVerified === true) {
+      return (
+        <div className="inline-flex items-center justify-center px-2 md:px-3 py-1 md:py-1.5 gap-[6px] md:gap-[10px] border border-border rounded-[5px] dark:bg-white/10">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="md:w-5 md:h-5"
+          >
+            <path
+              d="M16.6667 5L7.50033 14.1667L3.33366 10"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-neutral-60"
+            />
+          </svg>
+          <span className="text-[12px] md:text-[14px] font-semibold text-foreground leading-[17px] tracking-[-0.02em]">
+            본인인증 완료
+          </span>
+        </div>
+      );
+    }
+    
+    return (
+      <button
+        onClick={startVerification}
+        disabled={isVerifying}
+        className="cursor-pointer px-2 md:px-3 py-1 md:py-1.5 bg-[#1C1C1C] text-white rounded-[5px] text-[12px] md:text-[14px] font-semibold hover:bg-black/90 transition-colors disabled:opacity-60 flex items-center gap-1 md:gap-1.5"
+      >
+        {isVerifying ? (
+          <>
+            <svg
+              className="animate-spin h-3 w-3 md:h-4 md:w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="hidden md:inline">인증 중...</span>
+            <span className="md:hidden">인증 중</span>
+          </>
+        ) : (
+          <>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="md:w-4 md:h-4"
+            >
+              <rect
+                x="4"
+                y="2"
+                width="8"
+                height="12"
+                rx="1.5"
+                stroke="currentColor"
+                strokeWidth="1.2"
+              />
+              <line
+                x1="6.5"
+                y1="11.5"
+                x2="9.5"
+                y2="11.5"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span>본인인증</span>
+          </>
+        )}
+      </button>
+    );
+  };
+
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-[140px]">
-      {/* Title */}
-      <h1 className="px-7 py-7 text-[24px] font-bold text-foreground">
-        프로필
-      </h1>
+    <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px]">
+      {/* Title - 모바일에서는 제목과 버튼을 같은 행에 배치 */}
+      <div className="px-4 md:px-7 py-4 md:py-7 flex items-center justify-between gap-3">
+        <h1 className="text-[20px] md:text-[24px] font-bold text-foreground">
+          프로필 설정
+        </h1>
+        {/* 모바일에서만 버튼 표시 */}
+        <div className="md:hidden flex items-center gap-2 flex-shrink-0">
+          <VerificationButton />
+        </div>
+      </div>
 
       <div className="border-b border-[#E2E2E266]"></div>
 
-      {/* Sub-title and Verification Button Row */}
-      <div className="px-7 py-6 flex items-start justify-between mb-1">
-        <div>
+      {/* Sub-title and Verification Button Row - 데스크탑에서만 표시 */}
+      <div className="hidden md:flex px-7 py-6 items-start justify-between mb-1">
+        <div className="flex-1 min-w-0">
           <h2 className="text-[16px] font-semibold text-foreground mb-1">
             프로필 정보
           </h2>
@@ -180,103 +288,17 @@ export default function ProfileTab() {
             프로젝트에서 사용되는 프로필 정보를 설정합니다.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {isLoadingVerification ? (
-            <span className="text-[14px] text-neutral-60">로딩 중...</span>
-          ) : verificationData?.isVerified === true ? (
-            <div className="inline-flex items-center justify-center px-3 py-1.5 gap-[10px] border border-border rounded-[5px] dark:bg-white/10">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M16.6667 5L7.50033 14.1667L3.33366 10"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-neutral-60"
-                />
-              </svg>
-              <span className="text-[14px] font-semibold text-foreground leading-[17px] tracking-[-0.02em]">
-                본인인증 완료
-              </span>
-            </div>
-          ) : (
-            <button
-              onClick={startVerification}
-              disabled={isVerifying}
-              className="cursor-pointer px-3 py-1.5 bg-[#1C1C1C] text-white rounded-[5px] text-[14px] font-semibold hover:bg-black/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
-            >
-              {isVerifying ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  인증 중...
-                </>
-              ) : (
-                <>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="4"
-                      y="2"
-                      width="8"
-                      height="12"
-                      rx="1.5"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                    />
-                    <line
-                      x1="6.5"
-                      y1="11.5"
-                      x2="9.5"
-                      y2="11.5"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  본인인증
-                </>
-              )}
-            </button>
-          )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <VerificationButton />
         </div>
       </div>
 
       {/* Divider */}
-      <div className="mx-7 h-[1px] bg-border mb-8"></div>
+      <div className="mx-4 md:mx-7 h-[1px] bg-border mb-6 md:mb-8"></div>
 
       {/* Avatar - Full width centered */}
-      <div className="flex flex-col items-center justify-center mb-8 gap-3">
-        <div className="w-[100px] h-[100px] rounded-full bg-neutral-60 flex items-center justify-center overflow-hidden relative">
+      <div className="flex flex-col items-center justify-center mb-6 md:mb-8 gap-3">
+        <div className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full bg-neutral-60 flex items-center justify-center overflow-hidden relative">
           {user?.profileImageUrl ? (
             <img
               src={user.profileImageUrl}
@@ -286,7 +308,7 @@ export default function ProfileTab() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-[#7C7C7C] flex items-center justify-center text-white text-[36px] font-medium">
+            <div className="w-full h-full bg-[#7C7C7C] flex items-center justify-center text-white text-[28px] md:text-[36px] font-medium">
                {/* 텍스트 기반 아바타 (예: 이름 첫 글자) */}
                {user?.name ? user.name.charAt(0) : "김"}
             </div>
@@ -304,7 +326,7 @@ export default function ProfileTab() {
             />
             <label 
               htmlFor="profile-upload"
-              className="text-[14px] text-[#5D5D5D] underline cursor-pointer hover:text-black transition-colors"
+              className="text-[12px] md:text-[14px] text-[#5D5D5D] underline cursor-pointer hover:text-black transition-colors"
             >
               사진 업로드
             </label>
@@ -313,10 +335,10 @@ export default function ProfileTab() {
       </div>
 
       {/* Form Fields */}
-      <div className="grid grid-cols-2 gap-5 max-w-[788px] mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-[788px] mx-auto px-4 md:px-0">
         {/* 이름 */}
         <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <label className="block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-2">
             이름
           </label>
           <input
@@ -335,7 +357,7 @@ export default function ProfileTab() {
 
         {/* 이메일 */}
         <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
+          <label className="block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-2">
             이메일
           </label>
           <input
@@ -353,9 +375,9 @@ export default function ProfileTab() {
         </div>
 
         {/* 휴대폰 번호 */}
-        <div>
-          <label className="block text-[14px] font-medium text-neutral-60 mb-2">
-            휴대폰 번호
+        <div className="md:col-span-2">
+          <label className="block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-2">
+            연락처
           </label>
           <input
             type="tel"

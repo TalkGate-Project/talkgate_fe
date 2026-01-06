@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Pagination from "@/components/common/Pagination";
-import DemoModeToggle from "@/components/common/DemoModeToggle";
 import { useBilling, type BillingInfo } from "@/hooks/useBilling";
 import {
   useSubscription,
@@ -129,12 +128,12 @@ export default function ProjectBillingDetail({
   const isLoading = subscriptionLoading || billingLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* 프로젝트 관리 헤더 및 구독 정보 통합 섹션 */}
       <div className="bg-card rounded-[14px]">
-        <div className="py-7">
+        <div className="py-5 md:py-7">
           {/* 헤더 */}
-          <div className="flex items-center gap-2 pb-6 px-7">
+          <div className="flex items-center gap-2 pb-4 md:pb-6 px-6 md:px-7">
             <button
               onClick={onBack}
               className="cursor-pointer flex items-center gap-2 text-foreground hover:text-primary-80 transition-colors"
@@ -149,27 +148,27 @@ export default function ProjectBillingDetail({
                 />
               </svg>
             </button>
-            <h1 className="text-[24px] font-bold text-foreground">
+            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground">
               프로젝트 관리
             </h1>
           </div>
 
           {/* 구분선 - 패딩에 영향받지 않도록 */}
-          <div className="w-full h-[1px] bg-border mb-6"></div>
+          <div className="w-full h-[1px] bg-border mb-4 md:mb-6"></div>
 
           {/* 구독 정보 */}
-          <div className="flex items-center justify-between px-7">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0 px-6 md:px-7">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
                 <span className="text-white text-[16px] font-bold">X</span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[18px] font-bold text-foreground">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-[16px] md:text-[18px] font-bold text-foreground truncate">
                     {projectName}
                   </h2>
                   {subscription?.plan && (
-                    <span className="px-2 py-0.5 bg-neutral-20 text-neutral-70 text-[12px] font-medium rounded-full mt-1 inline-block">
+                    <span className="px-2 py-0.5 bg-neutral-20 text-neutral-70 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
                       {subscription.plan.name}
                     </span>
                   )}
@@ -177,7 +176,7 @@ export default function ProjectBillingDetail({
                 {isLoading ? (
                   <div className="h-5 w-60 bg-neutral-20 rounded animate-pulse mt-1" />
                 ) : subscription ? (
-                  <p className="text-[14px] text-neutral-60 mt-1">
+                  <p className="text-[12px] md:text-[14px] text-neutral-60 mt-1">
                     {formatDate(subscription.startDate)} ~{" "}
                     {formatDate(subscription.endDate)} (
                     {subscription.billingCycle === "monthly"
@@ -186,20 +185,20 @@ export default function ProjectBillingDetail({
                     결제)
                   </p>
                 ) : (
-                  <p className="text-[14px] text-neutral-60 mt-1">
+                  <p className="text-[12px] md:text-[14px] text-neutral-60 mt-1">
                     구독 정보가 없습니다
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0 w-full md:w-auto">
               {subscription?.isActive && (
-                <button className="cursor-pointer px-4 py-2 bg-neutral-90 text-white text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors">
+                <button className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors flex-1 md:flex-initial">
                   업그레이드
                 </button>
               )}
               {subscription?.isActive && (
-                <button className="cursor-pointer px-4 py-2 border border-neutral-30 text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors">
+                <button className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial">
                   구독취소
                 </button>
               )}
@@ -209,42 +208,42 @@ export default function ProjectBillingDetail({
       </div>
 
       {/* 결제정보 섹션 */}
-      <div className="bg-card rounded-[14px] p-6">
-        <div className="mb-6">
-          <h2 className="text-[18px] font-bold text-foreground">결제정보</h2>
-          <p className="text-[14px] text-neutral-60 mt-1">
+      <div className="bg-card rounded-[14px] p-4 md:p-6">
+        <div className="mb-4 md:mb-6">
+          <h2 className="text-[16px] md:text-[18px] font-bold text-foreground">결제정보</h2>
+          <p className="text-[12px] md:text-[14px] text-neutral-60 mt-1">
             결제 상태 및 처리 내역을 관리합니다.
           </p>
         </div>
 
         {/* 구분선 */}
-        <div className="w-full h-[1px] bg-border opacity-70 mb-6"></div>
+        <div className="w-full h-[1px] bg-border opacity-70 mb-4 md:mb-6"></div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {/* 구독 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">구독</span>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-0">
+            <span className="w-[100px] md:w-[120px] text-[12px] md:text-[14px] text-neutral-60 flex-shrink-0">구독</span>
             {subscriptionLoading ? (
               <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
             ) : subscription ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] text-foreground">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[12px] md:text-[14px] text-foreground">
                   프로젝트 구독
                 </span>
-                <span className="px-2 py-0.5 bg-neutral-20 text-neutral-70 text-[12px] font-medium rounded">
+                <span className="px-2 py-0.5 bg-neutral-20 text-neutral-70 text-[11px] md:text-[12px] font-medium rounded">
                   {subscription.plan?.name || "-"}
                 </span>
               </div>
             ) : (
-              <span className="text-[14px] text-neutral-60">
+              <span className="text-[12px] md:text-[14px] text-neutral-60">
                 구독 정보 없음
               </span>
             )}
           </div>
 
           {/* 결제 수단 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-0">
+            <span className="w-[100px] md:w-[120px] text-[12px] md:text-[14px] text-neutral-60 flex-shrink-0">
               결제 수단
             </span>
             <div className="flex items-center gap-3">
@@ -256,7 +255,7 @@ export default function ProjectBillingDetail({
               ) : activeBillingInfo ? (
                 <PaymentMethodDisplay billingInfo={activeBillingInfo} />
               ) : (
-                <span className="text-[14px] text-neutral-60">
+                <span className="text-[12px] md:text-[14px] text-neutral-60">
                   등록된 결제 수단이 없습니다
                 </span>
               )}
@@ -264,28 +263,28 @@ export default function ProjectBillingDetail({
           </div>
 
           {/* 이용시작 일시 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-0">
+            <span className="w-[100px] md:w-[120px] text-[12px] md:text-[14px] text-neutral-60 flex-shrink-0">
               이용시작 일시
             </span>
             {subscriptionLoading ? (
               <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
             ) : (
-              <span className="text-[14px] text-foreground">
+              <span className="text-[12px] md:text-[14px] text-foreground">
                 {subscription ? formatDateTime(subscription.startDate) : "-"}
               </span>
             )}
           </div>
 
           {/* 다음 결제 예정일 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-0">
+            <span className="w-[100px] md:w-[120px] text-[12px] md:text-[14px] text-neutral-60 flex-shrink-0">
               다음 결제 예정일
             </span>
             {subscriptionLoading ? (
               <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
             ) : (
-              <span className="text-[14px] text-foreground">
+              <span className="text-[12px] md:text-[14px] text-foreground">
                 {subscription?.nextBillingDate
                   ? formatDateTime(subscription.nextBillingDate)
                   : "-"}
@@ -294,15 +293,15 @@ export default function ProjectBillingDetail({
           </div>
 
           {/* 결제 예정 금액 */}
-          <div className="flex items-center">
-            <span className="w-[120px] text-[14px] text-neutral-60">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-0">
+            <span className="w-[100px] md:w-[120px] text-[12px] md:text-[14px] text-neutral-60 flex-shrink-0">
               결제 예정 금액
             </span>
             <div className="flex items-center gap-3">
               {subscriptionLoading ? (
                 <div className="h-5 w-32 bg-neutral-20 rounded animate-pulse" />
               ) : (
-                <span className="text-[14px] text-foreground">
+                <span className="text-[12px] md:text-[14px] text-foreground">
                   {subscription?.plan ? (
                     <>
                       <span className="font-bold">
@@ -327,29 +326,29 @@ export default function ProjectBillingDetail({
       </div>
 
       {/* 결제내역 섹션 */}
-      <div className="bg-card rounded-[14px] pb-7">
+      <div className="bg-card rounded-[14px] pb-5 md:pb-7">
         {/* 제목 */}
-        <h2 className="px-7 py-6 text-[18px] font-bold text-foreground">
+        <h2 className="px-6 md:px-7 py-4 md:py-6 text-[16px] md:text-[18px] font-bold text-foreground">
           결제내역
         </h2>
 
         {/* 구분선 */}
-        <div className="w-full h-[1px] bg-border opacity-70 mb-6"></div>
+        <div className="w-full h-[1px] bg-border opacity-70 mb-4 md:mb-6"></div>
 
         {/* 테이블 */}
-        <div className="px-7">
+        <div className="px-4 md:px-7 overflow-x-auto">
           {/* 테이블 헤더 */}
-          <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-6">
-            <div className="flex-[1.5] text-[16px] font-medium text-neutral-60">
+          <div className="bg-neutral-20 rounded-[8px] h-[36px] md:h-[40px] flex items-center px-3 md:px-6 min-w-[600px]">
+            <div className="flex-[1.5] text-[14px] md:text-[16px] font-medium text-neutral-60">
               결제날짜
             </div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">
+            <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
               금액
             </div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">
+            <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
               결제 상태
             </div>
-            <div className="flex-[1] text-[16px] font-medium text-neutral-60">
+            <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
               구독
             </div>
           </div>
@@ -395,7 +394,7 @@ export default function ProjectBillingDetail({
 
         {/* 페이지네이션 */}
         {payments.length > 0 && (
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-4 md:mt-6 px-4 md:px-0">
             <Pagination
               page={currentPage}
               totalPages={totalPages}
@@ -405,8 +404,6 @@ export default function ProjectBillingDetail({
         )}
       </div>
 
-      {/* 더미 데이터 모드 토글 */}
-      <DemoModeToggle />
     </div>
   );
 }
@@ -426,7 +423,7 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
           {cardCompanyAbbr}
         </span>
       </div>
-      <span className="text-[14px] text-foreground">
+      <span className="text-[12px] md:text-[14px] text-foreground">
         카드 결제 ({billingInfo.cardCompany} **** ****{" "}
         {billingInfo.lastFourDigits})
       </span>
@@ -446,16 +443,16 @@ function PaymentRow({
   const statusColor = getPaymentStatusColor(payment.status);
 
   return (
-    <div className="flex items-center px-6 py-3 border-b border-neutral-10">
-      <div className="flex-[1.5] text-[14px] text-foreground">
+    <div className="flex items-center px-3 md:px-6 py-2 md:py-3 border-b border-neutral-10 min-w-[600px]">
+      <div className="flex-[1.5] text-[12px] md:text-[14px] text-foreground">
         {formatDate(payment.createdAt)}
       </div>
-      <div className="flex-[1] text-[14px] text-foreground">
+      <div className="flex-[1] text-[12px] md:text-[14px] text-foreground">
         {formatAmount(payment.amount)}
       </div>
       <div className="flex-[1]">
         <span
-          className={`px-2 py-1 text-[12px] font-medium rounded ${
+          className={`px-2 py-1 text-[11px] md:text-[12px] font-medium rounded ${
             statusColor === "green"
               ? "bg-primary-10 text-primary-80"
               : statusColor === "yellow"
@@ -466,7 +463,7 @@ function PaymentRow({
           {statusLabel}
         </span>
       </div>
-      <div className="flex-[1] text-[14px] text-foreground">
+      <div className="flex-[1] text-[12px] md:text-[14px] text-foreground">
         {subscription?.plan ? `프로젝트 구독 ${subscription.plan.name}` : "-"}
       </div>
       <div className="flex items-center justify-end">

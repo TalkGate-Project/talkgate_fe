@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ProjectsService } from "@/services/projects";
 import type { ProjectSummary } from "@/types/projects";
 import ProjectBillingDetail from "./ProjectBillingDetail";
-import DemoModeToggle from "@/components/common/DemoModeToggle";
 import { useBilling } from "@/hooks/useBilling";
 import ChangePaymentMethodModal, {
   type PaymentMethodData,
@@ -104,19 +103,19 @@ export default function BillingTab() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px]">
-      <div className="space-y-6">
+    <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px] md:pb-0">
+      <div className="space-y-4 md:space-y-6">
         {/* 페이지 제목 */}
-        <div className="px-7 pt-7">
-          <h1 className="text-[24px] font-bold text-foreground">구독 관리</h1>
+        <div className="px-6 md:px-7 pt-5 md:pt-7">
+          <h1 className="text-[18px] md:text-[24px] font-bold text-foreground">구독 관리</h1>
         </div>
 
         {/* 구분선 */}
         <div className="w-full h-[1px] bg-border opacity-70"></div>
 
-        <div className="px-7 pb-7 space-y-6">
+        <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-6">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}
-          <div className="bg-card rounded-[14px] p-6 border border-neutral-20">
+          <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 프로젝트 관리 */}
               <div className="flex items-center gap-4">
@@ -145,10 +144,10 @@ export default function BillingTab() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-[18px] font-bold text-foreground mb-1">
+                  <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-1">
                     프로젝트 관리
                   </h2>
-                  <p className="text-[14px] text-neutral-60">
+                  <p className="text-[12px] md:text-[14px] text-neutral-60">
                     총 {projectsWithSubscription.length}개 프로젝트 진행중
                   </p>
                 </div>
@@ -183,27 +182,27 @@ export default function BillingTab() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-[16px] font-semibold text-foreground mb-1">
+                  <h2 className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
                     결제 수단
                   </h2>
                   {billingLoading ? (
                     <div className="h-4 w-32 bg-neutral-20 rounded animate-pulse" />
                   ) : activeBillingInfo ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-[14px] text-neutral-60">
+                      <span className="text-[12px] md:text-[14px] text-neutral-60">
                         카드 결제 ({activeBillingInfo.cardCompany} ****{" "}
                         {activeBillingInfo.lastFourDigits})
                       </span>
                     </div>
                   ) : (
-                    <p className="text-[14px] text-neutral-60">
+                    <p className="text-[12px] md:text-[14px] text-neutral-60">
                       등록된 결제 수단이 없습니다
                     </p>
                   )}
                 </div>
                 <button
                   onClick={() => setShowPaymentMethodModal(true)}
-                  className="cursor-pointer px-3 py-1.5 border border-neutral-30 text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors flex-shrink-0"
+                  className="cursor-pointer px-2 md:px-3 py-1 md:py-1.5 border border-neutral-30 text-[12px] md:text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors flex-shrink-0"
                 >
                   변경
                 </button>
@@ -257,8 +256,6 @@ export default function BillingTab() {
             )}
           </div>
 
-          {/* 더미 데이터 모드 토글 */}
-          <DemoModeToggle />
         </div>
       </div>
 
@@ -342,9 +339,9 @@ function ProjectCard({
   };
 
   return (
-    <div className="bg-card rounded-[14px] p-6 border border-neutral-20">
+    <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20">
       {/* 카드 헤더 */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4 md:mb-6">
         {/* 프로젝트 썸네일 */}
         {project.logoUrl ? (
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -359,21 +356,21 @@ function ProjectCard({
         ) : (
           getProjectIcon()
         )}
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-[16px] font-bold text-foreground">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-[14px] md:text-[16px] font-bold text-foreground truncate">
               {project.name}
             </h3>
             {subscription?.plan && (
               <span
-                className={`px-2 py-0.5 ${planTagColor} text-[12px] font-medium rounded-full`}
+                className={`px-2 py-0.5 ${planTagColor} text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0`}
               >
                 {subscription.plan.name}
               </span>
             )}
           </div>
           {subscription && (
-            <p className="text-[12px] text-neutral-60 mt-1">
+            <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1">
               {formatDate(subscription.startDate)} ~{" "}
               {formatDate(subscription.endDate)} (
               {subscription.billingCycle === "monthly" ? "월마다" : "연마다"}{" "}
@@ -385,12 +382,12 @@ function ProjectCard({
 
       {/* 사용량 정보 */}
       {subscription && usage && (
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
           {/* 멤버 수 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[14px] text-neutral-60">멤버 수</span>
-              <span className="text-[14px] text-foreground">
+              <span className="text-[12px] md:text-[14px] text-neutral-60">멤버 수</span>
+              <span className="text-[12px] md:text-[14px] text-foreground">
                 <span className="font-bold">{memberUsage}명</span>
                 <span className="text-neutral-60"> / {memberLimit}명</span>
               </span>
@@ -410,10 +407,10 @@ function ProjectCard({
           {/* AI 상담 도우미 토큰 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[14px] text-neutral-60">
+              <span className="text-[12px] md:text-[14px] text-neutral-60">
                 AI 상담 도우미 토큰
               </span>
-              <span className="text-[14px] text-foreground">
+              <span className="text-[12px] md:text-[14px] text-foreground">
                 <span className="font-bold">월 {aiUsage}회</span>
                 <span className="text-neutral-60"> / 월 {aiLimit}회</span>
               </span>
@@ -433,10 +430,10 @@ function ProjectCard({
           {/* 문자 전송 횟수 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[14px] text-neutral-60">
+              <span className="text-[12px] md:text-[14px] text-neutral-60">
                 문자 전송 횟수
               </span>
-              <span className="text-[14px] text-foreground">
+              <span className="text-[12px] md:text-[14px] text-foreground">
                 <span className="font-bold">월 {smsUsage}회</span>
                 <span className="text-neutral-60"> / 월 {smsLimit}회</span>
               </span>
@@ -459,7 +456,7 @@ function ProjectCard({
       <div className="flex items-center justify-end">
         <button
           onClick={onMoreClick}
-          className="cursor-pointer px-4 py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
+          className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
         >
           더보기
         </button>

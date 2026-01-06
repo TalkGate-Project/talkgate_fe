@@ -124,36 +124,31 @@ export default function ChangePaymentMethodModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center md:items-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
 
       {/* Modal */}
       <div
-        className="relative w-[524px] bg-card dark:bg-neutral-10 rounded-[14px]"
+        className="relative w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col"
         style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-7 pt-7 pb-6">
-          <h2 className="text-[18px] font-semibold text-foreground">결제수단 변경</h2>
+        <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-7 pb-4 md:pb-6">
           <button
             onClick={handleClose}
-            className="w-6 h-6 flex items-center justify-center cursor-pointer"
+            className="text-foreground hover:text-neutral-60 transition-colors cursor-pointer flex-shrink-0"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M18 6L6 18M6 6L18 18"
-                stroke="#B0B0B0"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
+          <h2 className="text-[18px] font-semibold text-foreground">결제수단 변경</h2>
         </div>
 
         {/* Content */}
-        <div className="px-7 pb-7">
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 pb-4 md:pb-7">
           {/* Forms */}
           <div className="space-y-[10px] mb-6">
             {/* 이메일 정보 */}
@@ -307,18 +302,18 @@ export default function ChangePaymentMethodModal({
         {/* Divider - 패딩/마진 없이 전체 너비 */}
         <div className="w-full h-[1px] bg-border"></div>
 
-        {/* Action Buttons */}
-        <div className="px-7 py-4">
-          <div className="flex justify-end gap-3">
+        {/* Action Buttons - 모바일에서 하단 고정 */}
+        <div className="px-4 md:px-7 py-4 mt-auto md:mt-0">
+          <div className="flex gap-3">
             <button
               onClick={handleClose}
-              className="px-3 py-1.5 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors cursor-pointer"
+              className="flex-1 px-3 py-1.5 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors cursor-pointer"
             >
               취소
             </button>
             <button
               onClick={handleConfirm}
-              className="px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer"
+              className="flex-1 px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer"
             >
               변경하기
             </button>
