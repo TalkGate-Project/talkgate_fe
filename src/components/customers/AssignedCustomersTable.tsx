@@ -109,84 +109,96 @@ export default function AssignedCustomersTable() {
             최근에 배정된 고객이 없습니다.
           </div>
         ) : (
-          <table className="w-full text-left border-collapse table-fixed">
-            <thead>
-              <tr className="bg-neutral-20 text-neutral-60">
-                {HEADER_LABELS.map((label, index) => (
-                  <th
-                    key={label}
-                    className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${
-                      index === 0
-                        ? "rounded-l-[8px]"
-                        : index === HEADER_LABELS.length - 1
-                        ? "rounded-r-[8px] w-[90px]"
-                        : ""
-                    }`}
-                  >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="typo-body-3">
-              {rows.map((customer) => {
-                const route = customer.applicationRoute || "-";
-                const media = customer.mediaCompany || "-";
-                const site = customer.site || "-";
-                const assignedLabel = customer.assignedAt
-                  ? formatDistanceToNow(new Date(customer.assignedAt), {
-                      addSuffix: true,
-                      locale: ko,
-                    })
-                  : "-";
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-neutral-20 text-neutral-60">
+                  {HEADER_LABELS.map((label, index) => (
+                    <th
+                      key={label}
+                      className={`text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
+                        index === 0
+                          ? "rounded-l-[8px]"
+                          : index === HEADER_LABELS.length - 1
+                          ? "rounded-r-[8px] w-[40px] md:w-[90px]"
+                          : ""
+                      }`}
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="typo-body-3">
+                {rows.map((customer) => {
+                  const route = customer.applicationRoute || "-";
+                  const media = customer.mediaCompany || "-";
+                  const site = customer.site || "-";
+                  const assignedLabel = customer.assignedAt
+                    ? formatDistanceToNow(new Date(customer.assignedAt), {
+                        addSuffix: true,
+                        locale: ko,
+                      })
+                    : "-";
 
-                return (
-                  <tr
-                    key={customer.id}
-                    className="border-b border-neutral-30/40 dark:!border-[#44444455]"
-                  >
-                    <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                      {customer.name}
-                    </td>
-                    <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                      {route}
-                    </td>
-                    <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                      {media}
-                    </td>
-                    <td className="px-6 h-[58px] align-middle text-neutral-90 opacity-80">
-                      {site}
-                    </td>
-                    <td className="px-6 h-[58px] align-middle text-neutral-90">
-                      {assignedLabel}
-                    </td>
-                    <td className="pl-6 w-[90px] h-[58px] align-middle">
-                      <button
-                        onClick={() => setSelectedCustomerId(customer.id)}
-                        className="cursor-pointer inline-flex items-center w-[90px]"
-                      >
-                        <svg
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                  return (
+                    <tr
+                      key={customer.id}
+                      className="border-b border-neutral-30/40 dark:!border-[#44444455] text-[13px] md:text-[16px]"
+                    >
+                      <td className="px-2 md:px-6 h-[52px] md:h-[58px] align-middle text-neutral-90 opacity-80">
+                        <span className="block truncate max-w-[80px] md:max-w-none">
+                          {customer.name}
+                        </span>
+                      </td>
+                      <td className="px-2 md:px-6 h-[52px] md:h-[58px] align-middle text-neutral-90 opacity-80">
+                        <span className="block truncate max-w-[100px] md:max-w-none">
+                          {route}
+                        </span>
+                      </td>
+                      <td className="px-2 md:px-6 h-[52px] md:h-[58px] align-middle text-neutral-90 opacity-80">
+                        <span className="block truncate max-w-[80px] md:max-w-none">
+                          {media}
+                        </span>
+                      </td>
+                      <td className="px-2 md:px-6 h-[52px] md:h-[58px] align-middle text-neutral-90 opacity-80">
+                        <span className="block truncate max-w-[120px] md:max-w-none">
+                          {site}
+                        </span>
+                      </td>
+                      <td className="px-2 md:px-6 h-[52px] md:h-[58px] align-middle text-neutral-90 whitespace-nowrap">
+                        {assignedLabel}
+                      </td>
+                      <td className="pl-2 md:pl-6 w-[40px] md:w-[90px] h-[52px] md:h-[58px] align-middle">
+                        <button
+                          onClick={() => setSelectedCustomerId(customer.id)}
+                          className="cursor-pointer inline-flex items-center justify-center w-full md:w-[90px]"
                         >
-                          <path
-                            d="M9 5L16 12L9 19"
-                            stroke="#B0B0B0"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="md:w-6 md:h-6"
+                          >
+                            <path
+                              d="M9 5L16 12L9 19"
+                              stroke="#B0B0B0"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="dark:stroke-neutral-50"
+                            />
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       <div className="flex items-center justify-center">
@@ -211,18 +223,18 @@ export default function AssignedCustomersTable() {
 
 function LoadingTableSkeleton() {
   return (
-    <div className="overflow-hidden">
-      <table className="w-full text-left border-collapse table-fixed">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-neutral-20 text-neutral-60">
             {HEADER_LABELS.map((label, index) => (
               <th
                 key={label}
-                className={`typo-title-4 font-medium h-[40px] px-6 text-neutral-70 ${
+                className={`text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
                   index === 0
                     ? "rounded-l-[8px]"
                     : index === HEADER_LABELS.length - 1
-                    ? "rounded-r-[8px] w-[90px]"
+                    ? "rounded-r-[8px] w-[40px] md:w-[90px]"
                     : ""
                 }`}
               >
@@ -236,14 +248,14 @@ function LoadingTableSkeleton() {
             <TableSkeletonRow
               key={`skeleton-${idx}`}
               columns={[
-                { width: "flex", paddingX: 6 }, // 이름
-                { width: "flex", paddingX: 6 }, // 신청경로
-                { width: "flex", paddingX: 6 }, // 매체사
-                { width: "flex", paddingX: 6 }, // 사이트
-                { width: "flex", paddingX: 6 }, // 배정시간
-                { width: 90, paddingX: 6 }, // 화살표 버튼
+                { width: "flex", paddingX: 2 }, // 이름
+                { width: "flex", paddingX: 2 }, // 신청경로
+                { width: "flex", paddingX: 2 }, // 매체사
+                { width: "flex", paddingX: 2 }, // 사이트
+                { width: "flex", paddingX: 2 }, // 배정시간
+                { width: 40, paddingX: 2 }, // 화살표 버튼
               ]}
-              rowHeight={58}
+              rowHeight={52}
             />
           ))}
         </tbody>
