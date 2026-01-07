@@ -9,6 +9,7 @@ import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
 import { getPendingInviteInfo, clearPendingInviteInfo } from "@/lib/invite";
 import { clearTokens } from "@/lib/token";
 import { AuthService } from "@/services/auth";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export type SocialSignupStep = "terms" | "phone" | "done";
 
@@ -25,6 +26,43 @@ export function SocialSignupForm() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
+
+  // 뒤로가기 감지 및 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 뒤로가기 감지 시 즉시 현재 페이지로 복원
+      window.history.pushState(null, "", window.location.href);
+      
+      // 안내 모달 표시
+      console.log("[SocialSignup] ⬅️ 뒤로가기 감지 - 안내 모달 표시");
+      
+      showErrorModal({
+        type: "info",
+        title: "만료된 페이지",
+        headline: "회원가입이 진행 중인 페이지입니다.",
+        description: "이미 회원가입 및 로그인에 성공했습니다. 로그아웃 하시겠습니까?",
+        confirmText: "로그인 페이지로 이동",
+        cancelText: "취소",
+        hideCancel: false,
+        onConfirm: () => {
+          // 토큰 삭제 후 로그인 페이지로 이동
+          clearTokens();
+          window.location.replace("/login");
+        },
+      });
+    };
+
+    // 히스토리에 현재 상태 추가 (뒤로가기 감지용)
+    window.history.pushState(null, "", window.location.href);
+
+    // popstate 이벤트 리스너 등록
+    window.addEventListener("popstate", handlePopState);
+
+    // 컴포넌트 언마운트 시 리스너 제거
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // 약관 동의 완료
   const handleTermsComplete = () => {
