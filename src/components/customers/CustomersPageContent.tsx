@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import Panel from "@/components/common/Panel";
 import { useCustomersList } from "@/hooks/useCustomersList";
 import { CustomerListItem } from "@/types/customers";
@@ -20,8 +20,8 @@ import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
 import { MembersTreeService } from "@/services/membersTree";
-import { MembersService } from "@/services/members";
-import type { MemberListItem } from "@/types/members";
+import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
+import type { MemberTreeNode } from "@/types/membersTree";
 
 function CustomersPageContentInner() {
   const router = useRouter();
@@ -78,42 +78,71 @@ function CustomersPageContentInner() {
   const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
-  // 팀/멤버 목록 상태
-  const [teams, setTeams] = useState<{ id: number; name: string; leaderMemberId: number; leaderMemberName: string }[]>([]);
-  const [members, setMembers] = useState<MemberListItem[]>([]);
+  // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환)
+  const { data: treeData } = useMembersTree(projectId);
+  const { data: allTeamsData } = useTeams(projectId);
 
-  // 팀/멤버 목록 fetch
-  useEffect(() => {
-    if (!projectId) return;
-    
-    // 팀 목록 가져오기
-    MembersTreeService.fetchTeams(projectId)
-      .then((teamsList) => {
-        setTeams(teamsList || []);
-      })
-      .catch(() => {
-        setTeams([]);
-      });
+  // 트리에서 모든 멤버를 직렬화하는 함수
+  const flattenTreeMembers = useCallback((nodes: MemberTreeNode[]): Array<{ id: number; name: string }> => {
+    const result: Array<{ id: number; name: string }> = [];
+    const traverse = (node: MemberTreeNode) => {
+      result.push({ id: node.id, name: node.name });
+      if (node.descendants && node.descendants.length > 0) {
+        node.descendants.forEach((descendant) => {
+          traverse(descendant);
+        });
+      }
+    };
+    nodes.forEach((node) => {
+      traverse(node);
+    });
+    return result;
+  }, []);
 
-    // 멤버 목록 가져오기
-    MembersService.list()
-      .then((res) => {
-        const membersList = (res.data as any)?.data?.members || (res.data as any)?.members || [];
-        setMembers(membersList);
-      })
-      .catch(() => {
-        setMembers([]);
-      });
-  }, [projectId]);
+  // 트리에서 팀 정보 추출 (teamName이 있는 노드 = 팀장)
+  const extractTeamsFromTree = useCallback((nodes: MemberTreeNode[]): Map<number, string> => {
+    const teamMap = new Map<number, string>();
+    const traverse = (node: MemberTreeNode) => {
+      if (node.teamName) {
+        // 팀장인 경우, 팀 정보 저장
+        // allTeamsData에서 해당 팀장의 팀 ID 찾기
+        const team = allTeamsData?.find((t) => t.leaderMemberId === node.id);
+        if (team) {
+          teamMap.set(team.id, team.name);
+        }
+      }
+      if (node.descendants && node.descendants.length > 0) {
+        node.descendants.forEach((descendant) => {
+          traverse(descendant);
+        });
+      }
+    };
+    nodes.forEach((node) => {
+      traverse(node);
+    });
+    return teamMap;
+  }, [allTeamsData]);
 
   // 팀/멤버 옵션 생성
   const teamOptions = useMemo(() => {
-    return teams.map((t) => ({ label: t.name, value: t.id }));
-  }, [teams]);
+    if (!treeData || !allTeamsData) return [];
+    
+    // 트리에서 추출한 팀 정보
+    const treeTeams = extractTeamsFromTree(treeData);
+    
+    // 트리에 포함된 팀만 필터링하여 옵션 생성
+    return allTeamsData
+      .filter((team) => treeTeams.has(team.id))
+      .map((team) => ({ label: team.name, value: team.id }));
+  }, [treeData, allTeamsData, extractTeamsFromTree]);
 
   const memberOptions = useMemo(() => {
-    return members.map((m) => ({ label: m.name, value: m.id }));
-  }, [members]);
+    if (!treeData) return [];
+    
+    // 트리에서 모든 멤버를 직렬화하여 옵션 생성
+    const treeMembers = flattenTreeMembers(treeData);
+    return treeMembers.map((m) => ({ label: m.name, value: m.id }));
+  }, [treeData, flattenTreeMembers]);
 
   const handleSelectAll = (mode: "page" | "all") => {
     toggleSelectAll(customers, mode);

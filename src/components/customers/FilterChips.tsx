@@ -99,6 +99,12 @@ export default function FilterChips({
         <Chip label={filters.mediaCompany} onRemove={() => onRemove("mediaCompany")} />
       )}
       {filters.site && <Chip label={filters.site} onRemove={() => onRemove("site")} />}
+      {filters.noteContent && (
+        <Chip 
+          label={`상담 내용: ${filters.noteContent.length > 20 ? filters.noteContent.slice(0, 20) + "..." : filters.noteContent}`} 
+          onRemove={() => onRemove("noteContent")} 
+        />
+      )}
       {Array.isArray(filters.categoryIds) &&
         filters.categoryIds.length > 0 &&
         filters.categoryIds.map((id) => (
