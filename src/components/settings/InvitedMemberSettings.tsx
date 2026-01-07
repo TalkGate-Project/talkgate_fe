@@ -9,6 +9,7 @@ import { MembersService } from "@/services/members";
 import type { InvitationListItem } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
+import Tooltip from "@/components/common/Tooltip";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 
@@ -86,11 +87,11 @@ function InvitedMemberRow({
 
         {/* Send/Resend Button Column - 가장 작게 */}
         <div className="flex-[0.5] flex justify-center">
-          <button
-            onClick={() => onResend(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
-            title="재전송"
-          >
+          <Tooltip content="재전송" delay={0}>
+            <button
+              onClick={() => onResend(member.id)}
+              className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
+            >
             <svg
               width="24"
               height="24"
@@ -106,16 +107,17 @@ function InvitedMemberRow({
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
+            </button>
+          </Tooltip>
         </div>
 
         {/* Delete Button Column - 가장 작게 */}
         <div className="flex-[0.5] flex justify-center">
-          <button
-            onClick={() => onDelete(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
-            title="삭제"
-          >
+          <Tooltip content="삭제" delay={0}>
+            <button
+              onClick={() => onDelete(member.id)}
+              className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
+            >
             <svg
               className="w-6 h-6"
               viewBox="0 0 24 24"
@@ -130,7 +132,8 @@ function InvitedMemberRow({
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -163,11 +166,11 @@ function InvitedMemberRow({
 
         {/* 버튼 열 */}
         <div className="w-16 flex-none flex items-center justify-center gap-2">
-          <button
-            onClick={() => onResend(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
-            title="재전송"
-          >
+          <Tooltip content="재전송" delay={0}>
+            <button
+              onClick={() => onResend(member.id)}
+              className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
+            >
             <svg
               width="24"
               height="24"
@@ -185,12 +188,13 @@ function InvitedMemberRow({
                 strokeWidth="2"
               />
             </svg>
-          </button>
-          <button
-            onClick={() => onDelete(member.id)}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
-            title="삭제"
-          >
+            </button>
+          </Tooltip>
+          <Tooltip content="삭제" delay={0}>
+            <button
+              onClick={() => onDelete(member.id)}
+              className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 dark:hover:bg-neutral-20 rounded transition-colors"
+            >
             <svg
               width="20"
               height="20"
@@ -206,7 +210,8 @@ function InvitedMemberRow({
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -435,7 +440,7 @@ export default function InvitedMemberSettings() {
         </div>
 
         {/* Desktop Header */}
-        <div className="hidden md:block bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] flex items-center">
+        <div className="hidden bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-[40px] md:flex items-center">
           <div className="flex items-center w-full">
             {/* Email - 가장 넓게 */}
             <div className="flex-[2] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
