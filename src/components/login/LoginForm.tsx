@@ -13,10 +13,13 @@ import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { usePersistentModal } from "@/providers/PersistentModalProvider";
+import { SignupService } from "@/services/signup";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const persistentModal = usePersistentModal();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,6 +27,7 @@ export function LoginForm() {
   const [invalid, setInvalid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasCheckedEmailDuplicate, setHasCheckedEmailDuplicate] = useState(false);
   
   // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
   const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
@@ -38,6 +42,71 @@ export function LoginForm() {
       setEmail(pendingInvite.email);
     }
   }, [pendingInvite?.email]);
+
+  // 초대 플로우에서 로그인 페이지로 진입했을 때 이메일 중복 체크
+  useEffect(() => {
+    // 초대 플로우이고, 이메일이 있고, 아직 체크하지 않은 경우에만 실행
+    if (isInviteFlow && pendingInvite?.email && !hasCheckedEmailDuplicate && !checking) {
+      const checkEmail = async () => {
+        try {
+          console.log("[LoginPage] 📧 초대 플로우 - 이메일 중복 체크:", pendingInvite.email);
+          const result = await SignupService.checkEmailAvailable({ email: pendingInvite.email });
+          const isDuplicate = !result.available; // available이 false면 중복
+          
+          setHasCheckedEmailDuplicate(true);
+          
+          if (isDuplicate) {
+            // 이미 가입된 계정 → 로그인 안내 모달
+            persistentModal.show({
+              type: "system",
+              title: "회원가입",
+              headline: "회원가입을 진행해주세요.",
+              description: `${pendingInvite.email} 계정으로 이미 가입되어 있어요.\n로그인 후 프로젝트에 합류하세요!`,
+              confirmText: "로그인하기",
+              hideCancel: true,
+              onConfirm: () => {
+                // 모달만 닫고 로그인 폼에서 계속 진행할 수 있도록
+              },
+            });
+          } else {
+            // 가입되지 않은 계정 → 회원가입 안내 모달
+            persistentModal.show({
+              type: "system",
+              title: "회원가입",
+              headline: "회원가입을 진행해주세요.",
+              description: `${pendingInvite.email} 로 등록된 계정이 없어요.\n지금 가입하고 프로젝트 멤버들과 협업을 시작해 보세요!`,
+              confirmText: "회원가입하기",
+              hideCancel: true,
+              onConfirm: () => {
+                // 회원가입 페이지로 이동
+                let signupUrl = "/signup";
+                const params = new URLSearchParams();
+                
+                if (pendingInvite?.token) {
+                  params.set("invite", pendingInvite.token);
+                }
+                if (redirectUrl) {
+                  params.set("redirectUrl", redirectUrl);
+                }
+                
+                if (params.toString()) {
+                  signupUrl += `?${params.toString()}`;
+                }
+                
+                router.push(signupUrl);
+              },
+            });
+          }
+        } catch (error) {
+          console.error("[LoginPage] ❌ 이메일 중복 체크 실패:", error);
+          // 에러가 발생해도 플로우를 계속 진행할 수 있도록
+          setHasCheckedEmailDuplicate(true);
+        }
+      };
+      
+      checkEmail();
+    }
+  }, [isInviteFlow, pendingInvite?.email, pendingInvite?.token, hasCheckedEmailDuplicate, checking, persistentModal, redirectUrl, router]);
 
   // 인증 상태 확인 함수 (재사용)
   const checkAuthAndRedirect = () => {

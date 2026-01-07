@@ -796,3 +796,23 @@ svg path:focus {
   display: none;
 }
 
+/* Shake animation for persistent modal */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@utility animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
