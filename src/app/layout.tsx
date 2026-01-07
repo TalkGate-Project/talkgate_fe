@@ -8,6 +8,7 @@ import ConditionalHeader from "../components/common/ConditionalHeader";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import ConfirmModalProvider from "@/providers/ConfirmModalProvider";
+import PersistentModalProvider from "@/providers/PersistentModalProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
 import ChatProvider from "@/providers/ChatProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
@@ -84,10 +85,11 @@ export default async function RootLayout({
       >
         <ErrorFeedbackModalProvider>
           <ConfirmModalProvider>
-            <ReactQueryProvider>
-              <DemoModeProvider>
-                <NotificationProvider>
-                  <ChatProvider>
+            <PersistentModalProvider>
+              <ReactQueryProvider>
+                <DemoModeProvider>
+                  <NotificationProvider>
+                    <ChatProvider>
                     <ConditionalHeader />
                     {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
                     <Suspense fallback={null}>
@@ -95,10 +97,11 @@ export default async function RootLayout({
                     </Suspense>
                     {/* No fixed padding; header component inserts spacer only when visible */}
                     <div>{children}</div>
-                  </ChatProvider>
-                </NotificationProvider>
-              </DemoModeProvider>
-            </ReactQueryProvider>
+                    </ChatProvider>
+                  </NotificationProvider>
+                </DemoModeProvider>
+              </ReactQueryProvider>
+            </PersistentModalProvider>
           </ConfirmModalProvider>
         </ErrorFeedbackModalProvider>
       </body>
