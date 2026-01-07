@@ -141,10 +141,10 @@ export default function CustomerCreateModal({
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
-        // 주민등록번호 앞자리와 뒷자리를 합쳐서 하나의 값으로 전송 (구분자 없이)
+        // 주민등록번호 앞자리와 뒷자리를 합쳐서 "-" 포함 형식으로 전송 (예: "461385-8244625")
         residentId:
           residentId1 || residentId2
-            ? `${residentId1}${residentId2}`
+            ? `${residentId1}-${residentId2}`
             : undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,

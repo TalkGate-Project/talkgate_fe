@@ -35,14 +35,24 @@ export function useCustomerForm(): UseCustomerFormReturn {
       ? dayjs(detail.applicationDate).format("YYYY-MM-DD HH:mm")
       : "";
 
+    // 주민등록번호 처리: "461385-8244625" 형식에서 "-" 제거하고 앞자리/뒷자리 분리
+    let residentFront = "";
+    let residentBack = "";
+    if (detail.residentId) {
+      // "-" 문자 제거
+      const residentIdWithoutDash = detail.residentId.replace(/-/g, "");
+      residentFront = residentIdWithoutDash.slice(0, 6) ?? "";
+      residentBack = residentIdWithoutDash.slice(6) ?? "";
+    }
+
     const initialFormState: CustomerFormState = {
       name: detail.name ?? "",
       contact1: detail.contact1 ?? "",
       contact2: detail.contact2 ?? "",
       contact1Type: detail.contact1Type ?? null,
       contact2Type: detail.contact2Type ?? null,
-      residentFront: detail.residentId?.slice(0, 6) ?? "",
-      residentBack: detail.residentId?.slice(6) ?? "",
+      residentFront,
+      residentBack,
       ageRange: detail.ageRange ?? "",
       job: detail.job ?? "",
       applicationRoute: detail.applicationRoute ?? "",
@@ -97,13 +107,14 @@ export function useCustomerForm(): UseCustomerFormReturn {
     });
 
     // residentId 처리: residentFront 또는 residentBack이 변경된 경우
+    // 서버 전송 시 "-"를 포함한 형식으로 변환 (예: "461385-8244625")
     const currentResidentId =
       form.residentFront || form.residentBack
-        ? `${form.residentFront}${form.residentBack}`
+        ? `${form.residentFront}-${form.residentBack}`
         : "";
     const originalResidentId =
       originalForm.residentFront || originalForm.residentBack
-        ? `${originalForm.residentFront}${originalForm.residentBack}`
+        ? `${originalForm.residentFront}-${originalForm.residentBack}`
         : "";
 
     if (currentResidentId !== originalResidentId) {

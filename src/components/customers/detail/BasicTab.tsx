@@ -6,6 +6,47 @@ import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
 
+// 주민등록번호 뒷자리 입력 컴포넌트 (마스킹 처리)
+function ResidentBackInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isFocused, setIsFocused] = useState(false);
+
+  // 포커스 시 실제 값 표시
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  // 포커스 해제 시 마스킹
+  const handleBlur = () => {
+    setIsFocused(false);
+  };
+
+  // 값 변경 시
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 숫자만 입력 허용, "-" 문자 제거
+    const inputValue = e.target.value.replace(/[^0-9]/g, "");
+    onChange(inputValue);
+  };
+
+  return (
+    <input
+      type="text"
+      value={isFocused ? value : "******"}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      maxLength={7}
+      className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+      placeholder="*******"
+    />
+  );
+}
+
 type Props = {
   form: CustomerFormState;
   setForm: React.Dispatch<React.SetStateAction<CustomerFormState>>;
@@ -144,24 +185,23 @@ export default function BasicTab({
           <div>
             <input
               value={form.residentFront}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, residentFront: e.target.value }))
-              }
+              onChange={(e) => {
+                // 숫자만 입력 허용
+                const value = e.target.value.replace(/[^0-9]/g, "");
+                setForm((prev) => ({ ...prev, residentFront: value }));
+              }}
+              maxLength={6}
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="123456"
             />
           </div>
           <div className="text-center text-neutral-60">-</div>
-          <div>
-            <input
-              value={form.residentBack}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, residentBack: e.target.value }))
-              }
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="*******"
-            />
-          </div>
+          <ResidentBackInput
+            value={form.residentBack}
+            onChange={(value) =>
+              setForm((prev) => ({ ...prev, residentBack: value }))
+            }
+          />
         </div>
       </div>
 
