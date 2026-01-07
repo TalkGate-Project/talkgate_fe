@@ -1,5 +1,5 @@
 import type { ApiSuccessResponse } from "./common";
-import type { RecentNote } from "./customers";
+import type { RecentNote, AssignedMember } from "./customers";
 
 export type RecentlyAssignedCustomer = {
   id: number;
@@ -9,10 +9,12 @@ export type RecentlyAssignedCustomer = {
   applicationRoute?: string | null;
   mediaCompany?: string | null;
   site?: string | null;
+  assignedMember?: AssignedMember | null;
   assignedAt?: string | null;
   assignedTeamName?: string | null;
   assignedMemberName?: string | null;
   applicationDate?: string | null;
+  status?: string | null; // e.g., "pending", "unconfirmed", "confirmed"
   createdAt?: string | null;
   recentNotes?: RecentNote[] | null;
   messengers?: Array<{

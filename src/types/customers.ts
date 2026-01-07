@@ -16,6 +16,13 @@ export type RecentNote = {
   createdAt: string;
 };
 
+export type AssignedMember = {
+  id: number;
+  name: string;
+  teamId: number;
+  teamName: string;
+};
+
 export type CustomerListItem = {
   id: number;
   name: string;
@@ -24,10 +31,12 @@ export type CustomerListItem = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  assignedMember?: AssignedMember | null;
   assignedTeamName: string;
   assignedMemberName: string;
   applicationDate: string;
   assignedAt: string;
+  status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   createdAt: string;
   recentNotes: RecentNote[];
 };
@@ -134,10 +143,12 @@ export type CustomerDetail = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
-  applicationDate: string;
-  assignedAt: string;
+  assignedMember?: AssignedMember | null;
   assignedTeamName: string;
   assignedMemberName: string;
+  applicationDate: string;
+  assignedAt: string;
+  status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   specialNotes?: string;
   investmentInfo?: string;
   investmentProfitLoss?: string;
@@ -152,6 +163,7 @@ export type CustomerDetail = {
   paymentHistories: CustomerPaymentHistory[];
   schedules: CustomerSchedule[];
   notes: RecentNote[];
+  recentNotes?: RecentNote[]; // 일부 API 응답에서 사용
   createdAt: string;
   updatedAt: string;
 };
@@ -310,4 +322,18 @@ export type AddCustomerScheduleInput = {
 export type RemoveCustomerScheduleInput = {
   scheduleId: number;
   projectId: string; // header
+};
+
+// Confirm customer
+export type ConfirmCustomerResponse = {
+  result: true;
+  data: CustomerDetail;
+};
+
+// Confirm all customers
+export type ConfirmAllCustomersResponse = {
+  result: true;
+  data: {
+    confirmedCount: number;
+  };
 };

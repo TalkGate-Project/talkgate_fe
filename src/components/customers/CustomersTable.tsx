@@ -6,6 +6,9 @@ import { formatDateTime } from "@/utils/datetime";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { CustomersService } from "@/services/customers";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -18,6 +21,8 @@ type CustomersTableProps = {
   onCustomerClick: (customerId: number) => void;
   totalCount: number;
   selectionMode: "page" | "all" | null;
+  projectId: string;
+  onRefetch: () => void;
 };
 
 function getBodyZoom(): number {
@@ -38,6 +43,8 @@ export default function CustomersTable({
   onCustomerClick,
   totalCount,
   selectionMode,
+  projectId,
+  onRefetch,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -176,6 +183,76 @@ export default function CustomersTable({
     setDropdownOpen(false);
   };
 
+  const handleConfirmAll = () => {
+    showConfirmModal({
+      message: "자신에게 직접 할당된 모든 고객을 확인됨으로 변경하시겠습니까?",
+      confirmText: "확인",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await CustomersService.confirmAll(projectId);
+          onRefetch();
+        } catch (error: any) {
+          const errorCode = error?.data?.code;
+          const errorStatus = error?.status;
+
+          if (errorStatus === 403 && errorCode === "FORBIDDEN") {
+            showErrorModal({
+              headline: "확인할 수 있는 권한이 없습니다.",
+              description: "자신에게 직접 할당된 고객만 확인할 수 있습니다.",
+              hideCancel: true,
+              confirmText: "확인",
+            });
+          } else {
+            showErrorModal({
+              headline: "전체 확인에 실패했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              hideCancel: true,
+              confirmText: "확인",
+            });
+          }
+        }
+      },
+    });
+  };
+
+  const handleConfirmCustomer = (customerId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const customer = customers.find((c) => c.id === customerId);
+    if (!customer || customer.status === "confirmed") return;
+
+    showConfirmModal({
+      message: "해당 고객을 확인됨으로 변경하시겠습니까?",
+      confirmText: "확인",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await CustomersService.confirm(String(customerId), projectId);
+          onRefetch();
+        } catch (error: any) {
+          const errorCode = error?.data?.code;
+          const errorStatus = error?.status;
+
+          if (errorStatus === 403 && errorCode === "FORBIDDEN") {
+            showErrorModal({
+              headline: "확인할 수 있는 권한이 없습니다.",
+              description: "배정된 멤버만 고객을 확인할 수 있습니다.",
+              hideCancel: true,
+              confirmText: "확인",
+            });
+          } else {
+            showErrorModal({
+              headline: "고객 확인에 실패했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              hideCancel: true,
+              confirmText: "확인",
+            });
+          }
+        }
+      },
+    });
+  };
+
   return (
     <>
       <div className="overflow-hidden" style={{ width: "100%" }}>
@@ -220,11 +297,12 @@ export default function CustomersTable({
                 "담당자",
                 "카테고리",
                 "신청시간",
-                "배정시간",
+                "전체확인",
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""}`}
+                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""} ${h === "전체확인" ? "font-semibold underline cursor-pointer" : ""}`}
+                  onClick={h === "전체확인" ? handleConfirmAll : undefined}
                 >
                   {h}
                 </th>
@@ -338,7 +416,31 @@ export default function CustomersTable({
                     {c.assignedTeamName || "-"}
                   </td>
                   <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {c.assignedMemberName || "-"}
+                    <div className="flex items-center gap-2">
+                      <span>{c.assignedMemberName || "-"}</span>
+                      {c.assignedMemberName && (
+                        <button
+                          onClick={(e) => handleConfirmCustomer(c.id, e)}
+                          className={`flex items-center justify-center ${c.status !== "confirmed" ? "cursor-pointer" : ""}`}
+                          aria-label="고객 확인"
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
+                              fill={c.status === "confirmed" ? "#00E272" : "#B0B0B0"}
+                            />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 text-center">
                     {(() => {
@@ -372,8 +474,26 @@ export default function CustomersTable({
                   <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
                     {formatDateTime(c.applicationDate || c.createdAt)}
                   </td>
-                  <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
-                    {formatDateTime(c.assignedAt)}
+                  <td className="hidden md:table-cell px-4 h-[48px] align-middle">
+                    <div className="flex items-center justify-center">
+                      {c.status === "confirmed" ? (
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5 13L9 17L19 7"
+                            stroke="#00E272"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : null}
+                    </div>
                   </td>
                   {/* 모바일: 이름, 전화번호, 담당자만 표시 */}
                   <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
