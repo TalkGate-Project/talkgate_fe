@@ -21,6 +21,8 @@ import {
   RemoveCustomerScheduleInput,
   UnassignCustomersInput,
   UnassignCustomersResponse,
+  ConfirmCustomerResponse,
+  ConfirmAllCustomersResponse,
 } from "@/types/customers";
 import type { RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 
@@ -138,6 +140,18 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
+  // 고객 상태를 확인됨으로 변경 (배정된 멤버만 가능)
+  confirm(customerId: string, projectId: string) {
+    return apiClient.patch<ConfirmCustomerResponse>(`/v1/customers/${customerId}/confirm`, undefined, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  // 자신에게 직접 할당된 모든 고객을 확인됨으로 일괄 변경
+  confirmAll(projectId: string) {
+    return apiClient.post<ConfirmAllCustomersResponse>(`/v1/customers/confirm-all`, undefined, {
+      headers: { "x-project-id": projectId },
+    });
+  },
 };
 
 // Re-export types for convenience
@@ -162,4 +176,6 @@ export type {
   RemoveCustomerScheduleInput,
   UnassignCustomersInput,
   UnassignCustomersResponse,
+  ConfirmCustomerResponse,
+  ConfirmAllCustomersResponse,
 } from "@/types/customers";

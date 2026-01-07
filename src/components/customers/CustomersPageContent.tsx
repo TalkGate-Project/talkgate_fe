@@ -256,6 +256,8 @@ function CustomersPageContentInner() {
           onCustomerClick={setDetailId}
           totalCount={total}
           selectionMode={selectionMode}
+          projectId={projectId}
+          onRefetch={refetch}
         />
         <CustomersPagination
           total={total}
