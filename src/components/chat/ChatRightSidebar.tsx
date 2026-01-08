@@ -17,6 +17,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<number | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
@@ -49,6 +50,13 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         messagesScrollRef.current.scrollHeight;
     }
   }, []);
+
+  // pendingPrompt가 변경되면 스크롤을 바닥으로 이동
+  useEffect(() => {
+    if (pendingPrompt) {
+      setTimeout(scrollToBottom, 50);
+    }
+  }, [pendingPrompt, scrollToBottom]);
 
   // 대화방 변경 시 AI 도우미 대화 목록 조회
   useEffect(() => {
@@ -154,6 +162,10 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
     setSending(true);
     setError(null);
     const prompt = input.trim();
+    setPendingPrompt(prompt);
+    setInput("");
+    // 스크롤을 먼저 바닥으로 이동 (로딩 말풍선이 보이도록)
+    setTimeout(scrollToBottom, 50);
     try {
       const res = await ConversationsService.askAiAssistant({
         conversationId,
@@ -165,8 +177,8 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       if (data) {
         // 새 메시지를 뒤에 추가 (오래된 -> 최신)
         setMessages((prev) => [...prev, data]);
-        setInput("");
-        // 전송 후 스크롤 바닥으로
+        setPendingPrompt(null);
+        // 응답 후 스크롤 바닥으로
         setTimeout(scrollToBottom, 100);
       }
     } catch (err: any) {
@@ -175,6 +187,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
         err?.message ||
         "AI 상담 도우미에게 질문하지 못했습니다.";
       setError(msg);
+      setPendingPrompt(null);
     } finally {
       setSending(false);
     }
@@ -295,6 +308,41 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                       </div>
                     </div>
                   ))}
+                  {/* 전송 중인 질문과 로딩 말풍선 */}
+                  {pendingPrompt && (
+                    <div className="space-y-3">
+                      {/* 나의 질문 (outgoing) */}
+                      <div className="flex justify-end">
+                        <div className="max-w-[85%] bg-neutral-90 text-neutral-0 rounded-[16px] rounded-br-none px-4 py-3">
+                          <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
+                            {pendingPrompt}
+                          </div>
+                          <div className="mt-2 text-[12px] text-[#B0B0B0]">
+                            {formatMessageTime(new Date().toISOString())}
+                          </div>
+                        </div>
+                      </div>
+                      {/* AI 응답 대기 중 로딩 말풍선 */}
+                      <div className="flex justify-start">
+                        <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <span 
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
+                              style={{ animationDelay: "0ms" }} 
+                            />
+                            <span 
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
+                              style={{ animationDelay: "200ms" }} 
+                            />
+                            <span 
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
+                              style={{ animationDelay: "400ms" }} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
