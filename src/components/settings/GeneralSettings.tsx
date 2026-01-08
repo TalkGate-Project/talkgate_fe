@@ -9,6 +9,7 @@ import { setUseAttendanceMenu } from "@/lib/project";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { getProjectSubdomainUrl, canUseSubdomain, getMainDomain } from "@/lib/subdomain";
 
 export default function GeneralSettings() {
   const [projectId] = useSelectedProjectId();
@@ -126,6 +127,30 @@ export default function GeneralSettings() {
         { "x-project-id": projectId }
       );
       setOriginalSubdomain(subdomain);
+      
+      // 서브도메인을 사용할 수 있는 환경이고 변경에 성공한 경우
+      // 현재 경로를 유지하면서 새 서브도메인 URL로 리디렉션
+      if (canUseSubdomain() && subdomain) {
+        const currentPath = window.location.pathname + window.location.search;
+        const newSubdomainUrl = getProjectSubdomainUrl(subdomain, currentPath);
+        
+        if (newSubdomainUrl) {
+          // 성공 메시지 표시 후 리디렉션
+          showErrorModal({
+            type: "success",
+            headline: "서브도메인이 변경되었습니다.",
+            description: "새 서브도메인으로 이동합니다.",
+            hideCancel: true,
+            confirmText: "확인",
+            onConfirm: () => {
+              window.location.href = newSubdomainUrl;
+            },
+          });
+          return;
+        }
+      }
+      
+      // 서브도메인을 사용할 수 없는 환경이거나 리디렉션이 불가능한 경우
       showErrorModal({
         type: "success",
         headline: "서브도메인이 변경되었습니다.",
