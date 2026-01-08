@@ -8,6 +8,7 @@ export type CustomerDetailModalProps = {
   open: boolean;
   onClose: () => void;
   customerId: number | null;
+  onRefetch?: () => void;
 };
 
 export default function CustomerDetailModal(props: CustomerDetailModalProps) {
@@ -42,8 +43,8 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
   }, []);
 
   return isMobile ? (
-    <CustomerDetailModalMobile {...props} />
+    <CustomerDetailModalMobile {...props} onRefetch={props.onRefetch} />
   ) : (
-    <CustomerDetailModalDesktop {...props} />
+    <CustomerDetailModalDesktop {...props} onRefetch={props.onRefetch} />
   );
 }

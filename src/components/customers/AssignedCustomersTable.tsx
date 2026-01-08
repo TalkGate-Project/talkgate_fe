@@ -84,10 +84,10 @@ export default function AssignedCustomersTable() {
       className="rounded-[14px]"
       style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
       headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
-      bodyClassName="px-4 md:px-7 pb-4 md:pb-6 pt-4 md:pt-4 flex h-full flex-col gap-4"
+      bodyClassName="px-4 md:px-7 pb-4 md:pb-6 pt-4 md:pt-4 flex flex-col gap-4 min-h-0"
     >
       <div
-        className="flex-1 overflow-hidden rounded-[12px] bg-card"
+        className="flex-1 min-h-0 overflow-y-auto rounded-[12px] bg-card"
         style={{ width: "100%" }}
       >
         {waitingForProject ? (
@@ -201,7 +201,7 @@ export default function AssignedCustomersTable() {
           </div>
         )}
       </div>
-      <div className="flex items-center justify-center">
+      <div className="flex-shrink-0 flex items-center justify-center">
         <Pagination
           page={page}
           totalPages={totalPages}
@@ -244,7 +244,7 @@ function LoadingTableSkeleton() {
           </tr>
         </thead>
         <tbody className="typo-body-3">
-          {Array.from({ length: 5 }).map((_, idx) => (
+          {Array.from({ length: 4 }).map((_, idx) => (
             <TableSkeletonRow
               key={`skeleton-${idx}`}
               columns={[
