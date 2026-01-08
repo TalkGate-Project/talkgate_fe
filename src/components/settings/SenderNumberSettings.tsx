@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { SmsService } from "@/services/sms";
 import type { ProjectSenderNumber, MemberSenderNumber } from "@/types/sms";
 import SelfAuthenticationModal from "./SelfAuthenticationModal";
 import CommonSenderNumberModal from "./CommonSenderNumberModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import {
+  usePhoneVerification,
+  type VerificationResult,
+} from "@/hooks/usePhoneVerification";
+import { VerificationService } from "@/services/verification";
 
 type ProjectSenderNumberStatus = "verified" | "pending" | "rejected";
 
@@ -123,8 +129,22 @@ export default function SenderNumberSettings() {
   const [showSelfAuthModal, setShowSelfAuthModal] = useState(false);
   const [showCommonSenderModal, setShowCommonSenderModal] = useState(false);
   const [authPurpose, setAuthPurpose] = useState<"personal" | "common">("personal");
-  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
 
+  // 본인인증 상태 조회
+  const {
+    data: verificationData,
+    refetch: refetchVerification,
+    isLoading: isLoadingVerification,
+  } = useQuery({
+    queryKey: ["verification", "identity"],
+    queryFn: async () => {
+      const response = await VerificationService.getIdentity();
+      return response.data.data; // ApiSuccessResponse의 data에서 실제 VerificationIdentity 추출
+    },
+    staleTime: 1000 * 60 * 5, // 5분
+  });
+
+  const isUserAuthenticated = verificationData?.isVerified === true;
   const showProjectMissing = ready && !projectId;
 
   // 프로젝트 발신번호 로드
@@ -221,55 +241,99 @@ export default function SenderNumberSettings() {
     }
   };
 
+  // 본인인증 성공 핸들러 (개인 발신번호용)
+  // 백엔드에서 자동으로 발신번호를 추가하므로 별도 API 호출 불필요
+  const handlePersonalVerificationSuccess = useCallback(
+    async (result: VerificationResult) => {
+      console.log("[SenderNumberSettings] ✅ 본인인증 성공:", result);
+      
+      // 본인인증 상태를 다시 조회
+      await refetchVerification();
+      
+      // 발신번호 목록 새로고침 (백엔드에서 자동으로 추가됨)
+      await loadMemberNumbers();
+      
+      showErrorModal({
+        type: "success",
+        headline: "본인인증이 완료되었습니다.",
+        description: "발신번호가 자동으로 추가되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    },
+    [refetchVerification, loadMemberNumbers]
+  );
+
+  // 본인인증 실패 핸들러 (개인 발신번호용)
+  const handlePersonalVerificationError = useCallback((result: VerificationResult) => {
+    console.error("[SenderNumberSettings] 본인인증 실패:", result);
+
+    // 이미 본인인증이 완료된 경우
+    if (result.code === "IDENTITY_VERIFICATION_ALREADY_EXISTS") {
+      showErrorModal({
+        type: "info",
+        headline: "이미 본인인증이 완료되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      // 이미 완료된 경우 상태를 다시 조회
+      refetchVerification();
+      return;
+    }
+
+    // 팝업 차단된 경우
+    if (result.code === "POPUP_BLOCKED") {
+      showErrorModal({
+        type: "error",
+        headline: "팝업이 차단되었습니다.",
+        description: "브라우저 설정에서 팝업 차단을 해제해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+      return;
+    }
+
+    // 기타 오류
+    showErrorModal({
+      type: "error",
+      headline: "본인인증에 실패했습니다.",
+      description: "잠시 후 다시 시도해주세요.",
+      hideCancel: true,
+      confirmText: "확인",
+    });
+  }, [refetchVerification]);
+
+  // 본인인증 훅 사용 (개인 발신번호용)
+  const { startVerification: startPersonalVerification, isVerifying: isVerifyingPersonal } = usePhoneVerification({
+    type: "sms-sender",
+    onSuccess: handlePersonalVerificationSuccess,
+    onError: handlePersonalVerificationError,
+  });
+
   // 개인 발신번호 추가 핸들러
   const handleAddMemberNumber = () => {
-    // 항상 본인인증 진행
     setAuthPurpose("personal");
-    setShowSelfAuthModal(true);
+    
+    if (isUserAuthenticated) {
+      // 인증이 이미 된 경우: 바로 본인인증 시작
+      startPersonalVerification();
+    } else {
+      // 인증이 안된 경우: 확인 모달 표시
+      setShowSelfAuthModal(true);
+    }
   };
 
-  // 본인인증 성공 핸들러
-  const handleAuthSuccess = async (verificationToken: string) => {
+  // 확인 모달에서 확인 버튼 클릭 시 본인인증 시작
+  const handleConfirmAuthentication = () => {
     setShowSelfAuthModal(false);
-    setIsUserAuthenticated(true);
+    startPersonalVerification();
+  };
 
-    if (authPurpose === "personal") {
-      // 개인 발신번호: 본인인증 완료 시 자동으로 발신번호 추가
-      try {
-        await SmsService.registerMemberSenderNumber({ verificationToken });
-        showErrorModal({
-          type: "success",
-          headline: "본인인증 완료",
-          description: "본인인증이 완료되어 발신번호가 자동으로 추가되었습니다.",
-          hideCancel: true,
-          confirmText: "확인",
-          onConfirm: () => {
-            loadMemberNumbers(); // 목록 새로고침
-          },
-        });
-      } catch (error: any) {
-        console.error("개인 발신번호 등록 실패:", error);
-        const errorCode = error?.response?.data?.code;
-        if (errorCode === "ALREADY_EXISTS") {
-          showErrorModal({
-            type: "error",
-            headline: "이미 등록된 발신번호입니다",
-            hideCancel: true,
-            confirmText: "확인",
-          });
-        } else {
-          showErrorModal({
-            type: "error",
-            headline: "발신번호 등록 실패.",
-            hideCancel: true,
-            confirmText: "확인",
-          });
-        }
-      }
-    } else if (authPurpose === "common") {
-      // 공통 발신번호: 서류 등록 모달 표시
-      setShowCommonSenderModal(true);
-    }
+  // 공통 발신번호용 확인 핸들러
+  const handleCommonAuthConfirm = () => {
+    setShowSelfAuthModal(false);
+    // 공통 발신번호: 서류 등록 모달 표시
+    setShowCommonSenderModal(true);
   };
 
   // 공통 발신번호 등록 성공 핸들러
@@ -313,11 +377,15 @@ export default function SenderNumberSettings() {
 
   return (
     <>
-      {/* 본인인증 모달 */}
+      {/* 본인인증 확인 모달 */}
       <SelfAuthenticationModal
         isOpen={showSelfAuthModal}
         onClose={() => setShowSelfAuthModal(false)}
-        onSuccess={handleAuthSuccess}
+        onConfirm={
+          authPurpose === "personal"
+            ? handleConfirmAuthentication
+            : handleCommonAuthConfirm
+        }
         purpose={authPurpose}
       />
 

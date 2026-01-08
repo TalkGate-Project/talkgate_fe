@@ -137,6 +137,18 @@ export class ApiClient {
       // Do NOT refresh on 403 (forbidden) to avoid unnecessary logout on access control errors.
       if (err && err.status === 401) {
         const code: string = (err?.data?.code as string) || String(err?.data?.message || "").toUpperCase();
+        const message: string = String(err?.data?.message || "").toUpperCase();
+        
+        // 본인인증 관련 에러는 자동 로그아웃하지 않음 (정상적인 플로우)
+        const isIdentityVerificationError = 
+          code.includes("UNAUTHORIZED") && 
+          (message.includes("본인인증") || message.includes("IDENTITY") || message.includes("VERIFICATION"));
+        
+        if (isIdentityVerificationError) {
+          // 본인인증 관련 에러는 그대로 throw (자동 로그아웃 없음)
+          throw err;
+        }
+        
         // Immediate auto-logout for explicit missing token cases
         if (typeof code === "string" && code.toUpperCase().includes("MISSING_AUTHENTICATION_TOKEN")) {
           if (!options.suppressAutoLogout) this.handleAutoLogout();

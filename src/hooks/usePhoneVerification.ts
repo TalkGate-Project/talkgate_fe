@@ -11,6 +11,7 @@ type VerificationResult = {
   success: boolean;
   code?: string;
   message?: string;
+  verificationToken?: string; // 본인인증 완료 후 발신번호 등록에 사용되는 토큰
 };
 
 type UsePhoneVerificationOptions = {

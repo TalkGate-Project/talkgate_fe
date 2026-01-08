@@ -1,45 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { showErrorModal } from "@/lib/errorModalEvents";
-
 interface SelfAuthenticationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (verificationToken: string) => void;
+  onConfirm: () => void; // 확인 버튼 클릭 시 호출되는 콜백
   purpose: "personal" | "common"; // 개인 발신번호 or 공통 발신번호 추가
 }
 
 export default function SelfAuthenticationModal({
   isOpen,
   onClose,
-  onSuccess,
+  onConfirm,
   purpose,
 }: SelfAuthenticationModalProps) {
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-
   if (!isOpen) return null;
 
-  const handleAuthenticate = async () => {
-    setIsAuthenticating(true);
-    try {
-      // TODO: 실제 본인인증 API 연동
-      // 여기서는 임시로 더미 토큰을 생성합니다
-      // 실제로는 본인인증 서비스(PASS, NICE 등)와 연동하여 토큰을 받아야 합니다
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // 인증 시뮬레이션
-
-      const dummyVerificationToken = `verification_token_${Date.now()}`;
-      onSuccess(dummyVerificationToken);
-    } catch (error) {
-      console.error("본인인증 실패:", error);
-      showErrorModal({
-        type: "error",
-        headline: "본인인증에 실패했습니다.",
-        hideCancel: true,
-      });
-    } finally {
-      setIsAuthenticating(false);
-    }
+  const handleConfirm = () => {
+    onConfirm();
   };
 
   const getTitle = () => {
@@ -129,18 +106,16 @@ export default function SelfAuthenticationModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={isAuthenticating}
-            className="cursor-pointer w-[48px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-[13px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[48px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-[13px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
           >
             취소
           </button>
           <button
             type="button"
-            onClick={handleAuthenticate}
-            disabled={isAuthenticating}
-            className="cursor-pointer w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] font-medium text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleConfirm}
+            className="cursor-pointer w-[72px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] font-medium text-white dark:text-neutral-25 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors"
           >
-            {isAuthenticating ? "인증 중..." : "인증하기"}
+            확인
           </button>
         </div>
       </div>

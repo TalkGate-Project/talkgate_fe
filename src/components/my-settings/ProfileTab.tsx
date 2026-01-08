@@ -86,10 +86,9 @@ export default function ProfileTab() {
     });
   }, [refetchVerification]);
   
-  // 본인인증 훅 사용 (로그인 상태에서는 sms-sender-number-registration 사용)
-  // x-project-id 헤더는 apiClient가 쿠키에서 자동으로 추가
+  // 본인인증 훅 사용 (프로필 본인인증은 account-verification 사용)
   const { startVerification, isVerifying } = usePhoneVerification({
-    type: "sms-sender",
+    type: "account",
     onSuccess: handleVerificationSuccess,
     onError: handleVerificationError,
   });
