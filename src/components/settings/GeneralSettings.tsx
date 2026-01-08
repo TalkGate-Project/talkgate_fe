@@ -136,12 +136,15 @@ export default function GeneralSettings() {
         
         if (newSubdomainUrl) {
           // 성공 메시지 표시 후 리디렉션
+          // persistent 모달: 닫기 버튼 숨김, overlay 클릭 시에도 리디렉션
           showErrorModal({
             type: "success",
             headline: "서브도메인이 변경되었습니다.",
-            description: "새 서브도메인으로 이동합니다.",
+            description: "새 서브도메인으로 이동합니다.\n\n※ 참고: 최근 사용한 이모지 등 일부 전역 설정은 초기화될 수 있습니다. 테마 설정은 시스템 설정을 따르며, 프로젝트 설정 및 인증 정보는 유지됩니다.",
             hideCancel: true,
             confirmText: "확인",
+            persistent: true, // overlay 클릭 시 모달이 닫히지 않음 (shake 액션만)
+            hideCloseButton: true, // 닫기 버튼 숨김
             onConfirm: () => {
               window.location.href = newSubdomainUrl;
             },
