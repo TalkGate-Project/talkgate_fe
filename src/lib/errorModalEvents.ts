@@ -8,6 +8,8 @@ export type ErrorModalCallbacks = {
   confirmText?: string;
   cancelText?: string | null;
   hideCancel?: boolean;
+  persistent?: boolean; // true일 경우 overlay 클릭 시에도 onConfirm 실행 (닫기 불가능)
+  hideCloseButton?: boolean; // true일 경우 우상단 닫기 버튼 숨김
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };

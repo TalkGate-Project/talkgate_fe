@@ -23,6 +23,8 @@ type ErrorModalState = {
   confirmText: string;
   cancelText: string | null;
   hideCancel: boolean;
+  persistent?: boolean;
+  hideCloseButton?: boolean;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
@@ -75,6 +77,8 @@ const createInitialState = (): ErrorModalState => ({
   confirmText: defaultTexts.error.confirmText,
   cancelText: defaultTexts.error.cancelText,
   hideCancel: false,
+  persistent: false,
+  hideCloseButton: false,
   onConfirm: undefined,
   onCancel: undefined,
 });
@@ -122,6 +126,8 @@ export default function ErrorFeedbackModalProvider({
           ? texts.cancelText
           : options.cancelText,
       hideCancel: options?.hideCancel ?? false,
+      persistent: options?.persistent ?? false,
+      hideCloseButton: options?.hideCloseButton ?? false,
       onConfirm: options?.onConfirm,
       onCancel: options?.onCancel,
     });
@@ -168,6 +174,23 @@ export default function ErrorFeedbackModalProvider({
     hide();
   }, [state, hide]);
 
+  const handleOverlayClick = useCallback(() => {
+    if (state.persistent) {
+      // persistent 모달의 경우 overlay 클릭 시 아무 동작도 하지 않음 (shake 액션만)
+      // shake 액션은 CSS의 animate-shake 클래스로 적용됨
+      return;
+    } else {
+      // persistent가 아닌 경우에만 닫기
+      hide();
+    }
+  }, [state, hide]);
+
+  const handleCloseButtonClick = useCallback(() => {
+    // 닫기 버튼 클릭 시 기본적으로 모달 닫기
+    // persistent 모달이어도 닫기 버튼을 누르면 닫을 수 있음 (hideCloseButton으로 버튼 자체를 숨길 수 있음)
+    hide();
+  }, [hide]);
+
   const contextValue = useMemo<ErrorModalContextValue>(
     () => ({ show, hide }),
     [show, hide]
@@ -180,36 +203,38 @@ export default function ErrorFeedbackModalProvider({
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-5 md:p-0">
           <div
             className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
-            onClick={hide}
+            onClick={handleOverlayClick}
           />
-          <div className="relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
+          <div className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${state.persistent ? "animate-shake" : ""}`} onClick={(e) => e.stopPropagation()}>
             <div className="px-4 md:px-8 pt-7 pb-6">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
                   {state.title}
                 </h2>
-                <button
-                  type="button"
-                  className="cursor-pointer h-8 w-8"
-                  onClick={hide}
-                  aria-label="close error modal"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                {!state.hideCloseButton && (
+                  <button
+                    type="button"
+                    className="cursor-pointer h-8 w-8"
+                    onClick={handleCloseButtonClick}
+                    aria-label="close error modal"
                   >
-                    <path
-                      d="M6 18L18 6M6 6L18 18"
-                      stroke="#959595"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6 18L18 6M6 6L18 18"
+                        stroke="#959595"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
               <div className="mt-6 flex justify-center">
                 <div className="flex items-center justify-center rounded-full">
