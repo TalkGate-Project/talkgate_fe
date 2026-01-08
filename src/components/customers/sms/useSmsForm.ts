@@ -227,6 +227,20 @@ export function useSmsForm() {
       setSending(true);
 
       try {
+        // 서버에서 광고성 문구(수신거부 등)를 부가적으로 붙여 저장하므로,
+        // 프론트에서 동일 문구를 포함해 보내지 않도록(중복 방지) 전송용 본문을 정리한다.
+        const contentToSend =
+          contentType === "advertising"
+            ? (() => {
+                // 사용자가 기존에 입력해둔 수신거부 라인이 있으면 제거
+                const removedOptOut = body.replace(/\n?\s*수신거부\s*080-880-4005\s*$/u, "");
+                // 서버가 수신거부 문구를 붙일 때 "1줄 공백" 다음에 나오도록
+                // 전송 본문 끝을 정확히 "\n\n"로 맞춘다.
+                const trimmedEnd = removedOptOut.replace(/\s+$/u, "");
+                return `${trimmedEnd}\n\n`;
+              })()
+            : body;
+
         // scheduledAt 계산 (필수 필드 - 즉시 발송 시 현재 시간, 예약 발송 시 지정된 시간)
         let scheduledAt: string;
         if (sendMethod === "scheduled" && scheduledDate && scheduledTime) {
@@ -268,7 +282,7 @@ export function useSmsForm() {
             advertisementType: contentType,
             serviceName: contentType === "advertising" ? businessName : undefined,
             title: title.trim() || undefined,
-            content: body,
+            content: contentToSend,
             scheduledAt,
             imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
           });
@@ -282,7 +296,7 @@ export function useSmsForm() {
             advertisementType: contentType,
             serviceName: contentType === "advertising" ? businessName : undefined,
             title: title.trim() || undefined,
-            content: body,
+            content: contentToSend,
             scheduledAt,
             imageUrls: imageUrls && imageUrls.length > 0 ? imageUrls : undefined,
           });
@@ -319,6 +333,17 @@ export function useSmsForm() {
         const errorCode = error?.data?.code || "";
         const errorMessage = error?.data?.message || error?.message || "";
         const status = error?.status;
+        
+        // 광고성 문자 시간 제한 에러 처리
+        if (errorCode === "ADVERTISEMENT_SMS_TIME_RESTRICTED") {
+          const message = sendMethod === "immediate"
+            ? "현재 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)"
+            : "해당 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)";
+          return {
+            success: false,
+            message,
+          };
+        }
         
         // 에러 코드별 사용자 친화적 메시지 매핑
         const errorMessages: Record<string, string> = {

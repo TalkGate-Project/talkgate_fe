@@ -17,6 +17,10 @@ type TimePickerProps = {
   disabled?: boolean;
   /** 분 단위 스텝 (기본: 10분) */
   minuteStep?: number;
+  /** 광고성 문자 시간 제한 활성화 (21:00 ~ 08:00 비활성화) */
+  restrictAdHours?: boolean;
+  /** 패널과 인풋 사이 세로 간격(px). 기본 8 */
+  panelOffsetY?: number;
 };
 
 type Period = "오전" | "오후";
@@ -44,6 +48,18 @@ function toValue(period: Period, hour12: number, minute: number): string {
   return `${hh}:${mm}`;
 }
 
+/** 광고성 문자 시간 제한 체크 (21:00 ~ 08:00) */
+function isRestrictedTime(period: Period, hour12: number, minute: number): boolean {
+  // minute은 무시(요구사항: 분 무관)
+  void minute;
+  // 요구사항(12시간 표기 기준):
+  // - 오전: 12, 01~08 금지 (00:00~08:59)
+  // - 오후: 09~11 금지 (21:00~23:59)
+  //   - 오후 12시는 정오(12:xx)이므로 금지 대상이 아님
+  if (period === "오전") return hour12 === 12 || hour12 <= 8;
+  return hour12 >= 9 && hour12 <= 11;
+}
+
 function formatLabel(value: string | null): string {
   const parsed = parseTime(value);
   if (!parsed) return "";
@@ -60,6 +76,8 @@ export default function TimePicker(props: TimePickerProps) {
     className = "",
     disabled,
     minuteStep = 10,
+    restrictAdHours = false,
+    panelOffsetY = 8,
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -143,6 +161,7 @@ export default function TimePicker(props: TimePickerProps) {
       const zoom = getBodyZoom();
       const panelHeight = panel?.offsetHeight || 260;
       const viewportHeight = window.innerHeight;
+      const gapY = panelOffsetY;
       
       // Calculate if there's enough space below the input
       const spaceBelow = viewportHeight - r.bottom;
@@ -150,17 +169,17 @@ export default function TimePicker(props: TimePickerProps) {
       
       // If not enough space below but enough space above, position above
       let top: number;
-      if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
+      if (spaceBelow < panelHeight + gapY && spaceAbove > panelHeight + gapY) {
         // Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
-        top = (r.top - panelHeight - 8) / zoom;
+        top = (r.top - panelHeight - gapY) / zoom;
       } else {
         // Position below input (default) - adjust for zoom
-        top = (r.bottom + 8) / zoom;
+        top = (r.bottom + gapY) / zoom;
       }
       
       setPanelPos({ 
         top, 
-        left: r.left / zoom
+        left: r.left / zoom + (window.scrollX || 0)
       });
     }
     const timer = setTimeout(update, 0);
@@ -172,7 +191,17 @@ export default function TimePicker(props: TimePickerProps) {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [open]);
+  }, [open, panelOffsetY]);
+
+  // 제한 활성화 시, 이미 선택된 값이 제한 시간대면 즉시 해제
+  useEffect(() => {
+    if (!restrictAdHours || !value) return;
+    const parsed = parseTime(value);
+    if (!parsed) return;
+    if (isRestrictedTime(parsed.period, parsed.hour12, parsed.minute)) {
+      onChange(null);
+    }
+  }, [restrictAdHours, value, onChange]);
 
   // Keep internal state in sync when value changes while picker is closed
   useEffect(() => {
@@ -214,7 +243,7 @@ export default function TimePicker(props: TimePickerProps) {
                   <button
                     key={p}
                     type="button"
-                    className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
+                    className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] cursor-pointer ${
                       p === period
                         ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
                         : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
@@ -231,44 +260,60 @@ export default function TimePicker(props: TimePickerProps) {
 
               {/* Hour column */}
               <div className="max-h-[180px] overflow-auto pr-1">
-                {hours.map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
-                      h === hour12
-                        ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
-                        : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
-                    }`}
-                    onClick={() => {
-                      setHour12(h);
-                      emitChange(period, h, minute);
-                    }}
-                  >
-                    {h.toString().padStart(2, "0")}
-                  </button>
-                ))}
+                {hours.map((h) => {
+                  const isRestricted = restrictAdHours && isRestrictedTime(period, h, minute);
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      disabled={isRestricted}
+                      className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
+                        isRestricted
+                          ? "opacity-30 !cursor-not-allowed text-neutral-60 dark:text-neutral-60"
+                          : h === hour12
+                          ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
+                          : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25 cursor-pointer"
+                      }`}
+                      onClick={() => {
+                        if (!isRestricted) {
+                          setHour12(h);
+                          emitChange(period, h, minute);
+                        }
+                      }}
+                    >
+                      {h.toString().padStart(2, "0")}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Minute column */}
               <div className="max-h-[180px] overflow-auto pr-1">
-                {minutes.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
-                      m === minute
-                        ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
-                        : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25"
-                    }`}
-                    onClick={() => {
-                      setMinute(m);
-                      emitChange(period, hour12, m);
-                    }}
-                  >
-                    {m.toString().padStart(2, "0")}
-                  </button>
-                ))}
+                {minutes.map((m) => {
+                  const isRestricted = restrictAdHours && isRestrictedTime(period, hour12, m);
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      disabled={isRestricted}
+                      className={`w-full h-8 flex items-center justify-center rounded-[6px] text-[14px] ${
+                        isRestricted
+                          ? "opacity-30 !cursor-not-allowed text-neutral-60 dark:text-neutral-60"
+                          : m === minute
+                          ? "bg-neutral-90 dark:bg-neutral-90 text-white dark:text-neutral-0"
+                          : "text-foreground hover:bg-neutral-20 dark:hover:bg-neutral-25 cursor-pointer"
+                      }`}
+                      onClick={() => {
+                        if (!isRestricted) {
+                          setMinute(m);
+                          emitChange(period, hour12, m);
+                        }
+                      }}
+                    >
+                      {m.toString().padStart(2, "0")}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>,

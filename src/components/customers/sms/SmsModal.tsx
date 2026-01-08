@@ -185,7 +185,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-[848px] md:w-[848px] min-w-[848px] max-h-[703px] xl:max-h-[753px] overflow-y-auto rounded-[14px] bg-card dark:bg-neutral-10"
+      containerClassName="relative w-[848px] md:w-[848px] min-w-[848px] max-h-[703px] xl:max-h-[753px] overflow-y-auto rounded-[14px] bg-card dark:bg-neutral-10 md:mt-12"
       ariaLabel="문자 전송"
     >
       <div className="relative w-full flex flex-col">
@@ -498,6 +498,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                       placeholder="날짜 선택"
                       minDate={new Date()}
                       className="pr-10"
+                      panelOffsetY={16}
                     />
                     {/* 달력 아이콘 */}
                     <svg
@@ -551,6 +552,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                       placeholder="시간 선택"
                       minuteStep={10}
                       className="pr-10"
+                      restrictAdHours
+                      panelOffsetY={16}
                     />
                     {/* 시계 아이콘 */}
                     <svg

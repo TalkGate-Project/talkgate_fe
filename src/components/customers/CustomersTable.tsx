@@ -577,7 +577,7 @@ export default function CustomersTable({
                         c.assignedMember?.id === myMemberId ? (
                           <button
                             onClick={(e) => handleConfirmCustomer(c.id, e)}
-                            className="cursor-pointer flex items-center justify-center"
+                            className="cursor-pointer flex items-center justify-center relative group"
                             aria-label="고객 확인"
                           >
                             <svg
@@ -587,17 +587,17 @@ export default function CustomersTable({
                               fill="none"
                               xmlns="http://www.w3.org/2000/svg"
                             >
-                              <rect
-                                x="1"
-                                y="1"
-                                width="22"
-                                height="22"
-                                rx="4"
-                                fill="#fff"
-                                stroke="#9CA3AF"
+                              <path
+                                d="M5 13L9 17L19 7"
+                                stroke="#00E272"
                                 strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                               />
                             </svg>
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              확인
+                            </span>
                           </button>
                         ) : null}
                       </div>
