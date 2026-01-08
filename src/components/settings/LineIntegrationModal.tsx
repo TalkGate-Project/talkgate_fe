@@ -289,7 +289,7 @@ export default function LineIntegrationModal({
                 <button
                   onClick={handleCopyWebhookUrl}
                   disabled={!webhookUrl || isLoadingWebhook}
-                  className="cursor-pointer md:w-full md:w-[72px] h-[34px] px-3 py-1.5 bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] leading-[17px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer md:w-[72px] h-[34px] px-3 py-1.5 bg-neutral-90 dark:bg-neutral-80 text-neutral-20 dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] leading-[17px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   복사
                 </button>
