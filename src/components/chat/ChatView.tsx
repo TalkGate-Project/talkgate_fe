@@ -56,7 +56,7 @@ export default function ChatView({ projectId }: Props) {
   // 작성 중인 메시지가 있는 채팅방 ID Set을 state로 관리 (리렌더링 트리거용)
   const [conversationsWithDraft, setConversationsWithDraft] = useState<Set<number>>(new Set());
 
-  // 화면 폭에 따른 레이아웃 제어 (1440px 이상: 기존 3컬럼, 미만: AI 도우미 플로팅)
+  // 화면 폭에 따른 레이아웃 제어 (1280px 이상: 기존 3컬럼, 미만: AI 도우미 플로팅)
   const [isWideLayout, setIsWideLayout] = useState(true);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
 
@@ -214,11 +214,11 @@ export default function ChatView({ projectId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 1440px 기준으로 레이아웃 전환
+  // 1280px 기준으로 레이아웃 전환
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleResize = () => {
-      setIsWideLayout(window.innerWidth >= 1440);
+      setIsWideLayout(window.innerWidth >= 1279);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -589,12 +589,12 @@ export default function ChatView({ projectId }: Props) {
         />
       </div>
 
-      {/* 1440px 이상: 기존 우측 사이드바 사용 */}
+      {/* 1280px 이상: 기존 우측 사이드바 사용 */}
       {isWideLayout && (
         <ChatRightSidebar projectId={projectId} conversationId={activeId} />
       )}
 
-      {/* 1440px 미만: 플로팅 버튼 + 모달 형태의 AI 상담 도우미 */}
+      {/* 1280px 미만: 플로팅 버튼 + 모달 형태의 AI 상담 도우미 */}
       {/* 모바일에서는 채팅방이 열려있을 때만 AI 버튼 표시 */}
       {!isWideLayout && activeId && (
         <>
@@ -690,7 +690,7 @@ export default function ChatView({ projectId }: Props) {
                 onClick={() => setIsAiSidebarOpen(false)}
               />
               <div className="absolute bottom-0 md:bottom-44 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[420px] md:max-h-[80vh] flex flex-col">
-                <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg overflow-hidden flex flex-col min-h-0">
+                <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg flex flex-col min-h-0 overflow-hidden">
                   <ChatRightSidebar
                     projectId={projectId}
                     conversationId={activeId}

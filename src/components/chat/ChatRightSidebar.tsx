@@ -194,7 +194,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   }, [conversationId, input, projectId, sending, scrollToBottom]);
 
   return (
-    <div className="w-full md:max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col">
+    <div className="w-full md:max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col min-h-0">
       <div className="px-4 md:px-7 py-4 md:py-5 flex items-center justify-between border-b border-border dark:border-neutral-30 shrink-0">
         <div className="flex items-center gap-2">
           <Image src="/icon-ai.png" alt="Talkgate" width={18} height={22} />
@@ -226,8 +226,9 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       </div>
 
       <div
-        className="flex-1 overflow-auto px-4 md:px-7 py-4 space-y-3 min-h-0"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-7 py-4 space-y-3 min-h-0"
         ref={messagesScrollRef}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {!hasActiveConversation ? (
           <div className="text-[13px] leading-[20px] text-neutral-60 h-full flex items-center justify-center text-center">
