@@ -317,7 +317,7 @@ function CustomersPageContentInner() {
         projectId={projectId!}
       />
 
-      <CustomerDetailModal open={detailId !== null} onClose={() => setDetailId(null)} customerId={detailId} />
+      <CustomerDetailModal open={detailId !== null} onClose={() => setDetailId(null)} customerId={detailId} onRefetch={refetch} />
 
       <CustomerCreateModal
         open={isCreateOpen}

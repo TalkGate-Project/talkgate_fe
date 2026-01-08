@@ -13,12 +13,14 @@ export type CustomerDetailModalProps = {
   open: boolean;
   onClose: () => void;
   customerId: number | null;
+  onRefetch?: () => void;
 };
 
 export default function CustomerDetailModalDesktop({
   open,
   onClose,
   customerId,
+  onRefetch,
 }: CustomerDetailModalProps) {
   const [tab, setTab] = useState<"basic" | "data" | "sales">("basic");
   const leftPanelRef = useRef<HTMLDivElement>(null);
@@ -197,7 +199,10 @@ export default function CustomerDetailModalDesktop({
                   : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
               }`}
               onClick={() => {
-                actions.saveForm().then(() => onClose()).catch((e: any) => {
+                actions.saveForm().then(() => {
+                  onRefetch?.();
+                  onClose();
+                }).catch((e: any) => {
                   showErrorModal({
                     title: "오류 발생",
                     headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",

@@ -301,7 +301,7 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""} ${h === "전체확인" ? "font-semibold underline cursor-pointer" : ""}`}
+                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${idx === arr.length - 1 ? 'rounded-r-[8px]' : ''} ${h === "카테고리" ? "text-center" : ""} ${h === "전체확인" ? "text-center font-semibold underline cursor-pointer" : ""}`}
                   onClick={h === "전체확인" ? handleConfirmAll : undefined}
                 >
                   {h}
