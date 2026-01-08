@@ -176,11 +176,6 @@ export default function PhonePreviewForDetail({
                     메시지 내용이 여기에 표시됩니다.
                   </span>
                 )}
-                {contentType === "advertising" && (
-                  <span className="block mt-2 text-neutral-60 dark:text-neutral-60">
-                    수신거부 080-880-4005
-                  </span>
-                )}
               </div>
             </div>
 

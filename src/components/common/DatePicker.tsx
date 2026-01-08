@@ -20,12 +20,14 @@ type DatePickerProps = {
 	minDate?: Date | null;
 	maxDate?: Date | null;
     dateFormat?: string;
+	/** 패널과 인풋 사이 세로 간격(px). 기본 8 */
+	panelOffsetY?: number;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd" } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8 } = props;
 
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"month" | "year">("month");
@@ -83,6 +85,7 @@ export default function DatePicker(props: DatePickerProps) {
 			const zoom = getBodyZoom();
 			const panelHeight = panel?.offsetHeight || 400; // Default estimate 400px
 			const viewportHeight = window.innerHeight;
+			const gapY = panelOffsetY;
 			
 			// Calculate if there's enough space below the input
 			const spaceBelow = viewportHeight - r.bottom;
@@ -90,17 +93,17 @@ export default function DatePicker(props: DatePickerProps) {
 			
 			// If not enough space below but enough space above, position above
 			let top: number;
-			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
+			if (spaceBelow < panelHeight + gapY && spaceAbove > panelHeight + gapY) {
 				// Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
-				top = (r.top - panelHeight - 8) / zoom;
+				top = (r.top - panelHeight - gapY) / zoom;
 			} else {
 				// Position below input (default) - adjust for zoom
-				top = (r.bottom + 8) / zoom;
+				top = (r.bottom + gapY) / zoom;
 			}
 			
 			setPanelPos({ 
 				top, 
-				left: r.left / zoom
+				left: r.left / zoom + (window.scrollX || 0)
 			});
 		}
 		
@@ -115,7 +118,7 @@ export default function DatePicker(props: DatePickerProps) {
 			window.removeEventListener("resize", update);
 			window.removeEventListener("scroll", update, true);
 		};
-	}, [open]);
+	}, [open, panelOffsetY]);
 
 	useEffect(() => {
 		// Keep view in sync when external value changes while closed
