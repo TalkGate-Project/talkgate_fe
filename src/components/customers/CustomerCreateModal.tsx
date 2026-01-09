@@ -174,17 +174,17 @@ export default function CustomerCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-full h-full md:w-[848px] md:h-[523px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col"
+      containerClassName="relative w-full h-full lg:w-[848px] !lg:h-[523px] !lg:max-h-[523px] rounded-t-[14px] lg:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col overflow-hidden lg:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] lg:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:lg:shadow-none dark:lg:drop-shadow-none"
       ariaLabel="고객 등록"
       fullScreenOnMobile={true}
     >
-      <div className="relative w-full h-full flex flex-col">
+      <div className="relative w-full h-full flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-6 pb-4 shrink-0">
+        <div className="flex items-center justify-between px-4 lg:px-7 pt-4 lg:pt-6 pb-4 shrink-0">
           <div className="flex items-center gap-2">
             <button
               onClick={() => !submitting && onClose()}
-              className="md:hidden cursor-pointer p-1 -ml-1"
+              className="lg:hidden cursor-pointer p-1 -ml-1"
               aria-label="뒤로가기"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -196,7 +196,7 @@ export default function CustomerCreateModal({
           <button
             aria-label="close"
             onClick={() => !submitting && onClose()}
-            className="hidden md:grid w-6 h-6 place-items-center"
+            className="hidden lg:grid w-6 h-6 place-items-center"
           >
             <svg
               className="cursor-pointer"
@@ -219,14 +219,14 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-7 pb-6 pt-[14px]">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 lg:px-7 pb-6 pt-[14px]">
           {/* 기본 정보 */}
           <div className="mb-[30px]">
             <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
               기본 정보
             </h3>
             <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
@@ -520,7 +520,7 @@ export default function CustomerCreateModal({
               데이터 정보
             </h3>
             <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
@@ -590,12 +590,12 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 dark:border-neutral-30 px-4 md:px-7 py-3 flex justify-end gap-3 shrink-0">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-4 lg:px-7 py-3 flex justify-end gap-3 shrink-0">
           <button
             type="button"
             onClick={handleReset}
             disabled={submitting}
-            className="cursor-pointer h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 disabled:opacity-60"
+            className="cursor-pointer h-[40px] lg:h-[34px] px-4 lg:px-3 rounded-[8px] lg:rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 disabled:opacity-60"
           >
             초기화
           </button>
@@ -603,7 +603,7 @@ export default function CustomerCreateModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !projectId}
-            className="cursor-pointer h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
+            className="cursor-pointer h-[40px] lg:h-[34px] px-4 lg:px-3 rounded-[8px] lg:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
           >
             등록
           </button>
