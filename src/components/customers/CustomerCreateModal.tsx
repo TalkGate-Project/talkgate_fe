@@ -174,11 +174,11 @@ export default function CustomerCreateModal({
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-full h-full lg:w-[848px] lg:h-[523px] lg:max-h-[523px] rounded-t-[14px] lg:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col lg:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] lg:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:lg:shadow-none dark:lg:drop-shadow-none"
+      containerClassName="relative w-full h-full lg:w-[848px] !lg:h-[523px] !lg:max-h-[523px] rounded-t-[14px] lg:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col overflow-hidden lg:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] lg:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:lg:shadow-none dark:lg:drop-shadow-none"
       ariaLabel="고객 등록"
       fullScreenOnMobile={true}
     >
-      <div className="relative w-full h-full flex flex-col">
+      <div className="relative w-full h-full flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 lg:px-7 pt-4 lg:pt-6 pb-4 shrink-0">
           <div className="flex items-center gap-2">

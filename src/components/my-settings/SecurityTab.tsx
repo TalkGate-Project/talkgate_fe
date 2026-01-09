@@ -240,7 +240,7 @@ export default function SecurityTab() {
           보안 설정
         </h1>
 
-        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
 
         <div className="px-4 md:px-7 py-3 md:py-[30px] h-[90px] md:h-auto">
           <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
@@ -280,7 +280,7 @@ export default function SecurityTab() {
             </div>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Second Box - Change Password */}
@@ -308,12 +308,12 @@ export default function SecurityTab() {
             </button>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Third Box - Delete Account */}
       <div className="bg-card rounded-none md:rounded-[14px] shadow-sm pb-[140px] md:pb-7">
-        <div className="border-t border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-t border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
         <div className="px-4 md:px-7 py-3 md:py-6 h-[90px] md:h-auto">
           <div className="flex items-center justify-between h-full md:h-auto gap-3">
             {/* Left side: Title + Badge and Description */}
@@ -339,7 +339,7 @@ export default function SecurityTab() {
             </div>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
       </div>
 
       {/* Modals */}
