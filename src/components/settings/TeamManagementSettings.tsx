@@ -93,6 +93,7 @@ export default function TeamManagementSettings() {
   const [pendingMove, setPendingMove] = useState<MoveContext | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isUnassignedDrawerOpen, setIsUnassignedDrawerOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     const selected = getSelectedProjectId();
@@ -353,7 +354,7 @@ export default function TeamManagementSettings() {
 
   return (
     <div className="w-full h-full bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
-      <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} />
+      <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} zoom={zoom} onZoomChange={setZoom} />
       <div className="mx-4 md:mx-7 h-px bg-neutral-30 mb-3" />
 
       {/* 검색 및 태그 영역 (스크롤되지 않는 상단 고정 영역) */}
@@ -419,11 +420,9 @@ export default function TeamManagementSettings() {
         </div>
       ) : (
         <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative">
-          {/* 트리 뷰 영역 */}
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <div className="h-full overflow-x-auto overflow-y-auto max-h-[600px]">
-              <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} />
-            </div>
+          {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
+          <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+            <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} zoom={zoom} onZoomChange={setZoom} />
           </div>
           
           {/* 미배정 멤버 리스트 영역 - 데스크탑 */}

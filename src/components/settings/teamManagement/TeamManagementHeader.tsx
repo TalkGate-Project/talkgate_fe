@@ -3,11 +3,27 @@ import { TOKENS } from "./tokens";
 type Props = {
   viewMode: "list" | "tree";
   onChange: (mode: "list" | "tree") => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
 };
 
-export default function TeamManagementHeader({ viewMode, onChange }: Props) {
+export default function TeamManagementHeader({ viewMode, onChange, zoom = 1, onZoomChange }: Props) {
+  const handleZoomIn = () => {
+    if (onZoomChange) {
+      const next = Math.min(2, zoom + 0.1);
+      onZoomChange(Number(next.toFixed(2)));
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (onZoomChange) {
+      const next = Math.max(0.6, zoom - 0.1);
+      onZoomChange(Number(next.toFixed(2)));
+    }
+  };
+
   return (
-    <div className="">
+    <div className="relative">
       <div className="flex justify-between items-center px-4 md:px-7 h-[64px] md:h-[76px]">
         <h1 className="font-bold text-[20px] md:text-[24px] leading-[20px] text-foreground">
           팀관리
@@ -62,6 +78,33 @@ export default function TeamManagementHeader({ viewMode, onChange }: Props) {
           </button>
         </div>
       </div>
+      {/* 줌 버튼 - 트리 뷰 모드일 때만 표시, absolute 위치로 트리 뷰 시작 부분에 고정 */}
+      {viewMode === "tree" && (
+        <div className="absolute left-4 md:left-7 bottom-[-52px] flex items-center gap-2 z-10">
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            disabled={zoom >= 2}
+            className="cursor-pointer w-9 h-9 rounded-[5.5px] border border-[#E2E2E2] dark:!border-neutral-30 bg-black flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-90 transition-colors"
+            aria-label="확대"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1V11M1 6H11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            disabled={zoom <= 0.6}
+            className="cursor-pointer w-9 h-9 rounded-[5.5px] border border-[#E2E2E2] dark:!border-neutral-30 bg-black flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-90 transition-colors"
+            aria-label="축소"
+          >
+            <svg width="12" height="2" viewBox="0 0 12 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 1H12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,45 +13,88 @@ type Props = {
   dragHandlers: DragHandlers;
   dragState: DragState;
   onMemberClick: (member: TeamMember) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
 };
 
 // 노드 간 가로 간격
 const HORIZONTAL_GAP = 32;
 
-export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick }: Props) {
-  const [zoom, setZoom] = useState(1);
+export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick, zoom: externalZoom, onZoomChange }: Props) {
+  const [internalZoom, setInternalZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isGrabbing, setIsGrabbing] = useState(false);
   const isPanningRef = useRef(false);
   const panStartRef = useRef({ x: 0, y: 0 });
-  const touchStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; panX: number; panY: number; target: EventTarget | null } | null>(null);
   const lastTouchDistanceRef = useRef<number | null>(null);
+  const isNodeDraggingRef = useRef(false);
+
+  // 외부 zoom이 제공되면 그것을 사용, 아니면 내부 상태 사용
+  const zoom = externalZoom ?? internalZoom;
+  const setZoom = onZoomChange ?? setInternalZoom;
 
   const onWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     if (!e.ctrlKey) return;
     e.preventDefault();
-    setZoom((prev) => {
-      const next = Math.min(2, Math.max(0.6, prev - e.deltaY * 0.0015));
-      return Number(next.toFixed(2));
-    });
-  }, []);
+    const next = Math.min(2, Math.max(0.6, zoom - e.deltaY * 0.0015));
+    setZoom(Number(next.toFixed(2)));
+  }, [zoom, setZoom]);
 
   const onMouseDown = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (e.button !== 1 && !e.shiftKey) return;
-    isPanningRef.current = true;
-    panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    // 노드 카드나 버튼을 클릭한 경우 팬 비활성화
+    const target = e.target as HTMLElement;
+    const isNodeElement = target.closest('[draggable="true"]') || target.closest('button') || target.closest('[role="button"]');
+    
+    if (isNodeElement) {
+      isNodeDraggingRef.current = true;
+      return;
+    }
+
+    // 왼쪽 마우스 버튼으로 빈 공간을 드래그하면 팬 시작
+    if (e.button === 0) {
+      isPanningRef.current = true;
+      isNodeDraggingRef.current = false;
+      setIsGrabbing(true);
+      panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+      e.preventDefault(); // 텍스트 선택 방지
+    } else if (e.button === 1 || e.shiftKey) {
+      // 중간 버튼이나 Shift 키는 기존 동작 유지
+      isPanningRef.current = true;
+      setIsGrabbing(true);
+      panStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    }
   }, [pan.x, pan.y]);
 
   const onMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (!isPanningRef.current) return;
+    if (!isPanningRef.current || isNodeDraggingRef.current) return;
     setPan({ x: e.clientX - panStartRef.current.x, y: e.clientY - panStartRef.current.y });
+    e.preventDefault(); // 드래그 중 텍스트 선택 방지
   }, []);
 
   const onMouseUp = useCallback(() => {
     isPanningRef.current = false;
+    setIsGrabbing(false);
+    // 약간의 지연 후 리셋하여 드래그 앤 드롭 완료 후 리셋
+    setTimeout(() => {
+      isNodeDraggingRef.current = false;
+    }, 100);
   }, []);
 
   // 모바일 터치 핸들러
   const onTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    // 노드 카드나 버튼을 터치한 경우 팬 비활성화
+    const isNodeElement = target.closest('[draggable="true"]') || target.closest('button') || target.closest('[role="button"]');
+    
+    if (isNodeElement) {
+      isNodeDraggingRef.current = true;
+      touchStartRef.current = null;
+      return;
+    }
+    
+    isNodeDraggingRef.current = false;
+
     if (e.touches.length === 1) {
       // 단일 터치: 팬 시작
       const touch = e.touches[0];
@@ -60,6 +103,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
         y: touch.clientY,
         panX: pan.x,
         panY: pan.y,
+        target: e.target,
       };
       lastTouchDistanceRef.current = null;
     } else if (e.touches.length === 2) {
@@ -73,8 +117,17 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   }, [pan.x, pan.y]);
 
   const onTouchMove = useCallback((e: TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (e.touches.length === 1 && touchStartRef.current) {
+    // 노드 드래그 중이면 기본 동작 허용 (드래그 앤 드롭)
+    if (isNodeDraggingRef.current) {
+      return;
+    }
+
+    // 팬 또는 줌 모드일 때만 preventDefault
+    if (touchStartRef.current || lastTouchDistanceRef.current !== null) {
+      e.preventDefault();
+    }
+
+    if (e.touches.length === 1 && touchStartRef.current && !isNodeDraggingRef.current) {
       // 단일 터치: 팬
       const touch = e.touches[0];
       const deltaX = touch.clientX - touchStartRef.current.x;
@@ -89,17 +142,19 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
       const touch2 = e.touches[1];
       const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
       const scale = distance / lastTouchDistanceRef.current;
-      setZoom((prev) => {
-        const next = Math.min(2, Math.max(0.6, prev * scale));
-        lastTouchDistanceRef.current = distance;
-        return Number(next.toFixed(2));
-      });
+      const next = Math.min(2, Math.max(0.6, zoom * scale));
+      lastTouchDistanceRef.current = distance;
+      setZoom(Number(next.toFixed(2)));
     }
-  }, []);
+  }, [zoom, setZoom]);
 
   const onTouchEnd = useCallback(() => {
     touchStartRef.current = null;
     lastTouchDistanceRef.current = null;
+    // 약간의 지연 후 리셋하여 드래그 앤 드롭 완료 후 리셋
+    setTimeout(() => {
+      isNodeDraggingRef.current = false;
+    }, 100);
   }, []);
 
   // 노드 카드만 렌더링 (배지 + 카드)
@@ -142,18 +197,26 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
           {/* 노드 카드 */}
           <div
-            className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] cursor-move transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 md:min-w-[148px] min-w-[120px] ${
+            className={`group relative flex items-center px-3 md:px-6 gap-2 md:gap-4 border border-border rounded-[12px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary-40/40 md:min-w-[148px] min-w-[120px] ${
               isLeader ? "bg-team-leader-highlight" : "bg-neutral-10"
             } ${isDragOver ? "ring-2 ring-secondary-40 bg-secondary-10" : ""} ${isDragging ? "opacity-50" : ""}`}
             style={{
               height: `${TOKENS.node.leader.h}px`,
-            }}
+              touchAction: 'manipulation', // 노드 카드는 터치 조작 허용 (드래그 앤 드롭용)
+              cursor: 'move', // 노드 카드는 항상 move 커서
+            } as React.CSSProperties}
             draggable
-            onDragStart={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragStart(e, item)}
+            onDragStart={(e: DragEvent<HTMLDivElement>) => {
+              isNodeDraggingRef.current = true;
+              dragHandlers.handleDragStart(e, item);
+            }}
             onDragOver={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDragOver(e, item.id)}
             onDragLeave={dragHandlers.handleDragLeave}
             onDrop={(e: DragEvent<HTMLDivElement>) => dragHandlers.handleDrop(e, item.id)}
-            onDragEnd={dragHandlers.handleDragEnd}
+            onDragEnd={(e: DragEvent<HTMLDivElement>) => {
+              isNodeDraggingRef.current = false;
+              dragHandlers.handleDragEnd();
+            }}
           >
             <div
               className={`rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[14px] ${
@@ -277,7 +340,7 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   if (data.length === 0) {
     return (
       <div
-        className="relative min-h-[300px] min-w-0 max-w-full overflow-auto flex items-center justify-center md:min-h-[500px] md:min-w-[400px] md:max-w-[712px]"
+        className="relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden flex items-center justify-center md:min-w-[400px] md:max-w-[712px]"
         role="tree"
         aria-label="조직도 트리"
       >
@@ -290,11 +353,16 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
 
   return (
     <div
-      className="relative min-h-[300px] min-w-0 max-w-full overflow-auto md:min-h-[500px] md:min-w-[400px] md:max-w-[712px]"
+      className={`relative flex-1 min-h-0 min-w-0 max-w-full overflow-hidden md:min-w-[400px] md:max-w-[712px] md:cursor-grab ${isGrabbing ? 'md:cursor-grabbing' : ''}`}
+      style={{ 
+        touchAction: 'none', 
+        userSelect: 'none',
+      } as React.CSSProperties}
       onWheel={onWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

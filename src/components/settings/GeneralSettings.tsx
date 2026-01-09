@@ -508,7 +508,7 @@ export default function GeneralSettings() {
             <button 
               onClick={handleUpdateSubdomain}
               disabled={isSaving || subdomain === originalSubdomain}
-              className="w-[48px] py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-[48px] md:w-[72px] py-2 bg-neutral-90 text-neutral-20 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 "변경중..."
