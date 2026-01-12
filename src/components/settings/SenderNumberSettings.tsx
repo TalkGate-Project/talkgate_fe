@@ -3,11 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMyMember } from "@/hooks/useMyMember";
+import { hasAdminAccess } from "@/utils/permissions";
 import { SmsService } from "@/services/sms";
 import type { ProjectSenderNumber, MemberSenderNumber } from "@/types/sms";
 import SelfAuthenticationModal from "./SelfAuthenticationModal";
 import CommonSenderNumberModal from "./CommonSenderNumberModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import {
   usePhoneVerification,
   type VerificationResult,
@@ -60,7 +63,7 @@ function DeleteButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       aria-label="삭제"
     >
       <svg
@@ -114,6 +117,7 @@ function InfoIcon({ tooltip }: { tooltip?: string }) {
 
 export default function SenderNumberSettings() {
   const [projectId, ready] = useSelectedProjectId();
+  const { member, isAdminOrSubAdmin } = useMyMember();
 
   // 프로젝트 발신번호 (공통)
   const [projectNumbers, setProjectNumbers] = useState<ProjectSenderNumber[]>(
@@ -193,37 +197,68 @@ export default function SenderNumberSettings() {
     }
   }, [ready, projectId, loadProjectNumbers, loadMemberNumbers]);
 
-  // 삭제 핸들러 (TODO: API 연동)
+  // 프로젝트 발신번호 삭제 핸들러
   const handleDeleteProjectNumber = async (id: number) => {
-    showErrorModal({
-      type: "error",
-      headline: "발신번호 삭제",
-      description: "이 발신번호를 삭제하시겠습니까?",
-      onConfirm: () => {
-        // TODO: API 연동 후 구현
-        showErrorModal({
-          type: "error",
-          headline: "알림",
-          description: "발신번호 삭제 API가 아직 구현되지 않았습니다.",
-          hideCancel: true,
-          confirmText: "확인",
-        });
+    showConfirmModal({
+      title: "발신번호 삭제",
+      message: "이 발신번호를 삭제하시겠습니까?",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await SmsService.deleteProjectSenderNumber(id);
+          showErrorModal({
+            type: "success",
+            headline: "발신번호가 삭제되었습니다.",
+            hideCancel: true,
+            confirmText: "확인",
+            onConfirm: () => {
+              loadProjectNumbers();
+            },
+          });
+        } catch (error: any) {
+          console.error("프로젝트 발신번호 삭제 실패:", error);
+          showErrorModal({
+            type: "error",
+            headline: "발신번호 삭제에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
+        }
       },
     });
   };
 
+  // 개인 발신번호 삭제 핸들러
   const handleDeleteMemberNumber = async (id: number) => {
-    showErrorModal({
-      headline: "발신번호 삭제",
-      description: "이 발신번호를 삭제하시겠습니까?",
-      onConfirm: () => {
-        // TODO: API 연동 후 구현
-        showErrorModal({
-          headline: "알림",
-          description: "발신번호 삭제 API가 아직 구현되지 않았습니다.",
-          hideCancel: true,
-          confirmText: "확인",
-        });
+    showConfirmModal({
+      title: "발신번호 삭제",
+      message: "이 발신번호를 삭제하시겠습니까?",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await SmsService.deleteMemberSenderNumber(id);
+          showErrorModal({
+            type: "success",
+            headline: "발신번호가 삭제되었습니다.",
+            hideCancel: true,
+            confirmText: "확인",
+            onConfirm: () => {
+              loadMemberNumbers();
+            },
+          });
+        } catch (error: any) {
+          console.error("개인 발신번호 삭제 실패:", error);
+          showErrorModal({
+            type: "error",
+            headline: "발신번호 삭제에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
+        }
       },
     });
   };
@@ -414,13 +449,15 @@ export default function SenderNumberSettings() {
               <h2 className="text-[16px] font-semibold text-ink dark:text-neutral-80">
                 공통 발신번호
               </h2>
-              <button
-                type="button"
-                onClick={handleAddProjectNumber}
-                className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[12px] md:text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors whitespace-nowrap"
-              >
-                +발신번호 추가
-              </button>
+              {isAdminOrSubAdmin && (
+                <button
+                  type="button"
+                  onClick={handleAddProjectNumber}
+                  className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[12px] md:text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors whitespace-nowrap"
+                >
+                  +발신번호 추가
+                </button>
+              )}
             </div>
 
             {/* 테이블 헤더 - 모바일/데스크탑 분리 */}
@@ -475,9 +512,11 @@ export default function SenderNumberSettings() {
                           )}
                         </div>
                         <div className="w-[160px] flex-shrink-0 flex justify-end">
-                          <DeleteButton
-                            onClick={() => handleDeleteProjectNumber(num.id)}
-                          />
+                          {isAdminOrSubAdmin && (
+                            <DeleteButton
+                              onClick={() => handleDeleteProjectNumber(num.id)}
+                            />
+                          )}
                         </div>
                       </div>
 
@@ -497,9 +536,11 @@ export default function SenderNumberSettings() {
                           )}
                         </div>
                         <div className="w-8 flex-none flex items-center justify-center">
-                          <DeleteButton
-                            onClick={() => handleDeleteProjectNumber(num.id)}
-                          />
+                          {isAdminOrSubAdmin && (
+                            <DeleteButton
+                              onClick={() => handleDeleteProjectNumber(num.id)}
+                            />
+                          )}
                         </div>
                       </div>
 

@@ -82,6 +82,7 @@ export type CreateCustomerInput = {
   contact1: string;
   contact2?: string;
   birth?: string;
+  residentId?: string;
   ageRange?: string;
   gender?: string; // e.g., "male"
   job?: string;

@@ -5,7 +5,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMyMember } from "@/hooks/useMyMember";
 import { MembersService } from "@/services/members";
 import { AssetsService } from "@/services/assets";
-import type { OrganizationTreeNode } from "@/types/members";
+import type { OrganizationTreeNode, UpdateProfilePayload } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import AsyncButton from "@/components/common/AsyncButton";
 
@@ -124,12 +124,23 @@ export default function ProfileSettings() {
     
     setIsSaving(true);
     try {
+      // PATCH 메서드 특성상 빈 문자열은 필드를 제외해야 함
+      const payload: UpdateProfilePayload = {
+        name,
+      };
+      
+      // phone이 비어있지 않을 때만 포함 (빈 문자열이면 필드 자체를 제외)
+      if (phone.trim()) {
+        payload.phone = phone.trim();
+      }
+      
+      // profileImageUrl이 있을 때만 포함
+      if (profileImageUrl) {
+        payload.profileImageUrl = profileImageUrl;
+      }
+      
       await MembersService.updateSelf(
-        {
-          name,
-          phone,
-          profileImageUrl: profileImageUrl || undefined,
-        },
+        payload,
         { "x-project-id": projectId }
       );
       
