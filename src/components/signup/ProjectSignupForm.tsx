@@ -6,6 +6,7 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
 import { MembersService } from "@/services/members";
 import { AuthService } from "@/services/auth";
+import type { UpdateProfilePayload } from "@/types/members";
 import { getPendingInviteInfo, clearPendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
 import { clearTokens } from "@/lib/token";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -55,16 +56,16 @@ export function ProjectSignupForm() {
       
       showErrorModal({
         type: "info",
-        title: "만료된 페이지",
-        headline: "회원가입이 진행 중인 페이지입니다.",
-        description: "이미 회원가입 및 로그인에 성공했습니다. 로그아웃 하시겠습니까?",
-        confirmText: "로그인 페이지로 이동",
+        title: "프로필 입력 페이지",
+        headline: "프로필 정보를 입력 중인 페이지입니다.",
+        description: "이 페이지를 나가시면 나중에 프로필 설정에서 정보를 입력하실 수 있습니다. 프로젝트 선택 페이지로 이동하시겠습니까?",
+        confirmText: "프로젝트 선택으로 이동",
         cancelText: "취소",
         hideCancel: false,
         onConfirm: () => {
-          // 토큰 삭제 후 로그인 페이지로 이동
-          clearTokens();
-          window.location.replace("/login");
+          // 초대 정보는 유지 (나중에 프로필에서 수정 가능)
+          // 프로젝트 선택 페이지로 이동
+          router.replace("/projects");
         },
       });
     };
@@ -79,7 +80,7 @@ export function ProjectSignupForm() {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [isMounted, isLoading]);
+  }, [isMounted, isLoading, router]);
 
   // 사용자 정보 확인 (재시도 로직 포함)
   const checkUserEmail = useCallback(async (retryCount = 0): Promise<boolean> => {
@@ -109,6 +110,52 @@ export function ProjectSignupForm() {
     }
   }, []);
 
+  // 초대 수락 상태 확인 (이미 수락된 경우 프로젝트로 리다이렉트)
+  // ⚠️ verifyInvitation을 사용하여 실제 초대 수락 없이 상태만 확인
+  const checkInvitationStatus = useCallback(async (): Promise<boolean> => {
+    const invite = getPendingInviteInfo();
+    if (!invite?.token) return false;
+
+    try {
+      // verifyInvitation으로 초대 상태 확인 (실제 수락은 하지 않음)
+      const res = await MembersService.verifyInvitation({
+        token: invite.token,
+      });
+      const payload: any = (res as any)?.data;
+      // 백엔드 응답: { result, data: { isValid, invitation: {...} } }
+      const inviteData = payload?.data?.invitation ?? payload?.invitation ?? payload?.data ?? payload ?? {};
+      const status = inviteData?.status;
+      
+      // 이미 수락된 초대인 경우
+      if (status === "accepted") {
+        console.log("[ProjectSignup] ℹ️ 이미 수락된 초대 감지 - 프로젝트로 리다이렉트");
+        // 초대 정보 정리 후 프로젝트로 이동
+        clearPendingInviteInfo();
+        router.replace("/projects");
+        return true; // 이미 수락됨
+      }
+      
+      // 아직 수락되지 않은 초대 (pending 또는 기타 상태)
+      return false;
+    } catch (err: any) {
+      // verifyInvitation 실패 시 에러 처리
+      const errorCode = err?.data?.code;
+      
+      // 초대가 만료되었거나 유효하지 않은 경우
+      if (errorCode === "INVITATION_EXPIRED" || errorCode === "INVITATION_INVALID") {
+        console.log("[ProjectSignup] ⚠️ 유효하지 않은 초대 - 초대 정보 정리");
+        clearPendingInviteInfo();
+        // 프로젝트로 이동 (또는 에러 메시지 표시 후 이동)
+        router.replace("/projects");
+        return true; // 처리 완료
+      }
+      
+      // 그 외 에러는 로깅하고 아직 수락되지 않은 것으로 간주
+      console.error("[ProjectSignup] verifyInvitation 실패:", err);
+      return false;
+    }
+  }, [router]);
+
   useEffect(() => {
     // 클라이언트에서만 실행
     if (!isMounted) return;
@@ -135,12 +182,19 @@ export function ProjectSignupForm() {
         return;
       }
       
+      // 초대 수락 상태 확인 (이미 수락된 경우 프로젝트로 리다이렉트)
+      const alreadyAccepted = await checkInvitationStatus();
+      if (alreadyAccepted) {
+        // 이미 리다이렉트됨
+        return;
+      }
+      
       setIsLoading(false);
       console.log("[ProjectSignup] ✅ 초기화 완료");
     }
     
     init();
-  }, [isMounted, checkUserEmail, router]);
+  }, [isMounted, checkUserEmail, checkInvitationStatus, router]);
 
   // 이메일 비교 (userEmail과 pendingInvite가 모두 설정된 후)
   useEffect(() => {
@@ -207,11 +261,19 @@ export function ProjectSignupForm() {
           console.log("[ProjectSignup] 📌 x-project-id 헤더 설정:", pendingInvite.projectId);
         }
         
+        // PATCH 메서드 특성상 빈 문자열은 필드를 제외해야 함
+        const payload: UpdateProfilePayload = {};
+        
+        if (name.trim()) {
+          payload.name = name.trim();
+        }
+        
+        if (phone.trim()) {
+          payload.phone = phone.trim();
+        }
+        
         await MembersService.updateSelf(
-          {
-            name: name.trim() || undefined,
-            phone: phone.trim() || undefined,
-          },
+          payload,
           Object.keys(headers).length > 0 ? headers : undefined
         );
         console.log("[ProjectSignup] ✅ 프로필 업데이트 완료");
@@ -240,38 +302,6 @@ export function ProjectSignupForm() {
     }
   };
 
-  // 나중에 하기 버튼 클릭
-  const handleSkip = async () => {
-    if (isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      // 초대 플로우인 경우 → 초대 수락 API 호출 (프로필 입력 없이)
-      if (isInviteFlow) {
-        console.log("[ProjectSignup] ⏭️ 나중에 하기 - 초대 수락 API 호출");
-        await acceptInvitation();
-        // 초대 정보 정리
-        clearPendingInviteInfo();
-        console.log("[ProjectSignup] 🧹 초대 정보 정리 완료");
-      }
-
-      // 프로젝트 선택 페이지로 이동 (zoom 적용을 위해 전체 페이지 새로고침)
-      console.log("[ProjectSignup] ⏭️ 나중에 하기 - 프로젝트 선택으로 이동");
-      window.location.replace("/projects");
-    } catch (error: any) {
-      console.error("[ProjectSignup] 처리 실패:", error);
-      showErrorModal({
-        title: "오류 발생",
-        headline: "처리에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
   // 다른 계정 모달 - 취소 (프로젝트 선택으로)
   const handleCancelWrongAccount = () => {
     clearPendingInviteInfo();
@@ -360,23 +390,12 @@ export function ProjectSignupForm() {
             <div className="flex gap-3 pt-2">
               <AsyncButton
                 type="button"
-                variant="secondary"
-                size="md"
-                onClick={handleSkip}
-                loading={isSubmitting}
-                loadingText="처리 중..."
-                className="flex-1 !bg-[#252525] !text-[#D0D0D0] hover:!bg-[#353535]"
-              >
-                나중에 하기
-              </AsyncButton>
-              <AsyncButton
-                type="button"
                 variant="auth"
                 size="md"
                 onClick={handleComplete}
                 loading={isSubmitting}
                 loadingText="처리 중..."
-                className="flex-1"
+                className="w-full"
               >
                 완료
               </AsyncButton>

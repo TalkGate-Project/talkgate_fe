@@ -94,6 +94,36 @@ export const SmsService = {
       };
     }>("/v1/sms/sender-numbers/project", input);
   },
+
+  /**
+   * 개인 발신번호 삭제
+   * 본인의 개인 발신번호를 삭제합니다.
+   */
+  deleteMemberSenderNumber(id: number) {
+    return apiClient.delete<{
+      result: boolean;
+      data: {
+        success: boolean;
+      };
+    }>("/v1/sms/sender-numbers/member", {
+      query: { id },
+    });
+  },
+
+  /**
+   * 프로젝트 발신번호 삭제
+   * 프로젝트 발신번호를 삭제합니다. (Admin/SubAdmin 전용)
+   */
+  deleteProjectSenderNumber(id: number) {
+    return apiClient.delete<{
+      result: boolean;
+      data: {
+        success: boolean;
+      };
+    }>("/v1/sms/sender-numbers/project", {
+      query: { id },
+    });
+  },
 };
 
 // Re-export types for convenience

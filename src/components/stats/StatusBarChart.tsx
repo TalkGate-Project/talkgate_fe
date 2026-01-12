@@ -51,10 +51,9 @@ export default function StatusBarChart() {
 
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
-    const total = records.reduce((sum, r) => sum + (r?.totalCount ?? 0), 0);
     return records.map((item, index) => {
       const value = item.totalCount ?? 0;
-      const percent = total > 0 ? (value / total) * 100 : 0;
+      const percent = item.percentage ?? 0;
       return {
         label: item.categoryName ?? "일반",
         value,
@@ -87,40 +86,6 @@ export default function StatusBarChart() {
     return getYDomain(chartData);
   }, [chartData]);
 
-  // X축: 라벨 + 하단 퍼센트(소수 1자리, 예: 11.9%)
-  const renderXAxisTick = (props: any) => {
-    const { x, y, payload } = props;
-    const label: string = payload?.value ?? "";
-    // payload.payload has full datum
-    const p = payload?.payload?.percent ?? 0;
-    const percentText = `${(Math.round(p * 10) / 10).toFixed(1)}%`;
-    return (
-      <g transform={`translate(${x},${y})`}>
-        <text
-          x={0}
-          y={0}
-          dy={14}
-          textAnchor="middle"
-          fill="var(--foreground)"
-          fontSize={14}
-          fontWeight={500}
-        >
-          {label}
-        </text>
-        <text
-          x={0}
-          y={0}
-          dy={42}
-          textAnchor="middle"
-          fill="var(--neutral-60)"
-          fontSize={14}
-          fontWeight={500}
-        >
-          {percentText}
-        </text>
-      </g>
-    );
-  };
 
   if (waitingForProject) {
     return (
@@ -164,6 +129,43 @@ export default function StatusBarChart() {
 
   const renderChart = (data: typeof chartData, chunkIndex: number = 0) => {
     const chunkYDomain = getYDomain(data);
+    
+    // X축: 라벨 + 하단 퍼센트(소수 1자리, 예: 11.9%)
+    const renderXAxisTick = (props: any) => {
+      const { x, y, payload } = props;
+      const label: string = payload?.value ?? "";
+      // data 배열에서 label로 해당 항목 찾기
+      const datum = data.find((d) => d.label === label);
+      const p = datum?.percent ?? 0;
+      const percentText = `${(Math.round(p * 10) / 10).toFixed(1)}%`;
+      return (
+        <g transform={`translate(${x},${y})`}>
+          <text
+            x={0}
+            y={0}
+            dy={14}
+            textAnchor="middle"
+            fill="var(--foreground)"
+            fontSize={14}
+            fontWeight={500}
+          >
+            {label}
+          </text>
+          <text
+            x={0}
+            y={0}
+            dy={42}
+            textAnchor="middle"
+            fill="var(--neutral-60)"
+            fontSize={14}
+            fontWeight={500}
+          >
+            {percentText}
+          </text>
+        </g>
+      );
+    };
+    
     return (
       <div key={chunkIndex} className={`w-full ${isMobile && chartChunks.length > 1 ? 'h-[320px]' : 'h-[320px]'} ${isMobile && chunkIndex > 0 ? 'mt-8' : ''}`}>
         <ResponsiveContainer width="100%" height="100%">
