@@ -51,7 +51,9 @@ export default function Header() {
   // Hydration 에러 방지를 위해 attendanceReady를 체크
   const NAV_ITEMS = [
     ...BASE_NAV_ITEMS,
-    ...(attendanceReady && showAttendanceMenu && isAdminOrSubAdmin ? [ATTENDANCE_ITEM] : []),
+    ...(attendanceReady && showAttendanceMenu && isAdminOrSubAdmin
+      ? [ATTENDANCE_ITEM]
+      : []),
     ...COMMON_NAV_ITEMS,
   ];
 
@@ -72,11 +74,14 @@ export default function Header() {
     if (!mounted || typeof window === "undefined") return;
 
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-    const initialTheme = storedTheme === "dark" || storedTheme === "light"
-      ? storedTheme
-      : prefersDark
+    const initialTheme =
+      storedTheme === "dark" || storedTheme === "light"
+        ? storedTheme
+        : prefersDark
         ? "dark"
         : "light";
 
@@ -102,17 +107,28 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50" style={{ zoom: 1 }}>
+      <header
+        className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50"
+        style={{ zoom: 1 }}
+      >
         <div className="mx-auto w-full lg:max-w-[1324px] h-full px-4 lg:px-0 flex items-center justify-between lg:justify-start">
-          
           {/* 모바일 햄버거 메뉴 (좌측) */}
           <div className="lg:hidden flex items-center mr-4">
-            <button 
+            <button
               onClick={() => setDrawerOpen(true)}
               className="text-white p-1"
               aria-label="메뉴 열기"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -122,7 +138,10 @@ export default function Header() {
 
           {/* 브랜드 영역 (좌측) */}
           <div className="flex items-center h-full">
-            <Link href="/dashboard" className="text-white text-[16px] font-semibold tracking-[-0.02em]">
+            <Link
+              href="/dashboard"
+              className="text-white text-[16px] font-semibold tracking-[-0.02em]"
+            >
               <img src="/main_logo.png" alt="Talkgate" className="w-[102px]" />
             </Link>
           </div>
@@ -133,19 +152,20 @@ export default function Header() {
               const isActive = pathname === href;
               const isConsult = href === "/consult";
               const showRedDot = isConsult && hasUnread && mounted;
-              
+
               return (
                 <Link
                   key={href}
                   href={href}
                   prefetch={true}
-                  className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
-                    }`}
+                  className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
+                    isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
+                  }`}
                 >
                   {label}
                   {/* 안 읽은 메시지가 있을 때 레드닷 표시 */}
                   {showRedDot && (
-                    <span 
+                    <span
                       className="absolute -top-1.5 -right-2 w-2 h-2 bg-[#D83232] rounded-full"
                       aria-label="안 읽은 메시지 있음"
                     />
@@ -157,6 +177,26 @@ export default function Header() {
 
           {/* 우측 액션 영역 */}
           <div className="ml-auto flex items-center gap-4">
+            <button
+              className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
+              onClick={() => window.open("https://talkgate.gitbook.io/talkgate)", "_blank")}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 9C9.54912 7.83481 10.2584 7 12.0001 7C14.2092 7 15.5 8.34315 15.5 10C15.5 11.3994 14.7224 12.5751 12.9943 12.9066C12.4519 13.0106 12.0001 13.4477 12.0001 14M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
             {/* 다크 모드 토글 버튼 */}
             {mounted ? (
               <button
@@ -166,7 +206,13 @@ export default function Header() {
                 aria-pressed={isDarkMode}
               >
                 {isDarkMode ? (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M12 18a6 6 0 100-12 6 6 0 000 12z"
                       stroke="currentColor"
@@ -174,17 +220,71 @@ export default function Header() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                    <path d="M12 1v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M12 21v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M4.22 4.22L5.64 5.64" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M18.36 18.36l1.42 1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M1 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M21 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M4.22 19.78L5.64 18.36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M12 1v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 21v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4.22 4.22L5.64 5.64"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M18.36 18.36l1.42 1.42"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M1 12h2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M21 12h2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4.22 19.78L5.64 18.36"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M18.36 5.64l1.42-1.42"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 ) : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M20.3542 15.3542C19.3176 15.7708 18.1856 16.0001 17 16.0001C12.0294 16.0001 8 11.9706 8 7.00006C8 5.81449 8.22924 4.68246 8.64581 3.64587C5.33648 4.9758 3 8.21507 3 12.0001C3 16.9706 7.02944 21.0001 12 21.0001C15.785 21.0001 19.0243 18.6636 20.3542 15.3542Z"
                       stroke="currentColor"
@@ -198,7 +298,7 @@ export default function Header() {
             ) : (
               <span className="relative block w-6 h-6" aria-hidden />
             )}
-            
+
             {/* 알림 아이콘 + 플로팅 */}
             <NotificationBell />
 
@@ -224,7 +324,13 @@ export default function Header() {
                   </div>
                 )}
               </button>
-              {open && <UserMenuDropdown user={user} variant="full" onClose={() => setOpen(false)} />}
+              {open && (
+                <UserMenuDropdown
+                  user={user}
+                  variant="full"
+                  onClose={() => setOpen(false)}
+                />
+              )}
             </div>
           </div>
         </div>

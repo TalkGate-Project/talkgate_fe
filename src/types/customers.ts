@@ -81,7 +81,7 @@ export type CreateCustomerInput = {
   name: string;
   contact1: string;
   contact2?: string;
-  residentId?: string;
+  birth?: string;
   ageRange?: string;
   gender?: string; // e.g., "male"
   job?: string;
@@ -135,7 +135,7 @@ export type CustomerDetail = {
   contact2: string;
   contact1Type?: ContactType | null;
   contact2Type?: ContactType | null;
-  residentId?: string;
+  birth?: string;
   ageRange?: string;
   gender?: string; // e.g., "male"
   job?: string;
@@ -180,7 +180,7 @@ export type UpdateCustomerInput = {
   contact2?: string;
   contact1Type?: ContactType | null;
   contact2Type?: ContactType | null;
-  residentId?: string;
+  birth?: string;
   ageRange?: string;
   gender?: string;
   job?: string;

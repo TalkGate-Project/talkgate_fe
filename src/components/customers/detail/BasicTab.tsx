@@ -6,43 +6,44 @@ import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
 
-// 주민등록번호 뒷자리 입력 컴포넌트 (마스킹 처리)
-function ResidentBackInput({
+// 생년월일 입력 컴포넌트
+function BirthInput({
   value,
   onChange,
 }: {
   value: string;
   onChange: (value: string) => void;
 }) {
-  const [isFocused, setIsFocused] = useState(false);
-
-  // 포커스 시 실제 값 표시
-  const handleFocus = () => {
-    setIsFocused(true);
+  // YYYY-MM-DD 형식으로 포맷팅
+  const formatDate = (input: string) => {
+    // 숫자만 추출
+    const numbers = input.replace(/[^0-9]/g, "");
+    // YYYY-MM-DD 형식으로 변환
+    if (numbers.length <= 4) {
+      return numbers;
+    } else if (numbers.length <= 6) {
+      return `${numbers.slice(0, 4)}-${numbers.slice(4)}`;
+    } else {
+      return `${numbers.slice(0, 4)}-${numbers.slice(4, 6)}-${numbers.slice(6, 8)}`;
+    }
   };
 
-  // 포커스 해제 시 마스킹
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
-
-  // 값 변경 시
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 숫자만 입력 허용, "-" 문자 제거
-    const inputValue = e.target.value.replace(/[^0-9]/g, "");
-    onChange(inputValue);
+    const inputValue = e.target.value;
+    // 숫자와 하이픈만 허용
+    const cleaned = inputValue.replace(/[^0-9-]/g, "");
+    const formatted = formatDate(cleaned);
+    onChange(formatted);
   };
 
   return (
     <input
       type="text"
-      value={isFocused ? value : "******"}
+      value={value}
       onChange={handleChange}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      maxLength={7}
+      maxLength={10}
       className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-      placeholder="*******"
+      placeholder="YYYY-MM-DD"
     />
   );
 }
@@ -176,30 +177,16 @@ export default function BasicTab({
         </div>
       </div>
 
-      {/* Resident ID */}
+      {/* Birth */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">주민등록번호</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">생년월일</span>
         </div>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div>
-            <input
-              value={form.residentFront}
-              onChange={(e) => {
-                // 숫자만 입력 허용
-                const value = e.target.value.replace(/[^0-9]/g, "");
-                setForm((prev) => ({ ...prev, residentFront: value }));
-              }}
-              maxLength={6}
-              className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="123456"
-            />
-          </div>
-          <div className="text-center text-neutral-60">-</div>
-          <ResidentBackInput
-            value={form.residentBack}
+        <div>
+          <BirthInput
+            value={form.birth}
             onChange={(value) =>
-              setForm((prev) => ({ ...prev, residentBack: value }))
+              setForm((prev) => ({ ...prev, birth: value }))
             }
           />
         </div>

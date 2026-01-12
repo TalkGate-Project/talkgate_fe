@@ -63,6 +63,7 @@ export type CustomerNoteStatusRecord = {
   categoryId: number | null;
   categoryName: string | null;
   totalCount: number;
+  percentage: number;
 };
 
 export type CustomerNoteStatusResponse = ApiSuccessResponse<{

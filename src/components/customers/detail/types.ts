@@ -10,8 +10,7 @@ export type CustomerFormState = {
   contact2: string;
   contact1Type: ContactType | null;
   contact2Type: ContactType | null;
-  residentFront: string;
-  residentBack: string;
+  birth: string;
   ageRange: string;
   job: string;
   applicationRoute: string;
@@ -32,8 +31,7 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   contact2: "",
   contact1Type: null,
   contact2Type: null,
-  residentFront: "",
-  residentBack: "",
+  birth: "",
   ageRange: "",
   job: "",
   applicationRoute: "",
@@ -62,8 +60,7 @@ export const FORM_TO_API_FIELD_MAP: Record<
   contact2: "contact2",
   contact1Type: "contact1Type",
   contact2Type: "contact2Type",
-  residentFront: null, // residentId로 합쳐서 처리
-  residentBack: null, // residentId로 합쳐서 처리
+  birth: "birth",
   ageRange: "ageRange",
   job: "job",
   applicationRoute: "applicationRoute",

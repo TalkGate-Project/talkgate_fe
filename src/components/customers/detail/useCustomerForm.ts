@@ -35,15 +35,8 @@ export function useCustomerForm(): UseCustomerFormReturn {
       ? dayjs(detail.applicationDate).format("YYYY-MM-DD HH:mm")
       : "";
 
-    // 주민등록번호 처리: "461385-8244625" 형식에서 "-" 제거하고 앞자리/뒷자리 분리
-    let residentFront = "";
-    let residentBack = "";
-    if (detail.residentId) {
-      // "-" 문자 제거
-      const residentIdWithoutDash = detail.residentId.replace(/-/g, "");
-      residentFront = residentIdWithoutDash.slice(0, 6) ?? "";
-      residentBack = residentIdWithoutDash.slice(6) ?? "";
-    }
+    // 생년월일 처리: birth 필드를 그대로 사용
+    const birth = detail.birth ?? "";
 
     const initialFormState: CustomerFormState = {
       name: detail.name ?? "",
@@ -51,8 +44,7 @@ export function useCustomerForm(): UseCustomerFormReturn {
       contact2: detail.contact2 ?? "",
       contact1Type: detail.contact1Type ?? null,
       contact2Type: detail.contact2Type ?? null,
-      residentFront,
-      residentBack,
+      birth,
       ageRange: detail.ageRange ?? "",
       job: detail.job ?? "",
       applicationRoute: detail.applicationRoute ?? "",
@@ -87,8 +79,6 @@ export function useCustomerForm(): UseCustomerFormReturn {
 
     // 일반 필드 비교
     (Object.keys(form) as Array<keyof CustomerFormState>).forEach((key) => {
-      // residentFront/Back은 별도 처리
-      if (key === "residentFront" || key === "residentBack") return;
       // 읽기 전용 필드는 스킵
       if (key === "assignedMemberName" || key === "assignedTeamName") return;
 
@@ -105,21 +95,6 @@ export function useCustomerForm(): UseCustomerFormReturn {
         }
       }
     });
-
-    // residentId 처리: residentFront 또는 residentBack이 변경된 경우
-    // 서버 전송 시 "-"를 포함한 형식으로 변환 (예: "461385-8244625")
-    const currentResidentId =
-      form.residentFront || form.residentBack
-        ? `${form.residentFront}-${form.residentBack}`
-        : "";
-    const originalResidentId =
-      originalForm.residentFront || originalForm.residentBack
-        ? `${originalForm.residentFront}-${originalForm.residentBack}`
-        : "";
-
-    if (currentResidentId !== originalResidentId) {
-      changedFields.residentId = currentResidentId || undefined;
-    }
 
     return changedFields;
   }, [form, originalForm]);
