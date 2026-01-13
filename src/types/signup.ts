@@ -19,6 +19,9 @@ export type RegisterInput = {
   password: string;
   agreeTerms: boolean;
   agreePrivacy: boolean;
+  agreeDataProcessing: boolean;
+  agreeThirdParty: boolean;
+  agreeMarketing: boolean;
   invitationToken?: string;
 };
 

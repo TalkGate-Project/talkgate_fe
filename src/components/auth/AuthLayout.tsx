@@ -163,7 +163,7 @@ export default function AuthLayout({
               
               {/* Form 컨테이너 */}
               <div
-                className="relative mx-auto flex flex-col items-center !px-[25px] md:!px-[90px] rounded-b-[24px] overflow-hidden z-[1]"
+                className="relative mx-auto flex flex-col items-center !px-[15px] md:!px-[70px] rounded-b-[24px] overflow-hidden z-[1]"
                 aria-label={ariaLabel}
                 style={{
                   width: "564px",
@@ -184,8 +184,10 @@ export default function AuthLayout({
                   </div>
                 )}
                 
-                {/* 페이지별 콘텐츠 - 데스크탑에서는 children 그대로 렌더링 */}
-                {children}
+                {/* 페이지별 콘텐츠 - 스크롤 가능한 영역 */}
+                <div className="w-full flex-1 overflow-y-auto min-h-0 px-[10px] md:px-[20px]">
+                  {children}
+                </div>
               </div>
             </div>
           </div>
@@ -225,8 +227,9 @@ export default function AuthLayout({
             폼 컨테이너 
             - 모바일에서는 카드가 아니라 투명 배경에 폼만 띄움
             - width 제한(max-w-[384px])을 두어 너무 늘어나지 않게 함
+            - 스크롤 가능하도록 max-height와 overflow-y-auto 추가
           */}
-          <div className="w-full max-w-[384px]">
+          <div className="w-full max-w-[384px] max-h-[calc(100vh-360px)] overflow-y-auto">
             {children}
           </div>
         </main>

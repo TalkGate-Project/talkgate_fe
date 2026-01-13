@@ -99,7 +99,7 @@ export default function NoticeTable({
           　
         </div>
         <div className="flex-1 text-[13px] md:text-[16px] font-medium text-neutral-60">제목</div>
-        <div className="w-[80px] md:w-[210px] text-[13px] md:text-[16px] font-medium text-neutral-60 text-left">
+        <div className="w-[80px] md:w-[210px] text-[13px] md:text-[16px] font-medium text-neutral-60 text-left pl-2 md:pl-0">
           작성자
         </div>
         <div className="w-[70px] md:w-[160px] text-[13px] md:text-[16px] font-medium text-neutral-60 text-left">
@@ -145,7 +145,7 @@ export default function NoticeTable({
                 </div>
 
                 {/* 제목 영역 */}
-                <div className="flex-1 flex items-center gap-2 md:gap-3 leading-[1] min-w-0">
+                <div className="flex-1 flex items-center gap-2 md:gap-3 leading-[1] min-w-0 pr-2 md:pr-0">
                   {/* 중요 태그 */}
                   {notice.important && (
                     <div className="px-2 md:px-3 py-1 bg-danger-10 rounded-[30px] flex-shrink-0">

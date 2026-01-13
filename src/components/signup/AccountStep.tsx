@@ -9,7 +9,7 @@ import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import type { SignupTokens } from "@/types/signup";
 
 type AccountStepProps = {
-  onSuccess: (params: { email: string; password: string; tokens?: SignupTokens }) => void;
+  onSuccess: (params: { email: string; password: string; tokens?: SignupTokens; agreeMarketing: boolean }) => void;
   invitationToken?: string;
   inviteEmail?: string; // 초대 플로우에서 이메일 고정
 };
@@ -30,6 +30,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
   const [emailDuplicate, setEmailDuplicate] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeDataProcessing, setAgreeDataProcessing] = useState(false);
+  const [agreeThirdParty, setAgreeThirdParty] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
@@ -67,7 +70,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
 
   useEffect(() => {
     setInvalid(false);
-  }, [email, password, passwordConfirm, agreeTerms, agreePrivacy]);
+  }, [email, password, passwordConfirm, agreeTerms, agreePrivacy, agreeDataProcessing, agreeThirdParty, agreeMarketing]);
 
   return (
     // 계정 생성 단계 폼 영역 시작
@@ -81,7 +84,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
           !passwordStrong ||
           !passwordMatch ||
           !agreeTerms ||
-          !agreePrivacy
+          !agreePrivacy ||
+          !agreeDataProcessing ||
+          !agreeThirdParty
         ) {
           setInvalid(true);
           return;
@@ -94,6 +99,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             password,
             agreeTerms,
             agreePrivacy,
+            agreeDataProcessing,
+            agreeThirdParty,
+            agreeMarketing,
             invitationToken,
           });
           
@@ -102,16 +110,16 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
             if (isInviteFlow && res.tokens) {
               console.log("[AccountStep] 🎉 초대 플로우 - 토큰 반환됨, 이메일 인증 스킵");
-              onSuccess({ email, password, tokens: res.tokens });
+              onSuccess({ email, password, tokens: res.tokens, agreeMarketing });
             } else if (isInviteFlow) {
               // 토큰이 없어도 초대 플로우면 임시 토큰으로 진행 (백엔드 구현에 따라)
               console.log("[AccountStep] 🎉 초대 플로우 - 회원가입 성공");
               // 백엔드가 토큰을 반환하지 않는 경우, 로그인 후 진행해야 함
               // 이 경우 프로필 스텝 대신 바로 /invite/accept로 리다이렉트
-              onSuccess({ email, password });
+              onSuccess({ email, password, agreeMarketing });
             } else {
               // 일반 플로우: 이메일 인증 단계로
-              onSuccess({ email, password });
+              onSuccess({ email, password, agreeMarketing });
             }
           }
         } catch (err) {
@@ -333,19 +341,25 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
         <div className="flex items-center text-[14px] text-[#BFBFBF]">
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={agreeTerms && agreePrivacy}
+              checked={agreeTerms && agreePrivacy && agreeDataProcessing && agreeThirdParty && agreeMarketing}
               onChange={(next) => {
                 setAgreeTerms(next);
                 setAgreePrivacy(next);
+                setAgreeDataProcessing(next);
+                setAgreeThirdParty(next);
+                setAgreeMarketing(next);
               }}
               ariaLabel="모두 동의합니다"
             />
             <span 
               className="cursor-pointer"
               onClick={() => {
-                const next = !(agreeTerms && agreePrivacy);
+                const next = !(agreeTerms && agreePrivacy && agreeDataProcessing && agreeThirdParty && agreeMarketing);
                 setAgreeTerms(next);
                 setAgreePrivacy(next);
+                setAgreeDataProcessing(next);
+                setAgreeThirdParty(next);
+                setAgreeMarketing(next);
               }}
             >
               모두 동의합니다
@@ -382,32 +396,116 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
               <Checkbox
                 checked={agreeTerms}
                 onChange={setAgreeTerms}
-                ariaLabel="이용약관 동의"
+                ariaLabel="Talkgate 서비스 이용약관 동의"
               />
               <span 
                 className="cursor-pointer"
                 onClick={() => setAgreeTerms(!agreeTerms)}
               >
-                이용약관에 동의합니다
+                <a
+                  href="https://talkgate.im/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  Talkgate 서비스 이용약관
+                </a>
+                {" 동의 (필수)"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
               <Checkbox
                 checked={agreePrivacy}
                 onChange={setAgreePrivacy}
-                ariaLabel="개인정보 처리방침 동의"
+                ariaLabel="개인정보처리방침 동의"
               />
               <span 
                 className="cursor-pointer"
                 onClick={() => setAgreePrivacy(!agreePrivacy)}
               >
-                개인정보처리방침에 동의합니다
+                <a
+                  href="https://talkgate.im/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  개인정보처리방침
+                </a>
+                {" 동의 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeDataProcessing}
+                onChange={setAgreeDataProcessing}
+                ariaLabel="개인정보 처리위탁에 대한 동의"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeDataProcessing(!agreeDataProcessing)}
+              >
+                <a
+                  href="https://talkgate.im/privacy-consignment"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  개인정보 처리위탁
+                </a>
+                {"에 대한 동의 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeThirdParty}
+                onChange={setAgreeThirdParty}
+                ariaLabel="고객정보 적법 수집 및 제3자 제공 책임 확인"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeThirdParty(!agreeThirdParty)}
+              >
+                <a
+                  href="https://talkgate.im/data-collection"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  고객정보 적법 수집 및 제3자 제공
+                </a>
+                {" 책임 확인 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeMarketing}
+                onChange={setAgreeMarketing}
+                ariaLabel="Talkgate 마케팅 정보 수신 동의"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeMarketing(!agreeMarketing)}
+              >
+                <a
+                  href="https://talkgate.im/marketing-consent"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  Talkgate 마케팅 정보 수신 동의
+                </a>
+                {" (선택)"}
               </span>
             </div>
           </div>
         )}
       </div>
-      {invalid && (!agreeTerms || !agreePrivacy) && (
+      {invalid && (!agreeTerms || !agreePrivacy || !agreeDataProcessing || !agreeThirdParty) && (
         <div className="mb-2 text-[12px] text-[#FF5A5A]">
           약관에 동의해주세요.
         </div>
@@ -427,7 +525,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
           !passwordStrong ||
           !passwordMatch ||
           !agreeTerms ||
-          !agreePrivacy
+          !agreePrivacy ||
+          !agreeDataProcessing ||
+          !agreeThirdParty
         }
         className="mt-2"
       >
