@@ -56,6 +56,9 @@ export const SignupService = {
       password: input.password,
       isAllowTerms: input.agreeTerms,
       isAllowPrivacy: input.agreePrivacy,
+      isAllowPrivacyProcessing: input.agreeDataProcessing,
+      isAllowCustomerInfoLegal: input.agreeThirdParty,
+      isAllowMarketing: input.agreeMarketing,
       invitationToken: input.invitationToken,
     };
     return apiClient

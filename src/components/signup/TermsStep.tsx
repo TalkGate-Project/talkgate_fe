@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import Checkbox from "@/components/common/Checkbox";
 import { AuthService } from "@/services/auth";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -12,13 +14,16 @@ type TermsStepProps = {
 export function TermsStep({ onComplete }: TermsStepProps) {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeDataProcessing, setAgreeDataProcessing] = useState(false);
+  const [agreeThirdParty, setAgreeThirdParty] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
   const [showTerms, setShowTerms] = useState(true); // 기본으로 펼쳐진 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const allAgreed = agreeTerms && agreePrivacy;
+  const allRequiredAgreed = agreeTerms && agreePrivacy && agreeDataProcessing && agreeThirdParty;
 
   const handleSubmit = async () => {
-    if (!allAgreed) return;
+    if (!allRequiredAgreed) return;
 
     setIsSubmitting(true);
     try {
@@ -26,9 +31,24 @@ export function TermsStep({ onComplete }: TermsStepProps) {
       await AuthService.termsAccept({
         isAllowTerms: agreeTerms,
         isAllowPrivacy: agreePrivacy,
+        isAllowPrivacyProcessing: agreeDataProcessing,
+        isAllowCustomerInfoLegal: agreeThirdParty,
+        isAllowMarketing: agreeMarketing,
       });
       console.log("[TermsStep] ✅ 약관 동의 완료");
-      onComplete();
+      
+      // 마케팅 정보 수신 동의 여부에 따라 알림 모달 표시
+      const currentDate = format(new Date(), "yyyy년 MM월 dd일", { locale: ko });
+      const marketingStatus = agreeMarketing ? "동의" : "거부";
+      showErrorModal({
+        type: "info",
+        headline: `${currentDate} 마케팅 정보 수신 ${marketingStatus} 처리 되었습니다.`,
+        hideCancel: true,
+        confirmText: "확인",
+        onConfirm: () => {
+          onComplete();
+        },
+      });
     } catch (err: any) {
       console.error("[TermsStep] 약관 동의 실패:", err);
       showErrorModal({
@@ -60,19 +80,25 @@ export function TermsStep({ onComplete }: TermsStepProps) {
         <div className="flex items-center text-[14px] text-[#BFBFBF]">
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={allAgreed}
+              checked={agreeTerms && agreePrivacy && agreeDataProcessing && agreeThirdParty && agreeMarketing}
               onChange={(next) => {
                 setAgreeTerms(next);
                 setAgreePrivacy(next);
+                setAgreeDataProcessing(next);
+                setAgreeThirdParty(next);
+                setAgreeMarketing(next);
               }}
               ariaLabel="모두 동의합니다"
             />
             <span 
               className="cursor-pointer"
               onClick={() => {
-                const next = !allAgreed;
+                const next = !(agreeTerms && agreePrivacy && agreeDataProcessing && agreeThirdParty && agreeMarketing);
                 setAgreeTerms(next);
                 setAgreePrivacy(next);
+                setAgreeDataProcessing(next);
+                setAgreeThirdParty(next);
+                setAgreeMarketing(next);
               }}
             >
               모두 동의합니다
@@ -110,33 +136,117 @@ export function TermsStep({ onComplete }: TermsStepProps) {
               <Checkbox
                 checked={agreeTerms}
                 onChange={setAgreeTerms}
-                ariaLabel="이용약관 동의"
+                ariaLabel="Talkgate 서비스 이용약관 동의"
               />
               <span 
                 className="cursor-pointer"
                 onClick={() => setAgreeTerms(!agreeTerms)}
               >
-                이용약관에 동의합니다 (필수)
+                <a
+                  href="https://talkgate.im/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  Talkgate 서비스 이용약관
+                </a>
+                {" 동의 (필수)"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
               <Checkbox
                 checked={agreePrivacy}
                 onChange={setAgreePrivacy}
-                ariaLabel="개인정보 처리방침 동의"
+                ariaLabel="개인정보처리방침 동의"
               />
               <span 
                 className="cursor-pointer"
                 onClick={() => setAgreePrivacy(!agreePrivacy)}
               >
-                개인정보처리방침에 동의합니다 (필수)
+                <a
+                  href="https://talkgate.im/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  개인정보처리방침
+                </a>
+                {" 동의 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeDataProcessing}
+                onChange={setAgreeDataProcessing}
+                ariaLabel="개인정보 처리위탁에 대한 동의"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeDataProcessing(!agreeDataProcessing)}
+              >
+                <a
+                  href="https://talkgate.im/privacy-consignment"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  개인정보 처리위탁
+                </a>
+                {"에 대한 동의 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeThirdParty}
+                onChange={setAgreeThirdParty}
+                ariaLabel="고객정보 적법 수집 및 제3자 제공 책임 확인"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeThirdParty(!agreeThirdParty)}
+              >
+                <a
+                  href="https://talkgate.im/data-collection"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  고객정보 적법 수집 및 제3자 제공
+                </a>
+                {" 책임 확인 (필수)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[14px] text-[#BFBFBF]">
+              <Checkbox
+                checked={agreeMarketing}
+                onChange={setAgreeMarketing}
+                ariaLabel="Talkgate 마케팅 정보 수신 동의"
+              />
+              <span 
+                className="cursor-pointer"
+                onClick={() => setAgreeMarketing(!agreeMarketing)}
+              >
+                <a
+                  href="https://talkgate.im/marketing-consent"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sky-400 underline"
+                >
+                  Talkgate 마케팅 정보 수신 동의
+                </a>
+                {" (선택)"}
               </span>
             </div>
           </div>
         )}
 
         {/* 미동의 경고 */}
-        {!allAgreed && (
+        {!allRequiredAgreed && (
           <div className="mt-3 text-[13px] text-[#808080]">
             서비스 이용을 위해 약관에 동의해주세요.
           </div>
@@ -147,7 +257,7 @@ export function TermsStep({ onComplete }: TermsStepProps) {
       <button
         type="submit"
         className="cursor-pointer w-full h-[40px] rounded-[5px] bg-[#252525] text-[#D0D0D0] text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!allAgreed || isSubmitting}
+        disabled={!allRequiredAgreed || isSubmitting}
       >
         {isSubmitting ? "처리 중..." : "다음"}
       </button>

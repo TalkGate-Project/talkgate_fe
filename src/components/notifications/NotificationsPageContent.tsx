@@ -183,10 +183,10 @@ function NotificationsPageContentInner() {
   });
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-card md:bg-background">
       <div className="mx-auto max-w-[1324px] px-0 md:px-6 pt-0 md:pt-9 md:pb-24">
         {/* 모바일: 하나의 배경으로 통합, 데스크탑: 두 개의 section으로 분리 */}
-        <div className="bg-card md:rounded-[14px]">
+        <div className="bg-card md:rounded-[14px] min-h-screen md:min-h-0">
           {/* 상단 컨테이너: 제목/설명 + 전체/미읽음 스위치 */}
           <section className="md:rounded-[14px]">
             <div className="px-4 md:px-7 py-4 md:py-7">

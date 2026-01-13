@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -12,6 +14,7 @@ import type { SignupStep } from "@/components/signup/steps";
 import type { SignupTokens } from "@/types/signup";
 import { getPendingInviteInfo } from "@/lib/invite";
 import { setTokens } from "@/lib/token";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export function SignupForm() {
   const router = useRouter();
@@ -56,29 +59,42 @@ export function SignupForm() {
     email: string;
     password: string;
     tokens?: SignupTokens; // 초대 플로우에서는 회원가입 시 바로 토큰 반환
+    agreeMarketing: boolean;
   }) => {
     setAccountEmail(params.email);
     setAccountPassword(params.password);
     
-    // 초대 플로우인 경우 이메일 인증 스킵
-    // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
-    if (isInviteFlow) {
-      if (params.tokens) {
-        // 토큰을 저장하고 본인인증 단계로 이동
-        // ⚠️ 이메일 인증은 스킵하지만 본인인증은 진행해야 함
-        console.log("[SignupPage] 🎉 초대 플로우 - 이메일 인증 스킵, 본인인증 단계로 이동");
-        setSignupTokens(params.tokens);
-        setStep("profile");
-      } else {
-        // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
-        console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
-        window.location.href = "/login";
-      }
-      return;
-    }
-    
-    // 일반 플로우: 이메일 인증 단계로
-    setStep("verify");
+    // 마케팅 동의 알림 모달 표시
+    const currentDate = format(new Date(), "yyyy년 MM월 dd일", { locale: ko });
+    const marketingStatus = params.agreeMarketing ? "동의" : "거부";
+    showErrorModal({
+      type: "info",
+      headline: "",
+      description: `${currentDate} 마케팅 정보\n수신 ${marketingStatus} 처리 되었습니다.`,
+      hideCancel: true,
+      confirmText: "확인",
+      onConfirm: () => {
+        // 초대 플로우인 경우 이메일 인증 스킵
+        // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
+        if (isInviteFlow) {
+          if (params.tokens) {
+            // 토큰을 저장하고 본인인증 단계로 이동
+            // ⚠️ 이메일 인증은 스킵하지만 본인인증은 진행해야 함
+            console.log("[SignupPage] 🎉 초대 플로우 - 이메일 인증 스킵, 본인인증 단계로 이동");
+            setSignupTokens(params.tokens);
+            setStep("profile");
+          } else {
+            // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
+            console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
+            window.location.href = "/login";
+          }
+          return;
+        }
+        
+        // 일반 플로우: 이메일 인증 단계로
+        setStep("verify");
+      },
+    });
   };
 
   // 이메일 인증 성공 시 토큰을 받아서 저장
