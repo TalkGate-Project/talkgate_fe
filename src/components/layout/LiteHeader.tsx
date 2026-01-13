@@ -78,14 +78,14 @@ export default function LiteHeader() {
         {/* 우측 액션: 다크모드 + 개인화 드롭다운만 */}
         <div className="ml-auto flex items-center gap-4">
           <button
-            className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
+            className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
             onClick={() =>
-              window.open("https://talkgate.gitbook.io/talkgate)", "_blank")
+              window.open("https://talkgate.gitbook.io/talkgate", "_blank")
             }
           >
             <svg
-              width="24"
-              height="24"
+              width="27"
+              height="27"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
