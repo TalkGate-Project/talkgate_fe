@@ -50,14 +50,25 @@ export default function BillingTab() {
     useState<ProjectWithSubscription | null>(null);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
 
-  // 프로젝트 목록 가져오기
+  // 어드민인 프로젝트 목록 가져오기
   const { data: projects, isLoading } = useQuery({
-    queryKey: ["projects", "list"],
+    queryKey: ["projects", "admin"],
     queryFn: async () => {
-      const res = await ProjectsService.list();
-      const payload: any = res.data;
-      const list = Array.isArray(payload) ? payload : payload?.data;
-      return (Array.isArray(list) ? list : []) as ProjectSummary[];
+      const res = await ProjectsService.listAdmin();
+      const payload: unknown = res.data;
+      // API 응답이 단일 객체이거나 배열일 수 있음
+      if (Array.isArray(payload)) {
+        return payload as ProjectSummary[];
+      }
+      const data = (payload as { data?: unknown })?.data;
+      if (Array.isArray(data)) {
+        return data as ProjectSummary[];
+      }
+      // 단일 객체인 경우 배열로 변환
+      if (data && typeof data === "object") {
+        return [data as ProjectSummary];
+      }
+      return [];
     },
   });
 
