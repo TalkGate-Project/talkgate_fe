@@ -36,7 +36,7 @@ interface ProjectWithSubscription extends ProjectSummary {
     };
     startDate: string;
     endDate: string;
-    billingCycle: "monthly" | "yearly";
+    billingCycle: "monthly" | "quarterly" | "yearly";
     isActive: boolean;
   };
   usage?: {
