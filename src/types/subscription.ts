@@ -6,16 +6,18 @@ export type SubscriptionPlan = {
   name: string;
   description: string;
   monthlyPrice: number;
-  yearlyPrice: number;
+  quarterlyPrice?: number;
+  yearlyPrice?: number;
   aiUsageLimit: number;
   smsUsageLimit: number;
-  maxMembers: number;
-  maxCustomers: number;
+  memberCountLimit?: number;
+  maxMembers?: number;
+  maxCustomers?: number;
   sortOrder: number;
 };
 
 // 결제 주기
-export type BillingCycle = "monthly" | "yearly";
+export type BillingCycle = "monthly" | "quarterly" | "yearly";
 
 // 구독 상태
 export type SubscriptionStatus = "active" | "cancelled" | "expired" | "pending";
@@ -33,7 +35,9 @@ export type Subscription = {
   autoRenewal: boolean;
   startDate: string;
   endDate: string;
-  nextBillingDate: string;
+  nextBillingDate?: string;
+  pendingPlanId?: number | null;
+  pendingBillingCycle?: BillingCycle | null;
   cancelledAt: string | null;
   terminatedAt: string | null;
   isActive: boolean;
