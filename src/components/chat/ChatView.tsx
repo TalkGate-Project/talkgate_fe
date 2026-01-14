@@ -331,15 +331,22 @@ export default function ChatView({ projectId }: Props) {
       ? mobileEmojiButtonRef.current 
       : emojiButtonRef.current;
     
-    if (activeButton) {
+      if (activeButton) {
       const rect = activeButton.getBoundingClientRect();
       // body zoom(컴팩트 0.8 / 기본 1) 기준으로 위치 보정
       const zoom = getBodyZoom();
       // 모바일에서는 입력 필드 내부 오른쪽에 있으므로 위치 조정
       if (isMobile && mobileEmojiButtonRef.current) {
-        // 모바일: 이모지 피커를 버튼 위쪽에 표시, x축을 왼쪽으로 100px 이동
+        // 모바일: 이모지 피커를 버튼 위쪽에 표시, x축을 왼쪽으로 더 많이 이동하여 화면 밖으로 나가지 않도록 조정
+        const pickerWidth = 216; // full mode width
+        const screenWidth = window.innerWidth;
+        // 피커가 화면 밖으로 나가지 않도록 계산
+        // 버튼 오른쪽 끝에서 피커 너비만큼 왼쪽으로 이동, 최소 16px 여백 유지
+        const desiredX = rect.right - pickerWidth - 16;
+        // 화면 왼쪽 경계를 넘지 않도록 보정
+        const finalX = Math.max(16, desiredX);
         setEmojiPickerPosition({
-          x: (rect.right - 100) / zoom,
+          x: finalX / zoom,
           y: rect.top / zoom,
         });
       } else if (emojiButtonRef.current) {
