@@ -26,6 +26,9 @@ export const ProjectsService = {
   list(query?: Record<string, string | number | boolean>) {
     return apiClient.get<ApiSuccess<ProjectSummary[]>>("/v1/projects", { query });
   },
+  listAdmin() {
+    return apiClient.get<ApiSuccess<ProjectSummary>>("/v1/projects/admin");
+  },
   detailBySubDomain(subDomain: string, headers?: Record<string, string>) {
     return apiClient.get<ApiSuccess<Project>>(`/v1/projects/${subDomain}`, headers ? { headers } : undefined);
   },
