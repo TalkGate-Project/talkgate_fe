@@ -7,6 +7,9 @@ import AsyncButton from "@/components/common/AsyncButton";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import type { SignupTokens } from "@/types/signup";
+import PrivacyConsignmentModal from "@/components/signup/PrivacyConsignmentModal";
+import DataCollectionModal from "@/components/signup/DataCollectionModal";
+import MarketingConsentModal from "@/components/signup/MarketingConsentModal";
 
 type AccountStepProps = {
   onSuccess: (params: { email: string; password: string; tokens?: SignupTokens; agreeMarketing: boolean }) => void;
@@ -39,6 +42,9 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
   const [pwdTouched, setPwdTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPrivacyConsignmentModal, setShowPrivacyConsignmentModal] = useState(false);
+  const [showDataCollectionModal, setShowDataCollectionModal] = useState(false);
+  const [showMarketingConsentModal, setShowMarketingConsentModal] = useState(false);
 
   const emailValid = useMemo(() => /.+@.+\..+/.test(email), [email]);
   const passwordValid = useMemo(() => password.length >= 8, [password]);
@@ -446,15 +452,16 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
                 className="cursor-pointer"
                 onClick={() => setAgreeDataProcessing(!agreeDataProcessing)}
               >
-                <a
-                  href="https://talkgate.im/privacy-consignment"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPrivacyConsignmentModal(true);
+                  }}
                   className="text-sky-400 underline"
                 >
                   개인정보 처리위탁
-                </a>
+                </button>
                 {"에 대한 동의 (필수)"}
               </span>
             </div>
@@ -468,15 +475,16 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
                 className="cursor-pointer"
                 onClick={() => setAgreeThirdParty(!agreeThirdParty)}
               >
-                <a
-                  href="https://talkgate.im/data-collection"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDataCollectionModal(true);
+                  }}
                   className="text-sky-400 underline"
                 >
                   고객정보 적법 수집 및 제3자 제공
-                </a>
+                </button>
                 {" 책임 확인 (필수)"}
               </span>
             </div>
@@ -490,15 +498,16 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
                 className="cursor-pointer"
                 onClick={() => setAgreeMarketing(!agreeMarketing)}
               >
-                <a
-                  href="https://talkgate.im/marketing-consent"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMarketingConsentModal(true);
+                  }}
                   className="text-sky-400 underline"
                 >
                   Talkgate 마케팅 정보 수신 동의
-                </a>
+                </button>
                 {" (선택)"}
               </span>
             </div>
@@ -534,6 +543,20 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
         다음
       </AsyncButton>
       {/* 다음 버튼 영역 끝 */}
+
+      {/* 약관 모달들 */}
+      <PrivacyConsignmentModal
+        open={showPrivacyConsignmentModal}
+        onClose={() => setShowPrivacyConsignmentModal(false)}
+      />
+      <DataCollectionModal
+        open={showDataCollectionModal}
+        onClose={() => setShowDataCollectionModal(false)}
+      />
+      <MarketingConsentModal
+        open={showMarketingConsentModal}
+        onClose={() => setShowMarketingConsentModal(false)}
+      />
     </form>
     // 계정 생성 단계 폼 영역 끝
   );

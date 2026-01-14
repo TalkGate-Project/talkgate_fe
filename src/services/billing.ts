@@ -1,9 +1,10 @@
 import { apiClient } from "@/lib/apiClient";
 import type {
   BillingListResponse,
-  BillingDetailResponse,
   BillingRegisterInput,
   BillingRegisterResponse,
+  BillingUpdateInput,
+  BillingUpdateResponse,
 } from "@/types/billing";
 
 export const BillingService = {
@@ -13,14 +14,6 @@ export const BillingService = {
    */
   list() {
     return apiClient.get<BillingListResponse>("/v1/billing");
-  },
-
-  /**
-   * 특정 빌링키 조회
-   * ID로 특정 결제 수단을 조회합니다.
-   */
-  getById(id: string | number) {
-    return apiClient.get<BillingDetailResponse>(`/v1/billing/${id}`);
   },
 
   /**
@@ -34,11 +27,20 @@ export const BillingService = {
 
   /**
    * 빌링키 등록 (결제 수단 등록)
-   * 토스페이먼츠 빌링키를 발급받아 결제 수단을 등록합니다.
-   * 사용자별로 관리됩니다.
+   * 나이스페이 빌링키를 발급받아 결제 수단을 등록합니다.
+   * 결제 수단은 한 개만 등록 가능하며, 이미 등록된 결제 수단이 있으면 에러가 발생합니다.
    */
   register(input: BillingRegisterInput) {
     return apiClient.post<BillingRegisterResponse>("/v1/billing/register", input);
+  },
+
+  /**
+   * 빌링키 변경 (결제 수단 변경)
+   * 등록된 결제 수단을 변경합니다.
+   * 기존 빌링키 ID를 유지하면서 새로운 카드 정보로 업데이트합니다.
+   */
+  update(input: BillingUpdateInput) {
+    return apiClient.put<BillingUpdateResponse>("/v1/billing/update", input);
   },
 };
 
@@ -46,8 +48,9 @@ export const BillingService = {
 export type {
   BillingInfo,
   BillingListResponse,
-  BillingDetailResponse,
   BillingRegisterInput,
   BillingRegisterResponse,
+  BillingUpdateInput,
+  BillingUpdateResponse,
 } from "@/types/billing";
 
