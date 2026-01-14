@@ -103,7 +103,8 @@ function SubscriptionCard({ subscription }: { subscription: Subscription }) {
   
   // 사용량 비율 계산 (실제 사용량 API가 있으면 연동 필요)
   const memberUsage = 26; // 임시 값 - 실제 사용량 API 연동 필요
-  const memberPercentage = plan ? Math.min(100, (memberUsage / plan.maxMembers) * 100) : 0;
+  const memberLimit = plan?.memberCountLimit ?? plan?.maxMembers ?? 1;
+  const memberPercentage = plan ? Math.min(100, (memberUsage / memberLimit) * 100) : 0;
   const aiUsage = 50; // 임시 값
   const aiPercentage = plan ? Math.min(100, (aiUsage / plan.aiUsageLimit) * 100) : 0;
   const smsUsage = 30; // 임시 값
