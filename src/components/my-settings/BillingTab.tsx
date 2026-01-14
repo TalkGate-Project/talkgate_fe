@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { ProjectsService } from "@/services/projects";
 import type { ProjectSummary } from "@/types/projects";
 import ProjectBillingDetail from "./ProjectBillingDetail";
 import { useBilling } from "@/hooks/useBilling";
+import { BillingService } from "@/services/billing";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import ChangePaymentMethodModal, {
   type PaymentMethodData,
 } from "./ChangePaymentMethodModal";
@@ -45,10 +47,12 @@ interface ProjectWithSubscription extends ProjectSummary {
 }
 
 export default function BillingTab() {
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedProject, setSelectedProject] =
     useState<ProjectWithSubscription | null>(null);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
 
   // 어드민인 프로젝트 목록 가져오기
   const { data: projects, isLoading } = useQuery({
@@ -274,21 +278,52 @@ export default function BillingTab() {
       <ChangePaymentMethodModal
         isOpen={showPaymentMethodModal}
         onClose={() => setShowPaymentMethodModal(false)}
-        onConfirm={(data: PaymentMethodData) => {
-          // TODO: API 호출로 결제 수단 변경 처리
-          console.log("결제 수단 변경:", data);
-          setShowPaymentMethodModal(false);
+        isLoading={isUpdatingPayment}
+        onConfirm={async (data: PaymentMethodData) => {
+          if (!activeBillingInfo?.id) {
+            showErrorModal({
+              title: "오류",
+              headline: "등록된 결제 수단이 없습니다.",
+              confirmText: "확인",
+              hideCancel: true,
+            });
+            return;
+          }
+
+          setIsUpdatingPayment(true);
+          try {
+            await BillingService.update({
+              billingInfoId: activeBillingInfo.id,
+              cardNo: data.cardNo,
+              expYear: data.expYear,
+              expMonth: data.expMonth,
+              idNo: data.idNo,
+              cardPw: data.cardPw,
+              buyerName: data.buyerName,
+              buyerEmail: data.buyerEmail,
+              buyerTel: data.buyerTel,
+            });
+
+            // 캐시 무효화하여 결제 정보 새로고침
+            queryClient.invalidateQueries({ queryKey: ["billing"] });
+            setShowPaymentMethodModal(false);
+          } catch (error) {
+            console.error("결제 수단 변경 실패:", error);
+            showErrorModal({
+              title: "오류",
+              headline: "결제 수단 변경에 실패했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              confirmText: "확인",
+              hideCancel: true,
+            });
+          } finally {
+            setIsUpdatingPayment(false);
+          }
         }}
         currentBillingInfo={
           activeBillingInfo
             ? {
-                email: "", // TODO: API에서 가져오기
-                cardholderName: "", // TODO: API에서 가져오기
-                cardNumber: `**** **** ${activeBillingInfo.lastFourDigits}`,
-                expiryDate: "", // TODO: API에서 가져오기
-                cvc: "", // TODO: API에서 가져오기
-                country: "대한민국",
-                postalCode: "", // TODO: API에서 가져오기
+                id: activeBillingInfo.id,
               }
             : undefined
         }
@@ -384,7 +419,11 @@ function ProjectCard({
             <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1">
               {formatDate(subscription.startDate)} ~{" "}
               {formatDate(subscription.endDate)} (
-              {subscription.billingCycle === "monthly" ? "월마다" : "연마다"}{" "}
+              {subscription.billingCycle === "monthly"
+                ? "월마다"
+                : subscription.billingCycle === "quarterly"
+                ? "분기마다"
+                : "연마다"}{" "}
               결제)
             </p>
           )}

@@ -181,6 +181,8 @@ export default function ProjectBillingDetail({
                     {formatDate(subscription.endDate)} (
                     {subscription.billingCycle === "monthly"
                       ? "월마다"
+                      : subscription.billingCycle === "quarterly"
+                      ? "분기마다"
                       : "연마다"}{" "}
                     결제)
                   </p>
@@ -287,6 +289,8 @@ export default function ProjectBillingDetail({
               <span className="text-[12px] md:text-[14px] text-foreground">
                 {subscription?.nextBillingDate
                   ? formatDateTime(subscription.nextBillingDate)
+                  : subscription?.endDate
+                  ? formatDateTime(subscription.endDate)
                   : "-"}
               </span>
             )}
@@ -308,7 +312,9 @@ export default function ProjectBillingDetail({
                         {formatAmount(
                           subscription.billingCycle === "monthly"
                             ? subscription.plan.monthlyPrice
-                            : subscription.plan.yearlyPrice
+                            : subscription.billingCycle === "quarterly"
+                            ? (subscription.plan.quarterlyPrice ?? 0)
+                            : (subscription.plan.yearlyPrice ?? 0)
                         )}
                       </span>
                       <span className="text-neutral-60 ml-1">

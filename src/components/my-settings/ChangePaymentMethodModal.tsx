@@ -7,69 +7,125 @@ interface ChangePaymentMethodModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: PaymentMethodData) => void;
+  isLoading?: boolean;
   currentBillingInfo?: {
-    email?: string;
-    cardholderName?: string;
-    cardNumber?: string;
-    expiryDate?: string;
-    cvc?: string;
-    country?: string;
-    postalCode?: string;
+    id?: number;
+    buyerEmail?: string;
+    buyerName?: string;
+    buyerTel?: string;
   };
 }
 
 export interface PaymentMethodData {
-  email: string;
-  cardholderName: string;
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cvc: string;
-  country: string;
-  postalCode: string;
-  agreeToTerms: boolean;
+  cardNo: string;
+  expMonth: string;
+  expYear: string;
+  idNo: string;
+  cardPw: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerTel: string;
 }
 
 export default function ChangePaymentMethodModal({
   isOpen,
   onClose,
   onConfirm,
+  isLoading = false,
   currentBillingInfo,
 }: ChangePaymentMethodModalProps) {
-  const [formData, setFormData] = useState<PaymentMethodData>({
-    email: currentBillingInfo?.email || "",
-    cardholderName: currentBillingInfo?.cardholderName || "",
-    cardNumber: currentBillingInfo?.cardNumber?.replace(/\s/g, "") || "",
-    expiryMonth: currentBillingInfo?.expiryDate?.split("/")[0] || "",
-    expiryYear: currentBillingInfo?.expiryDate?.split("/")[1] || "",
-    cvc: currentBillingInfo?.cvc || "",
-    country: currentBillingInfo?.country || "대한민국",
-    postalCode: currentBillingInfo?.postalCode || "",
+  const [formData, setFormData] = useState<PaymentMethodData & { agreeToTerms: boolean }>({
+    cardNo: "",
+    expMonth: "",
+    expYear: "",
+    idNo: "",
+    cardPw: "",
+    buyerName: currentBillingInfo?.buyerName || "",
+    buyerEmail: currentBillingInfo?.buyerEmail || "",
+    buyerTel: currentBillingInfo?.buyerTel || "",
     agreeToTerms: false,
   });
 
-  const handleClose = () => {
+  const resetForm = () => {
     setFormData({
-      email: currentBillingInfo?.email || "",
-      cardholderName: currentBillingInfo?.cardholderName || "",
-      cardNumber: currentBillingInfo?.cardNumber?.replace(/\s/g, "") || "",
-      expiryMonth: currentBillingInfo?.expiryDate?.split("/")[0] || "",
-      expiryYear: currentBillingInfo?.expiryDate?.split("/")[1] || "",
-      cvc: currentBillingInfo?.cvc || "",
-      country: currentBillingInfo?.country || "대한민국",
-      postalCode: currentBillingInfo?.postalCode || "",
+      cardNo: "",
+      expMonth: "",
+      expYear: "",
+      idNo: "",
+      cardPw: "",
+      buyerName: currentBillingInfo?.buyerName || "",
+      buyerEmail: currentBillingInfo?.buyerEmail || "",
+      buyerTel: currentBillingInfo?.buyerTel || "",
       agreeToTerms: false,
     });
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
   const handleConfirm = () => {
-    if (!formData.email || !formData.cardholderName || !formData.cardNumber || !formData.expiryMonth || !formData.expiryYear || !formData.cvc || !formData.postalCode) {
+    // 필수 필드 검증
+    if (!formData.cardNo || formData.cardNo.length < 15) {
       showErrorModal({
         title: "알림",
-        headline: "모든 필드를 입력해주세요.",
+        headline: "올바른 카드 번호를 입력해주세요.",
         confirmText: "확인",
-        cancelText: null,
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.expMonth || !formData.expYear) {
+      showErrorModal({
+        title: "알림",
+        headline: "카드 만료일을 입력해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.idNo || (formData.idNo.length !== 6 && formData.idNo.length !== 10)) {
+      showErrorModal({
+        title: "알림",
+        headline: "생년월일(6자리) 또는 사업자번호(10자리)를 입력해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.cardPw || formData.cardPw.length !== 2) {
+      showErrorModal({
+        title: "알림",
+        headline: "카드 비밀번호 앞 2자리를 입력해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.buyerName) {
+      showErrorModal({
+        title: "알림",
+        headline: "카드 소유자 이름을 입력해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.buyerEmail) {
+      showErrorModal({
+        title: "알림",
+        headline: "이메일을 입력해주세요.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!formData.buyerTel) {
+      showErrorModal({
+        title: "알림",
+        headline: "연락처를 입력해주세요.",
+        confirmText: "확인",
         hideCancel: true,
       });
       return;
@@ -79,13 +135,14 @@ export default function ChangePaymentMethodModal({
         title: "알림",
         headline: "약관에 동의해주세요.",
         confirmText: "확인",
-        cancelText: null,
         hideCancel: true,
       });
       return;
     }
-    onConfirm(formData);
-    handleClose();
+
+    // API에 전달할 데이터 (agreeToTerms 제외)
+    const { agreeToTerms, ...apiData } = formData;
+    onConfirm(apiData);
   };
 
   const formatCardNumber = (value: string) => {
@@ -96,17 +153,17 @@ export default function ChangePaymentMethodModal({
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\s/g, "").replace(/\D/g, "").slice(0, 16);
-    setFormData({ ...formData, cardNumber: value });
+    setFormData({ ...formData, cardNo: value });
   };
 
   const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 4);
     if (value.length <= 2) {
-      setFormData({ ...formData, expiryMonth: value, expiryYear: "" });
+      setFormData({ ...formData, expMonth: value, expYear: "" });
     } else {
       const month = value.slice(0, 2);
       const year = value.slice(2, 4);
-      setFormData({ ...formData, expiryMonth: month, expiryYear: year });
+      setFormData({ ...formData, expMonth: month, expYear: year });
     }
   };
 
@@ -116,9 +173,26 @@ export default function ChangePaymentMethodModal({
     return `${month} / ${year}`;
   };
 
-  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 3);
-    setFormData({ ...formData, cvc: value });
+  const handleIdNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setFormData({ ...formData, idNo: value });
+  };
+
+  const handleCardPwChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 2);
+    setFormData({ ...formData, cardPw: value });
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setFormData({ ...formData, buyerTel: value });
+  };
+
+  const formatPhone = (value: string) => {
+    if (!value) return "";
+    if (value.length <= 3) return value;
+    if (value.length <= 7) return `${value.slice(0, 3)}-${value.slice(3)}`;
+    return `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7)}`;
   };
 
   if (!isOpen) return null;
@@ -151,44 +225,32 @@ export default function ChangePaymentMethodModal({
         <div className="flex-1 overflow-y-auto px-4 md:px-7 pb-4 md:pb-7">
           {/* Forms */}
           <div className="space-y-[10px] mb-6">
-            {/* 이메일 정보 */}
-            <div className="space-y-2">
-              <label className="block text-[13px] text-neutral-60">이메일 정보</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
-                placeholder="이메일을 입력하세요"
-              />
-            </div>
-
             {/* 카드 소유자 이름 */}
             <div className="space-y-2">
               <label className="block text-[13px] text-neutral-60">카드 소유자 이름</label>
               <input
                 type="text"
-                value={formData.cardholderName}
-                onChange={(e) => setFormData({ ...formData, cardholderName: e.target.value })}
+                value={formData.buyerName}
+                onChange={(e) => setFormData({ ...formData, buyerName: e.target.value })}
                 className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="카드 소유자 이름을 입력하세요"
               />
             </div>
 
-            {/* 카드 정보 */}
+            {/* 카드 번호 */}
             <div className="space-y-2">
-              <label className="block text-[13px] text-neutral-60">카드 정보</label>
+              <label className="block text-[13px] text-neutral-60">카드 번호</label>
               <div className="relative">
                 <input
                   type="text"
-                  value={formatCardNumber(formData.cardNumber)}
+                  value={formatCardNumber(formData.cardNo)}
                   onChange={handleCardNumberChange}
                   className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                   placeholder="1234 1234 1234 1234"
                   maxLength={19}
                 />
                 {/* 카드 브랜드 아이콘 */}
-                {formData.cardNumber.length > 0 && (
+                {formData.cardNo.length > 0 && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     {/* VISA */}
                     <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="flex-shrink-0">
@@ -202,82 +264,73 @@ export default function ChangePaymentMethodModal({
                       <circle cx="15" cy="8" r="3" fill="#F79E1B"/>
                       <path d="M10 8C10 6.895 10.895 6 12 6C13.105 6 14 6.895 14 8C14 9.105 13.105 10 12 10C10.895 10 10 9.105 10 8Z" fill="#FF5F00"/>
                     </svg>
-                    {/* Discover */}
-                    <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="flex-shrink-0">
-                      <rect width="24" height="16" rx="1" fill="white" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5"/>
-                      <rect x="12.6" y="11.7" width="11.4" height="4.3" fill="#F27712"/>
-                      <rect x="0.8" y="6.1" width="22.4" height="3.7" fill="#000000"/>
-                      <rect x="10.8" y="6.1" width="2.8" height="3.7" fill="#F27712"/>
-                    </svg>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 만료기간 및 보안코드 */}
+            {/* 만료기간 및 비밀번호 앞 2자리 */}
             <div className="flex gap-3">
               <div className="flex-1 space-y-[4px]">
                 <label className="block text-[13px] text-neutral-60">만료기간</label>
                 <input
                   type="text"
-                  value={formatExpiry(formData.expiryMonth, formData.expiryYear)}
+                  value={formatExpiry(formData.expMonth, formData.expYear)}
                   onChange={handleExpiryChange}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-neutral-60 focus:outline-none focus:border-foreground"
+                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                   placeholder="MM / YY"
                   maxLength={7}
                 />
               </div>
               <div className="flex-1 space-y-[4px]">
-                <label className="block text-[13px] text-neutral-60">보안코드</label>
+                <label className="block text-[13px] text-neutral-60">비밀번호 앞 2자리</label>
                 <input
-                  type="text"
-                  value={formData.cvc}
-                  onChange={handleCvcChange}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-neutral-60 focus:outline-none focus:border-foreground"
-                  placeholder="CVC"
-                  maxLength={3}
+                  type="password"
+                  value={formData.cardPw}
+                  onChange={handleCardPwChange}
+                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  placeholder="••"
+                  maxLength={2}
                 />
               </div>
             </div>
 
-            {/* 청구주소 */}
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-2">
-                <label className="block text-[13px] text-neutral-60">청구주소</label>
-                <div className="relative">
-                  <select
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground appearance-none cursor-pointer pr-8"
-                  >
-                    <option value="대한민국">대한민국</option>
-                    <option value="미국">미국</option>
-                    <option value="일본">일본</option>
-                    <option value="중국">중국</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path
-                        d="M3 4.5L6 7.5L9 4.5"
-                        stroke="#000000"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div className="flex-1 space-y-2">
-                <label className="block text-[13px] text-neutral-60">우편번호</label>
-                <input
-                  type="text"
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value.replace(/\D/g, "") })}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
-                  placeholder="00000"
-                />
-              </div>
+            {/* 생년월일 / 사업자번호 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">생년월일 (6자리) 또는 사업자번호 (10자리)</label>
+              <input
+                type="text"
+                value={formData.idNo}
+                onChange={handleIdNoChange}
+                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="YYMMDD 또는 사업자번호"
+                maxLength={10}
+              />
+            </div>
+
+            {/* 이메일 정보 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">이메일</label>
+              <input
+                type="email"
+                value={formData.buyerEmail}
+                onChange={(e) => setFormData({ ...formData, buyerEmail: e.target.value })}
+                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="이메일을 입력하세요"
+              />
+            </div>
+
+            {/* 연락처 */}
+            <div className="space-y-2">
+              <label className="block text-[13px] text-neutral-60">연락처</label>
+              <input
+                type="tel"
+                value={formatPhone(formData.buyerTel)}
+                onChange={handlePhoneChange}
+                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                placeholder="010-0000-0000"
+                maxLength={13}
+              />
             </div>
           </div>
 
@@ -307,15 +360,17 @@ export default function ChangePaymentMethodModal({
           <div className="flex gap-3">
             <button
               onClick={handleClose}
-              className="flex-1 px-3 py-1.5 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors cursor-pointer"
+              disabled={isLoading}
+              className="flex-1 px-3 py-1.5 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-foreground tracking-[-0.02em] hover:bg-neutral-10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               취소
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer"
+              disabled={isLoading}
+              className="flex-1 px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              변경하기
+              {isLoading ? "변경 중..." : "변경하기"}
             </button>
           </div>
         </div>
