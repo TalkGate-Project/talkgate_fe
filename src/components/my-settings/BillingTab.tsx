@@ -215,8 +215,10 @@ export default function BillingTab() {
                   ) : activeBillingInfo ? (
                     <div className="flex items-center gap-2">
                       <span className="text-[12px] md:text-[14px] text-neutral-60">
-                        카드 결제 ({activeBillingInfo.cardCompany} ****{" "}
-                        {activeBillingInfo.lastFourDigits})
+                        카드 결제 ({activeBillingInfo.cardCompany}{" "}
+                        {activeBillingInfo.lastFourDigits
+                          ? `**** **** **** ${activeBillingInfo.lastFourDigits}`
+                          : "**** **** **** ****"})
                       </span>
                     </div>
                   ) : (
@@ -456,10 +458,10 @@ function ProjectCard({
             <div className="flex items-center justify-between mb-2">
               <span className="text-[12px] md:text-[14px] text-neutral-60">멤버 수</span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">{formatCount(memberUsage)}명</span>
+                <span className="font-bold">{formatCount(memberUsage)}</span>
                 <span className="text-neutral-60">
                   {" "}
-                  / {memberLimit > 0 ? `${formatCount(memberLimit)}명` : "-"}
+                  / {memberLimit > 0 ? `${formatCount(memberLimit)}` : "-"}
                 </span>
               </span>
             </div>
@@ -482,10 +484,10 @@ function ProjectCard({
                 AI 상담 도우미 토큰
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">월 {formatCount(aiUsage)}회</span>
+                <span className="font-bold">{formatCount(aiUsage)}</span>
                 <span className="text-neutral-60">
                   {" "}
-                  / 월 {aiLimit > 0 ? `${formatCount(aiLimit)}회` : "-"}
+                  / {aiLimit > 0 ? `${formatCount(aiLimit)}` : "-"}
                 </span>
               </span>
             </div>
@@ -508,10 +510,10 @@ function ProjectCard({
                 문자 전송 횟수
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">월 {formatCount(smsUsage)}회</span>
+                <span className="font-bold">{formatCount(smsUsage)}</span>
                 <span className="text-neutral-60">
                   {" "}
-                  / 월 {smsLimit > 0 ? `${formatCount(smsLimit)}회` : "-"}
+                  / {smsLimit > 0 ? `${formatCount(smsLimit)}` : "-"}
                 </span>
               </span>
             </div>

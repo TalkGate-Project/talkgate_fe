@@ -5,6 +5,7 @@ import type {
   SubscriptionDetailResponse,
   PaymentListResponse,
   SubscriptionPlanListResponse,
+  SubscriptionPaymentReceiptResponse,
   SubscriptionAdminProjectsResponse,
   SubscriptionPlanChangeInput,
   SubscriptionPlanChangeResponse,
@@ -70,6 +71,16 @@ export const SubscriptionService = {
   },
 
   /**
+   * 결제 영수증 PDF 생성
+   */
+  getPaymentReceipt(paymentId: string | number, headers?: Record<string, string>) {
+    return apiClient.get<SubscriptionPaymentReceiptResponse>(
+      `/v1/subscriptions/payment/${paymentId}/receipt`,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
    * 모든 구독 플랜 조회
    */
   getPlans() {
@@ -129,6 +140,7 @@ export type {
   PaymentStatus,
   Subscription,
   Payment,
+  SubscriptionPaymentReceiptResponse,
   SubscriptionAdminProject,
   SubscriptionAdminProjectsResponse,
   SubscriptionPlanChangeInput,

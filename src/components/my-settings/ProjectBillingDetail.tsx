@@ -107,6 +107,9 @@ export default function ProjectBillingDetail({
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [downloadingPaymentId, setDownloadingPaymentId] = useState<number | null>(
+    null
+  );
 
   // 프로젝트 선택 (구독 정보를 가져오기 위해)
   useEffect(() => {
@@ -217,6 +220,41 @@ export default function ProjectBillingDetail({
         }
       },
     });
+  };
+
+  const handleDownloadReceipt = async (paymentId: number) => {
+    if (downloadingPaymentId) return;
+    setDownloadingPaymentId(paymentId);
+    try {
+      const res = await SubscriptionService.getPaymentReceipt(paymentId, {
+        "x-project-id": String(projectId),
+      });
+      const receiptUrl = res.data.data.receiptUrl;
+      if (!receiptUrl) {
+        showErrorModal({
+          type: "error",
+          headline: "영수증을 생성하지 못했습니다.",
+          description: "잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+        });
+        return;
+      }
+      const link = document.createElement("a");
+      link.href = receiptUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.click();
+    } catch (error) {
+      console.error("Failed to fetch receipt:", error);
+      showErrorModal({
+        type: "error",
+        headline: "영수증 다운로드에 실패했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    } finally {
+      setDownloadingPaymentId(null);
+    }
   };
 
   return (
@@ -490,6 +528,8 @@ export default function ProjectBillingDetail({
                   key={payment.id}
                   payment={payment}
                   subscription={subscription}
+                  onDownload={() => handleDownloadReceipt(payment.id)}
+                  isDownloading={downloadingPaymentId === payment.id}
                 />
               ))
             )}
@@ -529,6 +569,13 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
   const cardCompanyAbbr = getCardCompanyAbbr(billingInfo.cardCompany);
   const cardCompanyColor = getCardCompanyColor(billingInfo.cardCompany);
 
+  // 카드 번호 마스킹 처리
+  // lastFourDigits가 있으면 앞 4자리 + **** **** + 뒤 4자리 형식으로 표시
+  // lastFourDigits만 있으면 카드사명과 함께 표시
+  const maskedCardNumber = billingInfo.lastFourDigits
+    ? `**** **** **** ${billingInfo.lastFourDigits}`
+    : "**** **** **** ****";
+
   return (
     <div className="flex items-center gap-2">
       <div
@@ -540,8 +587,7 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
         </span>
       </div>
       <span className="text-[12px] md:text-[14px] text-foreground">
-        카드 결제 ({billingInfo.cardCompany} **** ****{" "}
-        {billingInfo.lastFourDigits})
+        카드 결제 ({billingInfo.cardCompany} {maskedCardNumber})
       </span>
     </div>
   );
@@ -551,9 +597,13 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
 function PaymentRow({
   payment,
   subscription,
+  onDownload,
+  isDownloading,
 }: {
   payment: Payment;
   subscription: any;
+  onDownload: () => void;
+  isDownloading: boolean;
 }) {
   const statusLabel = getPaymentStatusLabel(payment.status);
   const statusColor = getPaymentStatusColor(payment.status);
@@ -583,7 +633,12 @@ function PaymentRow({
         {subscription?.plan ? `프로젝트 구독 ${subscription.plan.name}` : "-"}
       </div>
       <div className="flex items-center justify-end">
-        <button className="cursor-pointer p-2 hover:bg-neutral-10 rounded transition-colors">
+        <button
+          className="cursor-pointer p-2 hover:bg-neutral-10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={onDownload}
+          disabled={isDownloading}
+          aria-label="receipt download"
+        >
           <svg
             width="24"
             height="24"

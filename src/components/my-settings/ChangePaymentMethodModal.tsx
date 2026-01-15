@@ -45,6 +45,7 @@ export default function ChangePaymentMethodModal({
     buyerTel: currentBillingInfo?.buyerTel || "",
     agreeToTerms: false,
   });
+  const [isCardNumberFocused, setIsCardNumberFocused] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -58,6 +59,7 @@ export default function ChangePaymentMethodModal({
       buyerTel: currentBillingInfo?.buyerTel || "",
       agreeToTerms: false,
     });
+    setIsCardNumberFocused(false);
   };
 
   const handleClose = () => {
@@ -149,6 +151,35 @@ export default function ChangePaymentMethodModal({
     const cleaned = value.replace(/\s/g, "").replace(/\D/g, "").slice(0, 16);
     const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
     return formatted;
+  };
+
+  // 카드 번호 마스킹 처리 (가운데 8자리 * 처리)
+  const maskCardNumber = (value: string) => {
+    const cleaned = value.replace(/\s/g, "").replace(/\D/g, "");
+    if (cleaned.length <= 4) {
+      return cleaned;
+    }
+    if (cleaned.length <= 8) {
+      return `${cleaned.slice(0, 4)} ${"*".repeat(cleaned.length - 4)}`;
+    }
+    if (cleaned.length <= 12) {
+      const first4 = cleaned.slice(0, 4);
+      const middle = "*".repeat(cleaned.length - 8);
+      const last4 = cleaned.slice(-4);
+      return `${first4} ${middle} ${last4}`;
+    }
+    // 12자리 이상: 앞 4자리 + **** **** + 뒤 4자리
+    const first4 = cleaned.slice(0, 4);
+    const last4 = cleaned.slice(-4);
+    return `${first4} **** **** ${last4}`;
+  };
+
+  // 카드 번호 표시 값 (포커스 중에는 실제 숫자, 포커스가 벗어나면 마스킹)
+  const getCardNumberDisplayValue = () => {
+    if (isCardNumberFocused) {
+      return formatCardNumber(formData.cardNo);
+    }
+    return maskCardNumber(formData.cardNo);
   };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,10 +274,12 @@ export default function ChangePaymentMethodModal({
               <div className="relative">
                 <input
                   type="text"
-                  value={formatCardNumber(formData.cardNo)}
+                  value={getCardNumberDisplayValue()}
                   onChange={handleCardNumberChange}
+                  onFocus={() => setIsCardNumberFocused(true)}
+                  onBlur={() => setIsCardNumberFocused(false)}
                   className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
-                  placeholder="1234 1234 1234 1234"
+                  placeholder="1234 **** **** 1234"
                   maxLength={19}
                 />
                 {/* 카드 브랜드 아이콘 */}

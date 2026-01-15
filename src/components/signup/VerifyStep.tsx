@@ -5,6 +5,7 @@ import { SignupService } from "@/services/signup";
 import { AuthService } from "@/services/auth";
 import AsyncButton from "@/components/common/AsyncButton";
 import type { SignupTokens } from "@/types/signup";
+import { clearPendingSignupState } from "@/lib/signup";
 
 type VerifyStepProps = {
   email: string;
@@ -41,6 +42,8 @@ export function VerifyStep({ email, onSuccess }: VerifyStepProps) {
             email,
             otp: code,
           });
+          // 인증 성공 시 저장된 상태 삭제
+          clearPendingSignupState();
           // 인증 성공 시 토큰과 함께 다음 단계로 이동
           // 토큰은 쿠키에 저장하지 않고 state로 관리
           onSuccess(res.tokens);

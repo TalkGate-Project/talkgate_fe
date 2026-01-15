@@ -10,6 +10,7 @@ import type { SignupTokens } from "@/types/signup";
 import PrivacyConsignmentModal from "@/components/signup/PrivacyConsignmentModal";
 import DataCollectionModal from "@/components/signup/DataCollectionModal";
 import MarketingConsentModal from "@/components/signup/MarketingConsentModal";
+import { savePendingSignupState } from "@/lib/signup";
 
 type AccountStepProps = {
   onSuccess: (params: { email: string; password: string; tokens?: SignupTokens; agreeMarketing: boolean }) => void;
@@ -125,6 +126,11 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
               onSuccess({ email, password, agreeMarketing });
             } else {
               // 일반 플로우: 이메일 인증 단계로
+              // 페이지 이탈 시 복귀할 수 있도록 상태 저장
+              savePendingSignupState({
+                email,
+                step: "verify",
+              });
               onSuccess({ email, password, agreeMarketing });
             }
           }

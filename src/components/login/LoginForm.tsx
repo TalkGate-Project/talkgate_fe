@@ -262,6 +262,15 @@ export function LoginForm() {
               const code = err?.data?.code;
               const msg = String(err?.data?.message || "").toUpperCase();
               
+              // EMAIL_NOT_VERIFIED 에러 처리 (403 또는 401)
+              if ((status === 403 || status === 401) && (code === "EMAIL_NOT_VERIFIED" || msg.includes("EMAIL_NOT_VERIFIED") || msg.includes("EMAIL NOT VERIFIED"))) {
+                console.log("[LoginPage] 📧 이메일 인증 미완료 - 회원가입 페이지로 이동");
+                // 회원가입 페이지로 리다이렉트하면서 이메일과 verify step 정보 전달
+                const signupUrl = `/signup?email=${encodeURIComponent(email)}&step=verify`;
+                router.push(signupUrl);
+                return;
+              }
+              
               if (status === 401 && code === "UNAUTHORIZED") {
                 setInvalid(true);
               } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
