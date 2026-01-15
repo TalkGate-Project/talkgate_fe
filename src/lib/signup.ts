@@ -15,12 +15,13 @@ function isBrowser(): boolean {
 
 /**
  * 회원가입 진행 중 상태를 localStorage에 저장
+ * timestamp는 자동으로 추가되므로 호출 시 제공할 필요 없음
  */
-export function savePendingSignupState(state: PendingSignupState): void {
+export function savePendingSignupState(state: Omit<PendingSignupState, 'timestamp'>): void {
   if (!isBrowser()) return;
   
   try {
-    const stateWithTimestamp = {
+    const stateWithTimestamp: PendingSignupState = {
       ...state,
       timestamp: Date.now(),
     };
