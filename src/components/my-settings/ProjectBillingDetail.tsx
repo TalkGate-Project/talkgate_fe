@@ -6,9 +6,14 @@ import { useBilling, type BillingInfo } from "@/hooks/useBilling";
 import {
   useSubscription,
   usePaymentHistory,
+  useSubscriptionPlans,
   type Payment,
 } from "@/hooks/useSubscription";
+import { SubscriptionService } from "@/services/subscription";
 import { setSelectedProjectId, getSelectedProjectId } from "@/lib/project";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import SubscriptionPlanSelectModal from "./SubscriptionPlanSelectModal";
 
 // 카드사 색상 매핑
 const CARD_COMPANY_COLORS: Record<string, string> = {
@@ -99,6 +104,9 @@ export default function ProjectBillingDetail({
 }: ProjectBillingDetailProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // 프로젝트 선택 (구독 정보를 가져오기 위해)
   useEffect(() => {
@@ -115,8 +123,17 @@ export default function ProjectBillingDetail({
 
   // API 데이터 가져오기
   const { activeBillingInfo, loading: billingLoading } = useBilling();
-  const { subscription, loading: subscriptionLoading } = useSubscription();
-  const { payments, loading: paymentsLoading } = usePaymentHistory();
+  const {
+    subscription,
+    loading: subscriptionLoading,
+    refetch: refetchSubscription,
+  } = useSubscription();
+  const {
+    payments,
+    loading: paymentsLoading,
+    refetch: refetchPayments,
+  } = usePaymentHistory();
+  const { plans, loading: plansLoading } = useSubscriptionPlans();
 
   // 페이지네이션
   const totalPages = Math.max(1, Math.ceil(payments.length / itemsPerPage));
@@ -126,6 +143,81 @@ export default function ProjectBillingDetail({
   );
 
   const isLoading = subscriptionLoading || billingLoading;
+  const billingCycle = subscription?.billingCycle ?? "monthly";
+
+  const handlePlanSelect = (planId: number) => {
+    if (!subscription) return;
+    showConfirmModal({
+      title: "플랜 변경",
+      message: "선택한 플랜으로 변경하시겠습니까?",
+      confirmText: "플랜변경",
+      cancelText: "취소",
+      onConfirm: async () => {
+        if (isUpdatingPlan) return;
+        setIsUpdatingPlan(true);
+        try {
+          await SubscriptionService.changePlan(
+            {
+              newPlanId: planId,
+              newBillingCycle: subscription.billingCycle,
+            },
+            { "x-project-id": String(projectId) }
+          );
+          await Promise.all([refetchSubscription(), refetchPayments()]);
+          showErrorModal({
+            type: "success",
+            headline: "플랜이 변경되었습니다.",
+            hideCancel: true,
+          });
+        } catch (error) {
+          console.error("Failed to change subscription plan:", error);
+          showErrorModal({
+            type: "error",
+            headline: "플랜 변경에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        } finally {
+          setIsUpdatingPlan(false);
+        }
+      },
+    });
+  };
+
+  const handleCancelSubscription = () => {
+    if (!subscription) return;
+    showConfirmModal({
+      title: "구독 취소",
+      message:
+        "자동 갱신을 중지하시겠습니까?\n만료일까지는 계속 이용 가능합니다.",
+      confirmText: "구독 취소",
+      cancelText: "취소",
+      onConfirm: async () => {
+        if (isCancelling) return;
+        setIsCancelling(true);
+        try {
+          await SubscriptionService.cancel({ "x-project-id": String(projectId) });
+          await refetchSubscription();
+          showErrorModal({
+            type: "success",
+            headline: "구독이 취소되었습니다.",
+            description: "만료일까지는 계속 이용할 수 있습니다.",
+            hideCancel: true,
+          });
+        } catch (error) {
+          console.error("Failed to cancel subscription:", error);
+          showErrorModal({
+            type: "error",
+            headline: "구독 취소에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        } finally {
+          setIsCancelling(false);
+        }
+      },
+    });
+  };
 
   return (
     <div className="space-y-0">
@@ -195,12 +287,18 @@ export default function ProjectBillingDetail({
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 w-full md:w-auto">
               {subscription?.isActive && (
-                <button className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors flex-1 md:flex-initial">
-                  업그레이드
+                <button
+                  onClick={() => setIsPlanModalOpen(true)}
+                  className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors flex-1 md:flex-initial"
+                >
+                  플랜변경
                 </button>
               )}
               {subscription?.isActive && (
-                <button className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial">
+                <button
+                  onClick={handleCancelSubscription}
+                  className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial"
+                >
                   구독취소
                 </button>
               )}
@@ -410,6 +508,18 @@ export default function ProjectBillingDetail({
         )}
       </div>
 
+      <SubscriptionPlanSelectModal
+        isOpen={isPlanModalOpen}
+        plans={plans}
+        currentPlanId={subscription?.plan?.id ?? null}
+        billingCycle={billingCycle}
+        isLoading={plansLoading || isUpdatingPlan}
+        onClose={() => setIsPlanModalOpen(false)}
+        onSelect={(plan) => {
+          setIsPlanModalOpen(false);
+          handlePlanSelect(plan.id);
+        }}
+      />
     </div>
   );
 }

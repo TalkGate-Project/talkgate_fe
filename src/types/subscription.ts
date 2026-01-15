@@ -1,5 +1,7 @@
 // Subscription domain types
 
+import type { ApiSuccess } from "./common";
+
 // 구독 플랜
 export type SubscriptionPlan = {
   id: number;
@@ -50,6 +52,8 @@ export type Payment = {
   amount: number;
   status: PaymentStatus;
   method: string;
+  planName?: string | null;
+  paymentType?: "initial" | "recurring" | "change" | string;
   approvedAt: string | null;
   failureReason: string | null;
   createdAt: string;
@@ -96,6 +100,54 @@ export type SubscriptionPlanListResponse = {
     plans: SubscriptionPlan[];
   };
 };
+
+// GET /v1/subscriptions/admin/projects - Admin 프로젝트 구독 정보 조회 응답
+export type SubscriptionAdminProject = {
+  projectId: number;
+  projectName: string;
+  currentMemberCount: number;
+  currentAiUsage: number;
+  currentSmsUsage: number;
+  subscriptionName: string;
+  subscriptionStartDate: string;
+  subscriptionEndDate: string;
+  billingCycle: BillingCycle;
+  maxMembers: number;
+  maxAiUsage: number;
+  maxSmsUsage: number;
+};
+
+export type SubscriptionAdminProjectsResponse = ApiSuccess<{
+  projects: SubscriptionAdminProject[];
+}>;
+
+// POST /v1/subscriptions/plan/change - 플랜 변경
+export type SubscriptionPlanChangeInput = {
+  newPlanId: number;
+  newBillingCycle: BillingCycle;
+};
+
+export type SubscriptionPlanChangeResponse = ApiSuccess<{
+  subscription: Subscription;
+  payment: Payment;
+  isUpgrade: boolean;
+}>;
+
+// POST /v1/subscriptions/plan/estimate - 플랜 변경 비용 계산
+export type SubscriptionPlanEstimateInput = {
+  newPlanId: number;
+  newBillingCycle: BillingCycle;
+};
+
+export type SubscriptionPlanEstimateResponse = ApiSuccess<{
+  currentPlanId: number;
+  currentBillingCycle: BillingCycle;
+  newPlanId: number;
+  newBillingCycle: BillingCycle;
+  currentPlanPrice: number;
+  newPlanPrice: number;
+  additionalCost: number;
+}>;
 
 // POST /v1/subscriptions/charge - 즉시 결제 응답
 export type ChargeResponse = {

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { ProjectsService } from "@/services/projects";
-import type { ProjectSummary } from "@/types/projects";
+import {
+  SubscriptionService,
+  type SubscriptionAdminProject,
+  type BillingCycle,
+} from "@/services/subscription";
 import ProjectBillingDetail from "./ProjectBillingDetail";
 import { useBilling } from "@/hooks/useBilling";
 import { BillingService } from "@/services/billing";
@@ -27,22 +30,59 @@ function formatDate(dateString: string | null): string {
     .replace(/\.$/, "");
 }
 
+function formatCount(value: number): string {
+  return new Intl.NumberFormat("ko-KR").format(value);
+}
+
 type ViewMode = "list" | "detail";
 
-interface ProjectWithSubscription extends ProjectSummary {
+interface ProjectWithSubscription {
+  id: number;
+  name: string;
+  logoUrl?: string | null;
   subscription?: {
     plan: {
       name: string;
     };
     startDate: string;
     endDate: string;
-    billingCycle: "monthly" | "quarterly" | "yearly";
+    billingCycle: BillingCycle;
     isActive: boolean;
   };
   usage?: {
     memberCount: number;
     aiUsage: number;
     smsUsage: number;
+    memberLimit: number;
+    aiLimit: number;
+    smsLimit: number;
+  };
+}
+
+function mapAdminProjectToViewModel(
+  project: SubscriptionAdminProject
+): ProjectWithSubscription {
+  const hasSubscription = Boolean(project.subscriptionName);
+  return {
+    id: project.projectId,
+    name: project.projectName,
+    subscription: hasSubscription
+      ? {
+          plan: { name: project.subscriptionName },
+          startDate: project.subscriptionStartDate,
+          endDate: project.subscriptionEndDate,
+          billingCycle: project.billingCycle,
+          isActive: true,
+        }
+      : undefined,
+    usage: {
+      memberCount: project.currentMemberCount,
+      aiUsage: project.currentAiUsage,
+      smsUsage: project.currentSmsUsage,
+      memberLimit: project.maxMembers,
+      aiLimit: project.maxAiUsage,
+      smsLimit: project.maxSmsUsage,
+    },
   };
 }
 
@@ -54,55 +94,25 @@ export default function BillingTab() {
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
 
-  // 어드민인 프로젝트 목록 가져오기
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ["projects", "admin"],
+  // 어드민 프로젝트 구독 정보 목록 가져오기
+  const {
+    data: adminProjects,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["subscription", "admin-projects"],
     queryFn: async () => {
-      const res = await ProjectsService.listAdmin();
-      const payload: unknown = res.data;
-      // API 응답이 단일 객체이거나 배열일 수 있음
-      if (Array.isArray(payload)) {
-        return payload as ProjectSummary[];
-      }
-      const data = (payload as { data?: unknown })?.data;
-      if (Array.isArray(data)) {
-        return data as ProjectSummary[];
-      }
-      // 단일 객체인 경우 배열로 변환
-      if (data && typeof data === "object") {
-        return [data as ProjectSummary];
-      }
-      return [];
+      const res = await SubscriptionService.getAdminProjects();
+      return res.data.data.projects;
     },
   });
 
   // 결제 수단 정보 가져오기
   const { activeBillingInfo, loading: billingLoading } = useBilling();
 
-  // 프로젝트별 구독 정보 가져오기 (임시로 목 데이터 사용)
-  // TODO: 실제 API 연동 필요
   const projectsWithSubscription: ProjectWithSubscription[] = (
-    projects || []
-  ).map((project) => {
-    // 임시 데이터 - 실제 API 연동 필요
-    const mockSubscription = {
-      plan: { name: project.id % 3 === 0 ? "Premium" : "Basic" },
-      startDate: "2025-11-01",
-      endDate: "2025-12-01",
-      billingCycle: "monthly" as const,
-      isActive: true,
-    };
-    const mockUsage = {
-      memberCount: 261,
-      aiUsage: 50,
-      smsUsage: 30,
-    };
-    return {
-      ...project,
-      subscription: mockSubscription,
-      usage: mockUsage,
-    };
-  });
+    adminProjects || []
+  ).map(mapAdminProjectToViewModel);
 
   if (viewMode === "detail" && selectedProject) {
     return (
@@ -251,6 +261,12 @@ export default function BillingTab() {
                   </div>
                 </div>
               ))
+            ) : isError ? (
+              <div className="col-span-2 text-center py-12">
+                <p className="text-[16px] text-neutral-60">
+                  프로젝트 정보를 불러오지 못했습니다
+                </p>
+              </div>
             ) : projectsWithSubscription.length === 0 ? (
               <div className="col-span-2 text-center py-12">
                 <p className="text-[16px] text-neutral-60">
@@ -351,16 +367,18 @@ function ProjectCard({
 
   // 사용량 비율 계산
   const memberUsage = usage?.memberCount || 0;
-  const memberLimit = 1000; // 임시 값 - 실제 플랜 정보에서 가져와야 함
-  const memberPercentage = Math.min(100, (memberUsage / memberLimit) * 100);
+  const memberLimit = usage?.memberLimit || 0;
+  const memberPercentage =
+    memberLimit > 0 ? Math.min(100, (memberUsage / memberLimit) * 100) : 0;
 
   const aiUsage = usage?.aiUsage || 0;
-  const aiLimit = 1000; // 임시 값
-  const aiPercentage = Math.min(100, (aiUsage / aiLimit) * 100);
+  const aiLimit = usage?.aiLimit || 0;
+  const aiPercentage = aiLimit > 0 ? Math.min(100, (aiUsage / aiLimit) * 100) : 0;
 
   const smsUsage = usage?.smsUsage || 0;
-  const smsLimit = 1000; // 임시 값
-  const smsPercentage = Math.min(100, (smsUsage / smsLimit) * 100);
+  const smsLimit = usage?.smsLimit || 0;
+  const smsPercentage =
+    smsLimit > 0 ? Math.min(100, (smsUsage / smsLimit) * 100) : 0;
 
   // 프로젝트 아이콘 (임시)
   const getProjectIcon = () => {
@@ -438,8 +456,11 @@ function ProjectCard({
             <div className="flex items-center justify-between mb-2">
               <span className="text-[12px] md:text-[14px] text-neutral-60">멤버 수</span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">{memberUsage}명</span>
-                <span className="text-neutral-60"> / {memberLimit}명</span>
+                <span className="font-bold">{formatCount(memberUsage)}명</span>
+                <span className="text-neutral-60">
+                  {" "}
+                  / {memberLimit > 0 ? `${formatCount(memberLimit)}명` : "-"}
+                </span>
               </span>
             </div>
             <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">
@@ -461,8 +482,11 @@ function ProjectCard({
                 AI 상담 도우미 토큰
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">월 {aiUsage}회</span>
-                <span className="text-neutral-60"> / 월 {aiLimit}회</span>
+                <span className="font-bold">월 {formatCount(aiUsage)}회</span>
+                <span className="text-neutral-60">
+                  {" "}
+                  / 월 {aiLimit > 0 ? `${formatCount(aiLimit)}회` : "-"}
+                </span>
               </span>
             </div>
             <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">
@@ -484,8 +508,11 @@ function ProjectCard({
                 문자 전송 횟수
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
-                <span className="font-bold">월 {smsUsage}회</span>
-                <span className="text-neutral-60"> / 월 {smsLimit}회</span>
+                <span className="font-bold">월 {formatCount(smsUsage)}회</span>
+                <span className="text-neutral-60">
+                  {" "}
+                  / 월 {smsLimit > 0 ? `${formatCount(smsLimit)}회` : "-"}
+                </span>
               </span>
             </div>
             <div className="h-2 bg-neutral-20 rounded-full overflow-hidden">

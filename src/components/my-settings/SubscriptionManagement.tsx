@@ -193,7 +193,7 @@ function SubscriptionCard({ subscription }: { subscription: Subscription }) {
           </button>
         )}
         <button className="cursor-pointer px-4 py-2 bg-[#252525] text-white text-[14px] font-medium rounded-[8px] hover:bg-[#3a3a3a] transition-colors">
-          업그레이드
+        플랜변경
         </button>
       </div>
     </div>
@@ -249,7 +249,7 @@ function PlanCard({ plan, currentSubscription }: { plan: SubscriptionPlan; curre
       {/* 액션 버튼 */}
       <div className="flex items-center justify-end">
         <button className="cursor-pointer px-4 py-2 bg-[#252525] text-white text-[14px] font-medium rounded-[8px] hover:bg-[#3a3a3a] transition-colors">
-          {isUpgrade ? "업그레이드" : "구독하기"}
+          {isUpgrade ? "플랜변경" : "구독하기"}
         </button>
       </div>
     </div>

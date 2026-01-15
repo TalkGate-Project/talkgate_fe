@@ -5,6 +5,11 @@ import type {
   SubscriptionDetailResponse,
   PaymentListResponse,
   SubscriptionPlanListResponse,
+  SubscriptionAdminProjectsResponse,
+  SubscriptionPlanChangeInput,
+  SubscriptionPlanChangeResponse,
+  SubscriptionPlanEstimateInput,
+  SubscriptionPlanEstimateResponse,
   ChargeResponse,
   SubscriptionActionResponse,
 } from "@/types/subscription";
@@ -72,6 +77,38 @@ export const SubscriptionService = {
   },
 
   /**
+   * Admin 프로젝트 구독 정보 조회
+   * 사용자가 Admin인 모든 프로젝트의 구독 정보를 조회합니다.
+   */
+  getAdminProjects() {
+    return apiClient.get<SubscriptionAdminProjectsResponse>(
+      "/v1/subscriptions/admin/projects"
+    );
+  },
+
+  /**
+   * 플랜 변경
+   */
+  changePlan(input: SubscriptionPlanChangeInput, headers?: Record<string, string>) {
+    return apiClient.post<SubscriptionPlanChangeResponse>(
+      "/v1/subscriptions/plan/change",
+      input,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * 플랜 변경 비용 계산
+   */
+  estimatePlan(input: SubscriptionPlanEstimateInput, headers?: Record<string, string>) {
+    return apiClient.post<SubscriptionPlanEstimateResponse>(
+      "/v1/subscriptions/plan/estimate",
+      input,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
    * 구독 재활성화 (자동 갱신 재시작, Admin만 가능)
    * 취소한 구독을 다시 활성화하여 만료일 이후 자동 갱신되도록 합니다.
    */
@@ -92,6 +129,12 @@ export type {
   PaymentStatus,
   Subscription,
   Payment,
+  SubscriptionAdminProject,
+  SubscriptionAdminProjectsResponse,
+  SubscriptionPlanChangeInput,
+  SubscriptionPlanChangeResponse,
+  SubscriptionPlanEstimateInput,
+  SubscriptionPlanEstimateResponse,
   CreateSubscriptionInput,
   CreateSubscriptionResponse,
   SubscriptionDetailResponse,
