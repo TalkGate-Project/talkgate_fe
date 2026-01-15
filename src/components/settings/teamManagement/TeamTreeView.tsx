@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, MouseEvent, WheelEvent, TouchEvent, ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TeamMember } from "@/types/teams";
@@ -15,12 +15,14 @@ type Props = {
   onMemberClick: (member: TeamMember) => void;
   zoom?: number;
   onZoomChange?: (zoom: number) => void;
+  onRemoveParentDrop?: (memberId: string) => void;
+  canRemoveParent?: boolean;
 };
 
 // 노드 간 가로 간격
 const HORIZONTAL_GAP = 32;
 
-export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick, zoom: externalZoom, onZoomChange }: Props) {
+export default function TeamTreeView({ data, dragHandlers, dragState, onMemberClick, zoom: externalZoom, onZoomChange, onRemoveParentDrop, canRemoveParent = false }: Props) {
   const [internalZoom, setInternalZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isGrabbing, setIsGrabbing] = useState(false);
@@ -29,10 +31,20 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   const touchStartRef = useRef<{ x: number; y: number; panX: number; panY: number; target: EventTarget | null } | null>(null);
   const lastTouchDistanceRef = useRef<number | null>(null);
   const isNodeDraggingRef = useRef(false);
+  const [isDragOverRemoveParent, setIsDragOverRemoveParent] = useState(false);
 
   // 외부 zoom이 제공되면 그것을 사용, 아니면 내부 상태 사용
   const zoom = externalZoom ?? internalZoom;
   const setZoom = onZoomChange ?? setInternalZoom;
+  
+  const isDragging = Boolean(dragState.draggedItemId);
+
+  // 드래그가 종료되면 가이드 영역 상태 리셋
+  useEffect(() => {
+    if (!isDragging) {
+      setIsDragOverRemoveParent(false);
+    }
+  }, [isDragging]);
 
   const onWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     if (!e.ctrlKey) return;
@@ -336,6 +348,37 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
     [data, renderNode]
   );
 
+  const handleRemoveParentDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverRemoveParent(true);
+  }, [isDragging]);
+
+  const handleRemoveParentDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
+    // 자식 요소로 이동하는 경우는 무시
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (
+      x >= rect.left &&
+      x <= rect.right &&
+      y >= rect.top &&
+      y <= rect.bottom
+    ) {
+      return;
+    }
+    setIsDragOverRemoveParent(false);
+  }, []);
+
+  const handleRemoveParentDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
+    if (!isDragging || !dragState.draggedItemId || !onRemoveParentDrop) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverRemoveParent(false);
+    onRemoveParentDrop(dragState.draggedItemId);
+  }, [isDragging, dragState.draggedItemId, onRemoveParentDrop]);
+
   // 빈 상태 처리
   if (data.length === 0) {
     return (
@@ -369,6 +412,58 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
       role="tree"
       aria-label="조직도 트리"
     >
+      {/* 드래그 중일 때만 표시되는 루트 해제 가이드 영역 (admin/subAdmin 권한 필요) */}
+      <AnimatePresence>
+        {isDragging && canRemoveParent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-4 right-4 z-10"
+            onDragOver={handleRemoveParentDragOver}
+            onDragLeave={handleRemoveParentDragLeave}
+            onDrop={handleRemoveParentDrop}
+          >
+            <div
+              className={`w-[100px] h-[100px] rounded-full border-2 border-dashed flex items-center justify-center transition-colors ${
+                isDragOverRemoveParent
+                  ? "border-secondary-40 bg-secondary-10"
+                  : "border-neutral-40 bg-neutral-10/50"
+              }`}
+            >
+              <div className="text-center px-2">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`mx-auto mb-1 ${
+                    isDragOverRemoveParent ? "stroke-secondary-40" : "stroke-neutral-60"
+                  }`}
+                >
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span
+                  className={`text-[10px] font-medium leading-tight block ${
+                    isDragOverRemoveParent ? "text-secondary-40" : "text-neutral-60"
+                  }`}
+                >
+                  소속 해제
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       <div className="p-4 md:p-8 inline-block min-w-max">
         <div
           className="relative"
