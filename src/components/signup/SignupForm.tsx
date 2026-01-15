@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,6 +15,8 @@ import type { SignupTokens } from "@/types/signup";
 import { getPendingInviteInfo } from "@/lib/invite";
 import { setTokens } from "@/lib/token";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { getPendingSignupState, savePendingSignupState, clearPendingSignupState } from "@/lib/signup";
+import { SignupService } from "@/services/signup";
 
 export function SignupForm() {
   const router = useRouter();
@@ -25,6 +27,9 @@ export function SignupForm() {
   const [accountPassword, setAccountPassword] = useState("");
   // 이메일 인증 성공 시 받은 토큰 (쿠키에 저장하지 않고 state로 관리)
   const [signupTokens, setSignupTokens] = useState<SignupTokens | null>(null);
+  
+  // 모달 표시 여부 추적 (중복 표시 방지)
+  const modalShownRef = useRef(false);
 
   // URL에서 초대 토큰 가져오기 (또는 localStorage에서 가져오기)
   const pendingInvite = getPendingInviteInfo();
@@ -45,6 +50,111 @@ export function SignupForm() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
+
+  // 페이지 로드 시 저장된 회원가입 상태 복구
+  useEffect(() => {
+    // 초대 플로우가 아닌 경우에만 복구
+    if (isInviteFlow) return;
+    
+    // 모달이 이미 표시되었으면 중복 실행 방지
+    if (modalShownRef.current) return;
+    
+    // URL 파라미터에서 이메일과 step 확인 (로그인에서 리다이렉트된 경우)
+    const urlEmail = searchParams.get("email");
+    const urlStep = searchParams.get("step");
+    
+    if (urlEmail && urlStep === "verify") {
+      // 로그인에서 리다이렉트된 경우: 이메일 인증 단계로 복원
+      console.log("[SignupForm] 📥 로그인에서 리다이렉트 - 이메일 인증 단계로 복원:", {
+        email: urlEmail,
+        step: urlStep,
+      });
+      
+      // 모달 표시 플래그 설정 (중복 방지)
+      modalShownRef.current = true;
+      
+      setAccountEmail(urlEmail);
+      
+      // 상태 저장 (페이지 이탈 시에도 복구 가능하도록)
+      savePendingSignupState({
+        email: urlEmail,
+        step: "verify",
+      });
+      
+      // 정보성 모달 표시 후 단계로 이동
+      showErrorModal({
+        type: "info",
+        headline: "",
+        description: `작성중이던 ${urlEmail}에 대한\n회원가입 절차를 다시 진행합니다.`,
+        hideCancel: true,
+        confirmText: "확인",
+        onConfirm: () => {
+          setStep("verify");
+          // URL 파라미터 제거 (히스토리 정리)
+          router.replace("/signup");
+        },
+      });
+      return;
+    }
+    
+    // URL 파라미터가 없는 경우: localStorage에서 복구
+    const pendingState = getPendingSignupState();
+    if (pendingState) {
+      // 크로스 디바이스 이슈 해결: 서버에서 이메일 인증 완료 여부 확인
+      // 다른 디바이스에서 이미 인증 완료했다면 localStorage 정리
+      SignupService.checkEmailAvailable({ email: pendingState.email })
+        .then((result) => {
+          // 이메일이 이미 가입되어 있다면 (available: false) = 이미 인증 완료
+          if (!result.available) {
+            console.log("[SignupForm] ✅ 다른 디바이스에서 이미 인증 완료 - localStorage 정리:", {
+              email: pendingState.email,
+            });
+            clearPendingSignupState();
+            return;
+          }
+          
+          // 아직 가입되지 않았다면 복구 진행
+          console.log("[SignupForm] 📥 저장된 회원가입 상태 복구:", {
+            email: pendingState.email,
+            step: pendingState.step,
+          });
+          
+          // 모달 표시 플래그 설정 (중복 방지)
+          modalShownRef.current = true;
+          
+          // 저장된 이메일과 단계로 복구
+          setAccountEmail(pendingState.email);
+          
+          // 정보성 모달 표시 후 단계로 이동
+          showErrorModal({
+            type: "info",
+            headline: "",
+            description: `작성중이던 ${pendingState.email}에 대한\n회원가입 절차를 다시 진행합니다.`,
+            hideCancel: true,
+            confirmText: "확인",
+            onConfirm: () => {
+              setStep(pendingState.step);
+            },
+          });
+        })
+        .catch((error) => {
+          console.error("[SignupForm] ❌ 이메일 상태 확인 실패:", error);
+          // 에러 발생 시에도 복구 진행 (사용자 경험 우선)
+          modalShownRef.current = true;
+          setAccountEmail(pendingState.email);
+          showErrorModal({
+            type: "info",
+            headline: "",
+            description: `작성중이던 ${pendingState.email}에 대한\n회원가입 절차를 다시 진행합니다.`,
+            hideCancel: true,
+            confirmText: "확인",
+            onConfirm: () => {
+              setStep(pendingState.step);
+            },
+          });
+        });
+    }
+  }, [isInviteFlow, searchParams, router]);
 
   // 토큰 저장 및 캐시 무효화 헬퍼
   const saveTokensAndInvalidateCache = async (tokens: SignupTokens) => {

@@ -569,6 +569,13 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
   const cardCompanyAbbr = getCardCompanyAbbr(billingInfo.cardCompany);
   const cardCompanyColor = getCardCompanyColor(billingInfo.cardCompany);
 
+  // 카드 번호 마스킹 처리
+  // lastFourDigits가 있으면 앞 4자리 + **** **** + 뒤 4자리 형식으로 표시
+  // lastFourDigits만 있으면 카드사명과 함께 표시
+  const maskedCardNumber = billingInfo.lastFourDigits
+    ? `**** **** **** ${billingInfo.lastFourDigits}`
+    : "**** **** **** ****";
+
   return (
     <div className="flex items-center gap-2">
       <div
@@ -580,8 +587,7 @@ function PaymentMethodDisplay({ billingInfo }: { billingInfo: BillingInfo }) {
         </span>
       </div>
       <span className="text-[12px] md:text-[14px] text-foreground">
-        카드 결제 ({billingInfo.cardCompany} **** ****{" "}
-        {billingInfo.lastFourDigits})
+        카드 결제 ({billingInfo.cardCompany} {maskedCardNumber})
       </span>
     </div>
   );

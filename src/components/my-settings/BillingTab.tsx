@@ -215,8 +215,10 @@ export default function BillingTab() {
                   ) : activeBillingInfo ? (
                     <div className="flex items-center gap-2">
                       <span className="text-[12px] md:text-[14px] text-neutral-60">
-                        카드 결제 ({activeBillingInfo.cardCompany} ****{" "}
-                        {activeBillingInfo.lastFourDigits})
+                        카드 결제 ({activeBillingInfo.cardCompany}{" "}
+                        {activeBillingInfo.lastFourDigits
+                          ? `**** **** **** ${activeBillingInfo.lastFourDigits}`
+                          : "**** **** **** ****"})
                       </span>
                     </div>
                   ) : (
