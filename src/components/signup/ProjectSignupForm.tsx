@@ -11,12 +11,14 @@ import { getPendingInviteInfo, clearPendingInviteInfo, type PendingInviteInfo } 
 import { clearTokens } from "@/lib/token";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
+import { useMe } from "@/hooks/useMe";
 
 // 지연 함수
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function ProjectSignupForm() {
   const router = useRouter();
+  const { user } = useMe();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -195,6 +197,23 @@ export function ProjectSignupForm() {
     
     init();
   }, [isMounted, checkUserEmail, checkInvitationStatus, router]);
+
+  // 사용자 정보로 이름과 핸드폰 번호 기본값 설정
+  useEffect(() => {
+    if (isLoading || !user) return;
+    
+    // 이름이 있고 아직 입력되지 않았다면 기본값으로 설정
+    if (user.name && !name) {
+      setName(user.name);
+      console.log("[ProjectSignup] 📝 사용자 이름 기본값 설정:", user.name);
+    }
+    
+    // 핸드폰 번호가 있고 아직 입력되지 않았다면 기본값으로 설정
+    if (user.phone && !phone) {
+      setPhone(user.phone);
+      console.log("[ProjectSignup] 📞 사용자 핸드폰 번호 기본값 설정:", user.phone);
+    }
+  }, [isLoading, user, name, phone]);
 
   // 이메일 비교 (userEmail과 pendingInvite가 모두 설정된 후)
   useEffect(() => {
