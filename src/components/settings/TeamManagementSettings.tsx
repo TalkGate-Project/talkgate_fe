@@ -12,7 +12,8 @@ import { DragHandlers, DragState, flattenTeamData, isDescendant } from "@/hooks/
 import { TeamMember } from "@/types/teams";
 import { MemberTreeNode } from "@/types/membersTree";
 import { getSelectedProjectId } from "@/lib/project";
-import { useMembersTree, useTeams, useMoveTeamMutation } from "@/hooks/useMembersTree";
+import { useMembersTree, useTeams, useMoveTeamMutation, useRemoveParentMutation } from "@/hooks/useMembersTree";
+import { useMyMember } from "@/hooks/useMyMember";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -107,6 +108,8 @@ export default function TeamManagementSettings() {
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTree(projectId);
   const { data: teamsData } = useTeams(projectId);
   const moveMutation = useMoveTeamMutation(projectId);
+  const removeParentMutation = useRemoveParentMutation(projectId);
+  const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   const teamNameByLeader = useMemo(() => {
     const map = new Map<number, string>();
@@ -139,7 +142,7 @@ export default function TeamManagementSettings() {
   const unassignedMembers = useMemo(() => transformMembers(unassignedTreeData, teamNameByLeader), [unassignedTreeData, teamNameByLeader]);
   const flattenedMembers = useMemo(() => flattenTeamData(teamMembers), [teamMembers]);
 
-  const canDrag = !moveMutation.isPending;
+  const canDrag = !moveMutation.isPending && !removeParentMutation.isPending;
 
   const dragHandlers: DragHandlers = useMemo(() => ({
     handleDragStart: (e, item) => {
@@ -283,6 +286,24 @@ export default function TeamManagementSettings() {
     setDragOverItemId(null);
   };
 
+  const handleRemoveParentDrop = useCallback(async (memberId: string) => {
+    if (!canDrag) return;
+    try {
+      await removeParentMutation.mutateAsync({
+        memberId: Number(memberId),
+      });
+      setDraggedItem(null);
+      setDragOverItemId(null);
+    } catch (err) {
+      console.error(err);
+      showErrorModal({
+        type: "error",
+        headline: "소속 해제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    }
+  }, [canDrag, removeParentMutation]);
+
   // 모든 팀(department) 목록 - teamsData에서 가져옴
   const allDepartments = useMemo(() => {
     if (!teamsData) return [];
@@ -422,7 +443,7 @@ export default function TeamManagementSettings() {
         <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative">
           {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
-            <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} zoom={zoom} onZoomChange={setZoom} />
+            <TeamTreeView data={assignedMembers} dragHandlers={dragHandlers} dragState={dragState} onMemberClick={handleMemberClick} zoom={zoom} onZoomChange={setZoom} onRemoveParentDrop={handleRemoveParentDrop} canRemoveParent={isAdminOrSubAdmin} />
           </div>
           
           {/* 미배정 멤버 리스트 영역 - 데스크탑 */}
