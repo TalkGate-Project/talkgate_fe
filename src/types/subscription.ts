@@ -101,6 +101,11 @@ export type SubscriptionPlanListResponse = {
   };
 };
 
+// GET /v1/subscriptions/payment/{id}/receipt - 결제 영수증 PDF 생성
+export type SubscriptionPaymentReceiptResponse = ApiSuccess<{
+  receiptUrl: string;
+}>;
+
 // GET /v1/subscriptions/admin/projects - Admin 프로젝트 구독 정보 조회 응답
 export type SubscriptionAdminProject = {
   projectId: number;
