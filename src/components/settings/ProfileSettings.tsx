@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMyMember } from "@/hooks/useMyMember";
 import { MembersService } from "@/services/members";
@@ -8,6 +8,8 @@ import { AssetsService } from "@/services/assets";
 import type { OrganizationTreeNode, UpdateProfilePayload } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import AsyncButton from "@/components/common/AsyncButton";
+import TeamNameBadge from "@/components/common/TeamNameBadge";
+import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
@@ -25,11 +27,22 @@ export default function ProfileSettings() {
   // UI 상태
   const [isSaving, setIsSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isOrgExpanded, setIsOrgExpanded] = useState(true); // Default expanded per screenshot? Or collapsed? Screenshot shows root expanded.
   const [mounted, setMounted] = useState(false);
   
   // Root node of the organization tree
   const [orgRoot, setOrgRoot] = useState<OrganizationTreeNode | null>(null);
+  const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set());
+
+  const collectAllNodeIds = useCallback((node: OrganizationTreeNode | null): Set<number> => {
+    const ids = new Set<number>();
+    if (!node) return ids;
+    const walk = (current: OrganizationTreeNode) => {
+      ids.add(current.id);
+      current.descendants?.forEach(walk);
+    };
+    walk(node);
+    return ids;
+  }, []);
 
   // 클라이언트 마운트 감지
   useEffect(() => {
@@ -38,20 +51,23 @@ export default function ProfileSettings() {
 
   // 멤버 데이터 로드 시 상태 업데이트
   useEffect(() => {
-    if (member) {
-      setName(member.name || "");
-      setOriginalName(member.name || "");
-      setEmail(member.email || "");
-      setPhone(member.phone || "");
-      setOriginalPhone(member.phone || "");
-      setProfileImageUrl(member.profileImageUrl || null);
-      setOriginalProfileImageUrl(member.profileImageUrl || null);
-      
-      if (member.organizationTree) {
-        setOrgRoot(member.organizationTree);
-      }
+    if (!member) return;
+    setName(member.name || "");
+    setOriginalName(member.name || "");
+    setEmail(member.email || "");
+    setPhone(member.phone || "");
+    setOriginalPhone(member.phone || "");
+    setProfileImageUrl(member.profileImageUrl || null);
+    setOriginalProfileImageUrl(member.profileImageUrl || null);
+
+    if (member.organizationTree) {
+      setOrgRoot(member.organizationTree);
+      setExpandedNodes(collectAllNodeIds(member.organizationTree));
+    } else {
+      setOrgRoot(null);
+      setExpandedNodes(new Set());
     }
-  }, [member]);
+  }, [collectAllNodeIds, member]);
 
   // 프로필 이미지 업로드
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,6 +195,18 @@ export default function ProfileSettings() {
     setIsEditMode(false);
   };
 
+  const toggleNode = useCallback((nodeId: number) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  }, []);
+
   if (!mounted || loading) {
     return (
       <div className="bg-card rounded-[14px] shadow-sm p-6">
@@ -191,138 +219,151 @@ export default function ProfileSettings() {
   }
 
   // 렌더링 로직
-  const renderOrgNode = (node: OrganizationTreeNode, isRoot: boolean = false) => {
+  const renderOrgNode = (node: OrganizationTreeNode, level: number = 0, index: number = 0) => {
     const hasChildren = node.descendants && node.descendants.length > 0;
-    
-    // Root (Leader) Style
-    // background: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)), #FFFFFF; -> This is basically a light green tint
-    // height: 48px
-    // padding: 20px 24px -> Actually flex container is 48px height.
-    
-    // Child (Member) Style
-    // background: #F8F8F8;
-    
-    // Avatar styles
-    // Root: bg-[#00B55B] (Primary-80), text-[#D6FAE8] (Primary-10)
-    // Child: bg-[#808080] (Light-60), text-[#FFFFFF] (Light-0)
-    
-    const containerBaseClass = `flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 mb-[8px] ${
-      isRoot 
-        ? "bg-primary-10/30 dark:bg-primary-10/20" 
+    const isExpanded = expandedNodes.has(node.id);
+    const isLeader = node.role === "leader";
+    const indent = level * 16;
+    const connectorLeft = (level - 1) * 16;
+
+    const containerBaseClass = `flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 md:!ml-[var(--desktop-indent)] ${
+      isLeader
+        ? "bg-primary-10/30 dark:bg-primary-10/20"
         : "bg-neutral-10 dark:bg-neutral-20"
     }`;
 
-    const avatarBgClass = isRoot ? "bg-primary-80" : "bg-neutral-60";
-    const avatarTextClass = isRoot ? "text-primary-10" : "text-white";
-    
-    // Team badge for Root
-    // bg-[#D3E1FE] text-[#4D82F3]
-    
-    return (
-        <div className="w-full">
-            <div className={containerBaseClass}>
-                <div className="flex items-center gap-[16px]">
-                     {/* Avatar */}
-                     <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center ${avatarBgClass} flex-shrink-0`}>
-                        {node.profileImageUrl ? (
-                            <img src={node.profileImageUrl} alt={node.name} className="w-full h-full rounded-full object-cover"/>
-                        ) : (
-                             <span className={`text-[14px] font-semibold ${avatarTextClass}`}>
-                                 {node.name.charAt(0)}
-                             </span>
-                        )}
-                     </div>
-                     
-                     {/* Name */}
-                     <span className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px]">
-                         {node.name}
-                     </span>
-                     
-                     {/* Team Badge (Only for Root/Leader in the example) */}
-                     {isRoot && node.teamName && (
-                         <div className="flex items-center justify-center px-[12px] py-[4px] bg-secondary-10 dark:bg-secondary-10 rounded-[30px] h-[22px]">
-                             <span className="text-[12px] font-medium text-secondary-40 dark:text-secondary-40 opacity-80 leading-[14px]">
-                                 {node.teamName}
-                             </span>
-                         </div>
-                     )}
-                </div>
+    const avatarBgClass = isLeader ? "bg-primary-80" : "bg-neutral-60";
+    const avatarTextClass = isLeader ? "text-primary-10" : "text-white";
 
-                {/* Toggle Arrow (Only for Root) */}
-                {isRoot && hasChildren && (
-                    <button 
-                        onClick={() => setIsOrgExpanded(!isOrgExpanded)}
-                        className="w-[26px] h-[26px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                        aria-label={isOrgExpanded ? "접기" : "펼치기"}
-                    >
-                        {isOrgExpanded ? (
-                            // 열렸을 때: 아래쪽 화살표 (v)
-                            <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 26 26"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <rect
-                                    x="25.5"
-                                    y="0.5"
-                                    width="25"
-                                    height="25"
-                                    rx="5.5"
-                                    transform="rotate(90 25.5 0.5)"
-                                    stroke="#E2E2E2"
-                                />
-                                <path
-                                    d="M7.16536 10.5L12.9987 16.3333L18.832 10.5"
-                                    stroke="#B0B0B0"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        ) : (
-                            // 닫혔을 때: 오른쪽 화살표 (>)
-                            <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 26 26"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <rect
-                                    x="0.5"
-                                    y="0.5"
-                                    width="25"
-                                    height="25"
-                                    rx="5.5"
-                                    transform="matrix(0 -1 -1 0 26 26)"
-                                    stroke="#E2E2E2"
-                                />
-                                <path
-                                    d="M10.5 18.8332L16.3333 12.9998L10.5 7.1665"
-                                    stroke="#B0B0B0"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        )}
-                    </button>
-                )}
+    return (
+      <div key={node.id} className="relative mb-2">
+        {level > 0 && (
+          <>
+            <div
+              className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
+              style={{
+                left: `${connectorLeft}px`,
+                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
+                top:
+                  index === 0
+                    ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset
+                    : 0,
+              } as React.CSSProperties}
+            />
+            <div
+              className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
+              style={{
+                left: `${connectorLeft}px`,
+                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
+                "--desktop-horizontal-width": `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
+                top: HIERARCHY_LIST_TOKENS.connector.horizontalTop,
+                width: "16px",
+              } as React.CSSProperties}
+            />
+          </>
+        )}
+        <div
+          className={containerBaseClass}
+          style={{
+            marginLeft: `${indent}px`,
+            "--desktop-indent": `${getIndent(level)}px`,
+          } as React.CSSProperties}
+        >
+          <div className="flex items-center gap-[16px]">
+            {/* Avatar */}
+            <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center ${avatarBgClass} flex-shrink-0`}>
+              {node.profileImageUrl ? (
+                <img src={node.profileImageUrl} alt={node.name} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <span className={`text-[14px] font-semibold ${avatarTextClass}`}>
+                  {node.name.charAt(0)}
+                </span>
+              )}
             </div>
-            
-            {/* Children (Descendants) - No indentation in visual, just stacked below */}
-            {isRoot && isOrgExpanded && hasChildren && (
-                <div className="flex flex-col gap-[8px]">
-                    {node.descendants!.map(child => (
-                        <div key={child.id}>
-                            {renderOrgNode(child, false)}
-                        </div>
-                    ))}
-                </div>
+
+            {/* Name */}
+            <span className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px]">
+              {node.name}
+            </span>
+
+            {/* Team Badge (Leader only) */}
+            {isLeader && node.teamName && (
+              <TeamNameBadge label={node.teamName} />
             )}
+          </div>
+
+          {/* Toggle Arrow */}
+          {hasChildren && (
+            <button
+              onClick={() => toggleNode(node.id)}
+              className="w-[26px] h-[26px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              aria-label={isExpanded ? "접기" : "펼치기"}
+            >
+              {isExpanded ? (
+                // 열렸을 때: 아래쪽 화살표 (v)
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="25.5"
+                    y="0.5"
+                    width="25"
+                    height="25"
+                    rx="5.5"
+                    transform="rotate(90 25.5 0.5)"
+                    stroke="#E2E2E2"
+                  />
+                  <path
+                    d="M7.16536 10.5L12.9987 16.3333L18.832 10.5"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                // 닫혔을 때: 오른쪽 화살표 (>)
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="0.5"
+                    y="0.5"
+                    width="25"
+                    height="25"
+                    rx="5.5"
+                    transform="matrix(0 -1 -1 0 26 26)"
+                    stroke="#E2E2E2"
+                  />
+                  <path
+                    d="M10.5 18.8332L16.3333 12.9998L10.5 7.1665"
+                    stroke="#B0B0B0"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
+
+        {hasChildren && isExpanded && (
+          <div className="mt-2">
+            {node.descendants!.map((child, childIndex) =>
+              renderOrgNode(child, level + 1, childIndex)
+            )}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -485,7 +526,7 @@ export default function ProfileSettings() {
         {/* 조직 트리 렌더링 */}
         <div className="w-full md:w-1/2">
             {orgRoot ? (
-                renderOrgNode(orgRoot, true)
+                renderOrgNode(orgRoot, 0)
             ) : (
                 <div className="w-full h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 flex items-center text-[14px] text-neutral-60 dark:text-neutral-60">
                     조직 정보가 없습니다.

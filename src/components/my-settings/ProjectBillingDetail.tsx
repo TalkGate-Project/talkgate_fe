@@ -169,120 +169,100 @@ export default function ProjectBillingDetail({
     return plan.monthlyPrice;
   };
 
-  const handlePlanSelect = async (planId: number) => {
+  // Basic/Pro 플랜 판단
+  const isProPlan = (plan: SubscriptionPlan): boolean => {
+    return /pro/i.test(plan.name);
+  };
+
+  const isBasicPlan = (plan: SubscriptionPlan): boolean => {
+    return /basic/i.test(plan.name);
+  };
+
+  const handlePlanSelect = async (planId: number, newBillingCycle: BillingCycle) => {
     if (!subscription || !plans.length) return;
 
     const currentPlan = subscription.plan;
     const newPlan = plans.find((p) => p.id === planId);
     if (!newPlan) return;
 
-    const currentPrice = getPlanPrice(currentPlan, subscription.billingCycle);
-    const newPrice = getPlanPrice(newPlan, subscription.billingCycle);
-    const isUpgrade = newPrice > currentPrice;
+    // 업그레이드 판단: Basic → Pro만 업그레이드
+    const isUpgrade = isBasicPlan(currentPlan) && isProPlan(newPlan);
 
     if (isUpgrade) {
-      // 업그레이드: estimatePlan API로 금액 조회 후 결제 플로우
-      try {
-        const estimateRes = await SubscriptionService.estimatePlan(
-          {
-            newPlanId: planId,
-            newBillingCycle: subscription.billingCycle,
-          },
-          { "x-project-id": String(projectId) }
-        );
-        const estimate = estimateRes.data.data;
-
-        // 부가세 계산 (additionalCost는 추가 비용이므로, 이에 대한 부가세 계산)
-        const monthlyBill = estimate.additionalCost;
-        const subtotal = monthlyBill;
-        const vat = Math.floor(subtotal * 0.1);
-        const total = subtotal + vat;
-
-        // 결제 확인 모달
-        showConfirmModal({
-          title: "플랜 변경",
-          message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n월간 청구: ${formatAmount(monthlyBill)}원\n소계: ${formatAmount(subtotal)}원\n부가가치세 (10%): ${formatAmount(vat)}원\n지불 총액: ${formatAmount(total)}원`,
-          confirmText: "결제하기",
-          cancelText: "취소",
-          onConfirm: async () => {
-            if (isUpdatingPlan) return;
-            setIsUpdatingPlan(true);
-            try {
-              await SubscriptionService.changePlan(
-                {
-                  newPlanId: planId,
-                  newBillingCycle: subscription.billingCycle,
-                },
-                { "x-project-id": String(projectId) }
-              );
-              await Promise.all([refetchSubscription(), refetchPayments()]);
-              showErrorModal({
-                type: "success",
-                headline: "플랜이 변경되었습니다.",
-                hideCancel: true,
-              });
-            } catch (error) {
-              console.error("Failed to change subscription plan:", error);
-              showErrorModal({
-                type: "error",
-                headline: "플랜 변경에 실패했습니다.",
-                description: "잠시 후 다시 시도해주세요.",
-                hideCancel: true,
-              });
-            } finally {
-              setIsUpdatingPlan(false);
-            }
-          },
-        });
-      } catch (error) {
-        console.error("Failed to estimate plan change:", error);
-        showErrorModal({
-          type: "error",
-          headline: "플랜 변경 금액 조회에 실패했습니다.",
-          description: "잠시 후 다시 시도해주세요.",
-          hideCancel: true,
-        });
-      }
-    } else {
-      // 다운그레이드: 확인 모달만 띄우고 변경 API 호출
-      showConfirmModal({
-        title: "플랜 변경",
-        message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.`,
-        confirmText: "변경하기",
-        cancelText: "취소",
-        onConfirm: async () => {
-          if (isUpdatingPlan) return;
-          setIsUpdatingPlan(true);
-          try {
-            await SubscriptionService.changePlan(
-              {
-                newPlanId: planId,
-                newBillingCycle: subscription.billingCycle,
-              },
-              { "x-project-id": String(projectId) }
-            );
-            await Promise.all([refetchSubscription(), refetchPayments()]);
-            showErrorModal({
-              type: "success",
-              headline: "구독 상품이 성공적으로 변경되었습니다.",
-              description: "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
-              hideCancel: true,
-            });
-          } catch (error) {
-            console.error("Failed to change subscription plan:", error);
-            showErrorModal({
-              type: "error",
-              headline: "플랜 변경에 실패했습니다.",
-              description: "잠시 후 다시 시도해주세요.",
-              hideCancel: true,
-            });
-          } finally {
-            setIsUpdatingPlan(false);
-          }
-        },
-      });
+      // 업그레이드: checkout 페이지로 이동
+      const encodedProjectName = encodeURIComponent(projectName);
+      const checkoutUrl = `https://talkgate.im/pricing?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}`;
+      window.location.href = checkoutUrl;
+      return;
     }
+
+    // 단순 변경: API 호출
+    const isSamePlan = currentPlan.id === newPlan.id;
+    const isSameCycle = subscription.billingCycle === newBillingCycle;
+
+    // 동일 플랜 + 동일 주기는 변경 불가 (모달에서 이미 처리되지만 안전장치)
+    if (isSamePlan && isSameCycle) {
+      return;
+    }
+
+    // 분기 → 월 (다른 플랜) 체크
+    const isQuarterlyToMonthly = subscription.billingCycle === "quarterly" && newBillingCycle === "monthly";
+    const isDifferentPlan = !isSamePlan;
+    if (isQuarterlyToMonthly && isDifferentPlan) {
+      showErrorModal({
+        type: "error",
+        headline: "변경할 수 없습니다",
+        description: "분기 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다.",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    // 단순 변경 확인 모달
+    const changeTypeMessage = isSamePlan
+      ? "추가 결제 없이 다음 결제 주기에 적용됩니다."
+      : "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.";
+
+    showConfirmModal({
+      title: "플랜 변경",
+      message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n${changeTypeMessage}`,
+      confirmText: "변경하기",
+      cancelText: "취소",
+      onConfirm: async () => {
+        if (isUpdatingPlan) return;
+        setIsUpdatingPlan(true);
+        try {
+          await SubscriptionService.changePlan(
+            {
+              newPlanId: planId,
+              newBillingCycle: newBillingCycle,
+            },
+            { "x-project-id": String(projectId) }
+          );
+          await Promise.all([refetchSubscription(), refetchPayments()]);
+          showErrorModal({
+            type: "success",
+            headline: "구독 상품이 성공적으로 변경되었습니다.",
+            description: isSamePlan
+              ? "추가 결제 없이 다음 결제 주기에 적용됩니다."
+              : "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
+            hideCancel: true,
+          });
+        } catch (error) {
+          console.error("Failed to change subscription plan:", error);
+          showErrorModal({
+            type: "error",
+            headline: "플랜 변경에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        } finally {
+          setIsUpdatingPlan(false);
+        }
+      },
+    });
   };
+
 
   const handleCancelSubscription = () => {
     if (!subscription) return;
@@ -681,12 +661,14 @@ export default function ProjectBillingDetail({
         isOpen={isPlanModalOpen}
         plans={plans}
         currentPlanId={subscription?.plan?.id ?? null}
-        billingCycle={billingCycle}
+        currentBillingCycle={billingCycle}
+        projectId={projectId}
+        projectName={projectName}
         isLoading={plansLoading || isUpdatingPlan}
         onClose={() => setIsPlanModalOpen(false)}
-        onSelect={(plan) => {
+        onSelect={(planId, billingCycle) => {
           setIsPlanModalOpen(false);
-          handlePlanSelect(plan.id);
+          handlePlanSelect(planId, billingCycle);
         }}
       />
     </div>
