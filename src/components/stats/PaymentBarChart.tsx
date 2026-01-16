@@ -87,6 +87,15 @@ export default function PaymentBarChart() {
       }));
   }, [data]);
 
+  // 모바일에서 차트 최소 너비 계산 (데이터 개수에 따라 동적 조정)
+  const minChartWidth = useMemo(() => {
+    const dataCount = chartData.length;
+    // 각 바당 최소 80px (바 크기 + 간격)
+    const minWidthPerBar = 80;
+    // 최소 600px, 데이터가 많으면 더 넓게
+    return Math.max(600, dataCount * minWidthPerBar);
+  }, [chartData.length]);
+
   const handleBarClick = (teamName: string) => {
     const leaderMemberId = teamLeaderMap.get(teamName);
     if (leaderMemberId) {
@@ -219,9 +228,10 @@ export default function PaymentBarChart() {
   return (
     <div className="w-full">
       {Header}
-      <div className="h-[320px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: isMobile ? 0 : 16, left: 0, bottom: 56 }}>
+      <div className="h-[320px] overflow-x-auto overflow-y-hidden scrollbar-hide">
+        <div className="h-full" style={{ minWidth: isMobile ? `${minChartWidth}px` : '100%' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 10, right: isMobile ? 0 : 16, left: 0, bottom: 56 }}>
           <defs>
             <linearGradient id="payGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--primary-40)" stopOpacity={0.75} />
@@ -273,6 +283,7 @@ export default function PaymentBarChart() {
           </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </div>
       {selectedMemberId !== null && (
         <TeamMemberInfoModal

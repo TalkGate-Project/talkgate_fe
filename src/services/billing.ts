@@ -5,6 +5,8 @@ import type {
   BillingRegisterResponse,
   BillingUpdateInput,
   BillingUpdateResponse,
+  BillingTermsType,
+  BillingTermsResponse,
 } from "@/types/billing";
 
 export const BillingService = {
@@ -42,6 +44,17 @@ export const BillingService = {
   update(input: BillingUpdateInput) {
     return apiClient.put<BillingUpdateResponse>("/v1/billing/update", input);
   },
+
+  /**
+   * 약관 조회
+   * 결제 서비스 약관을 조회합니다.
+   * 결제 진행 전 사용자에게 약관을 표시해야 합니다.
+   */
+  getTerms(termsType: BillingTermsType) {
+    return apiClient.get<BillingTermsResponse>("/v1/billing/terms", {
+      query: { termsType },
+    });
+  },
 };
 
 // Re-export types for convenience
@@ -52,5 +65,7 @@ export type {
   BillingRegisterResponse,
   BillingUpdateInput,
   BillingUpdateResponse,
+  BillingTermsType,
+  BillingTermsResponse,
 } from "@/types/billing";
 

@@ -58,3 +58,17 @@ export type BillingUpdateResponse = {
 // DELETE /v1/billing/{id} - 빌링키 삭제 (응답 없음, 에러만 반환)
 // 에러 응답은 common.ts의 ApiError 타입 사용
 
+// GET /v1/billing/terms - 약관 조회
+export type BillingTermsType = 
+  | "ElectronicFinancialTransactions" 
+  | "CollectPersonalInfo" 
+  | "SharingPersonalInformation";
+
+export type BillingTermsResponse = {
+  result: true;
+  data: {
+    termsTitle: string;
+    content: string;
+  };
+};
+
