@@ -103,16 +103,21 @@ export default function ChatInputBar({
 
         {/* 입력 필드 - 모바일에서만 회색 배경 */}
         <div className="flex-1 relative">
-          <input
+          <textarea
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
                 e.preventDefault();
                 onSend();
               }
             }}
-            className="w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10 dark:bg-neutral-20 lg:bg-transparent"
+            rows={1}
+            className="w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10 dark:bg-neutral-20 lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
             placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
             disabled={disabled}
           />

@@ -353,8 +353,8 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
 
       <div className="h-[76px] px-3 md:px-4 border-t border-border dark:border-neutral-30 shrink-0 md:relative md:bottom-auto">
         <div className="h-full flex items-center gap-2">
-          <input
-            className="flex-1 h-[40px] px-2 md:px-3 text-[14px] outline-none bg-transparent border-0 disabled:cursor-not-allowed"
+          <textarea
+            className="flex-1 h-[40px] px-2 md:px-3 text-[14px] outline-none bg-transparent border-0 disabled:cursor-not-allowed resize-none leading-[20px] py-[10px]"
             placeholder={
               hasActiveConversation
                 ? "메세지를 입력하세요."
@@ -363,11 +363,16 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
                 e.preventDefault();
                 void handleSend();
               }
             }}
+            rows={1}
             disabled={!hasActiveConversation || sending}
           />
           <button
