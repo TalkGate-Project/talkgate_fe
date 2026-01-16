@@ -47,7 +47,6 @@ export default function TeamTreeView({ data, dragHandlers, dragState, onMemberCl
   }, [isDragging]);
 
   const onWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
-    if (!e.ctrlKey) return;
     e.preventDefault();
     const next = Math.min(2, Math.max(0.6, zoom - e.deltaY * 0.0015));
     setZoom(Number(next.toFixed(2)));

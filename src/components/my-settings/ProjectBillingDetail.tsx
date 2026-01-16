@@ -66,7 +66,7 @@ function formatDateTime(dateString: string | null): string {
     minute: "2-digit",
     hour12: false,
   });
-  return `${dateStr}  ${timeStr}`;
+  return `${dateStr}`;
 }
 
 // 금액 포맷팅
@@ -90,6 +90,19 @@ function getPaymentStatusColor(status: string): "green" | "yellow" | "red" {
   if (status === "completed") return "green";
   if (status === "pending") return "yellow";
   return "red";
+}
+
+// 결제 타입 한글 변환
+function getPaymentTypeLabel(paymentType: string | null | undefined): string {
+  if (!paymentType) return "-";
+  const typeMap: Record<string, string> = {
+    initial: "구독 시작",
+    renewal: "구독 갱신",
+    upgrade: "구독 변경",
+    change: "구독 변경", // change도 upgrade와 동일하게 처리
+    recurring: "구독 갱신", // recurring도 renewal과 동일하게 처리
+  };
+  return typeMap[paymentType] || paymentType;
 }
 
 interface ProjectBillingDetailProps {
@@ -156,120 +169,100 @@ export default function ProjectBillingDetail({
     return plan.monthlyPrice;
   };
 
-  const handlePlanSelect = async (planId: number) => {
+  // Basic/Pro 플랜 판단
+  const isProPlan = (plan: SubscriptionPlan): boolean => {
+    return /pro/i.test(plan.name);
+  };
+
+  const isBasicPlan = (plan: SubscriptionPlan): boolean => {
+    return /basic/i.test(plan.name);
+  };
+
+  const handlePlanSelect = async (planId: number, newBillingCycle: BillingCycle) => {
     if (!subscription || !plans.length) return;
 
     const currentPlan = subscription.plan;
     const newPlan = plans.find((p) => p.id === planId);
     if (!newPlan) return;
 
-    const currentPrice = getPlanPrice(currentPlan, subscription.billingCycle);
-    const newPrice = getPlanPrice(newPlan, subscription.billingCycle);
-    const isUpgrade = newPrice > currentPrice;
+    // 업그레이드 판단: Basic → Pro만 업그레이드
+    const isUpgrade = isBasicPlan(currentPlan) && isProPlan(newPlan);
 
     if (isUpgrade) {
-      // 업그레이드: estimatePlan API로 금액 조회 후 결제 플로우
-      try {
-        const estimateRes = await SubscriptionService.estimatePlan(
-          {
-            newPlanId: planId,
-            newBillingCycle: subscription.billingCycle,
-          },
-          { "x-project-id": String(projectId) }
-        );
-        const estimate = estimateRes.data.data;
-
-        // 부가세 계산 (additionalCost는 추가 비용이므로, 이에 대한 부가세 계산)
-        const monthlyBill = estimate.additionalCost;
-        const subtotal = monthlyBill;
-        const vat = Math.floor(subtotal * 0.1);
-        const total = subtotal + vat;
-
-        // 결제 확인 모달
-        showConfirmModal({
-          title: "플랜 변경",
-          message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n월간 청구: ${formatAmount(monthlyBill)}원\n소계: ${formatAmount(subtotal)}원\n부가가치세 (10%): ${formatAmount(vat)}원\n지불 총액: ${formatAmount(total)}원`,
-          confirmText: "결제하기",
-          cancelText: "취소",
-          onConfirm: async () => {
-            if (isUpdatingPlan) return;
-            setIsUpdatingPlan(true);
-            try {
-              await SubscriptionService.changePlan(
-                {
-                  newPlanId: planId,
-                  newBillingCycle: subscription.billingCycle,
-                },
-                { "x-project-id": String(projectId) }
-              );
-              await Promise.all([refetchSubscription(), refetchPayments()]);
-              showErrorModal({
-                type: "success",
-                headline: "플랜이 변경되었습니다.",
-                hideCancel: true,
-              });
-            } catch (error) {
-              console.error("Failed to change subscription plan:", error);
-              showErrorModal({
-                type: "error",
-                headline: "플랜 변경에 실패했습니다.",
-                description: "잠시 후 다시 시도해주세요.",
-                hideCancel: true,
-              });
-            } finally {
-              setIsUpdatingPlan(false);
-            }
-          },
-        });
-      } catch (error) {
-        console.error("Failed to estimate plan change:", error);
-        showErrorModal({
-          type: "error",
-          headline: "플랜 변경 금액 조회에 실패했습니다.",
-          description: "잠시 후 다시 시도해주세요.",
-          hideCancel: true,
-        });
-      }
-    } else {
-      // 다운그레이드: 확인 모달만 띄우고 변경 API 호출
-      showConfirmModal({
-        title: "플랜 변경",
-        message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.`,
-        confirmText: "변경하기",
-        cancelText: "취소",
-        onConfirm: async () => {
-          if (isUpdatingPlan) return;
-          setIsUpdatingPlan(true);
-          try {
-            await SubscriptionService.changePlan(
-              {
-                newPlanId: planId,
-                newBillingCycle: subscription.billingCycle,
-              },
-              { "x-project-id": String(projectId) }
-            );
-            await Promise.all([refetchSubscription(), refetchPayments()]);
-            showErrorModal({
-              type: "success",
-              headline: "구독 상품이 성공적으로 변경되었습니다.",
-              description: "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
-              hideCancel: true,
-            });
-          } catch (error) {
-            console.error("Failed to change subscription plan:", error);
-            showErrorModal({
-              type: "error",
-              headline: "플랜 변경에 실패했습니다.",
-              description: "잠시 후 다시 시도해주세요.",
-              hideCancel: true,
-            });
-          } finally {
-            setIsUpdatingPlan(false);
-          }
-        },
-      });
+      // 업그레이드: checkout 페이지로 이동
+      const encodedProjectName = encodeURIComponent(projectName);
+      const checkoutUrl = `https://talkgate.im/pricing?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}`;
+      window.location.href = checkoutUrl;
+      return;
     }
+
+    // 단순 변경: API 호출
+    const isSamePlan = currentPlan.id === newPlan.id;
+    const isSameCycle = subscription.billingCycle === newBillingCycle;
+
+    // 동일 플랜 + 동일 주기는 변경 불가 (모달에서 이미 처리되지만 안전장치)
+    if (isSamePlan && isSameCycle) {
+      return;
+    }
+
+    // 분기 → 월 (다른 플랜) 체크
+    const isQuarterlyToMonthly = subscription.billingCycle === "quarterly" && newBillingCycle === "monthly";
+    const isDifferentPlan = !isSamePlan;
+    if (isQuarterlyToMonthly && isDifferentPlan) {
+      showErrorModal({
+        type: "error",
+        headline: "변경할 수 없습니다",
+        description: "분기 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다.",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    // 단순 변경 확인 모달
+    const changeTypeMessage = isSamePlan
+      ? "추가 결제 없이 다음 결제 주기에 적용됩니다."
+      : "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.";
+
+    showConfirmModal({
+      title: "플랜 변경",
+      message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n${changeTypeMessage}`,
+      confirmText: "변경하기",
+      cancelText: "취소",
+      onConfirm: async () => {
+        if (isUpdatingPlan) return;
+        setIsUpdatingPlan(true);
+        try {
+          await SubscriptionService.changePlan(
+            {
+              newPlanId: planId,
+              newBillingCycle: newBillingCycle,
+            },
+            { "x-project-id": String(projectId) }
+          );
+          await Promise.all([refetchSubscription(), refetchPayments()]);
+          showErrorModal({
+            type: "success",
+            headline: "구독 상품이 성공적으로 변경되었습니다.",
+            description: isSamePlan
+              ? "추가 결제 없이 다음 결제 주기에 적용됩니다."
+              : "변경된 상품은 다음 갱신일에 자동으로 적용됩니다.",
+            hideCancel: true,
+          });
+        } catch (error) {
+          console.error("Failed to change subscription plan:", error);
+          showErrorModal({
+            type: "error",
+            headline: "플랜 변경에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        } finally {
+          setIsUpdatingPlan(false);
+        }
+      },
+    });
   };
+
 
   const handleCancelSubscription = () => {
     if (!subscription) return;
@@ -323,11 +316,39 @@ export default function ProjectBillingDetail({
         });
         return;
       }
-      const link = document.createElement("a");
-      link.href = receiptUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.click();
+
+      // 모바일 디바이스 감지
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // 모바일에서는 window.open을 사용하여 새 창에서 열기
+        // iOS Safari와 Android Chrome 모두에서 작동
+        const newWindow = window.open(receiptUrl, "_blank", "noopener,noreferrer");
+        
+        // window.open이 실패한 경우 (팝업 차단 등), 직접 링크를 클릭하는 방식으로 대체
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+          // 대체 방법: 직접 링크 생성 및 클릭
+          const link = document.createElement("a");
+          link.href = receiptUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          // 모바일에서도 작동하도록 스타일 추가
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          // 클릭 후 링크 제거
+          setTimeout(() => {
+            document.body.removeChild(link);
+          }, 100);
+        }
+      } else {
+        // 데스크톱에서는 기존 방식 사용
+        const link = document.createElement("a");
+        link.href = receiptUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.click();
+      }
     } catch (error) {
       console.error("Failed to fetch receipt:", error);
       showErrorModal({
@@ -530,11 +551,13 @@ export default function ProjectBillingDetail({
                     <>
                       <span className="font-bold">
                         {formatAmount(
-                          subscription.billingCycle === "monthly"
-                            ? subscription.plan.monthlyPrice
-                            : subscription.billingCycle === "quarterly"
-                            ? (subscription.plan.quarterlyPrice ?? 0)
-                            : (subscription.plan.yearlyPrice ?? 0)
+                          Math.floor(
+                            (subscription.billingCycle === "monthly"
+                              ? subscription.plan.monthlyPrice
+                              : subscription.billingCycle === "quarterly"
+                              ? (subscription.plan.quarterlyPrice ?? 0)
+                              : (subscription.plan.yearlyPrice ?? 0)) * 1.1
+                          )
                         )}
                       </span>
                       <span className="text-neutral-60 ml-1">
@@ -564,19 +587,20 @@ export default function ProjectBillingDetail({
         {/* 테이블 */}
         <div className="px-4 md:px-7 overflow-x-auto">
           {/* 테이블 헤더 */}
-          <div className="bg-neutral-20 rounded-[8px] h-[36px] md:h-[40px] flex items-center px-3 md:px-6 min-w-[600px]">
-            <div className="flex-[1.5] text-[14px] md:text-[16px] font-medium text-neutral-60">
+          <div className="bg-neutral-20 rounded-[8px] h-[36px] md:h-[40px] flex items-center px-3 md:px-6 md:min-w-[600px]">
+            <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
               결제날짜
             </div>
             <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
               금액
             </div>
             <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
-              결제 상태
+              상태
             </div>
             <div className="flex-[1] text-[14px] md:text-[16px] font-medium text-neutral-60">
-              구독
+              구독 정보
             </div>
+            <div className="w-[48px] flex-shrink-0"></div>
           </div>
 
           {/* 테이블 본문 */}
@@ -586,9 +610,9 @@ export default function ProjectBillingDetail({
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center px-6 py-4 border-b border-neutral-10"
+                  className="flex items-center px-3 md:px-6 py-2 md:py-4 border-b border-neutral-10 md:min-w-[600px]"
                 >
-                  <div className="flex-[1.5]">
+                  <div className="flex-[1]">
                     <div className="h-4 w-24 bg-neutral-20 rounded animate-pulse" />
                   </div>
                   <div className="flex-[1]">
@@ -600,6 +624,7 @@ export default function ProjectBillingDetail({
                   <div className="flex-[1]">
                     <div className="h-4 w-16 bg-neutral-20 rounded animate-pulse" />
                   </div>
+                  <div className="w-[48px] flex-shrink-0"></div>
                 </div>
               ))
             ) : paginatedPayments.length === 0 ? (
@@ -636,12 +661,14 @@ export default function ProjectBillingDetail({
         isOpen={isPlanModalOpen}
         plans={plans}
         currentPlanId={subscription?.plan?.id ?? null}
-        billingCycle={billingCycle}
+        currentBillingCycle={billingCycle}
+        projectId={projectId}
+        projectName={projectName}
         isLoading={plansLoading || isUpdatingPlan}
         onClose={() => setIsPlanModalOpen(false)}
-        onSelect={(plan) => {
+        onSelect={(planId, billingCycle) => {
           setIsPlanModalOpen(false);
-          handlePlanSelect(plan.id);
+          handlePlanSelect(planId, billingCycle);
         }}
       />
     </div>
@@ -693,8 +720,8 @@ function PaymentRow({
   const statusColor = getPaymentStatusColor(payment.status);
 
   return (
-    <div className="flex items-center px-3 md:px-6 py-2 md:py-3 border-b border-neutral-10 min-w-[600px]">
-      <div className="flex-[1.5] text-[12px] md:text-[14px] text-foreground">
+    <div className="flex items-center px-3 md:px-6 py-2 md:py-3 border-b border-neutral-10 md:min-w-[600px]">
+      <div className="flex-[1] text-[12px] md:text-[14px] text-foreground">
         {formatDate(payment.createdAt)}
       </div>
       <div className="flex-[1] text-[12px] md:text-[14px] text-foreground">
@@ -714,9 +741,9 @@ function PaymentRow({
         </span>
       </div>
       <div className="flex-[1] text-[12px] md:text-[14px] text-foreground">
-        {subscription?.plan ? `프로젝트 구독 ${subscription.plan.name}` : "-"}
+        {getPaymentTypeLabel(payment.paymentType)}
       </div>
-      <div className="flex items-center justify-end">
+      <div className="w-[48px] flex items-center justify-end flex-shrink-0">
         <button
           className="cursor-pointer p-2 hover:bg-neutral-10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onDownload}
