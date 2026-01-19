@@ -114,9 +114,12 @@ async function fetchProjectBySubdomain(
   host: string
 ): Promise<{ id: number; useAttendanceMenu?: boolean } | null> {
   try {
-    const apiBaseUrl = host.includes("app.talkgate.im") && !host.includes("app-dev")
-      ? "https://api.talkgate.im"
-      : "https://api-dev.talkgate.im";
+    // 환경 변수를 우선 사용, 없으면 host 기반으로 fallback
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
+      host.includes("app.talkgate.im") && !host.includes("app-dev")
+        ? "https://api.talkgate.im"
+        : "https://api-dev.talkgate.im"
+    );
     
     const response = await fetch(`${apiBaseUrl}/v1/projects/${subdomain}`, {
       method: "GET",

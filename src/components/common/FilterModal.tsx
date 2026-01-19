@@ -98,7 +98,7 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
 
             {/* Modal container (centered) */}
             <div className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[848px] md:h-auto md:max-h-[90vh]" style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}>
-                <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col">
+                <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] flex flex-col">
                     {/* Header */}
                     <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2">

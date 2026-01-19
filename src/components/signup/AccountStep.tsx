@@ -11,6 +11,7 @@ import PrivacyConsignmentModal from "@/components/signup/PrivacyConsignmentModal
 import DataCollectionModal from "@/components/signup/DataCollectionModal";
 import MarketingConsentModal from "@/components/signup/MarketingConsentModal";
 import { savePendingSignupState } from "@/lib/signup";
+import { LANDING_URLS } from "@/lib/constants";
 
 type AccountStepProps = {
   onSuccess: (params: { email: string; password: string; tokens?: SignupTokens; agreeMarketing: boolean }) => void;
@@ -415,7 +416,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
                 onClick={() => setAgreeTerms(!agreeTerms)}
               >
                 <a
-                  href="https://talkgate.im/terms"
+                  href={LANDING_URLS.TERMS}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
@@ -437,7 +438,7 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
                 onClick={() => setAgreePrivacy(!agreePrivacy)}
               >
                 <a
-                  href="https://talkgate.im/privacy"
+                  href={LANDING_URLS.PRIVACY}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}

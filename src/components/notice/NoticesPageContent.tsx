@@ -64,20 +64,22 @@ function NoticesPageContentInner() {
   if (!projectId) return null;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12">
+    <main className="h-[calc(100vh-54px)] md:min-h-[calc(100vh-54px)] bg-neutral-10 flex flex-col">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12 flex flex-col flex-1 md:block min-h-0">
         {/* 검색 및 글쓰기 패널 */}
-        <NoticeSearchPanel
-          searchTerm={searchInput}
-          onSearchTermChange={setSearchInput}
-          onSearch={handleSearch}
-          canWrite={isAdminOrSubAdmin}
-          showImportantOnly={important ?? false}
-          onImportantFilterChange={handleImportantFilterChange}
-        />
+        <div className="flex-shrink-0">
+          <NoticeSearchPanel
+            searchTerm={searchInput}
+            onSearchTermChange={setSearchInput}
+            onSearch={handleSearch}
+            canWrite={isAdminOrSubAdmin}
+            showImportantOnly={important ?? false}
+            onImportantFilterChange={handleImportantFilterChange}
+          />
+        </div>
 
         {/* 공지사항 목록 테이블 */}
-        <div className="md:mt-9">
+        <div className="md:mt-9 flex-1 min-h-0 flex flex-col">
           <NoticeTable
             notices={notices ?? []}
             loading={loading}
@@ -89,7 +91,7 @@ function NoticesPageContentInner() {
             onImportantFilterChange={handleImportantFilterChange}
           />
           {errorMessage && (
-            <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40">
+            <div className="mt-4 rounded-[12px] bg-danger-10 px-4 py-3 text-[14px] text-danger-40 flex-shrink-0">
               {errorMessage}
             </div>
           )}

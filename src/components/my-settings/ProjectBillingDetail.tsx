@@ -15,6 +15,7 @@ import { setSelectedProjectId, getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import SubscriptionPlanSelectModal from "./SubscriptionPlanSelectModal";
+import { LANDING_URLS } from "@/lib/constants";
 
 // 카드사 색상 매핑
 const CARD_COMPANY_COLORS: Record<string, string> = {
@@ -191,7 +192,7 @@ export default function ProjectBillingDetail({
     if (isUpgrade) {
       // 업그레이드: checkout 페이지로 이동
       const encodedProjectName = encodeURIComponent(projectName);
-      const checkoutUrl = `https://talkgate.im/pricing?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}`;
+      const checkoutUrl = `${LANDING_URLS.PRICING}?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}`;
       window.location.href = checkoutUrl;
       return;
     }
@@ -212,7 +213,7 @@ export default function ProjectBillingDetail({
       showErrorModal({
         type: "error",
         headline: "변경할 수 없습니다",
-        description: "분기 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다.",
+        description: "해당 구독 상품으로는 변경할 수 없어요.",
         hideCancel: true,
       });
       return;

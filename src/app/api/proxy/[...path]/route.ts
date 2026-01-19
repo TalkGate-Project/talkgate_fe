@@ -56,7 +56,12 @@ async function handleRequest(
 ) {
   try {
     const apiPath = `/${params.path.join('/')}`;
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-dev.talkgate.im';
+    // 환경 변수를 우선 사용, 없으면 환경에 따라 fallback
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
+      process.env.NODE_ENV === "production"
+        ? "https://api.talkgate.im"
+        : "https://api-dev.talkgate.im"
+    );
     const url = `${apiBaseUrl}${apiPath}${request.nextUrl.search}`;
 
     // httpOnly 쿠키에서 토큰 읽기

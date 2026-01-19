@@ -36,7 +36,11 @@ export async function POST(request: NextRequest) {
     }
 
     // API 서버로 2FA 로그인 요청 전달
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-dev.talkgate.im';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
+      process.env.NODE_ENV === "production"
+        ? "https://api.talkgate.im"
+        : "https://api-dev.talkgate.im"
+    );
     const apiUrl = `${apiBaseUrl}/v1/auth/two-factor/login`;
     
     console.log('[2FA Login API] 🌐 백엔드 API 호출:', {

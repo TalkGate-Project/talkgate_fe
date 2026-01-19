@@ -105,7 +105,7 @@ export default function SubscriptionPlanSelectModal({
         canChange: false,
         isUpgrade: false,
         statusMessage: "",
-        disabledReason: "분기 요금제 이용 중에는 다른 플랜의 월 요금제로 변경할 수 없습니다",
+        disabledReason: "해당 구독 상품으로는 변경할 수 없어요",
       };
     }
 
@@ -114,8 +114,8 @@ export default function SubscriptionPlanSelectModal({
       return {
         canChange: true,
         isUpgrade: true,
-        statusMessage: "업그레이드 · 즉시 결제",
-        disabledReason: "",
+        statusMessage: "",
+        disabledReason: "추가 결제가 필요해요.",
       };
     }
 
@@ -124,8 +124,8 @@ export default function SubscriptionPlanSelectModal({
       return {
         canChange: true,
         isUpgrade: false,
-        statusMessage: "다음 결제 주기부터 적용",
-        disabledReason: "",
+        statusMessage: "",
+        disabledReason: "다음 결제 주기부터 적용",
       };
     }
 
@@ -133,8 +133,8 @@ export default function SubscriptionPlanSelectModal({
     return {
       canChange: true,
       isUpgrade: false,
-      statusMessage: "다음 결제 주기부터 적용",
-      disabledReason: "",
+      statusMessage: "",
+      disabledReason: "다음 결제 주기부터 적용",
     };
   }, [currentPlan, selectedPlan, currentBillingCycle, selectedBillingCycle]);
 
@@ -149,13 +149,13 @@ export default function SubscriptionPlanSelectModal({
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="w-full max-w-[720px] bg-card dark:bg-neutral-10 rounded-[14px]"
+      containerClassName="w-full max-w-[720px] bg-card dark:bg-neutral-10 rounded-[14px] md:rounded-[14px] flex flex-col max-h-screen md:max-h-[90vh]"
       ariaLabel="플랜 변경"
     >
-      <div className="relative">
+      <div className="relative flex flex-col h-full md:h-auto overflow-hidden">
         <button
           onClick={onClose}
-          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center z-10"
+          className="cursor-pointer absolute top-4 right-4 md:top-6 md:right-6 w-6 h-6 flex items-center justify-center z-10"
           aria-label="close plan modal"
         >
           <svg
@@ -176,28 +176,28 @@ export default function SubscriptionPlanSelectModal({
           </svg>
         </button>
 
-        <div className="px-7 py-6">
+        <div className="px-4 py-4 md:px-7 md:py-6 overflow-y-auto flex-1">
           {/* 헤더 */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <h2 className="text-[18px] font-semibold text-foreground mb-2">
               플랜 변경
             </h2>
-            <p className="text-[13px] text-neutral-60">
+            <p className="text-[13px] text-neutral-60 dark:text-neutral-70">
               변경할 플랜과 결제 주기를 선택하세요.
             </p>
           </div>
 
           {/* 결제 주기 선택 */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <div className="text-[14px] font-medium text-foreground mb-3">결제 주기</div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedBillingCycle("monthly")}
-                className={`cursor-pointer flex-1 px-4 py-2.5 rounded-[8px] text-[14px] font-medium transition-colors ${
+                className={`cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 rounded-[8px] text-[13px] md:text-[14px] font-medium transition-colors ${
                   selectedBillingCycle === "monthly"
                     ? "bg-neutral-90 text-white dark:bg-neutral-80 dark:text-neutral-0"
-                    : "bg-neutral-20 text-neutral-70 hover:bg-neutral-30"
+                    : "bg-neutral-20 text-neutral-70 dark:text-neutral-80 hover:bg-neutral-30"
                 }`}
               >
                 월간(1개월)
@@ -205,10 +205,10 @@ export default function SubscriptionPlanSelectModal({
               <button
                 type="button"
                 onClick={() => setSelectedBillingCycle("quarterly")}
-                className={`cursor-pointer flex-1 px-4 py-2.5 rounded-[8px] text-[14px] font-medium transition-colors ${
+                className={`cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 rounded-[8px] text-[13px] md:text-[14px] font-medium transition-colors ${
                   selectedBillingCycle === "quarterly"
                     ? "bg-neutral-90 text-white dark:bg-neutral-80 dark:text-neutral-0"
-                    : "bg-neutral-20 text-neutral-70 hover:bg-neutral-30"
+                    : "bg-neutral-20 text-neutral-70 dark:text-neutral-80 hover:bg-neutral-30"
                 }`}
               >
                 분기(3개월)
@@ -217,9 +217,9 @@ export default function SubscriptionPlanSelectModal({
           </div>
 
           {/* 플랜 선택 */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <div className="text-[14px] font-medium text-foreground mb-3">플랜 선택</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {plans.map((plan) => {
                 const isSelected = selectedPlanId === plan.id;
                 const isCurrent = currentPlanId === plan.id;
@@ -232,49 +232,49 @@ export default function SubscriptionPlanSelectModal({
                     type="button"
                     disabled={isLoading}
                     onClick={() => setSelectedPlanId(plan.id)}
-                    className={`group cursor-pointer text-left border-2 rounded-[12px] px-5 py-4 transition-all ${
+                    className={`group cursor-pointer text-left border-2 rounded-[12px] px-4 py-3 md:px-5 md:py-4 transition-all ${
                       isSelected
                         ? isPro
-                          ? "border-[#00A052] bg-[#F0F9F5] outline outline-2 outline-offset-2 outline-[#00A052]"
-                          : "border-neutral-90 bg-neutral-10 outline outline-2 outline-offset-2 outline-neutral-90"
+                          ? "border-[#00A052] bg-[#F0F9F5] dark:bg-[#0A3D26] outline outline-2 outline-offset-2 outline-[#00A052]"
+                          : "border-neutral-90 dark:border-neutral-80 bg-neutral-10 dark:bg-neutral-20 outline outline-2 outline-offset-2 outline-neutral-90 dark:outline-neutral-80"
                         : isCurrent
-                        ? "border-neutral-30 bg-neutral-10 text-neutral-60"
+                        ? "border-neutral-30 dark:border-neutral-40 bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-70"
                         : isPro
-                        ? "border-neutral-20 bg-white hover:border-[#00A052] hover:shadow-[0_4px_12px_rgba(0,160,82,0.15)]"
-                        : "border-neutral-20 bg-white hover:border-neutral-40 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                        ? "border-neutral-20 dark:border-neutral-30 bg-white dark:bg-neutral-20 hover:border-[#00A052] hover:shadow-[0_4px_12px_rgba(0,160,82,0.15)]"
+                        : "border-neutral-20 dark:border-neutral-30 bg-white dark:bg-neutral-20 hover:border-neutral-40 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="text-[16px] font-semibold text-foreground">
+                      <div className="text-[15px] md:text-[16px] font-semibold text-foreground">
                         {plan.name}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
                         {isPro ? (
-                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-[#E7F7EF] text-[#00A052] font-medium">
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-[#E7F7EF] dark:bg-[#0A3D26] text-[#00A052] dark:text-[#00E272] font-medium">
                             Pro
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-neutral-20 text-neutral-70 font-medium">
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-neutral-20 text-neutral-70 dark:text-neutral-80 font-medium">
                             Basic
                           </span>
                         )}
                         {isCurrent && (
-                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-neutral-20 text-neutral-70">
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-neutral-20 text-neutral-70 dark:text-neutral-80">
                             현재
                           </span>
                         )}
                       </div>
                     </div>
                     {plan.description && (
-                      <div className="text-[12px] text-neutral-60 mb-3">
+                      <div className="text-[12px] text-neutral-60 dark:text-neutral-70 mb-2 md:mb-3">
                         {plan.description}
                       </div>
                     )}
-                    <div className="flex items-end gap-2 mb-3">
-                      <div className="text-[20px] font-bold text-foreground">
+                    <div className="flex items-end gap-2">
+                      <div className="text-[18px] md:text-[20px] font-bold text-foreground">
                         ₩ {formatAmount(price)}
                       </div>
-                      <div className="text-[11px] text-neutral-60 pb-[2px]">
+                      <div className="text-[11px] text-neutral-60 dark:text-neutral-70 pb-[2px]">
                         / {cycleLabel[selectedBillingCycle]}
                       </div>
                     </div>
@@ -286,20 +286,20 @@ export default function SubscriptionPlanSelectModal({
 
           {/* 상태 안내 */}
           {selectedPlan && changeStatus.statusMessage && (
-            <div className="mb-4 p-3 bg-neutral-10 rounded-[8px]">
-              <p className="text-[12px] text-neutral-70">
+            <div className="mb-3 md:mb-4 p-2.5 md:p-3 bg-neutral-10 rounded-[8px]">
+              <p className="text-[12px] text-neutral-70 dark:text-neutral-80">
                 {changeStatus.statusMessage}
               </p>
             </div>
           )}
 
           {/* 버튼 */}
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="cursor-pointer flex-1 px-4 py-2.5 border border-neutral-30 rounded-[8px] text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 border border-neutral-30 rounded-[8px] text-[13px] md:text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               취소
             </button>
@@ -307,7 +307,7 @@ export default function SubscriptionPlanSelectModal({
               type="button"
               onClick={handleConfirm}
               disabled={!changeStatus.canChange || isLoading || !selectedPlanId}
-              className="cursor-pointer flex-1 px-4 py-2.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[8px] text-[14px] font-medium hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+              className="cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[8px] text-[13px] md:text-[14px] font-medium hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
               title={changeStatus.disabledReason}
             >
               변경하기
@@ -316,7 +316,7 @@ export default function SubscriptionPlanSelectModal({
 
           {/* 비활성 사유 툴팁 */}
           {changeStatus.disabledReason && (
-            <div className="mt-2 text-[11px] text-neutral-60 text-center">
+            <div className="mt-2 text-[11px] text-neutral-60 dark:text-neutral-70 text-center">
               {changeStatus.disabledReason}
             </div>
           )}
