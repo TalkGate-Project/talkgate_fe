@@ -224,7 +224,7 @@ function CustomersPageContentInner() {
   if (!projectId) return null;
 
   return (
-    <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
+    <main className="md:min-h-[calc(100vh-54px)] bg-neutral-10">
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
       {/* Top panel: title + search */}
       <Panel
@@ -272,8 +272,9 @@ function CustomersPageContentInner() {
           />
         }
         headerClassName="px-4 md:px-7 py-4 md:py-6"
-        bodyClassName="px-0 md:px-7 pb-4 md:pb-4 pt-0 overflow-x-auto"
+        bodyClassName="px-0 md:px-7 pb-2 md:pb-4 pt-0 overflow-x-auto flex flex-col"
       >
+        <div className="min-h-[300px] md:min-h-[400px] flex-1">
         <CustomersTable
           customers={customers}
           loading={loading}
@@ -288,6 +289,7 @@ function CustomersPageContentInner() {
           projectId={projectId}
           onRefetch={refetch}
         />
+        </div>
         <CustomersPagination
           total={total}
           selectedCount={selectionMode === "all" ? total : selectedIds.length}

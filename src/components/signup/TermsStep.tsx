@@ -9,6 +9,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import PrivacyConsignmentModal from "@/components/signup/PrivacyConsignmentModal";
 import DataCollectionModal from "@/components/signup/DataCollectionModal";
 import MarketingConsentModal from "@/components/signup/MarketingConsentModal";
+import { LANDING_URLS } from "@/lib/constants";
 
 type TermsStepProps = {
   onComplete: () => void;
@@ -149,7 +150,7 @@ export function TermsStep({ onComplete }: TermsStepProps) {
                 onClick={() => setAgreeTerms(!agreeTerms)}
               >
                 <a
-                  href="https://talkgate.im/terms"
+                  href={LANDING_URLS.TERMS}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
@@ -171,7 +172,7 @@ export function TermsStep({ onComplete }: TermsStepProps) {
                 onClick={() => setAgreePrivacy(!agreePrivacy)}
               >
                 <a
-                  href="https://talkgate.im/privacy"
+                  href={LANDING_URLS.PRIVACY}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}

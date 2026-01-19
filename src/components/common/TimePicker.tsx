@@ -160,8 +160,11 @@ export default function TimePicker(props: TimePickerProps) {
       const r = el.getBoundingClientRect();
       const zoom = getBodyZoom();
       const panelHeight = panel?.offsetHeight || 260;
+      const panelWidth = 240; // Panel width in pixels
       const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
       const gapY = panelOffsetY;
+      const padding = 16; // Padding from viewport edge on mobile
       
       // Calculate if there's enough space below the input
       const spaceBelow = viewportHeight - r.bottom;
@@ -177,9 +180,21 @@ export default function TimePicker(props: TimePickerProps) {
         top = (r.bottom + gapY) / zoom;
       }
       
+      // Calculate left position, ensuring panel doesn't overflow viewport on mobile
+      let left = r.left / zoom + (window.scrollX || 0);
+      const isMobile = viewportWidth < 768;
+      
+      if (isMobile) {
+        // On mobile, ensure panel doesn't go outside viewport
+        const maxLeft = (viewportWidth - panelWidth - padding) / zoom;
+        if (left > maxLeft) {
+          left = Math.max(padding / zoom, maxLeft);
+        }
+      }
+      
       setPanelPos({ 
         top, 
-        left: r.left / zoom + (window.scrollX || 0)
+        left
       });
     }
     const timer = setTimeout(update, 0);

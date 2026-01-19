@@ -310,7 +310,7 @@ export default function ConsultationChannelSettings() {
 
   const handleInstagramConnect = () => {
     // Instagram OAuth URL 구성
-    const clientId = env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || "622214674056498"; // fallback for backward compatibility
+    const clientId = env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID;
 
     // 서브도메인 없이 콜백 URI 생성 (NEXT_PUBLIC_SITE_URL 사용)
     // NEXT_PUBLIC_SITE_URL이 없으면 현재 origin에서 서브도메인 제거

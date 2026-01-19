@@ -198,7 +198,7 @@ function NotificationsPageContentInner() {
                 </div>
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="md:hidden h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap"
+                  className="md:hidden h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap cursor-pointer"
                 >
                   모두 읽음
                 </button>
@@ -240,7 +240,7 @@ function NotificationsPageContentInner() {
                     <button
                       key={category}
                       onClick={() => handleCategoryChange(category)}
-                      className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border flex-shrink-0 ${
+                      className={`h-[34px] px-3 rounded-[5px] text-[14px] tracking-[-0.02em] border flex-shrink-0 cursor-pointer ${
                         isActive
                           ? "bg-notification-unread border-2 border-notification-unread font-semibold text-foreground"
                           : "border-neutral-30 font-medium text-foreground opacity-80"
@@ -253,7 +253,7 @@ function NotificationsPageContentInner() {
               </div>
               <button
                 onClick={handleMarkAllAsRead}
-                className="hidden md:block h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap"
+                className="hidden md:block h-[34px] px-3 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[14px] font-semibold flex-shrink-0 whitespace-nowrap cursor-pointer"
               >
                 모두 읽음 처리
               </button>

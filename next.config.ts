@@ -19,12 +19,11 @@ const nextConfig: NextConfig = {
         hostname: "talkgate-dev.s3.ap-northeast-2.amazonaws.com",
         pathname: "/**",
       },
-      // 프로덕션 환경을 위한 추가 도메인 필요시 여기에 추가
-      // {
-      //   protocol: "https",
-      //   hostname: "talkgate-prod.s3.ap-northeast-2.amazonaws.com",
-      //   pathname: "/**",
-      // },
+      {
+        protocol: "https",
+        hostname: "talkgate-prod.s3.ap-northeast-2.amazonaws.com",
+        pathname: "/**",
+      },
     ],
   },
   
@@ -38,8 +37,8 @@ const nextConfig: NextConfig = {
     // 프로덕션: landing.talkgate.im (추후 확정 시 수정)
     // 개발: landing-dev.talkgate.im 또는 localhost
     const allowedOrigin = isVercelProduction 
-      ? "https://landing.talkgate.im" 
-      : (isVercel ? "https://landing-dev.talkgate.im" : "http://localhost:3001");
+      ? "https://talkgate.im" 
+      : (isVercel ? "https://talkgate.im" : "http://localhost:3001");
     
     return [
       {

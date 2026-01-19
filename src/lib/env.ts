@@ -75,14 +75,13 @@ function getWebSocketUrl(baseUrl: string, namespace: string): string {
 }
 
 // Read API base URL first
-// NOTE: Temporary override to force DEV backend for all environments.
-// This prevents the MVP (deployed on Vercel) from pointing at the production API.
-// TODO: Re-enable environment-based selection below and remove the hard-coded URL.
-//   const apiBaseUrl = readString(
-//     "NEXT_PUBLIC_API_BASE_URL",
-//     process.env.NODE_ENV === "production" ? "https://api.talkgate.im" : "https://api-dev.talkgate.im"
-//   );
-const apiBaseUrl = "https://api-dev.talkgate.im";
+// 정적으로 환경 변수 읽기 (Next.js가 빌드 시점에 인라인)
+// 환경 변수가 없으면 환경에 따라 fallback 사용
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
+  process.env.NODE_ENV === "production" 
+    ? "https://api.talkgate.im" 
+    : "https://api-dev.talkgate.im"
+);
 
 // Next.js는 NEXT_PUBLIC_ 환경 변수를 빌드 시점에 인라인합니다.
 // 중요: 동적 접근 (process.env[key])은 인라인되지 않으므로, 정적으로 접근해야 합니다.

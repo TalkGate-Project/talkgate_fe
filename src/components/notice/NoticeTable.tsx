@@ -47,7 +47,7 @@ export default function NoticeTable({
   };
 
   return (
-    <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 pt-4 md:pt-[30px] pb-6 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 pt-4 md:pt-[30px] pb-4 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none h-full md:h-auto flex flex-col">
       {/* Title & Filter */}
       <div className="hidden md:flex items-center justify-between mb-7">
         <h2 className="text-[18px] font-semibold text-neutral-90">
@@ -94,7 +94,7 @@ export default function NoticeTable({
       </div>
 
       {/* 테이블 헤더 */}
-      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-5 md:px-6 mb-0">
+      <div className="bg-neutral-20 rounded-[8px] h-[40px] flex items-center px-5 md:px-6 mb-0 flex-shrink-0">
         <div className="hidden md:block w-[90px] text-[13px] md:text-[16px] text-center">
           　
         </div>
@@ -108,7 +108,7 @@ export default function NoticeTable({
       </div>
 
       {/* 테이블 본문 */}
-      <div className="mt-0">
+      <div className="mt-0 flex-1 overflow-y-auto md:overflow-visible">
         {loading ? (
           <div className="overflow-hidden">
             <table className="w-full border-collapse">
@@ -155,14 +155,14 @@ export default function NoticeTable({
                     </div>
                   )}
                   {/* 제목 */}
-                  <span className="text-[14px] font-medium text-foreground opacity-80 truncate">
+                  <span className="text-[14px] leading-[18px] font-medium text-foreground opacity-80 truncate">
                     {notice.title}
                   </span>
                 </div>
 
                 {/* 작성자 */}
                 <div className="w-[80px] md:w-[210px] text-[14px] font-medium text-foreground opacity-80 text-left leading-[1] flex-shrink-0">
-                  <span className="truncate block">{notice.authorName}</span>
+                  <span className="truncate block leading-[18px]">{notice.authorName}</span>
                 </div>
 
                 {/* 작성일 */}
@@ -182,10 +182,10 @@ export default function NoticeTable({
       </div>
 
       {/* 구분선 */}
-      <div className="border-t border-border opacity-50 my-4" />
+      <div className="border-t border-border opacity-50 my-2 md:my-4 flex-shrink-0" />
 
       {/* Pagination */}
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-shrink-0">
         <Pagination
           page={currentPage}
           totalPages={totalPages}

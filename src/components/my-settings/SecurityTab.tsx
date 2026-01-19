@@ -250,7 +250,7 @@ export default function SecurityTab() {
           {/* Divider */}
           <div className="w-full h-[1px] bg-border my-3 hidden md:block"></div>
 
-          <div className="flex items-center justify-between h-full md:h-auto py-0 md:py-3 pl-2 md:pl-6 pr-2 md:pr-4 gap-3">
+          <div className="flex items-center justify-between h-full md:h-auto py-0 md:py-3 pl-2 md:pl-6 pr-0 gap-3">
             <div className="flex-1 min-w-0">
               <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
                 2단계 인증 (2FA)
@@ -296,7 +296,7 @@ export default function SecurityTab() {
           {/* Divider */}
           <div className="w-full h-[1px] bg-border mb-3 hidden md:block"></div>
 
-          <div className="flex items-center justify-between h-full md:h-auto pt-0 md:pt-2 px-2 md:px-6 gap-3">
+          <div className="flex items-center justify-between h-full md:h-auto pt-0 md:pt-2 pl-2 md:pl-6 gap-3">
             <div className="text-[14px] md:text-[16px] font-semibold text-foreground flex-1 min-w-0">
               비밀번호 변경
             </div>

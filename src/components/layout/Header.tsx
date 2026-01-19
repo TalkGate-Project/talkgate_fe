@@ -14,6 +14,7 @@ import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
 import { useChatContextSafe } from "@/providers/ChatProvider";
 import MobileDrawer from "./MobileDrawer";
+import { DOCUMENTATION_URL } from "@/lib/constants";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -179,7 +180,7 @@ export default function Header() {
           <div className="ml-auto flex items-center gap-4">
             <button
               className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-              onClick={() => window.open("https://talkgate.gitbook.io/talkgate", "_blank")}
+              onClick={() => window.open(DOCUMENTATION_URL, "_blank")}
             >
               <svg
                 width="27"
