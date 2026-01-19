@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
@@ -9,7 +10,7 @@ import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 export function useStatusManagement(
   projectId: string | null,
   statuses: CustomerNoteCategory[],
-  setStatuses: (statuses: CustomerNoteCategory[]) => void
+  setStatuses: Dispatch<SetStateAction<CustomerNoteCategory[]>>
 ) {
   const [newStatusName, setNewStatusName] = useState("");
 
