@@ -16,6 +16,7 @@ import CustomerLinkCreateModal from "./customer-link/CustomerLinkCreateModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import Image from "next/image";
 
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
@@ -612,81 +613,7 @@ export default function ChatView({ projectId }: Props) {
             className="fixed bottom-[94px] right-4 md:right-8 z-[80] cursor-pointer flex flex-col items-center gap-1"
             onClick={() => setIsAiSidebarOpen(true)}
           >
-            <svg
-              width="68"
-              height="68"
-              viewBox="0 0 68 79"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-[68px] h-[68px]"
-            >
-              <g filter="url(#filter0_d_190_1531)">
-                <circle
-                  cx="34"
-                  cy="31"
-                  r="30"
-                  fill="url(#paint0_linear_190_1531)"
-                />
-                <path
-                  d="M27.3333 31H27.35M34 31H34.0167M40.6667 31H40.6833M49 31C49 38.3638 42.2843 44.3334 34 44.3334C31.4346 44.3334 29.0195 43.7609 26.9078 42.7518L19 44.3334L21.325 38.1334C19.8526 36.0706 19 33.6238 19 31C19 23.6362 25.7157 17.6667 34 17.6667C42.2843 17.6667 49 23.6362 49 31Z"
-                  stroke="white"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </g>
-              <path
-                d="M8.14062 76H6.76953L9.81641 67.5156H11.3047L14.3633 76H12.9922L12.2188 73.7617H8.91406L8.14062 76ZM9.28906 72.6836H11.8438L10.5898 69.0625H10.5312L9.28906 72.6836ZM16.7305 67.5156V76H15.4414V67.5156H16.7305ZM24.5234 68.1719C24.5234 69.5547 25.4844 70.832 27.0547 71.3477L26.457 72.2266C25.3086 71.8223 24.4473 71.002 23.9961 69.9648C23.5332 71.1426 22.6426 72.0625 21.418 72.5195L20.8203 71.6289C22.4609 71.043 23.4102 69.6484 23.4219 68.0781V67.0469H24.5234V68.1719ZM29.1523 66.4961V69.1328H30.6758V70.0703H29.1523V72.8359H28.0391V66.4961H29.1523ZM25.7656 73.082C27.9219 73.082 29.2461 73.7969 29.2461 75.0273C29.2461 76.2695 27.9219 76.9844 25.7656 76.9727C23.5859 76.9844 22.2383 76.2695 22.2383 75.0273C22.2383 73.7969 23.5859 73.082 25.7656 73.082ZM25.7656 73.9609C24.2422 73.9609 23.3398 74.3594 23.3516 75.0273C23.3398 75.7188 24.2422 76.0938 25.7656 76.1055C27.2773 76.0938 28.1562 75.7188 28.1562 75.0273C28.1562 74.3594 27.2773 73.9609 25.7656 73.9609ZM39.5234 66.4961V68.9922H41.0469V69.918H39.5234V72.4258H38.4102V66.4961H39.5234ZM36.4062 67.1875V68.0898H32.8438V70.9844C34.8887 70.9785 36.043 70.9023 37.3555 70.6445L37.4844 71.5352C36.0664 71.8398 34.8242 71.8867 32.5742 71.8867H31.7422V67.1875H36.4062ZM39.5234 72.9414V76.8555H32.8203V72.9414H39.5234ZM33.9102 73.832V75.9648H38.4219V73.832H33.9102ZM49.8242 66.4961V70.75H51.5117V71.6758H49.8242V76.9961H48.7227V66.4961H49.8242ZM47.8086 68.1367V69.0508H41.5859V68.1367H44.1758V66.6367H45.2891V68.1367H47.8086ZM44.7383 69.8242C46.2383 69.8242 47.3398 70.832 47.3516 72.2617C47.3398 73.7031 46.2383 74.6992 44.7383 74.7109C43.2266 74.6992 42.125 73.7031 42.125 72.2617C42.125 70.832 43.2266 69.8242 44.7383 69.8242ZM44.7383 70.7383C43.8477 70.7383 43.1797 71.3594 43.1914 72.2617C43.1797 73.1758 43.8477 73.7852 44.7383 73.7734C45.6289 73.7852 46.2852 73.1758 46.2852 72.2617C46.2852 71.3594 45.6289 70.7383 44.7383 70.7383ZM60.7461 66.4961V76.9961H59.6211V66.4961H60.7461ZM57.6172 67.6211C57.6172 70.6914 56.3047 73.3633 52.707 75.0859L52.1211 74.1836C54.916 72.8535 56.2754 70.9609 56.4922 68.5117H52.625V67.6211H57.6172Z"
-                fill="#595959"
-              />
-              <defs>
-                <filter
-                  id="filter0_d_190_1531"
-                  x="0"
-                  y="0"
-                  width="68"
-                  height="68"
-                  filterUnits="userSpaceOnUse"
-                  colorInterpolationFilters="sRGB"
-                >
-                  <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                  <feColorMatrix
-                    in="SourceAlpha"
-                    type="matrix"
-                    values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-                    result="hardAlpha"
-                  />
-                  <feOffset dy="3" />
-                  <feGaussianBlur stdDeviation="2" />
-                  <feColorMatrix
-                    type="matrix"
-                    values="0 0 0 0 0.0352941 0 0 0 0 0.117647 0 0 0 0 0.258824 0 0 0 0.1 0"
-                  />
-                  <feBlend
-                    mode="normal"
-                    in2="BackgroundImageFix"
-                    result="effect1_dropShadow_190_1531"
-                  />
-                  <feBlend
-                    mode="normal"
-                    in="SourceGraphic"
-                    in2="effect1_dropShadow_190_1531"
-                    result="shape"
-                  />
-                </filter>
-                <linearGradient
-                  id="paint0_linear_190_1531"
-                  x1="-25.0503"
-                  y1="30.0503"
-                  x2="33.0503"
-                  y2="88.1509"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#A1FF8B" />
-                  <stop offset="1" stopColor="#3F93FF" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <Image src="chat-floating.svg" alt="open-ai-assistant" width={60} height={78} />
           </button>
 
           {/* 플로팅 AI 상담 도우미 패널 */}
