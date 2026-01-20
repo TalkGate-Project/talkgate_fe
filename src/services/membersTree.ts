@@ -19,6 +19,13 @@ export const MembersTreeService = {
     return res.data.data.rootMembers ?? [];
   },
 
+  async fetchRootWithoutParent(projectId: string | number): Promise<MemberTreeNode[]> {
+    const res = await apiClient.get<MemberTreeResponse>("/v1/members-tree/tree/without-parent", {
+      headers: { "x-project-id": String(projectId) },
+    });
+    return res.data.data.rootMembers ?? [];
+  },
+
   async fetchSubtree(memberId: number | string, projectId: string | number): Promise<MemberTreeNode> {
     const res = await apiClient.get<MemberSubtreeResponse>(`/v1/members-tree/${memberId}/subtree`, {
       headers: { "x-project-id": String(projectId) },
