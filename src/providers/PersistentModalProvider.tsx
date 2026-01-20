@@ -164,7 +164,7 @@ export default function PersistentModalProvider({
               shake ? "animate-shake" : ""
             }`}
           >
-            <div className="px-4 md:px-8 pt-7 pb-6">
+            <div className="px-4 md:px-8 pt-7 pb-10">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
                   {state.title}
@@ -239,7 +239,7 @@ export default function PersistentModalProvider({
               )}
               {state.headline && (
                 <p
-                  className={`${state.hideIcon ? "mt-0" : "mt-6"} text-center text-[18px] font-semibold leading-[21px] ${
+                  className={`${state.hideIcon ? "mt-8" : "mt-6"} text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "system" || state.type === "talkgate"
                       ? "text-neutral-100 dark:text-neutral-100"
                       : "text-secondary-80 dark:text-secondary-20"
@@ -254,7 +254,7 @@ export default function PersistentModalProvider({
               )}
               {state.description && (
                 <p
-                  className={`mt-4 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] ${
+                  className={`mt-6 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] ${
                     state.type === "system" || state.type === "talkgate"
                       ? "text-neutral-100 dark:text-neutral-100"
                       : "text-neutral-90 dark:text-neutral-80"
@@ -283,7 +283,7 @@ export default function PersistentModalProvider({
                 type="button"
                 className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
                   state.type === "system" || state.type === "talkgate"
-                    ? "bg-neutral-100 text-white dark:bg-white dark:text-neutral-100"
+                    ? "bg-neutral-100 text-white dark:bg-white dark:text-neutral-0"
                     : "bg-secondary-80 dark:bg-secondary-20 text-white"
                 }`}
                 onClick={handleConfirm}

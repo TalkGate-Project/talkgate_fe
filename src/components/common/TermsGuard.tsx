@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useMe } from "@/hooks/useMe";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * 약관 미동의 사용자를 감지하고 persistent 모달을 통해 /social-signup으로 리디렉션하는 가드 컴포넌트
@@ -23,9 +24,25 @@ import { usePersistentModal } from "@/providers/PersistentModalProvider";
 export default function TermsGuard() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading } = useMe();
+  const { user, loading, refetch } = useMe();
   const persistentModal = usePersistentModal();
+  const queryClient = useQueryClient();
   const hasShownModalRef = useRef(false);
+  const previousPathnameRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    // pathname이 변경되었을 때 (약관 동의 완료 후 페이지 이동 등) 캐시 무효화 및 refetch
+    if (previousPathnameRef.current !== null && previousPathnameRef.current !== pathname) {
+      // /social-signup에서 다른 페이지로 이동한 경우 (약관 동의 완료 가능성)
+      if (previousPathnameRef.current === "/social-signup" && pathname !== "/social-signup") {
+        console.log("[TermsGuard] 약관 동의 페이지에서 이동 감지, 사용자 정보 refetch");
+        queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+        refetch();
+        hasShownModalRef.current = false; // 모달 표시 플래그 리셋
+      }
+    }
+    previousPathnameRef.current = pathname;
+  }, [pathname, queryClient, refetch]);
 
   useEffect(() => {
     // 로딩 중이면 체크하지 않음

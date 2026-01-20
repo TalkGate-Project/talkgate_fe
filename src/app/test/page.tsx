@@ -8,10 +8,12 @@ import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { usePersistentModal } from "@/providers/PersistentModalProvider";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
 export default function TestPage() {
+  const persistentModal = usePersistentModal();
   const [loadingStates, setLoadingStates] = useState({
     button1: false,
     button2: false,
@@ -847,6 +849,138 @@ export default function TestPage() {
                     className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-400"
                   >
                     취소 버튼 없는 Info Modal
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Persistent Modal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">Persistent Modal 테스트</h2>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              {/* 약관 동의 모달 테스트 */}
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">약관 동의 필요 모달</h3>
+                <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-neutral-70 dark:text-neutral-50">
+                    <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/common/TermsGuard</code>
+                  </p>
+                  <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+                    <span className="font-semibold">실제 사용 위치:</span> 레이아웃 레벨에서 전역 적용 (<code className="bg-white dark:bg-neutral-20 px-1 rounded">app/layout.tsx</code>)
+                  </p>
+                  <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+                    💡 약관 미동의 사용자가 인증된 페이지에 접근할 때 자동으로 표시됩니다.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      persistentModal.show({
+                        type: "system",
+                        title: "약관 동의 필요",
+                        headline: "서비스 이용을 위해 약관 동의가 필요합니다.",
+                        description: "약관 동의를 완료하시면 서비스를 이용하실 수 있습니다.",
+                        confirmText: "약관 동의하러 가기",
+                        cancelText: null,
+                        hideCancel: true,
+                        hideIcon: true,
+                        onConfirm: () => {
+                          console.log("약관 동의 페이지로 이동");
+                        },
+                      });
+                    }}
+                    className="px-4 py-2 bg-neutral-100 dark:bg-white text-white dark:text-neutral-0 rounded hover:opacity-90 transition-opacity"
+                  >
+                    약관 동의 필요 모달
+                  </button>
+                </div>
+              </div>
+
+              {/* 다른 Persistent Modal 타입 테스트 */}
+              <div className="pt-4 border-t border-neutral-30">
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">다른 Persistent Modal 타입</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      persistentModal.show({
+                        type: "default",
+                        title: "알림",
+                        headline: "기본 타입 모달",
+                        description: "이것은 기본 타입의 Persistent Modal입니다.",
+                        confirmText: "확인",
+                        cancelText: null,
+                        hideCancel: true,
+                        onConfirm: () => {
+                          console.log("기본 모달 확인");
+                        },
+                      });
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Default 타입
+                  </button>
+                  <button
+                    onClick={() => {
+                      persistentModal.show({
+                        type: "system",
+                        title: "시스템 알림",
+                        headline: "시스템 타입 모달",
+                        description: "이것은 시스템 타입의 Persistent Modal입니다.",
+                        confirmText: "확인",
+                        cancelText: null,
+                        hideCancel: true,
+                        onConfirm: () => {
+                          console.log("시스템 모달 확인");
+                        },
+                      });
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    System 타입 (아이콘 포함)
+                  </button>
+                  <button
+                    onClick={() => {
+                      persistentModal.show({
+                        type: "talkgate",
+                        title: "TalkGate 알림",
+                        headline: "TalkGate 타입 모달",
+                        description: "이것은 TalkGate 타입의 Persistent Modal입니다.",
+                        confirmText: "확인",
+                        cancelText: null,
+                        hideCancel: true,
+                        onConfirm: () => {
+                          console.log("TalkGate 모달 확인");
+                        },
+                      });
+                    }}
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    TalkGate 타입 (아이콘 포함)
+                  </button>
+                  <button
+                    onClick={() => {
+                      persistentModal.show({
+                        type: "system",
+                        title: "확인 필요",
+                        headline: "취소 버튼이 있는 모달",
+                        description: "이 모달은 확인과 취소 버튼을 모두 가지고 있습니다.",
+                        confirmText: "확인",
+                        cancelText: "취소",
+                        hideCancel: false,
+                        onConfirm: () => {
+                          console.log("확인 클릭");
+                        },
+                        onCancel: () => {
+                          console.log("취소 클릭");
+                        },
+                      });
+                    }}
+                    className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                  >
+                    취소 버튼 포함
                   </button>
                 </div>
               </div>

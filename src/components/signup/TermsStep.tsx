@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { useQueryClient } from "@tanstack/react-query";
 import Checkbox from "@/components/common/Checkbox";
 import { AuthService } from "@/services/auth";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -16,6 +17,7 @@ type TermsStepProps = {
 };
 
 export function TermsStep({ onComplete }: TermsStepProps) {
+  const queryClient = useQueryClient();
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeDataProcessing, setAgreeDataProcessing] = useState(false);
@@ -43,6 +45,9 @@ export function TermsStep({ onComplete }: TermsStepProps) {
         isAllowMarketing: agreeMarketing,
       });
       console.log("[TermsStep] ✅ 약관 동의 완료");
+      
+      // 사용자 정보 캐시 무효화하여 최신 정보 가져오기
+      await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
       
       // 마케팅 정보 수신 동의 여부에 따라 알림 모달 표시
       const currentDate = format(new Date(), "yyyy년 MM월 dd일", { locale: ko });
