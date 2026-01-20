@@ -92,17 +92,22 @@ function extractSubdomain(host: string): string | null {
 
 /**
  * 현재 환경에 맞는 메인 도메인을 반환합니다.
+ * NEXT_PUBLIC_SITE_URL 환경변수에서 추출하며, 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백합니다.
+ * host 기반 판단은 제거되어 의도치 않은 프로덕션 도메인으로의 리다이렉트를 방지합니다.
  */
-function getMainDomain(host: string): string {
-  if (host.includes("localhost") || host.includes("127.0.0.1")) {
-    return host.replace(/^[^.]+\./, "");
-  }
+function getMainDomain(_host: string): string {
+  // NEXT_PUBLIC_SITE_URL에서 메인 도메인 추출 (host 기반 판단 제거)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) return "app-dev.talkgate.im";
   
-  if (host.includes("app.talkgate.im") && !host.includes("app-dev")) {
-    return "app.talkgate.im";
+  try {
+    const url = new URL(siteUrl);
+    const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
+    return `${url.hostname}${port}`;
+  } catch {
+    // URL 파싱 실패 시 문자열에서 프로토콜만 제거
+    return siteUrl.replace(/^https?:\/\//, "").split("/")[0];
   }
-  
-  return "app-dev.talkgate.im";
 }
 
 /**
@@ -114,12 +119,8 @@ async function fetchProjectBySubdomain(
   host: string
 ): Promise<{ id: number; useAttendanceMenu?: boolean } | null> {
   try {
-    // 환경 변수를 우선 사용, 없으면 host 기반으로 fallback
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
-      host.includes("app.talkgate.im") && !host.includes("app-dev")
-        ? "https://api.talkgate.im"
-        : "https://api-dev.talkgate.im"
-    );
+    // 환경 변수를 우선 사용, 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
     
     const response = await fetch(`${apiBaseUrl}/v1/projects/${subdomain}`, {
       method: "GET",
