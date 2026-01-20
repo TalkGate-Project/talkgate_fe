@@ -204,14 +204,18 @@ export class ApiClient {
       // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
       if (!isPublicRoute(pathname)) {
         // 메인 도메인 계산
-        const host = window.location.host;
-        const hostWithoutPort = host.split(':')[0];
-        let mainDomain = host;
-        if (hostWithoutPort.includes('.talkgate.im')) {
-          if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-            mainDomain = 'app.talkgate.im';
-          } else {
-            mainDomain = 'app-dev.talkgate.im';
+        // NEXT_PUBLIC_SITE_URL에서 추출 (host 기반 판단 제거)
+        // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        let mainDomain = "app-dev.talkgate.im";
+        if (siteUrl) {
+          try {
+            const url = new URL(siteUrl);
+            const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
+            mainDomain = `${url.hostname}${port}`;
+          } catch {
+            // URL 파싱 실패 시 문자열에서 프로토콜만 제거
+            mainDomain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
           }
         }
         const protocol = window.location.protocol;

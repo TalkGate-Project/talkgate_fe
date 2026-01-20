@@ -26,12 +26,14 @@ export type AppEnv = {
   NEXT_PUBLIC_INSTAGRAM_CLIENT_ID?: string;
   /**
    * 사이트 기본 URL (서브도메인 제외)
-   * Instagram OAuth 콜백 URI 생성에 사용
+   * Instagram OAuth 콜백 URI 생성 및 메인 도메인 추출에 사용
    * 
    * 예시:
    * - 프로덕션: https://app.talkgate.im
    * - 개발: https://app-dev.talkgate.im
    * - 로컬: http://localhost:3000
+   * 
+   * 환경변수를 참조하지 못한 경우 기본값은 app-dev.talkgate.im입니다.
    */
   NEXT_PUBLIC_SITE_URL?: string;
 };
@@ -74,14 +76,31 @@ function getWebSocketUrl(baseUrl: string, namespace: string): string {
   return `${protocol}${baseUrl}/${namespace}`;
 }
 
+/**
+ * NEXT_PUBLIC_SITE_URL에서 메인 도메인을 추출합니다.
+ * 프로토콜(http://, https://)과 포트를 제거하여 도메인만 반환합니다.
+ * 
+ * @param siteUrl NEXT_PUBLIC_SITE_URL 값 (예: "https://app.talkgate.im")
+ * @returns 메인 도메인 (예: "app.talkgate.im")
+ */
+function extractMainDomainFromSiteUrl(siteUrl: string | undefined): string {
+  if (!siteUrl) return "app-dev.talkgate.im";
+  
+  try {
+    const url = new URL(siteUrl);
+    // 포트가 기본 포트(80, 443)가 아니면 포함
+    const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
+    return `${url.hostname}${port}`;
+  } catch {
+    // URL 파싱 실패 시 문자열에서 프로토콜만 제거
+    return siteUrl.replace(/^https?:\/\//, "").split("/")[0];
+  }
+}
+
 // Read API base URL first
 // 정적으로 환경 변수 읽기 (Next.js가 빌드 시점에 인라인)
-// 환경 변수가 없으면 환경에 따라 fallback 사용
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
-  process.env.NODE_ENV === "production" 
-    ? "https://api.talkgate.im" 
-    : "https://api-dev.talkgate.im"
-);
+// 환경 변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
 
 // Next.js는 NEXT_PUBLIC_ 환경 변수를 빌드 시점에 인라인합니다.
 // 중요: 동적 접근 (process.env[key])은 인라인되지 않으므로, 정적으로 접근해야 합니다.
@@ -92,6 +111,9 @@ const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
 const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
 const instagramClientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || undefined;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || undefined;
+// NEXT_PUBLIC_SITE_URL에서 메인 도메인 추출
+// 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
+const mainDomain = extractMainDomainFromSiteUrl(siteUrl);
 
 export const env: AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
@@ -108,5 +130,13 @@ export const env: AppEnv = {
   NEXT_PUBLIC_INSTAGRAM_CLIENT_ID: instagramClientId,
   NEXT_PUBLIC_SITE_URL: siteUrl,
 };
+
+/**
+ * NEXT_PUBLIC_SITE_URL에서 추출한 메인 도메인을 반환합니다.
+ * 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백합니다.
+ */
+export function getMainDomain(): string {
+  return mainDomain;
+}
 
 

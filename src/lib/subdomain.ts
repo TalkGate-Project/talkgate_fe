@@ -33,36 +33,23 @@ export function isDevelopment(): boolean {
 }
 
 /**
- * 현재 호스트에서 메인 도메인을 추출합니다.
- * 예: app-dev.talkgate.im → app-dev.talkgate.im
- *     project-123.app-dev.talkgate.im → app-dev.talkgate.im
- *     localhost:3000 → localhost:3000
+ * 현재 환경에 맞는 메인 도메인을 반환합니다.
+ * NEXT_PUBLIC_SITE_URL 환경변수에서 추출하며, 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백합니다.
+ * host 기반 판단은 제거되어 의도치 않은 프로덕션 도메인으로의 리다이렉트를 방지합니다.
  */
 export function getMainDomain(): string {
-  if (typeof window === "undefined") {
-    return "";
+  // NEXT_PUBLIC_SITE_URL에서 메인 도메인 추출 (host 기반 판단 제거)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) return "app-dev.talkgate.im";
+  
+  try {
+    const url = new URL(siteUrl);
+    const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
+    return `${url.hostname}${port}`;
+  } catch {
+    // URL 파싱 실패 시 문자열에서 프로토콜만 제거
+    return siteUrl.replace(/^https?:\/\//, "").split("/")[0];
   }
-
-  const host = window.location.host;
-  const hostWithoutPort = host.split(":")[0];
-
-  // localhost 환경
-  if (hostWithoutPort.includes("localhost") || hostWithoutPort.includes("127.0.0.1")) {
-    return host; // 포트 포함하여 반환
-  }
-
-  // 프로덕션 환경 (app.talkgate.im)
-  if (hostWithoutPort.includes("app.talkgate.im") && !hostWithoutPort.includes("app-dev")) {
-    return "app.talkgate.im";
-  }
-
-  // 개발 환경 (app-dev.talkgate.im)
-  if (hostWithoutPort.includes("app-dev") || hostWithoutPort.includes("talkgate.im")) {
-    return "app-dev.talkgate.im";
-  }
-
-  // 기본값 (Vercel preview 등)
-  return hostWithoutPort;
 }
 
 /**

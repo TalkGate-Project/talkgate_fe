@@ -16,17 +16,21 @@ export async function GET(request: NextRequest) {
   // 리다이렉트 URL 결정
   const redirectParam = request.nextUrl.searchParams.get('redirect');
   const host = request.headers.get('host') || 'localhost:3000';
-  const hostWithoutPort = host.split(':')[0];
   const protocol = request.nextUrl.protocol || 'https:';
   
-  let mainDomain = host;
-  
   // 메인 도메인 계산
-  if (hostWithoutPort.includes('.talkgate.im')) {
-    if (hostWithoutPort.includes('app.talkgate.im') && !hostWithoutPort.includes('app-dev')) {
-      mainDomain = 'app.talkgate.im';
-    } else {
-      mainDomain = 'app-dev.talkgate.im';
+  // NEXT_PUBLIC_SITE_URL에서 추출 (host 기반 판단 제거)
+  // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  let mainDomain = "app-dev.talkgate.im";
+  if (siteUrl) {
+    try {
+      const url = new URL(siteUrl);
+      const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
+      mainDomain = `${url.hostname}${port}`;
+    } catch {
+      // URL 파싱 실패 시 문자열에서 프로토콜만 제거
+      mainDomain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
     }
   }
   
