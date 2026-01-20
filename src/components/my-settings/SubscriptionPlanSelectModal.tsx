@@ -284,11 +284,11 @@ export default function SubscriptionPlanSelectModal({
             </div>
           </div>
 
-          {/* 상태 안내 */}
-          {selectedPlan && changeStatus.statusMessage && (
-            <div className="mb-3 md:mb-4 p-2.5 md:p-3 bg-neutral-10 rounded-[8px]">
-              <p className="text-[12px] text-neutral-70 dark:text-neutral-80">
-                {changeStatus.statusMessage}
+          {/* 상태 안내 - 모든 메시지를 동일한 위치와 UI로 표시 */}
+          {selectedPlan && (changeStatus.statusMessage || changeStatus.disabledReason) && (
+            <div className="mb-3 md:mb-4 p-2.5 md:p-3 bg-neutral-10 dark:bg-neutral-20 border border-neutral-20 dark:border-neutral-30 rounded-[8px]">
+              <p className="text-[12px] text-neutral-70 dark:text-neutral-60">
+                {changeStatus.statusMessage || changeStatus.disabledReason}
               </p>
             </div>
           )}
@@ -307,19 +307,11 @@ export default function SubscriptionPlanSelectModal({
               type="button"
               onClick={handleConfirm}
               disabled={!changeStatus.canChange || isLoading || !selectedPlanId}
-              className="cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[8px] text-[13px] md:text-[14px] font-medium hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
-              title={changeStatus.disabledReason}
+              className="cursor-pointer flex-1 px-3 md:px-4 py-2 md:py-2.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[8px] text-[13px] md:text-[14px] font-medium hover:bg-neutral-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               변경하기
             </button>
           </div>
-
-          {/* 비활성 사유 툴팁 */}
-          {changeStatus.disabledReason && (
-            <div className="mt-2 text-[11px] text-neutral-60 dark:text-neutral-70 text-center">
-              {changeStatus.disabledReason}
-            </div>
-          )}
         </div>
       </div>
     </BaseModal>

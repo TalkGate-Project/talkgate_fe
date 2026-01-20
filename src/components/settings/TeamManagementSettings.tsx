@@ -16,7 +16,7 @@ import TeamManagementError from "./teamManagement/TeamManagementError";
 import { TeamMember } from "@/types/teams";
 import { getSelectedProjectId } from "@/lib/project";
 import {
-  useMembersTree,
+  useMembersTreeWithoutParent,
   useTeams,
   useMoveTeamMutation,
   useRemoveParentMutation,
@@ -46,7 +46,7 @@ export default function TeamManagementSettings() {
     setProjectId(selected);
   }, [router]);
 
-  const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTree(projectId);
+  const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
   const { data: teamsData } = useTeams(projectId);
   const moveMutation = useMoveTeamMutation(projectId);
   const removeParentMutation = useRemoveParentMutation(projectId);

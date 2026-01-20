@@ -20,7 +20,7 @@ import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
 import { MembersTreeService } from "@/services/membersTree";
-import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
+import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
 
 function CustomersPageContentInner() {
@@ -78,8 +78,8 @@ function CustomersPageContentInner() {
   const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
-  // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환)
-  const { data: treeData } = useMembersTree(projectId);
+  // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환, 직속 상위 멤버 제외)
+  const { data: treeData } = useMembersTreeWithoutParent(projectId);
   const { data: allTeamsData } = useTeams(projectId);
 
   // 트리에서 모든 멤버를 직렬화하는 함수

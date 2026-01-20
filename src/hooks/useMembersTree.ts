@@ -5,12 +5,21 @@ import { MembersTreeService } from "@/services/membersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 
 const treeQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "tree", projectId];
+const treeWithoutParentQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "tree", "without-parent", projectId];
 const teamsQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "teams", projectId];
 
 export function useMembersTree(projectId?: string | number | null) {
   return useQuery<MemberTreeNode[]>({
     queryKey: treeQueryKey(projectId ?? null),
     queryFn: () => MembersTreeService.fetchRoot(projectId as string | number),
+    enabled: Boolean(projectId),
+  });
+}
+
+export function useMembersTreeWithoutParent(projectId?: string | number | null) {
+  return useQuery<MemberTreeNode[]>({
+    queryKey: treeWithoutParentQueryKey(projectId ?? null),
+    queryFn: () => MembersTreeService.fetchRootWithoutParent(projectId as string | number),
     enabled: Boolean(projectId),
   });
 }
@@ -32,6 +41,7 @@ export function useMoveTeamMutation(projectId?: string | number | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId ?? null) });
       queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
     },
   });
@@ -46,6 +56,7 @@ export function useCreateTeamMutation(projectId?: string | number | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId ?? null) });
       queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
     },
   });
@@ -60,6 +71,7 @@ export function useDeleteTeamMutation(projectId?: string | number | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId ?? null) });
       queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
     },
   });
@@ -74,6 +86,7 @@ export function useUpdateTeamMutation(projectId?: string | number | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId ?? null) });
       queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
     },
   });
@@ -88,6 +101,7 @@ export function useRemoveParentMutation(projectId?: string | number | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: treeQueryKey(projectId ?? null) });
+      queryClient.invalidateQueries({ queryKey: treeWithoutParentQueryKey(projectId ?? null) });
       queryClient.invalidateQueries({ queryKey: teamsQueryKey(projectId ?? null) });
     },
   });

@@ -223,8 +223,12 @@ export default function ProfileSettings() {
     const hasChildren = node.descendants && node.descendants.length > 0;
     const isExpanded = expandedNodes.has(node.id);
     const isLeader = node.role === "leader";
-    const indent = level * 16;
-    const connectorLeft = (level - 1) * 16;
+    
+    // ProfileSettings 전용 간격 설정 (더 좁게)
+    const indentPerLevel = 24; // 기존 50px에서 24px로 줄임
+    const indent = level * indentPerLevel;
+    const connectorLeft = (level - 1) * indentPerLevel;
+    const horizontalWidth = 24; // 가로 연결선 너비
 
     const containerBaseClass = `flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 md:!ml-[var(--desktop-indent)] ${
       isLeader
@@ -243,7 +247,7 @@ export default function ProfileSettings() {
               className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
               style={{
                 left: `${connectorLeft}px`,
-                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
+                "--desktop-connector-left": `${connectorLeft}px`,
                 top:
                   index === 0
                     ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset
@@ -254,10 +258,10 @@ export default function ProfileSettings() {
               className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
               style={{
                 left: `${connectorLeft}px`,
-                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
-                "--desktop-horizontal-width": `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
+                "--desktop-connector-left": `${connectorLeft}px`,
+                "--desktop-horizontal-width": `${horizontalWidth}px`,
                 top: HIERARCHY_LIST_TOKENS.connector.horizontalTop,
-                width: "16px",
+                width: `${horizontalWidth}px`,
               } as React.CSSProperties}
             />
           </>
@@ -266,7 +270,7 @@ export default function ProfileSettings() {
           className={containerBaseClass}
           style={{
             marginLeft: `${indent}px`,
-            "--desktop-indent": `${getIndent(level)}px`,
+            "--desktop-indent": `${indent}px`,
           } as React.CSSProperties}
         >
           <div className="flex items-center gap-[16px]">
