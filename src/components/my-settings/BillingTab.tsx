@@ -108,7 +108,10 @@ export default function BillingTab() {
   });
 
   // 결제 수단 정보 가져오기
-  const { activeBillingInfo, loading: billingLoading } = useBilling();
+  const { activeBillingInfo, billingInfos, loading: billingLoading } = useBilling();
+  
+  // 등록 모드인지 확인 (billingInfos가 비어있거나 null인 경우)
+  const isRegisterMode = !billingInfos || billingInfos.length === 0;
 
   const projectsWithSubscription: ProjectWithSubscription[] = (
     adminProjects || []
@@ -231,7 +234,7 @@ export default function BillingTab() {
                   onClick={() => setShowPaymentMethodModal(true)}
                   className="cursor-pointer px-2 md:px-3 py-1 md:py-1.5 border border-neutral-30 text-[12px] md:text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors flex-shrink-0"
                 >
-                  변경
+                  {isRegisterMode ? "등록" : "변경"}
                 </button>
               </div>
             </div>
@@ -292,44 +295,60 @@ export default function BillingTab() {
         </div>
       </div>
 
-      {/* 결제 수단 변경 모달 */}
+      {/* 결제 수단 등록/변경 모달 */}
       <ChangePaymentMethodModal
         isOpen={showPaymentMethodModal}
         onClose={() => setShowPaymentMethodModal(false)}
         isLoading={isUpdatingPayment}
+        isRegisterMode={isRegisterMode}
         onConfirm={async (data: PaymentMethodData) => {
-          if (!activeBillingInfo?.id) {
-            showErrorModal({
-              title: "오류",
-              headline: "등록된 결제 수단이 없습니다.",
-              confirmText: "확인",
-              hideCancel: true,
-            });
-            return;
-          }
-
           setIsUpdatingPayment(true);
           try {
-            await BillingService.update({
-              billingInfoId: activeBillingInfo.id,
-              cardNo: data.cardNo,
-              expYear: data.expYear,
-              expMonth: data.expMonth,
-              idNo: data.idNo,
-              cardPw: data.cardPw,
-              buyerName: data.buyerName,
-              buyerEmail: data.buyerEmail,
-              buyerTel: data.buyerTel,
-            });
+            if (isRegisterMode) {
+              // 등록 모드: /v1/billing/register 호출
+              await BillingService.register({
+                cardNo: data.cardNo,
+                expYear: data.expYear,
+                expMonth: data.expMonth,
+                idNo: data.idNo,
+                cardPw: data.cardPw,
+                buyerName: data.buyerName,
+                buyerEmail: data.buyerEmail,
+                buyerTel: data.buyerTel,
+              });
+            } else {
+              // 변경 모드: /v1/billing/update 호출
+              if (!activeBillingInfo?.id) {
+                showErrorModal({
+                  title: "오류",
+                  headline: "등록된 결제 수단이 없습니다.",
+                  confirmText: "확인",
+                  hideCancel: true,
+                });
+                return;
+              }
+
+              await BillingService.update({
+                billingInfoId: activeBillingInfo.id,
+                cardNo: data.cardNo,
+                expYear: data.expYear,
+                expMonth: data.expMonth,
+                idNo: data.idNo,
+                cardPw: data.cardPw,
+                buyerName: data.buyerName,
+                buyerEmail: data.buyerEmail,
+                buyerTel: data.buyerTel,
+              });
+            }
 
             // 캐시 무효화하여 결제 정보 새로고침
             queryClient.invalidateQueries({ queryKey: ["billing"] });
             setShowPaymentMethodModal(false);
           } catch (error) {
-            console.error("결제 수단 변경 실패:", error);
+            console.error(`결제 수단 ${isRegisterMode ? "등록" : "변경"} 실패:`, error);
             showErrorModal({
               title: "오류",
-              headline: "결제 수단 변경에 실패했습니다.",
+              headline: `결제 수단 ${isRegisterMode ? "등록" : "변경"}에 실패했습니다.`,
               description: "잠시 후 다시 시도해주세요.",
               confirmText: "확인",
               hideCancel: true,

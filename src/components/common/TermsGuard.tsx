@@ -3,17 +3,17 @@
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useMe } from "@/hooks/useMe";
-import { usePersistentModal } from "@/providers/PersistentModalProvider";
+import { showErrorModal } from "@/lib/errorModalEvents";
 import { useQueryClient } from "@tanstack/react-query";
 
 /**
- * 약관 미동의 사용자를 감지하고 persistent 모달을 통해 /social-signup으로 리디렉션하는 가드 컴포넌트
+ * 약관 미동의 사용자를 감지하고 info 타입 모달을 통해 /social-signup으로 리디렉션하는 가드 컴포넌트
  * 
  * @description
  * - 레이아웃 레벨에서 전역적으로 적용되어 모든 페이지에 자동으로 가드 적용
  * - 사용자가 회원가입은 했지만 약관 동의를 하지 않은 경우
  * - /social-signup 페이지가 아닌 다른 페이지에 접근할 때
- * - Persistent 모달을 띄워서 약관 동의 페이지로 이동시킴
+ * - ErrorFeedbackModalProvider의 info 타입 모달을 띄워서 약관 동의 페이지로 이동시킴
  * 
  * @example
  * ```tsx
@@ -25,7 +25,6 @@ export default function TermsGuard() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading, refetch } = useMe();
-  const persistentModal = usePersistentModal();
   const queryClient = useQueryClient();
   const hasShownModalRef = useRef(false);
   const previousPathnameRef = useRef<string | null>(null);
@@ -68,24 +67,24 @@ export default function TermsGuard() {
     if (hasShownModalRef.current) return;
 
     // 약관 미동의 상태이고 다른 페이지에 접근한 경우
-    console.log("[TermsGuard] 약관 미동의 사용자 감지, persistent 모달 표시");
+    console.log("[TermsGuard] 약관 미동의 사용자 감지, info 타입 모달 표시");
     hasShownModalRef.current = true;
     
-    persistentModal.show({
-      type: "system",
+    showErrorModal({
+      type: "info",
       title: "약관 동의 필요",
       headline: "서비스 이용을 위해 약관 동의가 필요합니다.",
       description: "약관 동의를 완료하시면 서비스를 이용하실 수 있습니다.",
       confirmText: "약관 동의하러 가기",
-      cancelText: null,
       hideCancel: true,
-      hideIcon: true,
+      persistent: true,
+      hideCloseButton: true,
       onConfirm: () => {
         hasShownModalRef.current = false;
         router.push("/social-signup");
       },
     });
-  }, [user, loading, pathname, router, persistentModal]);
+  }, [user, loading, pathname, router]);
 
   return null;
 }
