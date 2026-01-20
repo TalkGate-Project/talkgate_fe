@@ -24,6 +24,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [projectName, setProjectName] = useState("");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // 2단계: 서브도메인
@@ -39,6 +40,35 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     setIconFile(file);
     if (file) setIconPreview(URL.createObjectURL(file));
     else setIconPreview(null);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // relatedTarget이 현재 요소의 자식이 아닐 때만 드래그 상태 해제
+    const currentTarget = e.currentTarget;
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (!currentTarget.contains(relatedTarget)) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0] || null;
+    if (file && file.type.startsWith("image/")) {
+      setIconFile(file);
+      setIconPreview(URL.createObjectURL(file));
+    }
   }, []);
 
   // 서브도메인 형식 검증 (영문 소문자, 숫자, 하이픈만 허용, 3-30자)
@@ -261,7 +291,12 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
           {step === 1 ? (
             <div className="space-y-4 md:space-y-5">
               {/* 브랜드 아이콘 영역 */}
-              <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3 md:h-[181px]">
+              <div
+                className={`relative rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3 md:h-[181px] ${isDragging ? "border-2 border-primary-80 border-dashed" : ""}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div className="text-[14px] font-medium text-foreground mb-2">브랜드 아이콘</div>
                 {/* 드롭존 */}
                 <div className="mt-2 flex items-center justify-center">
@@ -315,6 +350,19 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                   (최대 5MB) · 정사각형 이미지 권장
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={onFileChange} />
+                {/* 드래그 중 오버레이 */}
+                {isDragging && (
+                  <div className="absolute inset-0 bg-primary-80/10 dark:bg-primary-80/20 rounded-[5px] flex items-center justify-center z-10">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-primary-80 flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M17 8L12 3M12 3L7 8M12 3V15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="text-[16px] font-semibold text-primary-80">여기에 드롭하세요</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 프로젝트 이름 */}
