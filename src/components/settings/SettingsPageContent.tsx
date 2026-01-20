@@ -6,7 +6,7 @@ import SettingsClient from "@/components/settings/SettingsClient";
 export default function SettingsPageContent() {
   return (
     <main className="bg-neutral-0 md:bg-background md:pt-9 md:pb-12">
-      <div className="container mx-auto max-w-[1324px] px-0 md:px-4">
+      <div className="container mx-auto max-w-[1324px] px-0">
         <Suspense fallback={
           <div className="flex gap-6">
             <div className="hidden lg:block w-[280px] bg-card rounded-[14px] shadow-sm p-6">
