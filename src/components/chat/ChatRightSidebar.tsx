@@ -21,7 +21,9 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<number | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
 
   const hasActiveConversation = useMemo(
     () => !!conversationId,
@@ -57,6 +59,30 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
       setTimeout(scrollToBottom, 50);
     }
   }, [pendingPrompt, scrollToBottom]);
+
+  // 모바일에서 외부 클릭 시 툴팁 닫기
+  useEffect(() => {
+    if (!showTooltip) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        tooltipRef.current &&
+        !tooltipRef.current.contains(target) &&
+        !(e.target as HTMLElement).closest('[data-tooltip-trigger]')
+      ) {
+        setShowTooltip(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showTooltip]);
 
   // 대화방 변경 시 AI 도우미 대화 목록 조회
   useEffect(() => {
@@ -196,10 +222,59 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   return (
     <div className="w-full md:max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col min-h-0">
       <div className="px-4 md:px-7 py-4 md:py-5 flex items-center justify-between border-b border-border dark:border-neutral-30 shrink-0">
-        <div className="flex items-center gap-2">
-          <Image src="/icon-ai.png" alt="Talkgate" width={18} height={22} />
-          <h3 className="text-[18px] md:text-[20px] font-bold">Talkgate AI</h3>
-          <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <Image src="/icon-ai.png" alt="Talkgate" width={18} height={22} />
+            <h3 className="text-[18px] md:text-[20px] font-bold">Talkgate AI</h3>
+            <span className="inline-block w-2 h-2 rounded-full bg-primary-60" />
+          </div>
+          <div className="relative">
+            <div
+              data-tooltip-trigger
+              className="cursor-pointer flex items-center justify-center"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                setShowTooltip((prev) => !prev);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            {showTooltip && (
+              <div
+                ref={tooltipRef}
+                className="absolute right-0 top-full mt-2 z-50 w-[280px] md:w-[320px] bg-card dark:bg-neutral-10 border border-border dark:border-neutral-30 rounded-[8px] shadow-lg p-4 text-[12px] leading-[18px] text-foreground"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="space-y-2">
+                  <p>
+                    상담자의 편의를 위해 AI 기반 검색 기술을 활용하여 필요한 정보를 제공하는 답변입니다.
+                  </p>
+                  <p>
+                    학습된 내용을 기반으로 AI 모델이 요약한 결과물로서 해당 과정에서 다소 부정확, 부적절한 정보가 포함될 수 있습니다.
+                    Talkgate AI의 답변은 참고용으로만 사용해주시고, 의료, 법률, 금융 등 전문적인 자문이 필요한 경우 해당 분야의 전문가에게 문의하세요.
+                  </p>
+                  <p>
+                    또한 Talkgate AI가 제공하는 답변은 일반적인 정보 제공을 목적으로 하며, 투자 권유, 투자 자문 또는 금융상품에 대한 매수·매도 추천이 아닙니다.
+                  </p>
+                  <p>
+                    본 답변은 특정 개인의 투자 목적, 재무 상태, 위험 선호도를 고려하지 않으며, 투자 판단에 대한 최종 책임은 이용자에게 있습니다.
+                  </p>
+                  <p>
+                    Talkgate 및 주식회사 핑크코브라는 AI 답변의 내용으로 발생한 투자 손실 또는 법적 책임을 부담하지 않습니다.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         {/* 모바일 닫기 버튼 */}
         <button
@@ -327,17 +402,17 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                       <div className="flex justify-start">
                         <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
                           <div className="flex items-center gap-1.5">
-                            <span 
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
-                              style={{ animationDelay: "0ms" }} 
+                            <span
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                              style={{ animationDelay: "0ms" }}
                             />
-                            <span 
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
-                              style={{ animationDelay: "200ms" }} 
+                            <span
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                              style={{ animationDelay: "200ms" }}
                             />
-                            <span 
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce" 
-                              style={{ animationDelay: "400ms" }} 
+                            <span
+                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                              style={{ animationDelay: "400ms" }}
                             />
                           </div>
                         </div>
