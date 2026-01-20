@@ -18,11 +18,8 @@ export async function POST(
     const { code, callbackUrl } = body;
 
     // API 서버로 소셜 로그인 요청 전달
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
-      process.env.NODE_ENV === "production"
-        ? "https://api.talkgate.im"
-        : "https://api-dev.talkgate.im"
-    );
+    // 환경변수를 참조하지 못한 경우 api-dev.talkgate.im으로 폴백
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
     const response = await fetch(`${apiBaseUrl}/v1/auth/${provider}`, {
       method: 'POST',
       headers: {

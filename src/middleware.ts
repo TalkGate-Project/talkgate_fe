@@ -44,11 +44,16 @@ const SOCIAL_SIGNUP_PATHS = [
 
 /**
  * 개발 환경인지 확인합니다.
+ * NODE_ENV === "development"이거나 localhost인 경우만 개발 환경으로 간주합니다.
+ * Vercel 체크를 제거하여 Amplify 등 다른 배포 환경에서도 정상 동작하도록 합니다.
  */
 function isDevelopment(host: string): boolean {
-  if (process.env.NODE_ENV === "development" || !process.env.VERCEL) {
+  // NODE_ENV가 development인 경우
+  if (process.env.NODE_ENV === "development") {
     return true;
   }
+  
+  // host 기반으로 localhost 환경 감지
   const hostWithoutPort = host.split(":")[0];
   if (
     hostWithoutPort.includes("localhost") ||
@@ -57,6 +62,7 @@ function isDevelopment(host: string): boolean {
   ) {
     return true;
   }
+  
   return false;
 }
 
@@ -226,9 +232,22 @@ export async function middleware(req: NextRequest) {
   // 개발 환경 감지
   const isDev = isDevelopment(host);
 
-  // 개발 환경에서는 서브도메인 로직 건너뜀
+  // 서브도메인 추출 (개발/배포 모두에서 사용)
+  const subdomain = extractSubdomain(host);
+  const mainDomain = getMainDomain(host);
+
+  // 개발 환경에서는 서브도메인 로직 건너뜀 (단, 비회원 경로는 서브도메인 제거)
   if (isDev) {
-    // 미인증 사용자가 보호 경로 접근 시 로그인으로 리다이렉트
+    // 비회원 경로는 서브도메인 제거 (소셜 로그인 callback URL 검증 오류 방지)
+    if (matchesPath(pathname, UNAUTHENTICATED_PATHS)) {
+      if (subdomain) {
+        console.log(`[Middleware] 개발환경 - 비회원 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
+        return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}${req.nextUrl.search}`));
+      }
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
+
+    // 미인증 사용자가 보호 경로 접근 시 로그인으로 리다이렉트 (서브도메인 제거)
     if (!hasAuthCookie) {
       const isProtectedPath = matchesPath(pathname, [
         ...AUTHENTICATED_PROJECT_PATHS,
@@ -237,6 +256,11 @@ export async function middleware(req: NextRequest) {
       ]);
       
       if (isProtectedPath) {
+        // 서브도메인이 있으면 메인 도메인으로 리다이렉트
+        if (subdomain) {
+          console.log(`[Middleware] 개발환경 - 보호 경로 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
+          return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
+        }
         const url = req.nextUrl.clone();
         url.pathname = "/login";
         return NextResponse.redirect(url);
@@ -261,8 +285,6 @@ export async function middleware(req: NextRequest) {
   // ============================================
   // 배포 환경 (Vercel) - 루트 경로 처리
   // ============================================
-  const subdomain = extractSubdomain(host);
-  const mainDomain = getMainDomain(host);
 
   if (pathname === "/") {
     // 서브도메인이 있는 경우 (프로젝트 컨텍스트)
