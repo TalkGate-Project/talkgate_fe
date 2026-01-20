@@ -10,6 +10,7 @@ interface ChangePaymentMethodModalProps {
   onClose: () => void;
   onConfirm: (data: PaymentMethodData) => void;
   isLoading?: boolean;
+  isRegisterMode?: boolean;
   currentBillingInfo?: {
     id?: number;
     buyerEmail?: string;
@@ -50,6 +51,7 @@ export default function ChangePaymentMethodModal({
   onClose,
   onConfirm,
   isLoading = false,
+  isRegisterMode = false,
   currentBillingInfo,
 }: ChangePaymentMethodModalProps) {
   const [formData, setFormData] = useState<PaymentMethodData>({
@@ -354,7 +356,9 @@ export default function ChangePaymentMethodModal({
               <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <h2 className="text-[18px] font-semibold text-foreground">결제수단 변경</h2>
+          <h2 className="text-[18px] font-semibold text-foreground">
+            {isRegisterMode ? "결제수단 등록" : "결제수단 변경"}
+          </h2>
         </div>
 
         {/* Content */}
@@ -604,7 +608,9 @@ export default function ChangePaymentMethodModal({
               disabled={isLoading}
               className="flex-1 px-3 py-1.5 bg-neutral-90 text-white dark:text-neutral-0 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-80 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "변경 중..." : "변경하기"}
+              {isLoading 
+                ? (isRegisterMode ? "등록 중..." : "변경 중...") 
+                : (isRegisterMode ? "등록하기" : "변경하기")}
             </button>
           </div>
         </div>
