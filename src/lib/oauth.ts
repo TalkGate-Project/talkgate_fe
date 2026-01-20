@@ -1,6 +1,7 @@
 "use client";
 
 import { env } from "./env";
+import { getMainDomain } from "./subdomain";
 import {
   cleanupSessionBeforeLogin,
   startOAuthFlow,
@@ -10,9 +11,38 @@ import { showErrorModal } from "./errorModalEvents";
 
 export type OAuthProvider = "google" | "kakao" | "naver";
 
+/**
+ * 현재 환경의 메인 도메인 origin을 반환합니다.
+ * 서브도메인이 있는 경우 서브도메인을 제거하고 메인 도메인만 사용합니다.
+ * 소셜 로그인 callback URL 검증 오류를 방지하기 위해 필요합니다.
+ */
 function getCurrentOrigin(): string {
   if (typeof window === "undefined") return "";
-  return window.location.origin;
+  
+  // NEXT_PUBLIC_SITE_URL 환경변수가 있으면 우선 사용
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    try {
+      const url = new URL(siteUrl);
+      return `${url.protocol}//${url.host}`;
+    } catch {
+      // URL 파싱 실패 시 그대로 사용
+      return siteUrl;
+    }
+  }
+  
+  // 환경변수가 없으면 getMainDomain()을 사용하여 메인 도메인 추출
+  const protocol = window.location.protocol;
+  const mainDomain = getMainDomain();
+  
+  // localhost는 그대로 반환 (getMainDomain이 localhost를 그대로 반환)
+  if (mainDomain.includes("localhost") || mainDomain.includes("127.0.0.1")) {
+    return window.location.origin;
+  }
+  
+  // 메인 도메인으로 origin 생성 (포트 포함)
+  const port = window.location.port ? `:${window.location.port}` : "";
+  return `${protocol}//${mainDomain}${port}`;
 }
 
 /**
