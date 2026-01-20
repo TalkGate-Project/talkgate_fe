@@ -7,7 +7,7 @@ import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
-import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
@@ -871,30 +871,33 @@ export default function TestPage() {
                   <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
                     <span className="font-semibold">실제 사용 위치:</span> 레이아웃 레벨에서 전역 적용 (<code className="bg-white dark:bg-neutral-20 px-1 rounded">app/layout.tsx</code>)
                   </p>
+                  <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+                    <span className="font-semibold">모달 타입:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">ErrorFeedbackModalProvider</code>의 <code className="bg-white dark:bg-neutral-20 px-1 rounded">info</code> 타입
+                  </p>
                   <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
-                    💡 약관 미동의 사용자가 인증된 페이지에 접근할 때 자동으로 표시됩니다.
+                    💡 약관 미동의 사용자가 인증된 페이지에 접근할 때 자동으로 표시됩니다. 실제 사용되는 모달과 동일한 디자인입니다.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => {
-                      persistentModal.show({
-                        type: "system",
+                      showErrorModal({
+                        type: "info",
                         title: "약관 동의 필요",
                         headline: "서비스 이용을 위해 약관 동의가 필요합니다.",
                         description: "약관 동의를 완료하시면 서비스를 이용하실 수 있습니다.",
                         confirmText: "약관 동의하러 가기",
-                        cancelText: null,
                         hideCancel: true,
-                        hideIcon: true,
+                        persistent: true,
+                        hideCloseButton: true,
                         onConfirm: () => {
                           console.log("약관 동의 페이지로 이동");
                         },
                       });
                     }}
-                    className="px-4 py-2 bg-neutral-100 dark:bg-white text-white dark:text-neutral-0 rounded hover:opacity-90 transition-opacity"
+                    className="px-4 py-2 bg-secondary-80 dark:bg-secondary-20 text-white rounded hover:opacity-90 transition-opacity"
                   >
-                    약관 동의 필요 모달
+                    약관 동의 필요 모달 (Info 타입)
                   </button>
                 </div>
               </div>

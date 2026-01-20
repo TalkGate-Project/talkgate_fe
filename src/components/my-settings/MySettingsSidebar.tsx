@@ -71,22 +71,8 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
   return (
     <div className="w-[280px] max-h-[362px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
       {/* 헤더 */}
-      <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40 dark:!border-[#44444455]">
+      <div className="px-7 pb-5 border-b border-neutral-30/40 dark:!border-[#44444455]">
         <h2 className="text-[18px] font-bold text-foreground mb-2 leading-[1]">개인 설정</h2>
-        <div className="flex items-center gap-3">
-          {projectLogoUrl ? (
-            <img
-              src={projectLogoUrl}
-              alt={`${projectName} 로고`}
-              width={28}
-              height={28}
-              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-            />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0" />
-          )}
-          <p className="text-[14px] text-neutral-60">{projectName}</p>
-        </div>
       </div>
 
       {/* 탭 목록 - 모든 사용자에게 모든 탭 표시 */}
