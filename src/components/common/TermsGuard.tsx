@@ -62,6 +62,7 @@ export default function TermsGuard() {
       confirmText: "약관 동의하러 가기",
       cancelText: null,
       hideCancel: true,
+      hideIcon: true,
       onConfirm: () => {
         hasShownModalRef.current = false;
         router.push("/social-signup");

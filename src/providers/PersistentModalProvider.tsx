@@ -21,6 +21,7 @@ type PersistentModalState = {
   confirmText: string;
   cancelText: string | null;
   hideCancel: boolean;
+  hideIcon?: boolean;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
@@ -38,6 +39,7 @@ export type PersistentModalCallbacks = {
   confirmText?: string;
   cancelText?: string | null;
   hideCancel?: boolean;
+  hideIcon?: boolean;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
@@ -55,6 +57,7 @@ const createInitialState = (): PersistentModalState => ({
   confirmText: "확인",
   cancelText: null,
   hideCancel: true,
+  hideIcon: false,
   onConfirm: undefined,
   onCancel: undefined,
 });
@@ -100,6 +103,7 @@ export default function PersistentModalProvider({
       confirmText: options?.confirmText ?? "확인",
       cancelText: options?.cancelText ?? null,
       hideCancel: options?.hideCancel ?? true,
+      hideIcon: options?.hideIcon ?? false,
       onConfirm: options?.onConfirm,
       onCancel: options?.onCancel,
     });
@@ -189,51 +193,53 @@ export default function PersistentModalProvider({
                   </svg>
                 </button>
               </div>
-              <div className="mt-6 flex justify-center">
-                {state.type === "system" || state.type === "talkgate" ? (
-                  // 프로젝트 아이콘 표시 (favicon 사용)
-                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-neutral-10 dark:bg-neutral-20">
-                    <Image
-                      src="/favicon.ico"
-                      alt="TalkGate"
-                      width={40}
-                      height={40}
-                      className="object-contain"
-                    />
-                  </div>
-                ) : (
-                  // 기본 아이콘
-                  <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-neutral-10 dark:bg-neutral-20">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 40 40"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        cx="20"
-                        cy="20"
-                        r="18"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        className="text-secondary-80 dark:text-secondary-20"
+              {!state.hideIcon && (
+                <div className="mt-6 flex justify-center">
+                  {state.type === "system" || state.type === "talkgate" ? (
+                    // 프로젝트 아이콘 표시 (favicon 사용)
+                    <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-neutral-10 dark:bg-neutral-20">
+                      <Image
+                        src="/favicon.ico"
+                        alt="TalkGate"
+                        width={40}
+                        height={40}
+                        className="object-contain"
                       />
-                      <path
-                        d="M20 12V20M20 28H20.01"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-secondary-80 dark:text-secondary-20"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ) : (
+                    // 기본 아이콘
+                    <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-neutral-10 dark:bg-neutral-20">
+                      <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          cx="20"
+                          cy="20"
+                          r="18"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          className="text-secondary-80 dark:text-secondary-20"
+                        />
+                        <path
+                          d="M20 12V20M20 28H20.01"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-secondary-80 dark:text-secondary-20"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              )}
               {state.headline && (
                 <p
-                  className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
+                  className={`${state.hideIcon ? "mt-0" : "mt-6"} text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "system" || state.type === "talkgate"
                       ? "text-neutral-100 dark:text-neutral-100"
                       : "text-secondary-80 dark:text-secondary-20"
@@ -277,7 +283,7 @@ export default function PersistentModalProvider({
                 type="button"
                 className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
                   state.type === "system" || state.type === "talkgate"
-                    ? "bg-neutral-100 text-white dark:bg-neutral-90 dark:text-neutral-100"
+                    ? "bg-neutral-100 text-white dark:bg-white dark:text-neutral-100"
                     : "bg-secondary-80 dark:bg-secondary-20 text-white"
                 }`}
                 onClick={handleConfirm}
