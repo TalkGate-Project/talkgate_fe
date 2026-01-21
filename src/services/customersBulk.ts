@@ -11,7 +11,9 @@ export const CustomersBulkService = {
   // POST /v1/customers-bulk/import
   createImport(payload: { fileUrl?: string; fileName: string; projectId: string }) {
     const { projectId, ...body } = payload;
-    return apiClient.post<BulkJob>("/v1/customers-bulk/import", { body, headers: { "x-project-id": projectId } });
+    return apiClient.post<BulkJob>("/v1/customers-bulk/import", body, {
+      headers: { "x-project-id": projectId },
+    });
   },
 
   // GET /v1/customers-bulk/import

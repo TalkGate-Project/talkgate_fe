@@ -53,6 +53,7 @@ export default function CustomersActions({
         projectId,
       });
       showErrorModal({
+        type: "success",
         title: "알림",
         headline: "업로드 요청이 접수되었습니다.",
         confirmText: "확인",
