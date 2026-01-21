@@ -191,8 +191,10 @@ export default function ProjectBillingDetail({
 
     if (isUpgrade) {
       // 업그레이드: checkout 페이지로 이동
+      // billingCycle과 planType을 쿼리스트링에 포함하여 랜딩 페이지에서 바로 해당 플랜 선택 가능하도록 함
       const encodedProjectName = encodeURIComponent(projectName);
-      const checkoutUrl = `${LANDING_URLS.PRICING}?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}`;
+      const planType = isProPlan(newPlan) ? "pro" : "basic";
+      const checkoutUrl = `${LANDING_URLS.PRICING}?step=checkout&projectId=${projectId}&projectName=${encodedProjectName}&billingCycle=${newBillingCycle}&planType=${planType}`;
       window.location.href = checkoutUrl;
       return;
     }
