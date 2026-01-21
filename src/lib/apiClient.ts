@@ -1,6 +1,6 @@
 import { env } from "./env";
-import { getSelectedProjectId, clearSelectedProjectId } from "./project";
-import { clearTokens } from "./token";
+import { getSelectedProjectId } from "./project";
+import { performAutoLogout } from "./logout";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -200,49 +200,14 @@ export class ApiClient {
   }
 
   private handleAutoLogout(): void {
-    // 클라이언트 사이드 정리
-    try {
-      clearTokens();
-      clearSelectedProjectId();
-    } catch {}
     if (typeof window !== "undefined") {
       const pathname = window.location.pathname || "/";
-      // Avoid redirect loops on public routes like /login, /signup, /forgot-password, oauth callback
-      if (!isPublicRoute(pathname)) {
-        // 메인 도메인 계산
-        // NEXT_PUBLIC_SITE_URL에서 추출 (host 기반 판단 제거)
-        // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-        let mainDomain = "app-dev.talkgate.im";
-        if (siteUrl) {
-          try {
-            const url = new URL(siteUrl);
-            const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
-            mainDomain = `${url.hostname}${port}`;
-          } catch {
-            // URL 파싱 실패 시 문자열에서 프로토콜만 제거
-            mainDomain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
-          }
-        }
-        const protocol = window.location.protocol;
-        // ✅ 메인 도메인의 /logout 페이지로 리다이렉트하여 쿠키 삭제 처리
-        // 서브도메인에서 API 호출로 쿠키 삭제 시 Set-Cookie 헤더가 적용되기 전에
-        // 리다이렉트되는 문제를 방지
-        window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
-      }
+      // 통합 자동 로그아웃 함수 사용 (공개 경로 체크 포함)
+      performAutoLogout(pathname);
     }
   }
 }
 
-function isPublicRoute(pathname: string): boolean {
-  return (
-    pathname === "/login" ||
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/auth/callback/") ||
-    pathname.startsWith("/invite")
-  );
-}
 
 // Singleton for app usage
 export const apiClient = new ApiClient();
