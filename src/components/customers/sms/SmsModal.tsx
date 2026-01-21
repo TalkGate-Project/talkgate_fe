@@ -117,7 +117,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
           // 이미지 업로드 (presigned URL 사용)
           for (const img of imageFiles) {
             const fileType = img.file.type || "image/jpeg";
-            const presignedRes = await AssetsService.presignAttachment({
+            const presignedRes = await AssetsService.presignMmsAttachment({
               fileName: img.file.name,
               fileType: fileType,
             });
