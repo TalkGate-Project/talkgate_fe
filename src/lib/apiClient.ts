@@ -138,13 +138,19 @@ export class ApiClient {
       if (err && err.status === 401) {
         const code: string = (err?.data?.code as string) || String(err?.data?.message || "").toUpperCase();
         const message: string = String(err?.data?.message || "").toUpperCase();
+        const method = (options.method ?? "GET").toUpperCase();
+        
+        // 개인 발신번호 등록 API는 본인인증 미완료 시 401이 발생할 수 있으므로 자동 로그아웃하지 않음
+        const isMemberSenderNumberRegistration = 
+          method === "POST" && 
+          path === "/v1/sms/sender-numbers/member";
         
         // 본인인증 관련 에러는 자동 로그아웃하지 않음 (정상적인 플로우)
         const isIdentityVerificationError = 
           code.includes("UNAUTHORIZED") && 
           (message.includes("본인인증") || message.includes("IDENTITY") || message.includes("VERIFICATION"));
         
-        if (isIdentityVerificationError) {
+        if (isMemberSenderNumberRegistration || isIdentityVerificationError) {
           // 본인인증 관련 에러는 그대로 throw (자동 로그아웃 없음)
           throw err;
         }

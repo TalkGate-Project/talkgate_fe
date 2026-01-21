@@ -132,7 +132,6 @@ export default function SenderNumberSettings() {
   // 모달 상태
   const [showSelfAuthModal, setShowSelfAuthModal] = useState(false);
   const [showCommonSenderModal, setShowCommonSenderModal] = useState(false);
-  const [authPurpose, setAuthPurpose] = useState<"personal" | "common">("personal");
 
   // 본인인증 상태 조회
   const {
@@ -264,16 +263,9 @@ export default function SenderNumberSettings() {
   };
 
   // 공통 발신번호 추가 핸들러
+  // 공통 발신번호는 본인인증이 필요 없으므로 바로 서류 등록 모달 표시
   const handleAddProjectNumber = () => {
-    // 본인인증이 필요한지 확인
-    if (!isUserAuthenticated) {
-      // 본인인증이 안된 사용자: 본인인증 안내
-      setAuthPurpose("common");
-      setShowSelfAuthModal(true);
-    } else {
-      // 본인인증이 완료된 사용자: 서류 등록 모달 바로 표시
-      setShowCommonSenderModal(true);
-    }
+    setShowCommonSenderModal(true);
   };
 
   // 본인인증 성공 핸들러 (개인 발신번호용)
@@ -347,8 +339,6 @@ export default function SenderNumberSettings() {
 
   // 개인 발신번호 추가 핸들러
   const handleAddMemberNumber = () => {
-    setAuthPurpose("personal");
-    
     if (isUserAuthenticated) {
       // 인증이 이미 된 경우: 바로 본인인증 시작
       startPersonalVerification();
@@ -362,13 +352,6 @@ export default function SenderNumberSettings() {
   const handleConfirmAuthentication = () => {
     setShowSelfAuthModal(false);
     startPersonalVerification();
-  };
-
-  // 공통 발신번호용 확인 핸들러
-  const handleCommonAuthConfirm = () => {
-    setShowSelfAuthModal(false);
-    // 공통 발신번호: 서류 등록 모달 표시
-    setShowCommonSenderModal(true);
   };
 
   // 공통 발신번호 등록 성공 핸들러
@@ -412,16 +395,12 @@ export default function SenderNumberSettings() {
 
   return (
     <>
-      {/* 본인인증 확인 모달 */}
+      {/* 본인인증 확인 모달 (개인 발신번호 전용) */}
       <SelfAuthenticationModal
         isOpen={showSelfAuthModal}
         onClose={() => setShowSelfAuthModal(false)}
-        onConfirm={
-          authPurpose === "personal"
-            ? handleConfirmAuthentication
-            : handleCommonAuthConfirm
-        }
-        purpose={authPurpose}
+        onConfirm={handleConfirmAuthentication}
+        purpose="personal"
       />
 
       {/* 공통 발신번호 추가 모달 */}
