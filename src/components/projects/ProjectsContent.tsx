@@ -48,6 +48,29 @@ export default function ProjectsContent() {
     }
   }, [searchParams]);
 
+  // returnUrl 체크 및 리디렉션 (소셜 로그인 회원가입 플로우 후)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    // sessionStorage에서 returnUrl 확인
+    const redirectUrl = sessionStorage.getItem("tg_redirect_url");
+    if (!redirectUrl) return;
+    
+    // 절대 URL인 경우에만 리디렉션 (랜딩 페이지 등)
+    const isAbsoluteUrl = redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://');
+    if (isAbsoluteUrl) {
+      console.log("[ProjectsPage] 🔗 returnUrl 감지 - 랜딩 페이지로 리디렉션:", redirectUrl);
+      // sessionStorage에서 제거 (한 번만 사용)
+      sessionStorage.removeItem("tg_redirect_url");
+      // 리디렉션
+      window.location.replace(redirectUrl);
+    } else {
+      // 상대 경로인 경우 무시하고 sessionStorage에서 제거
+      console.log("[ProjectsPage] ⚠️ 상대 경로 returnUrl 무시:", redirectUrl);
+      sessionStorage.removeItem("tg_redirect_url");
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     ProjectsService.list()
