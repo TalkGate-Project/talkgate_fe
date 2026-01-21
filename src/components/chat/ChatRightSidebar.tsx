@@ -313,7 +313,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
           </div>
         ) : (
           <>
-            <div className="flex justify-start">
+            {/* <div className="flex justify-start">
               <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
                 <div className="text-[13px] leading-[20px]">
                   본 AI가 제공하는 답변은 일반적인 정보 제공을 목적으로 하며,
@@ -331,7 +331,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
                   AI 답변의 내용으로 발생한 투자 손실 또는 법적 책임을 부담하지 않습니다.
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {error && (
               <div className="text-[12px] text-danger-60 bg-danger-10 border border-danger-20 rounded-[8px] px-3 py-2">
