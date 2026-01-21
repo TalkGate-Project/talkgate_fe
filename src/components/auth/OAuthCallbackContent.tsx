@@ -32,8 +32,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   const code = searchParams.get("code");
   const oauthError = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
+  const stateParam = searchParams.get("state");
   
-  // 세션 스토리지에서 리디렉션 URL 가져오기 (로그인 페이지에서 저장됨)
+  // 리디렉션 URL (OAuth state 파라미터 또는 세션 스토리지에서 가져오기)
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   // 초대 플로우 확인
   const [isInviteFlow, setIsInviteFlow] = useState(false);
@@ -42,11 +43,32 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // 1. OAuth state 파라미터에서 returnUrl 추출 (우선순위 높음)
+      let extractedReturnUrl: string | null = null;
+      if (stateParam) {
+        try {
+          const stateData = JSON.parse(decodeURIComponent(stateParam));
+          if (stateData?.returnUrl) {
+            extractedReturnUrl = stateData.returnUrl;
+            console.log("[OAuthCallback] 📍 OAuth state에서 returnUrl 추출:", extractedReturnUrl);
+          }
+        } catch (e) {
+          // JSON 파싱 실패 시 기존 방식 유지 (하위 호환성)
+          console.log("[OAuthCallback] ⚠️ state 파라미터 파싱 실패, 기존 방식 사용");
+        }
+      }
+      
+      // 2. 세션 스토리지에서 리디렉션 URL 가져오기 (fallback, 하위 호환성)
       const storedRedirectUrl = sessionStorage.getItem("tg_redirect_url");
-      if (storedRedirectUrl) {
-        setRedirectUrl(storedRedirectUrl);
+      
+      // state에서 추출한 URL이 있으면 우선 사용, 없으면 sessionStorage 사용
+      const finalRedirectUrl = extractedReturnUrl || storedRedirectUrl;
+      if (finalRedirectUrl) {
+        setRedirectUrl(finalRedirectUrl);
         // 사용 후 삭제
-        sessionStorage.removeItem("tg_redirect_url");
+        if (storedRedirectUrl) {
+          sessionStorage.removeItem("tg_redirect_url");
+        }
       }
       
       // 초대 정보 복구 (소셜 로그인 전 LoginForm에서 백업됨)
@@ -177,6 +199,11 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // 신규 사용자인 경우 → 소셜 회원가입 페이지로 이동 (약관 동의 → 본인인증 → 프로젝트 가입)
         if (result.isNewUser) {
           debugLog("🆕 신규 사용자 감지 - 소셜 회원가입 페이지로 이동");
+          // returnUrl이 있으면 sessionStorage에 저장 (회원가입 플로우 후 /projects에서 사용)
+          if (redirectUrl && typeof window !== "undefined") {
+            sessionStorage.setItem("tg_redirect_url", redirectUrl);
+            debugLog("💾 returnUrl을 sessionStorage에 저장 (회원가입 플로우 후 사용):", redirectUrl);
+          }
           // 초대 플로우인 경우 소셜 로그인 플랫폼 정보를 sessionStorage에 저장 (계정 불일치 시 안내용)
           if (isInviteFlow && typeof window !== "undefined") {
             sessionStorage.setItem("tg_last_social_provider", provider);
