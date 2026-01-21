@@ -25,6 +25,10 @@ export const AssetsService = {
   presignSenderNumberDoc(input: PresignInput) {
     return apiClient.post<PresignOutput>("/v1/asset/sender-number-doc/presigned-url", input);
   },
+  // MMS 첨부파일 업로드용 Presigned URL 발급 (x-project-id 헤더 필요)
+  presignMmsAttachment(input: PresignInput) {
+    return apiClient.post<PresignOutput>("/v1/asset/mms-attachment/presigned-url", input);
+  },
   async uploadToS3(uploadUrl: string, file: File, fileType: string) {
     // Presigned URL 사용 시 주의사항:
     // 1. Content-Type은 presigned URL 생성 시 전달한 fileType과 정확히 일치해야 함
