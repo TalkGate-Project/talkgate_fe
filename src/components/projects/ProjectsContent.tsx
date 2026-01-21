@@ -52,8 +52,15 @@ export default function ProjectsContent() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     
-    // sessionStorage에서 returnUrl 확인
-    const redirectUrl = sessionStorage.getItem("tg_redirect_url");
+    // 1. URL 쿼리 파라미터에서 returnUrl 확인 (우선순위 높음)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryReturnUrl = urlParams.get("returnUrl") || urlParams.get("redirectUrl");
+    
+    // 2. sessionStorage에서 returnUrl 확인 (fallback)
+    const storedRedirectUrl = sessionStorage.getItem("tg_redirect_url");
+    
+    // 쿼리 파라미터가 있으면 우선 사용, 없으면 sessionStorage 사용
+    const redirectUrl = queryReturnUrl || storedRedirectUrl;
     if (!redirectUrl) return;
     
     // 절대 URL인 경우에만 리디렉션 (랜딩 페이지 등)
@@ -61,13 +68,34 @@ export default function ProjectsContent() {
     if (isAbsoluteUrl) {
       console.log("[ProjectsPage] 🔗 returnUrl 감지 - 랜딩 페이지로 리디렉션:", redirectUrl);
       // sessionStorage에서 제거 (한 번만 사용)
-      sessionStorage.removeItem("tg_redirect_url");
+      if (storedRedirectUrl) {
+        sessionStorage.removeItem("tg_redirect_url");
+      }
+      // URL에서 returnUrl 파라미터 제거
+      if (queryReturnUrl) {
+        urlParams.delete("returnUrl");
+        urlParams.delete("redirectUrl");
+        const newUrl = urlParams.toString() 
+          ? `${window.location.pathname}?${urlParams.toString()}`
+          : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
       // 리디렉션
       window.location.replace(redirectUrl);
     } else {
-      // 상대 경로인 경우 무시하고 sessionStorage에서 제거
+      // 상대 경로인 경우 무시하고 정리
       console.log("[ProjectsPage] ⚠️ 상대 경로 returnUrl 무시:", redirectUrl);
-      sessionStorage.removeItem("tg_redirect_url");
+      if (storedRedirectUrl) {
+        sessionStorage.removeItem("tg_redirect_url");
+      }
+      if (queryReturnUrl) {
+        urlParams.delete("returnUrl");
+        urlParams.delete("redirectUrl");
+        const newUrl = urlParams.toString() 
+          ? `${window.location.pathname}?${urlParams.toString()}`
+          : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
     }
   }, []);
 

@@ -374,16 +374,13 @@ export function LoginForm() {
           className="cursor-pointer w-11 h-11 rounded-full"
           style={{ background: "#FEE500" }}
           onClick={() => {
-            // 소셜 로그인 시 리디렉션 URL을 세션 스토리지에 저장
-            if (redirectUrl) {
-              sessionStorage.setItem("tg_redirect_url", redirectUrl);
-            }
-            // 초대 정보가 있으면 sessionStorage에도 백업 (OAuth 리다이렉트 후 복구용)
+            // 초대 정보가 있으면 sessionStorage에 백업 (OAuth 리다이렉트 후 복구용)
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
               console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
-            initiateSocialLogin("kakao");
+            // returnUrl을 OAuth state 파라미터에 포함하여 전달
+            initiateSocialLogin("kakao", redirectUrl || undefined);
           }}
         >
           <img src="/kakao.png" alt="" />
@@ -393,14 +390,12 @@ export function LoginForm() {
           className="cursor-pointer w-11 h-11 rounded-full"
           style={{ background: "#03C75A" }}
           onClick={() => {
-            if (redirectUrl) {
-              sessionStorage.setItem("tg_redirect_url", redirectUrl);
-            }
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
               console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
-            initiateSocialLogin("naver");
+            // returnUrl을 OAuth state 파라미터에 포함하여 전달
+            initiateSocialLogin("naver", redirectUrl || undefined);
           }}
         >
           <img src="/naver.png" alt="" />
@@ -409,14 +404,12 @@ export function LoginForm() {
           aria-label="google"
           className="cursor-pointer w-11 h-11 rounded-full bg-[#353535]"
           onClick={() => {
-            if (redirectUrl) {
-              sessionStorage.setItem("tg_redirect_url", redirectUrl);
-            }
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
               console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
-            initiateSocialLogin("google");
+            // returnUrl을 OAuth state 파라미터에 포함하여 전달
+            initiateSocialLogin("google", redirectUrl || undefined);
           }}
         >
           <img src="/google.png" alt="" />

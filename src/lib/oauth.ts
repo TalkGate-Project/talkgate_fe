@@ -47,27 +47,33 @@ function getCurrentOrigin(): string {
 
 /**
  * OAuth 제공자의 인증 URL을 생성합니다.
+ * @param provider - OAuth 제공자
+ * @param returnUrl - 로그인 후 리디렉션할 URL (선택사항)
  */
-export function buildOAuthAuthorizeUrl(provider: OAuthProvider): string {
+export function buildOAuthAuthorizeUrl(provider: OAuthProvider, returnUrl?: string | null): string {
   const origin = getCurrentOrigin();
   const redirectUri = `${origin}/auth/callback/${provider}`;
+
+  // state 파라미터에 provider와 returnUrl을 JSON으로 인코딩
+  const stateData: { provider: string; returnUrl?: string } = { provider };
+  if (returnUrl) {
+    stateData.returnUrl = returnUrl;
+  }
+  const state = encodeURIComponent(JSON.stringify(stateData));
 
   if (provider === "google") {
     const clientId = env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
     const scope = encodeURIComponent("openid email profile");
-    const state = encodeURIComponent("google");
     return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=${state}`;
   }
 
   if (provider === "kakao") {
     const clientId = env.NEXT_PUBLIC_KAKAO_REST_API_KEY || "";
-    const state = encodeURIComponent("kakao");
     return `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
   }
 
   if (provider === "naver") {
     const clientId = env.NEXT_PUBLIC_NAVER_CLIENT_ID || "";
-    const state = encodeURIComponent("naver");
     return `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
   }
 
@@ -84,12 +90,13 @@ export function getCallbackUrl(provider: OAuthProvider): string {
  * 기존 세션을 정리하고 OAuth 제공자로 리디렉션합니다.
  * 
  * @param provider - OAuth 제공자 (google, kakao, naver)
+ * @param returnUrl - 로그인 후 리디렉션할 URL (선택사항)
  * @returns 리디렉션이 수행되므로 이 함수는 반환되지 않습니다.
  */
-export function initiateSocialLogin(provider: OAuthProvider): void {
+export function initiateSocialLogin(provider: OAuthProvider, returnUrl?: string | null): void {
   if (typeof window === "undefined") return;
 
-  debugLog(`🔑 소셜 로그인 초기화: ${provider}`);
+  debugLog(`🔑 소셜 로그인 초기화: ${provider}`, { hasReturnUrl: !!returnUrl });
 
   // 1. 기존 세션 데이터 정리 (토큰, 프로젝트 ID 등)
   cleanupSessionBeforeLogin();
@@ -97,8 +104,8 @@ export function initiateSocialLogin(provider: OAuthProvider): void {
   // 2. 디버그 플로우 시작 (sessionStorage에 로깅)
   startOAuthFlow(provider);
 
-  // 3. OAuth URL 생성
-  const url = buildOAuthAuthorizeUrl(provider);
+  // 3. OAuth URL 생성 (returnUrl을 state에 포함)
+  const url = buildOAuthAuthorizeUrl(provider, returnUrl);
 
   // 4. 환경변수 유효성 검증
   const clientIdMap: Record<OAuthProvider, string | undefined> = {
