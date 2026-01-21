@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { getSelectedProjectId } from "@/lib/project";
 import type { BulkJobDetail, BulkJobFailure } from "@/types/customersBulk";
+import { formatDateTimeWithSpaces, formatDateTimeCompact } from "@/utils/datetime";
 
 interface FailureDetailModalProps {
   isOpen: boolean;
@@ -114,28 +115,13 @@ export default function FailureDetailModal({
 
   if (!isOpen) return null;
 
+  // 날짜 포맷팅은 중앙 유틸리티 사용
   const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).replace(/\./g, ".").replace(/, /g, " ");
+    return formatDateTimeWithSpaces(dateString);
   };
 
   const formatDateTimeMobile = (dateString: string | null) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hour = String(date.getHours()).padStart(2, "0");
-    const minute = String(date.getMinutes()).padStart(2, "0");
-    return `${year}.${month}.${day} ${hour}:${minute}`;
+    return formatDateTimeCompact(dateString);
   };
 
   return (
