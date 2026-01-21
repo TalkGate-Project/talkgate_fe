@@ -8,7 +8,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import Image from "next/image";
 
 export type PersistentModalType = "default" | "system" | "talkgate";
 
@@ -197,13 +196,21 @@ export default function PersistentModalProvider({
                 <div className="mt-6 flex justify-center">
                   {state.type === "system" || state.type === "talkgate" ? (
                     // 프로젝트 아이콘 표시 (favicon 사용)
+                    // 일반 img 태그 사용: Next.js Image는 .ico 파일을 프로덕션에서 제대로 처리하지 못할 수 있음
                     <div className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-neutral-10 dark:bg-neutral-20">
-                      <Image
+                      <img
                         src="/favicon.ico"
                         alt="TalkGate"
                         width={40}
                         height={40}
                         className="object-contain"
+                        onError={(e) => {
+                          // favicon.ico 로드 실패 시 notification-icon.png로 폴백
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== "/notification-icon.png") {
+                            target.src = "/notification-icon.png";
+                          }
+                        }}
                       />
                     </div>
                   ) : (
