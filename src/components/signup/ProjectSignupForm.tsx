@@ -25,6 +25,9 @@ export function ProjectSignupForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   
+  // 기본값 설정 여부 추적 (1회만 실행하기 위함)
+  const [hasInitializedDefaults, setHasInitializedDefaults] = useState(false);
+  
   // 로그인 사용자 정보
   const [userEmail, setUserEmail] = useState<string | null>(null);
   
@@ -198,22 +201,25 @@ export function ProjectSignupForm() {
     init();
   }, [isMounted, checkUserEmail, checkInvitationStatus, router]);
 
-  // 사용자 정보로 이름과 핸드폰 번호 기본값 설정
+  // 사용자 정보로 이름과 핸드폰 번호 기본값 설정 (1회만 실행)
   useEffect(() => {
-    if (isLoading || !user) return;
+    if (isLoading || !user || hasInitializedDefaults) return;
     
-    // 이름이 있고 아직 입력되지 않았다면 기본값으로 설정
-    if (user.name && !name) {
+    // 이름이 있으면 기본값으로 설정
+    if (user.name) {
       setName(user.name);
       console.log("[ProjectSignup] 📝 사용자 이름 기본값 설정:", user.name);
     }
     
-    // 핸드폰 번호가 있고 아직 입력되지 않았다면 기본값으로 설정
-    if (user.phone && !phone) {
+    // 핸드폰 번호가 있으면 기본값으로 설정
+    if (user.phone) {
       setPhone(user.phone);
       console.log("[ProjectSignup] 📞 사용자 핸드폰 번호 기본값 설정:", user.phone);
     }
-  }, [isLoading, user, name, phone]);
+    
+    // 기본값 설정 완료 표시
+    setHasInitializedDefaults(true);
+  }, [isLoading, user, hasInitializedDefaults]);
 
   // 이메일 비교 (userEmail과 pendingInvite가 모두 설정된 후)
   useEffect(() => {
