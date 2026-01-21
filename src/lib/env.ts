@@ -36,6 +36,17 @@ export type AppEnv = {
    * 환경변수를 참조하지 못한 경우 기본값은 app-dev.talkgate.im입니다.
    */
   NEXT_PUBLIC_SITE_URL?: string;
+  /**
+   * 랜딩 페이지 베이스 URL
+   * 플랜 변경 등 랜딩 페이지로 리다이렉트할 때 사용
+   * 
+   * 예시:
+   * - 프로덕션: https://talkgate.im
+   * - 개발: https://dev.talkgate.im
+   * 
+   * 환경변수를 참조하지 못한 경우 기본값은 https://talkgate.im입니다.
+   */
+  NEXT_PUBLIC_LANDING_URL?: string;
 };
 
 function readString(key: keyof AppEnv, fallback?: string): string {
@@ -111,6 +122,7 @@ const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY || undefined;
 const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
 const instagramClientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || undefined;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || undefined;
+const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || undefined;
 // NEXT_PUBLIC_SITE_URL에서 메인 도메인 추출
 // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
 const mainDomain = extractMainDomainFromSiteUrl(siteUrl);
@@ -129,6 +141,7 @@ export const env: AppEnv = {
   NEXT_PUBLIC_NAVER_CLIENT_ID: naverClientId,
   NEXT_PUBLIC_INSTAGRAM_CLIENT_ID: instagramClientId,
   NEXT_PUBLIC_SITE_URL: siteUrl,
+  NEXT_PUBLIC_LANDING_URL: landingUrl,
 };
 
 /**
