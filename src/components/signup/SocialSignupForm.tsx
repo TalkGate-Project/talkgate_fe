@@ -7,7 +7,7 @@ import { TermsStep } from "@/components/signup/TermsStep";
 import { PhoneVerificationStep } from "@/components/signup/PhoneVerificationStep";
 import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
 import { getPendingInviteInfo, clearPendingInviteInfo } from "@/lib/invite";
-import { clearTokens } from "@/lib/token";
+import { performLogout } from "@/lib/logout";
 import { AuthService } from "@/services/auth";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
@@ -45,9 +45,10 @@ export function SocialSignupForm() {
         cancelText: "취소",
         hideCancel: false,
         onConfirm: () => {
-          // 토큰 삭제 후 로그인 페이지로 이동
-          clearTokens();
-          window.location.replace("/login");
+          // 통합 로그아웃 함수 사용
+          performLogout({
+            redirectUrl: "/login",
+          });
         },
       });
     };
@@ -130,10 +131,10 @@ export function SocialSignupForm() {
   const handleWrongAccountLogout = () => {
     console.log("[SocialSignup] 🔓 이메일 불일치 - 로그아웃 후 재로그인");
     // 초대 정보는 유지 (로그아웃 후 재로그인 시 필요)
-    // 클라이언트에서 먼저 토큰 쿠키 삭제 (서버 삭제와 병행)
-    clearTokens();
-    // /logout route는 'redirect' 파라미터 사용
-    window.location.href = "/logout?redirect=" + encodeURIComponent("/login");
+    performLogout({
+      redirectUrl: "/login",
+      preserveInviteInfo: true,
+    });
   };
 
   return (

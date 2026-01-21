@@ -15,10 +15,25 @@ export type OAuthProvider = "google" | "kakao" | "naver";
  * 현재 환경의 메인 도메인 origin을 반환합니다.
  * 서브도메인이 있는 경우 서브도메인을 제거하고 메인 도메인만 사용합니다.
  * 소셜 로그인 callback URL 검증 오류를 방지하기 위해 필요합니다.
+ * 
+ * localhost 환경에서는 항상 현재 origin을 사용합니다.
  */
 function getCurrentOrigin(): string {
   if (typeof window === "undefined") return "";
   
+  // localhost 환경을 먼저 체크 (환경변수보다 우선)
+  // localhost에서는 항상 현재 origin을 사용해야 함
+  const currentHost = window.location.host;
+  const isLocalhost = 
+    currentHost.includes("localhost") || 
+    currentHost.includes("127.0.0.1") ||
+    /^\d+\.\d+\.\d+\.\d+/.test(currentHost.split(":")[0]);
+  
+  if (isLocalhost) {
+    return window.location.origin;
+  }
+  
+  // localhost가 아닌 경우에만 환경변수 또는 getMainDomain() 사용
   // NEXT_PUBLIC_SITE_URL 환경변수가 있으면 우선 사용
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
   if (siteUrl) {
@@ -34,11 +49,6 @@ function getCurrentOrigin(): string {
   // 환경변수가 없으면 getMainDomain()을 사용하여 메인 도메인 추출
   const protocol = window.location.protocol;
   const mainDomain = getMainDomain();
-  
-  // localhost는 그대로 반환 (getMainDomain이 localhost를 그대로 반환)
-  if (mainDomain.includes("localhost") || mainDomain.includes("127.0.0.1")) {
-    return window.location.origin;
-  }
   
   // 메인 도메인으로 origin 생성 (포트 포함)
   const port = window.location.port ? `:${window.location.port}` : "";

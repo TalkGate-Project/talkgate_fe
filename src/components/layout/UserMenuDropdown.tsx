@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { clearTokens } from "@/lib/token";
-import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
+import { performLogout } from "@/lib/logout";
 import type { MeUser } from "@/hooks/useMe";
 import { useMyMember } from "@/hooks/useMyMember";
 
@@ -39,34 +38,14 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
   const handleLogout = () => {
     console.log(`[UserMenuDropdown] 🚪 로그아웃 버튼 클릭 (variant: ${variant})`);
     
-    // 클라이언트 사이드 정리
-    clearTokens();
-    clearSelectedProjectId();
-    if (variant === "full") {
-      clearUseAttendanceMenu();
-    }
-    queryClient.clear();
+    // 드롭다운 닫기
     onClose();
     
-    // 메인 도메인 계산
-    // NEXT_PUBLIC_SITE_URL에서 추출 (host 기반 판단 제거)
-    // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    let mainDomain = "app-dev.talkgate.im";
-    if (siteUrl) {
-      try {
-        const url = new URL(siteUrl);
-        const port = url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : "";
-        mainDomain = `${url.hostname}${port}`;
-      } catch {
-        // URL 파싱 실패 시 문자열에서 프로토콜만 제거
-        mainDomain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
-      }
-    }
-    
-    const protocol = window.location.protocol;
-    // 메인 도메인의 /logout 페이지로 리다이렉트하여 쿠키 삭제 처리
-    window.location.href = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(`${protocol}//${mainDomain}/login?logout=success`)}`;
+    // 통합 로그아웃 함수 사용
+    // React Query 캐시도 함께 정리
+    performLogout({
+      queryClient,
+    });
   };
 
   return (
