@@ -145,4 +145,14 @@ export function parsePositiveInt(value: string | null | undefined, fallback: num
   return Math.floor(parsed);
 }
 
+/**
+ * 금액을 한국어 형식으로 포맷하고 "원" 단위를 붙입니다.
+ * billing 등에서 사용하는 간단한 금액 표시 형식입니다.
+ * @param amount - 금액 (숫자)
+ * @returns 포맷된 금액 문자열 (예: "165,000원")
+ */
+export function formatAmountKR(amount: number): string {
+  return new Intl.NumberFormat("ko-KR").format(amount) + "원";
+}
+
 

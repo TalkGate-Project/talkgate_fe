@@ -11,7 +11,8 @@ import MessageTypeBadge from "./sms-history/MessageTypeBadge";
 import SmsHistoryFilterModal from "./sms-history/SmsHistoryFilterModal";
 import SmsHistoryDetailModal from "./sms-history/SmsHistoryDetailModal";
 import { PAGE_SIZE } from "./sms-history/constants";
-import { formatDateTime, dateToISOString } from "./sms-history/utils";
+import { formatDateTime } from "@/utils/datetime";
+import { dateToISOString } from "./sms-history/utils";
 import { SMS_STATUS_LABEL } from "@/types/sms";
 
 export default function SmsHistorySettings() {

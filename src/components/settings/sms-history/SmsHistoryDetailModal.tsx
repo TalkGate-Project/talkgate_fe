@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import type { SmsHistory } from "@/types/sms";
-import { formatDateTime } from "./utils";
+import { formatDateTime } from "@/utils/datetime";
 import StatusBadge from "./StatusBadge";
 import MessageTypeBadge from "./MessageTypeBadge";
 import PhonePreviewForDetail from "./PhonePreviewForDetail";

@@ -1,5 +1,4 @@
 import Panel from "@/components/common/Panel";
-import { formatDate } from "@/utils/attendance";
 import DatePicker from "@/components/common/DatePicker";
 
 interface AttendanceHeaderProps {

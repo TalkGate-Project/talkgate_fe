@@ -15,20 +15,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import ChangePaymentMethodModal, {
   type PaymentMethodData,
 } from "./ChangePaymentMethodModal";
-
-// 날짜 포맷팅
-function formatDate(dateString: string | null): string {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date
-    .toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .replace(/\. /g, ".")
-    .replace(/\.$/, "");
-}
+import { formatDateCompact } from "@/utils/datetime";
 
 function formatCount(value: number): string {
   return new Intl.NumberFormat("ko-KR").format(value);
@@ -456,8 +443,8 @@ function ProjectCard({
           </div>
           {subscription && (
             <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1">
-              {formatDate(subscription.startDate)} ~{" "}
-              {formatDate(subscription.endDate)} (
+              {formatDateCompact(subscription.startDate)} ~{" "}
+              {formatDateCompact(subscription.endDate)} (
               {subscription.billingCycle === "monthly"
                 ? "월마다"
                 : subscription.billingCycle === "quarterly"

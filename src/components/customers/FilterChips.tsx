@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
+import { formatDateForChip } from "@/utils/datetime";
 
 type FilterChipsProps = {
   filters: CustomerFilters;
@@ -10,15 +11,6 @@ type FilterChipsProps = {
   teamOptions?: { label: string; value: number }[];
   memberOptions?: { label: string; value: number }[];
 };
-
-// 날짜를 YYYY. MM. DD 형식으로 포맷 (점 뒤에 공백 추가)
-function formatDateForChip(dateStr: string): string {
-  if (!dateStr) return "";
-  // YYYY-MM-DD 형식을 YYYY. MM. DD로 변환
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) return dateStr;
-  return `${parts[0]}. ${parts[1]}. ${parts[2]}`;
-}
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
