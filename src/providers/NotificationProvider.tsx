@@ -45,7 +45,7 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
   try {
     const browserNotification = new Notification(notification.title, {
       body: notification.content,
-      icon: "/favicon.ico", // You can customize this icon
+      icon: "/notification-icon.png", // PNG 형식 사용 (브라우저 호환성 및 프로덕션 빌드 안정성)
       tag: `notification-${notification.id}`, // Prevent duplicate notifications
       requireInteraction: false,
       silent: false,
