@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import MessengerBadge from "@/components/common/MessengerBadge";
+import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { format } from "date-fns";
 
 type Props = {
   open: boolean;
@@ -49,8 +51,7 @@ export default function CustomerCreateModal({
   const [contact1, setContact1] = useState("");
   const [contact2Type, setContact2Type] = useState("집");
   const [contact2, setContact2] = useState("");
-  const [residentId1, setResidentId1] = useState("");
-  const [residentId2, setResidentId2] = useState("");
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [ageRange, setAgeRange] = useState("");
   const [job, setJob] = useState("");
 
@@ -94,8 +95,7 @@ export default function CustomerCreateModal({
     setContact1("");
     setContact2Type("집");
     setContact2("");
-    setResidentId1("");
-    setResidentId2("");
+    setBirthDate(null);
     setAgeRange("");
     setJob("");
     setMessengerAccounts([]);
@@ -141,11 +141,8 @@ export default function CustomerCreateModal({
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
-        // 주민등록번호 앞자리와 뒷자리를 합쳐서 "-" 포함 형식으로 전송 (예: "461385-8244625")
-        residentId:
-          residentId1 || residentId2
-            ? `${residentId1}-${residentId2}`
-            : undefined,
+        // 생년월일을 YYYY-MM-DD 형식으로 전송
+        birth: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,
         messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
@@ -341,48 +338,18 @@ export default function CustomerCreateModal({
                   </div>
                 </div>
 
-                {/* 주민등록번호 */}
+                {/* 생년월일 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
-                    주민등록번호
+                    생년월일
                   </label>
-                  <div className="flex gap-2 items-center">
-                    <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
-                        <input
-                          type="text"
-                          value={residentId1}
-                          onChange={(e) =>
-                            setResidentId1(
-                              e.target.value.replace(/\D/g, "").slice(0, 6)
-                            )
-                          }
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
-                          placeholder="123456"
-                          maxLength={6}
-                        />
-                      </div>
-                    </div>
-                    <span className="text-[14px] leading-[17px] text-neutral-60">
-                      -
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex flex-col justify-center items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
-                        <input
-                          type="text"
-                          value={residentId2}
-                          onChange={(e) =>
-                            setResidentId2(
-                              e.target.value.replace(/\D/g, "").slice(0, 7)
-                            )
-                          }
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink text-left"
-                          placeholder="567890"
-                          maxLength={7}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <DatePicker
+                    value={birthDate}
+                    onChange={setBirthDate}
+                    placeholder="YYYY-MM-DD"
+                    dateFormat="yyyy-MM-dd"
+                    className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
+                  />
                 </div>
 
                 {/* 연령 */}
