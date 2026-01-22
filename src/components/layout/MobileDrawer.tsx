@@ -46,7 +46,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const searchParams = useSearchParams();
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin, member, loading: memberLoading } = useMyMember();
+  const { member, loading: memberLoading } = useMyMember();
   const [mounted, setMounted] = useState(false);
   const [projectId] = useSelectedProjectId();
   const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
@@ -197,8 +197,9 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { label: "상담", href: "/consult", icon: <ConsultIcon /> },
     { label: "고객목록", href: "/customers", icon: <CustomerListIcon /> },
     { label: "통계", href: "/stats", icon: <StatsIcon /> },
-    // useAttendanceMenu가 true여도 admin이나 subAdmin이 아니면 근태 메뉴는 사용할 수 없음
-    ...(attendanceReady && showAttendanceMenu && isAdminOrSubAdmin 
+    // 프로젝트가 근태 메뉴를 사용하는 경우에만 표시
+    // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
+    ...(attendanceReady && showAttendanceMenu 
       ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }] 
       : []),
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },
