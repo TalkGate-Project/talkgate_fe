@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { BillingService } from "@/services/billing";
 import type { BillingTermsType } from "@/types/billing";
@@ -64,7 +64,22 @@ export default function ChangePaymentMethodModal({
     buyerEmail: currentBillingInfo?.buyerEmail || "",
     buyerTel: currentBillingInfo?.buyerTel || "",
   });
-  const [isCardNumberFocused, setIsCardNumberFocused] = useState(false);
+
+  // 카드번호를 4개 부분으로 분리
+  const [cardNumberParts, setCardNumberParts] = useState({
+    part1: "", // 앞 4자리
+    part2: "", // 중간 첫 4자리
+    part3: "", // 중간 두 번째 4자리
+    part4: "", // 뒤 4자리
+  });
+
+  // 카드번호 입력 필드 refs
+  const cardInputRefs = {
+    part1: useRef<HTMLInputElement>(null),
+    part2: useRef<HTMLInputElement>(null),
+    part3: useRef<HTMLInputElement>(null),
+    part4: useRef<HTMLInputElement>(null),
+  };
 
   // 나이스페이 약관 상태
   const [nicePayTerms, setNicePayTerms] = useState<NicePayTerms[]>(
@@ -158,7 +173,12 @@ export default function ChangePaymentMethodModal({
       buyerEmail: currentBillingInfo?.buyerEmail || "",
       buyerTel: currentBillingInfo?.buyerTel || "",
     });
-    setIsCardNumberFocused(false);
+    setCardNumberParts({
+      part1: "",
+      part2: "",
+      part3: "",
+      part4: "",
+    });
     setNicePayTerms(
       NICEPAY_TERMS_CONFIG.map((config) => ({
         type: config.type,
@@ -254,44 +274,51 @@ export default function ChangePaymentMethodModal({
     onConfirm(formData);
   };
 
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, "").replace(/\D/g, "").slice(0, 16);
-    const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
-    return formatted;
+  // 카드번호 부분 업데이트 및 전체 카드번호 합치기
+  const handleCardNumberPartChange = (
+    part: "part1" | "part2" | "part3" | "part4",
+    value: string
+  ) => {
+    const numbers = value.replace(/\D/g, "").slice(0, 4);
+    setCardNumberParts((prev) => {
+      const updated = { ...prev, [part]: numbers };
+      // 전체 카드번호 업데이트
+      const fullCardNo = updated.part1 + updated.part2 + updated.part3 + updated.part4;
+      setFormData((prevFormData) => ({ ...prevFormData, cardNo: fullCardNo }));
+      
+      // 4자리 입력 완료 시 다음 필드로 자동 이동
+      if (numbers.length === 4) {
+        if (part === "part1" && cardInputRefs.part2.current) {
+          cardInputRefs.part2.current.focus();
+        } else if (part === "part2" && cardInputRefs.part3.current) {
+          cardInputRefs.part3.current.focus();
+        } else if (part === "part3" && cardInputRefs.part4.current) {
+          cardInputRefs.part4.current.focus();
+        }
+      }
+      
+      return updated;
+    });
   };
 
-  // 카드 번호 마스킹 처리 (가운데 8자리 * 처리)
-  const maskCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, "").replace(/\D/g, "");
-    if (cleaned.length <= 4) {
-      return cleaned;
-    }
-    if (cleaned.length <= 8) {
-      return `${cleaned.slice(0, 4)} ${"*".repeat(cleaned.length - 4)}`;
-    }
-    if (cleaned.length <= 12) {
-      const first4 = cleaned.slice(0, 4);
-      const middle = "*".repeat(cleaned.length - 8);
-      const last4 = cleaned.slice(-4);
-      return `${first4} ${middle} ${last4}`;
-    }
-    // 12자리 이상: 앞 4자리 + **** **** + 뒤 4자리
-    const first4 = cleaned.slice(0, 4);
-    const last4 = cleaned.slice(-4);
-    return `${first4} **** **** ${last4}`;
-  };
+  // 카드번호 부분에 키보드 이벤트 처리
+  const handleCardNumberKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    currentPart: "part1" | "part2" | "part3" | "part4"
+  ) => {
+    const input = e.currentTarget;
+    const value = input.value.replace(/\D/g, "");
 
-  // 카드 번호 표시 값 (포커스 중에는 실제 숫자, 포커스가 벗어나면 마스킹)
-  const getCardNumberDisplayValue = () => {
-    if (isCardNumberFocused) {
-      return formatCardNumber(formData.cardNo);
+    // 백스페이스 처리: 빈 필드에서 백스페이스 시 이전 필드로 이동
+    if (e.key === "Backspace" && value.length === 0) {
+      if (currentPart === "part2" && cardInputRefs.part1.current) {
+        cardInputRefs.part1.current.focus();
+      } else if (currentPart === "part3" && cardInputRefs.part2.current) {
+        cardInputRefs.part2.current.focus();
+      } else if (currentPart === "part4" && cardInputRefs.part3.current) {
+        cardInputRefs.part3.current.focus();
+      }
     }
-    return maskCardNumber(formData.cardNo);
-  };
-
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\s/g, "").replace(/\D/g, "").slice(0, 16);
-    setFormData({ ...formData, cardNo: value });
   };
 
   const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -372,7 +399,7 @@ export default function ChangePaymentMethodModal({
                 type="text"
                 value={formData.buyerName}
                 onChange={(e) => setFormData({ ...formData, buyerName: e.target.value })}
-                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="카드 소유자 이름을 입력하세요"
               />
             </div>
@@ -381,19 +408,81 @@ export default function ChangePaymentMethodModal({
             <div className="space-y-2">
               <label className="block text-[13px] text-neutral-60">카드 번호</label>
               <div className="relative">
-                <input
-                  type="text"
-                  value={getCardNumberDisplayValue()}
-                  onChange={handleCardNumberChange}
-                  onFocus={() => setIsCardNumberFocused(true)}
-                  onBlur={() => setIsCardNumberFocused(false)}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
-                  placeholder="1234 **** **** 1234"
-                  maxLength={19}
-                />
-                {/* 카드 브랜드 아이콘 */}
+                {/* 4개의 input으로 분리 */}
+                <div className="grid grid-cols-4 gap-1.5 md:gap-2">
+                  {/* 앞 4자리 */}
+                  <input
+                    ref={cardInputRefs.part1}
+                    type="text"
+                    inputMode="numeric"
+                    value={cardNumberParts.part1}
+                    onChange={(e) => handleCardNumberPartChange("part1", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part1")}
+                    placeholder="1234"
+                    maxLength={4}
+                    disabled={isLoading}
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-card dark:bg-neutral-20 focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                  />
+                  {/* 중간 첫 4자리 (마스킹) */}
+                  <input
+                    ref={cardInputRefs.part2}
+                    type="password"
+                    inputMode="numeric"
+                    value={cardNumberParts.part2}
+                    onChange={(e) => handleCardNumberPartChange("part2", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part2")}
+                    placeholder="****"
+                    maxLength={4}
+                    disabled={isLoading}
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-card dark:bg-neutral-20 focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                  />
+                  {/* 중간 두 번째 4자리 (마스킹) */}
+                  <input
+                    ref={cardInputRefs.part3}
+                    type="password"
+                    inputMode="numeric"
+                    value={cardNumberParts.part3}
+                    onChange={(e) => handleCardNumberPartChange("part3", e.target.value)}
+                    onKeyDown={(e) => handleCardNumberKeyDown(e, "part3")}
+                    placeholder="****"
+                    maxLength={4}
+                    disabled={isLoading}
+                    className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-card dark:bg-neutral-20 focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                  />
+                  {/* 뒤 4자리 */}
+                  <div className="relative">
+                    <input
+                      ref={cardInputRefs.part4}
+                      type="text"
+                      inputMode="numeric"
+                      value={cardNumberParts.part4}
+                      onChange={(e) => handleCardNumberPartChange("part4", e.target.value)}
+                      onKeyDown={(e) => handleCardNumberKeyDown(e, "part4")}
+                      placeholder="1234"
+                      maxLength={4}
+                      disabled={isLoading}
+                      className="w-full h-[40px] rounded-[6px] border border-neutral-30 px-2 md:px-3 py-[10px] text-[12px] md:text-[14px] text-foreground bg-card dark:bg-neutral-20 focus:outline-none focus:border-foreground text-center disabled:bg-neutral-10 disabled:opacity-50"
+                    />
+                    {/* 카드 브랜드 아이콘 */}
+                    {/* {formData.cardNo.length > 0 && (
+                      <div className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-1 pointer-events-none">
+                        <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="flex-shrink-0">
+                          <rect width="24" height="16" rx="1" fill="white" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5"/>
+                          <rect x="1" y="5" width="22" height="6" fill="#171E6C"/>
+                        </svg>
+                        <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="flex-shrink-0">
+                          <rect width="24" height="16" rx="1" fill="#252525"/>
+                          <circle cx="9" cy="8" r="3" fill="#EB001B"/>
+                          <circle cx="15" cy="8" r="3" fill="#F79E1B"/>
+                          <path d="M10 8C10 6.895 10.895 6 12 6C13.105 6 14 6.895 14 8C14 9.105 13.105 10 12 10C10.895 10 10 9.105 10 8Z" fill="#FF5F00"/>
+                        </svg>
+                      </div>
+                    )} */}
+                  </div>
+                </div>
+                {/* 모바일에서 카드 아이콘을 아래에 표시 */}
                 {formData.cardNo.length > 0 && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <div className="md:hidden flex items-center justify-center gap-1 mt-2">
                     {/* VISA */}
                     <svg width="24" height="16" viewBox="0 0 24 16" fill="none" className="flex-shrink-0">
                       <rect width="24" height="16" rx="1" fill="white" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5"/>
@@ -419,7 +508,7 @@ export default function ChangePaymentMethodModal({
                   type="text"
                   value={formatExpiry(formData.expMonth, formData.expYear)}
                   onChange={handleExpiryChange}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                   placeholder="MM / YY"
                   maxLength={7}
                 />
@@ -430,7 +519,7 @@ export default function ChangePaymentMethodModal({
                   type="password"
                   value={formData.cardPw}
                   onChange={handleCardPwChange}
-                  className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                  className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                   placeholder="••"
                   maxLength={2}
                 />
@@ -444,7 +533,7 @@ export default function ChangePaymentMethodModal({
                 type="text"
                 value={formData.idNo}
                 onChange={handleIdNoChange}
-                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="YYMMDD 또는 사업자번호"
                 maxLength={10}
               />
@@ -457,7 +546,7 @@ export default function ChangePaymentMethodModal({
                 type="email"
                 value={formData.buyerEmail}
                 onChange={(e) => setFormData({ ...formData, buyerEmail: e.target.value })}
-                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="이메일을 입력하세요"
               />
             </div>
@@ -469,7 +558,7 @@ export default function ChangePaymentMethodModal({
                 type="tel"
                 value={formatPhone(formData.buyerTel)}
                 onChange={handlePhoneChange}
-                className="w-full h-[40px] px-3 py-2 bg-card border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
+                className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="010-0000-0000"
                 maxLength={13}
               />
@@ -481,7 +570,7 @@ export default function ChangePaymentMethodModal({
             {/* 전체 동의 */}
             <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-20 border-b border-neutral-30">
               <label className="flex items-center gap-2 cursor-pointer">
-                <div className="relative flex-shrink-0">
+                <div className="relative flex-shrink-0 flex items-center justify-center w-5 h-5">
                   <input
                     type="checkbox"
                     checked={allTermsAgreed}
@@ -519,7 +608,7 @@ export default function ChangePaymentMethodModal({
               <div key={term.type} className="border-b border-neutral-30 last:border-b-0">
                 <div className="flex items-center justify-between px-4 py-3">
                   <label className="flex items-center gap-2 cursor-pointer flex-1">
-                    <div className="relative flex-shrink-0">
+                    <div className="relative flex-shrink-0 flex items-center justify-center w-4 h-4">
                       <input
                         type="checkbox"
                         checked={term.agreed}
