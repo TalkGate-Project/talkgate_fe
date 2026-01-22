@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
+import type { ProjectSummary } from "@/types/projects";
+import { ProjectSubscriptionStatus } from "@/types/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
+import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
@@ -18,9 +21,10 @@ export default function ProjectsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [subscribeProject, setSubscribeProject] = useState<any | null>(null);
+  const [subscribeProject, setSubscribeProject] = useState<ProjectSummary | null>(null);
+  const [expiredProject, setExpiredProject] = useState<ProjectSummary | null>(null);
   const [subdomainError, setSubdomainError] = useState<string | null>(null);
   // 클릭된 프로젝트 ID (로딩 상태 표시 및 중복 클릭 방지용)
   const [selectingProjectId, setSelectingProjectId] = useState<number | null>(
@@ -186,7 +190,7 @@ export default function ProjectsContent() {
           {!loading && projects.length === 0 && (
             <div className="col-span-full text-center text-neutral-60"></div>
           )}
-          {projects.map((p: any) => {
+          {projects.map((p) => {
             const isSelecting = selectingProjectId === p.id;
             const isAnySelecting = selectingProjectId !== null;
 
@@ -204,12 +208,22 @@ export default function ProjectsContent() {
                   // 이미 선택 중인 프로젝트가 있으면 클릭 무시
                   if (isAnySelecting) return;
 
-                  // 구독이 활성화되지 않은 경우 모달 표시
-                  if (!p.hasActiveSubscription) {
+                  // subscriptionStatus에 따라 다른 모달 표시
+                  const subscriptionStatus = p.subscriptionStatus;
+                  
+                  // inactive 상태: 만료된 구독 모달 표시
+                  if (subscriptionStatus === ProjectSubscriptionStatus.Inactive) {
+                    setExpiredProject(p);
+                    return;
+                  }
+                  
+                  // none 상태: 기존 구독 유도 모달 표시
+                  if (subscriptionStatus === ProjectSubscriptionStatus.None || !p.hasActiveSubscription) {
                     setSubscribeProject(p);
                     return;
                   }
 
+                  // active 상태 또는 구독이 활성화된 경우: 대시보드로 이동
                   // 선택 상태 설정
                   setSelectingProjectId(p.id);
 
@@ -436,13 +450,13 @@ export default function ProjectsContent() {
         />
       )}
 
-      {/* Subscribe Modal */}
+      {/* Subscribe Modal (none 상태용) */}
       {subscribeProject && (
         <SubscribeProjectModal
           project={{
-            id: subscribeProject.id,
+            id: String(subscribeProject.id),
             name: subscribeProject.name,
-            logoUrl: subscribeProject.logoUrl,
+            logoUrl: subscribeProject.logoUrl ?? undefined,
             memberCount: subscribeProject.memberCount,
           }}
           onClose={() => setSubscribeProject(null)}
@@ -455,6 +469,20 @@ export default function ProjectsContent() {
             // const list = Array.isArray(payload) ? payload : payload?.data;
             // setProjects(Array.isArray(list) ? list : []);
           }}
+        />
+      )}
+
+      {/* Subscribe Expired Modal (inactive 상태용) */}
+      {expiredProject && (
+        <SubscribeProjectExpiredModal
+          project={{
+            id: expiredProject.id,
+            name: expiredProject.name,
+            logoUrl: expiredProject.logoUrl,
+            memberCount: expiredProject.memberCount,
+          }}
+          userRole={expiredProject.role}
+          onClose={() => setExpiredProject(null)}
         />
       )}
     </main>

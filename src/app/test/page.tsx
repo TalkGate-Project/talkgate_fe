@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
+import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -26,6 +27,8 @@ export default function TestPage() {
   });
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [expiredModalRole, setExpiredModalRole] = useState<"admin" | "subAdmin" | "member" | undefined>(undefined);
 
   useEffect(() => {
     setMounted(true);
@@ -990,7 +993,104 @@ export default function TestPage() {
             </div>
           </div>
         </section>
+
+        {/* SubscribeProjectExpiredModal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/projects/SubscribeProjectExpiredModal</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">ProjectsContent.tsx</code> - 프로젝트 목록에서 구독이 만료된 프로젝트 클릭 시</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 사용자 역할(admin/subAdmin/member)에 따라 다른 메시지와 버튼이 표시됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">역할별 모달 테스트</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      setExpiredModalRole("admin");
+                      setShowExpiredModal(true);
+                    }}
+                    className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+                  >
+                    어드민 모달 (결제관리 버튼)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpiredModalRole("subAdmin");
+                      setShowExpiredModal(true);
+                    }}
+                    className="px-4 py-2 bg-primary-50 text-white rounded hover:bg-primary-60 transition-colors"
+                  >
+                    부관리자 모달 (결제관리 버튼)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpiredModalRole("member");
+                      setShowExpiredModal(true);
+                    }}
+                    className="px-4 py-2 bg-neutral-70 text-white rounded hover:bg-neutral-80 transition-colors"
+                  >
+                    일반 멤버 모달 (확인 버튼)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpiredModalRole(undefined);
+                      setShowExpiredModal(true);
+                    }}
+                    className="px-4 py-2 bg-neutral-50 text-neutral-90 rounded hover:bg-neutral-60 transition-colors border border-neutral-30"
+                  >
+                    역할 없음 (일반 멤버로 처리)
+                  </button>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-neutral-30">
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 동작 설명</h3>
+                <div className="space-y-2 text-sm text-neutral-70 dark:text-neutral-50">
+                  <div className="p-3 bg-neutral-10 dark:bg-neutral-20 rounded">
+                    <p className="font-semibold mb-1">어드민/부관리자 (admin/subAdmin):</p>
+                    <ul className="ml-4 list-disc space-y-1">
+                      <li>메시지: "구독 기간이 만료되었어요.\n서비스를 계속 이용하시려면 구독을 갱신해 주세요."</li>
+                      <li>버튼: "결제관리" - 클릭 시 결제관리 페이지(/my-settings?tab=billing)로 이동</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 bg-neutral-10 dark:bg-neutral-20 rounded">
+                    <p className="font-semibold mb-1">일반 멤버 (member 또는 역할 없음):</p>
+                    <ul className="ml-4 list-disc space-y-1">
+                      <li>메시지: "구독 기간이 만료되었어요.\n프로젝트 관리자가 구독을 갱신하면 서비스를 계속 이용할 수 있어요."</li>
+                      <li>버튼: "확인" - 클릭 시 모달 닫기</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
+
+      {/* SubscribeProjectExpiredModal */}
+      {showExpiredModal && (
+        <SubscribeProjectExpiredModal
+          project={{
+            id: 1,
+            name: "테스트 프로젝트",
+            logoUrl: null,
+            memberCount: 10,
+          }}
+          userRole={expiredModalRole}
+          onClose={() => setShowExpiredModal(false)}
+        />
+      )}
     </div>
   );
 }

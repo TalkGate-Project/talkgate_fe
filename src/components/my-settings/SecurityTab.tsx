@@ -134,11 +134,11 @@ export default function SecurityTab() {
   };
 
   // 2FA 해제 완료
-  const handleDisable = async (emailCode: string) => {
+  const handleDisable = async (emailCode: string, totpCode: string) => {
     try {
       setLoading(true);
       const { AuthService } = await import("@/services/auth");
-      await AuthService.twoFactorDisable({ emailCode, totpCode: "" });
+      await AuthService.twoFactorDisable({ emailCode, totpCode });
       showErrorModal({
         title: "알림",
         headline: "2단계 인증이 해제되었습니다.",
