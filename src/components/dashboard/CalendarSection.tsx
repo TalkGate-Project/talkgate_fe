@@ -18,6 +18,7 @@ import ConfirmModal from "@/components/common/ConfirmModal";
 import MonthPicker from "@/components/common/MonthPicker";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import Tooltip from "@/components/common/Tooltip";
 
 const days = ["일", "월", "화", "수", "목", "금", "토"];
 const COLORS = [
@@ -267,8 +268,15 @@ export default function CalendarSection() {
                     {/* 데스크톱: 텍스트와 함께 표시 */}
                     <div className="hidden md:flex flex-col gap-1 w-full min-w-0">
                       {daySchedules.slice(0, 2).map((schedule, idx) => (
-                        <div
+                        <Tooltip
                           key={idx}
+                          content={schedule.description ||
+                            schedule.customer?.name ||
+                            "일정"}
+                          multiline={true}
+                          maxWidth="250px"
+                          position="top"
+                          delay={0.3}
                           className="flex items-center gap-1 text-[12px] text-neutral-60 min-w-0 w-full"
                         >
                           <span
@@ -283,7 +291,7 @@ export default function CalendarSection() {
                               schedule.customer?.name ||
                               "일정"}
                           </span>
-                        </div>
+                        </Tooltip>
                       ))}
                       {daySchedules.length > 2 && (
                         <div className="flex items-center text-[10px] leading-[1] font-medium text-neutral-60 shrink-0">
@@ -396,11 +404,24 @@ export default function CalendarSection() {
                       <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left self-center shrink-0 font-montserrat">
                         {formatTimeFromISO(schedule.scheduleTime)}
                       </span>
-                      <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
-                        {schedule.description ||
-                          schedule.customer?.name ||
-                          "일정"}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <Tooltip
+                          content={schedule.description ||
+                            schedule.customer?.name ||
+                            "일정"}
+                          multiline={true}
+                          maxWidth="280px"
+                          position="left"
+                          delay={0.3}
+                          className="w-full"
+                        >
+                          <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate block w-full">
+                            {schedule.description ||
+                              schedule.customer?.name ||
+                              "일정"}
+                          </span>
+                        </Tooltip>
+                      </div>
                       <button
                         type="button"
                         className="cursor-pointer shrink-0"

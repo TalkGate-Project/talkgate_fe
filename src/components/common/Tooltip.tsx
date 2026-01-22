@@ -9,6 +9,8 @@ type TooltipProps = {
   position?: "top" | "bottom" | "left" | "right";
   className?: string;
   delay?: number;
+  multiline?: boolean;
+  maxWidth?: string;
 };
 
 export default function Tooltip({
@@ -17,6 +19,8 @@ export default function Tooltip({
   position = "top",
   className = "",
   delay = 0.2,
+  multiline = false,
+  maxWidth = "300px",
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [finalPosition, setFinalPosition] = useState(position);
@@ -70,7 +74,15 @@ export default function Tooltip({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15, delay }}
-            className={`absolute z-50 whitespace-nowrap px-2 py-1.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[12px] rounded-md shadow-lg pointer-events-none ${positionStyles[finalPosition]}`}
+            className={`absolute z-50 px-3 py-2.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[13px] rounded-lg shadow-xl pointer-events-none ${positionStyles[finalPosition]} ${
+              multiline 
+                ? "whitespace-normal break-words" 
+                : "whitespace-nowrap"
+            }`}
+            style={{
+              maxWidth: multiline ? maxWidth : undefined,
+              lineHeight: multiline ? "1.6" : undefined,
+            }}
           >
             {content}
             {/* Arrow (optional, simplistic) */}

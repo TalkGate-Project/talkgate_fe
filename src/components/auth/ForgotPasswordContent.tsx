@@ -7,6 +7,7 @@ import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type Step = "email" | "verify" | "reset" | "done";
 
@@ -60,8 +61,23 @@ export default function ForgotPasswordContent() {
             setIsSubmitting(true);
             try {
               await ForgotPasswordService.requestResetEmail({ email });
+              showErrorModal({
+                type: "success",
+                title: "이메일 전송 완료",
+                headline: "인증 코드가 전송되었습니다",
+                description: "입력하신 이메일로 인증 코드를 전송했습니다. 이메일을 확인해주세요.",
+                hideCancel: true,
+              });
               setStep("verify");
-            } catch {
+            } catch (error: any) {
+              const errorMessage = error?.response?.data?.message || error?.message || "이메일 전송에 실패했습니다. 다시 시도해주세요.";
+              showErrorModal({
+                type: "error",
+                title: "이메일 전송 실패",
+                headline: "이메일 전송에 실패했습니다",
+                description: errorMessage,
+                hideCancel: true,
+              });
               setInvalid(true);
             } finally {
               setIsSubmitting(false);
@@ -104,8 +120,23 @@ export default function ForgotPasswordContent() {
               const res: any = await ForgotPasswordService.verifyIdentity({ email, otp: code });
               const token = res?.data?.data?.resetToken || res?.data?.resetToken;
               if (token) setResetToken(String(token));
+              showErrorModal({
+                type: "success",
+                title: "인증 완료",
+                headline: "인증이 완료되었습니다",
+                description: "새로운 비밀번호를 설정해주세요.",
+                hideCancel: true,
+              });
               setStep("reset");
-            } catch {
+            } catch (error: any) {
+              const errorMessage = error?.response?.data?.message || error?.message || "인증번호가 올바르지 않습니다. 다시 확인해주세요.";
+              showErrorModal({
+                type: "error",
+                title: "인증 실패",
+                headline: "인증에 실패했습니다",
+                description: errorMessage,
+                hideCancel: true,
+              });
               setInvalid(true);
             } finally {
               setIsSubmitting(false);
@@ -165,8 +196,25 @@ export default function ForgotPasswordContent() {
             setIsSubmitting(true);
             try {
               await ForgotPasswordService.setNewPassword({ resetToken, newPassword: password });
-              setStep("done");
-            } catch {
+              showErrorModal({
+                type: "success",
+                title: "비밀번호 변경 완료",
+                headline: "비밀번호가 성공적으로 변경되었습니다",
+                description: "새로운 비밀번호로 로그인해주세요.",
+                hideCancel: true,
+                onConfirm: () => {
+                  setStep("done");
+                },
+              });
+            } catch (error: any) {
+              const errorMessage = error?.response?.data?.message || error?.message || "비밀번호 변경에 실패했습니다. 다시 시도해주세요.";
+              showErrorModal({
+                type: "error",
+                title: "비밀번호 변경 실패",
+                headline: "비밀번호 변경에 실패했습니다",
+                description: errorMessage,
+                hideCancel: true,
+              });
               setInvalid(true);
             } finally {
               setIsSubmitting(false);
