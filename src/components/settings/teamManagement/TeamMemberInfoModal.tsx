@@ -59,16 +59,22 @@ export default function TeamMemberInfoModal({
     open ? memberId : null
   );
 
+  // 모달이 처음 열리거나 memberId가 변경될 때만 초기화
   useEffect(() => {
-    if (!open || !member) return;
+    if (!open) return;
     setTab("organization");
-    setLocalNotes(member.hrNotes ?? []);
-    setNoteInput("");
     setTeamCreateMode(false);
     setTeamNameDraft("");
     setTeamEditMode(false);
     setTeamEditDraft("");
     setProfileEditMode(false);
+  }, [open, memberId]);
+
+  // member 데이터가 로드되면 로컬 상태 업데이트 (탭은 유지)
+  useEffect(() => {
+    if (!open || !member) return;
+    setLocalNotes(member.hrNotes ?? []);
+    setNoteInput("");
     setHrFormData({
       realName: member.hrData?.realName ?? "",
       birthDate: member.hrData?.birth ? new Date(member.hrData.birth) : null,

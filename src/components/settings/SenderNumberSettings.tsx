@@ -16,6 +16,7 @@ import {
   type VerificationResult,
 } from "@/hooks/usePhoneVerification";
 import { VerificationService } from "@/services/verification";
+import { formatPhoneNumber } from "@/utils/format";
 
 type ProjectSenderNumberStatus = "verified" | "pending" | "rejected";
 
@@ -480,7 +481,7 @@ export default function SenderNumberSettings() {
                       {/* Desktop View */}
                       <div className="hidden md:flex items-center px-10 h-[52px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]">
                         <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
-                          {num.number}
+                          {formatPhoneNumber(num.number)}
                         </div>
                         <div className="flex-1 min-w-0 flex items-center">
                           <StatusBadge
@@ -503,7 +504,7 @@ export default function SenderNumberSettings() {
                       <div className="md:hidden flex items-center py-3 pl-3 pr-4">
                         <div className="w-[140px] flex-none min-w-0">
                           <div className="text-[14px] text-ink dark:text-neutral-80 font-semibold truncate">
-                            {num.number}
+                            {formatPhoneNumber(num.number)}
                           </div>
                         </div>
                         <div className="flex-1 flex items-center gap-1">
@@ -592,7 +593,7 @@ export default function SenderNumberSettings() {
                       {/* Desktop View */}
                       <div className="hidden md:flex items-center px-10 h-[52px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-b border-neutral-30/40 dark:!border-[#44444455]">
                         <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
-                          {num.phoneNumber}
+                          {formatPhoneNumber(num.phoneNumber)}
                         </div>
                         <div className="flex-1 min-w-0 text-[14px] text-neutral-60 dark:text-neutral-60">
                           {formatDate(num.createdAt)}
@@ -608,7 +609,7 @@ export default function SenderNumberSettings() {
                       <div className="md:hidden flex items-center py-3 pl-3 pr-4">
                         <div className="w-[140px] flex-none min-w-0">
                           <div className="text-[14px] text-ink dark:text-neutral-80 font-semibold truncate">
-                            {num.phoneNumber}
+                            {formatPhoneNumber(num.phoneNumber)}
                           </div>
                         </div>
                         <div className="flex-1">

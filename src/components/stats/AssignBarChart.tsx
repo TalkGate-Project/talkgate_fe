@@ -125,15 +125,22 @@ export default function AssignBarChart() {
     );
   }
 
-  // 모바일에서 그래프 최소 너비 계산 (각 바당 최소 100px)
-  const minChartWidth = isMobile ? Math.max(100 * chartData.length, 300) : undefined;
+  // 차트 최소 너비 계산 (각 바당 최소 80px, 웹에서도 데이터가 많으면 스크롤 필요)
+  const minChartWidth = useMemo(() => {
+    const dataCount = chartData.length;
+    const minWidthPerBar = 80;
+    return Math.max(600, dataCount * minWidthPerBar);
+  }, [chartData.length]);
+
+  // 웹에서 데이터가 많을 때 스크롤 필요 여부 판단 (데이터가 7개 이상이면 스크롤)
+  const needsScroll = chartData.length > 7;
 
   return (
     <>
       <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
-      <div className={`h-[310px] mt-[94px] ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''}`}>
-        <div className="h-full" style={isMobile ? { minWidth: `${minChartWidth}px` } : { width: '100%' }}>
-          <ResponsiveContainer width={isMobile ? minChartWidth : "100%"} height="100%">
+      <div className={`h-[310px] mt-[94px] ${needsScroll ? 'overflow-x-auto overflow-y-hidden scrollbar-hide' : ''}`}>
+        <div className="h-full" style={needsScroll ? { minWidth: `${minChartWidth}px` } : { width: '100%' }}>
+          <ResponsiveContainer width={needsScroll ? minChartWidth : "100%"} height="100%">
           <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 20, bottom: 30, left: isMobile ? 0 : 20 }} barCategoryGap="20%">
           <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
           <XAxis
@@ -185,32 +192,11 @@ export default function AssignBarChart() {
               dataKey="value"
               position="top"
               offset={10}
-              content={(props: any) => {
-                const { x, y, value, payload } = props;
-                if (!payload || value === undefined) return null;
+              formatter={(value: unknown) => {
                 const numValue = typeof value === 'number' ? value : Number(value);
-                const formattedValue = `${NUMBER_FORMATTER.format(numValue)}건`;
-                const teamId = payload.teamId ?? null;
-                
-                return (
-                  <g focusable="false" style={{ outline: 'none' }}>
-                    <text
-                      x={x}
-                      y={y}
-                      fill="var(--foreground)"
-                      fontSize="12px"
-                      fontWeight="500"
-                      fontFamily="var(--font-montserrat)"
-                      textAnchor="middle"
-                      focusable="false"
-                      style={{ cursor: teamId ? "pointer" : "default", outline: 'none' }}
-                      onClick={() => handleBarClick(teamId)}
-                    >
-                      {formattedValue}
-                    </text>
-                  </g>
-                );
+                return `${NUMBER_FORMATTER.format(numValue)}건`;
               }}
+              style={{ fill: "var(--neutral-60)", fontSize: 12, fontWeight: 500 }}
             />
           </Bar>
         </BarChart>

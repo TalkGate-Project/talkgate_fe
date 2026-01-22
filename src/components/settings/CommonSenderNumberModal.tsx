@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { AssetsService } from "@/services/assets";
 import { SmsService } from "@/services/sms";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import { formatPhoneInput, formatPhoneNumber } from "@/utils/format";
 
 interface CommonSenderNumberModalProps {
   isOpen: boolean;
@@ -136,10 +137,22 @@ export default function CommonSenderNumberModal({
       });
     } catch (error: any) {
       console.error("발신번호 등록 실패:", error);
+      
+      // 서버에서 반환한 에러 메시지 추출
+      let errorMessage = "발신번호 등록에 실패했습니다.";
+      
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       showErrorModal({
         type: "error",
         headline: "발신번호 등록에 실패했습니다",
-        description: "발신번호 등록에 실패했습니다.",
+        description: errorMessage,
         hideCancel: true,
       });
     } finally {
@@ -217,12 +230,15 @@ export default function CommonSenderNumberModal({
             <input
               type="text"
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              onChange={(e) => {
+                const formatted = formatPhoneInput(e.target.value);
+                setPhoneNumber(formatted);
+              }}
               placeholder="010-1234-5678"
               className="w-full h-[42px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] text-neutral-90 dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
             />
             <p className="mt-1.5 text-[12px] text-neutral-60 dark:text-neutral-60">
-              하이픈 (-)을 포함하여 입력하세요.
+              숫자만 입력하면 하이픈이 자동으로 추가됩니다.
             </p>
           </div>
 
