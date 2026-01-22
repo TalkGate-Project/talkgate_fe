@@ -27,6 +27,7 @@ type Props = {
   setTeamEditDraft: (draft: string) => void;
   onUpdateTeam: () => Promise<void>;
   isUpdatingTeam: boolean;
+  onMemberClick?: (memberId: number) => void;
 };
 
 // 3 depth까지만 노드 ID를 수집하는 헬퍼 함수
@@ -66,6 +67,7 @@ export default function OrganizationContent({
   setTeamEditDraft,
   onUpdateTeam,
   isUpdatingTeam,
+  onMemberClick,
 }: Props) {
   // 3 depth까지만 기본적으로 열린 상태로 초기화
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(() => {
@@ -213,9 +215,18 @@ export default function OrganizationContent({
           >
             {node.avatar}
           </div>
-          <span className="text-[14px] font-medium text-foreground">
-            {node.name}
-          </span>
+          {onMemberClick && node.id !== memberId ? (
+            <button
+              onClick={() => onMemberClick(node.id)}
+              className="text-[14px] font-medium text-foreground hover:underline cursor-pointer text-left"
+            >
+              {node.name}
+            </button>
+          ) : (
+            <span className="text-[14px] font-medium text-foreground">
+              {node.name}
+            </span>
+          )}
           {isNodeLeader && node.department && (
             <TeamNameBadge label={node.department} />
           )}
