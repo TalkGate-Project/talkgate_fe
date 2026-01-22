@@ -80,11 +80,7 @@ export default function TwoFactorDisableModal({
 
       {/* Modal - 모바일: 전체 너비, 데스크톱: 440px 고정 */}
       <div 
-        className="relative bg-white dark:bg-neutral-10 rounded-[14px] w-full max-w-[440px] md:w-[440px]"
-        style={{
-          boxShadow: "0px 13px 61px rgba(169, 169, 169, 0.366013)",
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
+        className="relative bg-white dark:bg-neutral-10 rounded-[14px] w-full max-w-[440px] md:w-[440px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-6 pb-3 md:px-8 md:pt-8 md:pb-4">
@@ -130,7 +126,7 @@ export default function TwoFactorDisableModal({
 
           {/* Warning Text */}
           <p className="text-[16px] md:text-[18px] font-semibold text-[#D83232] leading-[21px] text-center mb-4 md:mb-6">
-            2단계 인증 해제를 위해<br className="md:hidden"/>아래 인증 절차를 완료해 주세요.
+            2단계 인증 해제를 위해<br />아래 인증 절차를 완료해 주세요.
           </p>
 
           {/* Input Fields Container - 모바일: 전체 너비, 데스크톱: 384px 고정 */}
@@ -162,7 +158,7 @@ export default function TwoFactorDisableModal({
                 <button
                   onClick={handleSendCode}
                   disabled={loading || isCodeSent}
-                  className="h-[34px] bg-[#252525] dark:bg-neutral-90 text-[#EDEDED] dark:text-white text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center flex-shrink-0 whitespace-nowrap"
+                  className="h-[34px] bg-[#252525] dark:bg-neutral-80 text-[#EDEDED] dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 dark:hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center flex-shrink-0 whitespace-nowrap"
                   style={{ padding: "6px 12px", letterSpacing: "-0.02em" }}
                 >
                   {loading ? "발송 중..." : isCodeSent ? "발송됨" : "전송"}
@@ -198,7 +194,7 @@ export default function TwoFactorDisableModal({
           <div className="flex justify-end gap-2 md:gap-3 px-4 py-3">
             <button
               onClick={onClose}
-              className="h-[34px] border border-[#E2E2E2] dark:border-border rounded-[5px] text-[14px] font-semibold text-black dark:text-foreground hover:bg-muted transition-colors cursor-pointer flex items-center justify-center flex-1 md:flex-initial"
+              className="h-[34px] border border-[#E2E2E2] dark:border-neutral-30 bg-white dark:bg-neutral-20 rounded-[5px] text-[14px] font-semibold text-black dark:text-neutral-0 hover:bg-muted dark:hover:bg-neutral-30 transition-colors cursor-pointer flex items-center justify-center flex-1 md:flex-initial"
               style={{ padding: "6px 12px", letterSpacing: "-0.02em" }}
             >
               취소
@@ -206,7 +202,7 @@ export default function TwoFactorDisableModal({
             <button
               onClick={handleDisable}
               disabled={loading || !isCodeSent || emailCode.length !== 6 || totpCode.length !== 6}
-              className="h-[34px] bg-[#252525] dark:bg-neutral-90 text-[#EDEDED] dark:text-white text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center flex-1 md:flex-initial"
+              className="h-[34px] bg-[#252525] dark:bg-neutral-80 text-[#EDEDED] dark:text-neutral-0 text-[14px] font-semibold rounded-[5px] hover:opacity-90 dark:hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center flex-1 md:flex-initial"
               style={{ padding: "6px 12px", letterSpacing: "-0.02em" }}
             >
               {loading ? "처리 중..." : "확인"}

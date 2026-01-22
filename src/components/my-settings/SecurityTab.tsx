@@ -312,34 +312,71 @@ export default function SecurityTab() {
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-card rounded-none md:rounded-[14px] shadow-sm pb-[140px] md:pb-7">
+      <div className="bg-card rounded-none md:rounded-[14px] shadow-sm pb-[140px] md:pb-0">
         <div className="border-t border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
-        <div className="px-4 md:px-7 py-3 md:py-6 h-[90px] md:h-auto">
-          <div className="flex items-center justify-between h-full md:h-auto gap-3">
+        
+        {/* Mobile Layout */}
+        <div className="block md:hidden px-4 py-3 h-[90px]">
+          <div className="flex items-center justify-between h-full gap-3">
             {/* Left side: Title + Badge and Description */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-2">
-                <h2 className="text-[14px] md:text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-[14px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
                 <span className="inline-flex items-center justify-center px-3 py-1 bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] h-[22px] opacity-80 flex-shrink-0">
                   주의
                 </span>
               </div>
-              <p className="text-[12px] md:text-[14px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
-                계정을 삭제하면 모든 데이터가 영구적<br className="md:hidden" />으로 삭제되며 복구할 수 없습니다.
+              <p className="text-[12px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
+                계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
               </p>
             </div>
             {/* Right side: Button */}
             <div className="flex-shrink-0">
               <button 
                 onClick={() => setShowDeleteAccountModal(true)}
-                className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[12px] md:text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] h-[34px] whitespace-nowrap"
+                className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[12px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] h-[34px] whitespace-nowrap"
               >
                 계정 삭제
               </button>
             </div>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+
+        {/* Desktop Layout - Figma Design */}
+        <div className="hidden md:block px-7 py-6">
+          {/* Top Section: Title, Badge, and Warning Message */}
+          <div className="mb-3">
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 tracking-[0.2px] leading-[19px]">
+                계정 삭제
+              </h2>
+              <span className="inline-flex items-center justify-center px-3 py-1 bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] h-[22px] opacity-80 flex-shrink-0">
+                주의
+              </span>
+            </div>
+            <p className="text-[14px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
+              계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-[1px] border-t border-neutral-30 dark:border-neutral-30 mb-3"></div>
+
+          {/* Bottom Action Section */}
+          <div className="flex items-center justify-between px-6 py-3 bg-[rgba(255,235,235,0.5)] dark:bg-danger-10/20 rounded-[5px] min-h-[48px]">
+            <span className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 leading-[19px]">
+              계정 삭제
+            </span>
+            <button 
+              onClick={() => setShowDeleteAccountModal(true)}
+              className="cursor-pointer px-3 py-1.5 bg-danger-40 dark:bg-danger-40 text-neutral-0 dark:text-neutral-100 text-[14px] font-semibold rounded-[5px] hover:opacity-90 transition-colors tracking-[-0.02em] leading-[17px] h-[34px] whitespace-nowrap"
+            >
+              계정 삭제
+            </button>
+          </div>
+        </div>
+
+        <div className="block md:hidden border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4"></div>
       </div>
 
       {/* Modals */}

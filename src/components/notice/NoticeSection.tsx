@@ -48,21 +48,24 @@ export default function NoticeSection() {
       className="rounded-[14px]"
       headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
       bodyClassName="px-4 md:px-7 pb-4 md:pb-7 pt-4 md:pt-5"
-      style={{ boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
+      style={{ height: 420, boxShadow: "6px 6px 54px 0px rgba(0, 0, 0, 0.05)" }}
     >
-      {waitingForProject ? (
-        <div className="flex h-[240px] items-center justify-center">
-          <LoadingSpinner size="2xl" />
-        </div>
-      ) : missingProject ? (
-        <NoticeEmpty message="프로젝트를 먼저 선택해주세요." />
-      ) : loading ? (
-        <NoticeSkeleton />
-      ) : error ? (
-        <NoticeEmpty message="공지사항을 불러오는 중 문제가 발생했습니다." error />
-      ) : showEmpty ? (
-        <NoticeEmpty message={data?.notices === null ? "공지사항 데이터가 없습니다." : "등록된 공지사항이 없습니다."} />
-      ) : (
+      <div className="h-[320px]">
+        {waitingForProject ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner size="2xl" />
+          </div>
+        ) : missingProject ? (
+          <NoticeEmpty message="프로젝트를 먼저 선택해주세요." />
+        ) : loading ? (
+          <div className="h-full">
+            <NoticeSkeleton />
+          </div>
+        ) : error ? (
+          <NoticeEmpty message="공지사항을 불러오는 중 문제가 발생했습니다." error />
+        ) : showEmpty ? (
+          <NoticeEmpty message={data?.notices === null ? "공지사항 데이터가 없습니다." : "등록된 공지사항이 없습니다."} />
+        ) : (
         <div className="overflow-hidden border-t border-[var(--border)]/60">
           {notices.map((n) => (
             <div
@@ -96,14 +99,15 @@ export default function NoticeSection() {
             </div>
           ))}
         </div>
-      )}
+        )}
+      </div>
     </Panel>
   );
 }
 
 function NoticeEmpty({ message, error }: { message: string; error?: boolean }) {
   return (
-    <div className={`flex h-[240px] items-center justify-center text-[14px] ${error ? "text-danger-40" : "text-neutral-60"}`}>
+    <div className={`flex h-full items-center justify-center text-[14px] ${error ? "text-danger-40" : "text-neutral-60"}`}>
       {message}
     </div>
   );
