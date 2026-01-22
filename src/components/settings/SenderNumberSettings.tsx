@@ -108,7 +108,7 @@ function InfoIcon({ tooltip }: { tooltip?: string }) {
         <circle cx="8" cy="11" r="0.75" fill="#EF4444" />
       </svg>
       {tooltip && (
-        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-[#A0A0A0] text-white dark:text-[#111111] text-[12px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-normal">
+        <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[200px] px-2 py-1 bg-neutral-90 dark:bg-[#A0A0A0] text-white dark:text-[#111111] text-[12px] rounded-[4px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-pre-line">
           {tooltip}
         </span>
       )}
@@ -488,7 +488,13 @@ export default function SenderNumberSettings() {
                             status={num.status as ProjectSenderNumberStatus}
                           />
                           {num.status === "rejected" && (
-                            <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
+                            <InfoIcon
+                              tooltip={
+                                num.rejectionReason
+                                  ? `발신 번호 등록이 반려되었습니다.\n\n사유: ${num.rejectionReason}\n\n확인 후 다시 등록을 신청해 주세요.`
+                                  : "발신 번호 등록이 반려되었습니다.\n\n확인 후 다시 등록을 신청해 주세요."
+                              }
+                            />
                           )}
                         </div>
                         <div className="w-[160px] flex-shrink-0 flex justify-end">
@@ -512,7 +518,13 @@ export default function SenderNumberSettings() {
                             status={num.status as ProjectSenderNumberStatus}
                           />
                           {num.status === "rejected" && (
-                            <InfoIcon tooltip="서류 검토 결과 발신번호 등록이 거부되었습니다." />
+                            <InfoIcon
+                              tooltip={
+                                num.rejectionReason
+                                  ? `발신 번호 등록이 반려되었습니다.\n\n사유: ${num.rejectionReason}\n\n확인 후 다시 등록을 신청해 주세요.`
+                                  : "발신 번호 등록이 반려되었습니다.\n\n확인 후 다시 등록을 신청해 주세요."
+                              }
+                            />
                           )}
                         </div>
                         <div className="w-8 flex-none flex items-center justify-center">
