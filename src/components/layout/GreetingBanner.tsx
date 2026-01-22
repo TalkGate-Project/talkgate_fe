@@ -85,12 +85,15 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   // 출퇴근 버튼 표시 여부: 
   // 근태 메뉴를 사용하는 상태이면서 members/my API로 얻은 유저의 role이 관리자급(admin/subAdmin)이 아닐 경우에만 표시
   const showAttendance = isAttendanceMenuEnabled && shouldShowAttendanceButton(currentRole);
+  
+  // 어드민/subAdmin은 근태 관리 대상이 아니므로 my-status API 호출하지 않음
+  const shouldFetchMyStatus = shouldShowAttendanceButton(currentRole);
 
   // Attendance Logic
   const { data: myStatusData } = useQuery({
     queryKey: ["attendance", "myStatus", projectId],
     queryFn: () => AttendanceService.myStatus(String(projectId)),
-    enabled: !!projectId && projectReady,
+    enabled: !!projectId && projectReady && shouldFetchMyStatus,
   });
 
   const isCheckedIn = myStatusData?.data?.data?.isCheckedIn ?? false;
