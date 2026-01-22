@@ -3,6 +3,12 @@
 import type { ApiSuccess } from "./common";
 import type { MemberRole } from "./members";
 
+export enum ProjectSubscriptionStatus {
+  None = 'none', // 구독 한 적 없음.
+  Active = 'active', // 구독 활성화 상태
+  Inactive = 'inactive', // 구독 했다가 끝난 상태
+}
+
 export type Project = {
   id: number;
   name: string;
@@ -18,6 +24,8 @@ export type ProjectSummary = Project & {
   assignedCustomerCount?: number;
   todayScheduleCount?: number;
   role?: MemberRole;
+  hasActiveSubscription?: boolean;
+  subscriptionStatus?: ProjectSubscriptionStatus;
 };
 
 export type CreateProjectPayload = {
