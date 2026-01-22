@@ -21,6 +21,7 @@ type Props = {
   memberId: number;
   onClose: () => void;
   projectId: string | number | null;
+  onMemberClick?: (memberId: number) => void;
 };
 
 type TabKey = "organization" | "manager";
@@ -30,6 +31,7 @@ export default function TeamMemberInfoModal({
   memberId,
   onClose,
   projectId,
+  onMemberClick,
 }: Props) {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabKey>("organization");
@@ -551,6 +553,7 @@ export default function TeamMemberInfoModal({
                 setTeamEditDraft={setTeamEditDraft}
                 onUpdateTeam={handleUpdateTeam}
                 isUpdatingTeam={updateTeam.isPending}
+                onMemberClick={onMemberClick}
               />
             ) : isAdminOrSubAdmin ? (
               <ManagerContent
@@ -590,6 +593,7 @@ export default function TeamMemberInfoModal({
                 setTeamEditDraft={setTeamEditDraft}
                 onUpdateTeam={handleUpdateTeam}
                 isUpdatingTeam={updateTeam.isPending}
+                onMemberClick={onMemberClick}
               />
             )}
           </section>

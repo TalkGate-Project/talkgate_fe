@@ -9,6 +9,7 @@ import { ProjectsService } from "@/services/projects";
 import { AttendanceService } from "@/services/attendance";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import { shouldShowAttendanceButton } from "@/utils/permissions";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
@@ -84,12 +85,15 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   // 출퇴근 버튼 표시 여부: 
   // 근태 메뉴를 사용하는 상태이면서 members/my API로 얻은 유저의 role이 관리자급(admin/subAdmin)이 아닐 경우에만 표시
   const showAttendance = isAttendanceMenuEnabled && shouldShowAttendanceButton(currentRole);
+  
+  // 어드민/subAdmin은 근태 관리 대상이 아니므로 my-status API 호출하지 않음
+  const shouldFetchMyStatus = shouldShowAttendanceButton(currentRole);
 
   // Attendance Logic
   const { data: myStatusData } = useQuery({
     queryKey: ["attendance", "myStatus", projectId],
     queryFn: () => AttendanceService.myStatus(String(projectId)),
-    enabled: !!projectId && projectReady,
+    enabled: !!projectId && projectReady && shouldFetchMyStatus,
   });
 
   const isCheckedIn = myStatusData?.data?.data?.isCheckedIn ?? false;
@@ -100,12 +104,38 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
     },
+    onError: (error: any) => {
+      // 개발자용 로깅 (콘솔에만)
+      console.error("Check-in failed:", error);
+      
+      // 사용자에게는 일반적인 친화적 메시지만 표시
+      showErrorModal({
+        type: "error",
+        title: "출근 처리 실패",
+        headline: "출근 처리에 실패했습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    },
   });
 
   const checkOutMutation = useMutation({
     mutationFn: () => AttendanceService.checkOut(String(projectId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    },
+    onError: (error: any) => {
+      // 개발자용 로깅 (콘솔에만)
+      console.error("Check-out failed:", error);
+      
+      // 사용자에게는 일반적인 친화적 메시지만 표시
+      showErrorModal({
+        type: "error",
+        title: "퇴근 처리 실패",
+        headline: "퇴근 처리에 실패했습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
     },
   });
 

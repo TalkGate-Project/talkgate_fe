@@ -1,3 +1,44 @@
+## ⚠️ 가장 중요: 보안 및 오류 메시지 처리 원칙
+
+**라이브 서비스이므로 개발 정보 노출을 절대 금지합니다.**
+
+### 보안 원칙 (최우선)
+1. **서버 응답의 오류 코드, 개발 메시지, 기술적 내용을 사용자에게 절대 노출하지 않습니다.**
+2. **에러 객체의 `message`, `response.data.message` 등을 UI에 직접 표시하지 않습니다.**
+3. **오류 발생 시 일반적인 사용자 친화적 메시지만 표시합니다.**
+4. **개발 정보는 `console.error`로만 로깅하며, 프로덕션에서는 에러 모니터링 서비스로 전송합니다.**
+
+### 오류 처리 패턴
+```typescript
+// ❌ 절대 금지 - 서버 메시지나 오류 코드 노출
+catch (error: any) {
+  const errorMessage = error?.response?.data?.message || error?.message;
+  showErrorModal({ description: errorMessage }); // 개발 정보 노출 위험!
+}
+
+// ✅ 올바른 방법 - 에러 코드로 내부 분기, 사용자에게는 일반 메시지
+catch (error: any) {
+  // 개발자용 로깅 (콘솔에만)
+  console.error("Password reset failed:", error);
+  
+  // 에러 코드로 내부 로직 분기 (사용자에게는 노출하지 않음)
+  const errorCode = error?.response?.data?.code;
+  
+  // 사용자에게는 일반적인 친화적 메시지만 표시
+  showErrorModal({
+    type: "error",
+    title: "처리 실패",
+    headline: "요청을 처리할 수 없습니다",
+    description: "잠시 후 다시 시도해주세요.",
+    hideCancel: true,
+  });
+}
+```
+
+**이 원칙은 모든 에러 처리에 적용되며, 특히 인증/비밀번호 찾기 등 보안 관련 기능에서 엄격히 준수해야 합니다.**
+
+---
+
 ## Frontend Convention
 
 본 문서는 TalkGate FE의 코딩 컨벤션과 UI 토큰 사용 원칙을 요약합니다. "시니어스러운, 과하지 않은 아키텍처"를 목표로 합니다.
@@ -102,49 +143,61 @@ const [enabled, setEnabled] = useState(true); // on 상태로 시작했다가 �
 
 #### 7.1 에러 메시지 표시 원칙 (중요)
 
-**서버 응답 메시지를 UI에 그대로 표시하지 않습니다.**
+**서버 응답 메시지, 오류 코드, 개발 정보를 UI에 절대 노출하지 않습니다. (보안 원칙 참조)**
 
 ```typescript
-// ❌ BAD - 서버 메시지를 그대로 표시
+// ❌ 절대 금지 - 서버 메시지나 오류 코드 노출
 showErrorModal({
   headline: "오류 발생",
   description: errorData?.data?.message || "잠시 후 다시 시도해주세요.",
 });
 
-// ✅ GOOD - 일반적인 사용자 친화적 메시지 사용
+// ❌ 절대 금지 - 에러 객체의 message 직접 사용
 showErrorModal({
-  headline: "초대 수락에 실패했습니다.",
-  description: "잠시 후 다시 시도해주세요.",
+  headline: "오류 발생",
+  description: error?.message || "잠시 후 다시 시도해주세요.",
 });
+
+// ✅ GOOD - 일반적인 사용자 친화적 메시지만 사용
+catch (error: any) {
+  // 개발자용 로깅 (콘솔에만)
+  console.error("Operation failed:", error);
+  
+  // 사용자에게는 일반적인 메시지만 표시
+  showErrorModal({
+    headline: "처리에 실패했습니다.",
+    description: "잠시 후 다시 시도해주세요.",
+  });
+}
 ```
 
-**이유:**
-1. 서버 메시지는 개발자를 위한 기술적 내용이 포함될 수 있음 (예: `Cannot read properties of undefined`)
-2. 영어로 된 메시지가 그대로 노출될 수 있음 (예: `Invitation has already been accepted`)
-3. 사용자에게 불필요한 기술적 정보 노출은 UX를 해침
-4. 개발자는 콘솔 로그로 디버깅, 사용자에게는 친화적 메시지 제공
-
-**에러 코드 기반 분기 처리:**
+**에러 코드 기반 내부 분기 처리:**
 ```typescript
-// ✅ GOOD - 에러 코드로 분기하고 적절한 동작 수행
-const errorCode = errorData?.data?.code;
-
-if (errorCode === "INVITATION_ALREADY_ACCEPTED") {
-  // 에러 모달 없이 자연스럽게 다음 플로우로 이동
-  router.replace("/projects");
-  return;
+// ✅ GOOD - 에러 코드로 내부 로직 분기 (사용자에게는 노출하지 않음)
+catch (error: any) {
+  console.error("Operation failed:", error);
+  
+  const errorCode = error?.response?.data?.code;
+  
+  // 내부 로직 분기 (에러 코드는 사용자에게 노출하지 않음)
+  if (errorCode === "INVITATION_ALREADY_ACCEPTED") {
+    // 에러 모달 없이 자연스럽게 다음 플로우로 이동
+    router.replace("/projects");
+    return;
+  }
+  
+  // 사용자에게는 일반적인 메시지만 표시
+  showErrorModal({
+    headline: "처리에 실패했습니다.",
+    description: "잠시 후 다시 시도해주세요.",
+  });
 }
-
-// 그 외 에러는 일반적인 메시지로 표시
-showErrorModal({
-  headline: "처리에 실패했습니다.",
-  description: "잠시 후 다시 시도해주세요.",
-});
 ```
 
 **로깅:**
 - 디버깅을 위해 `console.error`로 원본 에러 객체를 로깅하는 것은 권장됨
 - 프로덕션에서는 에러 모니터링 서비스(Sentry 등)로 전송
+- **중요**: 에러 코드나 개발 메시지는 콘솔에만 로깅하고, UI에는 절대 표시하지 않음
 
 ### 8. 접근성/국제화
 

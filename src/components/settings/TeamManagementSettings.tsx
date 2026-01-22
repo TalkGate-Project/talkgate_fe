@@ -120,6 +120,11 @@ export default function TeamManagementSettings() {
     setSelectedMemberId(Number(member.id));
   }, []);
 
+  const handleMemberClickFromOrg = useCallback((memberId: number) => {
+    // 조직도에서 멤버 클릭 시 현재 모달을 닫고 새로운 멤버의 모달을 엽니다
+    setSelectedMemberId(memberId);
+  }, []);
+
   const closeMemberModal = useCallback(() => {
     setSelectedMemberId(null);
   }, []);
@@ -228,6 +233,7 @@ export default function TeamManagementSettings() {
           memberId={selectedMemberId}
           onClose={closeMemberModal}
           projectId={projectId}
+          onMemberClick={handleMemberClickFromOrg}
         />
       )}
     </div>
