@@ -30,14 +30,15 @@ type Props = {
   onMemberClick?: (memberId: number) => void;
 };
 
-// 3 depth까지만 노드 ID를 수집하는 헬퍼 함수
-function collectNodesUpToDepth(node: OrgNode | null, maxDepth: number = 3): Set<number> {
+// level 0, 1까지만 노드 ID를 수집하는 헬퍼 함수 (2 depth)
+function collectNodesUpToDepth(node: OrgNode | null, maxDepth: number = 1): Set<number> {
   const ids = new Set<number>();
   if (!node) return ids;
   
   const traverse = (n: OrgNode, currentDepth: number = 0) => {
     ids.add(n.id);
-    // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+    // currentDepth가 maxDepth(1)보다 작을 때만 자식 노드를 재귀적으로 탐색
+    // 즉, level 0, 1까지만 자동으로 열림
     if (currentDepth < maxDepth) {
       n.children.forEach((child) => traverse(child, currentDepth + 1));
     }
@@ -69,19 +70,19 @@ export default function OrganizationContent({
   isUpdatingTeam,
   onMemberClick,
 }: Props) {
-  // 3 depth까지만 기본적으로 열린 상태로 초기화
+  // level 0, 1까지만 기본적으로 열린 상태로 초기화 (2 depth)
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(() => {
     if (orgTreeRoot) {
-      return collectNodesUpToDepth(orgTreeRoot, 3);
+      return collectNodesUpToDepth(orgTreeRoot, 1);
     }
     return new Set();
   });
 
-  // orgTreeRoot가 변경되면 3 depth까지만 다시 열린 상태로 초기화
+  // orgTreeRoot가 변경되면 level 0, 1까지만 다시 열린 상태로 초기화
   useEffect(() => {
     if (orgTreeRoot) {
-      const nodeIds = collectNodesUpToDepth(orgTreeRoot, 3);
-      // 3 depth까지만 확장 상태로 설정
+      const nodeIds = collectNodesUpToDepth(orgTreeRoot, 1);
+      // level 0, 1까지만 확장 상태로 설정
       setExpandedNodes(nodeIds);
     } else {
       setExpandedNodes(new Set());
@@ -217,8 +218,12 @@ export default function OrganizationContent({
           </div>
           {onMemberClick && node.id !== memberId ? (
             <button
-              onClick={() => onMemberClick(node.id)}
-              className="text-[14px] font-medium text-foreground hover:underline cursor-pointer text-left"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMemberClick(node.id);
+              }}
+              className="text-[14px] font-medium text-foreground hover:underline cursor-pointer text-left bg-transparent border-none p-0"
             >
               {node.name}
             </button>

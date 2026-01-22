@@ -405,16 +405,6 @@ export default function MemberSettings() {
               프로젝트 탈퇴
             </button>
           )}
-          
-          {/* 멤버초대 버튼 - admin/subAdmin만 표시 */}
-          {isAdminOrSubAdmin && (
-            <button
-              onClick={handleInviteMember}
-              className="cursor-pointer flex items-center justify-center px-3 py-1.5 gap-2.5 bg-neutral-90 text-neutral-0 rounded-[5px] text-[14px] font-semibold hover:opacity-90 transition-colors whitespace-nowrap"
-            >
-              멤버초대
-            </button>
-          )}
         </div>
       </div>
 

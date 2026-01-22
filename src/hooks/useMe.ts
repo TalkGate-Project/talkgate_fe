@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 
 export type MeUser = {
@@ -33,12 +34,20 @@ type MeResponse = {
 };
 
 export function useMe() {
+  const pathname = usePathname();
+  
+  // 2FA 플로우 중에는 API 호출하지 않음 (인증 토큰이 없어서 401 발생 가능)
+  const isTwoFactorFlow = pathname?.startsWith("/login/two-factor") ?? false;
+  
   const query = useQuery({
     queryKey: ["auth", "user"],
     queryFn: async () => {
-      const res = await apiClient.get<MeResponse>("/v1/auth/user");
+      const res = await apiClient.get<MeResponse>("/v1/auth/user", {
+        suppressAutoLogout: isTwoFactorFlow, // 2FA 플로우 중에는 자동 로그아웃 방지
+      });
       return res.data.data;
     },
+    enabled: !isTwoFactorFlow, // 2FA 플로우 중에는 쿼리 비활성화
   });
 
   return {
