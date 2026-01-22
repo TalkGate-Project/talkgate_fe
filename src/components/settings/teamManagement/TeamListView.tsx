@@ -53,32 +53,33 @@ export default function TeamListView({
   matchingIds = new Set(),
   expandedForSearch = new Set(),
 }: Props) {
-  // 모든 노드를 기본적으로 열린 상태로 초기화
-  const collectAllItemIds = useCallback((items: TeamMember[]): Set<string> => {
+  // 3 depth까지만 기본적으로 열린 상태로 초기화
+  const collectItemsUpToDepth = useCallback((items: TeamMember[], maxDepth: number = 3): Set<string> => {
     const ids = new Set<string>();
-    const traverse = (nodes: TeamMember[]) => {
+    const traverse = (nodes: TeamMember[], currentDepth: number = 0) => {
       nodes.forEach((node) => {
         ids.add(node.id);
-        if (node.children && node.children.length > 0) {
-          traverse(node.children);
+        // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+        if (currentDepth < maxDepth && node.children && node.children.length > 0) {
+          traverse(node.children, currentDepth + 1);
         }
       });
     };
-    traverse(items);
+    traverse(items, 0);
     return ids;
   }, []);
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
-    return collectAllItemIds(data);
+    return collectItemsUpToDepth(data, 3);
   });
 
-  // data가 변경되면 모든 노드를 다시 열린 상태로 초기화
+  // data가 변경되면 3 depth까지만 다시 열린 상태로 초기화
   useEffect(() => {
     if (data.length > 0) {
-      const allIds = collectAllItemIds(data);
-      setExpandedItems(allIds);
+      const nodeIds = collectItemsUpToDepth(data, 3);
+      setExpandedItems(nodeIds);
     }
-  }, [data, collectAllItemIds]);
+  }, [data, collectItemsUpToDepth]);
 
   // 검색어 유무에 따라 확장 상태 결정
   const currentExpanded = useMemo(() => {

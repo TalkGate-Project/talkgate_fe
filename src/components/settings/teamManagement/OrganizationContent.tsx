@@ -29,17 +29,20 @@ type Props = {
   isUpdatingTeam: boolean;
 };
 
-// 모든 노드 ID를 수집하는 헬퍼 함수
-function collectAllNodeIds(node: OrgNode | null): Set<number> {
+// 3 depth까지만 노드 ID를 수집하는 헬퍼 함수
+function collectNodesUpToDepth(node: OrgNode | null, maxDepth: number = 3): Set<number> {
   const ids = new Set<number>();
   if (!node) return ids;
   
-  const traverse = (n: OrgNode) => {
+  const traverse = (n: OrgNode, currentDepth: number = 0) => {
     ids.add(n.id);
-    n.children.forEach((child) => traverse(child));
+    // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+    if (currentDepth < maxDepth) {
+      n.children.forEach((child) => traverse(child, currentDepth + 1));
+    }
   };
   
-  traverse(node);
+  traverse(node, 0);
   return ids;
 }
 
@@ -64,20 +67,20 @@ export default function OrganizationContent({
   onUpdateTeam,
   isUpdatingTeam,
 }: Props) {
-  // 모든 노드를 기본적으로 열린 상태로 초기화
+  // 3 depth까지만 기본적으로 열린 상태로 초기화
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(() => {
     if (orgTreeRoot) {
-      return collectAllNodeIds(orgTreeRoot);
+      return collectNodesUpToDepth(orgTreeRoot, 3);
     }
     return new Set();
   });
 
-  // orgTreeRoot가 변경되면 모든 노드를 다시 열린 상태로 초기화
+  // orgTreeRoot가 변경되면 3 depth까지만 다시 열린 상태로 초기화
   useEffect(() => {
     if (orgTreeRoot) {
-      const allNodeIds = collectAllNodeIds(orgTreeRoot);
-      // 모든 노드 ID를 확장 상태로 설정
-      setExpandedNodes(allNodeIds);
+      const nodeIds = collectNodesUpToDepth(orgTreeRoot, 3);
+      // 3 depth까지만 확장 상태로 설정
+      setExpandedNodes(nodeIds);
     } else {
       setExpandedNodes(new Set());
     }

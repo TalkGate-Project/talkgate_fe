@@ -33,14 +33,18 @@ export default function ProfileSettings() {
   const [orgRoot, setOrgRoot] = useState<OrganizationTreeNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set());
 
-  const collectAllNodeIds = useCallback((node: OrganizationTreeNode | null): Set<number> => {
+  // 3 depth까지만 노드 ID를 수집하는 헬퍼 함수
+  const collectNodesUpToDepth = useCallback((node: OrganizationTreeNode | null, maxDepth: number = 3): Set<number> => {
     const ids = new Set<number>();
     if (!node) return ids;
-    const walk = (current: OrganizationTreeNode) => {
+    const walk = (current: OrganizationTreeNode, currentDepth: number = 0) => {
       ids.add(current.id);
-      current.descendants?.forEach(walk);
+      // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+      if (currentDepth < maxDepth && current.descendants) {
+        current.descendants.forEach((child) => walk(child, currentDepth + 1));
+      }
     };
-    walk(node);
+    walk(node, 0);
     return ids;
   }, []);
 
@@ -62,12 +66,12 @@ export default function ProfileSettings() {
 
     if (member.organizationTree) {
       setOrgRoot(member.organizationTree);
-      setExpandedNodes(collectAllNodeIds(member.organizationTree));
+      setExpandedNodes(collectNodesUpToDepth(member.organizationTree, 3));
     } else {
       setOrgRoot(null);
       setExpandedNodes(new Set());
     }
-  }, [collectAllNodeIds, member]);
+  }, [collectNodesUpToDepth, member]);
 
   // 프로필 이미지 업로드
   const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
