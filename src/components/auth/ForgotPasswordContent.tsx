@@ -70,12 +70,15 @@ export default function ForgotPasswordContent() {
               });
               setStep("verify");
             } catch (error: any) {
-              const errorMessage = error?.response?.data?.message || error?.message || "이메일 전송에 실패했습니다. 다시 시도해주세요.";
+              // 개발자용 로깅 (콘솔에만)
+              console.error("Password reset email request failed:", error);
+              
+              // 사용자에게는 일반적인 친화적 메시지만 표시
               showErrorModal({
                 type: "error",
                 title: "이메일 전송 실패",
                 headline: "이메일 전송에 실패했습니다",
-                description: errorMessage,
+                description: "잠시 후 다시 시도해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);
@@ -129,12 +132,15 @@ export default function ForgotPasswordContent() {
               });
               setStep("reset");
             } catch (error: any) {
-              const errorMessage = error?.response?.data?.message || error?.message || "인증번호가 올바르지 않습니다. 다시 확인해주세요.";
+              // 개발자용 로깅 (콘솔에만)
+              console.error("Identity verification failed:", error);
+              
+              // 사용자에게는 일반적인 친화적 메시지만 표시
               showErrorModal({
                 type: "error",
                 title: "인증 실패",
                 headline: "인증에 실패했습니다",
-                description: errorMessage,
+                description: "인증번호를 다시 확인해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);
@@ -207,12 +213,15 @@ export default function ForgotPasswordContent() {
                 },
               });
             } catch (error: any) {
-              const errorMessage = error?.response?.data?.message || error?.message || "비밀번호 변경에 실패했습니다. 다시 시도해주세요.";
+              // 개발자용 로깅 (콘솔에만)
+              console.error("Password reset failed:", error);
+              
+              // 사용자에게는 일반적인 친화적 메시지만 표시
               showErrorModal({
                 type: "error",
                 title: "비밀번호 변경 실패",
                 headline: "비밀번호 변경에 실패했습니다",
-                description: errorMessage,
+                description: "잠시 후 다시 시도해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);
