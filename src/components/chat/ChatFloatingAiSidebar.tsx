@@ -25,7 +25,7 @@ export default function ChatFloatingAiSidebar({ projectId, conversationId, isOpe
         <button
           type="button"
           aria-label="open-ai-assistant"
-          className="fixed bottom-[94px] right-4 md:right-8 z-[80] cursor-pointer flex flex-col items-center gap-1"
+          className="fixed bottom-[74px] right-4 md:right-8 z-[80] cursor-pointer flex flex-col items-center gap-1"
           onClick={onOpen}
         >
           <Image src="chat-floating.svg" alt="open-ai-assistant" width={60} height={78} />
