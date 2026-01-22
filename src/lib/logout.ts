@@ -198,6 +198,7 @@ export function performAutoLogout(currentPathname: string): void {
 function isPublicRoute(pathname: string): boolean {
   return (
     pathname === "/login" ||
+    pathname.startsWith("/login/two-factor") || // 2FA 플로우는 공개 경로로 처리
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/auth/callback/") ||

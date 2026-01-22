@@ -140,6 +140,11 @@ export class ApiClient {
         const message: string = String(err?.data?.message || "").toUpperCase();
         const method = (options.method ?? "GET").toUpperCase();
         
+        // 2FA 플로우 중인 경우 자동 로그아웃하지 않음 (정상적인 플로우)
+        // 소셜 로그인 후 2FA가 필요한 경우, 인증 토큰이 없어서 401이 발생할 수 있음
+        const isTwoFactorFlow = typeof window !== "undefined" && 
+          window.location.pathname.startsWith("/login/two-factor");
+        
         // 개인 발신번호 등록 API는 본인인증 미완료 시 401이 발생할 수 있으므로 자동 로그아웃하지 않음
         const isMemberSenderNumberRegistration = 
           method === "POST" && 
@@ -150,8 +155,8 @@ export class ApiClient {
           code.includes("UNAUTHORIZED") && 
           (message.includes("본인인증") || message.includes("IDENTITY") || message.includes("VERIFICATION"));
         
-        if (isMemberSenderNumberRegistration || isIdentityVerificationError) {
-          // 본인인증 관련 에러는 그대로 throw (자동 로그아웃 없음)
+        if (isTwoFactorFlow || isMemberSenderNumberRegistration || isIdentityVerificationError) {
+          // 2FA 플로우나 본인인증 관련 에러는 그대로 throw (자동 로그아웃 없음)
           throw err;
         }
         
