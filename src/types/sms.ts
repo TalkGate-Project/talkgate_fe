@@ -125,6 +125,7 @@ export type ProjectSenderNumber = {
   projectId: number;
   number: string;
   status: ProjectSenderNumberStatus;
+  rejectionReason?: string;
   documentImage1?: string;
   documentImage2?: string;
   documentImage3?: string;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationsService, type Notification as TGNotification } from "@/services/notifications";
 import type { NewNotificationEvent } from "@/types/notifications";
+import { useCustomerModal } from "@/providers/CustomerModalProvider";
 
 // 공지 페이지와 동일한 규칙의 상대 시간 포맷터
 function formatNotificationTime(dateString: string) {
@@ -53,6 +54,7 @@ function mergeNotifications(
 
 export default function NotificationBell() {
   const router = useRouter();
+  const { openCustomerModal } = useCustomerModal();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<TGNotification[]>([]);
@@ -182,14 +184,20 @@ export default function NotificationBell() {
       }
     }
 
-    // 알림 타입에 따라 적절한 페이지로 이동
+    // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     setIsOpen(false);
     if (notification.type === "notice" && notification.referenceId) {
       // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
       router.push(`/notice/${notification.referenceId}`);
+    } else if (notification.type === "customer_registration" && notification.referenceId) {
+      // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
+      openCustomerModal(notification.referenceId);
     } else if (notification.type === "customer_assignment") {
-      // 고객 관련 알림: 고객 목록 페이지로 이동
+      // 고객 할당 알림: 고객 목록 페이지로 이동
       router.push("/customers");
+    } else if (notification.type === "system") {
+      // 시스템 알림: 결제관리 메뉴로 이동
+      router.push("/my-settings?tab=billing");
     }
   };
 
