@@ -56,12 +56,31 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
       browserNotification.close();
     }, 5000);
 
-    // Handle click on notification
+    // Handle click on notification - 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     browserNotification.onclick = () => {
       window.focus();
       browserNotification.close();
-      // You can navigate to notification page or specific route here
-      // window.location.href = `/notifications`;
+      
+      // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
+      if (notification.type === "notice" && notification.referenceId) {
+        window.location.href = `/notice/${notification.referenceId}`;
+      } else if (notification.type === "customer_registration" && notification.referenceId) {
+        // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("tg:open-customer-modal", {
+              detail: { customerId: notification.referenceId },
+            })
+          );
+        }
+      } else if (notification.type === "customer_assignment") {
+        window.location.href = "/customers";
+      } else if (notification.type === "system") {
+        window.location.href = "/my-settings?tab=billing";
+      } else {
+        // 기본적으로 알림 페이지로 이동
+        window.location.href = "/notifications";
+      }
     };
   } catch (error) {
     console.error("Failed to show browser notification:", error);

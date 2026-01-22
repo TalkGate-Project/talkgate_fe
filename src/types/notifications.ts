@@ -1,6 +1,6 @@
 // Notification types aligned with TalkGate API spec
 
-export type NotificationType = "customer_assignment" | "notice";
+export type NotificationType = "customer_registration" | "customer_assignment" | "notice" | "system";
 
 // UI에서 사용하는 카테고리 타입 (필터링용)
 export type NotificationCategory = "all" | "notice" | "customer" | "system" | "security";

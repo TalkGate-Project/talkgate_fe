@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotificationsService, Notification, NotificationCategory, NotificationType } from "@/services/notifications";
 import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon, NoticeShieldIcon } from "@/components/notice/icons/NoticeIcons";
+import { useCustomerModal } from "@/providers/CustomerModalProvider";
 
 // API 타입을 UI에서 사용하는 형태로 변환
 type UINotification = Omit<Notification, "isRead"> & { read: boolean };
@@ -14,7 +15,10 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
     case "notice":
       return "notice";
     case "customer_assignment":
+    case "customer_registration":
       return "customer";
+    case "system":
+      return "system";
     default:
       return "all";
   }
@@ -22,6 +26,7 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
 
 function NotificationsPageContentInner() {
   const router = useRouter();
+  const { openCustomerModal } = useCustomerModal();
   const searchParams = useSearchParams();
   const [notifications, setNotifications] = useState<UINotification[]>([]);
   const [counts, setCounts] = useState({ all: 0, notice: 0, customer: 0, system: 0, security: 0, unread: 0 });
@@ -63,9 +68,9 @@ function NotificationsPageContentInner() {
       // 향후 API에 카테고리별 카운트 엔드포인트가 추가되면 서버 사이드 카운트로 변경 필요
       const allCount = uiNotifications.length;
       const noticeCount = uiNotifications.filter((n) => n.type === "notice").length;
-      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment").length;
-      // TODO: system, security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
-      const systemCount = 0;
+      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration").length;
+      const systemCount = uiNotifications.filter((n) => n.type === "system").length;
+      // TODO: security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
       const securityCount = 0;
 
       setCounts({
@@ -126,13 +131,19 @@ function NotificationsPageContentInner() {
       await handleMarkAsRead(notification.id);
     }
 
-    // 알림 타입에 따라 적절한 페이지로 이동
+    // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     if (notification.type === "notice" && notification.referenceId) {
       // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
       router.push(`/notice/${notification.referenceId}`);
+    } else if (notification.type === "customer_registration" && notification.referenceId) {
+      // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
+      openCustomerModal(notification.referenceId);
     } else if (notification.type === "customer_assignment") {
-      // 고객 관련 알림: 고객 목록 페이지로 이동
+      // 고객 할당 알림: 고객 목록 페이지로 이동
       router.push("/customers");
+    } else if (notification.type === "system") {
+      // 시스템 알림: 결제관리 메뉴로 이동
+      router.push("/my-settings?tab=billing");
     }
   };
 
@@ -141,7 +152,10 @@ function NotificationsPageContentInner() {
       case "notice":
         return <NoticeMegaphoneIcon />;
       case "customer_assignment":
+      case "customer_registration":
         return <NoticeUsersIcon />;
+      case "system":
+        return <NoticeCogIcon />;
       default:
         return null;
     }
@@ -234,7 +248,7 @@ function NotificationsPageContentInner() {
             {/* 탭 */}
             <div className="px-4 md:px-7 py-3 md:py-4 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 md:gap-3 overflow-x-auto flex-1 min-w-0">
-                {(["all", "notice", "customer"] as NotificationCategory[]).map((category) => {
+                {(["all", "notice", "customer", "system"] as NotificationCategory[]).map((category) => {
                   const isActive = activeCategory === category;
                   return (
                     <button
