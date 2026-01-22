@@ -85,6 +85,16 @@ export default function AssignBarChart() {
     return [0, Math.ceil(maxValue * 1.14)];
   }, [chartData]);
 
+  // 차트 최소 너비 계산 (각 바당 최소 80px, 웹에서도 데이터가 많으면 스크롤 필요)
+  const minChartWidth = useMemo(() => {
+    const dataCount = chartData.length;
+    const minWidthPerBar = 80;
+    return Math.max(600, dataCount * minWidthPerBar);
+  }, [chartData.length]);
+
+  // 웹에서 데이터가 많을 때 스크롤 필요 여부 판단 (데이터가 7개 이상이면 스크롤)
+  const needsScroll = chartData.length > 7;
+
   if (waitingForProject) {
     return (
       <div className="flex h-[300px] items-center justify-center">
@@ -124,16 +134,6 @@ export default function AssignBarChart() {
       </div>
     );
   }
-
-  // 차트 최소 너비 계산 (각 바당 최소 80px, 웹에서도 데이터가 많으면 스크롤 필요)
-  const minChartWidth = useMemo(() => {
-    const dataCount = chartData.length;
-    const minWidthPerBar = 80;
-    return Math.max(600, dataCount * minWidthPerBar);
-  }, [chartData.length]);
-
-  // 웹에서 데이터가 많을 때 스크롤 필요 여부 판단 (데이터가 7개 이상이면 스크롤)
-  const needsScroll = chartData.length > 7;
 
   return (
     <>
