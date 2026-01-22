@@ -116,24 +116,59 @@ export default function CustomerDetailModalDesktop({
       <div className="flex items-center justify-between flex-none">
         <div className="flex items-center gap-2">
           <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90">고객정보</h2>
-          {detail?.assignedMemberName && (
-            <div className="flex items-center justify-center">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M12.0004 21.5999C17.3023 21.5999 21.6004 17.3018 21.6004 11.9999C21.6004 6.69797 17.3023 2.3999 12.0004 2.3999C6.69846 2.3999 2.40039 6.69797 2.40039 11.9999C2.40039 17.3018 6.69846 21.5999 12.0004 21.5999ZM16.4489 10.4484C16.9175 9.9798 16.9175 9.22 16.4489 8.75137C15.9803 8.28275 15.2205 8.28275 14.7519 8.75137L10.8004 12.7028L9.24892 11.1514C8.78029 10.6827 8.02049 10.6827 7.55186 11.1514C7.08323 11.62 7.08323 12.3798 7.55186 12.8484L9.95186 15.2484C10.4205 15.7171 11.1803 15.7171 11.6489 15.2484L16.4489 10.4484Z"
-                  fill={detail.status === "confirmed" ? "#00E272" : "#B0B0B0"}
-                />
-              </svg>
-            </div>
-          )}
+          {(() => {
+            // 확인 완료된 경우: 녹색 체크
+            if (detail?.status === "confirmed") {
+              return (
+                <div className="flex items-center justify-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M12.0004 21.5999C17.3023 21.5999 21.6004 17.3018 21.6004 11.9999C21.6004 6.69797 17.3023 2.3999 12.0004 2.3999C6.69846 2.3999 2.40039 6.69797 2.40039 11.9999C2.40039 17.3018 6.69846 21.5999 12.0004 21.5999ZM16.4489 10.4484C16.9175 9.9798 16.9175 9.22 16.4489 8.75137C15.9803 8.28275 15.2205 8.28275 14.7519 8.75137L10.8004 12.7028L9.24892 11.1514C8.78029 10.6827 8.02049 10.6827 7.55186 11.1514C7.08323 11.62 7.08323 12.3798 7.55186 12.8484L9.95186 15.2484C10.4205 15.7171 11.1803 15.7171 11.6489 15.2484L16.4489 10.4484Z"
+                      fill="#00E272"
+                    />
+                  </svg>
+                </div>
+              );
+            }
+            // 확인 안됨 + 내가 체크 가능한 경우: 회색 체크 (클릭 가능)
+            if (
+              detail?.status !== "confirmed" &&
+              detail?.assignedMember?.id === myMemberId
+            ) {
+              return (
+                <button
+                  onClick={handleConfirmCustomer}
+                  className="flex items-center justify-center cursor-pointer"
+                  aria-label="고객 확인"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M12.0004 21.5999C17.3023 21.5999 21.6004 17.3018 21.6004 11.9999C21.6004 6.69797 17.3023 2.3999 12.0004 2.3999C6.69846 2.3999 2.40039 6.69797 2.40039 11.9999C2.40039 17.3018 6.69846 21.5999 12.0004 21.5999ZM16.4489 10.4484C16.9175 9.9798 16.9175 9.22 16.4489 8.75137C15.9803 8.28275 15.2205 8.28275 14.7519 8.75137L10.8004 12.7028L9.24892 11.1514C8.78029 10.6827 8.02049 10.6827 7.55186 11.1514C7.08323 11.62 7.08323 12.3798 7.55186 12.8484L9.95186 15.2484C10.4205 15.7171 11.1803 15.7171 11.6489 15.2484L16.4489 10.4484Z"
+                      fill="#B0B0B0"
+                    />
+                  </svg>
+                </button>
+              );
+            }
+            // 그 외: 아무것도 표시 안함
+            return null;
+          })()}
         </div>
         <button
           aria-label="close"
@@ -251,38 +286,6 @@ export default function CustomerDetailModalDesktop({
           <div className="h-[34px]" />
         ) : (
           <>
-            <button
-              onClick={handleConfirmCustomer}
-              disabled={
-                !(
-                  detail.status !== "confirmed" &&
-                  detail.assignedMember?.id === myMemberId
-                )
-              }
-              className={`h-[34px] px-4 rounded-[5px] text-body-3 flex items-center gap-1.5 ${
-                detail.status !== "confirmed" &&
-                detail.assignedMember?.id === myMemberId
-                  ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
-                  : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60 opacity-50"
-              }`}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M13.3333 4L6 11.3333L2.66667 8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              확인하기
-            </button>
             <button
               className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
                 hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"

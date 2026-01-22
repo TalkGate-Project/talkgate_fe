@@ -17,13 +17,15 @@ import { useAttendanceList } from "@/hooks/useAttendanceList";
 import { useAttendanceDate } from "@/hooks/useAttendanceDate";
 import { formatHm, computeWorkTime } from "@/utils/attendance";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { MembersTreeService } from "@/services/membersTree";
+import type { MemberTreeNode } from "@/types/membersTree";
 
 function AttendancePageContentInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isAttendanceMenuEnabled, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin, loading: memberLoading } = useMyMember();
+  const { isAdminOrSubAdmin, isLeader, member, loading: memberLoading } = useMyMember();
 
   const [projectId, setProjectId] = useState<string | null>(null);
   const { date: selectedDate, setDate: setSelectedDate, navigateDate } = useAttendanceDate();
@@ -35,6 +37,8 @@ function AttendancePageContentInner() {
   });
   const [isEmployeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
+  const [subordinateMemberIds, setSubordinateMemberIds] = useState<Set<number>>(new Set());
+  const [loadingSubordinates, setLoadingSubordinates] = useState(false);
 
   // 쿼리스트링에서 페이지와 limit 가져오기
   const currentPage = useMemo(() => {
@@ -53,16 +57,52 @@ function AttendancePageContentInner() {
   useEffect(() => {
     if (!attendanceReady || memberLoading) return;
 
-    // 근태 메뉴가 비활성화되었거나 admin/subAdmin이 아닌 경우 대시보드로 리다이렉트
-    if (!isAttendanceMenuEnabled || !isAdminOrSubAdmin) {
+    // 근태 메뉴가 비활성화되었거나 admin/subAdmin/팀장이 아닌 경우 대시보드로 리다이렉트
+    if (!isAttendanceMenuEnabled || (!isAdminOrSubAdmin && !isLeader)) {
       router.replace("/dashboard");
     }
-  }, [isAttendanceMenuEnabled, attendanceReady, isAdminOrSubAdmin, memberLoading, router]);
+  }, [isAttendanceMenuEnabled, attendanceReady, isAdminOrSubAdmin, isLeader, memberLoading, router]);
 
   useEffect(() => {
     const id = getSelectedProjectId();
     setProjectId(id || null);
   }, []);
+
+  // 팀장인 경우 자신의 직속 멤버 ID 목록 가져오기
+  useEffect(() => {
+    if (!projectId || !isLeader || !member?.id) return;
+
+    const fetchSubordinates = async () => {
+      try {
+        setLoadingSubordinates(true);
+        const subtree = await MembersTreeService.fetchSubtree(member.id, projectId);
+        
+        // subtree의 모든 descendants에서 멤버 ID 추출
+        const collectMemberIds = (node: MemberTreeNode): number[] => {
+          const ids: number[] = [];
+          // descendants의 모든 멤버 ID 수집
+          node.descendants.forEach((descendant) => {
+            ids.push(descendant.id);
+            // 재귀적으로 하위 멤버도 수집
+            if (descendant.descendants.length > 0) {
+              ids.push(...collectMemberIds(descendant));
+            }
+          });
+          return ids;
+        };
+
+        const memberIds = collectMemberIds(subtree);
+        setSubordinateMemberIds(new Set(memberIds));
+      } catch (error) {
+        console.error("Failed to fetch subordinates:", error);
+        setSubordinateMemberIds(new Set());
+      } finally {
+        setLoadingSubordinates(false);
+      }
+    };
+
+    fetchSubordinates();
+  }, [projectId, isLeader, member?.id]);
 
   // URL 쿼리스트링 업데이트 함수
   const persistQuery = useCallback(
@@ -140,8 +180,17 @@ function AttendancePageContentInner() {
   }, [rows]);
 
   // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
+  // 팀장인 경우 자신의 직속 멤버만 필터링
   const filteredData = useMemo(() => {
-    return rows.filter((r) => {
+    let data = rows;
+
+    // 팀장인 경우 자신의 직속 멤버만 필터링
+    if (isLeader && subordinateMemberIds.size > 0) {
+      data = data.filter((r) => subordinateMemberIds.has(r.memberId));
+    }
+
+    // 팀/포지션 필터 적용
+    return data.filter((r) => {
       const teamMatch = filters.team === "all" || (filters.team === "배정되지않음" ? !r.teamName?.trim() : r.teamName === filters.team);
       const positionMatch =
         filters.position === "all" || 
@@ -149,7 +198,7 @@ function AttendancePageContentInner() {
         (filters.position === "팀원" && r.role === "member");
       return teamMatch && positionMatch;
     });
-  }, [filters, rows]);
+  }, [filters, rows, isLeader, subordinateMemberIds]);
 
   const handleEmployeeClick = (employee: AttendanceItem) => {
     setSelectedMemberId(employee.memberId);

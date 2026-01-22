@@ -43,16 +43,16 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin } = useMyMember();
+  const { isAdminOrSubAdmin, isLeader } = useMyMember();
   const chatContext = useChatContextSafe();
   const hasUnread = chatContext?.hasUnread ?? false;
 
   // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
-  // useAttendanceMenu가 true여도 admin이나 subAdmin이 아니면 헤더의 근태 메뉴는 사용할 수 없음
+  // useAttendanceMenu가 true이고 admin/subAdmin/팀장(leader)인 경우에만 헤더의 근태 메뉴 표시
   // Hydration 에러 방지를 위해 attendanceReady를 체크
   const NAV_ITEMS = [
     ...BASE_NAV_ITEMS,
-    ...(attendanceReady && showAttendanceMenu && isAdminOrSubAdmin
+    ...(attendanceReady && showAttendanceMenu && (isAdminOrSubAdmin || isLeader)
       ? [ATTENDANCE_ITEM]
       : []),
     ...COMMON_NAV_ITEMS,
