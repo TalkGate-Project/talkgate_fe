@@ -15,17 +15,13 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { AttendanceItem } from "@/types/attendance";
 import { useAttendanceList } from "@/hooks/useAttendanceList";
 import { useAttendanceDate } from "@/hooks/useAttendanceDate";
-import { formatHm, computeWorkTime } from "@/utils/attendance";
-import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { MembersTreeService } from "@/services/membersTree";
-import type { MemberTreeNode } from "@/types/membersTree";
 
 function AttendancePageContentInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isAttendanceMenuEnabled, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin, isLeader, member, loading: memberLoading } = useMyMember();
+  const { loading: memberLoading } = useMyMember();
 
   const [projectId, setProjectId] = useState<string | null>(null);
   const { date: selectedDate, setDate: setSelectedDate, navigateDate } = useAttendanceDate();
@@ -37,8 +33,6 @@ function AttendancePageContentInner() {
   });
   const [isEmployeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
-  const [subordinateMemberIds, setSubordinateMemberIds] = useState<Set<number>>(new Set());
-  const [loadingSubordinates, setLoadingSubordinates] = useState(false);
 
   // 쿼리스트링에서 페이지와 limit 가져오기
   const currentPage = useMemo(() => {
@@ -53,56 +47,23 @@ function AttendancePageContentInner() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 20;
   }, [searchParams]);
 
-  // 근태 메뉴 사용 여부 및 권한 체크
+  // 근태 메뉴 사용 여부 체크
+  // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
   useEffect(() => {
     if (!attendanceReady || memberLoading) return;
 
-    // 근태 메뉴가 비활성화되었거나 admin/subAdmin/팀장이 아닌 경우 대시보드로 리다이렉트
-    if (!isAttendanceMenuEnabled || (!isAdminOrSubAdmin && !isLeader)) {
+    // 근태 메뉴가 비활성화된 경우 대시보드로 리다이렉트
+    if (!isAttendanceMenuEnabled) {
       router.replace("/dashboard");
     }
-  }, [isAttendanceMenuEnabled, attendanceReady, isAdminOrSubAdmin, isLeader, memberLoading, router]);
+  }, [isAttendanceMenuEnabled, attendanceReady, memberLoading, router]);
 
   useEffect(() => {
     const id = getSelectedProjectId();
     setProjectId(id || null);
   }, []);
 
-  // 팀장인 경우 자신의 직속 멤버 ID 목록 가져오기
-  useEffect(() => {
-    if (!projectId || !isLeader || !member?.id) return;
-
-    const fetchSubordinates = async () => {
-      try {
-        setLoadingSubordinates(true);
-        const subtree = await MembersTreeService.fetchSubtree(member.id, projectId);
-        
-        // subtree의 모든 descendants에서 멤버 ID 추출
-        const collectMemberIds = (node: MemberTreeNode): number[] => {
-          const ids: number[] = [];
-          // descendants의 모든 멤버 ID 수집
-          node.descendants.forEach((descendant) => {
-            ids.push(descendant.id);
-            // 재귀적으로 하위 멤버도 수집
-            if (descendant.descendants.length > 0) {
-              ids.push(...collectMemberIds(descendant));
-            }
-          });
-          return ids;
-        };
-
-        const memberIds = collectMemberIds(subtree);
-        setSubordinateMemberIds(new Set(memberIds));
-      } catch (error) {
-        console.error("Failed to fetch subordinates:", error);
-        setSubordinateMemberIds(new Set());
-      } finally {
-        setLoadingSubordinates(false);
-      }
-    };
-
-    fetchSubordinates();
-  }, [projectId, isLeader, member?.id]);
+  // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서 팀장 필터링 로직 제거
 
   // URL 쿼리스트링 업데이트 함수
   const persistQuery = useCallback(
@@ -179,18 +140,10 @@ function AttendancePageContentInner() {
     ];
   }, [rows]);
 
-  // 서버 데이터 필터링 (현재 스웨거 기준 서버가 팀/포지션 필터는 제공하지 않으므로 클라이언트 필터만 적용)
-  // 팀장인 경우 자신의 직속 멤버만 필터링
+  // 서버 데이터 필터링 (팀/포지션 필터만 클라이언트에서 적용)
+  // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 UI 필터만 적용
   const filteredData = useMemo(() => {
-    let data = rows;
-
-    // 팀장인 경우 자신의 직속 멤버만 필터링
-    if (isLeader && subordinateMemberIds.size > 0) {
-      data = data.filter((r) => subordinateMemberIds.has(r.memberId));
-    }
-
-    // 팀/포지션 필터 적용
-    return data.filter((r) => {
+    return rows.filter((r) => {
       const teamMatch = filters.team === "all" || (filters.team === "배정되지않음" ? !r.teamName?.trim() : r.teamName === filters.team);
       const positionMatch =
         filters.position === "all" || 
@@ -198,15 +151,15 @@ function AttendancePageContentInner() {
         (filters.position === "팀원" && r.role === "member");
       return teamMatch && positionMatch;
     });
-  }, [filters, rows, isLeader, subordinateMemberIds]);
+  }, [filters, rows]);
 
   const handleEmployeeClick = (employee: AttendanceItem) => {
     setSelectedMemberId(employee.memberId);
     setEmployeeModalOpen(true);
   };
 
-  // 근태 메뉴가 준비되지 않았거나 비활성화되었거나 권한이 없는 경우 로딩 표시
-  if (!attendanceReady || memberLoading || !isAttendanceMenuEnabled || !isAdminOrSubAdmin) {
+  // 근태 메뉴가 준비되지 않았거나 비활성화된 경우 로딩 표시
+  if (!attendanceReady || memberLoading || !isAttendanceMenuEnabled) {
     return (
       <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
         <div className="mx-auto max-w-[1324px] w-full px-0 pt-9 pb-12">

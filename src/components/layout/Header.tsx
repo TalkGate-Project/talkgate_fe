@@ -8,7 +8,6 @@ import { clearSelectedProjectId, clearUseAttendanceMenu } from "@/lib/project";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
-import { useMyMember } from "@/hooks/useMyMember";
 import NotificationBell from "./NotificationBell";
 import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
@@ -43,18 +42,16 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
-  const { isAdminOrSubAdmin, isLeader } = useMyMember();
   const chatContext = useChatContextSafe();
   const hasUnread = chatContext?.hasUnread ?? false;
 
   // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
-  // useAttendanceMenu가 true이고 admin/subAdmin/팀장(leader)인 경우에만 헤더의 근태 메뉴 표시
+  // 프로젝트가 근태 메뉴를 사용하는 경우에만 헤더의 근태 메뉴 표시
+  // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
   // Hydration 에러 방지를 위해 attendanceReady를 체크
   const NAV_ITEMS = [
     ...BASE_NAV_ITEMS,
-    ...(attendanceReady && showAttendanceMenu && (isAdminOrSubAdmin || isLeader)
-      ? [ATTENDANCE_ITEM]
-      : []),
+    ...(attendanceReady && showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
     ...COMMON_NAV_ITEMS,
   ];
 
