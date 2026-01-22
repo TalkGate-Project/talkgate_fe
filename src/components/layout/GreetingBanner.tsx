@@ -9,6 +9,7 @@ import { ProjectsService } from "@/services/projects";
 import { AttendanceService } from "@/services/attendance";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import { shouldShowAttendanceButton } from "@/utils/permissions";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import type { ProjectSummary } from "@/services/projects";
 
 type GreetingBannerProps = {
@@ -100,12 +101,38 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
     },
+    onError: (error: any) => {
+      // 개발자용 로깅 (콘솔에만)
+      console.error("Check-in failed:", error);
+      
+      // 사용자에게는 일반적인 친화적 메시지만 표시
+      showErrorModal({
+        type: "error",
+        title: "출근 처리 실패",
+        headline: "출근 처리에 실패했습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    },
   });
 
   const checkOutMutation = useMutation({
     mutationFn: () => AttendanceService.checkOut(String(projectId)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    },
+    onError: (error: any) => {
+      // 개발자용 로깅 (콘솔에만)
+      console.error("Check-out failed:", error);
+      
+      // 사용자에게는 일반적인 친화적 메시지만 표시
+      showErrorModal({
+        type: "error",
+        title: "퇴근 처리 실패",
+        headline: "퇴근 처리에 실패했습니다",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
     },
   });
 
