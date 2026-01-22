@@ -104,14 +104,14 @@ function HierarchicalTeamList({
 }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Initialize items up to 3 depth as expanded by default
+  // Initialize items up to level 0, 1 as expanded by default (2 depth)
   useEffect(() => {
     const allIds = new Set<string>();
     function traverse(nodes: TeamMember[], currentDepth: number = 0) {
       nodes.forEach((node) => {
         allIds.add(node.id);
-        // 3 depth까지만 자동으로 확장
-        if (currentDepth < 3 && node.children) {
+        // currentDepth가 1보다 작을 때만 자동으로 확장 (level 0, 1까지만)
+        if (currentDepth < 1 && node.children) {
           traverse(node.children, currentDepth + 1);
         }
       });

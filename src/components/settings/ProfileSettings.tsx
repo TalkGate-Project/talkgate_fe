@@ -9,11 +9,13 @@ import type { OrganizationTreeNode, UpdateProfilePayload } from "@/types/members
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import AsyncButton from "@/components/common/AsyncButton";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
   const { member, loading, refetch } = useMyMember(projectId);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   
   // 프로필 정보 상태
   const [name, setName] = useState("");
@@ -33,13 +35,14 @@ export default function ProfileSettings() {
   const [orgRoot, setOrgRoot] = useState<OrganizationTreeNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set());
 
-  // 3 depth까지만 노드 ID를 수집하는 헬퍼 함수
-  const collectNodesUpToDepth = useCallback((node: OrganizationTreeNode | null, maxDepth: number = 3): Set<number> => {
+  // level 0, 1까지만 노드 ID를 수집하는 헬퍼 함수 (2 depth)
+  const collectNodesUpToDepth = useCallback((node: OrganizationTreeNode | null, maxDepth: number = 1): Set<number> => {
     const ids = new Set<number>();
     if (!node) return ids;
     const walk = (current: OrganizationTreeNode, currentDepth: number = 0) => {
       ids.add(current.id);
-      // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+      // currentDepth가 maxDepth(1)보다 작을 때만 자식 노드를 재귀적으로 탐색
+      // 즉, level 0, 1까지만 자동으로 열림
       if (currentDepth < maxDepth && current.descendants) {
         current.descendants.forEach((child) => walk(child, currentDepth + 1));
       }
@@ -66,7 +69,7 @@ export default function ProfileSettings() {
 
     if (member.organizationTree) {
       setOrgRoot(member.organizationTree);
-      setExpandedNodes(collectNodesUpToDepth(member.organizationTree, 3));
+      setExpandedNodes(collectNodesUpToDepth(member.organizationTree, 1));
     } else {
       setOrgRoot(null);
       setExpandedNodes(new Set());
@@ -211,6 +214,14 @@ export default function ProfileSettings() {
     });
   }, []);
 
+  const handleMemberClick = useCallback((memberId: number) => {
+    setSelectedMemberId(memberId);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedMemberId(null);
+  }, []);
+
   if (!mounted || loading) {
     return (
       <div className="bg-card rounded-[14px] shadow-sm p-6">
@@ -288,9 +299,22 @@ export default function ProfileSettings() {
             </div>
 
             {/* Name */}
-            <span className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px]">
-              {node.name}
-            </span>
+            {node.id !== member?.id ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMemberClick(node.id);
+                }}
+                className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px] hover:underline cursor-pointer text-left bg-transparent border-none p-0"
+              >
+                {node.name}
+              </button>
+            ) : (
+              <span className="text-[16px] font-semibold text-ink dark:text-neutral-80 leading-[24px]">
+                {node.name}
+              </span>
+            )}
 
             {/* Team Badge (Leader only) */}
             {isLeader && node.teamName && (
@@ -540,6 +564,17 @@ export default function ProfileSettings() {
             )}
         </div>
       </div>
+
+      {/* 멤버 정보 모달 */}
+      {selectedMemberId && (
+        <TeamMemberInfoModal
+          open={Boolean(selectedMemberId)}
+          memberId={selectedMemberId}
+          onClose={handleCloseModal}
+          projectId={projectId}
+          onMemberClick={handleMemberClick}
+        />
+      )}
     </div>
   );
 }

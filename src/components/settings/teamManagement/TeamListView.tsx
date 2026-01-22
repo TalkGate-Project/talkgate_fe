@@ -53,13 +53,14 @@ export default function TeamListView({
   matchingIds = new Set(),
   expandedForSearch = new Set(),
 }: Props) {
-  // 3 depth까지만 기본적으로 열린 상태로 초기화
-  const collectItemsUpToDepth = useCallback((items: TeamMember[], maxDepth: number = 3): Set<string> => {
+  // level 0, 1까지만 기본적으로 열린 상태로 초기화 (2 depth)
+  const collectItemsUpToDepth = useCallback((items: TeamMember[], maxDepth: number = 1): Set<string> => {
     const ids = new Set<string>();
     const traverse = (nodes: TeamMember[], currentDepth: number = 0) => {
       nodes.forEach((node) => {
         ids.add(node.id);
-        // maxDepth(3)보다 작을 때만 자식 노드를 재귀적으로 탐색
+        // currentDepth가 maxDepth(1)보다 작을 때만 자식 노드를 재귀적으로 탐색
+        // 즉, level 0, 1까지만 자동으로 열림
         if (currentDepth < maxDepth && node.children && node.children.length > 0) {
           traverse(node.children, currentDepth + 1);
         }
@@ -70,13 +71,13 @@ export default function TeamListView({
   }, []);
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
-    return collectItemsUpToDepth(data, 3);
+    return collectItemsUpToDepth(data, 1);
   });
 
-  // data가 변경되면 3 depth까지만 다시 열린 상태로 초기화
+  // data가 변경되면 level 0, 1까지만 다시 열린 상태로 초기화
   useEffect(() => {
     if (data.length > 0) {
-      const nodeIds = collectItemsUpToDepth(data, 3);
+      const nodeIds = collectItemsUpToDepth(data, 1);
       setExpandedItems(nodeIds);
     }
   }, [data, collectItemsUpToDepth]);
