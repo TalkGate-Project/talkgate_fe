@@ -155,4 +155,31 @@ export function formatAmountKR(amount: number): string {
   return new Intl.NumberFormat("ko-KR").format(amount) + "원";
 }
 
+/**
+ * 전화번호를 하이픈이 포함된 형식으로 포맷합니다.
+ * 숫자만 입력받아 자동으로 하이픈을 추가합니다.
+ * @param value - 전화번호 (숫자만 포함된 문자열 또는 하이픈이 포함된 문자열)
+ * @returns 포맷된 전화번호 문자열 (예: "010-1234-5678")
+ */
+export function formatPhoneNumber(value: string): string {
+  if (!value) return "";
+  // 숫자만 추출
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+}
+
+/**
+ * 전화번호 입력 핸들러에서 사용하는 함수입니다.
+ * 숫자만 입력받아 하이픈이 포함된 형식으로 변환합니다.
+ * @param value - 입력된 값
+ * @returns 포맷된 전화번호 문자열 (최대 11자리)
+ */
+export function formatPhoneInput(value: string): string {
+  // 숫자만 추출하고 최대 11자리로 제한
+  const numbers = value.replace(/\D/g, "").slice(0, 11);
+  return formatPhoneNumber(numbers);
+}
+
 
