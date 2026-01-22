@@ -343,12 +343,12 @@ export default function CustomersTable({
                   {h}
                 </th>
               ))}
-              {/* 모바일: 이름, 전화번호, 담당자만 표시 */}
+              {/* 모바일: 이름, 카테고리, 담당자만 표시 */}
               <th className="md:hidden typo-title-4 font-medium px-1 h-[40px]">
                 이름
               </th>
-              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px]">
-                전화번호
+              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px] text-center">
+                카테고리
               </th>
               <th className="md:hidden typo-title-4 font-medium px-1 h-[40px] rounded-r-[8px]">
                 담당자
@@ -602,7 +602,7 @@ export default function CustomersTable({
                         ) : null}
                       </div>
                     </td>
-                    {/* 모바일: 이름, 전화번호, 담당자만 표시 */}
+                    {/* 모바일: 이름, 카테고리, 담당자만 표시 */}
                     <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
                       <button
                         className="cursor-pointer text-inherit"
@@ -611,8 +611,44 @@ export default function CustomersTable({
                         {c.name || "-"}
                       </button>
                     </td>
-                    <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
-                      {c.contact1 || "-"}
+                    <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 text-center">
+                      {(() => {
+                        // 마지막 상담내용의 카테고리를 찾기
+                        const notes = Array.isArray(c.recentNotes)
+                          ? c.recentNotes
+                          : [];
+
+                        // 상담/노트가 없는 경우에만 "-" 표시
+                        if (notes.length === 0)
+                          return <span className="opacity-80">-</span>;
+
+                        // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
+                        const sortedNotes = [...notes].sort(
+                          (a, b) =>
+                            new Date(b.createdAt).getTime() -
+                            new Date(a.createdAt).getTime()
+                        );
+                        const lastNote = sortedNotes[0];
+
+                        // 카테고리 정보 확인
+                        const categoryId = lastNote.categoryId;
+                        const category = categories.find(
+                          (cat) => cat.id === categoryId
+                        );
+                        const categoryName = category?.name || "일반";
+                        const badgeStyle = getBadgeStyle(
+                          categoryName,
+                          categoryId || 0
+                        );
+
+                        return (
+                          <span
+                            className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                          >
+                            {categoryName}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
                       {c.assignedMemberName || "-"}

@@ -102,6 +102,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     hasChanges,
     actions: {
       resetForm,
+      refetch: fetchDetail,
       ...actions,
     },
   };
