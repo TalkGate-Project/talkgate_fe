@@ -108,6 +108,19 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
       // 개발자용 로깅 (콘솔에만)
       console.error("Check-in failed:", error);
       
+      // ALREADY_CHECKED_IN 에러 코드 처리
+      const errorCode = error?.data?.code;
+      if (errorCode === "ALREADY_CHECKED_IN") {
+        showErrorModal({
+          type: "error",
+          title: "출근 처리 실패",
+          headline: "이미 오늘 출근을 했습니다",
+          description: "",
+          hideCancel: true,
+        });
+        return;
+      }
+      
       // 사용자에게는 일반적인 친화적 메시지만 표시
       showErrorModal({
         type: "error",
@@ -142,11 +155,33 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
   const handleToggleAttendance = () => {
     if (!projectId) return;
     if (isCheckedIn) {
-      if (confirm("퇴근하시겠습니까?")) {
-        checkOutMutation.mutate();
-      }
+      // 퇴근 확인 모달
+      showErrorModal({
+        type: "info",
+        title: "퇴근 확인",
+        headline: "퇴근하시겠습니까?",
+        description: "",
+        confirmText: "확인",
+        cancelText: "취소",
+        hideCancel: false,
+        onConfirm: () => {
+          checkOutMutation.mutate();
+        },
+      });
     } else {
-      checkInMutation.mutate();
+      // 출근 확인 모달
+      showErrorModal({
+        type: "info",
+        title: "출근 확인",
+        headline: "출근하시겠습니까?",
+        description: "",
+        confirmText: "확인",
+        cancelText: "취소",
+        hideCancel: false,
+        onConfirm: () => {
+          checkInMutation.mutate();
+        },
+      });
     }
   };
 
