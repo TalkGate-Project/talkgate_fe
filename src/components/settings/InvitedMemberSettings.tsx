@@ -406,7 +406,7 @@ export default function InvitedMemberSettings() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-7 py-4 md:py-0 md:h-[76px] gap-3 md:gap-0">
         <h1 className="text-[18px] md:text-[24px] font-bold text-foreground dark:text-neutral-80 leading-5">
-          초대중인 멤버
+          멤버 초대
         </h1>
 
         {/* 멤버초대 버튼 - admin/subAdmin만 표시 */}
@@ -468,7 +468,7 @@ export default function InvitedMemberSettings() {
         <div className="space-y-0">
           {invitations.length === 0 ? (
             <div className="py-8 text-center text-neutral-60 dark:text-neutral-60 text-[14px]">
-              초대중인 멤버가 없습니다.
+              초대 중인 멤버가 없습니다.
             </div>
           ) : (
             invitations.map((invitation) => (

@@ -83,7 +83,7 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
       },
       {
         key: "invited-member",
-        label: "초대중인 멤버",
+        label: "멤버 초대",
         icon: InvitedMemberIcon,
         // 모든 사용자 접근 가능
       },
