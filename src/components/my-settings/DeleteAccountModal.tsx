@@ -140,17 +140,17 @@ export default function DeleteAccountModal({
         <div className="w-full h-[1px] bg-neutral-30/40 dark:!bg-[#444444]"></div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 px-4 md:px-7 py-3">
+        <div className="flex gap-3 px-4 md:px-7 py-3 md:justify-end">
           <button
             onClick={handleClose}
-            className="cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 flex-1 md:flex-initial"
+            className="cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 flex-1 md:flex-none"
           >
             취소
           </button>
           <button
             onClick={handleConfirm}
             disabled={!isConfirmed}
-            className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors flex-1 md:flex-initial md:ml-auto ${
+            className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors flex-1 md:flex-none ${
               isConfirmed
                 ? "bg-danger-40 dark:bg-danger-40 text-white hover:bg-danger-60 dark:hover:bg-danger-60 cursor-pointer"
                 : "bg-neutral-50 dark:bg-neutral-50 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"

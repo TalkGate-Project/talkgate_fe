@@ -2,14 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { StatisticsService } from "@/services/statistics";
 import type { RankingTeamResponse, RankingTeamRecord, RankingMemberResponse, RankingMemberRecord } from "@/types/statistics";
 
-export function useStatsTeamRanking(projectId: string | null, page = 1, limit = 5) {
+export function useStatsTeamRanking(projectId: string | null, page = 1, limit = 5, month?: Date | null) {
+  const year = month ? month.getFullYear() : undefined;
+  const monthNum = month ? month.getMonth() + 1 : undefined;
   const query = useQuery<RankingTeamResponse>({
-    queryKey: ["stats", "ranking", "team", projectId, page, limit],
+    queryKey: ["stats", "ranking", "team", projectId, page, limit, year, monthNum],
     enabled: Boolean(projectId),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.rankingTeam({ projectId, page, limit });
+      const queryParams: any = { projectId, page, limit };
+      if (year && monthNum) {
+        queryParams.year = year;
+        queryParams.month = monthNum;
+      }
+      const res = await StatisticsService.rankingTeam(queryParams);
       return res.data;
     },
   });
@@ -25,14 +32,21 @@ export function useStatsTeamRanking(projectId: string | null, page = 1, limit = 
   };
 }
 
-export function useStatsMemberRanking(projectId: string | null, page = 1, limit = 5) {
+export function useStatsMemberRanking(projectId: string | null, page = 1, limit = 5, month?: Date | null) {
+  const year = month ? month.getFullYear() : undefined;
+  const monthNum = month ? month.getMonth() + 1 : undefined;
   const query = useQuery<RankingMemberResponse>({
-    queryKey: ["stats", "ranking", "member", projectId, page, limit],
+    queryKey: ["stats", "ranking", "member", projectId, page, limit, year, monthNum],
     enabled: Boolean(projectId),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.rankingMember({ projectId, page, limit });
+      const queryParams: any = { projectId, page, limit };
+      if (year && monthNum) {
+        queryParams.year = year;
+        queryParams.month = monthNum;
+      }
+      const res = await StatisticsService.rankingMember(queryParams);
       return res.data;
     },
   });

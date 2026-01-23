@@ -13,6 +13,7 @@ const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
 type TeamRankingListProps = {
   projectId: string | null;
+  month?: Date | null;
 };
 
 function EmptyState({ message }: { message: string }) {
@@ -39,17 +40,17 @@ function ErrorState() {
   );
 }
 
-export default function TeamRankingList({ projectId }: TeamRankingListProps) {
+export default function TeamRankingList({ projectId, month }: TeamRankingListProps) {
   const [page, setPage] = useState(1);
   const limit = 5;
-  const { rows, totalCount, isLoading, isError } = useStatsTeamRanking(projectId, page, limit);
+  const { rows, totalCount, isLoading, isError } = useStatsTeamRanking(projectId, page, limit, month);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProjectId] = useSelectedProjectId();
 
   useEffect(() => {
     setPage(1);
-  }, [projectId]);
+  }, [projectId, month]);
 
   const handleTeamClick = (leaderMemberId: number | null) => {
     if (leaderMemberId) {
