@@ -274,7 +274,7 @@ export default function PaymentMemberTable() {
           <SortIcon state={sortType === SortType.Count ? (sortOrderState === "ASC" ? "asc" : sortOrderState === "DESC" ? "desc" : "none") : "none"} />
         </div>
       </div>
-      <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card">
+      <div className="divide-y divide-[#44444433] min-h-[280px] bg-card border-b border-[#44444455]">
         {showSkeleton && (
           <>
             {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
