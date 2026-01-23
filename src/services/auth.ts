@@ -355,7 +355,7 @@ export const AuthService = {
     return apiClient.post<TwoFactorDisableSendCodeResponse>("/v1/auth/two-factor/disable/send-code");
   },
   twoFactorDisable(input: TwoFactorDisableInput) {
-    return apiClient.delete<BasicMessageResponse>("/v1/auth/two-factor/disable", { body: input });
+    return apiClient.post<BasicMessageResponse>("/v1/auth/two-factor/disable", input);
   },
   twoFactorLogin(input: TwoFactorLoginInput) {
     console.log("[AuthService] 🔐 twoFactorLogin 호출 - 서버 API 사용");
