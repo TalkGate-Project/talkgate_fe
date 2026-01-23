@@ -43,14 +43,14 @@ export default function AssignMemberTable() {
   const missingProject = projectReady && !projectId;
 
   const initialTeam = (searchParams.get("assignTeam") as string | null) ?? "all";
-  const initialSort = (searchParams.get("assignSort") as MemberFilterState["sort"] | null) ?? "desc";
+  const initialSort = (searchParams.get("assignSort") as "asc" | "desc" | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("assignPage") ?? "1", 10);
   const initialSortType = (searchParams.get("assignSortType") as SortType | null) ?? null;
   const initialSortOrder = (searchParams.get("assignSortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
-  const [sortOrder, setSortOrder] = useState<MemberFilterState["sort"]>(initialSort === "asc" ? "asc" : "desc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

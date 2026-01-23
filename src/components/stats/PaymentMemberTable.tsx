@@ -65,14 +65,14 @@ export default function PaymentMemberTable() {
   const [endDate, setEndDate] = useState<string>(initialRange.endDate);
 
   const initialTeam = (searchParams.get("payTeam") as string | null) ?? "all";
-  const initialSort = (searchParams.get("paySort") as MemberFilterState["sort"] | null) ?? "desc";
+  const initialSort = (searchParams.get("paySort") as "asc" | "desc" | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("payPage") ?? "1", 10);
   const initialSortType = (searchParams.get("paySortType") as SortType | null) ?? null;
   const initialSortOrder = (searchParams.get("paySortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
-  const [sortOrder, setSortOrder] = useState<MemberFilterState["sort"]>(initialSort === "asc" ? "asc" : "desc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

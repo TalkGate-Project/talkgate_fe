@@ -31,12 +31,19 @@ export default function SalesRanking() {
     setSelectedMemberId(null);
   }, []);
 
+  // 현재 월 계산 (now - 1day 기준, 데이터 집계는 전날까지만 되어 있음)
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const currentYear = yesterday.getFullYear();
+  const currentMonth = yesterday.getMonth() + 1;
+
   const teamQuery = useQuery<RankingTeamResponse>({
-    queryKey: ["dashboard", "ranking", "team", projectId],
+    queryKey: ["dashboard", "ranking", "team", projectId, currentYear, currentMonth],
     enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.rankingTeam({ projectId, page: 1, limit: 5 });
+      const res = await StatisticsService.rankingTeam({ projectId, page: 1, limit: 5, year: currentYear, month: currentMonth });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -44,11 +51,11 @@ export default function SalesRanking() {
   });
 
   const memberQuery = useQuery<RankingMemberResponse>({
-    queryKey: ["dashboard", "ranking", "member", projectId],
+    queryKey: ["dashboard", "ranking", "member", projectId, currentYear, currentMonth],
     enabled: Boolean(projectId),
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.rankingMember({ projectId, page: 1, limit: 5 });
+      const res = await StatisticsService.rankingMember({ projectId, page: 1, limit: 5, year: currentYear, month: currentMonth });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
