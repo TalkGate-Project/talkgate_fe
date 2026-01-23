@@ -10,12 +10,14 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import SortIcon from "@/components/common/SortIcon";
 import type {
   CustomerAssignmentByMemberResponse,
   CustomerAssignmentMemberRecord,
   CustomerAssignmentTeamRecord,
   CustomerAssignmentByTeamResponse,
 } from "@/types/statistics";
+import { SortType } from "@/types/statistics";
 
 const PAGE_SIZE = 10;
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
@@ -43,6 +45,8 @@ export default function AssignMemberTable() {
   const initialTeam = (searchParams.get("assignTeam") as string | null) ?? "all";
   const initialSort = (searchParams.get("assignSort") as MemberFilterState["sort"] | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("assignPage") ?? "1", 10);
+  const initialSortType = (searchParams.get("assignSortType") as SortType | null) ?? null;
+  const initialSortOrder = (searchParams.get("assignSortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
@@ -50,6 +54,8 @@ export default function AssignMemberTable() {
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortType, setSortType] = useState<SortType | null>(initialSortType);
+  const [sortOrderState, setSortOrderState] = useState<"ASC" | "DESC" | null>(initialSortOrder);
 
   const handleMemberClick = (memberId: number) => {
     setSelectedMemberId(memberId);
@@ -69,9 +75,13 @@ export default function AssignMemberTable() {
     else params.delete("assignSort");
     if (page > 1) params.set("assignPage", String(page));
     else params.delete("assignPage");
+    if (sortType) params.set("assignSortType", sortType);
+    else params.delete("assignSortType");
+    if (sortOrderState) params.set("assignSortOrder", sortOrderState);
+    else params.delete("assignSortOrder");
     router.replace(`?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamFilter, sortOrder, page]);
+  }, [teamFilter, sortOrder, page, sortType, sortOrderState]);
 
   const teamOverviewQuery = useQuery<CustomerAssignmentByTeamResponse>({
     queryKey: ["stats", "assignment", "team-overview", projectId],
@@ -84,7 +94,7 @@ export default function AssignMemberTable() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const sortParam = sortOrder === "desc" ? "DESC" : "ASC";
+  const sortParam = sortOrderState ?? (sortOrder === "desc" ? "DESC" : "ASC");
   const teamIdParam = teamFilter !== "all" && /^\d+$/.test(teamFilter) ? Number(teamFilter) : undefined;
 
   const memberQuery = useQuery<CustomerAssignmentByMemberResponse>({
@@ -93,7 +103,7 @@ export default function AssignMemberTable() {
       "assignment",
       "member",
       projectId,
-      { page, sort: sortParam, team: teamIdParam ?? "all" },
+      { page, sort: sortParam, sortType, team: teamIdParam ?? "all" },
     ],
     enabled: hasProject,
     placeholderData: (previous) => previous,
@@ -104,6 +114,7 @@ export default function AssignMemberTable() {
         page,
         limit: PAGE_SIZE,
         sortOrder: sortParam,
+        ...(sortType ? { sortType } : {}),
         ...(typeof teamIdParam === "number" ? { teamId: teamIdParam } : {}),
       });
       return res.data;
@@ -182,7 +193,25 @@ export default function AssignMemberTable() {
       <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}>
         <div className="md:col-span-1">이름</div>
         <div className="md:col-span-1">팀</div>
-        <div className="md:col-span-1">배정 건수</div>
+        <div className="md:col-span-1 flex items-center gap-1 cursor-pointer" onClick={() => {
+          if (sortType === SortType.Count) {
+            if (sortOrderState === "DESC") {
+              setSortOrderState("ASC");
+            } else if (sortOrderState === "ASC") {
+              setSortType(null);
+              setSortOrderState(null);
+            } else {
+              setSortOrderState("DESC");
+            }
+          } else {
+            setSortType(SortType.Count);
+            setSortOrderState("DESC");
+          }
+          setPage(1);
+        }}>
+          배정 건수
+          <SortIcon state={sortType === SortType.Count ? (sortOrderState === "ASC" ? "asc" : sortOrderState === "DESC" ? "desc" : "none") : "none"} />
+        </div>
       </div>
       <div className="divide-y divide-[#44444433] min-h-[280px] bg-card border-b border-[#44444455]">
         {showSkeleton && (
@@ -243,11 +272,10 @@ export default function AssignMemberTable() {
         onClose={() => setOpen(false)}
         onApply={(f) => {
           setTeamFilter(f.team);
-          setSortOrder(f.sort);
           setPage(1);
           setOpen(false);
         }}
-        defaults={{ team: teamFilter, sort: sortOrder }}
+        defaults={{ team: teamFilter }}
         teamOptions={teamOptions}
       />
       {selectedMemberId !== null && (

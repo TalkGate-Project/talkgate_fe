@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useStatsMemberRanking } from "@/hooks/useStatsRanking";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
@@ -48,6 +48,18 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProjectId] = useSelectedProjectId();
 
+  // 현재 선택된 월이 이번달인지 확인 (now - 1day 기준)
+  const isCurrentMonth = useMemo(() => {
+    if (!month) return false;
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return (
+      month.getFullYear() === yesterday.getFullYear() &&
+      month.getMonth() === yesterday.getMonth()
+    );
+  }, [month]);
+
   useEffect(() => {
     setPage(1);
   }, [projectId, month]);
@@ -85,10 +97,21 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
       <div className="bg-neutral-10 rounded-[12px] px-3 py-3 md:px-7 md:py-5">
         <div className="space-y-2 md:space-y-3">
           {rows.map((row) => {
-            const previousAmount = row.previousTotalAmount ?? 0;
+            // 이번달일 경우 yesterdayTotalAmount 사용, 그 외에는 previousTotalAmount 사용
+            const previousAmount = isCurrentMonth && row.yesterdayTotalAmount !== null
+              ? row.yesterdayTotalAmount
+              : (row.previousTotalAmount ?? 0);
             const diff = row.totalAmount - previousAmount;
-            const badgeLabelWeb = `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
-            const badgeLabelMobile = diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`;
+            
+            // 이번달일 경우만 변화량 표시
+            const showChange = isCurrentMonth && row.yesterdayTotalAmount !== null;
+            
+            const badgeLabelWeb = showChange
+              ? `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`
+              : "";
+            const badgeLabelMobile = showChange
+              ? (diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`)
+              : "";
             
             return (
               <div key={`${row.memberId}-${row.memberName}`} className="surface rounded-[12px] h-[88px] flex items-center px-3 md:px-5 justify-between">
@@ -124,10 +147,12 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
                     </div>
                   </div>
                 </div>
-                <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
-                  <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
-                  <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
-                </div>
+                {showChange && (
+                  <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+                    <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
+                    <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
+                  </div>
+                )}
               </div>
             );
           })}

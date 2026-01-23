@@ -4,6 +4,11 @@ import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
 
 export type SortOrder = "ASC" | "DESC";
 
+export enum SortType {
+  Amount = 'amount',
+  Count = 'count',
+}
+
 export type PaginationQuery = {
   page: number;
   limit: number;
@@ -20,6 +25,7 @@ export type PagedPayload<T> = {
 
 export type CustomerAssignmentByMemberQuery = PaginationQuery & {
   sortOrder: SortOrder;
+  sortType?: SortType;
   teamId?: number;
   projectId: string;
 };
@@ -77,6 +83,7 @@ export type CustomerPaymentByMemberQuery = PaginationQuery & {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
   sortOrder: SortOrder;
+  sortType?: SortType;
   teamId?: number;
   projectId: string;
 };
@@ -154,8 +161,8 @@ export type CustomerRegistrationResponse = ApiSuccessResponse<
 
 export type RankingMemberQuery = PaginationQuery & {
   projectId: string;
-  year?: number;
-  month?: number;
+  year: number;
+  month: number;
 };
 
 export type RankingMemberRecord = {
@@ -170,6 +177,8 @@ export type RankingMemberRecord = {
   rankChange: number | null;
   previousTotalAmount: number | null;
   amountChangeRate: string | null;
+  yesterdayRank: number | null;
+  yesterdayTotalAmount: number | null;
 };
 
 export type RankingMemberResponse = ApiSuccessResponse<
@@ -180,8 +189,8 @@ export type RankingMemberResponse = ApiSuccessResponse<
 
 export type RankingTeamQuery = PaginationQuery & {
   projectId: string;
-  year?: number;
-  month?: number;
+  year: number;
+  month: number;
 };
 
 export type RankingTeamRecord = {
@@ -196,6 +205,8 @@ export type RankingTeamRecord = {
   rankChange: number | null;
   previousTotalAmount: number | null;
   amountChangeRate: string | null;
+  yesterdayRank: number | null;
+  yesterdayTotalAmount: number | null;
 };
 
 export type RankingTeamResponse = ApiSuccessResponse<
@@ -206,8 +217,8 @@ export type RankingTeamResponse = ApiSuccessResponse<
 
 export type RankingMyQuery = {
   projectId: string;
-  year?: number;
-  month?: number;
+  year: number;
+  month: number;
 };
 
 export type RankingMyRecord = {
@@ -222,6 +233,8 @@ export type RankingMyRecord = {
   rankChange: number | null;
   previousTotalAmount: number | null;
   amountChangeRate: string | null;
+  yesterdayRank: number | null;
+  yesterdayTotalAmount: number | null;
 };
 
 export type RankingMyResponse = ApiSuccessResponse<{
@@ -233,6 +246,7 @@ export type RankingMyTeamRecord = {
   id: number;
   teamId: number | null;
   teamName: string | null;
+  leaderMemberId: number | null;
   totalAmount: number;
   totalCount: number;
   rank: number;
@@ -240,6 +254,8 @@ export type RankingMyTeamRecord = {
   rankChange: number | null;
   previousTotalAmount: number | null;
   amountChangeRate: string | null;
+  yesterdayRank: number | null;
+  yesterdayTotalAmount: number | null;
 };
 
 export type RankingMyTeamResponse = ApiSuccessResponse<{

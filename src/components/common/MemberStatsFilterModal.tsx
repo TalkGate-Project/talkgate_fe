@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 type TeamValue = string;
-type SortValue = "desc" | "asc";
 
-export type MemberFilterState = { team: TeamValue; sort: SortValue };
+export type MemberFilterState = { team: TeamValue };
 
 type TeamOption = { label: string; value: TeamValue };
-type SortOption = { label: string; value: SortValue };
 
 type Props = {
   open: boolean;
@@ -18,7 +16,6 @@ type Props = {
   onApply: (f: MemberFilterState) => void;
   defaults: MemberFilterState;
   teamOptions?: TeamOption[];
-  sortOptions?: SortOption[];
 };
 
 const FALLBACK_TEAM_OPTIONS: TeamOption[] = [
@@ -29,11 +26,6 @@ const FALLBACK_TEAM_OPTIONS: TeamOption[] = [
   { label: "배정되지않음", value: "배정되지않음" },
 ];
 
-const FALLBACK_SORT_OPTIONS: SortOption[] = [
-  { label: "내림차순", value: "desc" },
-  { label: "오름차순", value: "asc" },
-];
-
 export default function MemberStatsFilterModal({
   open,
   title,
@@ -41,20 +33,16 @@ export default function MemberStatsFilterModal({
   onApply,
   defaults,
   teamOptions,
-  sortOptions,
 }: Props) {
   const availableTeamOptions = teamOptions?.length ? teamOptions : FALLBACK_TEAM_OPTIONS;
-  const availableSortOptions = sortOptions?.length ? sortOptions : FALLBACK_SORT_OPTIONS;
   const teamDotColors = ["var(--primary-40)", "var(--warning-20)", "var(--danger-20)", "var(--secondary-20)"];
 
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
-  const [localSort, setLocalSort] = useState<SortValue>(defaults.sort);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setLocalTeam(defaults.team);
-    setLocalSort(defaults.sort);
-  }, [defaults.team, defaults.sort]);
+  }, [defaults.team]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -142,24 +130,6 @@ export default function MemberStatsFilterModal({
               ))}
             </div>
           </div>
-          <div>
-            <div className="text-[14px] text-[#808080] dark:text-neutral-60 mb-2">정렬</div>
-            <div className="flex gap-2">
-              {availableSortOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setLocalSort(opt.value)}
-                  className={`cursor-pointer px-3 h-[34px] rounded-[5px] border text-[14px] ${
-                    localSort === opt.value
-                      ? "border-2 border-primary-40 bg-primary-10/30 text-foreground font-bold"
-                      : "border-[#E2E2E2] dark:border-[#444444] bg-white dark:bg-neutral-20 text-foreground"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
         {/* Footer */}
         <div className="border-t border-[#E2E2E2] dark:border-[#444444] shrink-0" />
@@ -168,14 +138,13 @@ export default function MemberStatsFilterModal({
             className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30"
             onClick={() => {
               setLocalTeam(availableTeamOptions[0]?.value ?? "all");
-              setLocalSort(availableSortOptions[0]?.value ?? "desc");
             }}
           >
             초기화
           </button>
           <button
             className="cursor-pointer w-[72px] md:w-[72px] h-[40px] md:h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70"
-            onClick={() => onApply({ team: localTeam, sort: localSort })}
+            onClick={() => onApply({ team: localTeam })}
           >
             적용완료
           </button>
