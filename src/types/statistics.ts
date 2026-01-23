@@ -154,6 +154,8 @@ export type CustomerRegistrationResponse = ApiSuccessResponse<
 
 export type RankingMemberQuery = PaginationQuery & {
   projectId: string;
+  year?: number;
+  month?: number;
 };
 
 export type RankingMemberRecord = {
@@ -178,6 +180,8 @@ export type RankingMemberResponse = ApiSuccessResponse<
 
 export type RankingTeamQuery = PaginationQuery & {
   projectId: string;
+  year?: number;
+  month?: number;
 };
 
 export type RankingTeamRecord = {
@@ -202,6 +206,8 @@ export type RankingTeamResponse = ApiSuccessResponse<
 
 export type RankingMyQuery = {
   projectId: string;
+  year?: number;
+  month?: number;
 };
 
 export type RankingMyRecord = {

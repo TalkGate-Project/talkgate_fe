@@ -13,6 +13,7 @@ import RegistrationDetailTable from "@/components/stats/RegistrationDetailTable"
 import TeamRankingList from "@/components/stats/TeamRankingList";
 import TeamMemberRankingList from "@/components/stats/TeamMemberRankingList";
 import MyRankingCard from "@/components/stats/MyRankingCard";
+import MonthSelector from "@/components/common/MonthSelector";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
 import { useStatsAssignment } from "@/hooks/useStatsAssignment";
@@ -45,6 +46,18 @@ function StatsPageContentInner() {
   const [rankingMode, setRankingMode] = useState<"team" | "member">(
     (search.get("rank") as any) === "member" ? "member" : "team"
   );
+  const [rankingMonth, setRankingMonth] = useState<Date | null>(() => {
+    const monthParam = search.get("month");
+    if (monthParam) {
+      const [year, month] = monthParam.split("-").map(Number);
+      if (year && month && month >= 1 && month <= 12) {
+        return new Date(year, month - 1, 1);
+      }
+    }
+    // 기본값: 이전 달 (지난달 데이터를 집계하여 랭킹을 산정)
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  });
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
     return Number.isFinite(initial) && initial > 0 ? initial : 1;
@@ -104,6 +117,29 @@ function StatsPageContentInner() {
       else params.set("rank", mode);
     });
     setRankingMode(mode);
+  };
+
+  const navigateRankingMonth = (direction: "prev" | "next") => {
+    if (!rankingMonth) return;
+    const newMonth = new Date(rankingMonth);
+    if (direction === "prev") {
+      newMonth.setMonth(newMonth.getMonth() - 1);
+    } else {
+      newMonth.setMonth(newMonth.getMonth() + 1);
+    }
+    setRankingMonth(newMonth);
+    updateSearch((params) => {
+      const monthStr = `${newMonth.getFullYear()}-${String(newMonth.getMonth() + 1).padStart(2, "0")}`;
+      params.set("month", monthStr);
+    });
+  };
+
+  const handleRankingMonthChange = (date: Date) => {
+    setRankingMonth(date);
+    updateSearch((params) => {
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      params.set("month", monthStr);
+    });
   };
 
   const setApplyPageQS = (page: number) => {
@@ -390,16 +426,25 @@ function StatsPageContentInner() {
               </div>
             </div>
 
-            <MyRankingCard projectId={projectId} mode={rankingMode} />
+            {/* Month selector */}
+            <div className="mt-4 md:mt-6">
+              <MonthSelector
+                selectedMonth={rankingMonth}
+                onNavigateMonth={navigateRankingMonth}
+                onMonthChange={handleRankingMonthChange}
+              />
+            </div>
+
+            <MyRankingCard projectId={projectId} mode={rankingMode} month={rankingMonth} />
 
             <div className="mt-4 md:mt-6">
               <div className="text-[16px] font-semibold text-neutral-90 mb-3">
                 {rankingMode === "team" ? "팀별 랭킹" : "팀원별 랭킹"}
               </div>
               {rankingMode === "team" ? (
-                <TeamRankingList projectId={projectId} />
+                <TeamRankingList projectId={projectId} month={rankingMonth} />
               ) : (
-                <TeamMemberRankingList projectId={projectId} />
+                <TeamMemberRankingList projectId={projectId} month={rankingMonth} />
               )}
             </div>
           </section>

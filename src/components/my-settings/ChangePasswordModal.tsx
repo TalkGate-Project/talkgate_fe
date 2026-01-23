@@ -233,16 +233,16 @@ export default function ChangePasswordModal({
         </div>
 
         {/* Action Buttons Section */}
-        <div className="border-t border-border dark:border-[#4D4D4D] px-4 md:px-7 py-3 flex gap-3">
+        <div className="border-t border-border dark:border-[#4D4D4D] px-4 md:px-7 py-3 flex gap-3 md:justify-end">
           <button
             onClick={handleClose}
-            className="h-[34px] px-3 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] bg-card dark:bg-transparent hover:bg-muted dark:hover:bg-neutral-20 cursor-pointer tracking-[-0.02em] flex-1 md:flex-initial"
+            className="h-[34px] px-3 border border-border dark:border-[#4D4D4D] rounded-[5px] text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] bg-card dark:bg-transparent hover:bg-muted dark:hover:bg-neutral-20 cursor-pointer tracking-[-0.02em] flex-1 md:flex-none"
           >
             취소
           </button>
           <button
             onClick={handleConfirm}
-            className="h-[34px] px-3 bg-neutral-90 dark:bg-[#F5F5F5] text-white dark:text-[#333333] rounded-[5px] text-[14px] font-semibold hover:opacity-90 dark:hover:opacity-80 cursor-pointer tracking-[-0.02em] flex-1 md:flex-initial md:ml-auto"
+            className="h-[34px] px-3 bg-neutral-90 dark:bg-[#F5F5F5] text-white dark:text-[#333333] rounded-[5px] text-[14px] font-semibold hover:opacity-90 dark:hover:opacity-80 cursor-pointer tracking-[-0.02em] flex-1 md:flex-none"
           >
             비밀번호 변경
           </button>

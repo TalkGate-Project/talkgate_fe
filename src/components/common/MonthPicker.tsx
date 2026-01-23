@@ -150,20 +150,20 @@ export default function MonthPicker(props: MonthPickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, dateFormat) : ""}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] px-3 cursor-pointer ${className}`}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
-					className="z-[1000] w-[256px] bg-white rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] p-4"
+					className="z-[1000] w-[256px] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
 					style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
 				>
 					{/* Header */}
 					<div className="flex items-center justify-between mb-4">
 						<button
 							type="button"
-							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 text-[14px] font-medium text-[#252525] flex items-center gap-2 cursor-pointer"
+							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] font-medium text-[#252525] dark:text-neutral-80 flex items-center gap-2 cursor-pointer"
 							onClick={() => {
 								if (mode === "month") {
 									setMode("year");
@@ -191,28 +191,29 @@ export default function MonthPicker(props: MonthPickerProps) {
 									strokeWidth="1.5"
 									strokeLinecap="round"
 									strokeLinejoin="round"
+									className="dark:stroke-neutral-60"
 								/>
 							</svg>
 						</button>
 						<div className="flex items-center gap-2">
 							<button
 								type="button"
-								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
 								onClick={goPrev}
 								aria-label="이전"
 							>
 								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
 								</svg>
 							</button>
 							<button
 								type="button"
-								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] hover:bg-neutral-10"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
 								onClick={goNext}
 								aria-label="다음"
 							>
 								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
 								</svg>
 							</button>
 						</div>
@@ -245,7 +246,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 										type="button"
 										onClick={() => !isDisabled && onSelectMonth(i)}
 										className={`h-10 rounded-[6px] text-[14px] flex items-center justify-center transition-colors
-                                            ${isSelected ? "bg-[#D6FAE8] text-[#252525]" : "text-[#252525] hover:bg-neutral-20"}
+                                            ${isSelected ? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80" : "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"}
                                             ${isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
                                         `}
 										style={{ fontFamily: "var(--font-montserrat)" }}
@@ -270,8 +271,8 @@ export default function MonthPicker(props: MonthPickerProps) {
 											onClick={() => onSelectYear(y)}
 											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center cursor-pointer ${
 												isSelected || isCurrentYear
-													? "bg-[#D6FAE8] text-[#252525] font-medium"
-													: "text-[#252525] hover:bg-neutral-20"
+													? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium"
+													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>

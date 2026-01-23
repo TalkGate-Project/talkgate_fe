@@ -11,20 +11,28 @@ const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 type Props = {
   projectId: string | null;
   mode: "team" | "member";
+  month?: Date | null;
 };
 
-export default function MyRankingCard({ projectId, mode }: Props) {
+export default function MyRankingCard({ projectId, mode, month }: Props) {
   const enabled = Boolean(projectId);
+  const year = month ? month.getFullYear() : undefined;
+  const monthNum = month ? month.getMonth() + 1 : undefined;
 
   const query = useQuery<RankingMyResponse | RankingMyTeamResponse>({
-    queryKey: ["stats", "ranking", "my", mode, projectId],
+    queryKey: ["stats", "ranking", "my", mode, projectId, year, monthNum],
     enabled,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
+      const queryParams: any = { projectId };
+      if (year && monthNum) {
+        queryParams.year = year;
+        queryParams.month = monthNum;
+      }
       return mode === "team"
-        ? (await StatisticsService.rankingMyTeam({ projectId })).data
-        : (await StatisticsService.rankingMy({ projectId })).data;
+        ? (await StatisticsService.rankingMyTeam(queryParams)).data
+        : (await StatisticsService.rankingMy(queryParams)).data;
     },
   });
 
