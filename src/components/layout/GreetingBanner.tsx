@@ -315,7 +315,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                       </button>
                       <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center">
                            <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40 truncate">
-                             ● 퇴근상태
+                             ● <span className="text-[#ffffff]">퇴근상태</span>
                            </span>
                       </div>
                   </div>

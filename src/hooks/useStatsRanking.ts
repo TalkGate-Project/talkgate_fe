@@ -7,15 +7,12 @@ export function useStatsTeamRanking(projectId: string | null, page = 1, limit = 
   const monthNum = month ? month.getMonth() + 1 : undefined;
   const query = useQuery<RankingTeamResponse>({
     queryKey: ["stats", "ranking", "team", projectId, page, limit, year, monthNum],
-    enabled: Boolean(projectId),
+    enabled: Boolean(projectId) && Boolean(year) && Boolean(monthNum),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const queryParams: any = { projectId, page, limit };
-      if (year && monthNum) {
-        queryParams.year = year;
-        queryParams.month = monthNum;
-      }
+      if (!year || !monthNum) throw new Error("년도와 월을 선택해주세요.");
+      const queryParams = { projectId, page, limit, year, month: monthNum };
       const res = await StatisticsService.rankingTeam(queryParams);
       return res.data;
     },
@@ -37,15 +34,12 @@ export function useStatsMemberRanking(projectId: string | null, page = 1, limit 
   const monthNum = month ? month.getMonth() + 1 : undefined;
   const query = useQuery<RankingMemberResponse>({
     queryKey: ["stats", "ranking", "member", projectId, page, limit, year, monthNum],
-    enabled: Boolean(projectId),
+    enabled: Boolean(projectId) && Boolean(year) && Boolean(monthNum),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const queryParams: any = { projectId, page, limit };
-      if (year && monthNum) {
-        queryParams.year = year;
-        queryParams.month = monthNum;
-      }
+      if (!year || !monthNum) throw new Error("년도와 월을 선택해주세요.");
+      const queryParams = { projectId, page, limit, year, month: monthNum };
       const res = await StatisticsService.rankingMember(queryParams);
       return res.data;
     },

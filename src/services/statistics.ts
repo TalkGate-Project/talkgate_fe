@@ -101,14 +101,18 @@ export const StatisticsService = {
   },
 
   rankingMy(query: RankingMyQuery) {
+    const { projectId, ...qs } = query;
     return apiClient.get<RankingMyResponse>(`/v1/statistics/ranking/my`, {
-      headers: { "x-project-id": query.projectId },
+      query: qs,
+      headers: { "x-project-id": projectId },
     });
   },
 
   rankingMyTeam(query: RankingMyQuery) {
+    const { projectId, ...qs } = query;
     return apiClient.get<RankingMyTeamResponse>(`/v1/statistics/ranking/my-team`, {
-      headers: { "x-project-id": query.projectId },
+      query: qs,
+      headers: { "x-project-id": projectId },
     });
   },
 

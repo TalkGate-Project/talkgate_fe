@@ -11,12 +11,14 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import SortIcon from "@/components/common/SortIcon";
 import type {
   CustomerPaymentMemberRecord,
   CustomerPaymentTeamRecord,
   CustomerPaymentByTeamResponse,
   CustomerPaymentByMemberResponse,
 } from "@/types/statistics";
+import { SortType } from "@/types/statistics";
 
 const PAGE_SIZE = 10;
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
@@ -65,6 +67,8 @@ export default function PaymentMemberTable() {
   const initialTeam = (searchParams.get("payTeam") as string | null) ?? "all";
   const initialSort = (searchParams.get("paySort") as MemberFilterState["sort"] | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("payPage") ?? "1", 10);
+  const initialSortType = (searchParams.get("paySortType") as SortType | null) ?? null;
+  const initialSortOrder = (searchParams.get("paySortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
@@ -72,6 +76,8 @@ export default function PaymentMemberTable() {
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sortType, setSortType] = useState<SortType | null>(initialSortType);
+  const [sortOrderState, setSortOrderState] = useState<"ASC" | "DESC" | null>(initialSortOrder);
 
   const handleMemberClick = (memberId: number) => {
     setSelectedMemberId(memberId);
@@ -91,9 +97,13 @@ export default function PaymentMemberTable() {
     else params.delete("paySort");
     if (page > 1) params.set("payPage", String(page));
     else params.delete("payPage");
+    if (sortType) params.set("paySortType", sortType);
+    else params.delete("paySortType");
+    if (sortOrderState) params.set("paySortOrder", sortOrderState);
+    else params.delete("paySortOrder");
     router.replace(`?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamFilter, sortOrder, page]);
+  }, [teamFilter, sortOrder, page, sortType, sortOrderState]);
 
   const teamQuery = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate, endDate }],
@@ -106,7 +116,7 @@ export default function PaymentMemberTable() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const sortParam = sortOrder === "desc" ? "DESC" : "ASC";
+  const sortParam = sortOrderState ?? (sortOrder === "desc" ? "DESC" : "ASC");
   const teamIdParam = teamFilter !== "all" && /^\d+$/.test(teamFilter) ? Number(teamFilter) : undefined;
 
   const memberQuery = useQuery<CustomerPaymentByMemberResponse>({
@@ -114,7 +124,7 @@ export default function PaymentMemberTable() {
       "stats",
       "payment",
       "member",
-      { projectId, startDate, endDate, page, sort: sortParam, team: teamIdParam ?? "all" },
+      { projectId, startDate, endDate, page, sort: sortParam, sortType, team: teamIdParam ?? "all" },
     ],
     enabled: hasProject,
     placeholderData: (previous) => previous,
@@ -127,6 +137,7 @@ export default function PaymentMemberTable() {
         page,
         limit: PAGE_SIZE,
         sortOrder: sortParam,
+        ...(sortType ? { sortType } : {}),
         ...(typeof teamIdParam === "number" ? { teamId: teamIdParam } : {}),
       });
       return res.data;
@@ -224,8 +235,44 @@ export default function PaymentMemberTable() {
       <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}>
         <div>이름</div>
         <div>팀</div>
-        <div>결제금액</div>
-        <div>결제 건수</div>
+        <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
+          if (sortType === SortType.Amount) {
+            if (sortOrderState === "DESC") {
+              setSortOrderState("ASC");
+            } else if (sortOrderState === "ASC") {
+              setSortType(null);
+              setSortOrderState(null);
+            } else {
+              setSortOrderState("DESC");
+            }
+          } else {
+            setSortType(SortType.Amount);
+            setSortOrderState("DESC");
+          }
+          setPage(1);
+        }}>
+          결제금액
+          <SortIcon state={sortType === SortType.Amount ? (sortOrderState === "ASC" ? "asc" : sortOrderState === "DESC" ? "desc" : "none") : "none"} />
+        </div>
+        <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
+          if (sortType === SortType.Count) {
+            if (sortOrderState === "DESC") {
+              setSortOrderState("ASC");
+            } else if (sortOrderState === "ASC") {
+              setSortType(null);
+              setSortOrderState(null);
+            } else {
+              setSortOrderState("DESC");
+            }
+          } else {
+            setSortType(SortType.Count);
+            setSortOrderState("DESC");
+          }
+          setPage(1);
+        }}>
+          결제 건수
+          <SortIcon state={sortType === SortType.Count ? (sortOrderState === "ASC" ? "asc" : sortOrderState === "DESC" ? "desc" : "none") : "none"} />
+        </div>
       </div>
       <div className="divide-y divide-neutral-30/40 min-h-[280px] bg-card">
         {showSkeleton && (
@@ -288,11 +335,10 @@ export default function PaymentMemberTable() {
         onClose={() => setOpen(false)}
         onApply={(f) => {
           setTeamFilter(f.team);
-          setSortOrder(f.sort);
           setPage(1);
           setOpen(false);
         }}
-        defaults={{ team: teamFilter, sort: sortOrder }}
+        defaults={{ team: teamFilter }}
         teamOptions={teamOptions}
       />
       {selectedMemberId !== null && (

@@ -54,9 +54,11 @@ function StatsPageContentInner() {
         return new Date(year, month - 1, 1);
       }
     }
-    // 기본값: 이전 달 (지난달 데이터를 집계하여 랭킹을 산정)
+    // 기본값: 이번달 (now - 1day 기준, 데이터 집계는 전날까지만 되어 있음)
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
   });
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
@@ -399,7 +401,7 @@ function StatsPageContentInner() {
                   전체랭킹
                 </h2>
                 <p className="hidden md:block mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
-                  지난달 데이터를 집계하여 랭킹을 산정합니다.
+                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매일 집계하여 갱신됩니다.
                 </p>
               </div>
               <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
