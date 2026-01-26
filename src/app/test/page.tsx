@@ -10,6 +10,7 @@ import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
+import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubscriptionModal";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -29,6 +30,8 @@ export default function TestPage() {
   const [mounted, setMounted] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [expiredModalRole, setExpiredModalRole] = useState<"admin" | "subAdmin" | "member" | undefined>(undefined);
+  const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -994,6 +997,64 @@ export default function TestPage() {
           </div>
         </section>
 
+        {/* ReactivateSubscriptionModal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 활성화 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/my-settings/ReactivateSubscriptionModal</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">ProjectBillingDetail.tsx</code> - 프로젝트 관리 페이지에서 구독이 취소된 경우</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 구독이 취소된 프로젝트(autoRenewal: false)에서 구독 활성화 버튼을 클릭하면 표시됩니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 테스트</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setShowReactivateModal(true)}
+                    className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+                  >
+                    구독 활성화 모달 열기
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsReactivating(true);
+                      setShowReactivateModal(true);
+                    }}
+                    className="px-4 py-2 bg-primary-50 text-white rounded hover:bg-primary-60 transition-colors"
+                  >
+                    로딩 상태 모달 열기
+                  </button>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-neutral-30">
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 동작 설명</h3>
+                <div className="space-y-2 text-sm text-neutral-70 dark:text-neutral-50">
+                  <div className="p-3 bg-neutral-10 dark:bg-neutral-20 rounded">
+                    <p className="font-semibold mb-1">구독 활성화 모달:</p>
+                    <ul className="ml-4 list-disc space-y-1">
+                      <li>제목: "구독을 다시 활성화할까요?"</li>
+                      <li>설명: "결제 예정일에 다시 결제가 진행됩니다."</li>
+                      <li>안내: "결제 수단이 등록되어 있지 않으면 활성화할 수 없습니다."</li>
+                      <li>버튼: [취소] [구독 활성화]</li>
+                      <li>에러 처리: INVALID_BILLING_KEY 에러 시 "결제 수단을 등록해주세요." 메시지 표시</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SubscribeProjectExpiredModal 테스트 */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
@@ -1091,6 +1152,28 @@ export default function TestPage() {
           onClose={() => setShowExpiredModal(false)}
         />
       )}
+
+      {/* ReactivateSubscriptionModal */}
+      <ReactivateSubscriptionModal
+        isOpen={showReactivateModal}
+        onClose={() => {
+          setShowReactivateModal(false);
+          setIsReactivating(false);
+        }}
+        onConfirm={async () => {
+          // 테스트용 시뮬레이션
+          if (isReactivating) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            setIsReactivating(false);
+            setShowReactivateModal(false);
+            console.log("구독 활성화 완료");
+          } else {
+            setShowReactivateModal(false);
+            console.log("구독 활성화 확인");
+          }
+        }}
+        isLoading={isReactivating}
+      />
     </div>
   );
 }

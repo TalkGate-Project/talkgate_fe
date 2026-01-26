@@ -34,6 +34,8 @@ type Props = {
   loadOlderMessages: () => void;
   isMessagesLoading: boolean;
   onDropFile?: (file: File) => void;
+  onSwapWidths?: () => void;
+  isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
 };
 
 export default function ChatMainView({
@@ -59,6 +61,8 @@ export default function ChatMainView({
   loadOlderMessages,
   isMessagesLoading,
   onDropFile,
+  onSwapWidths,
+  isResizable = false,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
@@ -193,9 +197,9 @@ export default function ChatMainView({
   const canDrop = Boolean(activeConversation && connected && onDropFile);
 
   return (
-    <div className="flex-1 flex justify-center h-full">
+    <div className={`${isResizable ? "w-full" : "flex-1"} flex ${isResizable ? "" : "justify-center"} h-full`}>
       <div 
-        className="w-full lg:min-w-[688px] h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative"
+        className={`w-full ${isResizable ? "" : "lg:min-w-[688px]"} h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
         onDragEnter={canDrop ? handleDragEnter : undefined}
         onDragLeave={canDrop ? handleDragLeave : undefined}
         onDragOver={canDrop ? handleDragOver : undefined}
@@ -289,6 +293,31 @@ export default function ChatMainView({
               - linkCustomer API 호출 후 로컬 상태 즉시 업데이트 (Optimistic UI)
           */}
           <div className="flex items-center gap-1 md:gap-2 shrink-0">
+            {/* 너비 치환 버튼 (웹에서만 표시) */}
+            {onSwapWidths && (
+              <button
+                className="hidden lg:flex cursor-pointer h-[34px] w-[34px] rounded-[5px] border border-border flex items-center justify-center hover:bg-neutral-20 transition-colors"
+                onClick={onSwapWidths}
+                aria-label="너비 치환"
+                title="메인 뷰와 사이드바 너비 교환"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
             {/* 모바일에서는 연동 버튼과 상담완료 버튼만 표시 */}
             <button
               className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${

@@ -114,7 +114,6 @@ export default function AssignMemberTable() {
         page,
         limit: PAGE_SIZE,
         sortOrder: sortParam,
-        ...(sortType ? { sortType } : {}),
         ...(typeof teamIdParam === "number" ? { teamId: teamIdParam } : {}),
       });
       return res.data;

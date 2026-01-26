@@ -46,30 +46,28 @@ export default function ApiKeyCreateModal({
 
       {/* Modal */}
       <div
-        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[440px] md:h-auto md:max-h-[90vh] bg-card dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
+        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[440px] md:h-[224px] bg-white dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
+        style={{
+          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-6 pb-3 md:pb-4 flex-shrink-0">
-          <h2 className="text-[18px] md:text-[18px] font-semibold text-foreground dark:text-neutral-80 leading-[21px]">
+        <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0 relative">
+          <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[21px]">
             API 키 생성
           </h2>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="cursor-pointer w-6 h-6 flex items-center justify-center text-neutral-50 dark:text-neutral-50 hover:text-neutral-70 dark:hover:text-neutral-60 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="닫기"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M6 18L18 6M6 6L18 18"
                 stroke="currentColor"
+                className="text-neutral-60 dark:text-neutral-60"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -79,24 +77,20 @@ export default function ApiKeyCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-7">
-          {/* Description */}
-          <p className="text-[13px] md:text-[14px] font-medium text-foreground dark:text-neutral-80 leading-[17px] mb-4 md:mb-6">
-            API 키에 이름을 지정하여 여러 개의 키를 생성하고 관리할 수 있습니다.
-          </p>
-
+        <div className="flex-1 overflow-y-auto px-7 pb-4">
           {/* Input Field */}
-          <div className="space-y-2 mb-4 md:mb-6">
-            <label className="text-[13px] md:text-[14px] font-medium text-foreground dark:text-neutral-80 leading-[1]">
+          <div className="relative w-[384px]">
+            <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 leading-[17px] mb-2" style={{ letterSpacing: "0.2px" }}>
               API 키 이름
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="예: OPENAI_API_KEY, PROD_API_KEY"
+              placeholder="추가할 API 키 이름을 입력해 주세요."
               disabled={isSubmitting}
-              className="w-full h-[50px] px-3 md:px-6 bg-neutral-10 dark:bg-neutral-20 rounded-[5px] text-[13px] md:text-[14px] text-foreground dark:text-neutral-80 font-medium outline-none border border-neutral-30 dark:border-neutral-30 focus:border-neutral-50 dark:focus:border-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 bg-white dark:bg-neutral-10 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 font-medium outline-none border border-neutral-30 dark:border-neutral-30 focus:border-neutral-50 dark:focus:border-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ letterSpacing: "-0.02em", lineHeight: "17px", minHeight: "34px" }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && name.trim() && !isSubmitting) {
                   handleConfirm();
@@ -107,23 +101,25 @@ export default function ApiKeyCreateModal({
         </div>
 
         {/* Divider */}
-        <div className="w-full h-px bg-neutral-30 dark:bg-neutral-30 flex-shrink-0" />
+        <div className="w-full h-px border-t border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2 md:gap-3 px-4 md:px-7 py-3 flex-shrink-0">
+        <div className="flex justify-end items-center gap-[12px] px-7 py-3 flex-shrink-0">
           <button
             onClick={handleClose}
             disabled={isSubmitting}
-            className="cursor-pointer h-[34px] px-3 md:px-3 rounded-[5px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[13px] md:text-[14px] font-semibold text-ink dark:text-neutral-80 tracking-[-0.02em] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center px-3 py-[6px] rounded-[5px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 tracking-[-0.02em] hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ lineHeight: "17px" }}
           >
             취소
           </button>
           <button
             onClick={handleConfirm}
             disabled={!name.trim() || isSubmitting}
-            className="cursor-pointer h-[34px] px-3 md:px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] md:text-[14px] font-semibold text-neutral-0 dark:text-neutral-0 tracking-[-0.02em] hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer min-w-[72px] h-[34px] flex items-center justify-center px-3 py-[6px] rounded-[5px] bg-[#252525] dark:bg-neutral-90 text-[14px] font-semibold text-[#EDEDED] dark:text-neutral-20 tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ lineHeight: "17px" }}
           >
-            생성
+            생성하기
           </button>
         </div>
       </div>

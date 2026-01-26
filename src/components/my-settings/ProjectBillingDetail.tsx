@@ -9,6 +9,7 @@ import {
 } from "@/hooks/useSubscription";
 import { setSelectedProjectId, getSelectedProjectId } from "@/lib/project";
 import SubscriptionPlanSelectModal from "./SubscriptionPlanSelectModal";
+import ReactivateSubscriptionModal from "./ReactivateSubscriptionModal";
 import ProjectBillingHeader from "./billing/ProjectBillingHeader";
 import PaymentInfoSection from "./billing/PaymentInfoSection";
 import PaymentHistorySection from "./billing/PaymentHistorySection";
@@ -26,6 +27,7 @@ export default function ProjectBillingDetail({
   onBack,
 }: ProjectBillingDetailProps) {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
 
   // 프로젝트 선택 (구독 정보를 가져오기 위해)
   useEffect(() => {
@@ -57,9 +59,11 @@ export default function ProjectBillingDetail({
   // 비즈니스 로직 훅
   const {
     isUpdatingPlan,
+    isReactivating,
     downloadingPaymentId,
     handlePlanSelect,
     handleCancelSubscription,
+    handleReactivateSubscription,
     handleDownloadReceipt,
   } = useProjectBilling({
     projectId,
@@ -82,6 +86,7 @@ export default function ProjectBillingDetail({
         onBack={onBack}
         onPlanChange={() => setIsPlanModalOpen(true)}
         onCancelSubscription={handleCancelSubscription}
+        onReactivateSubscription={() => setIsReactivateModalOpen(true)}
       />
 
       <PaymentInfoSection
@@ -111,6 +116,16 @@ export default function ProjectBillingDetail({
           setIsPlanModalOpen(false);
           handlePlanSelect(planId, billingCycle);
         }}
+      />
+
+      <ReactivateSubscriptionModal
+        isOpen={isReactivateModalOpen}
+        onClose={() => setIsReactivateModalOpen(false)}
+        onConfirm={async () => {
+          await handleReactivateSubscription();
+          setIsReactivateModalOpen(false);
+        }}
+        isLoading={isReactivating}
       />
     </div>
   );

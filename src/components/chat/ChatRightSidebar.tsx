@@ -10,9 +10,10 @@ import Image from "next/image";
 type Props = {
   projectId: number;
   conversationId: number | null;
+  isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
 };
 
-export default function ChatRightSidebar({ projectId, conversationId }: Props) {
+export default function ChatRightSidebar({ projectId, conversationId, isResizable = false }: Props) {
   const [messages, setMessages] = useState<AiAssistantMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -220,7 +221,7 @@ export default function ChatRightSidebar({ projectId, conversationId }: Props) {
   }, [conversationId, input, projectId, sending, scrollToBottom]);
 
   return (
-    <div className="w-full md:max-w-[286px] h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col min-h-0">
+    <div className={`w-full ${isResizable ? "" : "md:max-w-[286px]"} h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col min-h-0`}>
       <div className="px-4 md:px-7 py-4 md:py-5 flex items-center justify-between border-b border-border dark:border-neutral-30 shrink-0">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">

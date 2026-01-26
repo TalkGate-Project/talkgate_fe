@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { MemberRole } from "@/types/members";
+import { useMyMember } from "@/hooks/useMyMember";
 import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
 
 type Project = {
@@ -20,10 +21,16 @@ type Props = {
 
 export default function SubscribeProjectExpiredModal({
   project,
-  userRole,
+  userRole: userRoleProp,
   onClose,
 }: Props) {
   const router = useRouter();
+  
+  // 프로젝트 ID를 사용하여 현재 사용자의 role 조회
+  const { role: userRoleFromApi } = useMyMember(String(project.id));
+  
+  // userRole prop이 있으면 우선 사용, 없으면 API에서 가져온 값 사용
+  const userRole = userRoleProp ?? userRoleFromApi;
   
   // 어드민 여부 확인 (admin 또는 subAdmin)
   const isAdmin = userRole === "admin" || userRole === "subAdmin";

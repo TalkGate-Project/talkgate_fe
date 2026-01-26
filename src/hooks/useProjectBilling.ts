@@ -25,6 +25,7 @@ export function useProjectBilling({
 }: UseProjectBillingProps) {
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
   const [downloadingPaymentId, setDownloadingPaymentId] = useState<number | null>(null);
 
   // Basic/Pro 플랜 판단
@@ -158,6 +159,43 @@ export function useProjectBilling({
     });
   };
 
+  const handleReactivateSubscription = async () => {
+    if (!subscription || isReactivating) return;
+    setIsReactivating(true);
+    try {
+      await SubscriptionService.reactivate({ "x-project-id": String(projectId) });
+      await refetchSubscription();
+      showErrorModal({
+        type: "success",
+        headline: "구독이 활성화되었습니다.",
+        description: "결제 예정일에 자동으로 결제가 진행됩니다.",
+        hideCancel: true,
+      });
+    } catch (error: any) {
+      console.error("Failed to reactivate subscription:", error);
+      
+      // INVALID_BILLING_KEY 에러 처리
+      const errorCode = error?.response?.data?.code;
+      if (errorCode === "INVALID_BILLING_KEY") {
+        showErrorModal({
+          type: "error",
+          headline: "결제 수단을 등록해주세요.",
+          description: "구독을 활성화하려면 결제 수단이 필요합니다.",
+          hideCancel: true,
+        });
+      } else {
+        showErrorModal({
+          type: "error",
+          headline: "구독 활성화에 실패했습니다.",
+          description: "잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+        });
+      }
+    } finally {
+      setIsReactivating(false);
+    }
+  };
+
   const handleDownloadReceipt = async (paymentId: number) => {
     if (downloadingPaymentId) return;
     setDownloadingPaymentId(paymentId);
@@ -224,9 +262,11 @@ export function useProjectBilling({
   return {
     isUpdatingPlan,
     isCancelling,
+    isReactivating,
     downloadingPaymentId,
     handlePlanSelect,
     handleCancelSubscription,
+    handleReactivateSubscription,
     handleDownloadReceipt,
   };
 }
