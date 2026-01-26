@@ -8,6 +8,7 @@ import { useEmojiPicker } from "@/hooks/useEmojiPicker";
 import { useChatAttachment } from "@/hooks/useChatAttachment";
 import { useChatUrlSync } from "@/hooks/useChatUrlSync";
 import { useChatLayout } from "@/hooks/useChatLayout";
+import { useChatResizer } from "@/hooks/useChatResizer";
 import EmojiPicker from "./EmojiPicker";
 import ChatLeftSidebar from "./ChatLeftSidebar";
 import ChatMainView from "./ChatMainView";
@@ -94,6 +95,13 @@ export default function ChatView({ projectId }: Props) {
 
   // 레이아웃 관련 로직
   const { isWideLayout, isAiSidebarOpen, setIsAiSidebarOpen } = useChatLayout();
+  
+  // 리사이저 관련 로직 (웹에서만 사용) - 버튼으로 너비 치환만 지원
+  const {
+    mainWidth,
+    sidebarWidth,
+    swapWidths,
+  } = useChatResizer();
 
   // 상태에 따른 필터링된 대화 목록
   const filteredConversations = useMemo(() => {
@@ -189,6 +197,7 @@ export default function ChatView({ projectId }: Props) {
     clearInput();
   }, [input, send, clearInput]);
 
+
   return (
     <div className="flex gap-8 h-full relative">
       {/* 모바일: 리스트가 기본, 채팅방 선택 시 오버레이 */}
@@ -212,7 +221,14 @@ export default function ChatView({ projectId }: Props) {
       </div>
 
       {/* 모바일: 채팅방이 오버레이로 표시 */}
-      <div className={`lg:block ${activeId ? "block" : "hidden lg:block"} absolute lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-background lg:bg-transparent`}>
+      <div 
+        className={`lg:block ${activeId ? "block" : "hidden lg:block"} absolute lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-background lg:bg-transparent`}
+        style={
+          isWideLayout
+            ? { width: `${mainWidth}px`, flexShrink: 0 }
+            : undefined
+        }
+      >
         <ChatMainView
           activeConversation={activeConversation}
           messages={messages}
@@ -236,12 +252,22 @@ export default function ChatView({ projectId }: Props) {
           loadOlderMessages={loadOlderMessages}
           isMessagesLoading={isMessagesLoading}
           onDropFile={sendAttachment}
+          onSwapWidths={isWideLayout ? swapWidths : undefined}
+          isResizable={isWideLayout}
         />
       </div>
 
       {/* 1280px 이상: 기존 우측 사이드바 사용 */}
       {isWideLayout && (
-        <ChatRightSidebar projectId={projectId} conversationId={activeId} />
+        <div
+          style={{ width: `${sidebarWidth}px`, flexShrink: 0 }}
+        >
+          <ChatRightSidebar 
+            projectId={projectId} 
+            conversationId={activeId}
+            isResizable={isWideLayout}
+          />
+        </div>
       )}
 
       {/* 1280px 미만: 플로팅 버튼 + 모달 형태의 AI 상담 도우미 */}

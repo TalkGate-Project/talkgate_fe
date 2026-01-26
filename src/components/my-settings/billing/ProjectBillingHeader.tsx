@@ -8,6 +8,7 @@ interface ProjectBillingHeaderProps {
   onBack: () => void;
   onPlanChange: () => void;
   onCancelSubscription: () => void;
+  onReactivateSubscription: () => void;
 }
 
 export default function ProjectBillingHeader({
@@ -17,6 +18,7 @@ export default function ProjectBillingHeader({
   onBack,
   onPlanChange,
   onCancelSubscription,
+  onReactivateSubscription,
 }: ProjectBillingHeaderProps) {
   return (
     <div className="bg-card rounded-[14px]">
@@ -92,13 +94,23 @@ export default function ProjectBillingHeader({
               </button>
             )}
             {subscription?.isActive && (
-              <button
-                onClick={onCancelSubscription}
-                disabled={!subscription?.autoRenewal}
-                className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-              >
-                {subscription?.autoRenewal ? "구독취소" : "취소됨"}
-              </button>
+              <>
+                {subscription?.autoRenewal ? (
+                  <button
+                    onClick={onCancelSubscription}
+                    className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial"
+                  >
+                    구독취소
+                  </button>
+                ) : (
+                  <button
+                    onClick={onReactivateSubscription}
+                    className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 border border-neutral-30 text-[12px] md:text-[14px] font-medium text-neutral-70 rounded-[8px] hover:bg-neutral-10 transition-colors flex-1 md:flex-initial"
+                  >
+                    구독 활성화
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
