@@ -54,11 +54,20 @@ function StatsPageContentInner() {
         return new Date(year, month - 1, 1);
       }
     }
-    // 기본값: 이번달 (now - 1day 기준, 데이터 집계는 전날까지만 되어 있음)
+    // 기본값: 조회하는 날이 1일이면 이전 달, 2일 이상이면 이번 달
     const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    const today = now.getDate();
+    if (today === 1) {
+      // 1일인 경우: 이전 달
+      const prevMonth = new Date(now);
+      prevMonth.setMonth(prevMonth.getMonth() - 1);
+      return new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
+    } else {
+      // 2일 이상인 경우: 이번 달 (yesterday 기준, 데이터 집계는 전날까지만 되어 있음)
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
+    }
   });
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);

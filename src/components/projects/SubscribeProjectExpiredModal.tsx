@@ -118,7 +118,7 @@ export default function SubscribeProjectExpiredModal({
               onClick={handleButtonClick}
               className="cursor-pointer w-[344px] h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors"
             >
-              <span>{isAdmin ? "결제관리" : "확인"}</span>
+              <span>{isAdmin ? "구독하기" : "확인"}</span>
               {isAdmin && (
                 <svg
                   width="24"

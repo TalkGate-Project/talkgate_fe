@@ -123,9 +123,11 @@ export default function SubscribeProjectModal({
   const handleSubscribe = async () => {
     /**
      * 현재 페이지에서는 구독을 진행할 수 없습니다. 구독 페이지를 새 탭에서 띄웁니다.
-     * https://talkgate.im/pricing
+     * 프로젝트 정보를 쿼리스트링에 포함하여 랜딩 페이지에서 바로 해당 프로젝트 선택 가능하도록 함
      */
-    window.open("https://talkgate.im/pricing", "_blank");
+    const encodedProjectName = encodeURIComponent(project.name);
+    const pricingUrl = `${LANDING_URLS.PRICING}?projectId=${project.id}&projectName=${encodedProjectName}`;
+    window.open(pricingUrl, "_blank");
     onClose();
   };
 
