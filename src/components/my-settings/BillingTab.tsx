@@ -55,12 +55,12 @@ function mapAdminProjectToViewModel(
     name: project.projectName,
     subscription: hasSubscription
       ? {
-          plan: { name: project.subscriptionName },
-          startDate: project.subscriptionStartDate,
-          endDate: project.subscriptionEndDate,
-          billingCycle: project.billingCycle,
-          isActive: true,
-        }
+        plan: { name: project.subscriptionName },
+        startDate: project.subscriptionStartDate,
+        endDate: project.subscriptionEndDate,
+        billingCycle: project.billingCycle,
+        isActive: true,
+      }
       : undefined,
     usage: {
       memberCount: project.currentMemberCount,
@@ -96,9 +96,62 @@ export default function BillingTab() {
 
   // 결제 수단 정보 가져오기
   const { activeBillingInfo, billingInfos, loading: billingLoading } = useBilling();
-  
+
   // 등록 모드인지 확인 (billingInfos가 비어있거나 null인 경우)
   const isRegisterMode = !billingInfos || billingInfos.length === 0;
+
+  // 결제 수단 제거 핸들러
+  const handleRemoveBillingKey = () => {
+    if (!activeBillingInfo?.id) {
+      showErrorModal({
+        title: "오류",
+        headline: "등록된 결제 수단이 없습니다.",
+        confirmText: "확인",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    // 확인 모달 표시
+    showErrorModal({
+      type: "info",
+      title: "확인",
+      headline: "결제 수단을 제거하시겠습니까?",
+      description: "",
+      confirmText: "제거",
+      cancelText: "취소",
+      hideCancel: false,
+      onConfirm: async () => {
+        try {
+          await BillingService.remove(activeBillingInfo.id);
+          
+          // 캐시 무효화하여 결제 정보 새로고침
+          queryClient.invalidateQueries({ queryKey: ["billing"] });
+        } catch (error: any) {
+          console.error("결제 수단 제거 실패:", error);
+          
+          // BILLING_KEY_IN_USE 에러 처리
+          const errorCode = error?.data?.code;
+          if (errorCode === "BILLING_KEY_IN_USE") {
+            showErrorModal({
+              title: "오류",
+              headline: "현재 활성화된 구독이 있어서 삭제할 수 없습니다.\n구독을 먼저 취소해주세요.",
+              confirmText: "확인",
+              hideCancel: true,
+            });
+          } else {
+            showErrorModal({
+              title: "오류",
+              headline: "결제 수단 제거에 실패했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              confirmText: "확인",
+              hideCancel: true,
+            });
+          }
+        }
+      },
+    });
+  };
 
   const projectsWithSubscription: ProjectWithSubscription[] = (
     adminProjects || []
@@ -197,9 +250,25 @@ export default function BillingTab() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
-                    결제 수단
-                  </h2>
+                  <div className="flex items-center">
+                    <h2 className="text-[14px] md:text-[16px] font-semibold text-foreground mr-3">
+                      결제 수단
+                    </h2>
+                    <button
+                      onClick={() => setShowPaymentMethodModal(true)}
+                      className="cursor-pointer px-2 md:px-3 h-[28px] border border-neutral-30 text-[12px] md:text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors mr-2"
+                    >
+                      {isRegisterMode ? "등록" : "변경"}
+                    </button>
+                    {!isRegisterMode && (
+                      <button
+                        onClick={handleRemoveBillingKey}
+                        className="cursor-pointer px-2 md:px-3 h-[28px] border border-neutral-30 text-[12px] md:text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors"
+                      >
+                        제거
+                      </button>
+                    )}
+                  </div>
                   {billingLoading ? (
                     <div className="h-4 w-32 bg-neutral-20 rounded animate-pulse" />
                   ) : activeBillingInfo ? (
@@ -217,12 +286,7 @@ export default function BillingTab() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() => setShowPaymentMethodModal(true)}
-                  className="cursor-pointer px-2 md:px-3 py-1 md:py-1.5 border border-neutral-30 text-[12px] md:text-[14px] font-semibold text-foreground rounded-[5px] hover:bg-neutral-10 transition-colors flex-shrink-0"
-                >
-                  {isRegisterMode ? "등록" : "변경"}
-                </button>
+
               </div>
             </div>
           </div>
@@ -347,8 +411,8 @@ export default function BillingTab() {
         currentBillingInfo={
           activeBillingInfo
             ? {
-                id: activeBillingInfo.id,
-              }
+              id: activeBillingInfo.id,
+            }
             : undefined
         }
       />
@@ -448,8 +512,8 @@ function ProjectCard({
               {subscription.billingCycle === "monthly"
                 ? "월마다"
                 : subscription.billingCycle === "quarterly"
-                ? "분기마다"
-                : "연마다"}{" "}
+                  ? "분기마다"
+                  : "연마다"}{" "}
               결제)
             </p>
           )}
