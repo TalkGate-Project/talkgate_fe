@@ -160,21 +160,15 @@ export default function TeamRankingList({ projectId, month }: TeamRankingListPro
                 {/* 모바일: 우측 영역 */}
                 <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-2">
                   {/* 모바일: 우상단 - rankChange 뱃지 */}
-                  {showRankChange && rankChange !== null && (
+                  {showRankChange && rankChange !== null && rankChange !== 0 && (
                     <div 
                       className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[12px] md:text-[14px] font-bold bg-neutral-20 dark:bg-neutral-30 text-neutral-90 dark:text-neutral-80"
                     >
-                      {rankChange === 0 ? (
-                        <>0위&nbsp;<span className="text-neutral-90 dark:text-neutral-80">-</span></>
-                      ) : (
-                        <>
-                          {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
-                        </>
-                      )}
+                      {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
                     </div>
                   )}
                   {/* 모바일: 우하단 - 변화량 */}
-                  {showChange && (
+                  {showChange && diff !== 0 && (
                     <div className="px-2 md:px-3 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
                       <span className="dark:opacity-80 hidden md:inline">{changeLabelWeb}</span>
                       <span className="dark:opacity-80 md:hidden">{changeLabelMobile}</span>
