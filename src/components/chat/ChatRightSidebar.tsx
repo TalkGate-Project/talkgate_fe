@@ -6,6 +6,7 @@ import type { AiAssistantMessage } from "@/types/conversations";
 import SendIcon from "./icons/SendIcon";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Image from "next/image";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Props = {
   projectId: number;
@@ -209,6 +210,20 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
         setTimeout(scrollToBottom, 100);
       }
     } catch (err: any) {
+      const errorCode = err?.data?.code;
+      const errorStatus = err?.status;
+      
+      // 403 + AI_USAGE_LIMIT_EXCEEDED: 사용량 한도 초과
+      if (errorStatus === 403 && errorCode === "AI_USAGE_LIMIT_EXCEEDED") {
+        showErrorModal({
+          type: "error",
+          headline: "현재 요금제의 사용량 한도에 도달했습니다.",
+          hideCancel: true,
+        });
+        setPendingPrompt(null);
+        return;
+      }
+      
       const msg =
         err?.data?.message ||
         err?.message ||
