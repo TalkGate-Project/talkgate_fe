@@ -232,7 +232,7 @@ export default function PaymentMemberTable() {
   return (
     <div className="">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}>
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
         <div>이름</div>
         <div>팀</div>
         <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
@@ -304,7 +304,7 @@ export default function PaymentMemberTable() {
         {!showSkeleton && !showError && rows.map((row, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4" style={{ gridTemplateColumns: '1.5fr 1fr 1.5fr 1fr' }}>
+            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
               <button
                 onClick={() => handleMemberClick(row.memberId)}
                 className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
