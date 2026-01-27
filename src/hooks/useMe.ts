@@ -43,11 +43,12 @@ export function useMe() {
     queryKey: ["auth", "user"],
     queryFn: async () => {
       const res = await apiClient.get<MeResponse>("/v1/auth/user", {
-        suppressAutoLogout: isTwoFactorFlow, // 2FA 플로우 중에는 자동 로그아웃 방지
+        suppressAutoLogout: true, // 초기 로딩 API는 자동 로그아웃 방지 (프록시에서 refresh 처리)
       });
       return res.data.data;
     },
     enabled: !isTwoFactorFlow, // 2FA 플로우 중에는 쿼리 비활성화
+    retry: false, // 401 에러는 재시도하지 않음 (프록시에서 refresh 처리)
   });
 
   return {

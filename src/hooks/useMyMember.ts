@@ -20,6 +20,7 @@ export const myMemberKeys = {
 async function fetchMyMember(projectId: string): Promise<MyMember> {
   const res = await apiClient.get<MyMemberResponse>("/v1/members/my", {
     headers: { "x-project-id": projectId },
+    suppressAutoLogout: true, // 초기 로딩 API는 자동 로그아웃 방지 (프록시에서 refresh 처리)
   });
   return res.data.data;
 }

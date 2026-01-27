@@ -59,11 +59,11 @@ export class ApiClient {
   private readonly timeoutMs: number;
   private readonly getDefaultHeaders?: () => Record<string, string>;
   private readonly defaultCredentials: RequestCredentials;
-  private refreshInFlight: Promise<void> | null = null;
+  private logoutTimer: NodeJS.Timeout | null = null;
+  private isLoggingOut: boolean = false;
 
   constructor(options?: ApiClientOptions) {
-    // 서버 API 프록시를 통해 요청하도록 변경 (httpOnly 쿠키 사용)
-    // 프록시가 백엔드 API 경로를 그대로 전달하므로, 백엔드 경로를 그대로 사용
+    // 서버 API 프록시를 통해 요청하도록 변경
     const backendUrl = options?.baseUrl ?? env.NEXT_PUBLIC_API_BASE_URL;
     // 프록시 경로로 변환: https://api-dev.talkgate.im/v1/... -> /api/proxy/v1/...
     this.baseUrl = backendUrl.replace(/^https?:\/\/[^/]+/, '/api/proxy');
@@ -78,9 +78,6 @@ export class ApiClient {
 
     const defaultHeaders = this.getDefaultHeaders ? this.getDefaultHeaders() : {};
     const headers: Record<string, string> = { ...defaultHeaders, ...options.headers };
-
-    // httpOnly 쿠키는 서버에서 자동으로 처리되므로 클라이언트에서는 토큰을 읽을 수 없음
-    // 프록시 서버가 httpOnly 쿠키에서 토큰을 읽어서 Authorization 헤더에 추가함
 
     // Inject selected project header when present (frontend-selected context)
     const projectId = getSelectedProjectId();
@@ -98,7 +95,7 @@ export class ApiClient {
 
     const signal = withTimeout(options.signal, this.timeoutMs);
 
-    const exec = async () => {
+    try {
       const res = await fetch(url, {
         method: options.method ?? "GET",
         headers,
@@ -121,59 +118,90 @@ export class ApiClient {
         else if (contentType.startsWith("text/")) data = await res.text();
         else data = await res.blob();
       }
+
       if (!res.ok) {
-        throw Object.assign(new Error(`Request failed: ${res.status}`), {
+        const error = Object.assign(new Error(`Request failed: ${res.status}`), {
           status: res.status,
           data,
         });
-      }
-      return { ok: true as const, status: res.status, data } satisfies ApiResponse<any>;
-    };
 
-    try {
-      return await exec();
-    } catch (err: any) {
-      // If unauthorized (401), try to refresh once, then retry original request.
-      // Do NOT refresh on 403 (forbidden) to avoid unnecessary logout on access control errors.
-      if (err && err.status === 401) {
-        const code: string = (err?.data?.code as string) || String(err?.data?.message || "").toUpperCase();
-        const message: string = String(err?.data?.message || "").toUpperCase();
-        const method = (options.method ?? "GET").toUpperCase();
-        
-        // 2FA 플로우 중인 경우 자동 로그아웃하지 않음 (정상적인 플로우)
-        // 소셜 로그인 후 2FA가 필요한 경우, 인증 토큰이 없어서 401이 발생할 수 있음
-        const isTwoFactorFlow = typeof window !== "undefined" && 
-          window.location.pathname.startsWith("/login/two-factor");
-        
-        // 개인 발신번호 등록 API는 본인인증 미완료 시 401이 발생할 수 있으므로 자동 로그아웃하지 않음
-        const isMemberSenderNumberRegistration = 
-          method === "POST" && 
-          path === "/v1/sms/sender-numbers/member";
-        
-        // 본인인증 관련 에러는 자동 로그아웃하지 않음 (정상적인 플로우)
-        const isIdentityVerificationError = 
-          code.includes("UNAUTHORIZED") && 
-          (message.includes("본인인증") || message.includes("IDENTITY") || message.includes("VERIFICATION"));
-        
-        if (isTwoFactorFlow || isMemberSenderNumberRegistration || isIdentityVerificationError) {
-          // 2FA 플로우나 본인인증 관련 에러는 그대로 throw (자동 로그아웃 없음)
-          throw err;
+        // 401 에러 처리: 프록시에서 refresh를 시도했지만 실패한 경우
+        if (res.status === 401) {
+          // 프록시가 refresh를 시도했는지 확인
+          const refreshAttempted = res.headers.get('X-Refresh-Attempted') === 'true';
+          const refreshFailed = res.headers.get('X-Refresh-Failed') === 'true';
+          
+          // 특수 케이스 체크: 이 경우들은 refresh하지 않아야 함
+          const code: string = (data?.code as string) || String(data?.message || "").toUpperCase();
+          const message: string = String(data?.message || "").toUpperCase();
+          const method = (options.method ?? "GET").toUpperCase();
+          
+          // 2FA 플로우 중인 경우 자동 로그아웃하지 않음
+          const isTwoFactorFlow = typeof window !== "undefined" && 
+            window.location.pathname.startsWith("/login/two-factor");
+          
+          // 개인 발신번호 등록 API는 본인인증 미완료 시 401이 발생할 수 있으므로 자동 로그아웃하지 않음
+          const isMemberSenderNumberRegistration = 
+            method === "POST" && 
+            path === "/v1/sms/sender-numbers/member";
+          
+          // 본인인증 관련 에러는 자동 로그아웃하지 않음
+          const isIdentityVerificationError = 
+            code.includes("UNAUTHORIZED") && 
+            (message.includes("본인인증") || message.includes("IDENTITY") || message.includes("VERIFICATION"));
+          
+          // 로그아웃 조건:
+          // 1. 특수 케이스가 아님
+          // 2. suppressAutoLogout이 false
+          // 3. 프록시가 refresh를 시도했지만 실패했거나, refresh를 시도하지 못한 경우
+          const shouldLogout = !isTwoFactorFlow && 
+            !isMemberSenderNumberRegistration && 
+            !isIdentityVerificationError &&
+            !options.suppressAutoLogout &&
+            (refreshFailed || !refreshAttempted);
+          
+          // 디버깅: suppressAutoLogout이 true인 경우에도 로그 출력
+          if (options.suppressAutoLogout) {
+            console.log('[ApiClient] 🔍 401 에러 (suppressAutoLogout: true):', {
+              refreshAttempted,
+              refreshFailed,
+              path,
+              suppressAutoLogout: options.suppressAutoLogout,
+            });
+          }
+          
+          if (shouldLogout) {
+            console.log('[ApiClient] 🔄 401 에러 - 자동 로그아웃:', {
+              refreshAttempted,
+              refreshFailed,
+              path,
+            });
+            this.handleAutoLogout();
+          } else if (refreshAttempted && !refreshFailed) {
+            // refresh 성공했는데도 401이면 이상한 상황 (이론적으로 발생하지 않아야 함)
+            console.warn('[ApiClient] ⚠️ refresh 성공했는데도 401 에러:', path);
+          }
         }
         
-        // Immediate auto-logout for explicit missing token cases
-        if (typeof code === "string" && code.toUpperCase().includes("MISSING_AUTHENTICATION_TOKEN")) {
-          if (!options.suppressAutoLogout) this.handleAutoLogout();
-          throw err;
-        }
-        try {
-          await this.refreshTokens();
-          return await exec();
-        } catch (refreshErr) {
-          // On refresh failure, auto-logout and rethrow original error
-          if (!options.suppressAutoLogout) this.handleAutoLogout();
-          throw err;
-        }
+        // 403은 refresh하지 않음 (권한 문제)
+        // 프록시에서 이미 처리하므로 여기서는 그대로 throw
+
+        throw error;
       }
+
+      return { ok: true as const, status: res.status, data } satisfies ApiResponse<any>;
+    } catch (err: any) {
+      // AbortError는 그대로 throw
+      if (err?.name === "AbortError") {
+        throw err;
+      }
+      
+      // 네트워크 에러 등은 그대로 throw
+      if (!err?.status) {
+        throw err;
+      }
+      
+      // HTTP 에러는 위에서 처리했으므로 그대로 throw
       throw err;
     }
   }
@@ -198,23 +226,38 @@ export class ApiClient {
     return this.request<Blob>(path, { ...options, method: "GET", responseType: "blob" });
   }
 
-  private async refreshTokens(): Promise<void> {
-    // 토큰 갱신은 프록시 서버에서 자동으로 처리됨 (401 응답 시)
-    // 클라이언트에서는 별도 처리 불필요
-    throw new Error("Token refresh is handled by the server proxy");
-  }
-
   private handleAutoLogout(): void {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+    
+    // 이미 로그아웃 진행 중이면 무시
+    if (this.isLoggingOut) {
+      console.log('[ApiClient] ⏳ 이미 로그아웃 진행 중 - 무시');
+      return;
+    }
+
+    // Debounce: 짧은 시간 내 여러 호출을 하나로 묶음
+    if (this.logoutTimer) {
+      clearTimeout(this.logoutTimer);
+    }
+
+    this.logoutTimer = setTimeout(() => {
+      this.logoutTimer = null;
+      this.isLoggingOut = true;
+      
       const pathname = window.location.pathname || "/";
+      console.log('[ApiClient] 🔄 자동 로그아웃 실행:', pathname);
+      
       // 통합 자동 로그아웃 함수 사용 (공개 경로 체크 포함)
       performAutoLogout(pathname);
-    }
+      
+      // 로그아웃은 리다이렉트되므로 isLoggingOut은 자동으로 초기화됨
+      // 하지만 안전을 위해 짧은 시간 후 초기화
+      setTimeout(() => {
+        this.isLoggingOut = false;
+      }, 1000);
+    }, 100); // 100ms debounce
   }
 }
 
-
 // Singleton for app usage
 export const apiClient = new ApiClient();
-
-
