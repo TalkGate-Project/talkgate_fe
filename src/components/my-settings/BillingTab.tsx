@@ -11,7 +11,7 @@ import {
 import ProjectBillingDetail from "./ProjectBillingDetail";
 import { useBilling } from "@/hooks/useBilling";
 import { BillingService } from "@/services/billing";
-import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showErrorModal, hideErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import ChangePaymentMethodModal, {
   type PaymentMethodData,
 } from "./ChangePaymentMethodModal";
@@ -130,24 +130,32 @@ export default function BillingTab() {
         } catch (error: any) {
           console.error("결제 수단 제거 실패:", error);
           
-          // BILLING_KEY_IN_USE 에러 처리
-          const errorCode = error?.data?.code;
-          if (errorCode === "BILLING_KEY_IN_USE") {
-            showErrorModal({
-              title: "오류",
-              headline: "현재 활성화된 구독이 있어서 삭제할 수 없습니다.\n구독을 먼저 취소해주세요.",
-              confirmText: "확인",
-              hideCancel: true,
-            });
-          } else {
-            showErrorModal({
-              title: "오류",
-              headline: "결제 수단 제거에 실패했습니다.",
-              description: "잠시 후 다시 시도해주세요.",
-              confirmText: "확인",
-              hideCancel: true,
-            });
-          }
+          // 첫 번째 모달을 먼저 닫기
+          hideErrorModal();
+          
+          // 다음 틱에서 에러 모달 표시 (모달 상태 업데이트가 완료된 후)
+          setTimeout(() => {
+            // BILLING_KEY_IN_USE 에러 처리
+            const errorCode = error?.data?.code;
+            if (errorCode === "BILLING_KEY_IN_USE") {
+              console.log("BILLING_KEY_IN_USE");
+              showErrorModal({
+                title: "오류",
+                headline: "현재 활성화된 구독이 있어서 삭제할 수 없습니다.",
+                description: "구독을 먼저 취소해주세요.",
+                confirmText: "확인",
+                hideCancel: true,
+              });
+            } else {
+              showErrorModal({
+                title: "오류",
+                headline: "결제 수단 제거에 실패했습니다.",
+                description: "잠시 후 다시 시도해주세요.",
+                confirmText: "확인",
+                hideCancel: true,
+              });
+            }
+          }, 0);
         }
       },
     });
