@@ -124,43 +124,48 @@ export default function TeamRankingList({ projectId, month }: TeamRankingListPro
               : "";
             
             return (
-              <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="surface rounded-[12px] h-[88px] flex items-center px-3 md:px-5 justify-between">
-                <div className="flex items-center gap-4 md:gap-10">
-                  {row.rank === 1 ? (
-                    <RankingGoldIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-                  ) : row.rank === 2 ? (
-                    <RankingSilverIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-                  ) : row.rank === 3 ? (
-                    <RankingBronzeIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-                  ) : (
-                    <div className="w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-[12px] bg-neutral-10 grid place-items-center text-[16px] md:text-[18px] font-bold text-neutral-60">
-                      #{row.rank}
-                    </div>
-                  )}
-                  <div>
+              <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="bg-white dark:bg-neutral-20 rounded-[12px] h-[88px] flex items-center md:items-center px-5 py-3 md:py-0 justify-between">
+                {/* 모바일: 좌측 영역 */}
+                <div className="flex flex-col md:flex-row md:items-center gap-[10px] md:gap-4 md:gap-10">
+                  {/* 모바일: 좌상단 - 아이콘 | 이름 */}
+                  <div className="flex items-center gap-2">
+                    {row.rank === 1 ? (
+                      <RankingGoldIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+                    ) : row.rank === 2 ? (
+                      <RankingSilverIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+                    ) : row.rank === 3 ? (
+                      <RankingBronzeIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+                    ) : (
+                      <div className="w-6 h-6 md:w-[60px] md:h-[60px] rounded-[12px] bg-neutral-10 dark:bg-neutral-30 grid place-items-center text-[10px] md:text-[18px] font-bold text-neutral-60 dark:text-neutral-70 flex-shrink-0">
+                        <span className="md:hidden">#{row.rank}</span>
+                        <span className="hidden md:inline">#{row.rank}</span>
+                      </div>
+                    )}
                     <button
                       onClick={() => handleTeamClick(row.leaderMemberId)}
                       disabled={!row.leaderMemberId}
-                      className={`text-[16px] md:text-[18px] leading-[21px] font-bold text-neutral-90 text-left ${
+                      className={`text-[16px] md:text-[18px] leading-[21px] font-bold text-neutral-90 dark:text-neutral-80 text-left ${
                         row.leaderMemberId ? "cursor-pointer hover:underline" : "cursor-default"
                       }`}
                     >
                       {row.teamName ?? "소속없음"}
                     </button>
-                    <div className="mt-2 md:mt-3 leading-[1] text-[12px] md:text-[14px] text-neutral-90">
-                      <span className="hidden md:inline">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</span>
-                      <span className="md:hidden">₩ {formatCurrencyKRMobile(row.totalAmount)}원</span>
-                    </div>
+                  </div>
+                  {/* 모바일: 좌하단 - 금액 */}
+                  <div className="text-[14px] md:text-[14px] leading-[1] text-neutral-90 dark:text-neutral-80 md:mt-2 md:mt-3">
+                    <span className="hidden md:inline">₩ {NUMBER_FORMATTER.format(row.totalAmount)}원</span>
+                    <span className="md:hidden">{formatCurrencyKRMobile(row.totalAmount)}원</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                {/* 모바일: 우측 영역 */}
+                <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-2">
+                  {/* 모바일: 우상단 - rankChange 뱃지 */}
                   {showRankChange && rankChange !== null && (
                     <div 
-                      className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[14px] font-bold opacity-80"
-                      style={{background: '#EDEDED'}}
+                      className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[12px] md:text-[14px] font-bold bg-neutral-20 dark:bg-neutral-30 text-neutral-90 dark:text-neutral-80"
                     >
                       {rankChange === 0 ? (
-                        <>0위&nbsp;<span>-</span></>
+                        <>0위&nbsp;<span className="text-neutral-90 dark:text-neutral-80">-</span></>
                       ) : (
                         <>
                           {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
@@ -168,6 +173,7 @@ export default function TeamRankingList({ projectId, month }: TeamRankingListPro
                       )}
                     </div>
                   )}
+                  {/* 모바일: 우하단 - 변화량 */}
                   {showChange && (
                     <div className="px-2 md:px-3 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
                       <span className="dark:opacity-80 hidden md:inline">{changeLabelWeb}</span>
