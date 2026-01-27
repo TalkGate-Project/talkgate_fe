@@ -5,7 +5,7 @@ import type { RankingMyResponse, RankingMyTeamResponse } from "@/types/statistic
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
 import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
-import { formatCurrencyKRMobile } from "@/utils/format";
+import { formatCurrencyKRMobile, formatAmountChangeKRWithUnit } from "@/utils/format";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 
@@ -94,9 +94,11 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
     : null;
   
   const badgeLabelWeb = showAmountChange 
-    ? `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`
-    : `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
-  const badgeLabelMobile = diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`;
+    ? formatAmountChangeKRWithUnit(diff)
+    : "";
+  const badgeLabelMobile = showAmountChange
+    ? formatAmountChangeKRWithUnit(diff)
+    : "";
   
   const title = mode === "team" ? "나의 팀 랭킹" : "나의 랭킹";
 
@@ -151,19 +153,22 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {showRankChange && rankChange !== null && rankChange !== 0 && (
+            {showRankChange && rankChange !== null && (
               <div 
                 className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[14px] font-bold opacity-80"
-                style={{
-                  background: '#EDEDED',
-                  color: rankChange > 0 ? '#D83232' : '#4D82F3'
-                }}
+                style={{background: '#EDEDED'}}
               >
-                {rankChange > 0 ? '▲' : '▼'} {Math.abs(rankChange)}위
+                {rankChange === 0 ? (
+                  <>0위&nbsp;<span>-</span></>
+                ) : (
+                  <>
+                    {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
+                  </>
+                )}
               </div>
             )}
             {showAmountChange && (
-              <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+              <div className="px-2 md:px-3 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
                 <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
                 <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
               </div>

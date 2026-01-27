@@ -7,7 +7,7 @@ import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import Pagination from "@/components/common/Pagination";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { formatCurrencyKRMobile } from "@/utils/format";
+import { formatCurrencyKRMobile, formatAmountChangeKRWithUnit } from "@/utils/format";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -106,11 +106,19 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
             // 이번달일 경우만 변화량 표시
             const showChange = isCurrentMonth && row.yesterdayTotalAmount !== null;
             
+            // 순위 변화 계산 (이번달일 경우만)
+            const rankChange = isCurrentMonth && row.yesterdayRank !== null 
+              ? row.yesterdayRank - row.rank 
+              : null;
+            
+            // 이번달일 경우 순위 변화와 매출액 변화 표시
+            const showRankChange = isCurrentMonth && rankChange !== null;
+            
             const badgeLabelWeb = showChange
-              ? `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`
+              ? formatAmountChangeKRWithUnit(diff)
               : "";
             const badgeLabelMobile = showChange
-              ? (diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`)
+              ? formatAmountChangeKRWithUnit(diff)
               : "";
             
             return (
@@ -147,12 +155,28 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
                     </div>
                   </div>
                 </div>
-                {showChange && (
-                  <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
-                    <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
-                    <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {showRankChange && rankChange !== null && (
+                    <div 
+                      className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[14px] font-bold opacity-80"
+                      style={{background: '#EDEDED'}}
+                    >
+                      {rankChange === 0 ? (
+                        <>0위&nbsp;<span>-</span></>
+                      ) : (
+                        <>
+                          {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {showChange && (
+                    <div className="px-2 md:px-3 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+                      <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
+                      <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

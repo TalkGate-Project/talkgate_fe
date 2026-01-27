@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import type { MemberRole } from "@/types/members";
 import { useMyMember } from "@/hooks/useMyMember";
+import { LANDING_URLS } from "@/lib/constants";
 import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
 
 type Project = {
@@ -24,8 +24,6 @@ export default function SubscribeProjectExpiredModal({
   userRole: userRoleProp,
   onClose,
 }: Props) {
-  const router = useRouter();
-  
   // 프로젝트 ID를 사용하여 현재 사용자의 role 조회
   const { role: userRoleFromApi } = useMyMember(String(project.id));
   
@@ -37,8 +35,11 @@ export default function SubscribeProjectExpiredModal({
 
   const handleButtonClick = () => {
     if (isAdmin) {
-      // 어드민: 결제관리 페이지로 이동
-      router.push("/my-settings?tab=billing");
+      // 어드민: 랜딩페이지 구독 상품 페이지로 이동
+      // useProjectBilling.ts:55 패턴을 참고하여 프로젝트 정보를 쿼리스트링에 포함
+      const encodedProjectName = encodeURIComponent(project.name);
+      const checkoutUrl = `${LANDING_URLS.PRICING}?step=checkout&projectId=${project.id}&projectName=${encodedProjectName}`;
+      window.location.href = checkoutUrl;
     } else {
       // 일반 멤버: 모달 닫기
       onClose();
