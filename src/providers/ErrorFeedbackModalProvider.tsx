@@ -311,9 +311,9 @@ export default function ErrorFeedbackModalProvider({
                   className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "error"
                       ? "text-danger-40"
-                      : state.type === "success"
-                      ? "text-[#00E272]"
-                      : "text-secondary-80 dark:text-secondary-20"
+                      : state.type === "info"
+                      ? "text-secondary-80 dark:text-secondary-20"
+                      : "text-neutral-90 dark:text-neutral-80"
                   }`}
                 >
                   {state.headline}
@@ -342,7 +342,7 @@ export default function ErrorFeedbackModalProvider({
                   state.type === "error"
                     ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : state.type === "success"
-                    ? "bg-[#00E272] text-white"
+                    ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : "bg-secondary-80 dark:bg-secondary-20 text-white"
                 }`}
                 onClick={handleConfirm}
