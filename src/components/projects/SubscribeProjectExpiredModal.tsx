@@ -39,7 +39,7 @@ export default function SubscribeProjectExpiredModal({
       // useProjectBilling.ts:55 패턴을 참고하여 프로젝트 정보를 쿼리스트링에 포함
       const encodedProjectName = encodeURIComponent(project.name);
       const checkoutUrl = `${LANDING_URLS.PRICING}?step=checkout&projectId=${project.id}&projectName=${encodedProjectName}`;
-      window.location.href = checkoutUrl;
+      window.open(checkoutUrl, '_blank');
     } else {
       // 일반 멤버: 모달 닫기
       onClose();
