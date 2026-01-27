@@ -59,7 +59,7 @@ export default function RegistrationChart({ data, isLoading, isError, hasProject
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 30, right: isMobile ? 0 : 16, bottom: 0, left: isMobile ? 0 : 16 }}>
+      <LineChart data={data} margin={{ top: 30, right: isMobile ? 20 : 32, bottom: 0, left: isMobile ? 20 : 32 }}>
         <defs>
           <linearGradient id="applyGradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--primary-60)" stopOpacity={0.6} />

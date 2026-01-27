@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
@@ -40,8 +40,13 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
   const [isInviteFlow, setIsInviteFlow] = useState(false);
   // 초기화 완료 여부 (초대 정보 복구 등)
   const [isInitialized, setIsInitialized] = useState(false);
+  // 초기화 실행 여부 추적 (한 번만 실행되도록 보호)
+  const hasInitializedRef = useRef(false);
   
   useEffect(() => {
+    // 이미 초기화되었으면 재실행하지 않음
+    if (hasInitializedRef.current) return;
+    
     if (typeof window !== "undefined") {
       // 1. OAuth state 파라미터에서 returnUrl 추출 (우선순위 높음)
       let extractedReturnUrl: string | null = null;
@@ -96,8 +101,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
       
       // 초기화 완료
       setIsInitialized(true);
+      hasInitializedRef.current = true;
     }
-  }, []);
+  }, [stateParam]);
 
   useEffect(() => {
     // 컴팩트 모드(zoom: 0.8) 사용 시, body 컨텐츠가 줄어들면서 하단에 흰 여백이 생길 수 있음

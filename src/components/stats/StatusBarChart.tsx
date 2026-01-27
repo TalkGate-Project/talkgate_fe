@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList, Cell } from "recharts";
 
@@ -77,14 +77,14 @@ export default function StatusBarChart() {
   }, [chartData, isMobile]);
 
   // Y축 도메인 계산 (최댓값에 14% 여유 추가)
-  const getYDomain = (data: typeof chartData) => {
+  const getYDomain = useCallback((data: typeof chartData) => {
     const maxValue = Math.max(...data.map(d => d.value), 0);
     return [0, Math.ceil(maxValue * 1.14)];
-  };
+  }, []);
 
   const yDomain = useMemo(() => {
     return getYDomain(chartData);
-  }, [chartData]);
+  }, [chartData, getYDomain]);
 
 
   if (waitingForProject) {

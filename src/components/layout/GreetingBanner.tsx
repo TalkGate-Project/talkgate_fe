@@ -292,12 +292,12 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                       <button 
                           onClick={handleToggleAttendance}
                           disabled={checkOutMutation.isPending}
-                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] border border-[#808080] bg-neutral-90 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-60 dark:border-neutral-50 bg-neutral-90 dark:bg-neutral-20 text-[14px] font-semibold tracking-[-0.02em] text-neutral-20 dark:text-neutral-80 hover:bg-neutral-80 dark:hover:bg-neutral-30 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                       >
                           {checkOutMutation.isPending ? "처리중..." : "퇴근하기"}
                       </button>
-                      <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center gap-2">
-                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 truncate">
+                      <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] md:px-3 rounded-[8px] md:rounded-[5px] border dark:border-neutral-50 border-neutral-60 bg-neutral-10 dark:bg-neutral-20 md:bg-transparent flex items-center justify-center gap-2">
+                          <span className="text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80 truncate">
                             🕑 근무중 {elapsedTime}
                           </span>
                       </div>
@@ -309,13 +309,13 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
                       <button 
                           onClick={handleToggleAttendance}
                           disabled={checkInMutation.isPending}
-                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 text-neutral-0 hover:bg-neutral-80 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                          className="md:order-2 w-[72px] md:w-auto flex-shrink-0 h-[34px] px-0 md:px-3 rounded-[8px] md:rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] bg-neutral-90 dark:bg-neutral-20 text-neutral-0 dark:text-neutral-80 hover:bg-neutral-80 dark:hover:bg-neutral-30 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                       >
                           {checkInMutation.isPending ? "처리중..." : "출근하기"}
                       </button>
-                      <div className="md:order-1 w-[152px] md:w-auto flex-shrink-0 h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 md:border-neutral-60 bg-neutral-10 md:bg-transparent flex items-center justify-center">
-                           <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40 truncate">
-                             ● <span className="text-[#ffffff]">퇴근상태</span>
+                      <div className="md:order-1 md:w-auto flex-shrink-0 h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border dark:border-neutral-50 border-neutral-60 bg-neutral-10 dark:bg-neutral-20 md:bg-transparent flex items-center justify-center">
+                           <span className="text-[14px] font-semibold tracking-[-0.02em] text-danger-40 dark:text-danger-40 truncate">
+                             ● <span className="text-neutral-90 dark:text-neutral-80">퇴근상태</span>
                            </span>
                       </div>
                   </div>

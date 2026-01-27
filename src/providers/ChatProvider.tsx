@@ -116,6 +116,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     platform: "line" | "telegram" | "instagram" | undefined;
     categoryIds?: (number | null)[]; // null은 "일반" 카테고리를 의미
   }>({ status: "all", platform: undefined, categoryIds: undefined });
+  // 필터 ref (useEffect 내부에서 최신 값 참조용)
+  const filtersRef = useRef(filters);
+  
+  // filters 변경 시 ref 업데이트
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
   // 현재 활성 대화방 ID (읽음 처리용)
   const activeConversationIdRef = useRef<number | null>(null);
@@ -232,13 +239,15 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       convLoadingRef.current = true;
       lastConvCursorRequestedRef.current = undefined;
 
+      // 최신 filters 참조 (ref 사용)
+      const currentFilters = filtersRef.current;
       const requestPayload: any = { limit: 20 };
-      if (filters.status !== "all") requestPayload.status = filters.status;
+      if (currentFilters.status !== "all") requestPayload.status = currentFilters.status;
       // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
-      if (filters.platform !== undefined) requestPayload.platform = filters.platform;
+      if (currentFilters.platform !== undefined) requestPayload.platform = currentFilters.platform;
       // categoryIds가 있으면 포함
-      if (filters.categoryIds && filters.categoryIds.length > 0) {
-        requestPayload.categoryIds = filters.categoryIds;
+      if (currentFilters.categoryIds && currentFilters.categoryIds.length > 0) {
+        requestPayload.categoryIds = currentFilters.categoryIds;
       }
 
       socket.emit("getConversations", requestPayload);
@@ -438,7 +447,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socket.off("messagesMarkedRead", handleMessagesMarkedRead as any);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [projectId, pathname]);
+  }, [projectId, pathname]); // filters는 ref로 참조하므로 의존성 배열에서 제외
 
   // ============================================
   // 필터 변경 시 대화 목록 재요청
