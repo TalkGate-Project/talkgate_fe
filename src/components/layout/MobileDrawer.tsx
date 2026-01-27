@@ -360,7 +360,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
               {/* Menu Items - 페이지에 따라 다른 메뉴 표시 */}
               {pathname === "/my-settings" ? (
-                <nav className="flex flex-col gap-1">
+                <nav className="flex flex-col gap-1 -mx-[23px]">
                   {MY_SETTINGS_ITEMS.map((item) => {
                     const IconComponent = item.icon;
                     const isActive = currentMySettingsTab === item.key;
@@ -369,10 +369,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                       <button
                         key={item.key}
                         onClick={() => handleMySettingsTabChange(item.key)}
-                        className={`cursor-pointer w-full flex items-center gap-3 px-5 py-3 text-left transition-colors rounded-[4px] ${
+                        className={`cursor-pointer w-full flex items-center gap-3 py-3 text-left transition-colors rounded-[4px] ${
                           isActive
-                            ? "bg-primary-10/30 text-primary-60"
-                            : "text-neutral-70 hover:bg-neutral-10"
+                            ? "bg-primary-10/30 text-primary-60 px-[23px]"
+                            : "text-neutral-70 hover:bg-neutral-10 px-[23px]"
                         }`}
                       >
                         <IconComponent isActive={isActive} />
