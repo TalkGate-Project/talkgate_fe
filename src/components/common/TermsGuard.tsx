@@ -42,12 +42,11 @@ export default function TermsGuard() {
   const hasShownModalRef = useRef(false);
   const previousPathnameRef = useRef<string | null>(null);
   
-  // auth 경로에서는 아무것도 하지 않음 (early return)
-  if (isAuthRoute) {
-    return null;
-  }
-
   useEffect(() => {
+    if (isAuthRoute) {
+      previousPathnameRef.current = pathname ?? null;
+      return;
+    }
     // pathname이 변경되었을 때 (약관 동의 완료 후 페이지 이동 등) 캐시 무효화 및 refetch
     if (previousPathnameRef.current !== null && previousPathnameRef.current !== pathname) {
       // /social-signup에서 다른 페이지로 이동한 경우 (약관 동의 완료 가능성)
@@ -59,9 +58,10 @@ export default function TermsGuard() {
       }
     }
     previousPathnameRef.current = pathname;
-  }, [pathname, queryClient, refetch]);
+  }, [isAuthRoute, pathname, queryClient, refetch]);
 
   useEffect(() => {
+    if (isAuthRoute) return;
     // 로딩 중이면 체크하지 않음
     if (loading) return;
 
@@ -102,7 +102,7 @@ export default function TermsGuard() {
         router.push("/social-signup");
       },
     });
-  }, [user, loading, pathname, router]);
+  }, [isAuthRoute, user, loading, pathname, router]);
 
   return null;
 }
