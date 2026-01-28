@@ -27,8 +27,9 @@ export default function AuthSessionWatcher() {
       headline: "로그인 세션이 만료되었습니다.",
       description: "보안을 위해 다시 로그인해주세요.",
       confirmText: "로그인하기",
-      cancelText: "닫기",
-      hideCancel: false,
+      hideCloseButton: true,
+      persistent: true,
+      hideCancel: true,
       onConfirm: () => {
         performLogout({ redirectUrl: window.location.href });
       },
