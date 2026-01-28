@@ -1,6 +1,7 @@
 import { env } from "./env";
 import { getSelectedProjectId } from "./project";
-import { performAutoLogout } from "./logout";
+import { performAutoLogout, isPublicRoute } from "./logout";
+import { setAuthSessionExpired } from "./authSession";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -136,10 +137,6 @@ export class ApiClient {
           const message: string = String(data?.message || "").toUpperCase();
           const method = (options.method ?? "GET").toUpperCase();
           
-          // 2FA 플로우 중인 경우 자동 로그아웃하지 않음
-          const isTwoFactorFlow = typeof window !== "undefined" && 
-            window.location.pathname.startsWith("/login/two-factor");
-          
           // 개인 발신번호 등록 API는 본인인증 미완료 시 401이 발생할 수 있으므로 자동 로그아웃하지 않음
           const isMemberSenderNumberRegistration = 
             method === "POST" && 
@@ -153,28 +150,34 @@ export class ApiClient {
           // 로그아웃 조건:
           // 1. 특수 케이스가 아님
           // 2. suppressAutoLogout이 false
-          // 3. 프록시가 refresh를 시도했지만 실패했거나, refresh를 시도하지 못한 경우
-          const shouldLogout = !isTwoFactorFlow && 
-            !isMemberSenderNumberRegistration && 
+          // 3. 공개 경로가 아님 (로그인/회원가입 등 — 미들웨어가 인증 처리)
+          // 4. 프록시가 refresh 시도 후 실패했거나, refresh를 시도하지 못한 경우
+          const pathname = typeof window !== "undefined" ? window.location.pathname || "/" : "/";
+          const onPublicRoute = isPublicRoute(pathname);
+          const shouldLogout = !isMemberSenderNumberRegistration && 
             !isIdentityVerificationError &&
             !options.suppressAutoLogout &&
+            !onPublicRoute &&
             (refreshFailed || !refreshAttempted);
           
-          // 디버깅: suppressAutoLogout이 true인 경우에도 로그 출력
-          if (options.suppressAutoLogout) {
-            console.log('[ApiClient] 🔍 401 에러 (suppressAutoLogout: true):', {
-              refreshAttempted,
-              refreshFailed,
-              path,
-              suppressAutoLogout: options.suppressAutoLogout,
-            });
+          const shouldMarkSessionExpired = !isMemberSenderNumberRegistration &&
+            !isIdentityVerificationError &&
+            (refreshFailed || !refreshAttempted);
+          
+          if (options.suppressAutoLogout && shouldMarkSessionExpired) {
+            setAuthSessionExpired("401");
+          }
+          
+          if (options.suppressAutoLogout && !shouldLogout) {
+            console.log('[ApiClient] 🔍 401 (suppressAutoLogout, 자동 로그아웃 스킵):', { path });
           }
           
           if (shouldLogout) {
-            console.log('[ApiClient] 🔄 401 에러 - 자동 로그아웃:', {
+            console.log('[ApiClient] 🔄 401 - 자동 로그아웃:', {
               refreshAttempted,
               refreshFailed,
               path,
+              pathname,
             });
             this.handleAutoLogout();
           } else if (refreshAttempted && !refreshFailed) {

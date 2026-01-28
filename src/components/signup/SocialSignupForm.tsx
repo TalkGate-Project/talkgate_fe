@@ -87,8 +87,8 @@ export function SocialSignupForm() {
     // 초대 플로우인 경우 → 이메일 비교 필요
     if (isInviteFlow && pendingInvite?.email) {
       try {
-        // 현재 로그인한 사용자 정보 가져오기
-        const meRes = await AuthService.me();
+        // 현재 로그인한 사용자 정보 가져오기 (401 시 자동 로그아웃 방지)
+        const meRes = await AuthService.me({ suppressAutoLogout: true });
         const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
         const currentEmail = userData?.email?.toLowerCase();
         const inviteEmail = pendingInvite.email.toLowerCase();

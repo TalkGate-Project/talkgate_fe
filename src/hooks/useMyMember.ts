@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { getSelectedProjectId } from "@/lib/project";
 import { MyMember, MyMemberResponse, MemberRole } from "@/types/members";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 // 캐싱 설정 상수
 const MY_MEMBER_STALE_TIME = 5 * 60 * 1000; // 5분 - 데이터 신선도 유지 시간
@@ -43,15 +45,37 @@ async function fetchMyMember(projectId: string): Promise<MyMember> {
  * ```
  */
 export function useMyMember(projectId?: string | null) {
+  const pathname = usePathname();
   const effectiveProjectId = projectId ?? getSelectedProjectId();
+  const { status: authStatus, hasAuthTokenHint, setActive, setExpired } = useAuthSession();
 
+  // auth 관련 경로에서는 API 호출하지 않음 (인증 토큰이 없어서 401 발생 가능)
+  const isAuthRoute = pathname?.startsWith("/login") || 
+                      pathname?.startsWith("/auth/callback") || 
+                      pathname?.startsWith("/social-signup") || 
+                      pathname?.startsWith("/project-signup") || 
+                      pathname?.startsWith("/signup") ||
+                      pathname?.startsWith("/invite") ||
+                      false;
+
+  const shouldFetch = Boolean(effectiveProjectId) && !isAuthRoute && hasAuthTokenHint && authStatus !== "expired";
+  
   const query = useQuery<MyMember>({
     queryKey: myMemberKeys.byProject(effectiveProjectId),
     queryFn: () => fetchMyMember(effectiveProjectId as string),
-    enabled: Boolean(effectiveProjectId),
+    enabled: shouldFetch, // auth 경로 또는 세션 힌트 없음/만료 시 쿼리 비활성화
+    retry: false, // 401 에러는 재시도하지 않음 (프록시에서 refresh 처리)
     // 명시적 캐싱 설정 (전역 설정 오버라이드 가능)
     staleTime: MY_MEMBER_STALE_TIME,
     gcTime: MY_MEMBER_GC_TIME,
+    onSuccess: () => {
+      setActive();
+    },
+    onError: (error: any) => {
+      if (error?.status === 401) {
+        setExpired("401");
+      }
+    },
   });
 
   const member = query.data ?? null;

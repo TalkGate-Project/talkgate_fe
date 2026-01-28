@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Suspense, useMemo, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import KpiCard from "@/components/dashboard/KpiCard";
 import GreetingBanner from "@/components/layout/GreetingBanner";
@@ -63,6 +63,17 @@ function DashboardContentInner() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const { member } = useMyMember();
+  const queryClient = useQueryClient();
+  const hasRefetchedRef = useRef(false);
+
+  // 대시보드 첫 진입 시 사용자 정보 refetch
+  useEffect(() => {
+    if (!hasRefetchedRef.current && hasProject) {
+      hasRefetchedRef.current = true;
+      console.log("[Dashboard] 🔄 대시보드 첫 진입 - 사용자 정보 refetch");
+      queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+    }
+  }, [hasProject, queryClient]);
 
   const {
     data: summaryData,

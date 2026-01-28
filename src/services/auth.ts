@@ -320,8 +320,8 @@ export const AuthService = {
     });
   },
 
-  me() {
-    return apiClient.get<Me>("/v1/auth/user");
+  me(opts?: { suppressAutoLogout?: boolean }) {
+    return apiClient.get<Me>("/v1/auth/user", opts?.suppressAutoLogout ? { suppressAutoLogout: true } : undefined);
   },
 
   // Profile & Security

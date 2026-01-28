@@ -196,7 +196,8 @@ export async function middleware(req: NextRequest) {
   const host = req.headers.get("host") || "";
   const userAgent = req.headers.get("user-agent");
   const accessToken = req.cookies.get("tg_access_token")?.value;
-  const hasAuthCookie = Boolean(accessToken);
+  const refreshToken = req.cookies.get("tg_refresh_token")?.value;
+  const hasAuthCookie = Boolean(accessToken || refreshToken);
   const protocol = req.nextUrl.protocol;
 
   // UI Zoom 설정을 위한 헤더 처리

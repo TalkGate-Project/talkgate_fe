@@ -108,6 +108,7 @@ export default function StatsSection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [canRenderChart, setCanRenderChart] = useState(false);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -123,6 +124,10 @@ export default function StatsSection() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    setCanRenderChart(true);
   }, []);
 
   const { data, isLoading, isError, isFetching } =
@@ -271,7 +276,7 @@ export default function StatsSection() {
       headerClassName="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-[22px]"
       bodyClassName="px-4 md:px-6 pb-4 md:pb-6 pt-4 md:pt-4"
     >
-      <div className="h-[320px]">
+      <div className="h-[320px] min-h-[320px] min-w-0">
         {waitingForProject ? (
           <div className="flex h-full items-center justify-center">
             <LoadingSpinner size="2xl" />
@@ -293,8 +298,10 @@ export default function StatsSection() {
                 : "표시할 데이터가 없습니다."
             }
           />
+        ) : !canRenderChart ? (
+          <ChartSkeleton />
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={320} minWidth={0}>
             <AreaChart
               data={chartData}
               margin={{ left: isMobile ? 12 : 46, right: 12, top: 42, bottom: 12 }}

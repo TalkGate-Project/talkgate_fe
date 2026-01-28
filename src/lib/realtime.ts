@@ -11,7 +11,7 @@ export class TalkgateSocket {
 
   connect(projectId: number) {
     const token = getAccessToken();
-    if (!token) throw new Error("로그인이 필요합니다.");
+    if (!token) return null;
 
     // 이미 동일한 projectId로 연결되어 있고 소켓이 활성 상태면 재사용
     if (this.socket && this.currentProjectId === projectId) {

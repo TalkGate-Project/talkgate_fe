@@ -93,7 +93,7 @@ export function ProjectSignupForm() {
     const RETRY_DELAY = 500;
     
     try {
-      const meRes = await AuthService.me();
+      const meRes = await AuthService.me({ suppressAutoLogout: true });
       const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
       const email = userData?.email;
       

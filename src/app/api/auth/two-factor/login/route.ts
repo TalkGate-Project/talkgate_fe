@@ -105,6 +105,16 @@ export async function POST(request: NextRequest) {
     const accessToken = loginData?.accessToken;
     const refreshToken = loginData?.refreshToken;
 
+    console.log('[2FA Login API] 🔑 토큰 추출:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+      accessTokenLength: accessToken?.length ?? 0,
+      refreshTokenLength: refreshToken?.length ?? 0,
+      refreshTokenPreview: refreshToken
+        ? `${refreshToken.substring(0, 10)}...${refreshToken.substring(refreshToken.length - 4)}`
+        : null,
+    });
+
     // 토큰이 없으면 에러
     if (!accessToken && !refreshToken) {
       return NextResponse.json(
