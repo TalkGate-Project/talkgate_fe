@@ -173,13 +173,13 @@ export class ApiClient {
           }
           
           if (shouldLogout) {
-            console.log('[ApiClient] 🔄 401 - 자동 로그아웃:', {
+            console.log('[ApiClient] 🔄 401 - 세션 만료 처리:', {
               refreshAttempted,
               refreshFailed,
               path,
               pathname,
             });
-            this.handleAutoLogout();
+            setAuthSessionExpired("401");
           } else if (refreshAttempted && !refreshFailed) {
             // refresh 성공했는데도 401이면 이상한 상황 (이론적으로 발생하지 않아야 함)
             console.warn('[ApiClient] ⚠️ refresh 성공했는데도 401 에러:', path);
