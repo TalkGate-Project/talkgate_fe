@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -49,7 +50,7 @@ export function useMe() {
   
   const shouldFetch = !isAuthRoute && hasAuthTokenHint && authStatus !== "expired";
   
-  const query = useQuery({
+  const query = useQuery<MeUser, unknown>({
     queryKey: ["auth", "user"],
     queryFn: async () => {
       const res = await apiClient.get<MeResponse>("/v1/auth/user", {
@@ -64,18 +65,24 @@ export function useMe() {
     refetchOnMount: false, // 마운트 시 자동 refetch 방지 (캐시된 데이터 사용)
     refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
     refetchOnReconnect: false, // 네트워크 재연결 시 자동 refetch 방지
-    onSuccess: () => {
-      setActive();
-    },
-    onError: (error: any) => {
-      if (error?.status === 401) {
-        setExpired("401");
-      }
-    },
   });
 
+  const user = (query.data ?? null) as MeUser | null;
+  
+  useEffect(() => {
+    if (query.isSuccess) {
+      setActive();
+      return;
+    }
+    
+    const error = query.error as any;
+    if (query.isError && error?.status === 401) {
+      setExpired("401");
+    }
+  }, [query.isSuccess, query.isError, query.error, setActive, setExpired]);
+  
   return {
-    user: query.data ?? null,
+    user,
     loading: query.isLoading,
     error: (query.error as unknown) ?? null,
     refetch: query.refetch,

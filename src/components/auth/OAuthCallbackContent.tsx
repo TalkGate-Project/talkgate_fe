@@ -313,7 +313,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
     return () => {
       mounted = false;
     };
-  }, [code, provider, callbackUrl, router, oauthError, redirectUrl, isInitialized, isInviteFlow]);
+  }, [code, provider, callbackUrl, router, oauthError, redirectUrl, isInitialized, isInviteFlow, queryClient]);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">

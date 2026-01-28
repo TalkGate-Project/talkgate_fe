@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { getSelectedProjectId } from "@/lib/project";
@@ -60,7 +61,7 @@ export function useMyMember(projectId?: string | null) {
 
   const shouldFetch = Boolean(effectiveProjectId) && !isAuthRoute && hasAuthTokenHint && authStatus !== "expired";
   
-  const query = useQuery<MyMember>({
+  const query = useQuery<MyMember, unknown>({
     queryKey: myMemberKeys.byProject(effectiveProjectId),
     queryFn: () => fetchMyMember(effectiveProjectId as string),
     enabled: shouldFetch, // auth 경로 또는 세션 힌트 없음/만료 시 쿼리 비활성화
@@ -68,17 +69,21 @@ export function useMyMember(projectId?: string | null) {
     // 명시적 캐싱 설정 (전역 설정 오버라이드 가능)
     staleTime: MY_MEMBER_STALE_TIME,
     gcTime: MY_MEMBER_GC_TIME,
-    onSuccess: () => {
-      setActive();
-    },
-    onError: (error: any) => {
-      if (error?.status === 401) {
-        setExpired("401");
-      }
-    },
   });
 
-  const member = query.data ?? null;
+  const member = (query.data ?? null) as MyMember | null;
+  
+  useEffect(() => {
+    if (query.isSuccess) {
+      setActive();
+      return;
+    }
+    
+    const error = query.error as any;
+    if (query.isError && error?.status === 401) {
+      setExpired("401");
+    }
+  }, [query.isSuccess, query.isError, query.error, setActive, setExpired]);
   const role = member?.role;
 
   return {
