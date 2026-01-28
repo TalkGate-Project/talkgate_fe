@@ -64,10 +64,14 @@ export class ApiClient {
   private isLoggingOut: boolean = false;
 
   constructor(options?: ApiClientOptions) {
-    // 서버 API 프록시를 통해 요청하도록 변경
+    // 서버 API 프록시를 통해 요청하도록 강제
     const backendUrl = options?.baseUrl ?? env.NEXT_PUBLIC_API_BASE_URL;
-    // 프록시 경로로 변환: https://api-dev.talkgate.im/v1/... -> /api/proxy/v1/...
-    this.baseUrl = backendUrl.replace(/^https?:\/\/[^/]+/, '/api/proxy');
+    const normalizedBaseUrl = backendUrl.startsWith("/api/proxy")
+      ? backendUrl
+      : backendUrl.replace(/^https?:\/\/[^/]+/, "/api/proxy");
+    this.baseUrl = normalizedBaseUrl.startsWith("/api/proxy")
+      ? normalizedBaseUrl
+      : "/api/proxy";
     this.timeoutMs = options?.timeoutMs ?? env.NEXT_PUBLIC_API_TIMEOUT_MS;
     this.getDefaultHeaders = options?.getDefaultHeaders;
     // 프록시를 통해 요청하므로 쿠키가 자동으로 포함됨
@@ -75,6 +79,9 @@ export class ApiClient {
   }
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+      console.warn("[ApiClient] Absolute URL detected; requests must go through /api/proxy:", path);
+    }
     const url = `${this.baseUrl}${path}${buildQueryString(options.query)}`;
 
     const defaultHeaders = this.getDefaultHeaders ? this.getDefaultHeaders() : {};
