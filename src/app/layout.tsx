@@ -6,6 +6,7 @@ import "./globals.css";
 import "react-datepicker/dist/react-datepicker.css";
 import ConditionalHeader from "../components/common/ConditionalHeader";
 import TermsGuard from "../components/common/TermsGuard";
+import AuthSessionWatcher from "../components/common/AuthSessionWatcher";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import ConfirmModalProvider from "@/providers/ConfirmModalProvider";
@@ -94,6 +95,7 @@ export default async function RootLayout({
                     <NotificationProvider>
                       <ChatProvider>
                       <ConditionalHeader />
+                      <AuthSessionWatcher />
                       <TermsGuard />
                       {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
                       <Suspense fallback={null}>

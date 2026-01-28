@@ -280,7 +280,19 @@ export default function MemberSettings() {
       });
     },
     onError: (error: any) => {
+      const errorCode = error?.data?.code;
+      const errorStatus = error?.status;
       const errorMessage = error?.data?.message || "";
+      
+      // 403 + MEMBER_COUNT_LIMIT_EXCEEDED: 멤버 수 한도 초과
+      if (errorStatus === 403 && errorCode === "MEMBER_COUNT_LIMIT_EXCEEDED") {
+        showErrorModal({
+          type: "error",
+          headline: "현재 요금제의 멤버 수 한도에 도달했습니다.",
+          hideCancel: true,
+        });
+        return;
+      }
       
       // 영어 에러 메시지를 한글로 변환
       if (errorMessage.includes("Invitation already exists")) {

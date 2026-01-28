@@ -101,6 +101,7 @@ export default function ChatView({ projectId }: Props) {
     mainWidth,
     sidebarWidth,
     swapWidths,
+    widthMode,
   } = useChatResizer();
 
   // 상태에 따른 필터링된 대화 목록
@@ -254,6 +255,7 @@ export default function ChatView({ projectId }: Props) {
           onDropFile={sendAttachment}
           onSwapWidths={isWideLayout ? swapWidths : undefined}
           isResizable={isWideLayout}
+          widthMode={isWideLayout ? widthMode : undefined}
         />
       </div>
 

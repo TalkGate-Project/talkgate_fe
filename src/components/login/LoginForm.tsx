@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { initiateSocialLogin } from "@/lib/oauth";
 import Checkbox from "@/components/common/Checkbox";
 import AsyncButton from "@/components/common/AsyncButton";
 import { getRememberMePreference, setRememberMePreference } from "@/lib/token";
+import { hasAuthTokenHint } from "@/lib/authSession";
+import { setAuthSessionActive } from "@/lib/authSession";
 import { setSelectedProjectId } from "@/lib/project";
 import { getPendingInviteInfo, clearPendingInviteInfo } from "@/lib/invite";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
@@ -20,6 +23,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const persistentModal = usePersistentModal();
+  const queryClient = useQueryClient();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -122,8 +126,17 @@ export function LoginForm() {
       return;
     }
     
-    // 인증 유효성 실제 확인 후에만 이동
-    AuthService.me()
+    // 쿠키가 없으면 인증 확인 요청을 보내지 않음 (불필요한 401 요청 방지)
+    const hasTokenHint = hasAuthTokenHint();
+    
+    if (!hasTokenHint) {
+      console.log("[LoginPage] 🔍 인증 토큰 없음 - 로그인 폼 표시");
+      setChecking(false);
+      return;
+    }
+    
+    // 인증 유효성 실제 확인 후에만 이동 (401 시 자동 로그아웃 방지)
+    AuthService.me({ suppressAutoLogout: true })
       .then(() => {
         // 이미 인증된 상태
         const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
@@ -194,6 +207,9 @@ export function LoginForm() {
               // Normal login success
               console.log("[LoginPage] ✅ 로그인 성공 확인");
               
+              // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
+              queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+              
               // 서버에서 프로젝트 ID를 반환했으면 저장 (나중에 프로젝트 선택 시 사용)
               if (data?.projectId != null) {
                 console.log("[LoginPage] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
@@ -230,6 +246,7 @@ export function LoginForm() {
                 }
               }
               
+              setAuthSessionActive();
               // 리다이렉션 처리
               // window.location.replace() 사용하여 히스토리에서 로그인 페이지 제거 (뒤로가기 방지)
               // redirectUrl이 절대 URL(http:// 또는 https://)인 경우에만 해당 URL로 이동

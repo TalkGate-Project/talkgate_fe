@@ -172,8 +172,8 @@ export function useProjectBilling({
         hideCancel: true,
       });
     } catch (error: any) {
-      
-      const errorCode = error?.response?.data?.code;
+      console.error("Failed to reactivate subscription:", error);
+      const errorCode = error?.data?.code;
       if (errorCode === "INVALID_BILLING_KEY") {
         showErrorModal({
           type: "error",

@@ -23,8 +23,8 @@ function SocialSignupPageContent() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        // 로그인 상태 확인
-        const meRes = await AuthService.me();
+        // 로그인 상태 확인 (401 시 자동 로그아웃 방지)
+        const meRes = await AuthService.me({ suppressAutoLogout: true });
         const userData = (meRes as { data?: { data?: { isAllowTerms?: boolean } } })?.data?.data;
         
         if (!userData) {

@@ -102,14 +102,17 @@ export default function ErrorFeedbackModalProvider({
     createInitialState()
   );
   const [confirming, setConfirming] = useState(false);
+  const [shakeActive, setShakeActive] = useState(false);
 
   const hide = useCallback(() => {
     setConfirming(false);
+    setShakeActive(false);
     setState(createInitialState());
   }, []);
 
   const show = useCallback((options?: ErrorModalCallbacks) => {
     setConfirming(false);
+    setShakeActive(false);
     const type = options?.type ?? "error";
     const texts = defaultTexts[type];
     setState({
@@ -176,8 +179,10 @@ export default function ErrorFeedbackModalProvider({
 
   const handleOverlayClick = useCallback(() => {
     if (state.persistent) {
-      // persistent 모달의 경우 overlay 클릭 시 아무 동작도 하지 않음 (shake 액션만)
-      // shake 액션은 CSS의 animate-shake 클래스로 적용됨
+      setShakeActive(false);
+      requestAnimationFrame(() => {
+        setShakeActive(true);
+      });
       return;
     } else {
       // persistent가 아닌 경우에만 닫기
@@ -205,7 +210,13 @@ export default function ErrorFeedbackModalProvider({
             className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
             onClick={handleOverlayClick}
           />
-          <div className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${state.persistent ? "animate-shake" : ""}`} onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${
+              state.persistent && shakeActive ? "animate-shake" : ""
+            }`}
+            onClick={(e) => e.stopPropagation()}
+            onAnimationEnd={() => setShakeActive(false)}
+          >
             <div className="px-4 md:px-8 pt-7 pb-6">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
@@ -311,9 +322,9 @@ export default function ErrorFeedbackModalProvider({
                   className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
                     state.type === "error"
                       ? "text-danger-40"
-                      : state.type === "success"
-                      ? "text-[#00E272]"
-                      : "text-secondary-80 dark:text-secondary-20"
+                      : state.type === "info"
+                      ? "text-secondary-80 dark:text-secondary-20"
+                      : "text-neutral-90 dark:text-neutral-80"
                   }`}
                 >
                   {state.headline}
@@ -342,7 +353,7 @@ export default function ErrorFeedbackModalProvider({
                   state.type === "error"
                     ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : state.type === "success"
-                    ? "bg-[#00E272] text-white"
+                    ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : "bg-secondary-80 dark:bg-secondary-20 text-white"
                 }`}
                 onClick={handleConfirm}

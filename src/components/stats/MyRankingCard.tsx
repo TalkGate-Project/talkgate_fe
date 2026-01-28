@@ -5,7 +5,7 @@ import type { RankingMyResponse, RankingMyTeamResponse } from "@/types/statistic
 import RankingGoldIcon from "@/components/common/icons/RankingGoldIcon";
 import RankingSilverIcon from "@/components/common/icons/RankingSilverIcon";
 import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
-import { formatCurrencyKRMobile } from "@/utils/format";
+import { formatCurrencyKRMobile, formatAmountChangeKRWithUnit } from "@/utils/format";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 
@@ -94,9 +94,11 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
     : null;
   
   const badgeLabelWeb = showAmountChange 
-    ? `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`
-    : `${diff > 0 ? "+" : ""}${NUMBER_FORMATTER.format(diff)}`;
-  const badgeLabelMobile = diff === 0 ? "0" : `${diff > 0 ? "+" : "-"}${formatCurrencyKRMobile(Math.abs(diff))}`;
+    ? formatAmountChangeKRWithUnit(diff)
+    : "";
+  const badgeLabelMobile = showAmountChange
+    ? formatAmountChangeKRWithUnit(diff)
+    : "";
   
   const title = mode === "team" ? "나의 팀 랭킹" : "나의 랭킹";
 
@@ -118,21 +120,24 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
         <h3 className="text-[16px] font-semibold text-neutral-90">{title}</h3>
       </div>
       <div className="mt-4 rounded-[12px] bg-neutral-10 border border-primary-60 p-3 md:p-5">
-        <div className="surface rounded-[12px] h-[88px] flex items-center px-3 md:px-5 justify-between">
-          <div className="flex items-center gap-3 md:gap-4">
-            {rank === 1 ? (
-              <RankingGoldIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-            ) : rank === 2 ? (
-              <RankingSilverIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-            ) : rank === 3 ? (
-              <RankingBronzeIcon className="w-[50px] h-[50px] md:w-[60px] md:h-[60px]" />
-            ) : (
-              <div className="w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-[12px] bg-secondary-10 grid place-items-center text-[16px] md:text-[18px] font-bold text-neutral-60">
-                #{rank || "-"}
-              </div>
-            )}
-            <div>
-              <div className="text-[16px] md:text-[18px] font-bold text-primary-80 flex items-center gap-2">
+        <div className="bg-white dark:bg-neutral-20 rounded-[12px] h-[88px] flex items-center md:items-center px-5 py-3 md:py-0 justify-between">
+          {/* 모바일: 좌측 영역 */}
+          <div className="flex flex-col md:flex-row md:items-center gap-[10px] md:gap-3 md:gap-4">
+            {/* 모바일: 좌상단 - 아이콘 | 이름 | 팀 */}
+            <div className="flex items-center gap-2">
+              {rank === 1 ? (
+                <RankingGoldIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+              ) : rank === 2 ? (
+                <RankingSilverIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+              ) : rank === 3 ? (
+                <RankingBronzeIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
+              ) : (
+                <div className="w-6 h-6 md:w-[60px] md:h-[60px] rounded-[12px] bg-secondary-10 dark:bg-neutral-30 grid place-items-center text-[10px] md:text-[18px] font-bold text-neutral-60 dark:text-neutral-70 flex-shrink-0">
+                  <span className="md:hidden">#{rank || "-"}</span>
+                  <span className="hidden md:inline">#{rank || "-"}</span>
+                </div>
+              )}
+              <div className="text-[16px] md:text-[18px] font-bold text-primary-80 dark:text-primary-40 flex items-center gap-2">
                 <button
                   onClick={handleNameClick}
                   disabled={!memberIdForModal}
@@ -142,28 +147,28 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
                 >
                   {name}
                 </button>
-                {teamName && <span className="text-neutral-60 font-medium"> | {teamName}</span>}
-              </div>
-              <div className="mt-1 text-[12px] md:text-[14px] font-medium text-neutral-90">
-                <span className="hidden md:inline">₩ {NUMBER_FORMATTER.format(amount)}원</span>
-                <span className="md:hidden">₩ {formatCurrencyKRMobile(amount)}원</span>
+                {teamName && <span className="text-[14px] md:text-[18px] text-neutral-60 dark:text-neutral-60 font-medium"> | {teamName}</span>}
               </div>
             </div>
+            {/* 모바일: 좌하단 - 금액 */}
+            <div className="text-[14px] md:text-[14px] font-medium text-neutral-90 dark:text-neutral-80 md:mt-1">
+              <span className="hidden md:inline">₩ {NUMBER_FORMATTER.format(amount)}원</span>
+              <span className="md:hidden">{formatCurrencyKRMobile(amount)}원</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          {/* 모바일: 우측 영역 */}
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-2">
+            {/* 모바일: 우상단 - rankChange 뱃지 */}
             {showRankChange && rankChange !== null && rankChange !== 0 && (
               <div 
-                className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[14px] font-bold opacity-80"
-                style={{
-                  background: '#EDEDED',
-                  color: rankChange > 0 ? '#D83232' : '#4D82F3'
-                }}
+                className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[12px] md:text-[14px] font-bold bg-neutral-20 dark:bg-neutral-30 text-neutral-90 dark:text-neutral-80"
               >
-                {rankChange > 0 ? '▲' : '▼'} {Math.abs(rankChange)}위
+                {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
               </div>
             )}
-            {showAmountChange && (
-              <div className="px-2 py-1 md:px-3 md:py-1 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
+            {/* 모바일: 우하단 - 변화량 */}
+            {showAmountChange && diff !== 0 && (
+              <div className="px-2 md:px-3 h-[25px] rounded-[30px] grid place-items-center text-[12px] md:text-[14px] font-bold bg-primary-10 text-primary-100 dark:bg-[rgba(214,250,232,0.9)] dark:text-[#004824]">
                 <span className="dark:opacity-80 hidden md:inline">{badgeLabelWeb}</span>
                 <span className="dark:opacity-80 md:hidden">{badgeLabelMobile}</span>
               </div>

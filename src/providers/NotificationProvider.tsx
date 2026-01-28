@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { notificationSocket } from "@/lib/notificationSocket";
+import { getAccessToken } from "@/lib/token";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import type { NewNotificationEvent } from "@/types/notifications";
 import { isNotificationEnabled } from "@/utils/notificationSettings";
@@ -155,9 +156,18 @@ export default function NotificationProvider({ children }: { children: React.Rea
       notificationSocket.disconnect();
       return;
     }
+    
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      notificationSocket.disconnect();
+      return;
+    }
 
     try {
       const socket = notificationSocket.connect(numericProjectId);
+      if (!socket) {
+        return;
+      }
 
       // Listen for Ready event
       socket.on("ready", () => {

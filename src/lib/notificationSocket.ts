@@ -11,7 +11,7 @@ export class NotificationSocket {
 
   connect(projectId: number) {
     const token = getAccessToken();
-    if (!token) throw new Error("로그인이 필요합니다.");
+    if (!token) return null;
     
     // If already connected to the same project, return existing socket
     if (this.socket?.connected && this.projectId === projectId) {

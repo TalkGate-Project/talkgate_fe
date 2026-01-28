@@ -1,9 +1,12 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { getSelectedProjectId } from "@/lib/project";
 import { MyMember, MyMemberResponse, MemberRole } from "@/types/members";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 // 캐싱 설정 상수
 const MY_MEMBER_STALE_TIME = 5 * 60 * 1000; // 5분 - 데이터 신선도 유지 시간
@@ -20,6 +23,7 @@ export const myMemberKeys = {
 async function fetchMyMember(projectId: string): Promise<MyMember> {
   const res = await apiClient.get<MyMemberResponse>("/v1/members/my", {
     headers: { "x-project-id": projectId },
+    suppressAutoLogout: true, // 초기 로딩 API는 자동 로그아웃 방지 (프록시에서 refresh 처리)
   });
   return res.data.data;
 }
@@ -42,18 +46,44 @@ async function fetchMyMember(projectId: string): Promise<MyMember> {
  * ```
  */
 export function useMyMember(projectId?: string | null) {
+  const pathname = usePathname();
   const effectiveProjectId = projectId ?? getSelectedProjectId();
+  const { status: authStatus, hasAuthTokenHint, setActive, setExpired } = useAuthSession();
 
-  const query = useQuery<MyMember>({
+  // auth 관련 경로에서는 API 호출하지 않음 (인증 토큰이 없어서 401 발생 가능)
+  const isAuthRoute = pathname?.startsWith("/login") || 
+                      pathname?.startsWith("/auth/callback") || 
+                      pathname?.startsWith("/social-signup") || 
+                      pathname?.startsWith("/project-signup") || 
+                      pathname?.startsWith("/signup") ||
+                      pathname?.startsWith("/invite") ||
+                      false;
+
+  const shouldFetch = Boolean(effectiveProjectId) && !isAuthRoute && hasAuthTokenHint && authStatus !== "expired";
+  
+  const query = useQuery<MyMember, unknown>({
     queryKey: myMemberKeys.byProject(effectiveProjectId),
     queryFn: () => fetchMyMember(effectiveProjectId as string),
-    enabled: Boolean(effectiveProjectId),
+    enabled: shouldFetch, // auth 경로 또는 세션 힌트 없음/만료 시 쿼리 비활성화
+    retry: false, // 401 에러는 재시도하지 않음 (프록시에서 refresh 처리)
     // 명시적 캐싱 설정 (전역 설정 오버라이드 가능)
     staleTime: MY_MEMBER_STALE_TIME,
     gcTime: MY_MEMBER_GC_TIME,
   });
 
-  const member = query.data ?? null;
+  const member = (query.data ?? null) as MyMember | null;
+  
+  useEffect(() => {
+    if (query.isSuccess) {
+      setActive();
+      return;
+    }
+    
+    const error = query.error as any;
+    if (query.isError && error?.status === 401) {
+      setExpired("401");
+    }
+  }, [query.isSuccess, query.isError, query.error, setActive, setExpired]);
   const role = member?.role;
 
   return {

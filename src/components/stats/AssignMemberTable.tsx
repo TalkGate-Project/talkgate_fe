@@ -189,7 +189,7 @@ export default function AssignMemberTable() {
   return (
     <div className="mt-4">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}>
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1.5fr 1fr' }}>
         <div className="md:col-span-1">이름</div>
         <div className="md:col-span-1">팀</div>
         <div className="md:col-span-1 flex items-center gap-1 cursor-pointer" onClick={() => {
@@ -219,7 +219,7 @@ export default function AssignMemberTable() {
               <div
                 key={`skeleton-${idx}`}
                 className="h-[48px] grid items-center px-[30px] border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse md:grid-cols-3"
-                style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}
+                style={{ gridTemplateColumns: '1fr 1.5fr 1fr' }}
               >
                 <div className="h-4 bg-neutral-20 rounded" />
                 <div className="h-4 bg-neutral-20 rounded" />
@@ -241,7 +241,7 @@ export default function AssignMemberTable() {
         {!showSkeleton && !showError && rows.map((r, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return (
-            <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid items-center pl-5 md:px-[30px] md:grid-cols-3" style={{ gridTemplateColumns: '2fr 1.5fr 1fr' }}>
+            <div key={`${r.memberId}-${r.memberName}`} className="h-[48px] grid items-center pl-5 md:px-[30px] md:grid-cols-3" style={{ gridTemplateColumns: '1.5fr 1.5fr 1fr' }}>
               <button
                 onClick={() => handleMemberClick(r.memberId)}
                 className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"

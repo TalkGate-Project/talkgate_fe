@@ -55,7 +55,8 @@ export function useChatInput(activeId: number | null) {
       // 이전 activeId 업데이트
       prevActiveIdRef.current = activeId;
     }
-  }, [activeId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]); // setInput은 setState 함수이므로 안정적
 
   // 입력 내용 변경 시 저장 및 conversationsWithDraft 업데이트
   useEffect(() => {

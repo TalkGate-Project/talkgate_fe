@@ -404,6 +404,14 @@ export function useSmsForm() {
           };
         }
         
+        // 403 + SMS_USAGE_LIMIT_EXCEEDED: 사용량 한도 초과
+        if (status === 403 && errorCode === "SMS_USAGE_LIMIT_EXCEEDED") {
+          return {
+            success: false,
+            message: "현재 요금제의 사용량 한도에 도달했습니다.",
+          };
+        }
+        
         if (status === 401 || status === 403) {
           return {
             success: false,

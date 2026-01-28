@@ -29,6 +29,18 @@ export default function ConditionalHeader() {
   
   if (!pathname) return null;
 
+  // auth 관련 경로에서는 헤더를 렌더링하지 않음 (useMe 훅 호출 방지)
+  const isAuthRoute = pathname.startsWith("/login") || 
+                      pathname.startsWith("/auth/callback") || 
+                      pathname.startsWith("/social-signup") || 
+                      pathname.startsWith("/project-signup") || 
+                      pathname.startsWith("/signup") ||
+                      pathname.startsWith("/invite") ||
+                      pathname.startsWith("/forgot-password") ||
+                      false;
+
+  if (isAuthRoute) return null;
+
   const isProjectsRoot = pathname === "/projects";
   const isMySettings = pathname.startsWith("/my-settings");
 

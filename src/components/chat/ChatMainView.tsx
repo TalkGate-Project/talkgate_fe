@@ -36,6 +36,7 @@ type Props = {
   onDropFile?: (file: File) => void;
   onSwapWidths?: () => void;
   isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
+  widthMode?: "normal" | "swapped"; // 너비 모드: normal = 메인 넓음, swapped = 메인 좁음
 };
 
 export default function ChatMainView({
@@ -63,11 +64,12 @@ export default function ChatMainView({
   onDropFile,
   onSwapWidths,
   isResizable = false,
+  widthMode,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const shouldAutoScrollRef = useRef(true); // 사용자가 스크롤을 위로 올렸는지 추적
   const prevMessagesLengthRef = useRef(0);
-  
+
   // 드래그 앤 드롭 상태
   const [isDragging, setIsDragging] = useState(false);
   const dragCounterRef = useRef(0);
@@ -81,7 +83,7 @@ export default function ChatMainView({
     const seconds = date.getSeconds();
     const ampm = hours >= 12 ? "오후" : "오전";
     const hour12 = hours % 12 || 12;
-    
+
     return `${month}. ${day}. ${ampm} ${hour12}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
@@ -161,7 +163,7 @@ export default function ChatMainView({
   const onMessagesScroll = useCallback(() => {
     const el = messagesScrollRef.current;
     if (!el) return;
-    
+
     // 사용자가 스크롤을 위로 올렸는지 확인
     // 스크롤이 맨 아래에서 100px 이상 떨어져 있으면 사용자가 위로 스크롤한 것으로 간주
     const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
@@ -198,7 +200,7 @@ export default function ChatMainView({
 
   return (
     <div className={`${isResizable ? "w-full" : "flex-1"} flex ${isResizable ? "" : "justify-center"} h-full`}>
-      <div 
+      <div
         className={`w-full ${isResizable ? "" : "lg:min-w-[688px]"} h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
         onDragEnter={canDrop ? handleDragEnter : undefined}
         onDragLeave={canDrop ? handleDragLeave : undefined}
@@ -270,19 +272,25 @@ export default function ChatMainView({
                     size="md"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center leading-[24px] gap-2">
-                    <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
-                      {activeConversation.name}
-                    </span>
-                    <div className="shrink-0 w-5 h-5">
-                      <PlatformIcon platform={activeConversation.platform} />
+                {
+                  widthMode === "normal" &&
+                  (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center leading-[24px] gap-2">
+                        <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
+                          {activeConversation.name}
+                        </span>
+                        <div className="shrink-0 w-5 h-5">
+                          <PlatformIcon platform={activeConversation.platform} />
+                        </div>
+                      </div>
+                      <div className="text-[12px] text-neutral-60 truncate">
+                        {activeConversation.platformConversationId || "-"}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-[12px] text-neutral-60 truncate">
-                    {activeConversation.platformConversationId || "-"}
-                  </div>
-                </div>
+                  )
+                }
+
               </>
             ) : (
               <EmptyUserIcon />
@@ -296,41 +304,38 @@ export default function ChatMainView({
             {/* 너비 치환 버튼 (웹에서만 표시) */}
             {onSwapWidths && (
               <button
-                className="hidden lg:flex cursor-pointer h-[34px] w-[34px] rounded-[5px] border border-border flex items-center justify-center hover:bg-neutral-20 transition-colors"
+                className="hidden lg:flex cursor-pointer h-[36px] w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 flex items-center justify-center hover:bg-neutral-20 transition-colors"
                 onClick={onSwapWidths}
                 aria-label="너비 치환"
                 title="메인 뷰와 사이드바 너비 교환"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                {widthMode === "normal" ? (
+                  // 메인 뷰를 줄여야 할 때 (왼쪽 화살표)
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.16671 15.8333L3.33337 9.99996L9.16671 4.16663M15.8334 15.8333L10 9.99996L15.8334 4.16663" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+
+                ) : (
+                  // 메인 뷰를 늘려야 할 때 (오른쪽 화살표)
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.8333 15.8334L16.6666 10.0001L10.8333 4.16675M4.16663 15.8334L9.99996 10.0001L4.16662 4.16675" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+
+                )}
               </button>
             )}
             {/* 모바일에서는 연동 버튼과 상담완료 버튼만 표시 */}
             <button
-              className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${
-                activeConversation?.customerId
-                  ? "bg-primary-10 border-primary-80"
-                  : "border-border"
-              }`}
+              className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${activeConversation?.customerId
+                ? "bg-primary-10 border-primary-80"
+                : "border-border"
+                }`}
               onClick={activeConversation?.customerId ? onOpenUnlinkModal : onOpenLinkFlow}
             >
               <LinkIcon color={activeConversation?.customerId ? "#00B55B" : "#B0B0B0"} />
             </button>
             {activeConversation && activeConversation.customerId && (
-              <button 
+              <button
                 onClick={onOpenCustomerDetail}
                 className="hidden md:block cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
               >
@@ -364,11 +369,10 @@ export default function ChatMainView({
             )}
             {banner && (
               <div
-                className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${
-                  banner.type === "success"
-                    ? "bg-primary-10 border-primary-20 text-primary-80"
-                    : "bg-danger-10 border-danger-20 text-danger-60"
-                }`}
+                className={`w-full rounded-[8px] border px-3 py-2 text-[12px] ${banner.type === "success"
+                  ? "bg-primary-10 border-primary-20 text-primary-80"
+                  : "bg-danger-10 border-danger-20 text-danger-60"
+                  }`}
               >
                 {banner.message}
               </div>
@@ -389,9 +393,8 @@ export default function ChatMainView({
             {displayMessages.map((m) => (
               <div
                 key={m.id}
-                className={`flex items-end gap-2 ${
-                  m.direction === "outgoing" ? "justify-end" : ""
-                }`}
+                className={`flex items-end gap-2 ${m.direction === "outgoing" ? "justify-end" : ""
+                  }`}
               >
                 {/* 상대방 메시지일 때만 프로필 이미지 표시 */}
                 {m.direction === "incoming" && activeConversation && (
@@ -402,15 +405,13 @@ export default function ChatMainView({
                   />
                 )}
                 <div
-                  className={`max-w-[75%] rounded-[16px] ${
-                    m.direction === "outgoing"
-                      ? "bg-neutral-90 text-neutral-0 rounded-br-none"
-                      : "bg-neutral-20 text-ink rounded-bl-none"
-                  } ${
-                    m.type === "image" || m.type === "video"
+                  className={`max-w-[75%] rounded-[16px] ${m.direction === "outgoing"
+                    ? "bg-neutral-90 text-neutral-0 rounded-br-none"
+                    : "bg-neutral-20 text-ink rounded-bl-none"
+                    } ${m.type === "image" || m.type === "video"
                       ? "p-0 overflow-hidden"
                       : "px-5 py-3"
-                  }`}
+                    }`}
                 >
                   {/* 텍스트 메시지 */}
                   {m.type === "text" && m.content && (
@@ -834,9 +835,8 @@ export default function ChatMainView({
 
                   {/* 타임스탬프 */}
                   <div
-                    className={`mt-2 text-[12px] text-[#B0B0B0] ${m.direction === "outgoing" ? "text-right" : "text-left"} ${
-                      m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""
-                    }`}
+                    className={`mt-2 text-[12px] text-[#B0B0B0] ${m.direction === "outgoing" ? "text-right" : "text-left"} ${m.type === "image" || m.type === "video" ? "px-5 pb-3" : ""
+                      }`}
                   >
                     {formatMessageTime(m.sentAt || m.createdAt)}
                   </div>
@@ -873,6 +873,7 @@ export default function ChatMainView({
           onAttachFile={onAttachFile}
           attachmentUploading={attachmentUploading}
           disabled={!activeConversation}
+          widthMode={widthMode}
         />
       </div>
     </div>

@@ -93,6 +93,26 @@ export function formatAmountChangeKR(current: number, previous: number | null | 
 }
 
 /**
+ * 금액 차이를 만원 단위로 포맷하고 "원" 단위를 붙입니다.
+ * 만원 이하는 "9,000원" 형식, 만원 이상은 "1만원", "30만원", "3000만원" 형식
+ */
+export function formatAmountChangeKRWithUnit(diff: number): string {
+  if (diff === 0) return "0";
+  
+  const absDiff = Math.abs(diff);
+  const sign = diff > 0 ? "+" : "-";
+  
+  if (absDiff >= 10000) {
+    // 1만 이상: 쉼표 없이 "1만원", "30만원", "3000만원" 형식
+    const man = Math.floor(absDiff / 10000);
+    return `${sign}${man}만원`;
+  } else {
+    // 1만 미만: 쉼표 포함 "9,000원" 형식
+    return `${sign}${absDiff.toLocaleString("ko-KR")}원`;
+  }
+}
+
+/**
  * 차트용 날짜 포맷: MM.DD
  */
 export function formatChartDay(input: string): string {
