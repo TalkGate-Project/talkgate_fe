@@ -23,7 +23,7 @@ export default function AuthSessionWatcher() {
     hasShownRef.current = true;
     showErrorModal({
       type: "info",
-      title: "세션 만료",
+      title: "",
       headline: "로그인 세션이 만료되었습니다.",
       description: "보안을 위해 다시 로그인해주세요.",
       confirmText: "로그인하기",
