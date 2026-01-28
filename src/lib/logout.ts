@@ -22,6 +22,7 @@ import { clearTokens } from "./token";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "./project";
 import { talkgateSocket } from "./realtime";
 import { notificationSocket } from "./notificationSocket";
+import { resetAuthSession } from "./authSession";
 import type { QueryClient } from "@tanstack/react-query";
 
 export interface LogoutOptions {
@@ -84,6 +85,8 @@ export function performLogout(options: LogoutOptions = {}): void {
   } catch (e) {
     console.error("[Logout] ❌ 토큰 삭제 실패:", e);
   }
+  
+  resetAuthSession();
 
   try {
     clearSelectedProjectId();
@@ -190,18 +193,20 @@ export function performAutoLogout(currentPathname: string): void {
 }
 
 /**
- * 공개 경로인지 확인
- * 
+ * 공개 경로인지 확인 (미들웨어 UNAUTHENTICATED_PATHS 및 인증 불필요 경로와 정렬)
+ * - 이 경로에서는 401 시 자동 로그아웃(리다이렉트)을 하지 않음 (루프 방지)
+ *
  * @param pathname - 확인할 경로
  * @returns 공개 경로 여부
  */
-function isPublicRoute(pathname: string): boolean {
+export function isPublicRoute(pathname: string): boolean {
   return (
     pathname === "/login" ||
-    pathname.startsWith("/login/two-factor") || // 2FA 플로우는 공개 경로로 처리
+    pathname.startsWith("/login/") || // /login/two-factor 등
     pathname.startsWith("/signup") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/auth/callback/") ||
-    pathname.startsWith("/invite")
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/invite") ||
+    pathname === "/logout"
   );
 }

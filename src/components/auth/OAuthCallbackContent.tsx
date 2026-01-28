@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
 import { setRememberMePreference, getRememberMePreference } from "@/lib/token";
@@ -18,6 +19,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getPendingInviteInfo, savePendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
 import { getAuthErrorMessage } from "@/utils/errorMessages";
+import { setAuthSessionActive } from "@/lib/authSession";
 
 interface OAuthCallbackContentInnerProps {
   provider: string;
@@ -26,6 +28,7 @@ interface OAuthCallbackContentInnerProps {
 function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
@@ -240,6 +243,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         const projectId = getSelectedProjectId();
         markLoginSuccess(provider, !!projectId);
         
+        // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
+        queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+        
         // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
         const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
         
@@ -254,6 +260,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         });
         
         if (mounted) {
+          setAuthSessionActive();
           if (isAbsoluteUrl) {
             // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
             // window.location.replace() 사용하여 히스토리에서 OAuth 콜백 페이지 제거 (뒤로가기 방지)

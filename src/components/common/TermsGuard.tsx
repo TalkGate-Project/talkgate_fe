@@ -24,10 +24,28 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function TermsGuard() {
   const router = useRouter();
   const pathname = usePathname();
+  
+  // auth 관련 경로에서는 useMe 훅을 호출하지 않음 (인증 토큰이 없어서 401 발생 가능)
+  const isAuthRoute = pathname?.startsWith("/login") || 
+                      pathname?.startsWith("/auth/callback") || 
+                      pathname?.startsWith("/social-signup") || 
+                      pathname?.startsWith("/project-signup") || 
+                      pathname?.startsWith("/signup") ||
+                      pathname?.startsWith("/invite") ||
+                      pathname?.startsWith("/forgot-password") ||
+                      false;
+  
+  // useMe 훅은 항상 호출 (React Hooks 규칙 준수)
+  // 하지만 useMe 훅 내부에서 enabled: !isAuthRoute로 설정되어 있어 요청은 발생하지 않음
   const { user, loading, refetch } = useMe();
   const queryClient = useQueryClient();
   const hasShownModalRef = useRef(false);
   const previousPathnameRef = useRef<string | null>(null);
+  
+  // auth 경로에서는 아무것도 하지 않음 (early return)
+  if (isAuthRoute) {
+    return null;
+  }
 
   useEffect(() => {
     // pathname이 변경되었을 때 (약관 동의 완료 후 페이지 이동 등) 캐시 무효화 및 refetch

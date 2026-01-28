@@ -98,9 +98,9 @@ export function InviteLanding() {
         setInviteInfo(inviteData);
         setIsTokenValid(true);
 
-        // 로그인 상태 확인
+        // 로그인 상태 확인 (401 시 자동 로그아웃 방지)
         try {
-          const meRes = await AuthService.me();
+          const meRes = await AuthService.me({ suppressAutoLogout: true });
           const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
           if (userData?.email) {
             setIsLoggedIn(true);

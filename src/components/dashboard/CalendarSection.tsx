@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -318,10 +318,8 @@ export default function CalendarSection() {
           className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]"
         >
           <div 
-            className="bg-neutral-10 rounded-[12px] p-4 md:p-7 h-full relative flex flex-col min-h-[182px]"
-            style={{ 
-              ...(typeof window !== 'undefined' && window.innerWidth >= 1024 ? { minHeight: `${calendarHeight}px` } : {})
-            }}
+            className="bg-neutral-10 rounded-[12px] p-4 md:p-7 h-full relative flex flex-col min-h-[182px] lg:min-h-[var(--calendar-height)]"
+            style={{ "--calendar-height": `${calendarHeight}px` } as CSSProperties}
           >
             <div className="flex items-center justify-between mb-3 md:mb-5 gap-2">
               <div className="text-[14px] md:typo-title-2 font-semibold md:font-normal">

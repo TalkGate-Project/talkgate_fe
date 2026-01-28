@@ -2,14 +2,17 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { setSelectedProjectId } from "@/lib/project";
+import { setAuthSessionActive } from "@/lib/authSession";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
 
 function TwoFactorLoginContentInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const [totpCode, setTotpCode] = useState("");
   const [invalid, setInvalid] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -52,12 +55,16 @@ function TwoFactorLoginContentInner() {
       console.log("[TwoFactorLogin] 📥 2FA 로그인 응답:", res);
       const data = (res as any)?.data;
       
+      // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
+      queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+      
       // 서버에서 프로젝트 ID를 반환했으면 저장
       if (data?.projectId != null) {
         console.log("[TwoFactorLogin] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
         setSelectedProjectId(data.projectId);
       }
       
+      setAuthSessionActive();
       // 2FA 인증 성공 후 리디렉션
       // window.location.replace() 사용하여 히스토리에서 2FA 페이지 제거 (뒤로가기 방지)
       // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동

@@ -16,6 +16,7 @@ import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
 import { isNotificationEnabled } from "@/utils/notificationSettings";
+import { getAccessToken } from "@/lib/token";
 import type {
   ConversationsListEvent,
   NewMessageEvent,
@@ -220,9 +221,21 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     }
 
     // 소켓 연결
-    let socket: Socket;
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      talkgateSocket.disconnect();
+      socketRef.current = null;
+      setConnected(false);
+      setSocketError(null);
+      return;
+    }
+    
+    let socket: Socket | null;
     try {
       socket = talkgateSocket.connect(projectId);
+      if (!socket) {
+        return;
+      }
       socketRef.current = socket;
     } catch (error) {
       console.error("Failed to connect chat socket:", error);
