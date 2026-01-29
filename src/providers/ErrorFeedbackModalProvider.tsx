@@ -218,10 +218,16 @@ export default function ErrorFeedbackModalProvider({
             onAnimationEnd={() => setShakeActive(false)}
           >
             <div className="px-4 md:px-8 pt-7 pb-6">
-              <div className="flex items-start justify-between">
-                <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
-                  {state.title}
-                </h2>
+              <div
+                className={`flex items-start ${
+                  state.title ? "justify-between" : "justify-end"
+                }`}
+              >
+                {state.title ? (
+                  <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
+                    {state.title}
+                  </h2>
+                ) : null}
                 {!state.hideCloseButton && (
                   <button
                     type="button"
