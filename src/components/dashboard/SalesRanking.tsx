@@ -66,7 +66,7 @@ export default function SalesRanking() {
 
   return (
     <Panel
-      title={<span className="text-[14px] md:typo-title-4 font-semibold">이달 판매 랭킹</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold">이달 매출 랭킹</span>}
       action={
         <button
           onClick={() => router.push(`/stats?tab=ranking&rank=${mode}`)}
