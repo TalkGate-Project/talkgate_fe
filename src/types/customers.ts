@@ -7,6 +7,17 @@ export enum ContactType {
   Other = 'other', // 기타
 }
 
+// 고객 성향
+export enum CustomerTendency {
+  ImmediateDecision = 'immediateDecision', // 즉시 결정형
+  ComparativeReview = 'comparativeReview', // 비교 검토형
+  InformationCollection = 'informationCollection', // 정보 수집형
+  PriceSensitive = 'priceSensitive', // 가격 민감형
+  Aggressive = 'aggressive', // 공격적
+  Friendly = 'friendly', // 친화적
+  RejectionDefensive = 'rejectionDefensive', // 거절 방어적
+}
+
 export type RecentNote = {
   id: number;
   memberId?: number | null;
@@ -92,9 +103,10 @@ export type CreateCustomerInput = {
   mediaCompany?: string;
   specialNotes?: string;
   teamId?: number;
-  investmentInfo?: string;
-  investmentProfitLoss?: string;
-  investmentRistLevel?: string; // e.g., "aggressive"
+  summary?: string;
+  assetStatus?: string;
+  tendency?: string;
+  rejectionReason?: string;
   projectId: string; // header: x-project-id
 };
 
@@ -151,9 +163,10 @@ export type CustomerDetail = {
   assignedAt: string;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   specialNotes?: string;
-  investmentInfo?: string;
-  investmentProfitLoss?: string;
-  investmentRistLevel?: string;
+  summary?: string;
+  assetStatus?: string;
+  tendency?: string;
+  rejectionReason?: string;
   conversation?: {
     id: number;
     platform: string;
@@ -189,9 +202,10 @@ export type UpdateCustomerInput = {
   site?: string;
   mediaCompany?: string;
   specialNotes?: string;
-  investmentInfo?: string;
-  investmentProfitLoss?: string;
-  investmentRistLevel?: string;
+  summary?: string;
+  assetStatus?: string;
+  tendency?: string;
+  rejectionReason?: string;
   applicationDate?: string; // ISO
   projectId: string; // header: x-project-id
 };

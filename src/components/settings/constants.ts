@@ -11,7 +11,8 @@ export type SettingsTab =
   | "customer-api"
   | "team-management"
   | "batch-registration"
-  | "sms-history";
+  | "sms-history"
+  | "partner-registration";
 
 export type SettingsSidebarItem = {
   key: SettingsTab | null; // null이면 부모 항목 (토글만)
@@ -38,6 +39,7 @@ import BatchRegistrationIcon from "./icons/BatchRegistrationIcon";
 import SenderNumberIcon from "./icons/SenderNumberIcon";
 import SmsHistoryIcon from "./icons/SmsHistoryIcon";
 import SmsIcon from "./icons/SmsIcon";
+import PartnerRegistrationIcon from "./icons/PartnerRegistrationIcon";
 
 export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
   {
@@ -125,6 +127,12 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
       if (isLoading) return false;
       return isAdmin(role);
     },
+  },
+  {
+    key: "partner-registration",
+    label: "파트너등록",
+    icon: PartnerRegistrationIcon,
+    // 모든 사용자 접근 가능
   },
 ];
 

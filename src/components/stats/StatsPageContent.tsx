@@ -23,7 +23,7 @@ type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "apply", label: "신청통계" },
   { key: "assign", label: "배정통계" },
-  { key: "payment", label: "결제통계" },
+  { key: "payment", label: "매출통계" },
   { key: "status", label: "처리상태" },
   { key: "ranking", label: "전체랭킹" },
 ];
@@ -347,12 +347,12 @@ function StatsPageContentInner() {
           </section>
         )}
 
-        {/* Payment Tab: 결제통계 */}
+        {/* Payment Tab: 매출통계 */}
         {active === "payment" && (
           <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between">
               <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
-                결제통계
+                매출통계
               </h2>
               <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button

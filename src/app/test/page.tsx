@@ -189,7 +189,7 @@ export default function TestPage() {
               <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AttendanceTable.tsx</code> - 출퇴근 현황 테이블</li>
               <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">NoticeTable.tsx</code> - 공지사항 테이블</li>
               <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">AssignMemberTable.tsx</code> - 배정통계 팀원별 테이블</li>
-              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">PaymentMemberTable.tsx</code> - 결제통계 팀원별 테이블</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">PaymentMemberTable.tsx</code> - 매출통계 팀원별 테이블</li>
             </ul>
             <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
               💡 이 스켈레톤을 수정하면 위 컴포넌트들의 로딩 상태도 함께 변경됩니다.
@@ -428,7 +428,7 @@ export default function TestPage() {
               <span className="font-semibold">실제 사용 위치:</span>
             </p>
             <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
-              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">SalesRanking.tsx</code> - 대시보드 이달 판매 랭킹 섹션</li>
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">SalesRanking.tsx</code> - 대시보드 이달 매출 랭킹 섹션</li>
             </ul>
             <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
               💡 이 스켈레톤을 수정하면 위 컴포넌트의 로딩 상태도 함께 변경됩니다.
