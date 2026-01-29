@@ -11,6 +11,8 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
 import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubscriptionModal";
+import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
+import type { ProjectPartnerRequest } from "@/types/projectPartners";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -32,6 +34,31 @@ export default function TestPage() {
   const [expiredModalRole, setExpiredModalRole] = useState<"admin" | "subAdmin" | "member" | undefined>(undefined);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [showPartnerRequestModal, setShowPartnerRequestModal] = useState(false);
+
+  // 테스트용 파트너 요청 더미 데이터
+  const dummyPartnerRequests: ProjectPartnerRequest[] = [
+    {
+      id: 1,
+      projectId: 100,
+      projectName: "스마트 영업 지원",
+      projectLogoUrl: "",
+      partnerProjectId: 1,
+      status: "pending",
+      createdAt: "2026-01-29T08:00:00.000Z",
+      updatedAt: "2026-01-29T08:00:00.000Z",
+    },
+    {
+      id: 2,
+      projectId: 101,
+      projectName: "거래소 텔레마케팅 관리",
+      projectLogoUrl: "",
+      partnerProjectId: 1,
+      status: "pending",
+      createdAt: "2026-01-29T09:00:00.000Z",
+      updatedAt: "2026-01-29T09:00:00.000Z",
+    },
+  ];
 
   useEffect(() => {
     setMounted(true);
@@ -1055,6 +1082,55 @@ export default function TestPage() {
           </div>
         </section>
 
+        {/* PartnerRequestModal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">파트너 요청 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/dashboard/PartnerRequestModal</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">DashboardPageContent.tsx</code> - 대시보드 진입 시 pending 상태의 파트너 요청이 있으면 표시</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 Admin/SubAdmin 권한을 가진 사용자에게만 표시됩니다. 수락/거절 시 API 호출 후 다음 요청으로 이동합니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 테스트</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setShowPartnerRequestModal(true)}
+                    className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+                  >
+                    파트너 요청 모달 열기
+                  </button>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-neutral-30">
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 동작 설명</h3>
+                <div className="space-y-2 text-sm text-neutral-70 dark:text-neutral-50">
+                  <div className="p-3 bg-neutral-10 dark:bg-neutral-20 rounded">
+                    <p className="font-semibold mb-1">파트너 요청 모달:</p>
+                    <ul className="ml-4 list-disc space-y-1">
+                      <li>대시보드 진입 시 GET /v1/project-partners/requests?status=pending 호출</li>
+                      <li>pending 상태의 요청이 있으면 모달 표시</li>
+                      <li>&quot;수락&quot; 클릭 → PATCH /v1/project-partners/{"{id}"}/status (status: &quot;approved&quot;)</li>
+                      <li>&quot;거절&quot; 클릭 → PATCH /v1/project-partners/{"{id}"}/status (status: &quot;rejected&quot;)</li>
+                      <li>여러 요청이 있으면 순차적으로 처리 (1/2, 2/2 등 표시)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SubscribeProjectExpiredModal 테스트 */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
@@ -1173,6 +1249,17 @@ export default function TestPage() {
           }
         }}
         isLoading={isReactivating}
+      />
+
+      {/* PartnerRequestModal */}
+      <PartnerRequestModal
+        isOpen={showPartnerRequestModal}
+        onClose={() => setShowPartnerRequestModal(false)}
+        requests={dummyPartnerRequests}
+        projectId="test-project-id"
+        onActionComplete={() => {
+          console.log("파트너 요청 처리 완료");
+        }}
       />
     </div>
   );

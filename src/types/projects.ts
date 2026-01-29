@@ -9,6 +9,10 @@ export enum ProjectSubscriptionStatus {
   Inactive = 'inactive', // 구독 했다가 끝난 상태
 }
 
+/**
+ * 프로젝트 단건 타입.
+ * GET /v1/projects/{subDomain}, GET /v1/projects/by-id 등 응답 data 필드와 동일.
+ */
 export type Project = {
   id: number;
   name: string;

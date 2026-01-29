@@ -4,6 +4,8 @@ import type {
   CreateApiKeyResponse,
   ApiKeyListQuery,
   ApiKeyListResponse,
+  ApiKeyCustomerHistoryQuery,
+  ApiKeyCustomerHistoryResponse,
 } from "@/types/apiKeys";
 
 export const ApiKeysService = {
@@ -46,6 +48,68 @@ export const ApiKeysService = {
   remove(id: number, headers?: Record<string, string>) {
     return apiClient.delete<{ result: true }>(
       `/v1/api-keys/${id}`,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * API 키로 등록된 고객 히스토리 조회 (Admin, SubAdmin만 가능)
+   * GET /v1/api-keys/{id}/customer-history
+   * @param id - API 키 ID
+   * @param query - page, limit, projectPartnerId(선택)
+   * @param headers - x-project-id 헤더 포함
+   */
+  getCustomerHistory(
+    id: number,
+    query: ApiKeyCustomerHistoryQuery,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.get<ApiKeyCustomerHistoryResponse>(
+      `/v1/api-keys/${id}/customer-history`,
+      {
+        query: {
+          page: query.page,
+          limit: query.limit,
+          ...(query.projectPartnerId != null ? { projectPartnerId: query.projectPartnerId } : {}),
+        },
+        ...(headers ? { headers } : {}),
+      }
+    );
+  },
+
+  /**
+   * API 키에 협력업체 연결 (Admin, SubAdmin만 가능)
+   * POST /v1/api-keys/{apiKeyId}/partners/{partnerId}
+   * @param apiKeyId - API 키 ID
+   * @param partnerId - 협력업체 ID
+   * @param headers - x-project-id 헤더 포함
+   */
+  connectPartner(
+    apiKeyId: number,
+    partnerId: number,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.post<{ result: true }>(
+      `/v1/api-keys/${apiKeyId}/partners/${partnerId}`,
+      undefined,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * API 키에서 협력업체 연결 제거 (Admin, SubAdmin만 가능)
+   * DELETE /v1/api-keys/{apiKeyId}/partners/{partnerId}
+   * @param apiKeyId - API 키 ID
+   * @param partnerId - 협력업체 ID
+   * @param headers - x-project-id 헤더 포함
+   */
+  disconnectPartner(
+    apiKeyId: number,
+    partnerId: number,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.delete<{ result: true }>(
+      `/v1/api-keys/${apiKeyId}/partners/${partnerId}`,
       headers ? { headers } : undefined
     );
   },

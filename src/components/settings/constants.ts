@@ -1,4 +1,4 @@
-import { isAdmin } from "@/utils/permissions";
+import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole } from "@/types/members";
 
 export type SettingsTab =
@@ -122,10 +122,10 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     key: "customer-api",
     label: "고객등록 API",
     icon: CustomerApiIcon,
-    // 어드민만 접근 가능
+    // 어드민/서브어드민 접근 가능
     canAccess: ({ role, isLoading }) => {
       if (isLoading) return false;
-      return isAdmin(role);
+      return hasAdminAccess(role);
     },
   },
   {

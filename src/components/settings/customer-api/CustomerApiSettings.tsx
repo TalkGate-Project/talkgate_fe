@@ -6,6 +6,8 @@ import { ProjectsService } from "@/services/projects";
 import { ApiKeysService } from "@/services/apiKeys";
 import type { ApiKey } from "@/types/apiKeys";
 import ApiKeyCreateModal from "./ApiKeyCreateModal";
+import ApiKeyLinkModal from "./ApiKeyLinkModal";
+import ApiKeyHistoryView from "./ApiKeyHistoryView";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function CustomerApiSettings() {
@@ -19,6 +21,13 @@ export default function CustomerApiSettings() {
   const [totalPages, setTotalPages] = useState(1);
   const [copyStates, setCopyStates] = useState<Record<number, "idle" | "copied">>({});
   const [hoveredKeyId, setHoveredKeyId] = useState<number | null>(null);
+
+  // 연동 모달 상태
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [selectedApiKeyForLink, setSelectedApiKeyForLink] = useState<ApiKey | null>(null);
+
+  // 히스토리 뷰 상태
+  const [selectedApiKeyForHistory, setSelectedApiKeyForHistory] = useState<ApiKey | null>(null);
 
   const limit = 20;
 
@@ -170,6 +179,33 @@ export default function CustomerApiSettings() {
     });
   };
 
+  // 연동 버튼 클릭 핸들러
+  const handleOpenLinkModal = (apiKey: ApiKey) => {
+    setSelectedApiKeyForLink(apiKey);
+    setIsLinkModalOpen(true);
+  };
+
+  // 히스토리 버튼 클릭 핸들러
+  const handleOpenHistory = (apiKey: ApiKey) => {
+    setSelectedApiKeyForHistory(apiKey);
+  };
+
+  // 히스토리 뷰에서 뒤로가기
+  const handleBackFromHistory = () => {
+    setSelectedApiKeyForHistory(null);
+  };
+
+  // 히스토리 뷰 렌더링
+  if (selectedApiKeyForHistory && projectId) {
+    return (
+      <ApiKeyHistoryView
+        apiKey={selectedApiKeyForHistory}
+        projectId={projectId}
+        onBack={handleBackFromHistory}
+      />
+    );
+  }
+
   return (
     <>
       {/* Box 1: API 정보 */}
@@ -207,7 +243,7 @@ export default function CustomerApiSettings() {
               <button
                 onClick={handleCopyEndpoint}
                 disabled={loading || !apiEndpoint}
-                className="cursor-pointer w-[44px] md:w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[13px] md:text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               >
                 {copyState === "copied" ? "복사됨" : "복사"}
               </button>
@@ -278,22 +314,49 @@ export default function CustomerApiSettings() {
                       type="text"
                       value={apiKey.keyValue}
                       readOnly
-                      className={`flex-1 min-w-0 bg-transparent text-[13px] md:text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] transition-filter ${
-                        hoveredKeyId === apiKey.id ? "filter-none" : "blur-sm"
-                      }`}
+                      className={`flex-1 min-w-0 bg-transparent text-[13px] md:text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] transition-filter ${hoveredKeyId === apiKey.id ? "filter-none" : "blur-sm"
+                        }`}
                     />
                     <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+                      {/* 히스토리 버튼 */}
+                      <button
+                        onClick={() => handleOpenHistory(apiKey)}
+                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="히스토리"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      {/* 연동 버튼 */}
+                      <button
+                        onClick={() => handleOpenLinkModal(apiKey)}
+                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="연동"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.8284 10.1716C12.2663 8.60948 9.73367 8.60948 8.17157 10.1716L4.17157 14.1716C2.60948 15.7337 2.60948 18.2663 4.17157 19.8284C5.73367 21.3905 8.26633 21.3905 9.82843 19.8284L10.93 18.7269M10.1716 13.8284C11.7337 15.3905 14.2663 15.3905 15.8284 13.8284L19.8284 9.82843C21.3905 8.26633 21.3905 5.73367 19.8284 4.17157C18.2663 2.60948 15.7337 2.60948 14.1716 4.17157L13.072 5.27118" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                      {/* 복사 버튼 */}
                       <button
                         onClick={() => handleCopyKey(apiKey.keyValue, apiKey.id)}
-                        className="cursor-pointer w-[44px] md:w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[13px] md:text-[14px] font-semibold bg-neutral-0 hover:bg-neutral-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="복사"
                       >
-                        {copyStates[apiKey.id] === "copied" ? "복사됨" : "복사"}
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </button>
+                      {/* 삭제 버튼 */}
                       <button
                         onClick={() => handleDeleteApiKey(apiKey.id)}
-                        className="cursor-pointer w-[44px] md:w-[48px] h-[34px] rounded-[5px] border border-danger-40 text-[13px] md:text-[14px] font-semibold text-danger-40 hover:bg-danger-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="삭제"
                       >
-                        삭제
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -324,7 +387,7 @@ export default function CustomerApiSettings() {
             </div>
           )}
 
-          
+
         </section>
       </div>
 
@@ -334,6 +397,20 @@ export default function CustomerApiSettings() {
         onClose={() => setIsCreateModalOpen(false)}
         onConfirm={handleCreateApiKey}
       />
+
+      {/* API Key Link Modal */}
+      {selectedApiKeyForLink && projectId && (
+        <ApiKeyLinkModal
+          isOpen={isLinkModalOpen}
+          onClose={() => {
+            setIsLinkModalOpen(false);
+            setSelectedApiKeyForLink(null);
+          }}
+          apiKeyId={selectedApiKeyForLink.id}
+          apiKeyName={selectedApiKeyForLink.name}
+          projectId={projectId}
+        />
+      )}
     </>
   );
 }

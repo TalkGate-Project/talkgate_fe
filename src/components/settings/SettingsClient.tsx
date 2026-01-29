@@ -73,10 +73,10 @@ function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): bo
     return isAdmin(role);
   }
 
-  // 고객등록 API 탭은 **총관리자(admin)**만 접근 가능
+  // 고객등록 API 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
   if (tab === "customer-api") {
     if (!member) return false;
-    return isAdmin(role);
+    return hasAdminAccess(role);
   }
 
   if (ADMIN_ONLY_TABS.includes(tab)) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useEffect, useRef } from "react";
+import { Suspense, useMemo, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -10,10 +10,14 @@ import SalesRanking from "@/components/dashboard/SalesRanking";
 import CalendarSection from "@/components/dashboard/CalendarSection";
 import NoticeSection from "@/components/notice/NoticeSection";
 import StatsSection from "@/components/stats/StatsSection";
+import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
+import { ProjectPartnersService } from "@/services/projectPartners";
 import type { SummaryResponse } from "@/types/statistics";
+import type { ProjectPartnerRequest } from "@/types/projectPartners";
 import { useMyMember } from "@/hooks/useMyMember";
+import { hasAdminAccess } from "@/utils/permissions";
 import RecentCustomersIcon from "@/components/common/icons/RecentCustomersIcon";
 import TotalCustomersIcon from "@/components/common/icons/TotalCustomersIcon";
 import PaymentRateIcon from "@/components/common/icons/PaymentRateIcon";
@@ -65,6 +69,14 @@ function DashboardContentInner() {
   const { member } = useMyMember();
   const queryClient = useQueryClient();
   const hasRefetchedRef = useRef(false);
+  const hasCheckedPartnerRequestsRef = useRef(false);
+
+  // 파트너 요청 모달 상태
+  const [partnerRequests, setPartnerRequests] = useState<ProjectPartnerRequest[]>([]);
+  const [isPartnerRequestModalOpen, setIsPartnerRequestModalOpen] = useState(false);
+
+  // Admin/SubAdmin 권한 확인
+  const isAdminOrSubAdmin = hasAdminAccess(member?.role);
 
   // 대시보드 첫 진입 시 사용자 정보 refetch
   useEffect(() => {
@@ -74,6 +86,44 @@ function DashboardContentInner() {
       queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
     }
   }, [hasProject, queryClient]);
+
+  // 대시보드 진입 시 파트너 요청 조회 (Admin/SubAdmin만)
+  useEffect(() => {
+    const fetchPartnerRequests = async () => {
+      if (!projectId || !isAdminOrSubAdmin || hasCheckedPartnerRequestsRef.current) return;
+      
+      hasCheckedPartnerRequestsRef.current = true;
+      
+      try {
+        const headers = { "x-project-id": projectId };
+        const response = await ProjectPartnersService.listRequests(
+          { page: 1, limit: 100, status: "pending" },
+          headers
+        );
+
+        if (response.data?.data?.list && response.data.data.list.length > 0) {
+          setPartnerRequests(response.data.data.list);
+          setIsPartnerRequestModalOpen(true);
+        }
+      } catch (err) {
+        console.error("[Dashboard] Failed to fetch partner requests", err);
+      }
+    };
+
+    if (hasProject && isAdminOrSubAdmin) {
+      fetchPartnerRequests();
+    }
+  }, [projectId, hasProject, isAdminOrSubAdmin]);
+
+  // 파트너 요청 모달 닫기
+  const handlePartnerRequestModalClose = () => {
+    setIsPartnerRequestModalOpen(false);
+  };
+
+  // 파트너 요청 처리 완료 시 목록 갱신
+  const handlePartnerRequestActionComplete = () => {
+    setPartnerRequests([]);
+  };
 
   const {
     data: summaryData,
@@ -173,6 +223,17 @@ function DashboardContentInner() {
           </>
         )}
       </div>
+
+      {/* Partner Request Modal */}
+      {projectId && (
+        <PartnerRequestModal
+          isOpen={isPartnerRequestModalOpen}
+          onClose={handlePartnerRequestModalClose}
+          requests={partnerRequests}
+          projectId={projectId}
+          onActionComplete={handlePartnerRequestActionComplete}
+        />
+      )}
     </main>
   );
 }
