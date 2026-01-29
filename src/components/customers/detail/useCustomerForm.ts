@@ -54,9 +54,10 @@ export function useCustomerForm(): UseCustomerFormReturn {
       assignedMemberName: detail.assignedMemberName ?? "",
       assignedTeamName: detail.assignedTeamName ?? "",
       specialNotes: detail.specialNotes ?? "",
-      investmentInfo: detail.investmentInfo ?? "",
-      investmentProfitLoss: detail.investmentProfitLoss ?? "",
-      investmentRiskLevel: detail.investmentRistLevel ?? "",
+      summary: detail.summary ?? "",
+      assetStatus: detail.assetStatus ?? "",
+      tendency: detail.tendency ?? "",
+      rejectionReason: detail.rejectionReason ?? "",
     };
 
     setForm(initialFormState);

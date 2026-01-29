@@ -20,9 +20,10 @@ export type CustomerFormState = {
   assignedMemberName: string;
   assignedTeamName: string;
   specialNotes: string;
-  investmentInfo: string;
-  investmentProfitLoss: string;
-  investmentRiskLevel: string;
+  summary: string;
+  assetStatus: string;
+  tendency: string;
+  rejectionReason: string;
 };
 
 export const INITIAL_FORM_STATE: CustomerFormState = {
@@ -41,9 +42,10 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   assignedMemberName: "",
   assignedTeamName: "",
   specialNotes: "",
-  investmentInfo: "",
-  investmentProfitLoss: "",
-  investmentRiskLevel: "",
+  summary: "",
+  assetStatus: "",
+  tendency: "",
+  rejectionReason: "",
 };
 
 // ============================================================================
@@ -70,9 +72,10 @@ export const FORM_TO_API_FIELD_MAP: Record<
   assignedMemberName: null, // 읽기 전용 필드
   assignedTeamName: null, // 읽기 전용 필드
   specialNotes: "specialNotes",
-  investmentInfo: "investmentInfo",
-  investmentProfitLoss: "investmentProfitLoss",
-  investmentRiskLevel: "investmentRistLevel", // API는 오타 유지
+  summary: "summary",
+  assetStatus: "assetStatus",
+  tendency: "tendency",
+  rejectionReason: "rejectionReason",
 };
 
 /** 빈 값일 때 "-"로 표시할 필드 목록 (데이터 정보 탭 관련 필드) */
