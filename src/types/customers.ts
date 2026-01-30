@@ -273,6 +273,54 @@ export type UnassignCustomersResponse = {
   };
 };
 
+// Copy customers to partner (협력업체에 고객 복제) - Admin, SubAdmin만 가능
+export type CopyToPartnerFilterConditions = {
+  name?: string;
+  contact1?: string;
+  contact2?: string;
+  noteContent?: string;
+  assignType?: "all" | string;
+  teamId?: number;
+  memberId?: number;
+  applicationRoute?: string;
+  mediaCompany?: string;
+  site?: string;
+  categoryIds?: (number | string)[];
+  applicationDateFrom?: string;
+  applicationDateTo?: string;
+  assignedAtFrom?: string;
+  assignedAtTo?: string;
+};
+
+export type CopyToPartnerInput = {
+  /** 협력업체(ProjectPartner) ID 배열 */
+  partnerIds: number[];
+  /** "ids" = customerIds로 지정, "filter" = filterConditions로 지정 */
+  copyType: "ids" | "filter";
+  /** copyType === "ids"일 때 필수 */
+  customerIds?: number[];
+  /** copyType === "filter"일 때 사용 */
+  filterConditions?: CopyToPartnerFilterConditions;
+  /** copyType === "filter"일 때 예상 건수 (선택) */
+  expectedCount?: number;
+  projectId: string; // header: x-project-id
+};
+
+export type CopyToPartnerResultItem = {
+  partnerId: number;
+  copiedCount: number;
+  failedCount: number;
+  totalCount: number;
+  failedCustomerIds: number[];
+};
+
+export type CopyToPartnerResponse = {
+  result: true;
+  data: {
+    results: CopyToPartnerResultItem[];
+  };
+};
+
 // Common error envelope (thrown by ApiClient on non-2xx)
 import type { ApiErrorResponse } from "./common";
 
