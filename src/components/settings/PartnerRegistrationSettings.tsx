@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import Pagination from "@/components/common/Pagination";
-import Tooltip from "@/components/common/Tooltip";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import PartnerRegisterModal from "./PartnerRegisterModal";
 
 /** API 연동 시 사용할 타입 – 현재는 더미 데이터용 */
 export type PartnerItem = {
@@ -87,7 +88,9 @@ const DUMMY_PARTNERS: PartnerItem[] = [
 const PAGE_SIZE = 10;
 
 export default function PartnerRegistrationSettings() {
+  const [projectId] = useSelectedProjectId();
   const [page, setPage] = useState(1);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   // 추후 API 연동 시: list를 API 응답으로 교체
   const [partners, setPartners] = useState<PartnerItem[]>(DUMMY_PARTNERS);
 
@@ -120,8 +123,11 @@ export default function PartnerRegistrationSettings() {
   };
 
   const handleRegisterCompany = () => {
-    // TODO: API 연동 시 업체등록 모달 또는 페이지
-    console.log("업체등록");
+    setIsRegisterModalOpen(true);
+  };
+
+  const handlePartnerRegisterSuccess = () => {
+    // 추후 API 목록 연동 시 여기서 refetch
   };
 
   return (
@@ -139,6 +145,13 @@ export default function PartnerRegistrationSettings() {
           업체등록
         </button>
       </div>
+
+      <PartnerRegisterModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        projectId={projectId ?? ""}
+        onSuccess={handlePartnerRegisterSuccess}
+      />
 
       <div className="w-full h-[1px] bg-neutral-30 opacity-70" />
 
