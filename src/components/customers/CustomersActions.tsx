@@ -222,6 +222,13 @@ export default function CustomersActions({
       </button>
       <button
         className="hidden md:block cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => {}}
+        disabled={selectedIds.length === 0 && selectionMode !== "all"}
+      >
+        공유하기
+      </button>
+      <button
+        className="hidden md:block cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onSmsOpen}
         disabled={selectedIds.length === 0 && selectionMode !== "all"}
       >
