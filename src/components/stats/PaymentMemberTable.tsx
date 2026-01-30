@@ -173,7 +173,7 @@ export default function PaymentMemberTable() {
   const Header = (
     <div className="mb-3 flex flex-col md:flex-row md:items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="text-[16px] font-semibold text-foreground">팀원별 결제 현황</div>
+        <div className="text-[16px] font-semibold text-foreground">팀원별 매출 현황</div>
         <button
           aria-label="filter"
           className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"

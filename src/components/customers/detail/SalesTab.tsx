@@ -234,7 +234,7 @@ export default function SalesTab({
       <div>
         <div className="mb-3 pb-2 border-b border-[#E2E2E2] dark:border-[#444444]">
           <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
-            결제 내역
+            매출 내역
           </div>
         </div>
         <div className="subdescription text-[14px] text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -325,7 +325,7 @@ export default function SalesTab({
                 onClick={() => {
                   showConfirmModal({
                     title: "확인",
-                    message: "결제 내역을 삭제하시겠습니까?",
+                    message: "매출 내역을 삭제하시겠습니까?",
                     confirmText: "삭제",
                     cancelText: "취소",
                     onConfirm: () => onRemovePayment(ph.id),

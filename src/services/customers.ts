@@ -9,6 +9,8 @@ import {
   UpdateCustomerResponse,
   AssignCustomersInput,
   AssignCustomersResponse,
+  CopyToPartnerInput,
+  CopyToPartnerResponse,
   AddCustomerMessengerInput,
   RemoveCustomerMessengerInput,
   BasicSuccessResponse,
@@ -101,7 +103,7 @@ export const CustomersService = {
       headers: { "x-project-id": input.projectId },
     });
   },
-  // 결제 내역 추가/삭제
+  // 매출 내역 추가/삭제
   addPaymentHistory(input: AddCustomerPaymentHistoryInput) {
     const { projectId, ...body } = input;
     return apiClient.post<BasicSuccessResponse>(`/v1/customers/payment-histories`, body, {
@@ -131,6 +133,13 @@ export const CustomersService = {
   unassign(input: UnassignCustomersInput) {
     const { projectId, ...body } = input;
     return apiClient.post<UnassignCustomersResponse>(`/v1/customers/unassign`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  // 고객 정보를 협력업체에 복제 (Admin, SubAdmin만 가능)
+  copyToPartner(input: CopyToPartnerInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<CopyToPartnerResponse>(`/v1/customers/copy-to-partner`, body, {
       headers: { "x-project-id": projectId },
     });
   },
@@ -165,6 +174,10 @@ export type {
   UpdateCustomerResponse,
   AssignCustomersInput,
   AssignCustomersResponse,
+  CopyToPartnerInput,
+  CopyToPartnerResponse,
+  CopyToPartnerFilterConditions,
+  CopyToPartnerResultItem,
   AddCustomerMessengerInput,
   RemoveCustomerMessengerInput,
   BasicSuccessResponse,

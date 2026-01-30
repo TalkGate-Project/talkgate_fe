@@ -39,7 +39,8 @@ export default function ApiKeyHistoryView({
       );
 
       if (response.data?.data) {
-        setHistoryItems(response.data.data.items);
+        const items = response.data.data.items;
+        setHistoryItems(items);
         setTotalPages(response.data.data.totalPages);
       }
     } catch (err) {
@@ -101,18 +102,6 @@ export default function ApiKeyHistoryView({
           </h1>
         </div>
 
-        {/* API Key Logo/Name */}
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-neutral-20 flex items-center justify-center overflow-hidden">
-            <Image
-              src="/images/default-project-logo.svg"
-              alt={apiKey.name}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Divider */}
@@ -141,8 +130,8 @@ export default function ApiKeyHistoryView({
           </div>
         ) : (
           <div className="divide-y divide-neutral-20">
-            {historyItems.map((item) => {
-              const itemKey = String(item.customerId);
+            {historyItems.map((item, index) => {
+              const itemKey = `${String(item.customerId)}-${index}`;
               const isExpanded = expandedIds.has(itemKey);
               const hasPartners = item.copiedPartnerProjects.length > 0;
 
@@ -153,7 +142,7 @@ export default function ApiKeyHistoryView({
                     className={`grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_40px] gap-2 md:gap-4 px-4 py-4 items-center ${
                       hasPartners ? "cursor-pointer hover:bg-neutral-10/50" : ""
                     }`}
-                    onClick={() => hasPartners && toggleExpand(item.customerId)}
+                    onClick={() => hasPartners && toggleExpand(itemKey)}
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden space-y-1">
@@ -190,7 +179,7 @@ export default function ApiKeyHistoryView({
                           viewBox="0 0 24 24"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
-                          className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                          className={`transition-transform ${isExpanded ? "rotate-180" : "rotate-270"}`}
                         >
                           <path
                             d="M6 9L12 15L18 9"
@@ -207,37 +196,30 @@ export default function ApiKeyHistoryView({
 
                   {/* Expanded Content - Partner Projects */}
                   {isExpanded && hasPartners && (
-                    <div className="px-4 pb-4 bg-neutral-10/30">
-                      <div className="flex items-center gap-2 py-2">
+                    <div className="px-4 bg-neutral-10/30 md:grid md:grid-cols-[2fr_1fr_1fr_40px] md:gap-4">
+                      <div className="flex items-center gap-2 py-2 md:col-span-1">
                         <span className="text-[13px] text-neutral-50">
                           전달 된 파트너 프로젝트
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-3">
+                      <div className="md:col-span-3">
+                        <div className="flex flex-col gap-2">
                         {item.copiedPartnerProjects.map((project) => (
                           <div
                             key={project.projectId}
-                            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-neutral-20 rounded-[6px]"
+                            className="flex items-center gap-2 px-3 py-2"
                           >
-                            <div className="w-6 h-6 rounded-full bg-neutral-20 overflow-hidden flex-shrink-0">
-                              {project.logoUrl ? (
-                                <Image
+                            <div className="w-6 h-6 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
+                              {project.logoUrl && (
+                                <img
                                   src={project.logoUrl}
                                   alt={project.name}
                                   width={24}
                                   height={24}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    e.currentTarget.src = "/images/default-project-logo.svg";
+                                    e.currentTarget.style.display = "none";
                                   }}
-                                />
-                              ) : (
-                                <Image
-                                  src="/images/default-project-logo.svg"
-                                  alt={project.name}
-                                  width={24}
-                                  height={24}
-                                  className="w-full h-full object-cover"
                                 />
                               )}
                             </div>
@@ -246,6 +228,7 @@ export default function ApiKeyHistoryView({
                             </span>
                           </div>
                         ))}
+                        </div>
                       </div>
                     </div>
                   )}

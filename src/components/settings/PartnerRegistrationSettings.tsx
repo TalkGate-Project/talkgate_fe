@@ -1,17 +1,39 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import Pagination from "@/components/common/Pagination";
-import Tooltip from "@/components/common/Tooltip";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import PartnerRegisterModal from "./PartnerRegisterModal";
+import { ProjectPartnersService } from "@/services/projectPartners";
+import type { ProjectPartner, ProjectPartnerStatus } from "@/types/projectPartners";
 
-/** API 연동 시 사용할 타입 – 현재는 더미 데이터용 */
-export type PartnerItem = {
-  id: number;
-  projectName: string;
-  remark: string;
-};
+/** 상태 칩: 수락(Primary-10/80), 대기(Warning-10/60), 거절(Error-10/40) */
+function PartnerStatusBadge({ status }: { status: ProjectPartnerStatus }) {
+  const config: Record<
+    ProjectPartnerStatus,
+    { label: string; bg: string; text: string }
+  > = {
+    approved: { label: "수락", bg: "#D6FAE8", text: "#00B55B" },
+    pending: { label: "대기", bg: "#FFF5D5", text: "#976400" },
+    rejected: { label: "거절", bg: "#FFEBEB", text: "#D83232" },
+  };
+  const { label, bg, text } = config[status] ?? {
+    label: status,
+    bg: "#F5F5F5",
+    text: "#595959",
+  };
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-[30px] py-1 px-3 text-[12px] font-medium leading-[14px] whitespace-nowrap"
+      style={{ background: bg }}
+      aria-label={label}
+    >
+      <span style={{ color: text, opacity: 0.8 }}>{label}</span>
+    </span>
+  );
+}
 
 /** 수정 버튼 아이콘 (stroke #B0B0B0) */
 function EditIcon({ className = "" }: { className?: string }) {
@@ -73,55 +95,96 @@ function DeleteButton({
   );
 }
 
-/** 더미 데이터 – 추후 API 목록으로 교체 */
-const DUMMY_PARTNERS: PartnerItem[] = [
-  { id: 1, projectName: "api", remark: "api.techflow.io api.techflow.io" },
-  { id: 2, projectName: "dev", remark: "forum.pixelart.net" },
-  { id: 3, projectName: "admin어드민", remark: "https://wiki.pixelartmentpage.net" },
-  { id: 4, projectName: "status 프로젝트용", remark: "https://alivedev.mentmantelive.pixelart.net" },
-  { id: 5, projectName: "G-story", remark: "https://wiki.pixelartmexxntpage.net" },
-  { id: 6, projectName: "Kim.sales", remark: "https://wiki.pixelartmentpage.net" },
-  { id: 7, projectName: "forum", remark: "https://wiki.pixelartpixelart.net" },
-];
-
 const PAGE_SIZE = 10;
 
 export default function PartnerRegistrationSettings() {
+  const [projectId] = useSelectedProjectId();
   const [page, setPage] = useState(1);
-  // 추후 API 연동 시: list를 API 응답으로 교체
-  const [partners, setPartners] = useState<PartnerItem[]>(DUMMY_PARTNERS);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [partners, setPartners] = useState<ProjectPartner[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
-  const paginatedPartners = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return partners.slice(start, start + PAGE_SIZE);
-  }, [partners, page]);
+  const fetchPartners = useCallback(async () => {
+    if (!projectId) {
+      setPartners([]);
+      setTotalPages(1);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await ProjectPartnersService.list(
+        { page, limit: PAGE_SIZE },
+        { "x-project-id": projectId }
+      );
+      const data = res.data?.data;
+      if (data) {
+        setPartners(data.list ?? []);
+        setTotalPages(Math.max(1, data.totalPages ?? 1));
+      } else {
+        setPartners([]);
+        setTotalPages(1);
+      }
+    } catch {
+      setPartners([]);
+      setTotalPages(1);
+      showErrorModal({
+        type: "error",
+        headline: "파트너 목록을 불러오는데 실패했습니다.",
+        hideCancel: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, page]);
 
-  const handleEdit = (item: PartnerItem) => {
-    // TODO: API 연동 시 수정 모달 또는 페이지로 이동
+  useEffect(() => {
+    fetchPartners();
+  }, [fetchPartners]);
+
+  const handleEdit = (item: ProjectPartner) => {
+    // TODO: 수정 API/모달 연동 시 구현
     console.log("Edit partner:", item);
   };
 
-  const handleDelete = (item: PartnerItem) => {
+  const handleDelete = (item: ProjectPartner) => {
     showConfirmModal({
       title: "파트너 삭제",
-      message: `"${item.projectName}"을(를) 삭제하시겠습니까?`,
+      message: `"${item.partnerProjectName}"을(를) 삭제하시겠습니까?`,
       confirmText: "삭제",
-      onConfirm: () => {
-        setPartners((prev) => prev.filter((p) => p.id !== item.id));
-        showErrorModal({
-          type: "success",
-          headline: "삭제되었습니다.",
-          hideCancel: true,
-          confirmText: "확인",
-        });
+      onConfirm: async () => {
+        if (!projectId) return;
+        setDeletingId(item.id);
+        try {
+          await ProjectPartnersService.remove(item.id, { "x-project-id": projectId });
+          showErrorModal({
+            type: "success",
+            headline: "삭제되었습니다.",
+            hideCancel: true,
+            confirmText: "확인",
+          });
+          await fetchPartners();
+        } catch {
+          showErrorModal({
+            type: "error",
+            headline: "삭제에 실패했습니다.",
+            hideCancel: true,
+          });
+        } finally {
+          setDeletingId(null);
+        }
       },
     });
   };
 
   const handleRegisterCompany = () => {
-    // TODO: API 연동 시 업체등록 모달 또는 페이지
-    console.log("업체등록");
+    setIsRegisterModalOpen(true);
+  };
+
+  const handlePartnerRegisterSuccess = () => {
+    fetchPartners();
   };
 
   return (
@@ -140,41 +203,56 @@ export default function PartnerRegistrationSettings() {
         </button>
       </div>
 
+      <PartnerRegisterModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        projectId={projectId ?? ""}
+        onSuccess={handlePartnerRegisterSuccess}
+      />
+
       <div className="w-full h-[1px] bg-neutral-30 opacity-70" />
 
-      {/* 테이블 헤더 (데스크탑) – 프로젝트명 열 좁게, 비고 열 넓게, 세로 라인 맞춤 */}
-      <div className="hidden md:flex mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] pl-10 pr-4 h-[40px] items-center gap-3 mt-4">
+      {/* 테이블 헤더 (데스크탑) – 프로젝트명, 비고, 상태, 액션. 열 너비·갭·패딩을 본문과 동일하게 */}
+      <div className="hidden md:flex mx-4 md:mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] mt-4 h-[40px] items-center pl-4 md:pl-10 pr-4 gap-3">
         <div className="w-[120px] md:w-[140px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
           프로젝트명
         </div>
         <div className="flex-1 min-w-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
-          비고
+          설명
         </div>
-        <div className="flex-shrink-0 w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]" />
+        <div className="w-[72px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
+          상태
+        </div>
+        <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]" />
       </div>
 
-      {/* 목록 */}
+      {/* 목록 – 헤더와 동일한 열 너비·갭·패딩으로 정렬 */}
       <div className="px-4 md:px-7 pt-2 flex flex-col">
-        {paginatedPartners.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12 text-[14px] text-neutral-60">
+            불러오는 중...
+          </div>
+        ) : partners.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-[14px] text-neutral-60">
             등록된 파트너가 없습니다.
           </div>
         ) : (
           <div className="space-y-0">
-            {paginatedPartners.map((item) => (
+            {partners.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:pl-10 md:pr-4 border-b border-neutral-30/50 last:border-b-0"
+                className="flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0"
               >
                 <div className="w-[120px] md:w-[140px] flex-shrink-0 text-[14px] font-medium text-foreground truncate">
-                  {item.projectName}
+                  {item.partnerProjectName}
                 </div>
                 <div className="flex-1 min-w-0 text-[14px] text-neutral-70 truncate">
-                  {item.remark}
+                  {item.description}
                 </div>
-                {/* 수정·삭제 버튼: HD/웹에서 약 52px, 작은 화면에서 비율에 맞게 축소 */}
-                <div className="flex items-center flex-shrink-0 gap-3 min-[480px]:gap-4 sm:gap-5 md:gap-6 lg:gap-8 xl:gap-[52px]">
-
+                <div className="w-[72px] flex-shrink-0 flex items-center">
+                  <PartnerStatusBadge status={item.status} />
+                </div>
+                <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 flex items-center justify-end gap-2 md:gap-12">
                   <button
                     type="button"
                     onClick={() => handleEdit(item)}
@@ -183,7 +261,10 @@ export default function PartnerRegistrationSettings() {
                   >
                     <EditIcon />
                   </button>
-                  <DeleteButton onClick={() => handleDelete(item)} />
+                  <DeleteButton
+                    onClick={() => handleDelete(item)}
+                    disabled={deletingId === item.id}
+                  />
                 </div>
               </div>
             ))}

@@ -269,6 +269,7 @@ function CustomersPageContentInner() {
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
+            onShareSuccess={refetch}
           />
         }
         headerClassName="px-4 md:px-7 py-4 md:py-6"

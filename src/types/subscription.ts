@@ -166,6 +166,36 @@ export type SubscriptionActionResponse = {
   data: Subscription;
 };
 
+// === 쿠폰 (POST /v1/subscriptions/coupon/*) ===
+
+// POST /v1/subscriptions/coupon/apply - 쿠폰 적용 요청
+export type CouponApplyInput = {
+  code: string;
+};
+
+// POST /v1/subscriptions/coupon/apply - 쿠폰 적용 응답
+export type CouponApplyResponse = ApiSuccess<{
+  subscription: Subscription;
+}>;
+
+// POST /v1/subscriptions/coupon/info - 쿠폰 정보 조회 요청
+export type CouponInfoInput = {
+  code: string;
+};
+
+// POST /v1/subscriptions/coupon/info - 쿠폰 정보 조회 응답
+export type CouponInfoResponse = ApiSuccess<{
+  name: string;
+  description: string;
+  plan: SubscriptionPlan;
+  billingCycle: BillingCycle;
+  durationMonths: number;
+  startDate: string;
+  endDate: string;
+  canUse: boolean;
+  unavailableReason: string;
+}>;
+
 
 
 

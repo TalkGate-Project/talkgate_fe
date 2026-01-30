@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { ApiKeysService } from "@/services/apiKeys";
 import type { ProjectPartnerWithApiKey } from "@/types/projectPartners";
@@ -126,7 +125,7 @@ export default function ApiKeyLinkModal({
 
       {/* Modal */}
       <div
-        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[500px] md:h-auto md:max-h-[80vh] bg-white dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
+        className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:right-auto md:w-[500px] md:-translate-x-1/2 w-[calc(100%-2rem)] max-h-[90vh] bg-white dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col overflow-hidden"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -161,7 +160,7 @@ export default function ApiKeyLinkModal({
         </p>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-7 pb-4 min-h-[200px]">
+        <div className="overflow-y-auto px-7 pb-4 max-h-[50vh]">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <span className="text-[14px] text-neutral-60">로딩 중...</span>
@@ -180,42 +179,36 @@ export default function ApiKeyLinkModal({
                   className="flex items-center justify-between px-4 py-3 bg-neutral-10 dark:bg-neutral-20 rounded-[8px]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Partner Logo Placeholder */}
-                    <div className="w-8 h-8 rounded-full bg-neutral-30 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                      <Image
-                        src="/images/default-project-logo.svg"
-                        alt={partner.partnerProjectName}
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/default-project-logo.svg";
-                        }}
-                      />
+                    {/* 프로젝트 아이콘: 로고 URL 없으면 첫 글자 표시 (404 방지) */}
+                    <div className="w-8 h-8 rounded-full bg-neutral-20 dark:bg-neutral-30 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      <span className="text-[14px] font-semibold text-neutral-60 dark:text-neutral-50">
+                        {partner.partnerProjectName.charAt(0).toUpperCase() || "?"}
+                      </span>
                     </div>
                     <span className="text-[14px] font-medium text-foreground truncate">
                       {partner.partnerProjectName}
                     </span>
                   </div>
 
-                  {/* Toggle Switch */}
+                  {/* Toggle Switch: 활성화시(녹색) / 비활성화시(회색) SVG */}
                   <button
+                    type="button"
                     onClick={() => handleToggle(partner)}
                     disabled={togglingIds.has(partner.id)}
-                    className={`relative w-[52px] h-[28px] rounded-full transition-colors flex-shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      partner.isConnectedToApiKey
-                        ? "bg-primary-50"
-                        : "bg-neutral-30"
-                    }`}
+                    className="flex-shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-10 h-6 flex items-center justify-center"
                     aria-label={partner.isConnectedToApiKey ? "연결 해제" : "연결"}
                   >
-                    <span
-                      className={`absolute top-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform ${
-                        partner.isConnectedToApiKey
-                          ? "translate-x-[26px]"
-                          : "translate-x-[2px]"
-                      }`}
-                    />
+                    {partner.isConnectedToApiKey ? (
+                      <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-6">
+                        <rect width="40" height="24" rx="12" fill="#00E272" />
+                        <circle cx="28" cy="12" r="8" fill="white" />
+                      </svg>
+                    ) : (
+                      <svg width="40" height="24" viewBox="0 0 40 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-6">
+                        <rect width="40" height="24" rx="12" transform="matrix(-1 0 0 1 40 0)" fill="#D0D0D0" />
+                        <circle cx="8" cy="8" r="8" transform="matrix(-1 0 0 1 20 4)" fill="white" />
+                      </svg>
+                    )}
                   </button>
                 </div>
               ))}

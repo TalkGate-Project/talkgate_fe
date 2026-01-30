@@ -81,7 +81,7 @@ export default function PaymentHistorySection({
             ))
           ) : paginatedPayments.length === 0 ? (
             <div className="py-12 text-center text-[14px] text-neutral-60">
-              결제 내역이 없습니다
+              매출 내역이 없습니다
             </div>
           ) : (
             paginatedPayments.map((payment) => (

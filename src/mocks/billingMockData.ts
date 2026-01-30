@@ -72,7 +72,7 @@ export const MOCK_SUBSCRIPTION: Subscription = {
   isActive: true,
 };
 
-// 결제 내역 더미 데이터
+// 매출 내역 더미 데이터
 export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 1,
