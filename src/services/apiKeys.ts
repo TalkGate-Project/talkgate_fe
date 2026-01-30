@@ -2,6 +2,8 @@ import { apiClient } from "@/lib/apiClient";
 import type {
   CreateApiKeyInput,
   CreateApiKeyResponse,
+  UpdateApiKeyInput,
+  UpdateApiKeyResponse,
   ApiKeyListQuery,
   ApiKeyListResponse,
   ApiKeyCustomerHistoryQuery,
@@ -17,6 +19,25 @@ export const ApiKeysService = {
   create(payload: CreateApiKeyInput, headers?: Record<string, string>) {
     return apiClient.post<CreateApiKeyResponse>(
       "/v1/api-keys",
+      payload,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * API 키 이름 수정 (Admin, SubAdmin만 가능)
+   * PATCH /v1/api-keys/{id}
+   * @param id - API 키 ID
+   * @param payload - 수정할 이름 (name)
+   * @param headers - x-project-id 헤더 포함
+   */
+  update(
+    id: number,
+    payload: UpdateApiKeyInput,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.patch<UpdateApiKeyResponse>(
+      `/v1/api-keys/${id}`,
       payload,
       headers ? { headers } : undefined
     );

@@ -126,7 +126,7 @@ export default function ApiKeyLinkModal({
 
       {/* Modal */}
       <div
-        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[500px] md:h-auto md:max-h-[80vh] bg-white dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
+        className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:right-auto md:w-[500px] md:-translate-x-1/2 w-[calc(100%-2rem)] max-h-[90vh] bg-white dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col overflow-hidden"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -161,7 +161,7 @@ export default function ApiKeyLinkModal({
         </p>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-7 pb-4 min-h-[200px]">
+        <div className="overflow-y-auto px-7 pb-4 max-h-[50vh]">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <span className="text-[14px] text-neutral-60">로딩 중...</span>

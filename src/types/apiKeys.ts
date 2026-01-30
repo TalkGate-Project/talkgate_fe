@@ -15,6 +15,12 @@ export type CreateApiKeyInput = {
 
 export type CreateApiKeyResponse = ApiSuccess<ApiKey>;
 
+export type UpdateApiKeyInput = {
+  name: string;
+};
+
+export type UpdateApiKeyResponse = ApiSuccess<ApiKey>;
+
 export type ApiKeyListQuery = {
   page: number;
   limit: number;

@@ -10,6 +10,7 @@ import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
+import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubscriptionModal";
 import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
@@ -35,6 +36,7 @@ export default function TestPage() {
   const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
   const [showPartnerRequestModal, setShowPartnerRequestModal] = useState(false);
+  const [showSubscribeProjectModal, setShowSubscribeProjectModal] = useState(false);
 
   // 테스트용 파트너 요청 더미 데이터
   const dummyPartnerRequests: ProjectPartnerRequest[] = [
@@ -1131,6 +1133,40 @@ export default function TestPage() {
           </div>
         </section>
 
+        {/* SubscribeProjectModal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 유도 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/projects/SubscribeProjectModal</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">ProjectsContent.tsx</code> - 프로젝트 목록에서 아직 활성화되지 않은 프로젝트 클릭 시</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 구독하기 클릭 시 랜딩 페이지 가격 페이지를 새 탭에서 엽니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 테스트</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setShowSubscribeProjectModal(true)}
+                    className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+                  >
+                    구독 유도 모달 열기
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SubscribeProjectExpiredModal 테스트 */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
@@ -1214,6 +1250,23 @@ export default function TestPage() {
           </div>
         </section>
       </div>
+
+      {/* SubscribeProjectModal */}
+      {showSubscribeProjectModal && (
+        <SubscribeProjectModal
+          project={{
+            id: "test-project-id",
+            name: "테스트 프로젝트",
+            logoUrl: undefined,
+            memberCount: 5,
+          }}
+          onClose={() => setShowSubscribeProjectModal(false)}
+          onSubscribe={async (projectId) => {
+            console.log("구독 진행:", projectId);
+            setShowSubscribeProjectModal(false);
+          }}
+        />
+      )}
 
       {/* SubscribeProjectExpiredModal */}
       {showExpiredModal && (
