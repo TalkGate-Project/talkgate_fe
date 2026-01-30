@@ -179,7 +179,7 @@ export default function ApiKeyHistoryView({
                           viewBox="0 0 24 24"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
-                          className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                          className={`transition-transform ${isExpanded ? "rotate-180" : "rotate-270"}`}
                         >
                           <path
                             d="M6 9L12 15L18 9"
