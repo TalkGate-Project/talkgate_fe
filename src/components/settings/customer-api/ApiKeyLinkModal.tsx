@@ -28,7 +28,7 @@ export default function ApiKeyLinkModal({
   const [totalPages, setTotalPages] = useState(1);
   const [togglingIds, setTogglingIds] = useState<Set<number>>(new Set());
 
-  const limit = 20;
+  const limit = 5;
 
   const fetchPartners = useCallback(async () => {
     if (!projectId || !apiKeyId) return;
@@ -155,7 +155,7 @@ export default function ApiKeyLinkModal({
         </div>
 
         {/* Description */}
-        <p className="px-7 pb-4 text-[14px] text-neutral-60 text-center">
+        <p className="px-7 pb-4 text-[16px] text-center">
           연동할 프로젝트의 버튼을 활성화하세요.
         </p>
 
