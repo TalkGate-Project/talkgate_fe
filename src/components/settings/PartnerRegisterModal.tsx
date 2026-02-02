@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ProjectsService } from "@/services/projects";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { Project } from "@/types/projects";
 
 type Props = {
@@ -186,9 +187,13 @@ export default function PartnerRegisterModal({
                 type="button"
                 onClick={handleLookup}
                 disabled={lookupLoading || !subdomain.trim()}
-                className="cursor-pointer min-w-[48px] h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#EDEDED] dark:text-neutral-20 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                className="cursor-pointer min-w-[48px] h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#EDEDED] dark:text-neutral-20 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center"
               >
-                {lookupLoading ? "조회 중..." : "조회"}
+                {lookupLoading ? (
+                  <LoadingSpinner size="sm" variant="white" aria-label="조회 중" />
+                ) : (
+                  "조회"
+                )}
               </button>
             </div>
           </div>

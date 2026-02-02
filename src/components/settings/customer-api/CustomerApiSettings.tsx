@@ -93,7 +93,7 @@ export default function CustomerApiSettings() {
     }
   };
 
-  const handleCopyKey = async (keyValue: string, keyId: number) => {
+  const handleCopyKey = async (keyValue: string, keyId: number, apiKeyName: string) => {
     if (!keyValue) return;
 
     try {
@@ -102,6 +102,13 @@ export default function CustomerApiSettings() {
       setTimeout(() => {
         setCopyStates((prev) => ({ ...prev, [keyId]: "idle" }));
       }, 1500);
+      showErrorModal({
+        type: "success",
+        headline: apiKeyName,
+        description: "API 키가 복사되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } catch (err) {
       console.error("Failed to copy API key", err);
       showErrorModal({
@@ -436,7 +443,7 @@ export default function CustomerApiSettings() {
                       </button>
                       {/* 복사 버튼 */}
                       <button
-                        onClick={() => handleCopyKey(apiKey.keyValue, apiKey.id)}
+                        onClick={() => handleCopyKey(apiKey.keyValue, apiKey.id, apiKey.name)}
                         className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="복사"
                       >

@@ -18,7 +18,7 @@ import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
-const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "배정시간", ""];
+const HEADER_LABELS = ["이름", "신청경로", "매체사", "사이트", "등록시간", ""];
 const ROW_LIMIT = 10;
 
 export default function AssignedCustomersTable() {
@@ -134,8 +134,8 @@ export default function AssignedCustomersTable() {
                   const route = customer.applicationRoute || "-";
                   const media = customer.mediaCompany || "-";
                   const site = customer.site || "-";
-                  const assignedLabel = customer.assignedAt
-                    ? formatDistanceToNow(new Date(customer.assignedAt), {
+                  const assignedLabel = customer.applicationDate
+                    ? formatDistanceToNow(new Date(customer.applicationDate), {
                         addSuffix: true,
                         locale: ko,
                       })
@@ -252,7 +252,7 @@ function LoadingTableSkeleton() {
                 { width: "flex", paddingX: 2 }, // 신청경로
                 { width: "flex", paddingX: 2 }, // 매체사
                 { width: "flex", paddingX: 2 }, // 사이트
-                { width: "flex", paddingX: 2 }, // 배정시간
+                { width: "flex", paddingX: 2 }, // 등록시간
                 { width: 40, paddingX: 2 }, // 화살표 버튼
               ]}
               rowHeight={52}

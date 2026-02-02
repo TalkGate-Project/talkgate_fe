@@ -463,11 +463,12 @@ export default function ProjectsContent() {
           onSubscribe={async (projectId) => {
             // TODO: 구독 API 호출 로직 구현
             console.log("Subscribe to project:", projectId);
-            // 구독 성공 후 프로젝트 목록 새로고침 필요 시
-            // const res = await ProjectsService.list();
-            // const payload: any = (res as any)?.data;
-            // const list = Array.isArray(payload) ? payload : payload?.data;
-            // setProjects(Array.isArray(list) ? list : []);
+          }}
+          onCouponApplied={async () => {
+            const res = await ProjectsService.list();
+            const payload: any = (res as any)?.data;
+            const list = Array.isArray(payload) ? payload : payload?.data;
+            setProjects(Array.isArray(list) ? list : []);
           }}
         />
       )}
