@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import { ApiKeysService } from "@/services/apiKeys";
+import { ProjectPartnersService } from "@/services/projectPartners";
 import type { ApiKey, ApiKeyCustomerHistoryItem } from "@/types/apiKeys";
+import type { ProjectPartner } from "@/types/projectPartners";
 import Pagination from "@/components/common/Pagination";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
@@ -23,8 +24,28 @@ export default function ApiKeyHistoryView({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [partners, setPartners] = useState<ProjectPartner[]>([]);
+  const [selectedPartnerProjectId, setSelectedPartnerProjectId] = useState<number | null>(null);
 
   const limit = 20;
+
+  // 협력업체 목록 조회 (승인된 것만)
+  const fetchPartners = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const headers = { "x-project-id": projectId };
+      const res = await ProjectPartnersService.list(
+        { page: 1, limit: 100, status: "approved" },
+        headers
+      );
+      const data = res.data?.data;
+      if (data?.list) {
+        setPartners(data.list);
+      }
+    } catch {
+      setPartners([]);
+    }
+  }, [projectId]);
 
   const fetchHistory = useCallback(async () => {
     if (!projectId || !apiKey.id) return;
@@ -32,9 +53,17 @@ export default function ApiKeyHistoryView({
     setLoading(true);
     try {
       const headers = { "x-project-id": projectId };
+      const query: { page: number; limit: number; projectPartnerId?: number } = {
+        page,
+        limit,
+      };
+      // partnerProjectId를 projectPartnerId로 전달 (협력업체 프로젝트 ID 기준 필터)
+      if (selectedPartnerProjectId != null) {
+        query.projectPartnerId = selectedPartnerProjectId;
+      }
       const response = await ApiKeysService.getCustomerHistory(
         apiKey.id,
-        { page, limit },
+        query,
         headers
       );
 
@@ -54,11 +83,20 @@ export default function ApiKeyHistoryView({
     } finally {
       setLoading(false);
     }
-  }, [projectId, apiKey.id, page]);
+  }, [projectId, apiKey.id, page, selectedPartnerProjectId]);
+
+  useEffect(() => {
+    fetchPartners();
+  }, [fetchPartners]);
 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
+
+  const handleFilterClick = useCallback((partnerProjectId: number | null) => {
+    setSelectedPartnerProjectId(partnerProjectId);
+    setPage(1);
+  }, []);
 
   const toggleExpand = (customerId: string | number) => {
     const key = String(customerId);
@@ -107,8 +145,40 @@ export default function ApiKeyHistoryView({
       {/* Divider */}
       <div className="w-full h-[1px] bg-neutral-30 opacity-70"></div>
 
+      {/* 협력업체별 필터 뱃지 */}
+      <div className="px-4 md:px-7 py-3 flex flex-wrap items-center gap-2 mt-7">
+        <button
+          type="button"
+          onClick={() => handleFilterClick(null)}
+          className={`cursor-pointer inline-flex items-center justify-center py-1 px-3 h-[22px] rounded-[30px] text-[12px] font-medium leading-[14px] transition-colors opacity-80 ${
+            selectedPartnerProjectId === null
+              ? "bg-secondary-10 dark:bg-secondary-20/40 text-secondary-40 dark:text-secondary-20"
+              : "bg-[#E2E2E2] dark:bg-neutral-30 text-[#595959] dark:text-neutral-60 hover:bg-neutral-40 dark:hover:bg-neutral-25"
+          }`}
+        >
+          전체
+        </button>
+        {partners.map((partner) => {
+          const isSelected = selectedPartnerProjectId === partner.partnerProjectId;
+          return (
+            <button
+              key={partner.id}
+              type="button"
+              onClick={() => handleFilterClick(partner.partnerProjectId)}
+              className={`cursor-pointer inline-flex items-center justify-center py-1 px-3 h-[22px] rounded-[30px] text-[12px] font-medium leading-[14px] transition-colors truncate max-w-[200px] opacity-80 ${
+                isSelected
+                  ? "bg-secondary-10 dark:bg-secondary-20/40 text-secondary-40 dark:text-secondary-20"
+                  : "bg-[#E2E2E2] dark:bg-neutral-30 text-[#595959] dark:text-neutral-60 hover:bg-neutral-40 dark:hover:bg-neutral-25"
+              }`}
+            >
+              {partner.partnerProjectName}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Table */}
-      <div className="px-4 md:px-7 pt-4 md:pt-6">
+      <div className="px-4 md:px-7 pt-2">
         {/* Table Header */}
         <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_40px] gap-4 px-4 py-3 bg-neutral-10 dark:bg-neutral-20 rounded-t-[8px]">
           <span className="text-[14px] font-medium text-neutral-60">고객ID</span>
