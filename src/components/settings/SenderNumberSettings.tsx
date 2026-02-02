@@ -607,7 +607,7 @@ export default function SenderNumberSettings() {
                         <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
                           {formatPhoneNumber(num.phoneNumber)}
                         </div>
-                        <div className="flex-1 min-w-0 text-[14px] text-neutral-60 dark:text-neutral-60">
+                        <div className="flex-1 min-w-0 text-[14px] text-ink dark:text-neutral-80">
                           {formatDate(num.createdAt)}
                         </div>
                         <div className="w-[160px] flex-shrink-0 flex justify-end">
@@ -625,7 +625,7 @@ export default function SenderNumberSettings() {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <div className="text-[12px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+                          <div className="text-[12px] text-ink dark:text-neutral-80 whitespace-nowrap">
                             {formatDateMobile(num.createdAt)}
                           </div>
                         </div>
