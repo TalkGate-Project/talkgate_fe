@@ -54,9 +54,9 @@ export default function SubscribeProjectExpiredModal({
         onClick={onClose}
       />
 
-      {/* 모달 컨테이너 */}
+      {/* 모달 컨테이너: 모바일 전체 화면, 데스크톱 고정 크기 */}
       <div
-        className="relative w-[440px] bg-white rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden"
+        className="relative w-[440px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden max-md:overflow-y-auto"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -99,8 +99,8 @@ export default function SubscribeProjectExpiredModal({
           </div>
         </div>
 
-        {/* 본문 영역 */}
-        <div className="px-[48px] pt-8 pb-6 flex flex-col">
+        {/* 본문 영역: 모바일 패딩·하단 여백 강화, 데스크톱 유지 */}
+        <div className="px-[48px] pt-8 pb-6 max-md:px-4 max-md:pb-[max(2rem,env(safe-area-inset-bottom,0px))] flex flex-col">
           {/* 제목 및 설명 */}
           <div className="text-center mb-8">
             <h2 className="text-[16px] font-semibold text-black">
@@ -113,11 +113,11 @@ export default function SubscribeProjectExpiredModal({
             </p>
           </div>
 
-          {/* 버튼 */}
+          {/* 버튼: 모바일 전체 너비·여백, 데스크톱 344px 유지 */}
           <div>
             <button
               onClick={handleButtonClick}
-              className="cursor-pointer w-[344px] h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors"
+              className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors"
             >
               <span>{isAdmin ? "구독하기" : "확인"}</span>
               {isAdmin && (

@@ -134,10 +134,10 @@ export default function PartnerRegisterModal({
       />
       <div
         className="relative w-[440px] mx-4 bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-          boxShadow: "0px 13px 61px rgba(169, 169, 169, 0.366013)",
-        }}
+        // style={{
+        //   filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
+        //   boxShadow: "0px 13px 61px rgba(169, 169, 169, 0.366013)",
+        // }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
