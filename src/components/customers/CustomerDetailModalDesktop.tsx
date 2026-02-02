@@ -203,7 +203,7 @@ export default function CustomerDetailModalDesktop({
         {!loading && detail && (
           <div className="mt-[30px] grid grid-cols-12 gap-6 pb-2">
             {/* Left: form and tabs */}
-          <div ref={leftPanelRef} className="col-span-12 lg:col-span-8 max-w-[792px]">
+          <div ref={leftPanelRef} className="col-span-12 lg:col-span-8 w-full min-w-0 lg:w-[792px] lg:min-w-[792px] lg:max-w-[792px]">
             {/* Tabs */}
             <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">
               <button
