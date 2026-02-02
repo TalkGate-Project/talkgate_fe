@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -58,6 +59,75 @@ function EditIcon({ className = "" }: { className?: string }) {
   );
 }
 
+/** 모바일 전용: 설명 터치 시 툴팁용 정보 아이콘 (anchorRef는 열린 행의 버튼을 가리키도록 부모에서 설정) */
+function DescriptionInfoIcon({
+  description,
+  isOpen,
+  onToggle,
+  anchorRef,
+  setAnchorEl,
+}: {
+  description: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  setAnchorEl: (el: HTMLButtonElement | null) => void;
+}) {
+  const [style, setStyle] = useState<React.CSSProperties>({});
+  useEffect(() => {
+    if (!isOpen || !anchorRef.current) {
+      setStyle({});
+      return;
+    }
+    const rect = anchorRef.current.getBoundingClientRect();
+    const w = Math.min(280, window.innerWidth - 24);
+    setStyle({
+      position: "fixed",
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - w - 12)),
+      top: rect.bottom + 8,
+      zIndex: 9999,
+      width: `${w}px`,
+    });
+  }, [isOpen, anchorRef]);
+
+  return (
+    <>
+      <button
+        ref={setAnchorEl}
+        type="button"
+        onClick={onToggle}
+        className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors text-neutral-60 dark:text-neutral-50 touch-manipulation"
+        aria-label="설명 보기"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M10 6.5V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="10" cy="12.5" r="1" fill="currentColor" />
+        </svg>
+      </button>
+      {typeof window !== "undefined" &&
+        isOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[9998]"
+              aria-hidden
+              onClick={onToggle}
+            />
+            <div
+              role="tooltip"
+              className="z-[9999] px-3 py-2.5 bg-neutral-90 dark:bg-neutral-10 text-white dark:text-neutral-90 text-[13px] rounded-lg shadow-xl whitespace-normal break-words"
+              style={style}
+            >
+              {description || "설명 없음"}
+            </div>
+          </>,
+          document.body
+        )}
+    </>
+  );
+}
+
 /** 삭제 버튼 – 발신번호 등록 페이지와 동일한 32px 버튼 + 24px 아이콘 */
 function DeleteButton({
   onClick,
@@ -105,6 +175,13 @@ export default function PartnerRegistrationSettings() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [openDescriptionId, setOpenDescriptionId] = useState<number | null>(null);
+  const descriptionAnchorRef = useRef<HTMLButtonElement | null>(null);
+
+  // 설명 수정 (API 미연동: 주석 + console.log로 진행 추적)
+  const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null);
+  const [editingDescription, setEditingDescription] = useState("");
+  const [savingPartnerId, setSavingPartnerId] = useState<number | null>(null);
 
   const fetchPartners = useCallback(async () => {
     if (!projectId) {
@@ -144,9 +221,61 @@ export default function PartnerRegistrationSettings() {
     fetchPartners();
   }, [fetchPartners]);
 
-  const handleEdit = (item: ProjectPartner) => {
-    // TODO: 수정 API/모달 연동 시 구현
-    console.log("Edit partner:", item);
+  // 설명 수정 시작
+  const handleStartEditDescription = (item: ProjectPartner) => {
+    setEditingPartnerId(item.id);
+    setEditingDescription(item.description ?? "");
+  };
+
+  // 설명 수정 취소
+  const handleCancelEditDescription = () => {
+    setEditingPartnerId(null);
+    setEditingDescription("");
+  };
+
+  // 설명 수정 저장 (실제 요청은 API 미제공으로 주석 처리, console.log로 진행 추적)
+  const handleSaveDescription = async () => {
+    if (!projectId || editingPartnerId == null) return;
+
+    const description = editingDescription.trim();
+    setSavingPartnerId(editingPartnerId);
+
+    try {
+      console.log("[파트너 설명 수정] 요청 예정", {
+        projectId,
+        partnerId: editingPartnerId,
+        description,
+      });
+
+      // TODO: API 제공 후 연동
+      // const headers = { "x-project-id": projectId };
+      // await ProjectPartnersService.update(editingPartnerId, { description }, headers);
+
+      setPartners((prev) =>
+        prev.map((p) =>
+          p.id === editingPartnerId ? { ...p, description } : p
+        )
+      );
+      setEditingPartnerId(null);
+      setEditingDescription("");
+      console.log("[파트너 설명 수정] 로컬 반영 완료", { partnerId: editingPartnerId });
+      showErrorModal({
+        type: "success",
+        headline: "설명이 수정되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } catch (err) {
+      console.error("[파트너 설명 수정] 실패", err);
+      showErrorModal({
+        type: "error",
+        headline: "설명 수정에 실패했습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } finally {
+      setSavingPartnerId(null);
+    }
   };
 
   const handleDelete = (item: ProjectPartner) => {
@@ -237,38 +366,172 @@ export default function PartnerRegistrationSettings() {
             등록된 파트너가 없습니다.
           </div>
         ) : (
-          <div className="space-y-0">
-            {partners.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0"
-              >
-                <div className="w-[120px] md:w-[140px] flex-shrink-0 text-[14px] font-medium text-foreground truncate">
-                  {item.partnerProjectName}
+          <>
+            {/* 모바일: 카드형 목록 – 보기 1줄 / 수정 시 설명 입력 + 취소·저장 */}
+            <div className="md:hidden space-y-2">
+              {partners.map((item) => (
+                <div
+                  key={item.id}
+                  className={`rounded-[8px] border border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 px-4 ${
+                    editingPartnerId === item.id ? "py-3 flex flex-col gap-3" : "py-2.5 flex items-center gap-2 min-h-[44px]"
+                  }`}
+                >
+                  {editingPartnerId === item.id ? (
+                    <>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[14px] font-semibold text-foreground truncate flex-1 min-w-0">
+                          {item.partnerProjectName}
+                        </span>
+                        <PartnerStatusBadge status={item.status} />
+                      </div>
+                      <label className="block">
+                        <span className="text-[13px] font-medium text-neutral-60 dark:text-neutral-50 mb-1 block">설명</span>
+                        <textarea
+                          value={editingDescription}
+                          onChange={(e) => setEditingDescription(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") handleCancelEditDescription();
+                          }}
+                          placeholder="설명을 입력하세요"
+                          rows={3}
+                          disabled={savingPartnerId === item.id}
+                          className="w-full min-h-[72px] px-3 py-2 text-[14px] text-foreground bg-neutral-10 dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-60 rounded-[5px] outline-none focus:border-primary-50 resize-y disabled:opacity-50"
+                        />
+                      </label>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCancelEditDescription}
+                          disabled={savingPartnerId === item.id}
+                          className="cursor-pointer min-w-[56px] h-[34px] flex items-center justify-center rounded-[5px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 transition-colors disabled:opacity-50"
+                        >
+                          취소
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveDescription}
+                          disabled={savingPartnerId === item.id}
+                          className="cursor-pointer min-w-[56px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50"
+                        >
+                          저장
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[14px] font-semibold text-foreground truncate flex-1 min-w-0">
+                        {item.partnerProjectName}
+                      </span>
+                      <span className="flex-shrink-0">
+                        <PartnerStatusBadge status={item.status} />
+                      </span>
+                      <span className="flex-shrink-0">
+                        <DescriptionInfoIcon
+                          description={item.description ?? ""}
+                          isOpen={openDescriptionId === item.id}
+                          onToggle={() =>
+                            setOpenDescriptionId((prev) => (prev === item.id ? null : item.id))
+                          }
+                          anchorRef={descriptionAnchorRef}
+                          setAnchorEl={(el) => {
+                            if (openDescriptionId === item.id) descriptionAnchorRef.current = el;
+                          }}
+                        />
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditDescription(item)}
+                        className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors flex-shrink-0"
+                        aria-label="설명 수정"
+                      >
+                        <EditIcon />
+                      </button>
+                      <DeleteButton
+                        onClick={() => handleDelete(item)}
+                        disabled={deletingId === item.id}
+                      />
+                    </>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0 text-[14px] text-neutral-70 truncate">
-                  {item.description}
+              ))}
+            </div>
+
+            {/* 데스크톱: 테이블형 목록 – 설명 셀 인라인 수정 (customer-api 패턴) */}
+            <div className="hidden md:block space-y-0">
+              {partners.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0"
+                >
+                  <div className="w-[120px] md:w-[140px] flex-shrink-0 text-[14px] font-medium text-foreground truncate">
+                    {item.partnerProjectName}
+                  </div>
+                  <div className="flex-1 min-w-0 flex items-center gap-2 md:gap-3">
+                    {editingPartnerId === item.id ? (
+                      <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full">
+                        <input
+                          type="text"
+                          value={editingDescription}
+                          onChange={(e) => setEditingDescription(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveDescription();
+                            if (e.key === "Escape") handleCancelEditDescription();
+                          }}
+                          className="flex-1 min-w-0 max-w-[280px] h-[34px] text-[14px] font-medium text-foreground bg-neutral-10 dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-60 rounded-[5px] px-3 outline-none focus:border-primary-50 disabled:opacity-50"
+                          placeholder="설명"
+                          autoFocus
+                          disabled={savingPartnerId === item.id}
+                        />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleCancelEditDescription}
+                            disabled={savingPartnerId === item.id}
+                            className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 transition-colors disabled:opacity-50"
+                          >
+                            취소
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveDescription}
+                            disabled={savingPartnerId === item.id}
+                            className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50"
+                          >
+                            저장
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-[14px] text-neutral-70 truncate block min-w-0">
+                        {item.description || "—"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="w-[72px] flex-shrink-0 flex items-center">
+                    <PartnerStatusBadge status={item.status} />
+                  </div>
+                  <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 flex items-center justify-end gap-2 md:gap-12">
+                    {editingPartnerId !== item.id && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditDescription(item)}
+                          className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors"
+                          aria-label="설명 수정"
+                        >
+                          <EditIcon />
+                        </button>
+                        <DeleteButton
+                          onClick={() => handleDelete(item)}
+                          disabled={deletingId === item.id}
+                        />
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="w-[72px] flex-shrink-0 flex items-center">
-                  <PartnerStatusBadge status={item.status} />
-                </div>
-                <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 flex items-center justify-end gap-2 md:gap-12">
-                  <button
-                    type="button"
-                    onClick={() => handleEdit(item)}
-                    className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors"
-                    aria-label="수정"
-                  >
-                    <EditIcon />
-                  </button>
-                  <DeleteButton
-                    onClick={() => handleDelete(item)}
-                    disabled={deletingId === item.id}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* 페이지네이션 – 데이터 없을 때도 표시, 기본 1페이지 */}
