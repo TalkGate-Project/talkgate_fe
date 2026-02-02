@@ -1,4 +1,4 @@
-import { isAdmin } from "@/utils/permissions";
+import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole } from "@/types/members";
 
 export type SettingsTab =
@@ -11,7 +11,8 @@ export type SettingsTab =
   | "customer-api"
   | "team-management"
   | "batch-registration"
-  | "sms-history";
+  | "sms-history"
+  | "partner-registration";
 
 export type SettingsSidebarItem = {
   key: SettingsTab | null; // null이면 부모 항목 (토글만)
@@ -38,6 +39,7 @@ import BatchRegistrationIcon from "./icons/BatchRegistrationIcon";
 import SenderNumberIcon from "./icons/SenderNumberIcon";
 import SmsHistoryIcon from "./icons/SmsHistoryIcon";
 import SmsIcon from "./icons/SmsIcon";
+import PartnerRegistrationIcon from "./icons/PartnerRegistrationIcon";
 
 export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
   {
@@ -120,11 +122,17 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     key: "customer-api",
     label: "고객등록 API",
     icon: CustomerApiIcon,
-    // 어드민만 접근 가능
+    // 어드민/서브어드민 접근 가능
     canAccess: ({ role, isLoading }) => {
       if (isLoading) return false;
-      return isAdmin(role);
+      return hasAdminAccess(role);
     },
+  },
+  {
+    key: "partner-registration",
+    label: "파트너등록",
+    icon: PartnerRegistrationIcon,
+    // 모든 사용자 접근 가능
   },
 ];
 

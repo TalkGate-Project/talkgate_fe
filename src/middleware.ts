@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { setProjectIdCookie, setAttendanceMenuCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
+import type { Project } from "@/types/projects";
+import type { ApiSuccess } from "@/types/common";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
@@ -118,39 +120,35 @@ function getMainDomain(_host: string): string {
 
 /**
  * 서브도메인으로 프로젝트 정보를 조회합니다.
+ * GET /v1/projects/{subDomain} 응답(Project 전체)을 반환합니다.
  */
 async function fetchProjectBySubdomain(
   subdomain: string,
   accessToken: string,
   host: string
-): Promise<{ id: number; useAttendanceMenu?: boolean } | null> {
+): Promise<Project | null> {
   try {
-    // 환경 변수를 우선 사용, 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api-dev.talkgate.im";
-    
+
     const response = await fetch(`${apiBaseUrl}/v1/projects/${subdomain}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
-    
+
     if (!response.ok) {
       return null;
     }
-    
-    const data = await response.json();
-    const responseData = data?.data;
-    
-    if (typeof responseData === 'number') {
-      return { id: responseData };
+
+    const json = (await response.json()) as ApiSuccess<Project>;
+    const data = json?.data;
+
+    if (data && typeof data === "object" && typeof data.id === "number") {
+      return data as Project;
     }
-    
-    if (responseData && typeof responseData === 'object' && responseData.id) {
-      return { id: responseData.id, useAttendanceMenu: responseData.useAttendanceMenu };
-    }
-    
+
     return null;
   } catch (error) {
     console.error(`[Middleware] 서브도메인 프로젝트 조회 에러:`, error);

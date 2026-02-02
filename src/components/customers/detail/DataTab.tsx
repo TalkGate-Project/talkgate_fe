@@ -78,19 +78,6 @@ export default function DataTab({ form, setForm }: Props) {
           placeholder="예: 영업1팀"
         />
       </label>
-
-      <div className="md:col-span-2">
-        <span className="block text-[14px] text-[#6B7280] mb-1 font-medium">특이사항</span>
-        <textarea
-          value={form.specialNotes}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, specialNotes: e.target.value }))
-          }
-          rows={3}
-          className="w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px]"
-          placeholder="특이사항을 입력하세요"
-        />
-      </div>
     </div>
   );
 }

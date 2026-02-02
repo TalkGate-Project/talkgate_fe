@@ -13,6 +13,10 @@ import type {
   SubscriptionPlanEstimateResponse,
   ChargeResponse,
   SubscriptionActionResponse,
+  CouponApplyInput,
+  CouponApplyResponse,
+  CouponInfoInput,
+  CouponInfoResponse,
 } from "@/types/subscription";
 
 export const SubscriptionService = {
@@ -130,6 +134,30 @@ export const SubscriptionService = {
       headers ? { headers } : undefined
     );
   },
+
+  /**
+   * 쿠폰 정보 조회 (Admin만 가능)
+   * 쿠폰 코드를 입력하여 적용될 플랜 정보와 사용 가능 여부를 미리 확인합니다.
+   */
+  getCouponInfo(input: CouponInfoInput, headers?: Record<string, string>) {
+    return apiClient.post<CouponInfoResponse>(
+      "/v1/subscriptions/coupon/info",
+      input,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * 쿠폰 사용하여 무료 구독 활성화 (Admin만 가능)
+   * 쿠폰 코드를 사용하여 무료로 구독을 활성화합니다. 동일 프로젝트는 모든 쿠폰 통틀어 1회만 사용 가능합니다.
+   */
+  applyCoupon(input: CouponApplyInput, headers?: Record<string, string>) {
+    return apiClient.post<CouponApplyResponse>(
+      "/v1/subscriptions/coupon/apply",
+      input,
+      headers ? { headers } : undefined
+    );
+  },
 };
 
 // Re-export types for convenience
@@ -154,6 +182,10 @@ export type {
   SubscriptionPlanListResponse,
   ChargeResponse,
   SubscriptionActionResponse,
+  CouponApplyInput,
+  CouponApplyResponse,
+  CouponInfoInput,
+  CouponInfoResponse,
 } from "@/types/subscription";
 
 

@@ -1,5 +1,12 @@
 // Customers Bulk domain types
 
+export enum CustomerBulkImportErrorType {
+  RequiredFieldsMissing = "REQUIRED_FIELDS_MISSING",
+  SystemError = "SYSTEM_ERROR",
+  CustomerAlreadyExists = "CUSTOMER_ALREADY_EXISTS",
+  ProcessingError = "PROCESSING_ERROR",
+}
+
 export type BulkJobStatus = "pending" | "processing" | "completed" | "failed";
 
 export type BulkJob = {

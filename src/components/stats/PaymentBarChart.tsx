@@ -150,7 +150,7 @@ export default function PaymentBarChart() {
   // Header (subtitle + 날짜 선택 영역) - 항상 표시
   const Header = (
     <div className="mb-3 flex flex-col md:flex-row md:items-center justify-between">
-      <h3 className="text-[16px] font-semibold text-foreground">팀별 결제 현황</h3>
+      <h3 className="text-[16px] font-semibold text-foreground">팀별 매출 현황</h3>
       <div className="h-0 border-b border-neutral-30 md:hidden my-3"></div>
       <DateRangePicker
         startDate={startDate}

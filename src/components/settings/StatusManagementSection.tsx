@@ -35,7 +35,7 @@ export default function StatusManagementSection({
           value={newStatusName}
           onChange={(e) => setNewStatusName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onAddStatus()}
-          className="flex-1 px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground tracking-[-0.02em]"
+          className="w-full px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground tracking-[-0.02em]"
           placeholder="새 상태 이름을 입력하세요"
         />
         <button 

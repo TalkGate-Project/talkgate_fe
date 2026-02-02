@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { getSelectedProjectId } from "@/lib/project";
-import type { BulkJobDetail, BulkJobFailure } from "@/types/customersBulk";
+import { CustomerBulkImportErrorType, type BulkJobDetail, type BulkJobFailure } from "@/types/customersBulk";
 import { formatDateTimeWithSpaces, formatDateTimeCompact } from "@/utils/datetime";
 
 interface FailureDetailModalProps {
@@ -15,42 +15,40 @@ interface FailureDetailModalProps {
 interface FailureCardProps {
   errorCode: string;
   errorMessage: string;
-  count: number;
+  rowNumber: number;
 }
 
-function FailureCard({ errorCode, errorMessage, count }: FailureCardProps) {
+function FailureCard({ errorCode, errorMessage, rowNumber }: FailureCardProps) {
   const displayMessage = getErrorDisplayMessage(errorCode, errorMessage);
-  
+
   return (
-    <div className="flex flex-col items-start p-3 gap-1.5 border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[68px]">
+    <div className="flex flex-col items-start px-3 py-2 gap-1.5 border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[68px]">
       <div className="text-[14px] font-semibold leading-5 text-danger-40 dark:text-danger-40 truncate w-full" title={displayMessage}>
         {displayMessage}
       </div>
       <div className="text-[14px] font-medium leading-5 text-neutral-90 dark:text-neutral-80">
-        {count}행
+        {rowNumber}행
       </div>
     </div>
   );
 }
 
-function getErrorDisplayMessage(errorCode: string, errorMessage: string): string {
-  // 에러 코드와 메시지를 한국어로 변환
-  const errorMap: Record<string, string> = {
-    // Error Codes
-    VALIDATION_ERROR: "필수필드 누락",
-    PROCESSING_ERROR: "처리 오류",
-    DUPLICATE_CUSTOMER: "고객 중복",
-    SYSTEM_ERROR: "시스템 오류",
-    INVALID_FORMAT: "형식 오류",
-    
-    // Error Messages
-    REQUIRED_FIELDS_MISSING: "필수필드 누락",
-    DUPLICATE_ERROR: "고객 중복",
-    INVALID_DATA: "데이터 형식 오류",
-  };
+/** 백엔드 CustomerBulkImportErrorType 기준 에러 코드 → 표시 문구 */
+const ERROR_DISPLAY_MAP: Record<CustomerBulkImportErrorType, string> = {
+  [CustomerBulkImportErrorType.RequiredFieldsMissing]: "필수필드 누락",
+  [CustomerBulkImportErrorType.SystemError]: "시스템 오류",
+  [CustomerBulkImportErrorType.CustomerAlreadyExists]: "고객 중복",
+  [CustomerBulkImportErrorType.ProcessingError]: "처리 오류",
+};
 
-  // errorMessage 먼저 확인, 없으면 errorCode 확인
-  return errorMap[errorMessage] || errorMap[errorCode] || errorMessage || errorCode;
+const UNKNOWN_ERROR_DISPLAY = "시스템 오류";
+
+function getErrorDisplayMessage(errorCode: string, errorMessage: string): string {
+  // errorMessage를 우선 참조 (백엔드: errorMessage로 에러 타입 전달)
+  const codeOrMessage = errorMessage || errorCode;
+  const display = ERROR_DISPLAY_MAP[codeOrMessage as CustomerBulkImportErrorType];
+  if (display) return display;
+  return UNKNOWN_ERROR_DISPLAY;
 }
 
 export default function FailureDetailModal({
@@ -60,7 +58,7 @@ export default function FailureDetailModal({
 }: FailureDetailModalProps) {
   const [jobDetail, setJobDetail] = useState<BulkJobDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [groupedFailures, setGroupedFailures] = useState<Array<{ errorCode: string; errorMessage: string; count: number }>>([]);
+  const [failureList, setFailureList] = useState<BulkJobFailure[]>([]);
 
   useEffect(() => {
     if (!isOpen || !jobId) return;
@@ -79,32 +77,12 @@ export default function FailureDetailModal({
         
         setJobDetail(actualData);
 
-        // Group failures by errorCode
         const failures = actualData.failures || [];
-        const failureMap = new Map<string, { errorMessage: string; count: number }>();
-        failures.forEach((failure: BulkJobFailure) => {
-          const key = failure.errorCode;
-          if (failureMap.has(key)) {
-            failureMap.get(key)!.count += 1;
-          } else {
-            failureMap.set(key, { errorMessage: failure.errorMessage, count: 1 });
-          }
-        });
-
-        // Convert to array and take max 20 items
-        const grouped = Array.from(failureMap.entries())
-          .map(([errorCode, { errorMessage, count }]) => ({
-            errorCode,
-            errorMessage,
-            count,
-          }))
-          .slice(0, 20);
-
-        setGroupedFailures(grouped);
+        setFailureList(failures.slice(0, 20));
       } catch (error) {
         console.error("Failed to fetch job detail:", error);
         setJobDetail(null);
-        setGroupedFailures([]);
+        setFailureList([]);
       } finally {
         setIsLoading(false);
       }
@@ -212,18 +190,18 @@ export default function FailureDetailModal({
                   scrollbarColor: '#D0D0D0 transparent',
                 }}
               >
-                {groupedFailures.length === 0 ? (
+                {failureList.length === 0 ? (
                   <div className="flex items-center justify-center h-32 text-neutral-60 dark:text-neutral-60">
                     실패 항목이 없습니다.
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-[14px]">
-                    {groupedFailures.map((failure, index) => (
+                    {failureList.map((failure) => (
                       <FailureCard
-                        key={index}
+                        key={failure.id}
                         errorCode={failure.errorCode}
                         errorMessage={failure.errorMessage}
-                        count={failure.count}
+                        rowNumber={failure.rowNumber}
                       />
                     ))}
                   </div>

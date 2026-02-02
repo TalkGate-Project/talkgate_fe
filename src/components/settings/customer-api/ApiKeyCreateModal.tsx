@@ -78,8 +78,8 @@ export default function ApiKeyCreateModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-7 pb-4">
-          {/* Input Field */}
-          <div className="relative w-[384px]">
+          {/* Input Field: 모바일 전체 너비, 데스크톱 384px */}
+          <div className="relative w-full md:w-[384px]">
             <label className="block text-[14px] font-medium text-neutral-60 dark:text-neutral-60 leading-[17px] mb-2" style={{ letterSpacing: "0.2px" }}>
               API 키 이름
             </label>

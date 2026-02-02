@@ -16,6 +16,7 @@ import BatchRegistrationHistorySettings from "./BatchRegistrationHistorySettings
 import CustomerApiSettings from "./customer-api/CustomerApiSettings";
 import SenderNumberSettings from "./SenderNumberSettings";
 import SmsHistorySettings from "./SmsHistorySettings";
+import PartnerRegistrationSettings from "./PartnerRegistrationSettings";
 
 type SettingsTab =
   | "general"
@@ -27,7 +28,8 @@ type SettingsTab =
   | "customer-api"
   | "team-management"
   | "batch-registration"
-  | "sms-history";
+  | "sms-history"
+  | "partner-registration";
 
 const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
   general: GeneralSettings,
@@ -40,6 +42,7 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
   "batch-registration": BatchRegistrationHistorySettings,
   "sender-numbers": SenderNumberSettings,
   "sms-history": SmsHistorySettings,
+  "partner-registration": PartnerRegistrationSettings,
 };
 
 // 권한이 필요한 탭 목록 (admin/subAdmin만 접근 가능)
@@ -70,10 +73,10 @@ function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): bo
     return isAdmin(role);
   }
 
-  // 고객등록 API 탭은 **총관리자(admin)**만 접근 가능
+  // 고객등록 API 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
   if (tab === "customer-api") {
     if (!member) return false;
-    return isAdmin(role);
+    return hasAdminAccess(role);
   }
 
   if (ADMIN_ONLY_TABS.includes(tab)) {

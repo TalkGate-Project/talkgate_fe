@@ -16,6 +16,9 @@ type Props = {
 // 서브도메인 형식 검증 패턴 (영문 소문자, 숫자, 하이픈만 허용)
 const SUBDOMAIN_PATTERN = /^[a-z0-9-]+$/;
 
+// 프로젝트 이름 최대 글자수
+const PROJECT_NAME_MAX_LENGTH = 20;
+
 export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
@@ -372,8 +375,9 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                 </div>
                 <input
                   value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
+                  onChange={(e) => setProjectName(e.target.value.slice(0, PROJECT_NAME_MAX_LENGTH))}
                   placeholder="프로젝트 이름을 입력하세요"
+                  maxLength={PROJECT_NAME_MAX_LENGTH}
                   className="mt-2 w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] text-foreground bg-card"
                 />
               </div>

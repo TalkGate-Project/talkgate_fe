@@ -4,7 +4,7 @@ import { ko } from "date-fns/locale";
 import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
-import { CustomerDetail } from "@/types/customers";
+import { CustomerDetail, CustomerTendency } from "@/types/customers";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -29,6 +29,16 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "cash", label: "현금" },
   { value: "cryptocurrency", label: "가상자산" },
 ] as const;
+
+const CUSTOMER_TENDENCY_OPTIONS: { value: CustomerTendency; label: string }[] = [
+  { value: CustomerTendency.ImmediateDecision, label: "즉시 결정형" },
+  { value: CustomerTendency.ComparativeReview, label: "비교 검토형" },
+  { value: CustomerTendency.InformationCollection, label: "정보 수집형" },
+  { value: CustomerTendency.PriceSensitive, label: "가격 민감형" },
+  { value: CustomerTendency.Aggressive, label: "공격적" },
+  { value: CustomerTendency.Friendly, label: "친화적" },
+  { value: CustomerTendency.RejectionDefensive, label: "거절 방어적" },
+];
 
 type Props = {
   form: CustomerFormState;
@@ -138,60 +148,93 @@ export default function SalesTab({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
         <label className="block">
           <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            투자정보
+            요약정보
           </span>
           <input
-            value={form.investmentInfo}
+            value={form.summary}
             onChange={(e) =>
-              setForm((prev) => ({ ...prev, investmentInfo: e.target.value }))
+              setForm((prev) => ({ ...prev, summary: e.target.value }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="투자정보를 입력하세요"
+            placeholder="요약정보를 입력하세요"
           />
         </label>
         <label className="block">
           <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            투자손익
+            자산현황
           </span>
           <input
-            value={form.investmentProfitLoss}
+            value={form.assetStatus}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                investmentProfitLoss: e.target.value,
+                assetStatus: e.target.value,
               }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="0"
+            placeholder="자산 현황"
           />
         </label>
         <label className="block">
           <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            투자성향
+            고객성향
           </span>
           <SelectField
-            value={form.investmentRiskLevel}
+            value={form.tendency}
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                investmentRiskLevel: e.target.value,
+                tendency: e.target.value,
               }))
             }
             className="h-[34px] w-full font-medium text-[14px]"
           >
             <option value="">선택</option>
-            <option>안정형</option>
-            <option>중립형</option>
-            <option>공격형</option>
+            {CUSTOMER_TENDENCY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </SelectField>
         </label>
+        <label className="block">
+          <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+            거절사유
+          </span>
+          <input
+            value={form.rejectionReason}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                rejectionReason: e.target.value,
+              }))
+            }
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+            placeholder="거절 사유를 입력하세요"
+          />
+        </label>
+      </div>
+
+      <div className="w-full">
+        <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+          특이사항
+        </span>
+        <textarea
+          value={form.specialNotes}
+          onChange={(e) =>
+            setForm((prev) => ({ ...prev, specialNotes: e.target.value }))
+          }
+          rows={3}
+          className="w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+          placeholder="특이사항을 입력하세요"
+        />
       </div>
 
       {/* Payment History */}
       <div>
         <div className="mb-3 pb-2 border-b border-[#E2E2E2] dark:border-[#444444]">
           <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
-            결제 내역
+            매출 내역
           </div>
         </div>
         <div className="subdescription text-[14px] text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -282,7 +325,7 @@ export default function SalesTab({
                 onClick={() => {
                   showConfirmModal({
                     title: "확인",
-                    message: "결제 내역을 삭제하시겠습니까?",
+                    message: "매출 내역을 삭제하시겠습니까?",
                     confirmText: "삭제",
                     cancelText: "취소",
                     onConfirm: () => onRemovePayment(ph.id),

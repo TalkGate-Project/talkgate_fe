@@ -5,6 +5,7 @@ import { useState } from "react";
 import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { LANDING_URLS } from "@/lib/constants";
+import { SubscriptionService } from "@/services/subscription";
 
 type Project = {
   id: string;
@@ -17,6 +18,8 @@ type Props = {
   project: Project;
   onClose: () => void;
   onSubscribe: (projectId: string) => Promise<void>;
+  /** 쿠폰 적용 성공 시 호출 (프로젝트 목록 갱신용) */
+  onCouponApplied?: () => void;
 };
 
 // 고객 관리 아이콘 (두 명의 사람)
@@ -117,8 +120,77 @@ export default function SubscribeProjectModal({
   project,
   onClose,
   onSubscribe,
+  onCouponApplied,
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplying, setCouponApplying] = useState(false);
+
+  const handleCouponApply = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      showErrorModal({
+        type: "error",
+        headline: "쿠폰 코드를 입력해주세요.",
+        hideCancel: true,
+        onConfirm: () => {},
+      });
+      return;
+    }
+    setCouponApplying(true);
+    try {
+      await SubscriptionService.applyCoupon(
+        { code },
+        { "x-project-id": project.id }
+      );
+      showErrorModal({
+        type: "success",
+        headline: "쿠폰이 적용되었습니다.",
+        description: "구독이 활성화되었습니다.",
+        hideCancel: true,
+        onConfirm: () => {
+          onCouponApplied?.();
+          onClose();
+        },
+      });
+    } catch (err: unknown) {
+      const data = err && typeof err === "object" && "data" in err ? (err as { data?: { code?: string } }).data : undefined;
+      const code = data?.code;
+      const headline =
+        code === "COUPON_ALREADY_USED"
+          ? "이미 사용된 쿠폰"
+          : code === "ACTIVE_SUBSCRIPTION_EXISTS"
+            ? "이미 활성 구독이 있습니다"
+            : code === "INVALID_COUPON"
+              ? "유효하지 않은 쿠폰입니다"
+              : code === "COUPON_EXPIRED"
+                ? "만료된 쿠폰입니다"
+                : code === "FORBIDDEN"
+                  ? "권한이 없습니다"
+                  : "쿠폰 적용 실패";
+      const description =
+        code === "COUPON_ALREADY_USED"
+          ? "이미 사용된 쿠폰입니다. 동일 프로젝트는 쿠폰을 1회만 사용할 수 있습니다."
+          : code === "ACTIVE_SUBSCRIPTION_EXISTS"
+            ? "이미 활성 구독 중인 프로젝트입니다."
+            : code === "INVALID_COUPON"
+              ? "쿠폰 코드를 확인해 주세요."
+              : code === "COUPON_EXPIRED"
+                ? "사용 기간이 지난 쿠폰입니다."
+                : code === "FORBIDDEN"
+                  ? "이 작업은 프로젝트 관리자만 할 수 있습니다."
+                  : "잠시 후 다시 시도해 주세요.";
+      showErrorModal({
+        type: "error",
+        headline,
+        description,
+        hideCancel: true,
+        onConfirm: () => {},
+      });
+    } finally {
+      setCouponApplying(false);
+    }
+  };
 
   const handleSubscribe = async () => {
     /**
@@ -157,9 +229,9 @@ export default function SubscribeProjectModal({
         onClick={() => !submitting && onClose()}
       />
 
-      {/* 모달 컨테이너 */}
+      {/* 모달 컨테이너: 모바일 전체 화면, 데스크톱 고정 크기 */}
       <div
-        className="relative w-[440px] h-[601px] bg-white rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden"
+        className="relative w-[440px] h-[675px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white dark:bg-neutral-10 shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -202,24 +274,24 @@ export default function SubscribeProjectModal({
           </div>
         </div>
 
-        {/* 본문 영역 */}
-        <div className="flex-1 px-[48px] pt-8 pb-6 flex flex-col">
+        {/* 본문 영역: 모바일 패딩·하단 여백 강화, 데스크톱 유지 */}
+        <div className="flex-1 px-[48px] pt-8 pb-6 max-md:px-4 max-md:pb-[max(2rem,env(safe-area-inset-bottom,0px))] flex flex-col">
           {/* 제목 및 설명 */}
           <div className="text-center mb-[30px]">
-            <h2 className="text-[16px] font-semibold text-black">
+            <h2 className="text-[16px] font-semibold text-neutral-90 dark:text-white">
               이 프로젝트는 아직 활성화되지 않았어요.
             </h2>
-            <p className="text-[16px] font-semibold text-black">
+            <p className="text-[16px] font-semibold text-neutral-90 dark:text-white">
               구독을 시작하고 모든 기능을 이용해보세요!
             </p>
           </div>
 
           {/* 기능 리스트 */}
-          <div className="flex-1 space-y-4 mb-6">
+          <div className="flex-1 space-y-4 mb-4">
             {features.map((feature) => (
               <div
                 key={feature.number}
-                className="w-full h-[64px] bg-[#F8F8F8] rounded-[12px] flex items-center gap-4 px-10"
+                className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-10 max-md:px-4"
               >
                 {/* 번호 */}
                 <span className="text-[16px] font-bold text-[#00E272] leading-[19px] min-w-[21px]">
@@ -227,7 +299,7 @@ export default function SubscribeProjectModal({
                 </span>
 
                 {/* 제목 */}
-                <span className="text-[16px] font-bold text-black leading-[19px] flex-1">
+                <span className="text-[16px] font-bold text-neutral-90 dark:text-white leading-[19px] flex-1">
                   {feature.title}
                 </span>
 
@@ -237,11 +309,31 @@ export default function SubscribeProjectModal({
             ))}
           </div>
 
-          {/* 구독하기 버튼 */}
+          {/* 쿠폰 등록하기 영역 */}
+          <div className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-7 max-md:px-4 mb-6">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder="쿠폰 코드를 입력하세요"
+              disabled={couponApplying}
+              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-60 bg-white dark:bg-neutral-10 px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none focus:border-[#00E272] disabled:opacity-50"
+            />
+            <button
+              type="button"
+              onClick={handleCouponApply}
+              disabled={couponApplying || !couponCode.trim()}
+              className="min-w-[72px] h-[34px] border border-neutral-30 dark:border-neutral-60 bg-white dark:bg-neutral-10 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-white hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {couponApplying ? "적용 중..." : "쿠폰등록"}
+            </button>
+          </div>
+
+          {/* 구독하기 버튼: 모바일 전체 너비, 데스크톱 344px 유지 */}
           <button
             onClick={handleSubscribe}
             disabled={submitting}
-            className="cursor-pointer w-[344px] h-[52px] bg-black rounded-[30px] flex items-center justify-center gap-[10px] text-white text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-neutral-90 dark:bg-neutral-0 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-90 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>구독하기</span>
             <svg
@@ -253,10 +345,10 @@ export default function SubscribeProjectModal({
             >
               <path
                 d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </button>
