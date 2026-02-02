@@ -225,9 +225,9 @@ export default function SubscribeProjectModal({
         onClick={() => !submitting && onClose()}
       />
 
-      {/* 모달 컨테이너 */}
+      {/* 모달 컨테이너: 모바일 전체 화면, 데스크톱 고정 크기 */}
       <div
-        className="relative w-[440px] h-[675px] bg-white dark:bg-neutral-10 rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden"
+        className="relative w-[440px] h-[675px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white dark:bg-neutral-10 shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
@@ -270,8 +270,8 @@ export default function SubscribeProjectModal({
           </div>
         </div>
 
-        {/* 본문 영역 */}
-        <div className="flex-1 px-[48px] pt-8 pb-6 flex flex-col">
+        {/* 본문 영역: 모바일 패딩·하단 여백 강화, 데스크톱 유지 */}
+        <div className="flex-1 px-[48px] pt-8 pb-6 max-md:px-4 max-md:pb-[max(2rem,env(safe-area-inset-bottom,0px))] flex flex-col">
           {/* 제목 및 설명 */}
           <div className="text-center mb-[30px]">
             <h2 className="text-[16px] font-semibold text-neutral-90 dark:text-white">
@@ -287,7 +287,7 @@ export default function SubscribeProjectModal({
             {features.map((feature) => (
               <div
                 key={feature.number}
-                className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-10"
+                className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-10 max-md:px-4"
               >
                 {/* 번호 */}
                 <span className="text-[16px] font-bold text-[#00E272] leading-[19px] min-w-[21px]">
@@ -306,7 +306,7 @@ export default function SubscribeProjectModal({
           </div>
 
           {/* 쿠폰 등록하기 영역 */}
-          <div className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-7 mb-6">
+          <div className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-7 max-md:px-4 mb-6">
             <input
               type="text"
               value={couponCode}
@@ -325,11 +325,11 @@ export default function SubscribeProjectModal({
             </button>
           </div>
 
-          {/* 구독하기 버튼 */}
+          {/* 구독하기 버튼: 모바일 전체 너비, 데스크톱 344px 유지 */}
           <button
             onClick={handleSubscribe}
             disabled={submitting}
-            className="cursor-pointer w-[344px] h-[52px] bg-neutral-90 dark:bg-neutral-0 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-90 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-neutral-90 dark:bg-neutral-0 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-90 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>구독하기</span>
             <svg
