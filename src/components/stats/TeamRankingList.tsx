@@ -125,9 +125,7 @@ export default function TeamRankingList({ projectId, month }: TeamRankingListPro
             
             return (
               <div key={`${row.teamId}-${row.teamName}-${row.rank}`} className="bg-white dark:bg-neutral-20 rounded-[12px] h-[88px] flex items-center md:items-center px-5 py-3 md:py-0 justify-between">
-                {/* 모바일: 좌측 영역 */}
                 <div className="flex flex-col md:flex-row md:items-center gap-[10px] md:gap-4 md:gap-10">
-                  {/* 모바일: 좌상단 - 아이콘 | 이름 */}
                   <div className="flex items-center gap-2">
                     {row.rank === 1 ? (
                       <RankingGoldIcon className="w-6 h-6 md:w-[60px] md:h-[60px] flex-shrink-0" />
