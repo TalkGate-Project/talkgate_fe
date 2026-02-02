@@ -18,6 +18,8 @@ type Props = {
   project: Project;
   onClose: () => void;
   onSubscribe: (projectId: string) => Promise<void>;
+  /** 쿠폰 적용 성공 시 호출 (프로젝트 목록 갱신용) */
+  onCouponApplied?: () => void;
 };
 
 // 고객 관리 아이콘 (두 명의 사람)
@@ -118,6 +120,7 @@ export default function SubscribeProjectModal({
   project,
   onClose,
   onSubscribe,
+  onCouponApplied,
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -146,6 +149,7 @@ export default function SubscribeProjectModal({
         description: "구독이 활성화되었습니다.",
         hideCancel: true,
         onConfirm: () => {
+          onCouponApplied?.();
           onClose();
         },
       });
