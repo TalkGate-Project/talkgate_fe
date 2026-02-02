@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { getSelectedProjectId } from "@/lib/project";
-import type { BulkJobDetail, BulkJobFailure } from "@/types/customersBulk";
+import { CustomerBulkImportErrorType, type BulkJobDetail, type BulkJobFailure } from "@/types/customersBulk";
 import { formatDateTimeWithSpaces, formatDateTimeCompact } from "@/utils/datetime";
 
 interface FailureDetailModalProps {
@@ -33,25 +33,21 @@ function FailureCard({ errorCode, errorMessage, rowNumber }: FailureCardProps) {
   );
 }
 
+/** 백엔드 CustomerBulkImportErrorType 기준 에러 코드 → 표시 문구 */
+const ERROR_DISPLAY_MAP: Record<CustomerBulkImportErrorType, string> = {
+  [CustomerBulkImportErrorType.RequiredFieldsMissing]: "필수필드 누락",
+  [CustomerBulkImportErrorType.SystemError]: "시스템 오류",
+  [CustomerBulkImportErrorType.CustomerAlreadyExists]: "고객 중복",
+  [CustomerBulkImportErrorType.ProcessingError]: "처리 오류",
+};
+
+const UNKNOWN_ERROR_DISPLAY = "시스템 오류";
+
 function getErrorDisplayMessage(errorCode: string, errorMessage: string): string {
-  // 에러 코드와 메시지를 한국어로 변환
-  const errorMap: Record<string, string> = {
-    // Error Codes
-    VALIDATION_ERROR: "필수필드 누락",
-    PROCESSING_ERROR: "처리 오류",
-    DUPLICATE_CUSTOMER: "고객 중복",
-    CUSTOMER_ALREADY_EXISTS: "고객 중복",
-    SYSTEM_ERROR: "시스템 오류",
-    INVALID_FORMAT: "형식 오류",
-
-    // Error Messages
-    REQUIRED_FIELDS_MISSING: "필수필드 누락",
-    DUPLICATE_ERROR: "고객 중복",
-    INVALID_DATA: "데이터 형식 오류",
-  };
-
-  // errorMessage 먼저 확인, 없으면 errorCode 확인
-  return errorMap[errorMessage] || errorMap[errorCode] || errorMessage || errorCode;
+  const codeOrMessage = errorCode || errorMessage;
+  const display = ERROR_DISPLAY_MAP[codeOrMessage as CustomerBulkImportErrorType];
+  if (display) return display;
+  return UNKNOWN_ERROR_DISPLAY;
 }
 
 export default function FailureDetailModal({
