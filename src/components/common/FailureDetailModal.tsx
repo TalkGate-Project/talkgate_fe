@@ -44,7 +44,8 @@ const ERROR_DISPLAY_MAP: Record<CustomerBulkImportErrorType, string> = {
 const UNKNOWN_ERROR_DISPLAY = "시스템 오류";
 
 function getErrorDisplayMessage(errorCode: string, errorMessage: string): string {
-  const codeOrMessage = errorCode || errorMessage;
+  // errorMessage를 우선 참조 (백엔드: errorMessage로 에러 타입 전달)
+  const codeOrMessage = errorMessage || errorCode;
   const display = ERROR_DISPLAY_MAP[codeOrMessage as CustomerBulkImportErrorType];
   if (display) return display;
   return UNKNOWN_ERROR_DISPLAY;
