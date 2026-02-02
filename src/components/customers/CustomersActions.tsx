@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
-import { AssetsService } from "@/services/assets";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import CustomerShareModal from "@/components/customers/CustomerShareModal";
+import CustomerExcelUploadModal from "@/components/customers/CustomerExcelUploadModal";
 
 type CustomersActionsProps = {
   projectId: string;
@@ -31,54 +31,8 @@ export default function CustomersActions({
   onSmsOpen,
   onShareSuccess,
 }: CustomersActionsProps) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-
-  const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const fileType =
-        file.type ||
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      const presign = await AssetsService.presignBulkImport({
-        fileName: file.name,
-        fileType,
-        projectId,
-      });
-      const { uploadUrl, fileUrl } = presign.data.data;
-      if (uploadUrl) {
-        await AssetsService.uploadToS3(uploadUrl, file, fileType);
-      }
-      await CustomersBulkService.createImport({
-        fileUrl: fileUrl || undefined,
-        fileName: file.name,
-        projectId,
-      });
-      showErrorModal({
-        type: "success",
-        title: "알림",
-        headline: "업로드 요청이 접수되었습니다.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-        onConfirm: () => {
-          onUploadSuccess();
-        },
-      });
-    } catch (err: any) {
-      console.error(err);
-      showErrorModal({
-        title: "오류 발생",
-        headline: "업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
+  const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
 
   const handleExcelDownload = async () => {
     try {
@@ -183,13 +137,6 @@ export default function CustomersActions({
 
   return (
     <div className="w-full flex justify-between items-end md:items-center gap-2 md:gap-3">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={handleExcelUpload}
-      />
       {/* 모바일: 고객등록, 일괄배정만 표시 (기존과 동일) */}
       <div className="md:hidden flex items-center gap-2">
         <button
@@ -260,7 +207,7 @@ export default function CustomersActions({
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setExcelUploadModalOpen(true)}
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 업로드"
           >
@@ -302,6 +249,13 @@ export default function CustomersActions({
         selectionMode={selectionMode}
         appliedFilters={appliedFilters}
         selectedCount={selectionMode === "all" ? total : selectedIds.length}
+      />
+
+      <CustomerExcelUploadModal
+        isOpen={excelUploadModalOpen}
+        onClose={() => setExcelUploadModalOpen(false)}
+        projectId={projectId}
+        onUploadSuccess={onUploadSuccess}
       />
     </div>
   );
