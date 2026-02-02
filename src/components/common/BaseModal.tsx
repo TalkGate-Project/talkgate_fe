@@ -103,7 +103,7 @@ export default function BaseModal({ onClose, children, overlayClassName = "", co
       }}
     >
       <div className={`${fullScreenOnMobile ? "h-full p-0 lg:h-auto lg:min-h-full lg:flex lg:items-center lg:justify-center lg:p-4" : "min-h-full flex items-center justify-center p-4 lg:p-4"}`}>
-        <div ref={containerRef} tabIndex={-1} className={`w-full h-full lg:w-auto lg:h-auto lg:max-h-[90vh] ${containerClassName}`}>
+        <div ref={containerRef} tabIndex={-1} className={`w-full h-full md:w-auto md:h-auto md:max-h-[90vh] ${containerClassName}`}>
           {children}
         </div>
       </div>
