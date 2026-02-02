@@ -25,7 +25,7 @@ export default function ApiKeyHistoryView({
   const [totalPages, setTotalPages] = useState(1);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [partners, setPartners] = useState<ProjectPartner[]>([]);
-  const [selectedPartnerProjectId, setSelectedPartnerProjectId] = useState<number | null>(null);
+  const [selectedProjectPartnerId, setSelectedProjectPartnerId] = useState<number | null>(null);
 
   const limit = 20;
 
@@ -57,9 +57,9 @@ export default function ApiKeyHistoryView({
         page,
         limit,
       };
-      // partnerProjectId를 projectPartnerId로 전달 (협력업체 프로젝트 ID 기준 필터)
-      if (selectedPartnerProjectId != null) {
-        query.projectPartnerId = selectedPartnerProjectId;
+      // project-partners list의 id를 projectPartnerId로 전달
+      if (selectedProjectPartnerId != null) {
+        query.projectPartnerId = selectedProjectPartnerId;
       }
       const response = await ApiKeysService.getCustomerHistory(
         apiKey.id,
@@ -83,7 +83,7 @@ export default function ApiKeyHistoryView({
     } finally {
       setLoading(false);
     }
-  }, [projectId, apiKey.id, page, selectedPartnerProjectId]);
+  }, [projectId, apiKey.id, page, selectedProjectPartnerId]);
 
   useEffect(() => {
     fetchPartners();
@@ -93,8 +93,8 @@ export default function ApiKeyHistoryView({
     fetchHistory();
   }, [fetchHistory]);
 
-  const handleFilterClick = useCallback((partnerProjectId: number | null) => {
-    setSelectedPartnerProjectId(partnerProjectId);
+  const handleFilterClick = useCallback((projectPartnerId: number | null) => {
+    setSelectedProjectPartnerId(projectPartnerId);
     setPage(1);
   }, []);
 
@@ -151,7 +151,7 @@ export default function ApiKeyHistoryView({
           type="button"
           onClick={() => handleFilterClick(null)}
           className={`cursor-pointer inline-flex items-center justify-center py-1 px-3 h-[22px] rounded-[30px] text-[12px] font-medium leading-[14px] transition-colors opacity-80 ${
-            selectedPartnerProjectId === null
+            selectedProjectPartnerId === null
               ? "bg-secondary-10 dark:bg-secondary-20/40 text-secondary-40 dark:text-secondary-20"
               : "bg-[#E2E2E2] dark:bg-neutral-30 text-[#595959] dark:text-neutral-60 hover:bg-neutral-40 dark:hover:bg-neutral-25"
           }`}
@@ -159,12 +159,12 @@ export default function ApiKeyHistoryView({
           전체
         </button>
         {partners.map((partner) => {
-          const isSelected = selectedPartnerProjectId === partner.partnerProjectId;
+          const isSelected = selectedProjectPartnerId === partner.id;
           return (
             <button
               key={partner.id}
               type="button"
-              onClick={() => handleFilterClick(partner.partnerProjectId)}
+              onClick={() => handleFilterClick(partner.id)}
               className={`cursor-pointer inline-flex items-center justify-center py-1 px-3 h-[22px] rounded-[30px] text-[12px] font-medium leading-[14px] transition-colors truncate max-w-[200px] opacity-80 ${
                 isSelected
                   ? "bg-secondary-10 dark:bg-secondary-20/40 text-secondary-40 dark:text-secondary-20"
