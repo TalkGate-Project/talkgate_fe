@@ -380,9 +380,6 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                   maxLength={PROJECT_NAME_MAX_LENGTH}
                   className="mt-2 w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] text-foreground bg-card"
                 />
-                <div className="mt-1 text-[12px] font-medium text-neutral-60">
-                  {projectName.length}/{PROJECT_NAME_MAX_LENGTH}자
-                </div>
               </div>
             </div>
           ) : (
