@@ -197,7 +197,11 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           });
           
           if (mounted) {
-            router.push(`/login/two-factor?token=${result.twoFactorToken}`);
+            // ✅ 소셜 로그인에서도 returnUrl 유지: 2FA 페이지로 redirectUrl 전달
+            const twoFactorUrl = redirectUrl
+              ? `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&redirectUrl=${encodeURIComponent(redirectUrl)}`
+              : `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}`;
+            router.push(twoFactorUrl);
           }
           return;
         }

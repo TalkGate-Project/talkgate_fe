@@ -151,6 +151,7 @@ export type CustomerRegistrationRecord = {
   directInputCount: number;
   excelUploadCount: number;
   apiCount: number;
+  partnerCopyCount: number;
 };
 
 export type CustomerRegistrationResponse = ApiSuccessResponse<
