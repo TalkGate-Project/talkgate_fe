@@ -148,7 +148,7 @@ export default function BasicTab({
               }
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="-를 제외한 숫자만 입력해 주세요."
+              placeholder="'-'를 제외한 숫자만 입력해 주세요."
             />
             {showValidation && validation.contact1Error && (
               <p className="mt-1 text-[12px] text-danger-40">{validation.contact1Error}</p>
@@ -189,7 +189,7 @@ export default function BasicTab({
               }
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="-를 제외한 숫자만 입력해 주세요."
+              placeholder="'-'를 제외한 숫자만 입력해 주세요."
             />
           </div>
         </div>
