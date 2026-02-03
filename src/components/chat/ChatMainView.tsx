@@ -304,7 +304,7 @@ export default function ChatMainView({
             {/* 너비 치환 버튼 (웹에서만 표시) */}
             {onSwapWidths && (
               <button
-                className="hidden lg:flex cursor-pointer h-[36px] w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 flex items-center justify-center hover:bg-neutral-20 transition-colors"
+                className="hidden lg:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
                 onClick={onSwapWidths}
                 aria-label="너비 치환"
                 title="메인 뷰와 사이드바 너비 교환"
@@ -326,7 +326,7 @@ export default function ChatMainView({
             )}
             {/* 모바일에서는 연동 버튼과 상담완료 버튼만 표시 */}
             <button
-              className={`cursor-pointer h-[34px] w-[34px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${activeConversation?.customerId
+              className={`cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed ${activeConversation?.customerId
                 ? "bg-primary-10 border-primary-80"
                 : "border-border"
                 }`}
@@ -337,22 +337,24 @@ export default function ChatMainView({
             {activeConversation && activeConversation.customerId && (
               <button
                 onClick={onOpenCustomerDetail}
-                className="hidden md:block cursor-pointer h-[34px] px-3 rounded-[5px] bg-card border border-border text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-card border border-border text-[12px] md:text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 고객정보
               </button>
             )}
-            <button
-              className="cursor-pointer h-[34px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-              onClick={onCloseConversation}
-              disabled={
-                !activeConversation || activeConversation?.status === "closed"
-              }
-            >
-              {activeConversation?.status === "closed"
-                ? "완료됨"
-                : "상담완료"}
-            </button>
+            {widthMode !== "swapped" && (
+              <button
+                className="cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                onClick={onCloseConversation}
+                disabled={
+                  !activeConversation || activeConversation?.status === "closed"
+                }
+              >
+                {activeConversation?.status === "closed"
+                  ? "완료됨"
+                  : "상담완료"}
+              </button>
+            )}
           </div>
         </div>
         {/* Messages area */}
