@@ -151,7 +151,7 @@ export default function PartnerRequestModal({
           <div className="w-full bg-neutral-10 dark:bg-neutral-20 rounded-[8px] px-4 py-3 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-neutral-30 flex-shrink-0 overflow-hidden flex items-center justify-center">
               {currentRequest.projectLogoUrl ? (
-                <Image
+                <img
                   src={currentRequest.projectLogoUrl}
                   alt={currentRequest.projectName}
                   width={32}

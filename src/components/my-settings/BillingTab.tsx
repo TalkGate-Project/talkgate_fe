@@ -489,7 +489,7 @@ function ProjectCard({
         {/* 프로젝트 썸네일 */}
         {project.logoUrl ? (
           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-            <Image
+            <img
               src={project.logoUrl}
               alt={project.name}
               width={40}
