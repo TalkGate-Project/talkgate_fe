@@ -17,7 +17,6 @@ export default function DataTab({ form, setForm }: Props) {
             setForm((prev) => ({ ...prev, applicationRoute: e.target.value }))
           }
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-          placeholder="예: 유튜브"
         />
       </label>
       <label className="block">
@@ -26,7 +25,6 @@ export default function DataTab({ form, setForm }: Props) {
           value={form.site}
           onChange={(e) => setForm((prev) => ({ ...prev, site: e.target.value }))}
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-          placeholder="예: 모두의주식투자채널"
         />
       </label>
 
@@ -38,7 +36,6 @@ export default function DataTab({ form, setForm }: Props) {
             setForm((prev) => ({ ...prev, mediaCompany: e.target.value }))
           }
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-          placeholder="예: 광고회사"
         />
       </label>
       <label className="block">
