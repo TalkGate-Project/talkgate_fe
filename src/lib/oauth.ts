@@ -108,6 +108,20 @@ export function initiateSocialLogin(provider: OAuthProvider, returnUrl?: string 
 
   debugLog(`🔑 소셜 로그인 초기화: ${provider}`, { hasReturnUrl: !!returnUrl });
 
+  // ✅ 일부 OAuth 제공자에서 state가 누락/변형되는 케이스 대비:
+  // 콜백 페이지(`OAuthCallbackContent`)는 state 우선, sessionStorage fallback을 지원하므로
+  // 소셜 로그인 시작 시 returnUrl을 sessionStorage에도 백업해 둔다.
+  try {
+    if (returnUrl) {
+      window.sessionStorage.setItem("tg_redirect_url", returnUrl);
+      debugLog("💾 returnUrl을 sessionStorage에 백업 (state fallback)", {
+        returnUrlPreview: returnUrl.slice(0, 120),
+      });
+    }
+  } catch {
+    // sessionStorage 접근 불가 환경에서는 무시 (state로만 동작)
+  }
+
   // 1. 기존 세션 데이터 정리 (토큰, 프로젝트 ID 등)
   cleanupSessionBeforeLogin();
 
