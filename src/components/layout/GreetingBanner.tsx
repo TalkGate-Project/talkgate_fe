@@ -227,7 +227,7 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
               <div className="w-7 h-7 rounded-full bg-neutral-20 animate-pulse" />
             ) : projectLogoUrl ? (
               <div className="w-7 h-7 rounded-full overflow-hidden bg-neutral-90 grid place-items-center flex-shrink-0">
-                <Image
+                <img
                   src={projectLogoUrl}
                   alt={projectName}
                   width={28}

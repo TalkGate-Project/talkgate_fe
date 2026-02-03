@@ -146,6 +146,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
               onTabChange(item.key);
             }
           }}
+          style={item.offsetLeft != null ? { transform: `translateX(${item.offsetLeft}px)` } : undefined}
           className={`cursor-pointer w-full h-[52px] flex items-center gap-3 pr-8 text-left transition-colors ${
             level > 0 ? "pl-[60px]" : "pl-[30px]"
           } ${
