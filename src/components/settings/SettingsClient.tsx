@@ -49,6 +49,7 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
 const ADMIN_ONLY_TABS: SettingsTab[] = [
   "general",
   "customer-api",
+  "partner-registration",
 ];
 
 // 유효한 탭인지 확인하는 함수
@@ -75,6 +76,12 @@ function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): bo
 
   // 고객등록 API 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
   if (tab === "customer-api") {
+    if (!member) return false;
+    return hasAdminAccess(role);
+  }
+
+  // 파트너등록 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
+  if (tab === "partner-registration") {
     if (!member) return false;
     return hasAdminAccess(role);
   }

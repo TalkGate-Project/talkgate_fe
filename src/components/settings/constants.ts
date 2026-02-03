@@ -135,7 +135,11 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     label: "파트너등록",
     icon: PartnerRegistrationIcon,
     offsetLeft: -2, // 2px 왼쪽으로 이동
-    // 모든 사용자 접근 가능
+    // 어드민/서브어드민 접근 가능
+    canAccess: ({ role, isLoading }) => {
+      if (isLoading) return false;
+      return hasAdminAccess(role);
+    },
   },
 ];
 

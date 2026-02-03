@@ -43,10 +43,10 @@ export type CustomerListItem = {
   site: string;
   mediaCompany: string;
   assignedMember?: AssignedMember | null;
-  assignedTeamName: string;
-  assignedMemberName: string;
+  assignedTeamName?: string | null;
+  assignedMemberName?: string | null;
   applicationDate: string;
-  assignedAt: string;
+  assignedAt?: string | null;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   createdAt: string;
   recentNotes: RecentNote[];
@@ -157,10 +157,10 @@ export type CustomerDetail = {
   site: string;
   mediaCompany: string;
   assignedMember?: AssignedMember | null;
-  assignedTeamName: string;
-  assignedMemberName: string;
+  assignedTeamName?: string | null;
+  assignedMemberName?: string | null;
   applicationDate: string;
-  assignedAt: string;
+  assignedAt?: string | null;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   specialNotes?: string;
   summary?: string;
