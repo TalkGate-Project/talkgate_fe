@@ -167,7 +167,26 @@ export default function CustomerDetailModalDesktop({
               );
             }
             // 그 외: 아무것도 표시 안함
-            return null;
+            return (
+              <button
+                className="flex items-center justify-center"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M12.0004 21.5999C17.3023 21.5999 21.6004 17.3018 21.6004 11.9999C21.6004 6.69797 17.3023 2.3999 12.0004 2.3999C6.69846 2.3999 2.40039 6.69797 2.40039 11.9999C2.40039 17.3018 6.69846 21.5999 12.0004 21.5999ZM16.4489 10.4484C16.9175 9.9798 16.9175 9.22 16.4489 8.75137C15.9803 8.28275 15.2205 8.28275 14.7519 8.75137L10.8004 12.7028L9.24892 11.1514C8.78029 10.6827 8.02049 10.6827 7.55186 11.1514C7.08323 11.62 7.08323 12.3798 7.55186 12.8484L9.95186 15.2484C10.4205 15.7171 11.1803 15.7171 11.6489 15.2484L16.4489 10.4484Z"
+                    fill="#B0B0B0"
+                  />
+                </svg>
+              </button>
+            );
           })()}
         </div>
         <button
@@ -203,84 +222,81 @@ export default function CustomerDetailModalDesktop({
         {!loading && detail && (
           <div className="mt-[30px] grid grid-cols-12 gap-6 pb-2">
             {/* Left: form and tabs */}
-          <div
-            ref={leftPanelRef}
-            className="col-span-12 md:col-span-7 lg:col-span-8 w-full min-w-0 xl:w-[792px] xl:min-w-[792px] xl:max-w-[792px]"
-          >
-            {/* Tabs */}
-            <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">
-              <button
-                className={`cursor-pointer pb-3 text-[16px] ${
-                  tab === "basic"
-                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
-                    : "text-neutral-60 dark:text-neutral-60"
-                }`}
-                onClick={() => setTab("basic")}
-              >
-                기본 정보
-              </button>
-              <button
-                className={`cursor-pointer pb-3 text-[16px] ${
-                  tab === "data"
-                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
-                    : "text-neutral-60 dark:text-neutral-60"
-                }`}
-                onClick={() => setTab("data")}
-              >
-                데이터 정보
-              </button>
-              <button
-                className={`cursor-pointer pb-3 text-[16px] ${
-                  tab === "sales"
-                    ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
-                    : "text-neutral-60 dark:text-neutral-60"
-                }`}
-                onClick={() => setTab("sales")}
-              >
-                영업정보
-              </button>
+            <div
+              ref={leftPanelRef}
+              className="col-span-12 md:col-span-7 lg:col-span-8 w-full min-w-0 xl:w-[792px] xl:min-w-[792px] xl:max-w-[792px]"
+            >
+              {/* Tabs */}
+              <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">
+                <button
+                  className={`cursor-pointer pb-3 text-[16px] ${tab === "basic"
+                      ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                      : "text-neutral-60 dark:text-neutral-60"
+                    }`}
+                  onClick={() => setTab("basic")}
+                >
+                  기본 정보
+                </button>
+                <button
+                  className={`cursor-pointer pb-3 text-[16px] ${tab === "data"
+                      ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                      : "text-neutral-60 dark:text-neutral-60"
+                    }`}
+                  onClick={() => setTab("data")}
+                >
+                  데이터 정보
+                </button>
+                <button
+                  className={`cursor-pointer pb-3 text-[16px] ${tab === "sales"
+                      ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                      : "text-neutral-60 dark:text-neutral-60"
+                    }`}
+                  onClick={() => setTab("sales")}
+                >
+                  영업정보
+                </button>
+              </div>
+
+              {tab === "basic" && (
+                <BasicTab
+                  form={form}
+                  setForm={setForm}
+                  messengers={messengersLocal}
+                  onAddMessenger={actions.addMessenger}
+                  onRemoveMessenger={actions.removeMessenger}
+                />
+              )}
+
+              {tab === "data" && <DataTab form={form} setForm={setForm} />}
+
+              {tab === "sales" && (
+                <SalesTab
+                  form={form}
+                  setForm={setForm}
+                  paymentHistories={detail.paymentHistories}
+                  schedules={detail.schedules}
+                  onAddPayment={actions.addPayment}
+                  onRemovePayment={actions.removePayment}
+                  onAddSchedule={actions.addSchedule}
+                  onRemoveSchedule={actions.removeSchedule}
+                />
+              )}
             </div>
 
-            {tab === "basic" && (
-              <BasicTab
-                form={form}
-                setForm={setForm}
-                messengers={messengersLocal}
-                onAddMessenger={actions.addMessenger}
-                onRemoveMessenger={actions.removeMessenger}
-              />
-            )}
-
-            {tab === "data" && <DataTab form={form} setForm={setForm} />}
-
-            {tab === "sales" && (
-              <SalesTab
-                form={form}
-                setForm={setForm}
-                paymentHistories={detail.paymentHistories}
-                schedules={detail.schedules}
-                onAddPayment={actions.addPayment}
-                onRemovePayment={actions.removePayment}
-                onAddSchedule={actions.addSchedule}
-                onRemoveSchedule={actions.removeSchedule}
-              />
-            )}
+            {/* Right: 대화 요약 + 상담 내용 기록 */}
+            <ConsultationPanel
+              customerId={detail.id}
+              customerName={detail.name || ""}
+              conversation={detail.conversation}
+              notes={detail.notes}
+              categories={categories}
+              onAddNote={actions.addNote}
+              onRemoveNote={actions.removeNote}
+              onUnlinkConversation={actions.unlinkConversation}
+              maxHeight={leftHeight}
+            />
           </div>
-
-          {/* Right: 대화 요약 + 상담 내용 기록 */}
-          <ConsultationPanel
-            customerId={detail.id}
-            customerName={detail.name || ""}
-            conversation={detail.conversation}
-            notes={detail.notes}
-            categories={categories}
-            onAddNote={actions.addNote}
-            onRemoveNote={actions.removeNote}
-            onUnlinkConversation={actions.unlinkConversation}
-            maxHeight={leftHeight}
-          />
-        </div>
-      )}
+        )}
       </div>
 
       {/* Footer - 모달 하단에 고정 */}
@@ -290,20 +306,18 @@ export default function CustomerDetailModalDesktop({
         ) : (
           <>
             <button
-              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
-                hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-              }`}
+              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                }`}
               onClick={actions.resetForm}
               disabled={!hasChanges}
             >
               초기화
             </button>
             <button
-              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${
-                hasChanges
+              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${hasChanges
                   ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
                   : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
-              }`}
+                }`}
               onClick={() => {
                 actions.saveForm().then(() => {
                   onRefetch?.();
