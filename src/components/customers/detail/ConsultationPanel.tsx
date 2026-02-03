@@ -94,8 +94,8 @@ export default function ConsultationPanel({
   const panelStyle = maxHeight ? { maxHeight: `${maxHeight}px` } : undefined;
 
   return (
-    <div 
-      className="col-span-12 lg:col-span-4 flex flex-col overflow-hidden"
+    <div
+      className="col-span-12 md:col-span-5 lg:col-span-4 flex flex-col overflow-hidden"
       style={panelStyle}
     >
       {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
