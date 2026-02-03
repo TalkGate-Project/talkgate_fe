@@ -342,17 +342,19 @@ export default function ChatMainView({
                 고객정보
               </button>
             )}
-            <button
-              className="cursor-pointer h-[34px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-              onClick={onCloseConversation}
-              disabled={
-                !activeConversation || activeConversation?.status === "closed"
-              }
-            >
-              {activeConversation?.status === "closed"
-                ? "완료됨"
-                : "상담완료"}
-            </button>
+            {widthMode !== "swapped" && (
+              <button
+                className="cursor-pointer h-[34px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                onClick={onCloseConversation}
+                disabled={
+                  !activeConversation || activeConversation?.status === "closed"
+                }
+              >
+                {activeConversation?.status === "closed"
+                  ? "완료됨"
+                  : "상담완료"}
+              </button>
+            )}
           </div>
         </div>
         {/* Messages area */}
