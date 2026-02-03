@@ -54,7 +54,7 @@ export default function UnlinkConversationModal({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-7 pt-6 pb-4">
-        <h2 className="text-[18px] font-semibold text-[#111827]">연동 끊기</h2>
+        <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">연동 끊기</h2>
         <button
           aria-label="close"
           className="cursor-pointer w-6 h-6 grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -70,7 +70,8 @@ export default function UnlinkConversationModal({
           >
             <path
               d="M6 18L18 6M6 6L18 18"
-              stroke="#B0B0B0"
+              stroke="currentColor"
+              className="text-neutral-60"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -106,8 +107,8 @@ export default function UnlinkConversationModal({
         </p>
 
         {/* Conversation Info Card */}
-        <div className="bg-[#F8F8F8] rounded-[8px] px-6 py-4 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-neutral-30 overflow-hidden flex-shrink-0">
+        <div className="bg-[#F8F8F8] dark:bg-neutral-20 rounded-[8px] px-6 py-4 flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-neutral-30 dark:bg-neutral-30 overflow-hidden flex-shrink-0">
             {conversation.profileUrl ? (
               <img
                 src={conversation.profileUrl}
@@ -115,14 +116,14 @@ export default function UnlinkConversationModal({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[24px] font-semibold text-foreground bg-neutral-20">
+              <div className="w-full h-full flex items-center justify-center text-[24px] font-semibold text-ink dark:text-neutral-90 bg-neutral-20 dark:bg-neutral-30">
                 {(conversation.name || "?").charAt(0)}
               </div>
             )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[18px] font-semibold text-foreground truncate">
+              <span className="text-[18px] font-semibold text-ink dark:text-neutral-90 truncate">
                 {conversation.name}
               </span>
               <span className="w-5 h-5 inline-block flex-shrink-0">
@@ -133,7 +134,7 @@ export default function UnlinkConversationModal({
                 />
               </span>
             </div>
-            <div className="mt-1 text-[14px] text-neutral-60">
+            <div className="mt-1 text-[14px] text-neutral-60 dark:text-neutral-60">
               ID : {conversation.platformConversationId || "-"}
             </div>
           </div>
@@ -143,14 +144,14 @@ export default function UnlinkConversationModal({
       {/* Footer */}
       <div className="flex justify-end gap-3 px-7 py-3 border-t border-neutral-30">
         <button
-          className="w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-[48px] h-[34px] rounded-[5px] border border-neutral-30 text-[14px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-ink dark:text-neutral-80"
           onClick={onClose}
           disabled={loading}
         >
           취소
         </button>
         <button
-          className="w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-0 text-[14px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-[72px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-0 dark:bg-neutral-90 dark:text-neutral-20 text-[14px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onConfirm}
           disabled={loading}
         >
