@@ -44,6 +44,9 @@ export default function CustomerCreateModal({
 }: Props) {
   const [projectId] = useSelectedProjectId();
   const [submitting, setSubmitting] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [touchedName, setTouchedName] = useState(false);
+  const [touchedContact1, setTouchedContact1] = useState(false);
 
   // 기본 정보
   const [name, setName] = useState("");
@@ -72,6 +75,18 @@ export default function CustomerCreateModal({
 
   const contactTypes = ["휴대폰", "집", "회사", "기타"];
   const messengerTypes = ["라인", "카카오톡", "텔레그램", "인스타그램", "기타"];
+  const sanitizeContactInput = (value: string) => value.replace(/\D/g, "").slice(0, 11);
+
+  const contact1Digits = contact1.replace(/\D/g, "");
+  const nameError = name.trim() ? "" : "이름은 필수 항목입니다.";
+  const contact1Error = !contact1Digits
+    ? "연락처는 필수 항목입니다."
+    : contact1Digits.length < 9
+      ? "연락처는 9자 이상 입력해 주세요."
+      : "";
+  const isValid = !nameError && !contact1Error;
+  const showNameValidation = attemptedSubmit || touchedName;
+  const showContact1Validation = attemptedSubmit || touchedContact1;
 
   const handleAddMessenger = () => {
     if (!currentMessengerAccount.trim()) return;
@@ -105,9 +120,13 @@ export default function CustomerCreateModal({
     setSite("");
     setMediaCompany("");
     setSpecialNotes("");
+    setAttemptedSubmit(false);
+    setTouchedName(false);
+    setTouchedContact1(false);
   };
 
   const handleSubmit = async () => {
+    setAttemptedSubmit(true);
     if (!projectId) {
       showErrorModal({
         title: "알림",
@@ -118,14 +137,7 @@ export default function CustomerCreateModal({
       });
       return;
     }
-    if (!name.trim() || !contact1.trim()) {
-      showErrorModal({
-        title: "알림",
-        headline: "필수 정보를 입력해주세요.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
+    if (!isValid) {
       return;
     }
     setSubmitting(true);
@@ -233,11 +245,17 @@ export default function CustomerCreateModal({
                     <input
                       type="text"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (!touchedName) setTouchedName(true);
+                      }}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                       placeholder="고객 이름을 입력하세요"
                     />
                   </div>
+                  {showNameValidation && nameError && (
+                    <p className="mt-1 text-[12px] text-danger-40">{nameError}</p>
+                  )}
                 </div>
 
                 {/* 연락처1 */}
@@ -280,13 +298,20 @@ export default function CustomerCreateModal({
                         <input
                           type="text"
                           value={contact1}
-                          onChange={(e) => setContact1(e.target.value)}
+                          onChange={(e) => {
+                            setContact1(sanitizeContactInput(e.target.value));
+                            if (!touchedContact1) setTouchedContact1(true);
+                          }}
+                          inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                          placeholder="010-1234-5678"
+                          placeholder="'-'를 제외한 숫자만 입력해 주세요."
                         />
                       </div>
                     </div>
                   </div>
+                  {showContact1Validation && contact1Error && (
+                    <p className="mt-1 text-[12px] text-danger-40">{contact1Error}</p>
+                  )}
                 </div>
 
                 {/* 연락처2 */}
@@ -329,9 +354,10 @@ export default function CustomerCreateModal({
                         <input
                           type="text"
                           value={contact2}
-                          onChange={(e) => setContact2(e.target.value)}
+                          onChange={(e) => setContact2(sanitizeContactInput(e.target.value))}
+                          inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                          placeholder="선택사항"
+                          placeholder="'-'를 제외한 숫자만 입력해 주세요."
                         />
                       </div>
                     </div>
@@ -499,7 +525,6 @@ export default function CustomerCreateModal({
                       value={applicationRoute}
                       onChange={(e) => setApplicationRoute(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="신청 경로를 입력하세요"
                     />
                   </div>
                 </div>
@@ -515,7 +540,6 @@ export default function CustomerCreateModal({
                       value={site}
                       onChange={(e) => setSite(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="사이트"
                     />
                   </div>
                 </div>
@@ -531,7 +555,6 @@ export default function CustomerCreateModal({
                       value={mediaCompany}
                       onChange={(e) => setMediaCompany(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="매체사"
                     />
                   </div>
                 </div>
@@ -569,7 +592,7 @@ export default function CustomerCreateModal({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || !projectId}
+            disabled={submitting || !projectId || !isValid}
             className="cursor-pointer h-[40px] lg:h-[34px] px-4 lg:px-3 rounded-[8px] lg:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
           >
             등록
