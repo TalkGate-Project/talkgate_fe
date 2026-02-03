@@ -82,6 +82,7 @@ export default function PartnerRegisterModal({
       showErrorModal({
         type: "success",
         headline: "업체가 등록되었습니다.",
+        description: "대상 업체가 요청을 수락하면 파트너로 등록됩니다.",
         hideCancel: true,
         onConfirm: () => {
           handleClose();

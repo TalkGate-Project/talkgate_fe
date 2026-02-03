@@ -24,6 +24,8 @@ export type SettingsSidebarItem = {
   children?: SettingsSidebarItem[];
   /** 부모 항목인지 (토글만 하고 페이지 이동 안 함) */
   isParent?: boolean;
+  /** px 단위 왼쪽 오프셋 (음수면 왼쪽으로 이동) */
+  offsetLeft?: number;
 };
 
 // Settings 아이콘들
@@ -132,6 +134,7 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     key: "partner-registration",
     label: "파트너등록",
     icon: PartnerRegistrationIcon,
+    offsetLeft: -2, // 2px 왼쪽으로 이동
     // 모든 사용자 접근 가능
   },
 ];
