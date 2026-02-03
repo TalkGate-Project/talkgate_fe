@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { CustomersService } from "@/services/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 import type { CustomerDetail } from "@/types/customers";
 import { useCustomerForm } from "./useCustomerForm";
+import type { CustomerValidation } from "./types";
 import { useCustomerActions } from "./useCustomerActions";
 import type { NoteCategory } from "./types";
 
 // Re-export types for backward compatibility
-export type { CustomerFormState } from "./types";
+export type { CustomerFormState, CustomerValidation } from "./types";
 export { INITIAL_FORM_STATE } from "./types";
 
 export function useCustomerDetail(customerId: number | null, open: boolean) {
@@ -28,6 +29,24 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     getChangedFields,
     commitForm,
   } = useCustomerForm();
+
+  const validation = useMemo<CustomerValidation>(() => {
+    const nameValue = form.name.trim();
+    const contact1Digits = form.contact1.replace(/\D/g, "");
+
+    const nameError = nameValue ? "" : "이름은 필수 항목입니다.";
+    const contact1Error = !contact1Digits
+      ? "연락처는 필수 항목입니다."
+      : contact1Digits.length < 9
+        ? "연락처는 9자 이상 입력해 주세요."
+        : "";
+
+    return {
+      nameError,
+      contact1Error,
+      isValid: !nameError && !contact1Error,
+    };
+  }, [form.name, form.contact1]);
 
   // CRUD 액션들
   const actions = useCustomerActions({
@@ -100,6 +119,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     setForm,
     originalForm,
     hasChanges,
+    validation,
     actions: {
       resetForm,
       refetch: fetchDetail,

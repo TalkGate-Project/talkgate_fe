@@ -3,7 +3,7 @@ import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { formatDetailDate } from "./utils";
-import { CustomerFormState } from "./useCustomerDetail";
+import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
 
 // 생년월일 입력 컴포넌트
@@ -54,6 +54,8 @@ type Props = {
   messengers: { id?: number; messenger: string; account: string; createdAt?: string }[];
   onAddMessenger: (type: string, account: string) => void;
   onRemoveMessenger: (index: number) => void;
+  validation: CustomerValidation;
+  showValidation: boolean;
 };
 
 export default function BasicTab({
@@ -62,6 +64,8 @@ export default function BasicTab({
   messengers,
   onAddMessenger,
   onRemoveMessenger,
+  validation,
+  showValidation,
 }: Props) {
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
   const [newMessengerAccount, setNewMessengerAccount] = useState("");
@@ -88,6 +92,8 @@ export default function BasicTab({
     setNewMessengerAccount("");
   };
 
+  const sanitizeContactInput = (value: string) => value.replace(/\D/g, "").slice(0, 11);
+
   return (
     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
       {/* Name */}
@@ -103,6 +109,9 @@ export default function BasicTab({
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="고객 이름을 입력하세요"
           />
+          {showValidation && validation.nameError && (
+            <p className="mt-1 text-[12px] text-danger-40">{validation.nameError}</p>
+          )}
         </div>
       </div>
 
@@ -134,10 +143,16 @@ export default function BasicTab({
           <div>
             <input
               value={form.contact1}
-              onChange={(e) => setForm((prev) => ({ ...prev, contact1: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, contact1: sanitizeContactInput(e.target.value) }))
+              }
+              inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="010-1234-5678"
+              placeholder="'-'를 제외한 숫자만 입력해 주세요."
             />
+            {showValidation && validation.contact1Error && (
+              <p className="mt-1 text-[12px] text-danger-40">{validation.contact1Error}</p>
+            )}
           </div>
         </div>
       </div>
@@ -169,9 +184,12 @@ export default function BasicTab({
           <div>
             <input
               value={form.contact2}
-              onChange={(e) => setForm((prev) => ({ ...prev, contact2: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, contact2: sanitizeContactInput(e.target.value) }))
+              }
+              inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="선택 입력"
+              placeholder="'-'를 제외한 숫자만 입력해 주세요."
             />
           </div>
         </div>

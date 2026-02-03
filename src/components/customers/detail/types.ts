@@ -26,6 +26,12 @@ export type CustomerFormState = {
   rejectionReason: string;
 };
 
+export type CustomerValidation = {
+  nameError: string;
+  contact1Error: string;
+  isValid: boolean;
+};
+
 export const INITIAL_FORM_STATE: CustomerFormState = {
   name: "",
   contact1: "",

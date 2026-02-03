@@ -22,7 +22,7 @@ import { clearTokens } from "./token";
 import { clearSelectedProjectId, clearUseAttendanceMenu } from "./project";
 import { talkgateSocket } from "./realtime";
 import { notificationSocket } from "./notificationSocket";
-import { resetAuthSession } from "./authSession";
+import { resetAuthSession, setLoggingOut } from "./authSession";
 import type { QueryClient } from "@tanstack/react-query";
 
 export interface LogoutOptions {
@@ -61,6 +61,9 @@ export function performLogout(options: LogoutOptions = {}): void {
   } = options;
 
   console.log("[Logout] 🚪 로그아웃 시작", { preserveInviteInfo });
+
+  // 0. 로그아웃 진행 중 플래그 설정 (세션 만료 모달 방지)
+  setLoggingOut(true);
 
   // 1. WebSocket 연결 종료
   // 에러가 발생해도 계속 진행 (로그아웃은 반드시 완료되어야 함)

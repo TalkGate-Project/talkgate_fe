@@ -53,6 +53,7 @@ export default function CustomerDetailModalDesktop({
     form,
     setForm,
     hasChanges,
+    validation,
     actions,
   } = useCustomerDetail(customerId, open);
 
@@ -64,6 +65,9 @@ export default function CustomerDetailModalDesktop({
   const handleClose = () => {
     if (!loading) onClose();
   };
+
+  const canSave = hasChanges && validation.isValid;
+  const showValidation = hasChanges;
 
   // 고객 확인 핸들러
   const handleConfirmCustomer = () => {
@@ -264,6 +268,8 @@ export default function CustomerDetailModalDesktop({
                   messengers={messengersLocal}
                   onAddMessenger={actions.addMessenger}
                   onRemoveMessenger={actions.removeMessenger}
+                  validation={validation}
+                  showValidation={showValidation}
                 />
               )}
 
@@ -314,7 +320,7 @@ export default function CustomerDetailModalDesktop({
               초기화
             </button>
             <button
-              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${hasChanges
+              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${canSave
                   ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
                   : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
                 }`}
@@ -332,7 +338,7 @@ export default function CustomerDetailModalDesktop({
                   });
                 });
               }}
-              disabled={!hasChanges}
+              disabled={!canSave}
             >
               적용완료
             </button>
