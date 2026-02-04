@@ -19,6 +19,7 @@ import FilterChips from "@/components/customers/FilterChips";
 import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { MembersTreeService } from "@/services/membersTree";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
@@ -77,6 +78,8 @@ function CustomersPageContentInner() {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
+
+  const { project } = useCurrentProjectDetail();
 
   // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환, 직속 상위 멤버 제외)
   const { data: treeData } = useMembersTreeWithoutParent(projectId);
@@ -259,7 +262,7 @@ function CustomersPageContentInner() {
         className="rounded-[14px] md:rounded-[14px] rounded-t-[14px]"
         action={
           <CustomersActions
-            projectId={projectId}
+            projectId={projectId!}
             appliedFilters={applied}
             selectedIds={selectedIds}
             selectionMode={selectionMode}
@@ -270,6 +273,7 @@ function CustomersPageContentInner() {
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
             onShareSuccess={refetch}
+            isDataProvider={project?.isDataProvider ?? false}
           />
         }
         headerClassName="px-4 md:px-7 py-4 md:py-6"

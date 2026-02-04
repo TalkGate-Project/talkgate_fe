@@ -19,7 +19,7 @@ export type SettingsSidebarItem = {
   label: string;
   icon: React.ComponentType<{ isActive: boolean }>;
   /** 탭 접근 권한 체크 함수 - 반환값이 true면 표시 */
-  canAccess?: (params: { role: MemberRole | undefined; isLoading: boolean }) => boolean;
+  canAccess?: (params: { role: MemberRole | undefined; isLoading: boolean; isDataProvider?: boolean }) => boolean;
   /** 하위 항목들 */
   children?: SettingsSidebarItem[];
   /** 부모 항목인지 (토글만 하고 페이지 이동 안 함) */
@@ -135,9 +135,10 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     label: "파트너등록",
     icon: PartnerRegistrationIcon,
     offsetLeft: -2, // 2px 왼쪽으로 이동
-    // 어드민/서브어드민 접근 가능
-    canAccess: ({ role, isLoading }) => {
+    // 데이터 제공자(isDataProvider === true)일 때만 표시, 어드민/서브어드민 접근 가능
+    canAccess: ({ role, isLoading, isDataProvider }) => {
       if (isLoading) return false;
+      if (isDataProvider !== true) return false;
       return hasAdminAccess(role);
     },
   },

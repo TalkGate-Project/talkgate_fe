@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { ProjectsService } from "@/services/projects";
 import { ApiKeysService } from "@/services/apiKeys";
 import type { ApiKey } from "@/types/apiKeys";
@@ -12,6 +13,8 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function CustomerApiSettings() {
   const [projectId] = useSelectedProjectId();
+  const { project } = useCurrentProjectDetail();
+  const isDataProvider = project?.isDataProvider === true;
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const [apiEndpoint, setApiEndpoint] = useState<string>("");
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -443,26 +446,30 @@ export default function CustomerApiSettings() {
                         }`}
                     />
                     <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                      {/* 히스토리 버튼 */}
-                      <button
-                        onClick={() => handleOpenHistory(apiKey)}
-                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="히스토리"
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
-                      {/* 연동 버튼 */}
-                      <button
-                        onClick={() => handleOpenLinkModal(apiKey)}
-                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="연동"
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M13.8284 10.1716C12.2663 8.60948 9.73367 8.60948 8.17157 10.1716L4.17157 14.1716C2.60948 15.7337 2.60948 18.2663 4.17157 19.8284C5.73367 21.3905 8.26633 21.3905 9.82843 19.8284L10.93 18.7269M10.1716 13.8284C11.7337 15.3905 14.2663 15.3905 15.8284 13.8284L19.8284 9.82843C21.3905 8.26633 21.3905 5.73367 19.8284 4.17157C18.2663 2.60948 15.7337 2.60948 14.1716 4.17157L13.072 5.27118" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
+                      {isDataProvider && (
+                        <>
+                          {/* 히스토리 버튼 - 데이터 제공자일 때만 표시 */}
+                          <button
+                            onClick={() => handleOpenHistory(apiKey)}
+                            className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="히스토리"
+                          >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                          {/* 연동 버튼 - 데이터 제공자일 때만 표시 */}
+                          <button
+                            onClick={() => handleOpenLinkModal(apiKey)}
+                            className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="연동"
+                          >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M13.8284 10.1716C12.2663 8.60948 9.73367 8.60948 8.17157 10.1716L4.17157 14.1716C2.60948 15.7337 2.60948 18.2663 4.17157 19.8284C5.73367 21.3905 8.26633 21.3905 9.82843 19.8284L10.93 18.7269M10.1716 13.8284C11.7337 15.3905 14.2663 15.3905 15.8284 13.8284L19.8284 9.82843C21.3905 8.26633 21.3905 5.73367 19.8284 4.17157C18.2663 2.60948 15.7337 2.60948 14.1716 4.17157L13.072 5.27118" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                       {/* 복사 버튼 */}
                       <button
                         onClick={() => handleCopyKey(apiKey.keyValue, apiKey.id, apiKey.name)}
