@@ -189,10 +189,10 @@ export default function BillingTab() {
         {/* 구분선 */}
         <div className="w-full h-[1px] bg-border opacity-70"></div>
 
-        <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-6">
+        <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-9">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}
           <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
               {/* 프로젝트 관리 */}
               <div className="flex items-center gap-4">
                 <div className="w-[60px] h-[60px] flex items-center justify-center flex-shrink-0">
@@ -300,7 +300,7 @@ export default function BillingTab() {
           </div>
 
           {/* 프로젝트 카드 그리드 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
             {isLoading ? (
               // 로딩 스켈레톤
               Array.from({ length: 3 }).map((_, i) => (
