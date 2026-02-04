@@ -363,7 +363,6 @@ export function useSmsForm() {
           CUSTOMER_NOT_FOUND: "선택한 고객 정보를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.",
         };
         
-        // 수신 거부 관련 에러 감지 (메시지나 코드에서 판단)
         const isOptedOutError =
           errorMessage.toLowerCase().includes("recipient") ||
           errorMessage.toLowerCase().includes("all") ||

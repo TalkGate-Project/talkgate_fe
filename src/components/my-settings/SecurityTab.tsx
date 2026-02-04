@@ -199,9 +199,11 @@ export default function SecurityTab() {
         hideCancel: true,
       });
     } catch (e: any) {
+      const code = e?.data?.code ?? e?.response?.data?.code;
+      const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
       showErrorModal({
-        title: "오류 발생",
-        headline: "비밀번호 변경에 실패했습니다.",
+        title: isSocialUser ? "알림" : "오류 발생",
+        headline: isSocialUser ? "소셜 계정으로 가입된 이메일입니다." : "비밀번호 변경에 실패했습니다.",
         confirmText: "확인",
         cancelText: null,
         hideCancel: true,

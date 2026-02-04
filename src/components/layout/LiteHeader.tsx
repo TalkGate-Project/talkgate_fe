@@ -212,6 +212,7 @@ export default function LiteHeader() {
                   width={32}
                   height={32}
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="w-full h-full bg-[#808080] grid place-items-center">
