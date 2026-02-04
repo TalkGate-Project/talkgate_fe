@@ -2,8 +2,7 @@
 
 import { useMemo, useEffect, useState } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
-import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
-import { ProjectsService } from "@/services/projects";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { SETTINGS_ITEMS, type SettingsTab, type SettingsSidebarItem } from "./constants";
 
 function SidebarSkeleton() {
@@ -27,39 +26,17 @@ interface SettingsSidebarProps {
 export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps) {
   const { member, loading } = useMyMember();
   const currentRole = member?.role;
-  const [projectId] = useSelectedProjectId();
-  const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+  const { project } = useCurrentProjectDetail();
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set()); // 기본적으로 닫힘
   const [mounted, setMounted] = useState(false);
+
+  const projectLogoUrl = project?.logoUrl ?? null;
+  const projectName = project?.name ?? "거래소 텔레마케팅 관리";
 
   // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // 프로젝트 정보 로드
-  useEffect(() => {
-    const fetchProjectInfo = async () => {
-      if (!projectId) return;
-      
-      try {
-        const projectResponse = await ProjectsService.detailById({
-          "x-project-id": projectId,
-        });
-        
-        if (projectResponse.data?.data) {
-          const project = projectResponse.data.data;
-          setProjectLogoUrl(project.logoUrl || null);
-          setProjectName(project.name || "거래소 텔레마케팅 관리");
-        }
-      } catch (error) {
-        console.error("Failed to fetch project info:", error);
-      }
-    };
-    
-    fetchProjectInfo();
-  }, [projectId]);
 
   // 현재 활성 탭이 하위 항목인지 확인하고 부모를 확장
   useEffect(() => {
@@ -81,13 +58,14 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
     }
   }, [activeTab]);
 
-  // 현재 사용자 권한에 따라 접근 가능한 탭만 필터링 (재귀적으로)
+  // 현재 사용자 권한 및 프로젝트(isDataProvider)에 따라 접근 가능한 탭만 필터링 (재귀적으로)
   const visibleItems = useMemo(() => {
+    const isDataProvider = project?.isDataProvider ?? false;
     const filterVisibleItems = (items: SettingsSidebarItem[]): SettingsSidebarItem[] => {
       return items
         .map((item) => {
           // canAccess가 없으면 모든 사용자 접근 가능
-          const canAccess = !item.canAccess || item.canAccess({ role: currentRole, isLoading: loading });
+          const canAccess = !item.canAccess || item.canAccess({ role: currentRole, isLoading: loading, isDataProvider });
           
           if (!canAccess) return null;
 
@@ -105,7 +83,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
     };
 
     return filterVisibleItems(SETTINGS_ITEMS);
-  }, [currentRole, loading]);
+  }, [currentRole, loading, project?.isDataProvider]);
 
   // 부모 항목 토글
   const toggleParent = (label: string) => {

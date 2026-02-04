@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole, MyMember } from "@/types/members";
 import SettingsSidebar from "./SettingsSidebar";
@@ -64,8 +65,12 @@ function getDefaultTab(role: MemberRole | undefined): SettingsTab {
   return isAdmin(role) ? "general" : "profile";
 }
 
-// 해당 탭에 접근 가능한지 확인
-function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): boolean {
+// 해당 탭에 접근 가능한지 확인 (파트너등록은 isDataProvider일 때만)
+function canAccessTab(
+  tab: SettingsTab,
+  member: MyMember | null | undefined,
+  isDataProvider: boolean
+): boolean {
   const role = member?.role;
 
   // 일반 탭은 **총관리자(admin)**만, my API 데이터가 없는 경우에도 차단
@@ -80,9 +85,10 @@ function canAccessTab(tab: SettingsTab, member: MyMember | null | undefined): bo
     return hasAdminAccess(role);
   }
 
-  // 파트너등록 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
+  // 파트너등록 탭은 데이터 제공자(isDataProvider === true)일 때만, 어드민/서브어드민 접근 가능
   if (tab === "partner-registration") {
     if (!member) return false;
+    if (!isDataProvider) return false;
     return hasAdminAccess(role);
   }
 
@@ -96,8 +102,11 @@ export default function SettingsClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { member, loading } = useMyMember();
+  const { project } = useCurrentProjectDetail();
   const currentRole = member?.role;
   const [mounted, setMounted] = useState(false);
+
+  const isDataProvider = project?.isDataProvider ?? false;
   
   // 권한에 따른 기본 탭
   const defaultTab = useMemo(() => getDefaultTab(currentRole), [currentRole]);
@@ -122,21 +131,21 @@ export default function SettingsClient() {
     }
   }, [openInvite, activeTab, loading, mounted, searchParams, router]);
 
-  // 권한 체크 후 잘못된 탭이면 기본 탭으로 리디렉션
+  // 권한 및 isDataProvider 체크 후 잘못된 탭이면 기본 탭으로 리디렉션
   useEffect(() => {
     if (loading) return;
     
     // 유효하지 않은 탭이거나 권한이 없는 탭이면 기본 탭으로 리디렉션
     const shouldRedirect = 
       (tabParam && !isValidTab(tabParam)) || 
-      (isValidTab(tabParam) && !canAccessTab(tabParam, member));
+      (isValidTab(tabParam) && !canAccessTab(tabParam, member, isDataProvider));
     
     if (shouldRedirect) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", defaultTab);
       router.replace(`/settings?${params.toString()}`);
     }
-  }, [tabParam, searchParams, router, member, loading, defaultTab]);
+  }, [tabParam, searchParams, router, member, loading, defaultTab, isDataProvider]);
 
   // 탭 변경 함수
   const handleTabChange = useCallback((tab: SettingsTab) => {
