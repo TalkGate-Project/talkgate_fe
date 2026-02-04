@@ -36,6 +36,18 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
+    // 백엔드가 HTTP 200으로 내려주더라도, 비즈니스 실패(result:false)는 실패로 취급해
+    // 프론트에서 일관되게 에러 플로우(모달/피드백)로 처리할 수 있게 합니다.
+    // 예: { result:false, code:"UNAUTHORIZED", message:"Invalid email or password", traceId }
+    if (data?.result === false) {
+      const code = String(data?.code || "").toUpperCase();
+      const fallbackStatus =
+        code === "UNAUTHORIZED" || code.includes("UNAUTHORIZED") ? 401 : 400;
+      return NextResponse.json(data, {
+        status: response.status >= 400 ? response.status : fallbackStatus,
+      });
+    }
+
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
     }

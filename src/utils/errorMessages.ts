@@ -27,7 +27,6 @@ export function getUserFriendlyErrorMessage(error: unknown): string {
       return message;
     }
 
-    // 기술적인 에러 메시지는 일반적인 메시지로 변환
     if (message.includes("Network") || message.includes("fetch")) {
       return "네트워크 연결을 확인해주세요.";
     }

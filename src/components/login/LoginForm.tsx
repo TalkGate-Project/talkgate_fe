@@ -288,19 +288,34 @@ export function LoginForm() {
                 return;
               }
               
-              if (status === 401 && code === "UNAUTHORIZED") {
+              const isInvalidCredentialMessage =
+                msg.includes("INVALID EMAIL OR PASSWORD") ||
+                (msg.includes("INVALID") && msg.includes("PASSWORD")) ||
+                msg.includes("UNAUTHORIZED");
+
+              const isInvalidCredentials =
+                (status === 401 || status === 400) &&
+                (code === "UNAUTHORIZED" || isInvalidCredentialMessage);
+
+              if (isInvalidCredentials) {
                 setInvalid(true);
-              } else if (status === 401 && (msg.includes("INVALID") || msg.includes("UNAUTHORIZED"))) {
-                setInvalid(true);
-              } else {
                 showErrorModal({
-                  title: "오류 발생",
-                  headline: "로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.",
+                  title: "로그인 실패",
+                  headline: "이메일 또는 비밀번호가 올바르지 않습니다.",
                   confirmText: "확인",
                   cancelText: null,
                   hideCancel: true,
                 });
+                return;
               }
+
+              showErrorModal({
+                title: "오류 발생",
+                headline: "로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
+                confirmText: "확인",
+                cancelText: null,
+                hideCancel: true,
+              });
             })
             .finally(() => {
               setIsSubmitting(false);
