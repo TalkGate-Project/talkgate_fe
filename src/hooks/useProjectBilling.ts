@@ -85,8 +85,10 @@ export function useProjectBilling({
       : "현재 사용 중인 기능은 이번 결제 주기 종료 시까지 그대로 유지되며,\n변경된 상품은 다음 갱신일에 적용됩니다.";
 
     showConfirmModal({
+      type: "warning",
       title: "플랜 변경",
-      message: `[${newPlan.name}]\n구독 상품을 변경할까요?\n\n${changeTypeMessage}`,
+      headline: `[${newPlan.name}] 구독 상품을 변경할까요?`,
+      message: `${changeTypeMessage}`,
       confirmText: "변경하기",
       cancelText: "취소",
       onConfirm: async () => {

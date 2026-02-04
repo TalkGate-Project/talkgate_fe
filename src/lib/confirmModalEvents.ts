@@ -1,6 +1,12 @@
+export type ConfirmModalType = "warning" | "info";
+
 export type ConfirmModalCallbacks = {
   title?: string;
+  /** 제목 아래에 표시할 강조 문구. 없으면 message만 표시(기존 동작) */
+  headline?: string;
   message?: string;
+  /** warning 시 headline을 붉은색으로 표시, info/미지정 시 기본 스타일 */
+  type?: ConfirmModalType;
   confirmText?: string;
   cancelText?: string | null;
   onConfirm?: () => void | Promise<void>;
