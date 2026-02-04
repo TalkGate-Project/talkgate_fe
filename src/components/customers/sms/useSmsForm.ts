@@ -354,7 +354,7 @@ export function useSmsForm() {
         if (status === 500) {
           return {
             success: false,
-            message: "문자 발송 서버에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+            message: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
           };
         }
 
