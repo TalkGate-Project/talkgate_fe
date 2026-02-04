@@ -271,9 +271,18 @@ export default function CustomerApiSettings() {
     <>
       {/* Box 1: API 정보 */}
       <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
-        <h1 className="text-[20px] md:text-[24px] font-bold text-foreground px-4 md:px-7 leading-[1] h-[64px] md:h-[76px] flex items-center">
-          고객등록 API
-        </h1>
+        <div className="flex items-center justify-between px-4 md:px-7">
+          <h1 className="text-[20px] md:text-[24px] font-bold text-foreground px-4 md:px-7 leading-[1] h-[64px] md:h-[76px] flex items-center">
+            고객등록 API
+          </h1>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={loading}
+            className="block md:hidden cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 text-[13px] md:text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 whitespace-nowrap"
+          >
+            API 키 생성
+          </button>
+        </div>
 
         {/* divider */}
         <div className="w-full h-[1px] bg-neutral-30 opacity-70"></div>
@@ -283,7 +292,7 @@ export default function CustomerApiSettings() {
           <header className="space-y-3 md:space-y-4 mb-4 md:mb-5">
             <div className="space-y-1">
               <p className="text-[14px] md:text-[16px] font-semibold text-foreground leading-[1]">API 정보</p>
-              <p className="text-[13px] md:text-[14px] text-neutral-60">
+              <p className="hidden md:block text-[13px] md:text-[14px] text-neutral-60">
                 외부 시스템에서 고객 정보를 등록할 수 있는 API 엔드포인트와 인증 키를 관리합니다.
               </p>
             </div>
@@ -306,7 +315,20 @@ export default function CustomerApiSettings() {
                 disabled={loading || !apiEndpoint}
                 className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               >
-                {copyState === "copied" ? "복사됨" : "복사"}
+                <div className="md:hidden">
+                  {copyState === "copied" ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17L4 12" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className="hidden md:inline">
+                  {copyState === "copied" ? "복사됨" : "복사"}
+                </span>
               </button>
             </div>
           </div>
@@ -321,14 +343,14 @@ export default function CustomerApiSettings() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-[14px] md:text-[16px] font-semibold text-foreground leading-[1]">API 키</p>
-                <p className="text-[13px] md:text-[14px] text-neutral-60">
+                <p className="hidden md:block text-[13px] md:text-[14px] text-neutral-60">
                   API 호출 시 신원 확인 및 보안 인증에 필요한 전용 API 키를 생성하고 관리합니다.
                 </p>
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 disabled={loading}
-                className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 text-[13px] md:text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 whitespace-nowrap"
+                className="hidden md:block cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 text-[13px] md:text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 whitespace-nowrap"
               >
                 API 키 생성
               </button>
