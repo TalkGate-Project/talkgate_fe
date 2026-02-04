@@ -72,13 +72,13 @@ export default function ForgotPasswordContent() {
             } catch (error: any) {
               // 개발자용 로깅 (콘솔에만)
               console.error("Password reset email request failed:", error);
-              
-              // 사용자에게는 일반적인 친화적 메시지만 표시
+              const code = error?.data?.code ?? error?.response?.data?.code;
+              const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
               showErrorModal({
                 type: "error",
-                title: "이메일 전송 실패",
-                headline: "이메일 전송에 실패했습니다",
-                description: "잠시 후 다시 시도해주세요.",
+                title: isSocialUser ? "알림" : "이메일 전송 실패",
+                headline: isSocialUser ? "소셜 계정으로 가입된 이메일입니다." : "이메일 전송에 실패했습니다",
+                description: isSocialUser ? undefined : "잠시 후 다시 시도해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);
@@ -134,13 +134,13 @@ export default function ForgotPasswordContent() {
             } catch (error: any) {
               // 개발자용 로깅 (콘솔에만)
               console.error("Identity verification failed:", error);
-              
-              // 사용자에게는 일반적인 친화적 메시지만 표시
+              const code = error?.data?.code ?? error?.response?.data?.code;
+              const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
               showErrorModal({
                 type: "error",
-                title: "인증 실패",
-                headline: "인증에 실패했습니다",
-                description: "인증번호를 다시 확인해주세요.",
+                title: isSocialUser ? "알림" : "인증 실패",
+                headline: isSocialUser ? "소셜 계정으로 가입된 이메일입니다." : "인증에 실패했습니다",
+                description: isSocialUser ? undefined : "인증번호를 다시 확인해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);
@@ -215,13 +215,13 @@ export default function ForgotPasswordContent() {
             } catch (error: any) {
               // 개발자용 로깅 (콘솔에만)
               console.error("Password reset failed:", error);
-              
-              // 사용자에게는 일반적인 친화적 메시지만 표시
+              const code = error?.data?.code ?? error?.response?.data?.code;
+              const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
               showErrorModal({
                 type: "error",
-                title: "비밀번호 변경 실패",
-                headline: "비밀번호 변경에 실패했습니다",
-                description: "잠시 후 다시 시도해주세요.",
+                title: isSocialUser ? "알림" : "비밀번호 변경 실패",
+                headline: isSocialUser ? "소셜 계정으로 가입된 이메일입니다." : "비밀번호 변경에 실패했습니다",
+                description: isSocialUser ? undefined : "잠시 후 다시 시도해주세요.",
                 hideCancel: true,
               });
               setInvalid(true);

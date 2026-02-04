@@ -259,7 +259,7 @@ export default function PartnerRegistrationSettings() {
           onClick={handleRegisterCompany}
           className="cursor-pointer h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] md:text-[14px] font-semibold text-neutral-0 hover:opacity-90 flex-shrink-0 whitespace-nowrap"
         >
-          업체등록
+          등록하기
         </button>
       </div>
 

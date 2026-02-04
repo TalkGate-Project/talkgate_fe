@@ -290,7 +290,7 @@ export default function ProfileSettings() {
             {/* Avatar */}
             <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center ${avatarBgClass} flex-shrink-0`}>
               {node.profileImageUrl ? (
-                <img src={node.profileImageUrl} alt={node.name} className="w-full h-full rounded-full object-cover" />
+                <img src={node.profileImageUrl} alt={node.name} className="w-full h-full rounded-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <span className={`text-[14px] font-semibold ${avatarTextClass}`}>
                   {node.name.charAt(0)}
@@ -485,7 +485,7 @@ export default function ProfileSettings() {
               className={`block w-[80px] h-[80px] rounded-full overflow-hidden ${isEditMode ? "cursor-pointer" : "cursor-default"} ${isSaving ? "opacity-50" : ""}`}
             >
               {profileImageUrl ? (
-                <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" />
+                <img src={profileImageUrl} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-full h-full bg-neutral-60 dark:bg-neutral-60 flex items-center justify-center">
                   <span className="text-[28px] font-semibold text-white leading-[33px] tracking-[-0.02em]">

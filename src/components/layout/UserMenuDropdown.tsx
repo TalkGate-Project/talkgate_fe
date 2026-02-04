@@ -62,6 +62,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
                 width={48}
                 height={48}
                 className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
               />
             </div>
           ) : (
