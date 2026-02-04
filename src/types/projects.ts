@@ -19,6 +19,8 @@ export type Project = {
   subDomain: string;
   logoUrl?: string | null;
   useAttendanceMenu: boolean;
+  /** 데이터 제공자 여부. true면 데이터 제공자, false면 일반 프로젝트 */
+  isDataProvider: boolean;
   createdAt: string;
   updatedAt: string;
 };

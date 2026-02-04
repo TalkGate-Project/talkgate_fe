@@ -329,103 +329,36 @@ export function useSmsForm() {
         }
       } catch (error: any) {
         console.error("SMS 발송 실패:", error);
-        
+
         const errorCode = error?.data?.code || "";
-        const errorMessage = error?.data?.message || error?.message || "";
         const status = error?.status;
-        
-        // 광고성 문자 시간 제한 에러 처리
+
+        // code 기반 분기: 광고성 문자 시간 제한
         if (errorCode === "ADVERTISEMENT_SMS_TIME_RESTRICTED") {
-          const message = sendMethod === "immediate"
-            ? "현재 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)"
-            : "해당 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)";
-          return {
-            success: false,
-            message,
-          };
+          const message =
+            sendMethod === "immediate"
+              ? "현재 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)"
+              : "해당 시간은 광고성 문자 발송 제한 시간입니다.\n야간 시간 발송 제한 (21:00 ~ 08:00)";
+          return { success: false, message };
         }
-        
-        // 에러 코드별 사용자 친화적 메시지 매핑
-        const errorMessages: Record<string, string> = {
-          // 400 에러
-          MISSING_PROJECT_ID: "프로젝트 정보를 확인할 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-          NOT_PROJECT_MEMBER: "프로젝트 멤버만 문자를 발송할 수 있습니다.",
-          CUSTOMER_COUNT_MISMATCH: "고객 정보가 맞지 않습니다다. 페이지를 새로고침 후 다시 시도해주세요.",
-          BAD_REQUEST: "요청 정보가 올바르지 않습니다. 입력 내용을 확인해주세요.",
-          
-          // 401 에러
-          MISSING_AUTHENTICATION_TOKEN: "로그인이 필요합니다. 다시 로그인해주세요.",
-          UNAUTHORIZED: "인증이 만료되었습니다. 다시 로그인해주세요.",
-          INVALID_ACCESS_TOKEN: "인증 정보가 유효하지 않습니다. 다시 로그인해주세요.",
-          
-          // 404 에러
-          PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-          CUSTOMER_NOT_FOUND: "선택한 고객 정보를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-        };
-        
-        const isOptedOutError =
-          errorMessage.toLowerCase().includes("recipient") ||
-          errorMessage.toLowerCase().includes("all") ||
-          errorCode.toLowerCase().includes("opted_out") ||
-          errorCode.toLowerCase().includes("rejected");
-        
-        if (isOptedOutError) {
-          // 수신 거부된 사용자 수 추출 시도
-          const recipientMatch = errorMessage.match(/(\d+)\s*recipient/i);
-          const recipientCount = recipientMatch ? recipientMatch[1] : "";
-          
-          if (recipientCount) {
-            return {
-              success: false,
-              message: `선택한 고객 ${recipientCount}명이 수신을 거부하여 문자를 발송할 수 없습니다.`,
-            };
-          } else {
-            return {
-              success: false,
-              message: "선택한 고객이 수신을 거부하여 문자를 발송할 수 없습니다.",
-            };
-          }
-        }
-        
-        // 에러 코드에 해당하는 메시지가 있으면 사용
-        if (errorCode && errorMessages[errorCode]) {
-          return {
-            success: false,
-            message: errorMessages[errorCode],
-          };
-        }
-        
-        // 상태 코드 기반 기본 메시지
-        if (status === 400) {
-          return {
-            success: false,
-            message: "요청 정보가 올바르지 않습니다. 입력 내용을 확인해주세요.",
-          };
-        }
-        
-        // 403 + SMS_USAGE_LIMIT_EXCEEDED: 사용량 한도 초과
-        if (status === 403 && errorCode === "SMS_USAGE_LIMIT_EXCEEDED") {
+
+        // code 기반 분기: 사용량 한도 초과
+        if (errorCode === "SMS_USAGE_LIMIT_EXCEEDED") {
           return {
             success: false,
             message: "현재 요금제의 사용량 한도에 도달했습니다.",
           };
         }
-        
-        if (status === 401 || status === 403) {
+
+        // 500: 문자 에이전트 통신 오류 등
+        if (status === 500) {
           return {
             success: false,
-            message: "인증이 필요합니다. 다시 로그인해주세요.",
+            message: "문자 발송 서버에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
           };
         }
-        
-        if (status === 404) {
-          return {
-            success: false,
-            message: "요청한 정보를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-          };
-        }
-        
-        // 기타 에러는 일반적인 메시지 사용
+
+        // 그 외 모든 경우 기본 폴백
         return {
           success: false,
           message: "문자 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
