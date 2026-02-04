@@ -145,7 +145,7 @@ export default function PartnerRegisterModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
           <h2 className="text-[18px] font-semibold leading-[21px] text-black dark:text-white">
-            업체등록
+            파트너 등록
           </h2>
           <button
             type="button"
@@ -160,9 +160,9 @@ export default function PartnerRegisterModal({
           </button>
         </div>
 
-        <p className="text-[18px] font-semibold leading-[21px] text-black dark:text-white text-center px-6 pb-4">
+        {/* <p className="text-[18px] font-semibold leading-[21px] text-black dark:text-white text-center px-6 pb-4">
           업체 정보를 등록해주세요.
-        </p>
+        </p> */}
 
         {/* 연한 회색 박스: 인풋 영역 */}
         <div className="mx-6 mb-4 flex flex-col p-3 px-6 rounded-[5px] bg-[#F8F8F8] dark:bg-neutral-20">

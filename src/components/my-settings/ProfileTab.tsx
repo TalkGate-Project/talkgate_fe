@@ -305,6 +305,7 @@ export default function ProfileTab() {
               width={100}
               height={100}
               className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="w-full h-full bg-[#7C7C7C] flex items-center justify-center text-white text-[28px] md:text-[36px] font-medium">
