@@ -317,7 +317,7 @@ export default function SubscribeProjectModal({
               onChange={(e) => setCouponCode(e.target.value)}
               placeholder="쿠폰 코드를 입력하세요"
               disabled={couponApplying}
-              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-60 bg-white dark:bg-neutral-10 px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none focus:border-[#00E272] disabled:opacity-50"
+              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"
             />
             <button
               type="button"
@@ -333,7 +333,7 @@ export default function SubscribeProjectModal({
           <button
             onClick={handleSubscribe}
             disabled={submitting}
-            className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-neutral-90 dark:bg-neutral-0 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-90 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-neutral-90 dark:bg-neutral-90 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-10 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>구독하기</span>
             <svg

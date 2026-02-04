@@ -78,7 +78,7 @@ export default function ProjectBillingDetail({
   const billingCycle = subscription?.billingCycle ?? "monthly";
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 md:space-y-9">
       <ProjectBillingHeader
         projectName={projectName}
         subscription={subscription}

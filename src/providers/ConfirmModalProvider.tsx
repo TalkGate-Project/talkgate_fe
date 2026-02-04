@@ -11,12 +11,15 @@ import {
 import {
   subscribeConfirmModal,
   type ConfirmModalCallbacks,
+  type ConfirmModalType,
 } from "@/lib/confirmModalEvents";
 
 type ConfirmModalState = {
   open: boolean;
   title: string;
+  headline: string | undefined;
   message: string;
+  type: ConfirmModalType | undefined;
   confirmText: string;
   cancelText: string | null;
   onConfirm?: () => void | Promise<void>;
@@ -42,7 +45,9 @@ const ConfirmModalContext = createContext<ConfirmModalContextValue | undefined>(
 const createInitialState = (): ConfirmModalState => ({
   open: false,
   title: defaultTexts.title,
+  headline: undefined,
   message: defaultTexts.message,
+  type: undefined,
   confirmText: defaultTexts.confirmText,
   cancelText: defaultTexts.cancelText,
   onConfirm: undefined,
@@ -81,7 +86,9 @@ export default function ConfirmModalProvider({
       open: true,
       ...options,
       title: options?.title ?? defaultTexts.title,
+      headline: options?.headline,
       message: options?.message ?? defaultTexts.message,
+      type: options?.type,
       confirmText: options?.confirmText ?? defaultTexts.confirmText,
       cancelText:
         options?.cancelText === undefined
@@ -195,9 +202,30 @@ export default function ConfirmModalProvider({
                   </svg>
                 </div>
               </div>
-              <p className="mt-6 whitespace-pre-line text-center text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
-                {state.message}
-              </p>
+              <div className="mt-4 space-y-3 text-center">
+                {state.headline ? (
+                  <>
+                    <p
+                      className={
+                        state.type === "warning"
+                          ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-[#D83232] dark:text-red-400"
+                          : "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-neutral-90 dark:text-neutral-80"
+                      }
+                    >
+                      {state.headline}
+                    </p>
+                    {state.message ? (
+                      <p className="whitespace-pre-line text-[14px] font-medium leading-[17px] text-neutral-70 dark:text-neutral-50">
+                        {state.message}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="whitespace-pre-line text-[14px] font-medium leading-[17px] text-neutral-90 dark:text-neutral-80">
+                    {state.message}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
             <div className="flex justify-end gap-3 px-8 py-4">
