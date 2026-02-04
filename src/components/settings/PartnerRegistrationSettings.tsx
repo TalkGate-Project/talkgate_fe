@@ -221,8 +221,11 @@ export default function PartnerRegistrationSettings() {
             headline: "삭제되었습니다.",
             hideCancel: true,
             confirmText: "확인",
+            onConfirm: () => {
+              // 성공 모달 닫힐 때 목록 갱신
+              fetchPartners();
+            }
           });
-          await fetchPartners();
         } catch {
           showErrorModal({
             type: "error",
@@ -269,17 +272,29 @@ export default function PartnerRegistrationSettings() {
 
       <div className="w-full h-[1px] bg-neutral-30 opacity-70" />
 
-      {/* 테이블 헤더 */}
-      <div className="flex mx-4 md:mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] mt-4 h-[40px] items-center px-4 md:px-10 gap-3">
-        <div className="flex-1 min-w-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
+      {/* 데스크탑 헤더 (md 이상에서만 보임) */}
+      <div className="hidden md:flex mx-4 md:mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] mt-4 h-[40px] items-center pl-4 md:pl-10 pr-4 gap-3">
+        <div className="w-[160px] md:w-[240px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
           프로젝트명
+        </div>
+        <div className="flex-1 min-w-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
+          설명
         </div>
         <div className="w-[80px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] text-center">
           상태
         </div>
-        <div className="w-[80px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] text-center">
-          {/* Actions */}
+        <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]" />
+      </div>
+
+      {/* 모바일 헤더 (md 미만에서만 보임, 간소화) */}
+      <div className="flex md:hidden mx-4 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] mt-4 h-[40px] items-center px-4 gap-3">
+        <div className="flex-1 min-w-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px]">
+          프로젝트 정보
         </div>
+        <div className="w-[80px] flex-shrink-0 text-[16px] font-medium text-neutral-60 dark:text-neutral-60 leading-[19px] text-center">
+          상태
+        </div>
+        <div className="w-[80px] flex-shrink-0" />
       </div>
 
       {/* 목록 */}
@@ -295,74 +310,140 @@ export default function PartnerRegistrationSettings() {
         ) : (
           <div className="flex flex-col">
             {partners.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center px-4 md:px-10 py-4 gap-3 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors"
-              >
-                {/* 이름 + 설명 */}
-                <div className="flex-1 min-w-0 flex flex-col gap-1">
-                  <div className="text-[16px] font-bold text-foreground truncate">
+              <div key={item.id}>
+                {/* 모바일 뷰 (md 미만): 이름 밑에 설명 */}
+                <div className="flex md:hidden items-center px-4 py-4 gap-3 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors">
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <div className="text-[16px] font-bold text-foreground truncate">
+                      {item.partnerProjectName}
+                    </div>
+                    {editingPartnerId === item.id ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="text"
+                          value={editingDescription}
+                          onChange={(e) => setEditingDescription(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveDescription();
+                            if (e.key === "Escape") handleCancelEditDescription();
+                          }}
+                          className="flex-1 min-w-0 max-w-[300px] h-[30px] text-[13px] text-foreground bg-white dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-60 rounded-[4px] px-2 outline-none focus:border-primary-50"
+                          placeholder="설명 입력"
+                          autoFocus
+                          disabled={savingPartnerId === item.id}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveDescription}
+                          disabled={savingPartnerId === item.id}
+                          className="h-[30px] px-3 rounded-[4px] bg-neutral-90 text-white text-[12px] font-medium whitespace-nowrap"
+                        >
+                          저장
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEditDescription}
+                          disabled={savingPartnerId === item.id}
+                          className="h-[30px] px-3 rounded-[4px] bg-neutral-20 text-neutral-80 text-[12px] font-medium whitespace-nowrap"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-[13px] truncate min-h-[19px]">
+                        {item.description || "설명이 없습니다."}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="w-[80px] flex-shrink-0 flex justify-center">
+                    <PartnerStatusBadge status={item.status} />
+                  </div>
+
+                  <div className="w-[80px] flex-shrink-0 flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEditDescription(item)}
+                      className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors text-neutral-50"
+                      aria-label="설명 수정"
+                      disabled={editingPartnerId === item.id}
+                    >
+                      <EditIcon />
+                    </button>
+                    <DeleteButton
+                      onClick={() => handleDelete(item)}
+                      disabled={deletingId === item.id || editingPartnerId === item.id}
+                    />
+                  </div>
+                </div>
+
+                {/* 데스크탑 뷰 (md 이상): 테이블 형태 */}
+                <div className="hidden md:flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors">
+                  <div className="w-[160px] md:w-[240px] flex-shrink-0 text-[14px] font-medium text-foreground truncate">
                     {item.partnerProjectName}
                   </div>
-                  {editingPartnerId === item.id ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <input
-                        type="text"
-                        value={editingDescription}
-                        onChange={(e) => setEditingDescription(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSaveDescription();
-                          if (e.key === "Escape") handleCancelEditDescription();
-                        }}
-                        className="flex-1 min-w-0 max-w-[300px] h-[30px] text-[13px] text-foreground bg-white dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-60 rounded-[4px] px-2 outline-none focus:border-primary-50"
-                        placeholder="설명 입력"
-                        autoFocus
-                        disabled={savingPartnerId === item.id}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSaveDescription}
-                        disabled={savingPartnerId === item.id}
-                        className="h-[30px] px-3 rounded-[4px] bg-neutral-90 text-white text-[12px] font-medium whitespace-nowrap"
-                      >
-                        저장
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEditDescription}
-                        disabled={savingPartnerId === item.id}
-                        className="h-[30px] px-3 rounded-[4px] bg-neutral-20 text-neutral-80 text-[12px] font-medium whitespace-nowrap"
-                      >
-                        취소
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-[13px] text-neutral-60 truncate min-h-[19px]">
-                      {item.description || "설명이 없습니다."}
-                    </div>
-                  )}
-                </div>
-
-                {/* 상태 */}
-                <div className="w-[80px] flex-shrink-0 flex justify-center">
-                  <PartnerStatusBadge status={item.status} />
-                </div>
-
-                {/* 액션 */}
-                <div className="w-[80px] flex-shrink-0 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleStartEditDescription(item)}
-                    className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors text-neutral-50"
-                    aria-label="설명 수정"
-                    disabled={editingPartnerId === item.id}
-                  >
-                    <EditIcon />
-                  </button>
-                  <DeleteButton
-                    onClick={() => handleDelete(item)}
-                    disabled={deletingId === item.id || editingPartnerId === item.id}
-                  />
+                  <div className="flex-1 min-w-0 flex items-center gap-2 md:gap-3">
+                    {editingPartnerId === item.id ? (
+                      <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full">
+                        <input
+                          type="text"
+                          value={editingDescription}
+                          onChange={(e) => setEditingDescription(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveDescription();
+                            if (e.key === "Escape") handleCancelEditDescription();
+                          }}
+                          className="flex-1 min-w-0 max-w-[280px] h-[34px] text-[14px] font-medium text-foreground bg-neutral-10 dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-60 rounded-[5px] px-3 outline-none focus:border-primary-50 disabled:opacity-50"
+                          placeholder="설명"
+                          autoFocus
+                          disabled={savingPartnerId === item.id}
+                        />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={handleCancelEditDescription}
+                            disabled={savingPartnerId === item.id}
+                            className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 transition-colors disabled:opacity-50"
+                          >
+                            취소
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleSaveDescription}
+                            disabled={savingPartnerId === item.id}
+                            className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50"
+                          >
+                            저장
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-[14px] text-neutral-70 truncate block min-w-0">
+                        {item.description || "—"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="w-[80px] flex-shrink-0 flex items-center justify-center">
+                    <PartnerStatusBadge status={item.status} />
+                  </div>
+                  <div className="w-[88px] md:w-[100px] lg:w-[116px] xl:w-[132px] flex-shrink-0 flex items-center justify-end gap-2 md:gap-12">
+                    {editingPartnerId !== item.id && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditDescription(item)}
+                          className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors"
+                          aria-label="설명 수정"
+                        >
+                          <EditIcon />
+                        </button>
+                        <DeleteButton
+                          onClick={() => handleDelete(item)}
+                          disabled={deletingId === item.id}
+                        />
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
