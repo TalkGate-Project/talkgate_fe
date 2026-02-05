@@ -287,6 +287,19 @@ export function LoginForm() {
                 router.push(signupUrl);
                 return;
               }
+
+              // 소셜 계정으로 가입된 이메일인 경우 (비밀번호 미설정)
+              const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
+              if (isSocialUser) {
+                showErrorModal({
+                  title: "알림",
+                  headline: "소셜 계정으로 가입된 이메일입니다.",
+                  confirmText: "확인",
+                  cancelText: null,
+                  hideCancel: true,
+                });
+                return;
+              }
               
               const isInvalidCredentialMessage =
                 msg.includes("INVALID EMAIL OR PASSWORD") ||
