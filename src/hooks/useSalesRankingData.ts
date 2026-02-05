@@ -58,7 +58,7 @@ export function useSalesRankingData({
     return list.map((item) => ({
       rank: item.rank,
       name: item.memberName,
-      amountLabel: `₩ ${formatCurrencyKR(item.totalAmount)}`,
+      amountLabel: formatCurrencyKR(item.totalAmount),
       changeLabel: formatAmountChangeKR(item.totalAmount, item.previousTotalAmount),
       changePositive: item.previousTotalAmount !== null && item.previousTotalAmount !== undefined
         ? item.totalAmount >= item.previousTotalAmount
