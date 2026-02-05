@@ -80,7 +80,7 @@ export default function ChangePasswordModal({
       return;
     }
     onConfirm(currentPassword, newPassword);
-    handleClose();
+    // handleClose();
   };
 
   if (!isOpen) return null;
