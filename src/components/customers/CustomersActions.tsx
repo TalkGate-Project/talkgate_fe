@@ -231,6 +231,7 @@ export default function CustomersActions({
             type="button"
             onClick={() => {
               showConfirmModal({
+                type: "info",
                 title: "",
                 headline: "현재 고객목록을 엑셀로 변환할까요?",
                 message: "다운로드는 한 번에 최대 5,000건까지만 가능해요.",
