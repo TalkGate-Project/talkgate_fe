@@ -200,6 +200,26 @@ export default function SecurityTab() {
       });
     } catch (e: any) {
       const code = e?.data?.code ?? e?.response?.data?.code;
+      if (code === "PASSWORD_MISMATCH") {
+        showErrorModal({
+          title: "알림",
+          headline: "현재 비밀번호가 일치하지 않습니다.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+        return;
+      }
+      if (code === "NEW_PASSWORD_CANNOT_BE_SAME") {
+        showErrorModal({
+          title: "알림",
+          headline: "새 비밀번호는 현재 비밀번호와 같을 수 없습니다.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+        return;
+      }
       const isSocialUser = code === "SOCIAL_USER_CANNOT_USE_PASSWORD";
       showErrorModal({
         title: isSocialUser ? "알림" : "오류 발생",
