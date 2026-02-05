@@ -17,6 +17,7 @@ export default function DataTab({ form, setForm }: Props) {
             setForm((prev) => ({ ...prev, applicationRoute: e.target.value }))
           }
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          placeholder="신청경로를 입력하세요."
         />
       </label>
       <label className="block">
@@ -25,6 +26,7 @@ export default function DataTab({ form, setForm }: Props) {
           value={form.site}
           onChange={(e) => setForm((prev) => ({ ...prev, site: e.target.value }))}
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          placeholder="사이트를 입력하세요."
         />
       </label>
 
@@ -36,6 +38,7 @@ export default function DataTab({ form, setForm }: Props) {
             setForm((prev) => ({ ...prev, mediaCompany: e.target.value }))
           }
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          placeholder="매체사를 입력하세요."
         />
       </label>
       <label className="block">
@@ -47,7 +50,6 @@ export default function DataTab({ form, setForm }: Props) {
           }
           disabled
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
-          placeholder="YYYY-MM-DD HH:mm"
         />
       </label>
 
@@ -60,7 +62,6 @@ export default function DataTab({ form, setForm }: Props) {
           }
           disabled
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
-          placeholder="담당자명"
         />
       </label>
       <label className="block">
@@ -72,7 +73,6 @@ export default function DataTab({ form, setForm }: Props) {
           }
           disabled
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
-          placeholder="예: 영업1팀"
         />
       </label>
     </div>

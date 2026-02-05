@@ -216,7 +216,7 @@ export default function ConsultationPanel({
                 handleAddNote();
               }
             }}
-            placeholder="상담 내용을 입력하세요"
+            placeholder="상담 내용을 입력하세요."
             className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
           />
           <button

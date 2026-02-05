@@ -43,7 +43,7 @@ function BirthInput({
       onChange={handleChange}
       maxLength={10}
       className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-      placeholder="YYYY-MM-DD"
+      placeholder="생년월일 8자리를 입력하세요."
     />
   );
 }
@@ -107,7 +107,7 @@ export default function BasicTab({
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-            placeholder="고객 이름을 입력하세요"
+            placeholder="이름을 입력하세요."
           />
           {showValidation && validation.nameError && (
             <p className="mt-1 text-[12px] text-danger-40">{validation.nameError}</p>
@@ -148,7 +148,7 @@ export default function BasicTab({
               }
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="'-'를 제외한 숫자만 입력해 주세요."
+              placeholder="연락처를 입력하세요."
             />
             {showValidation && validation.contact1Error && (
               <p className="mt-1 text-[12px] text-danger-40">{validation.contact1Error}</p>
@@ -189,7 +189,7 @@ export default function BasicTab({
               }
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-              placeholder="'-'를 제외한 숫자만 입력해 주세요."
+              placeholder="연락처를 입력하세요."
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ export default function BasicTab({
             value={form.job}
             onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-            placeholder="직업"
+            placeholder="직업을 입력하세요."
           />
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function BasicTab({
       {/* Age Range */}
       <div>
         <div className="mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">연령</span>
+          <span className="text-[14px] text-[#6B7280] font-medium">연령대</span>
         </div>
         <div>
           <input
@@ -237,7 +237,7 @@ export default function BasicTab({
               setForm((prev) => ({ ...prev, ageRange: e.target.value }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-            placeholder="연령"
+            placeholder="연령대를 입력하세요."
           />
         </div>
       </div>
@@ -263,7 +263,7 @@ export default function BasicTab({
             <input
               value={newMessengerAccount}
               onChange={(e) => setNewMessengerAccount(e.target.value)}
-              placeholder="계정 ID를 입력하세요"
+              placeholder="계정 ID를 입력하세요."
               className="flex-1 min-w-0 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             />
             <button
