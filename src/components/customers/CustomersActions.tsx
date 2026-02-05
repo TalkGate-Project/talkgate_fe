@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import CustomerShareModal from "@/components/customers/CustomerShareModal";
 import CustomerExcelUploadModal from "@/components/customers/CustomerExcelUploadModal";
 
@@ -228,7 +229,16 @@ export default function CustomersActions({
           </button>
           <button
             type="button"
-            onClick={handleExcelDownload}
+            onClick={() => {
+              showConfirmModal({
+                title: "",
+                headline: "현재 고객목록을 엑셀로 변환할까요?",
+                message: "다운로드는 한 번에 최대 5,000건까지만 가능해요.",
+                confirmText: "확인",
+                cancelText: "취소",
+                onConfirm: handleExcelDownload,
+              });
+            }}
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 다운로드"
           >
