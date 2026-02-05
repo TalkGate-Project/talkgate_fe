@@ -85,7 +85,7 @@ export default function ConfirmModalProvider({
       ...createInitialState(),
       open: true,
       ...options,
-      title: options?.title ?? defaultTexts.title,
+      title: options?.title !== undefined ? options.title : defaultTexts.title,
       headline: options?.headline,
       message: options?.message ?? defaultTexts.message,
       type: options?.type,
@@ -156,10 +156,16 @@ export default function ConfirmModalProvider({
           />
           <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
             <div className="px-8 pt-7 pb-6">
-              <div className="flex items-start justify-between">
-                <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
-                  {state.title}
-                </h2>
+              <div
+                className={`flex items-start ${
+                  state.title ? "justify-between" : "justify-end"
+                }`}
+              >
+                {state.title ? (
+                  <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
+                    {state.title}
+                  </h2>
+                ) : null}
                 <button
                   type="button"
                   className="cursor-pointer h-8 w-8"
@@ -185,21 +191,47 @@ export default function ConfirmModalProvider({
               </div>
               <div className="mt-6 flex justify-center">
                 <div className="flex items-center justify-center rounded-full">
-                  <svg
-                    width="40"
-                    height="40"
-                    viewBox="0 0 40 40"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
-                      stroke="#D83232"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  {state.type === "info" ? (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-secondary-80 dark:text-secondary-20"
+                    >
+                      <circle
+                        cx="20"
+                        cy="20"
+                        r="18"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M20 12V20M20 28H20.01"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19.9986 15V18.3333M19.9986 25H20.0153M8.45159 31.6667H31.5456C34.1116 31.6667 35.7153 28.8889 34.4323 26.6667L22.8853 6.66667C21.6023 4.44444 18.3948 4.44444 17.1118 6.66667L5.56484 26.6667C4.28184 28.8889 5.88559 31.6667 8.45159 31.6667Z"
+                        stroke="#D83232"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
                 </div>
               </div>
               <div className="mt-4 space-y-3 text-center">
@@ -209,6 +241,8 @@ export default function ConfirmModalProvider({
                       className={
                         state.type === "warning"
                           ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-[#D83232] dark:text-red-400"
+                          : state.type === "info"
+                          ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-secondary-80 dark:text-secondary-20"
                           : "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-neutral-90 dark:text-neutral-80"
                       }
                     >
@@ -240,7 +274,11 @@ export default function ConfirmModalProvider({
               ) : null}
               <button
                 type="button"
-                className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-90 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-40 dark:text-neutral-20 disabled:opacity-60"
+                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
+                  state.type === "info"
+                    ? "bg-secondary-80 dark:bg-secondary-20 text-white"
+                    : "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
+                }`}
                 onClick={handleConfirm}
                 disabled={confirming}
               >
