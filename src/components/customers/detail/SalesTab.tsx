@@ -156,7 +156,7 @@ export default function SalesTab({
               setForm((prev) => ({ ...prev, summary: e.target.value }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="요약정보를 입력하세요"
+            placeholder="요약정보를 입력하세요."
           />
         </label>
         <label className="block">
@@ -172,7 +172,7 @@ export default function SalesTab({
               }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="자산 현황"
+            placeholder="자산현황을 입력하세요."
           />
         </label>
         <label className="block">
@@ -210,7 +210,7 @@ export default function SalesTab({
               }))
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="거절 사유를 입력하세요"
+            placeholder="거절사유를 입력하세요."
           />
         </label>
       </div>
@@ -226,7 +226,7 @@ export default function SalesTab({
           }
           rows={3}
           className="w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-          placeholder="특이사항을 입력하세요"
+          placeholder="특이사항을 입력하세요."
         />
       </div>
 
@@ -272,7 +272,7 @@ export default function SalesTab({
               onChange={(e) =>
                 setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
               }
-              placeholder="금액"
+              placeholder="금액을 입력하세요."
               className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
           </div>
@@ -291,7 +291,7 @@ export default function SalesTab({
             <input
               value={paymentDesc}
               onChange={(e) => setPaymentDesc(e.target.value)}
-              placeholder="설명을 추가하세요"
+              placeholder="설명을 입력하세요."
               className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
             <button
@@ -433,7 +433,7 @@ export default function SalesTab({
             <input
               value={scheduleDesc}
               onChange={(e) => setScheduleDesc(e.target.value)}
-              placeholder="일정내용을 추가하세요"
+              placeholder="일정내용을 입력하세요."
               className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
             <button
