@@ -64,7 +64,7 @@ function NoticesPageContentInner() {
   if (!projectId) return null;
 
   return (
-    <main className="h-[calc(100vh-54px)] md:min-h-[calc(100vh-54px)] bg-neutral-10 flex flex-col">
+    <main className="min-h-[calc(100vh-54px)] bg-neutral-10 flex flex-col">
       <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12 flex flex-col flex-1 md:block min-h-0">
         {/* 검색 및 글쓰기 패널 */}
         <div className="flex-shrink-0">
