@@ -141,13 +141,6 @@ export default function ConsultationChannelSettings() {
   // Instagram OAuth 콜백에서 postMessage 받기
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      console.log("[Instagram] postMessage 수신:", {
-        type: event.data?.type,
-        origin: event.origin,
-        currentOrigin: window.location.origin,
-        data: event.data,
-      });
-
       // 보안: origin 검증
       // 콜백 페이지는 서브도메인 없는 URL (예: app-dev.talkgate.im)
       // 부모 창은 서브도메인 있는 URL일 수 있음 (예: project-xxx.app-dev.talkgate.im)
@@ -181,15 +174,6 @@ export default function ConsultationChannelSettings() {
 
         const eventMainDomain = getMainDomain(eventUrl.hostname);
         const currentMainDomain = getMainDomain(currentUrl.hostname);
-
-        console.log("[Instagram] Origin 검증:", {
-          eventOrigin: event.origin,
-          eventMainDomain,
-          currentOrigin: window.location.origin,
-          currentMainDomain,
-          protocolMatch: eventUrl.protocol === currentUrl.protocol,
-          domainMatch: eventMainDomain === currentMainDomain,
-        });
 
         // 프로토콜과 메인 도메인 일치 확인
         if (

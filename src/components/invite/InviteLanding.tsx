@@ -83,7 +83,7 @@ export function InviteLanding() {
 
         // 개발용 토큰 체크 - 백엔드 호출 없이 UI 테스트
         if (token === DEV_TOKEN) {
-          console.log("[DEV MODE] 개발용 토큰으로 UI 테스트 모드 진입");
+          // 개발용 토큰으로 UI 테스트 모드 진입
           setInviteInfo(DEV_INVITE_INFO);
           setIsTokenValid(true);
           if (mounted) setLoading(false);
@@ -112,13 +112,11 @@ export function InviteLanding() {
             
             if (inviteEmail && userEmail && inviteEmail !== userEmail) {
               // 다른 계정으로 로그인된 경우 - 모달 표시
-              console.log("[InvitePage] ⚠️ 다른 계정으로 로그인됨:", { inviteEmail, userEmail });
               setShowWrongAccountModal(true);
             }
           }
         } catch {
           // 로그인되지 않은 상태
-          console.log("[InvitePage] 로그인되지 않은 상태");
           setIsLoggedIn(false);
           setLoggedInEmail(null);
         }
@@ -178,11 +176,9 @@ export function InviteLanding() {
       inviterName: inviteInfo?.inviterName,
     };
     savePendingInviteInfo(inviteInfoToSave);
-    console.log("[InvitePage] 💾 초대 정보 전체 저장됨:", inviteInfoToSave);
 
     // 개발용 토큰인 경우
     if (token === DEV_TOKEN) {
-      console.log("[DEV MODE] 초대 수락 - 로그인 페이지로 이동");
       router.replace("/login");
       return;
     }
@@ -193,7 +189,7 @@ export function InviteLanding() {
       const userEmail = loggedInEmail?.toLowerCase();
       
       if (inviteEmail === userEmail) {
-        console.log("[InvitePage] ✅ 이메일 일치 - 프로젝트 가입 페이지로 이동");
+        // 이메일 일치 - 프로젝트 가입 페이지로 이동
         router.replace("/project-signup");
         return;
       }
@@ -201,7 +197,6 @@ export function InviteLanding() {
 
     // 로그인되지 않은 경우 → 로그인 페이지로 이동
     // QA 요구사항: 로그인 또는 회원가입 후 초대 수락 진행
-    console.log("[InvitePage] 🔑 로그인 필요 - 로그인 페이지로 이동");
     router.replace("/login");
   }
 

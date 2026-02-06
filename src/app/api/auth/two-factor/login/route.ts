@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { logger } from '@/lib/logger';
 
 /**
  * 2FA 로그인 API 엔드포인트
@@ -14,21 +15,7 @@ export async function POST(request: NextRequest) {
     // code가 오면 totpCode로 변환 (하위 호환성)
     const finalTotpCode = totpCode || code;
 
-    console.log('[2FA Login API] 📥 요청 받음:', {
-      hasToken: !!twoFactorToken,
-      hasTotpCode: !!totpCode,
-      hasCode: !!code,
-      finalTotpCode: !!finalTotpCode,
-      bodyKeys: Object.keys(body),
-    });
-
     if (!twoFactorToken || !finalTotpCode) {
-      console.error('[2FA Login API] ❌ 필수 파라미터 누락:', { 
-        twoFactorToken: !!twoFactorToken, 
-        totpCode: !!totpCode,
-        code: !!code,
-        finalTotpCode: !!finalTotpCode,
-      });
       return NextResponse.json(
         { message: 'twoFactorToken과 totpCode가 필요합니다.' },
         { status: 400 }
@@ -43,13 +30,6 @@ export async function POST(request: NextRequest) {
     );
     const apiUrl = `${apiBaseUrl}/v1/auth/two-factor/login`;
     
-    console.log('[2FA Login API] 🌐 백엔드 API 호출:', {
-      url: apiUrl,
-      apiBaseUrl,
-      twoFactorToken: twoFactorToken ? `${twoFactorToken.slice(0, 20)}...` : null,
-      totpCodeLength: finalTotpCode?.length,
-    });
-    
     // 백엔드는 { twoFactorToken, totpCode } 형식을 기대함 (code가 아니라 totpCode!)
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -61,42 +41,18 @@ export async function POST(request: NextRequest) {
         totpCode: finalTotpCode, // 백엔드는 totpCode를 기대함
       }),
     });
-    
-    console.log('[2FA Login API] 📥 백엔드 응답:', {
-      status: response.status,
-      statusText: response.statusText,
-    });
 
     let data: any;
     try {
       data = await response.json();
-    } catch (parseError) {
-      console.error('[2FA Login API] ❌ 응답 파싱 실패:', parseError);
-      const text = await response.text();
-      console.error('[2FA Login API] ❌ 원본 응답 텍스트:', text);
+    } catch {
       return NextResponse.json(
-        { message: '백엔드 응답 파싱 실패', originalError: text },
+        { message: '백엔드 응답 파싱 실패' },
         { status: 500 }
       );
     }
-    
-    console.log('[2FA Login API] 📦 백엔드 응답 데이터:', {
-      hasData: !!data,
-      hasResult: !!data?.result,
-      hasDataField: !!data?.data,
-      status: response.status,
-      errorCode: data?.code,
-      errorMessage: data?.message,
-      fullData: JSON.stringify(data),
-    });
 
     if (!response.ok) {
-      console.error('[2FA Login API] ❌ 백엔드 에러 응답:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: data,
-        requestBody: JSON.stringify({ twoFactorToken: twoFactorToken ? `${twoFactorToken.slice(0, 20)}...` : null, code: code ? `${code.slice(0, 3)}...` : null }),
-      });
       return NextResponse.json(data, { status: response.status });
     }
 
@@ -104,16 +60,6 @@ export async function POST(request: NextRequest) {
     const loginData = data?.data || data;
     const accessToken = loginData?.accessToken;
     const refreshToken = loginData?.refreshToken;
-
-    console.log('[2FA Login API] 🔑 토큰 추출:', {
-      hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenLength: accessToken?.length ?? 0,
-      refreshTokenLength: refreshToken?.length ?? 0,
-      refreshTokenPreview: refreshToken
-        ? `${refreshToken.substring(0, 10)}...${refreshToken.substring(refreshToken.length - 4)}`
-        : null,
-    });
 
     // 토큰이 없으면 에러
     if (!accessToken && !refreshToken) {
@@ -137,20 +83,16 @@ export async function POST(request: NextRequest) {
         refreshToken,
         maxAge: 60 * 60 * 24 * 30, // 30일
       });
-      console.log('[2FA Login API] 🍪 인증 쿠키 설정 완료');
     }
     
     // 프로젝트 ID 쿠키 설정
     if (responseData.projectId) {
       setProjectIdCookie(nextResponse, request, responseData.projectId);
-      console.log('[2FA Login API] 🍪 프로젝트 ID 쿠키 설정:', responseData.projectId);
     }
-    
-    console.log('[2FA Login API] ✅ 로그인 성공');
     
     return nextResponse;
   } catch (error) {
-    console.error('[2FA Login API] 에러:', error);
+    logger.serverError('[2FA Login API] 에러:', error);
     return NextResponse.json(
       { message: '2FA 로그인 처리 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -234,7 +234,6 @@ export default function SecurityTab() {
   const handleDeleteAccount = async () => {
     try {
       // TODO: Implement account deletion logic
-      console.log("계정 삭제 실행");
       showErrorModal({
         title: "알림",
         headline: "계정이 삭제되었습니다.",

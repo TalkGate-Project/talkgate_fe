@@ -138,7 +138,6 @@ export default function BillingTab() {
             // BILLING_KEY_IN_USE 에러 처리
             const errorCode = error?.data?.code;
             if (errorCode === "BILLING_KEY_IN_USE") {
-              console.log("BILLING_KEY_IN_USE");
               showErrorModal({
                 title: "오류",
                 headline: "현재 활성화된 구독이 있어서 삭제할 수 없습니다.",

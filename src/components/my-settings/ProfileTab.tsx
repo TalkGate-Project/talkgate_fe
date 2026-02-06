@@ -36,7 +36,8 @@ export default function ProfileTab() {
   // 본인인증 성공 핸들러
   const handleVerificationSuccess = useCallback(
     async (result: VerificationResult) => {
-      console.log("[ProfileTab] ✅ 본인인증 성공:", result);
+      // result 변수 사용을 위해 비동기 작업 진행
+      void result;
       await Promise.all([refetchVerification(), refetch()]);
       showErrorModal({
         type: "success",
@@ -152,7 +153,7 @@ export default function ProfileTab() {
     if (!file) return;
     
     // TODO: 이미지 업로드 API 연동 필요
-    console.log("File selected:", file);
+    void file; // 추후 구현 시 사용
     showErrorModal({
       type: "info",
       headline: "사진 업로드 기능은 준비 중입니다.",

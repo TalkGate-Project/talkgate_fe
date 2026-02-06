@@ -33,7 +33,9 @@ export function savePendingInviteToken(token: string) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(INVITE_TOKEN_KEY, token);
-  } catch {}
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+  }
 }
 
 export function getPendingInviteToken(): string | null {
@@ -41,6 +43,7 @@ export function getPendingInviteToken(): string | null {
   try {
     return window.localStorage.getItem(INVITE_TOKEN_KEY);
   } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
     return null;
   }
 }
@@ -49,7 +52,9 @@ export function clearPendingInviteToken() {
   if (!isBrowser()) return;
   try {
     window.localStorage.removeItem(INVITE_TOKEN_KEY);
-  } catch {}
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+  }
 }
 
 /**
@@ -61,7 +66,9 @@ export function savePendingInviteInfo(info: PendingInviteInfo) {
     window.localStorage.setItem(INVITE_INFO_KEY, JSON.stringify(info));
     // 토큰도 함께 저장 (호환성)
     window.localStorage.setItem(INVITE_TOKEN_KEY, info.token);
-  } catch {}
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+  }
 }
 
 /**
@@ -74,6 +81,7 @@ export function getPendingInviteInfo(): PendingInviteInfo | null {
     if (!stored) return null;
     return JSON.parse(stored) as PendingInviteInfo;
   } catch {
+    // localStorage 접근 불가 또는 JSON 파싱 실패 시 무시
     return null;
   }
 }
@@ -86,7 +94,9 @@ export function clearPendingInviteInfo() {
   try {
     window.localStorage.removeItem(INVITE_INFO_KEY);
     window.localStorage.removeItem(INVITE_TOKEN_KEY);
-  } catch {}
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+  }
 }
 
 

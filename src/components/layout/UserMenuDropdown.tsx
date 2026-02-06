@@ -36,8 +36,6 @@ export default function UserMenuDropdown({ user, variant = "full", onClose }: Pr
   };
 
   const handleLogout = () => {
-    console.log(`[UserMenuDropdown] 🚪 로그아웃 버튼 클릭 (variant: ${variant})`);
-    
     // 드롭다운 닫기
     onClose();
     

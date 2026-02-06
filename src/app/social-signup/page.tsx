@@ -29,7 +29,6 @@ function SocialSignupPageContent() {
         
         if (!userData) {
           // 로그인되지 않은 상태 - 권한 없음
-          console.log("[SocialSignup] ❌ 로그인되지 않음");
           showErrorModal({
             title: "접근 권한 없음",
             headline: "권한이 없는 페이지입니다.",
@@ -43,7 +42,7 @@ function SocialSignupPageContent() {
         
         // 이미 약관 동의가 완료된 사용자 - 권한 없음
         if (userData.isAllowTerms) {
-          console.log("[SocialSignup] ❌ 이미 가입이 완료된 사용자");
+          // 이미 가입이 완료된 사용자
           showErrorModal({
             title: "접근 권한 없음",
             headline: "이미 회원가입이 완료된 계정입니다.",
@@ -56,7 +55,6 @@ function SocialSignupPageContent() {
         }
         
         // 소셜 로그인 후 약관 미동의 상태 - 접근 허용
-        console.log("[SocialSignup] ✅ 접근 허용");
         setIsAuthorized(true);
       } catch (error) {
         console.error("[SocialSignup] 접근 권한 확인 실패:", error);

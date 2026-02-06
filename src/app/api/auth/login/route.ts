@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { logger } from '@/lib/logger';
 
 /**
  * 로그인 API 엔드포인트
@@ -23,15 +24,6 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }),
-    });
-
-    // 중요: 백엔드가 Set-Cookie 헤더를 보내는지 확인
-    // 백엔드가 쿠키를 관리하는 경우, Next.js에서 쿠키를 설정하면 충돌 발생 가능
-    const backendSetCookieHeaders = response.headers.get('set-cookie');
-    console.log('[Login API] 🔍 백엔드 Set-Cookie 헤더 확인:', {
-      hasSetCookie: !!backendSetCookieHeaders,
-      setCookieHeaders: backendSetCookieHeaders,
-      allResponseHeaders: Object.fromEntries(response.headers.entries()),
     });
 
     const data = await response.json();
@@ -88,20 +80,16 @@ export async function POST(request: NextRequest) {
         refreshToken,
         maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined, // 30일 또는 세션
       });
-      console.log('[Login API] 🍪 인증 쿠키 설정 완료');
     }
     
     // 프로젝트 ID 쿠키 설정
     if (responseData.projectId) {
       setProjectIdCookie(nextResponse, request, responseData.projectId);
-      console.log('[Login API] 🍪 프로젝트 ID 쿠키 설정:', responseData.projectId);
     }
-    
-    console.log('[Login API] ✅ 로그인 성공');
     
     return nextResponse;
   } catch (error) {
-    console.error('[Login API] 에러:', error);
+    logger.serverError('[Login API] 에러:', error);
     return NextResponse.json(
       { message: '로그인 처리 중 오류가 발생했습니다.' },
       { status: 500 }

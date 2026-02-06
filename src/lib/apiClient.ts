@@ -175,21 +175,8 @@ export class ApiClient {
             setAuthSessionExpired("401");
           }
           
-          if (options.suppressAutoLogout && !shouldLogout) {
-            console.log('[ApiClient] 🔍 401 (suppressAutoLogout, 자동 로그아웃 스킵):', { path });
-          }
-          
           if (shouldLogout) {
-            console.log('[ApiClient] 🔄 401 - 세션 만료 처리:', {
-              refreshAttempted,
-              refreshFailed,
-              path,
-              pathname,
-            });
             setAuthSessionExpired("401");
-          } else if (refreshAttempted && !refreshFailed) {
-            // refresh 성공했는데도 401이면 이상한 상황 (이론적으로 발생하지 않아야 함)
-            console.warn('[ApiClient] ⚠️ refresh 성공했는데도 401 에러:', path);
           }
         }
         
@@ -241,7 +228,6 @@ export class ApiClient {
     
     // 이미 로그아웃 진행 중이면 무시
     if (this.isLoggingOut) {
-      console.log('[ApiClient] ⏳ 이미 로그아웃 진행 중 - 무시');
       return;
     }
 
@@ -255,7 +241,6 @@ export class ApiClient {
       this.isLoggingOut = true;
       
       const pathname = window.location.pathname || "/";
-      console.log('[ApiClient] 🔄 자동 로그아웃 실행:', pathname);
       
       // 통합 자동 로그아웃 함수 사용 (공개 경로 체크 포함)
       performAutoLogout(pathname);

@@ -57,7 +57,9 @@ export function setSelectedProjectId(projectId: string | number) {
         detail: { projectId: String(projectId) },
       })
     );
-  } catch {}
+  } catch {
+    // 이벤트 디스패치 실패는 무시 (UI 업데이트에만 영향)
+  }
 }
 
 export function getSelectedProjectId(): string | null {
@@ -93,7 +95,9 @@ export function clearSelectedProjectId() {
         detail: { projectId: null },
       })
     );
-  } catch {}
+  } catch {
+    // 이벤트 디스패치 실패는 무시 (UI 업데이트에만 영향)
+  }
 }
 
 // 근태 메뉴 사용 여부 관리
@@ -127,7 +131,9 @@ export function getUseAttendanceMenu(): boolean {
     if (cookieValue === "true" || cookieValue === "false") {
       try {
         localStorage.setItem(ATTENDANCE_STORAGE_KEY, cookieValue);
-      } catch {}
+      } catch {
+        // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+      }
     }
 
     return fromCookie;

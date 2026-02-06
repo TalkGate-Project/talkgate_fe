@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { logger } from '@/lib/logger';
 
 /**
  * 소셜 로그인 API 엔드포인트
@@ -82,7 +83,7 @@ export async function POST(
     
     return nextResponse;
   } catch (error) {
-    console.error(`[Social Login API] ${provider} 에러:`, error);
+    logger.serverError(`[Social Login API] ${provider} 에러:`, error);
     return NextResponse.json(
       { message: '소셜 로그인 처리 중 오류가 발생했습니다.' },
       { status: 500 }
