@@ -323,10 +323,10 @@ export default function CustomersTable({
               {/* PC/모바일 동일: 모든 열 (모바일은 가로 스크롤로 확인) */}
               {[
                 "이름",
-                "신청경로",
+                "연락처",
                 "매체사",
                 "사이트",
-                "담당팀",
+                "신청경로",
                 "담당자",
                 "카테고리",
                 "신청시간",
@@ -365,7 +365,7 @@ export default function CustomersTable({
                         <div className="w-6 h-6 bg-neutral-20 rounded" />
                       </div>
                     </td>
-                    {Array.from({ length: 9 }).map((_, colIdx) => (
+                    {Array.from({ length: 10 }).map((_, colIdx) => (
                       <td
                         key={colIdx}
                         className="px-2 md:px-4"
@@ -385,7 +385,7 @@ export default function CustomersTable({
             {Boolean(error) && !loading && (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={11}
                   className="px-2 md:px-6 h-[72px] text-center text-red-500"
                 >
                   데이터를 불러오지 못했습니다
@@ -452,6 +452,9 @@ export default function CustomersTable({
                       >
                         {c.name || "-"}
                       </button>
+                    </td>
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                      {c.contact1 || c.contact2 || "-"}
                     </td>
                     <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {c.applicationRoute || "-"}
@@ -571,7 +574,7 @@ export default function CustomersTable({
             {!loading && customers.length === 0 && !error && (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={11}
                   className="px-2 md:px-6 h-[72px] text-center text-neutral-60"
                 >
                   결과가 없습니다

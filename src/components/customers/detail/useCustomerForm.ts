@@ -50,6 +50,7 @@ export function useCustomerForm(): UseCustomerFormReturn {
       applicationRoute: detail.applicationRoute ?? "",
       site: detail.site ?? "",
       mediaCompany: detail.mediaCompany ?? "",
+      ipAddress: detail.ipAddress ?? "",
       applicationDate: formattedApplicationDate ?? "",
       assignedMemberName: detail.assignedMemberName ?? "",
       assignedTeamName: detail.assignedTeamName ?? "",
