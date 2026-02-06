@@ -117,11 +117,10 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
             // 초대 플로우인 경우: 백엔드에서 토큰을 반환할 수 있음
             // QA 요구사항: invitationToken을 넘겼다면 이메일 인증 절차는 필요 없음
             if (isInviteFlow && res.tokens) {
-              console.log("[AccountStep] 🎉 초대 플로우 - 토큰 반환됨, 이메일 인증 스킵");
+              // 초대 플로우 - 토큰 반환됨, 이메일 인증 스킵
               onSuccess({ email, password, tokens: res.tokens, agreeMarketing });
             } else if (isInviteFlow) {
               // 토큰이 없어도 초대 플로우면 임시 토큰으로 진행 (백엔드 구현에 따라)
-              console.log("[AccountStep] 🎉 초대 플로우 - 회원가입 성공");
               // 백엔드가 토큰을 반환하지 않는 경우, 로그인 후 진행해야 함
               // 이 경우 프로필 스텝 대신 바로 /invite/accept로 리다이렉트
               onSuccess({ email, password, agreeMarketing });

@@ -34,8 +34,6 @@ export function ProfileStep({ tokens, onComplete, onSkip }: ProfileStepProps) {
   // 본인인증 성공 핸들러
   const handleVerificationSuccess = useCallback(
     async (result: VerificationResult) => {
-      console.log("[ProfileStep] ✅ 본인인증 성공:", result);
-
       // 토큰 저장 및 캐시 무효화
       await saveTokensAndInvalidateCache();
       onComplete();

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { setProjectIdCookie, setAttendanceMenuCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
+import { logger } from "@/lib/logger";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
@@ -151,7 +152,7 @@ async function fetchProjectBySubdomain(
 
     return null;
   } catch (error) {
-    console.error(`[Middleware] 서브도메인 프로젝트 조회 에러:`, error);
+    logger.serverError(`[Middleware] 서브도메인 프로젝트 조회 에러:`, error);
     return null;
   }
 }
@@ -240,7 +241,7 @@ export async function middleware(req: NextRequest) {
     // 비회원 경로는 서브도메인 제거 (소셜 로그인 callback URL 검증 오류 방지)
     if (matchesPath(pathname, UNAUTHENTICATED_PATHS)) {
       if (subdomain) {
-        console.log(`[Middleware] 개발환경 - 비회원 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
+        logger.server(`[Middleware] 개발환경 - 비회원 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
         return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}${req.nextUrl.search}`));
       }
       return NextResponse.next({ request: { headers: requestHeaders } });
@@ -257,7 +258,7 @@ export async function middleware(req: NextRequest) {
       if (isProtectedPath) {
         // 서브도메인이 있으면 메인 도메인으로 리다이렉트
         if (subdomain) {
-          console.log(`[Middleware] 개발환경 - 보호 경로 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
+          logger.server(`[Middleware] 개발환경 - 보호 경로 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
           return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
         }
         const url = req.nextUrl.clone();
@@ -293,7 +294,7 @@ export async function middleware(req: NextRequest) {
         const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
         
         if (project) {
-          console.log(`[Middleware] 루트 + 서브도메인 + 인증됨 → /dashboard로 리다이렉트`);
+          logger.server(`[Middleware] 루트 + 서브도메인 + 인증됨 → /dashboard로 리다이렉트`);
           const response = NextResponse.redirect(new URL(`${protocol}//${host}/dashboard`));
           // 프로젝트 ID 쿠키도 설정
           const subdomainProjectId = String(project.id);
@@ -312,7 +313,7 @@ export async function middleware(req: NextRequest) {
           return response;
         } else {
           // 유효하지 않은 서브도메인 → 프로젝트 선택 페이지로
-          console.log(`[Middleware] 루트 + 유효하지 않은 서브도메인: ${subdomain}`);
+          logger.server(`[Middleware] 루트 + 유효하지 않은 서브도메인: ${subdomain}`);
           const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
           redirectUrl.searchParams.set("error", "invalid_subdomain");
           redirectUrl.searchParams.set("subdomain", subdomain);
@@ -320,18 +321,18 @@ export async function middleware(req: NextRequest) {
         }
       } else {
         // 비인증 + 서브도메인 → 메인 도메인 로그인으로 리다이렉트
-        console.log(`[Middleware] 루트 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
+        logger.server(`[Middleware] 루트 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
         return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
       }
     } else {
       // 서브도메인이 없는 경우 (메인 도메인)
       if (hasAuthCookie) {
         // 인증됨 + 메인 도메인 → 프로젝트 선택으로 리다이렉트
-        console.log(`[Middleware] 루트 + 메인도메인 + 인증됨 → /projects로 리다이렉트`);
+        logger.server(`[Middleware] 루트 + 메인도메인 + 인증됨 → /projects로 리다이렉트`);
         return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/projects`));
       } else {
         // 비인증 + 메인 도메인 → 로그인으로 리다이렉트
-        console.log(`[Middleware] 루트 + 메인도메인 + 비인증 → /login으로 리다이렉트`);
+        logger.server(`[Middleware] 루트 + 메인도메인 + 비인증 → /login으로 리다이렉트`);
         return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
       }
     }
@@ -343,7 +344,7 @@ export async function middleware(req: NextRequest) {
   // ============================================
   if (matchesPath(pathname, UNAUTHENTICATED_PATHS)) {
     if (subdomain) {
-      console.log(`[Middleware] 비회원 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
+      logger.server(`[Middleware] 비회원 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}${req.nextUrl.search}`));
     }
     
@@ -360,13 +361,13 @@ export async function middleware(req: NextRequest) {
   if (matchesPath(pathname, PROJECT_SELECTION_PATHS)) {
     // 비인증 시 로그인으로
     if (!hasAuthCookie) {
-      console.log(`[Middleware] 프로젝트 경로 + 비인증 → 로그인으로 리다이렉트`);
+      logger.server(`[Middleware] 프로젝트 경로 + 비인증 → 로그인으로 리다이렉트`);
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
     }
     
     // 서브도메인이 있으면 메인 도메인으로
     if (subdomain) {
-      console.log(`[Middleware] 프로젝트 선택 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트`);
+      logger.server(`[Middleware] 프로젝트 선택 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트`);
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}`));
     }
     
@@ -383,10 +384,10 @@ export async function middleware(req: NextRequest) {
     // 비인증 시 로그인으로
     if (!hasAuthCookie) {
       if (subdomain) {
-        console.log(`[Middleware] 보호 경로 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
+        logger.server(`[Middleware] 보호 경로 + 서브도메인 + 비인증 → 메인도메인 로그인으로 리다이렉트`);
         return NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
       }
-      console.log(`[Middleware] 보호 경로 + 비인증 → 로그인으로 리다이렉트`);
+      logger.server(`[Middleware] 보호 경로 + 비인증 → 로그인으로 리다이렉트`);
       const url = req.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -394,7 +395,7 @@ export async function middleware(req: NextRequest) {
 
     // 인증됨 + 서브도메인 없음 → 쿠키 청소 후 로그인으로 리다이렉트
     if (!subdomain) {
-      console.log(`[Middleware] 인증된 보호경로 + 서브도메인 없음 → 쿠키 청소 후 로그인으로 리다이렉트`);
+      logger.server(`[Middleware] 인증된 보호경로 + 서브도메인 없음 → 쿠키 청소 후 로그인으로 리다이렉트`);
       const response = NextResponse.redirect(new URL(`${protocol}//${mainDomain}/login`));
       deleteAuthCookies(response, req);
       return response;
@@ -417,7 +418,7 @@ export async function middleware(req: NextRequest) {
 
         if (shouldSetProjectId || shouldSetAttendance) {
           if (shouldSetProjectId) {
-            console.log(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
+            logger.server(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
           }
           const response = NextResponse.next({ request: { headers: requestHeaders } });
           if (shouldSetProjectId) {
@@ -432,7 +433,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next({ request: { headers: requestHeaders } });
       } else {
         // 서브도메인이 있지만 프로젝트를 찾지 못함 → 프로젝트 선택 페이지로
-        console.log(`[Middleware] 유효하지 않은 서브도메인: ${subdomain}`);
+        logger.server(`[Middleware] 유효하지 않은 서브도메인: ${subdomain}`);
         const redirectUrl = new URL(`${protocol}//${mainDomain}/projects`);
         redirectUrl.searchParams.set("error", "invalid_subdomain");
         redirectUrl.searchParams.set("subdomain", subdomain);
@@ -504,7 +505,7 @@ export async function middleware(req: NextRequest) {
     
     // 서브도메인이 있으면 메인 도메인으로 리다이렉트
     if (subdomain) {
-      console.log(`[Middleware] 소셜 회원가입 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
+      logger.server(`[Middleware] 소셜 회원가입 경로 + 서브도메인 존재 → 메인도메인으로 리다이렉트: ${pathname}`);
       return NextResponse.redirect(new URL(`${protocol}//${mainDomain}${pathname}${req.nextUrl.search}`));
     }
     

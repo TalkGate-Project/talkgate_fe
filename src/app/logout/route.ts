@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAuthCookies } from '@/lib/cookies';
+import { logger } from '@/lib/logger';
 
 /**
  * 로그아웃 Route Handler
@@ -11,7 +12,6 @@ import { deleteAuthCookies } from '@/lib/cookies';
  * 적용되지 않는 문제를 방지하기 위해 Route Handler를 사용합니다.
  */
 export async function GET(request: NextRequest) {
-  console.log('[Logout Route] 🚪 로그아웃 요청 수신');
 
   // 리다이렉트 URL 결정
   const redirectParam = request.nextUrl.searchParams.get('redirect');
@@ -49,15 +49,13 @@ export async function GET(request: NextRequest) {
     finalUrl = `${protocol}//${mainDomain}/login?logout=success`;
   }
 
-  console.log('[Logout Route] 🔄 리다이렉트 URL:', finalUrl);
+  logger.server('[Logout Route] 리다이렉트:', finalUrl);
 
   // 리다이렉트 응답 생성
   const response = NextResponse.redirect(finalUrl);
 
   // 모든 인증 쿠키 삭제
   deleteAuthCookies(response, request);
-
-  console.log('[Logout Route] ✅ 쿠키 삭제 완료, 리다이렉트 중...');
 
   return response;
 }

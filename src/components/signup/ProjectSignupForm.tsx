@@ -43,7 +43,6 @@ export function ProjectSignupForm() {
     setIsMounted(true);
     const invite = getPendingInviteInfo();
     if (invite) {
-      console.log("[ProjectSignup] 📋 초대 정보 로드됨:", invite);
       setPendingInvite(invite);
     }
   }, []);
@@ -57,7 +56,6 @@ export function ProjectSignupForm() {
       window.history.pushState(null, "", window.location.href);
       
       // 안내 모달 표시
-      console.log("[ProjectSignup] ⬅️ 뒤로가기 감지 - 안내 모달 표시");
       
       showErrorModal({
         type: "info",
@@ -98,7 +96,6 @@ export function ProjectSignupForm() {
       const email = userData?.email;
       
       if (!email && retryCount < MAX_RETRIES) {
-        console.log(`[ProjectSignup] ⏳ 사용자 정보 없음, 재시도 ${retryCount + 1}/${MAX_RETRIES}`);
         await delay(RETRY_DELAY);
         return checkUserEmail(retryCount + 1);
       }
@@ -107,7 +104,6 @@ export function ProjectSignupForm() {
       return true;
     } catch (err) {
       if (retryCount < MAX_RETRIES) {
-        console.log(`[ProjectSignup] ⏳ API 호출 실패, 재시도 ${retryCount + 1}/${MAX_RETRIES}`);
         await delay(RETRY_DELAY);
         return checkUserEmail(retryCount + 1);
       }
@@ -133,7 +129,6 @@ export function ProjectSignupForm() {
       
       // 이미 수락된 초대인 경우
       if (status === "accepted") {
-        console.log("[ProjectSignup] ℹ️ 이미 수락된 초대 감지 - 프로젝트로 리다이렉트");
         // 초대 정보 정리 후 프로젝트로 이동
         clearPendingInviteInfo();
         router.replace("/projects");
@@ -148,7 +143,6 @@ export function ProjectSignupForm() {
       
       // 초대가 만료되었거나 유효하지 않은 경우
       if (errorCode === "INVITATION_EXPIRED" || errorCode === "INVITATION_INVALID") {
-        console.log("[ProjectSignup] ⚠️ 유효하지 않은 초대 - 초대 정보 정리");
         clearPendingInviteInfo();
         // 프로젝트로 이동 (또는 에러 메시지 표시 후 이동)
         router.replace("/projects");
@@ -156,7 +150,6 @@ export function ProjectSignupForm() {
       }
       
       // 그 외 에러는 로깅하고 아직 수락되지 않은 것으로 간주
-      console.error("[ProjectSignup] verifyInvitation 실패:", err);
       return false;
     }
   }, [router]);
@@ -168,12 +161,10 @@ export function ProjectSignupForm() {
     window.scrollTo(0, 0);
     
     async function init() {
-      console.log("[ProjectSignup] 🚀 초기화 시작");
       
       // 초대 플로우가 아닌 경우 프로젝트 선택 페이지로 리다이렉트
       const invite = getPendingInviteInfo();
       if (!invite?.token) {
-        console.log("[ProjectSignup] ⚠️ 초대 플로우가 아님 - 프로젝트 선택 페이지로 이동");
         router.replace("/projects");
         return;
       }
@@ -182,7 +173,6 @@ export function ProjectSignupForm() {
       const success = await checkUserEmail();
       
       if (!success) {
-        console.log("[ProjectSignup] ❌ 로그인 필요 - 로그인 페이지로 이동");
         router.replace("/login");
         return;
       }
@@ -195,7 +185,6 @@ export function ProjectSignupForm() {
       }
       
       setIsLoading(false);
-      console.log("[ProjectSignup] ✅ 초기화 완료");
     }
     
     init();
@@ -208,13 +197,11 @@ export function ProjectSignupForm() {
     // 이름이 있으면 기본값으로 설정
     if (user.name) {
       setName(user.name);
-      console.log("[ProjectSignup] 📝 사용자 이름 기본값 설정:", user.name);
     }
     
     // 핸드폰 번호가 있으면 기본값으로 설정
     if (user.phone) {
       setPhone(user.phone);
-      console.log("[ProjectSignup] 📞 사용자 핸드폰 번호 기본값 설정:", user.phone);
     }
     
     // 기본값 설정 완료 표시
@@ -230,10 +217,7 @@ export function ProjectSignupForm() {
       const loggedInEmail = userEmail.toLowerCase();
       
       if (inviteEmail !== loggedInEmail) {
-        console.log("[ProjectSignup] ⚠️ 이메일 불일치:", { inviteEmail, loggedInEmail });
         setShowWrongAccountModal(true);
-      } else {
-        console.log("[ProjectSignup] ✅ 이메일 일치:", userEmail);
       }
     }
   }, [isLoading, userEmail, isInviteFlow, pendingInvite?.email]);
@@ -247,14 +231,12 @@ export function ProjectSignupForm() {
       await MembersService.acceptInvitation({
         token: pendingInvite.token,
       });
-      console.log("[ProjectSignup] ✅ 초대 수락 완료");
       // clearPendingInviteInfo()는 handleComplete 끝에서 호출
     } catch (err: any) {
       const errorCode = err?.data?.code;
       
       // 이미 수락된 초대인 경우 - 정상 처리
       if (errorCode === "INVITATION_ALREADY_ACCEPTED") {
-        console.log("[ProjectSignup] ℹ️ 이미 수락된 초대 - 정상 진행");
         return;
       }
       
@@ -272,7 +254,6 @@ export function ProjectSignupForm() {
       // 초대 플로우인 경우 → 먼저 초대 수락 API 호출 (멤버로 편입)
       // ⚠️ 중요: 프로필 업데이트 전에 멤버로 편입되어야 함
       if (isInviteFlow) {
-        console.log("[ProjectSignup] 🎉 초대 플로우 - 먼저 초대 수락 API 호출");
         await acceptInvitation();
       }
 
@@ -283,7 +264,6 @@ export function ProjectSignupForm() {
         const headers: Record<string, string> = {};
         if (isInviteFlow && pendingInvite?.projectId) {
           headers["x-project-id"] = String(pendingInvite.projectId);
-          console.log("[ProjectSignup] 📌 x-project-id 헤더 설정:", pendingInvite.projectId);
         }
         
         // PATCH 메서드 특성상 빈 문자열은 필드를 제외해야 함
@@ -301,20 +281,16 @@ export function ProjectSignupForm() {
           payload,
           Object.keys(headers).length > 0 ? headers : undefined
         );
-        console.log("[ProjectSignup] ✅ 프로필 업데이트 완료");
       }
 
       // 초대 정보 정리 (모든 작업 완료 후)
       if (isInviteFlow) {
         clearPendingInviteInfo();
-        console.log("[ProjectSignup] 🧹 초대 정보 정리 완료");
       }
 
       // 프로젝트 선택 페이지로 이동 (zoom 적용을 위해 전체 페이지 새로고침)
-      console.log("[ProjectSignup] 🎉 완료 - 프로젝트 선택으로 이동");
       window.location.replace("/projects");
     } catch (error: any) {
-      console.error("[ProjectSignup] 처리 실패:", error);
       showErrorModal({
         title: "오류 발생",
         headline: "처리에 실패했습니다. 잠시 후 다시 시도해주세요.",

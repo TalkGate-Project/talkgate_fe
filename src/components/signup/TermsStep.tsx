@@ -44,7 +44,6 @@ export function TermsStep({ onComplete }: TermsStepProps) {
         isAllowCustomerInfoLegal: agreeThirdParty,
         isAllowMarketing: agreeMarketing,
       });
-      console.log("[TermsStep] ✅ 약관 동의 완료");
       
       // 사용자 정보 캐시 무효화하여 최신 정보 가져오기
       await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });

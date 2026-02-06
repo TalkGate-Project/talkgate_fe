@@ -60,8 +60,6 @@ export function performLogout(options: LogoutOptions = {}): void {
     preserveInviteInfo = false,
   } = options;
 
-  console.log("[Logout] 🚪 로그아웃 시작", { preserveInviteInfo });
-
   // 0. 로그아웃 진행 중 플래그 설정 (세션 만료 모달 방지)
   setLoggingOut(true);
 
@@ -69,62 +67,48 @@ export function performLogout(options: LogoutOptions = {}): void {
   // 에러가 발생해도 계속 진행 (로그아웃은 반드시 완료되어야 함)
   try {
     talkgateSocket.disconnect();
-    console.log("[Logout] ✅ 채팅 WebSocket 연결 종료");
-  } catch (e) {
-    console.error("[Logout] ❌ 채팅 WebSocket 종료 실패:", e);
+  } catch {
+    // WebSocket 종료 실패 시 무시
   }
 
   try {
     notificationSocket.disconnect();
-    console.log("[Logout] ✅ 알림 WebSocket 연결 종료");
-  } catch (e) {
-    console.error("[Logout] ❌ 알림 WebSocket 종료 실패:", e);
+  } catch {
+    // WebSocket 종료 실패 시 무시
   }
 
   // 2. 클라이언트 사이드 상태 정리
   try {
     clearTokens();
-    console.log("[Logout] ✅ 토큰 삭제 완료");
-  } catch (e) {
-    console.error("[Logout] ❌ 토큰 삭제 실패:", e);
+  } catch {
+    // 토큰 삭제 실패 시 무시
   }
   
   resetAuthSession();
 
   try {
     clearSelectedProjectId();
-    console.log("[Logout] ✅ 프로젝트 ID 삭제 완료");
-  } catch (e) {
-    console.error("[Logout] ❌ 프로젝트 ID 삭제 실패:", e);
+  } catch {
+    // 프로젝트 ID 삭제 실패 시 무시
   }
 
   try {
     clearUseAttendanceMenu();
-    console.log("[Logout] ✅ 근태 메뉴 설정 삭제 완료");
-  } catch (e) {
-    console.error("[Logout] ❌ 근태 메뉴 설정 삭제 실패:", e);
+  } catch {
+    // 근태 메뉴 설정 삭제 실패 시 무시
   }
 
   // 3. React Query 캐시 정리 (제공된 경우)
   if (queryClient) {
     try {
       queryClient.clear();
-      console.log("[Logout] ✅ React Query 캐시 정리 완료");
-    } catch (e) {
-      console.error("[Logout] ❌ React Query 캐시 정리 실패:", e);
+    } catch {
+      // React Query 캐시 정리 실패 시 무시
     }
   }
 
   // 4. 초대 정보 정리 (preserveInviteInfo가 false인 경우만)
-  if (!preserveInviteInfo) {
-    try {
-      // clearPendingInviteToken은 필요시 import하여 사용
-      // 현재는 초대 정보가 localStorage에 저장되어 있으므로 유지
-      console.log("[Logout] ℹ️ 초대 정보는 유지됨 (필요시 수동 정리)");
-    } catch (e) {
-      console.error("[Logout] ❌ 초대 정보 정리 실패:", e);
-    }
-  }
+  // preserveInviteInfo가 true이면 초대 정보는 유지됨
 
   // 5. 서버로 리다이렉트 (쿠키 삭제 처리)
   try {
@@ -157,18 +141,15 @@ export function performLogout(options: LogoutOptions = {}): void {
 
     const logoutUrl = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(finalRedirectUrl)}`;
     
-    console.log("[Logout] 🔄 서버로 리다이렉트:", logoutUrl);
-    
     // window.location.href를 사용하여 전체 페이지 리로드
     // 이렇게 하면 서버에서 쿠키 삭제가 확실히 처리됨
     window.location.href = logoutUrl;
-  } catch (e) {
-    console.error("[Logout] ❌ 리다이렉트 실패:", e);
+  } catch {
     // 리다이렉트 실패 시 최소한 로그인 페이지로 이동 시도
     try {
       window.location.href = "/login";
-    } catch (fallbackError) {
-      console.error("[Logout] ❌ 폴백 리다이렉트도 실패:", fallbackError);
+    } catch {
+      // 폴백 리다이렉트도 실패 시 무시
     }
   }
 }
@@ -185,11 +166,8 @@ export function performAutoLogout(currentPathname: string): void {
 
   // 공개 경로에서는 자동 로그아웃하지 않음 (리다이렉트 루프 방지)
   if (isPublicRoute(currentPathname)) {
-    console.log("[Logout] ℹ️ 공개 경로에서는 자동 로그아웃하지 않음:", currentPathname);
     return;
   }
-
-  console.log("[Logout] 🔄 자동 로그아웃 시작:", currentPathname);
   
   // WebSocket과 상태만 정리하고 리다이렉트는 performLogout에서 처리
   performLogout();

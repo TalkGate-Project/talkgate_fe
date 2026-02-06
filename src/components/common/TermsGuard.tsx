@@ -51,7 +51,6 @@ export default function TermsGuard() {
     if (previousPathnameRef.current !== null && previousPathnameRef.current !== pathname) {
       // /social-signup에서 다른 페이지로 이동한 경우 (약관 동의 완료 가능성)
       if (previousPathnameRef.current === "/social-signup" && pathname !== "/social-signup") {
-        console.log("[TermsGuard] 약관 동의 페이지에서 이동 감지, 사용자 정보 refetch");
         queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
         refetch();
         hasShownModalRef.current = false; // 모달 표시 플래그 리셋
@@ -85,7 +84,6 @@ export default function TermsGuard() {
     if (hasShownModalRef.current) return;
 
     // 약관 미동의 상태이고 다른 페이지에 접근한 경우
-    console.log("[TermsGuard] 약관 미동의 사용자 감지, info 타입 모달 표시");
     hasShownModalRef.current = true;
     
     showErrorModal({

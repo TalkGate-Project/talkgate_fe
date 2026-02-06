@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { logger } from '@/lib/logger';
 
 /**
  * API 프록시 라우트
@@ -78,6 +79,7 @@ function decodeJwtPayload(token: string): any {
     const decoded = Buffer.from(payload, 'base64url').toString('utf-8');
     return JSON.parse(decoded);
   } catch {
+    // 유효하지 않은 JWT 형식인 경우 null 반환 (디버깅용 함수이므로 에러 무시)
     return null;
   }
 }
@@ -94,8 +96,8 @@ async function refreshAccessToken(
     const expiresIn = exp ? exp - now : null;
     const isExpired = exp ? now >= exp : null;
     
-    console.log('[API Proxy] 🔄 토큰 리프레시 시도');
-    console.log('[API Proxy] 🔄 refresh API 호출:', {
+    logger.server('[API Proxy] 🔄 토큰 리프레시 시도');
+    logger.server('[API Proxy] 🔄 refresh API 호출:', {
       apiBaseUrl,
       refreshTokenLength: refreshToken?.length ?? 0,
       refreshTokenPreview: refreshToken
@@ -108,7 +110,7 @@ async function refreshAccessToken(
     });
 
     const requestBody = JSON.stringify({ refreshToken });
-    console.log('[API Proxy] 🔄 refresh 요청 body:', {
+    logger.server('[API Proxy] 🔄 refresh 요청 body:', {
       bodyLength: requestBody.length,
       bodyPreview: requestBody.substring(0, 100) + (requestBody.length > 100 ? '...' : ''),
       refreshTokenInBody: requestBody.includes(refreshToken),
@@ -122,7 +124,7 @@ async function refreshAccessToken(
 
     if (!refreshResponse.ok) {
       const errorData = await refreshResponse.json().catch(() => ({}));
-      console.error('[API Proxy] ❌ 토큰 리프레시 실패:', {
+      logger.serverError('[API Proxy] ❌ 토큰 리프레시 실패:', {
         status: refreshResponse.status,
         statusText: refreshResponse.statusText,
         error: errorData,
@@ -137,7 +139,7 @@ async function refreshAccessToken(
     const newRefreshToken = refreshData?.data?.refreshToken;
 
     if (newAccessToken || newRefreshToken) {
-      console.log('[API Proxy] ✅ 토큰 리프레시 성공');
+      logger.server('[API Proxy] ✅ 토큰 리프레시 성공');
       const tokens = {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
@@ -149,7 +151,7 @@ async function refreshAccessToken(
 
     return null;
   } catch (error) {
-    console.error('[API Proxy] ❌ 토큰 리프레시 예외:', error);
+    logger.serverError('[API Proxy] ❌ 토큰 리프레시 예외:', error);
     return null;
   }
 }
@@ -229,7 +231,7 @@ async function handleRequest(
       }
     }
 
-    console.log('[API Proxy] 🔍 refreshToken 읽기:', {
+    logger.server('[API Proxy] 🔍 refreshToken 읽기:', {
       hasRefreshToken: !!refreshToken,
       refreshTokenLength: refreshToken?.length ?? 0,
       refreshTokenPreview: refreshToken
@@ -282,14 +284,14 @@ async function handleRequest(
           try {
             const bodyData = body ? JSON.parse(body) : {};
             if (!bodyData.refreshToken && refreshToken) {
-              console.log('[API Proxy] 🔄 refresh 요청 - 쿠키에서 refreshToken을 body에 포함');
+              logger.server('[API Proxy] 🔄 refresh 요청 - 쿠키에서 refreshToken을 body에 포함');
               bodyData.refreshToken = refreshToken;
               body = JSON.stringify(bodyData);
             }
           } catch (e) {
             // JSON 파싱 실패 시 쿠키의 refreshToken으로 새 body 생성
             if (refreshToken) {
-              console.log('[API Proxy] 🔄 refresh 요청 - 쿠키의 refreshToken으로 body 생성');
+              logger.server('[API Proxy] 🔄 refresh 요청 - 쿠키의 refreshToken으로 body 생성');
               body = JSON.stringify({ refreshToken });
             }
           }
@@ -307,7 +309,7 @@ async function handleRequest(
         
         // /v1/auth/refresh 요청인 경우 쿠키의 refreshToken으로 body 생성
         if (isRefreshRequest && refreshToken) {
-          console.log('[API Proxy] 🔄 refresh 요청 - 쿠키의 refreshToken으로 body 생성');
+          logger.server('[API Proxy] 🔄 refresh 요청 - 쿠키의 refreshToken으로 body 생성');
           body = JSON.stringify({ refreshToken });
         }
       }
@@ -319,13 +321,13 @@ async function handleRequest(
     // Refresh preflight: refresh 진행 중이면 대기 후 토큰 갱신
     const canWaitForRefresh = !isRefreshRequest && !shouldSkipRefresh(apiPath, method);
     if (refreshInFlight && canWaitForRefresh) {
-      console.log('[API Proxy] ⏳ refresh 진행 중 - 요청 대기');
+      logger.server('[API Proxy] ⏳ refresh 진행 중 - 요청 대기');
       try {
         const tokens = await refreshInFlight;
         const tokensToUse = tokens?.accessToken ? tokens : refreshedTokens;
         
         if (!tokensToUse?.accessToken) {
-          console.error('[API Proxy] ❌ refresh 실패 - 대기 중 요청은 401 반환');
+          logger.serverError('[API Proxy] ❌ refresh 실패 - 대기 중 요청은 401 반환');
           responseHeaders.set('X-Refresh-Attempted', 'true');
           responseHeaders.set('X-Refresh-Failed', 'true');
           responseHeaders.set('Content-Type', 'application/json');
@@ -339,7 +341,7 @@ async function handleRequest(
         responseHeaders.set('X-Refresh-Attempted', 'true');
         responseHeaders.set('X-Refresh-Success', 'true');
       } catch (err) {
-        console.error('[API Proxy] ❌ refresh 대기 중 에러:', err);
+        logger.serverError('[API Proxy] ❌ refresh 대기 중 에러:', err);
         responseHeaders.set('X-Refresh-Attempted', 'true');
         responseHeaders.set('X-Refresh-Failed', 'true');
         responseHeaders.set('Content-Type', 'application/json');
@@ -362,7 +364,7 @@ async function handleRequest(
     // 백엔드 API 호출
     let response = await executeRequest();
     
-    console.log('[API Proxy] 📥 백엔드 응답:', {
+    logger.server('[API Proxy] 📥 백엔드 응답:', {
       path: apiPath,
       method,
       status: response.status,
@@ -399,7 +401,7 @@ async function handleRequest(
         const newRefreshToken = (refreshData as any)?.data?.refreshToken;
 
         if (newAccessToken || newRefreshToken) {
-          console.log('[API Proxy] ✅ refresh 응답 - 새 토큰을 쿠키에 설정');
+          logger.server('[API Proxy] ✅ refresh 응답 - 새 토큰을 쿠키에 설정');
           
           const cookieOptions = getCookieOptions(request);
           const apiResponse = isBlob
@@ -422,34 +424,34 @@ async function handleRequest(
           return apiResponse;
         }
       } catch (refreshError) {
-        console.error('[API Proxy] ❌ refresh 응답 처리 실패:', refreshError);
+        logger.serverError('[API Proxy] ❌ refresh 응답 처리 실패:', refreshError);
       }
     }
 
     // 401 에러 처리 (메인 로직)
     // 정책: refresh 성공 시 원래 요청을 1회 재시도 (401은 서버에서 인증 거부된 상태로 부작용 없음)
     if (response.status === 401) {
-      console.log('[API Proxy] ❌ 401 에러 - refreshToken 상태:', {
+      logger.server('[API Proxy] ❌ 401 에러 - refreshToken 상태:', {
         hasRefreshToken: !!refreshToken,
         refreshTokenLength: refreshToken?.length ?? 0,
       });
 
       // 예외 API는 refresh하지 않음
       if (shouldSkipRefresh(apiPath, method)) {
-        console.log('[API Proxy] ⚠️ 예외 API - refresh하지 않음:', apiPath);
+        logger.server('[API Proxy] ⚠️ 예외 API - refresh하지 않음:', apiPath);
         responseHeaders.set('X-Refresh-Attempted', 'false');
         responseHeaders.set('X-Refresh-Skipped', 'true');
       }
       // refreshToken이 없으면 refresh 불가
       else if (!refreshToken) {
-        console.error('[API Proxy] ❌ refreshToken 없음 - 401 에러 반환');
+        logger.serverError('[API Proxy] ❌ refreshToken 없음 - 401 에러 반환');
         responseHeaders.set('X-Refresh-Attempted', 'false');
       }
       // refresh 시도
       else {
         // Refresh queue: 이미 진행 중이면 대기
         if (refreshInFlight) {
-          console.log('[API Proxy] ⏳ 이미 refresh 진행 중 - 대기');
+          logger.server('[API Proxy] ⏳ 이미 refresh 진행 중 - 대기');
           try {
             const tokens = await refreshInFlight;
             // refresh 성공한 경우 새 토큰 사용, 실패한 경우 전역 변수 확인
@@ -493,7 +495,7 @@ async function handleRequest(
               return apiResponse;
             } else {
               // refresh 실패 - 원래 401 에러 반환
-              console.error('[API Proxy] ❌ refresh 실패 (대기 중) - 401 에러 반환');
+              logger.serverError('[API Proxy] ❌ refresh 실패 (대기 중) - 401 에러 반환');
               // refresh 시도했지만 실패했다는 것을 클라이언트에 알림
               responseHeaders.set('X-Refresh-Attempted', 'true');
               responseHeaders.set('X-Refresh-Failed', 'true');
@@ -501,7 +503,7 @@ async function handleRequest(
               refreshedTokens = null;
             }
           } catch (err) {
-            console.error('[API Proxy] ❌ refresh 대기 중 에러:', err);
+            logger.serverError('[API Proxy] ❌ refresh 대기 중 에러:', err);
             responseHeaders.set('X-Refresh-Attempted', 'true');
             responseHeaders.set('X-Refresh-Failed', 'true');
           }
@@ -557,7 +559,7 @@ async function handleRequest(
               return apiResponse;
             } else {
               // refresh 실패 - 원래 401 에러 반환
-              console.error('[API Proxy] ❌ refresh 실패 - 401 에러 반환');
+              logger.serverError('[API Proxy] ❌ refresh 실패 - 401 에러 반환');
               // refresh 시도했지만 실패했다는 것을 클라이언트에 알림
               responseHeaders.set('X-Refresh-Attempted', 'true');
               responseHeaders.set('X-Refresh-Failed', 'true');
@@ -565,7 +567,7 @@ async function handleRequest(
               refreshedTokens = null;
             }
           } catch (err) {
-            console.error('[API Proxy] ❌ refresh 중 에러:', err);
+            logger.serverError('[API Proxy] ❌ refresh 중 에러:', err);
             responseHeaders.set('X-Refresh-Attempted', 'true');
             responseHeaders.set('X-Refresh-Failed', 'true');
             // refresh 실패 시 전역 변수 초기화
@@ -597,7 +599,7 @@ async function handleRequest(
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error('[API Proxy] 에러:', error);
+    logger.serverError('[API Proxy] 에러:', error);
     return NextResponse.json(
       { message: 'API 요청 처리 중 오류가 발생했습니다.' },
       { status: 500 }

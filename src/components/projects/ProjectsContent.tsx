@@ -70,7 +70,7 @@ export default function ProjectsContent() {
     // 절대 URL인 경우에만 리디렉션 (랜딩 페이지 등)
     const isAbsoluteUrl = redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://');
     if (isAbsoluteUrl) {
-      console.log("[ProjectsPage] 🔗 returnUrl 감지 - 랜딩 페이지로 리디렉션:", redirectUrl);
+      // returnUrl 감지 - 랜딩 페이지로 리디렉션
       // sessionStorage에서 제거 (한 번만 사용)
       if (storedRedirectUrl) {
         sessionStorage.removeItem("tg_redirect_url");
@@ -88,7 +88,6 @@ export default function ProjectsContent() {
       window.location.replace(redirectUrl);
     } else {
       // 상대 경로인 경우 무시하고 정리
-      console.log("[ProjectsPage] ⚠️ 상대 경로 returnUrl 무시:", redirectUrl);
       if (storedRedirectUrl) {
         sessionStorage.removeItem("tg_redirect_url");
       }
@@ -462,7 +461,7 @@ export default function ProjectsContent() {
           onClose={() => setSubscribeProject(null)}
           onSubscribe={async (projectId) => {
             // TODO: 구독 API 호출 로직 구현
-            console.log("Subscribe to project:", projectId);
+            void projectId; // 추후 구현 시 사용
           }}
           onCouponApplied={async () => {
             const res = await ProjectsService.list();

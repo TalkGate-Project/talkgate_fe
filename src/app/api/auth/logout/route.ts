@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAuthCookies } from '@/lib/cookies';
+import { logger } from '@/lib/logger';
 
 /**
  * 로그아웃 API 엔드포인트
@@ -11,8 +12,6 @@ import { deleteAuthCookies } from '@/lib/cookies';
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('[Logout API] 🚪 로그아웃 요청 수신');
-
     const response = NextResponse.json({ 
       success: true,
       message: '로그아웃되었습니다.' 
@@ -21,11 +20,9 @@ export async function POST(request: NextRequest) {
     // 모든 인증 쿠키 삭제
     deleteAuthCookies(response, request);
 
-    console.log('[Logout API] ✅ 쿠키 삭제 완료');
-
     return response;
   } catch (error) {
-    console.error('[Logout API] ❌ 로그아웃 처리 중 에러:', error);
+    logger.serverError('[Logout API] 로그아웃 처리 중 에러:', error);
     return NextResponse.json(
       { success: false, message: '로그아웃 처리 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -73,13 +73,6 @@ function InstagramCallbackContentInner() {
         // - 부모 창: project-xxx.app-dev.talkgate.im (서브도메인 있음)
         // targetOrigin을 특정 origin으로 지정하면 부모 창에서 받지 못할 수 있음
         // 따라서 '*'를 사용하되, 부모 창에서 origin 검증을 강화해야 함
-        
-        console.log("[Instagram Callback] postMessage 전송:", {
-          code: code?.substring(0, 20) + "...",
-          currentOrigin: window.location.origin,
-          hasOpener: !!window.opener,
-        });
-
         // '*'를 사용하여 모든 origin으로 전송 (부모 창에서 검증)
         window.opener.postMessage(
           {

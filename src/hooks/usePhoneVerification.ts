@@ -77,8 +77,7 @@ export function usePhoneVerification({
   // postMessage 리스너
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log("[usePhoneVerification] Received message:", event.data);
-
+      // postMessage 이벤트 수신 처리
       if (event.data?.type === "PHONE_VERIFICATION_RESULT") {
         const result = event.data.data as VerificationResult;
         setIsVerifying(false);

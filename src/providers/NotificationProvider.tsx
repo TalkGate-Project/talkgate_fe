@@ -171,7 +171,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
       // Listen for Ready event
       socket.on("ready", () => {
-        console.log("Notification socket ready");
+        // Socket ready
       });
 
       // Listen for new notifications
@@ -182,8 +182,8 @@ export default function NotificationProvider({ children }: { children: React.Rea
         console.error("Notification socket connection error:", error);
       });
 
-      socket.on("disconnect", (reason) => {
-        console.log("Notification socket disconnected:", reason);
+      socket.on("disconnect", () => {
+        // Socket disconnected
       });
 
       return () => {

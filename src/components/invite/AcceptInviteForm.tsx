@@ -42,18 +42,13 @@ export function AcceptInviteForm() {
     setIsSubmitting(true);
     try {
       // TODO: 실제 본인인증 서비스(PASS, NICE 등) 연동
-      console.log("[AcceptInvite] 📱 본인인증 시작");
-      
       // 임시: 본인인증 팝업/리다이렉트 시뮬레이션
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      console.log("[AcceptInvite] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동");
 
       // 본인인증 완료 후 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
       // 초대 수락은 프로젝트 가입 완료 후 처리됨
       router.replace("/project-signup");
-    } catch (err: unknown) {
-      console.error("[AcceptInvite] 본인인증 실패:", err);
+    } catch {
       showErrorModal({
         title: "오류 발생",
         headline: "본인인증에 실패했습니다. 잠시 후 다시 시도해주세요.",
@@ -69,8 +64,6 @@ export function AcceptInviteForm() {
   // 건너뛰기 (본인인증 없이 프로젝트 가입 페이지로 이동)
   const handleSkip = () => {
     if (!inviteInfo?.token) return;
-
-    console.log("[AcceptInvite] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동");
     // 본인인증 없이 프로젝트 가입 페이지로 이동
     router.replace("/project-signup");
   };

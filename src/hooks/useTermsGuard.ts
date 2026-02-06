@@ -47,9 +47,7 @@ export function useTermsGuard() {
     // /social-signup 페이지에 있으면 체크하지 않음 (무한 루프 방지)
     if (pathname === "/social-signup") return;
 
-    // 약관 미동의 상태이고 다른 페이지에 접근한 경우
-    console.log("[TermsGuard] 약관 미동의 사용자 감지, persistent 모달 표시");
-    
+    // 약관 미동의 상태이고 다른 페이지에 접근한 경우 - persistent 모달 표시
     persistentModal.show({
       type: "system",
       title: "약관 동의 필요",
