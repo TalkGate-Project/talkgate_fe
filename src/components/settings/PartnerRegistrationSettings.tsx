@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import PartnerRegisterModal from "./PartnerRegisterModal";
 import { ProjectPartnersService } from "@/services/projectPartners";
+import { CouponsService } from "@/services/coupons";
 import type { ProjectPartner, ProjectPartnerStatus } from "@/types/projectPartners";
+import type { CouponInfo } from "@/types/coupons";
 
 /** 상태 칩: 수락(Primary-10/80), 대기(Warning-10/60), 거절(Error-10/40) */
 function PartnerStatusBadge({ status }: { status: ProjectPartnerStatus }) {
@@ -53,6 +55,37 @@ function EditIcon({ className = "" }: { className?: string }) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** 복사 아이콘 (Outline duplicate – 두 겹친 사각형), 24x24, stroke #B0B0B0 */
+function CopyIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <rect
+        x="8"
+        y="8"
+        width="12"
+        height="12"
+        rx="1"
+        stroke="#B0B0B0"
+        strokeWidth="2"
+      />
+      <path
+        d="M6 16V5C6 4.44772 6.44772 4 7 4H16"
+        stroke="#B0B0B0"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -110,6 +143,56 @@ export default function PartnerRegistrationSettings() {
   const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null);
   const [editingDescription, setEditingDescription] = useState("");
   const [savingPartnerId, setSavingPartnerId] = useState<number | null>(null);
+
+  // 쿠폰 정보 (GET /v1/coupons)
+  const [coupon, setCoupon] = useState<CouponInfo | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponNotFound, setCouponNotFound] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+
+  const fetchCoupon = useCallback(async () => {
+    if (!projectId) {
+      setCoupon(null);
+      setCouponNotFound(false);
+      return;
+    }
+    setCouponLoading(true);
+    setCouponNotFound(false);
+    try {
+      const res = await CouponsService.getProjectCoupon(projectId);
+      if (res.ok && res.data?.result === true && res.data?.data) {
+        setCoupon(res.data.data);
+      } else if (res.status === 404) {
+        setCoupon(null);
+        setCouponNotFound(true);
+      } else {
+        setCoupon(null);
+      }
+    } catch {
+      setCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchCoupon();
+  }, [fetchCoupon]);
+
+  const handleCopyCouponCode = useCallback(async () => {
+    if (!coupon?.code) return;
+    try {
+      await navigator.clipboard.writeText(coupon.code);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 1500);
+    } catch {
+      showErrorModal({
+        type: "error",
+        headline: "복사에 실패했습니다.",
+        hideCancel: true,
+      });
+    }
+  }, [coupon?.code]);
 
   const fetchPartners = useCallback(async () => {
     if (!projectId) {
@@ -271,6 +354,45 @@ export default function PartnerRegistrationSettings() {
       />
 
       <div className="w-full h-[1px] bg-neutral-30 opacity-70" />
+
+      {/* 쿠폰 정보 영역 - 테이블과 동일한 가로 패딩으로 전체 너비 사용 */}
+      <div className="flex flex-col items-stretch gap-[6px] w-full px-4 md:px-7 mt-4 md:mt-[30px] md:mb-[14px]">
+        <h2 className="w-full font-semibold text-[16px] leading-[19px] tracking-[0.2px] text-foreground">
+          쿠폰 정보
+        </h2>
+        <p className="hidden md:block w-full font-medium text-[14px] leading-[17px] tracking-[0.2px] text-[#808080]">
+          쿠폰 코드를 제공하여 파트너가 프로젝트를 무료로 활성화 하도록 지원할 수 있어요.
+        </p>
+        <div className="w-full min-w-0 h-10 flex flex-row items-center gap-4 px-6 py-2 bg-[#F8F8F8] dark:bg-neutral-20 rounded-[5px]">
+          {couponLoading ? (
+            <span className="font-medium text-[14px] leading-[17px] tracking-[-0.02em] text-foreground">
+              불러오는 중...
+            </span>
+          ) : couponNotFound || !coupon ? (
+            <span className="font-medium text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60">
+              쿠폰이 없습니다.
+            </span>
+          ) : (
+            <>
+              <span className="flex-1 min-w-0 font-medium text-[14px] leading-[17px] tracking-[-0.02em] text-foreground truncate">
+                {coupon.code}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyCouponCode}
+                className="flex-shrink-0 min-w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-20 dark:hover:bg-neutral-30 transition-colors cursor-pointer px-1"
+                aria-label={copyState === "copied" ? "복사됨" : "쿠폰 코드 복사"}
+              >
+                {copyState === "copied" ? (
+                  <span className="text-[12px] font-medium text-primary-60 whitespace-nowrap">복사됨</span>
+                ) : (
+                  <CopyIcon />
+                )}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* 데스크탑 헤더 (md 이상에서만 보임) */}
       <div className="hidden md:flex mx-4 md:mx-7 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] mt-4 h-[40px] items-center pl-4 md:pl-10 pr-4 gap-3">
