@@ -39,29 +39,21 @@ function getWeekLabel(dateString: string): string {
   const firstDayOfWeek = firstDay.getDay(); // 0(일) ~ 6(토)
 
   // 해당 월에서 현재 주의 시작 요일(weekDay)과 같은 요일이 처음 나오는 날짜를 찾기
-  let firstOccurrence = 1;
-  if (firstDayOfWeek <= weekDay) {
-    firstOccurrence = 1 + (weekDay - firstDayOfWeek);
-  } else {
-    firstOccurrence = 1 + (7 - firstDayOfWeek + weekDay);
-  }
+  const firstOccurrence =
+    firstDayOfWeek <= weekDay
+      ? 1 + (weekDay - firstDayOfWeek)
+      : 1 + (7 - firstDayOfWeek + weekDay);
 
   // 첫 번째 발생일부터 현재 날짜까지 몇 주가 지났는지 계산
-  let weekNumber;
   if (dayOfMonth < firstOccurrence) {
     // 현재 날짜가 이번 달의 첫 번째 해당 요일보다 이전이면 이전 달 주차
     // 이 경우 이전 달로 표시해야 하지만, 간단하게 처리
     const prevMonth = month === 1 ? 12 : month - 1;
-    const prevMonthName = `${prevMonth}월`;
-    return `${prevMonthName} 마지막주`;
-  } else {
-    weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+    return `${prevMonth}월 마지막주`;
   }
 
-  const weekNames = ["첫째주", "둘째주", "셋째주", "넷째주", "다섯째주"];
-  const weekName = weekNames[weekNumber - 1] || `${weekNumber}째주`;
-
-  return `${month}월 ${weekName}`;
+  const weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+  return `${month}월 ${weekNumber}주`;
 }
 
 // 모바일용: 날짜로부터 "N월N주" 형식의 레이블을 생성하는 함수
@@ -78,25 +70,21 @@ function getWeekLabelMobile(dateString: string): string {
   const firstDayOfWeek = firstDay.getDay(); // 0(일) ~ 6(토)
 
   // 해당 월에서 현재 주의 시작 요일(weekDay)과 같은 요일이 처음 나오는 날짜를 찾기
-  let firstOccurrence = 1;
-  if (firstDayOfWeek <= weekDay) {
-    firstOccurrence = 1 + (weekDay - firstDayOfWeek);
-  } else {
-    firstOccurrence = 1 + (7 - firstDayOfWeek + weekDay);
-  }
+  const firstOccurrence =
+    firstDayOfWeek <= weekDay
+      ? 1 + (weekDay - firstDayOfWeek)
+      : 1 + (7 - firstDayOfWeek + weekDay);
 
   // 첫 번째 발생일부터 현재 날짜까지 몇 주가 지났는지 계산
-  let weekNumber;
   if (dayOfMonth < firstOccurrence) {
     // 현재 날짜가 이번 달의 첫 번째 해당 요일보다 이전이면 이전 달 주차
     // 이 경우 이전 달로 표시해야 하지만, 간단하게 처리
     const prevMonth = month === 1 ? 12 : month - 1;
-    return `${prevMonth}월마지막`;
-  } else {
-    weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+    return `${prevMonth}월 마지막주`;
   }
 
-  return `${month}월${weekNumber}주`;
+  const weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
+  return `${month}월 ${weekNumber}주`;
 }
 
 export default function StatsSection() {
@@ -304,7 +292,7 @@ export default function StatsSection() {
           <ResponsiveContainer width="100%" height="100%" minHeight={320} minWidth={0}>
             <AreaChart
               data={chartData}
-              margin={{ left: isMobile ? 12 : 46, right: 12, top: 42, bottom: 12 }}
+              margin={{ left: isMobile ? 12 : 46, right: isMobile ? 28 : 60, top: 42, bottom: 12 }}
               onMouseMove={(state) => {
                 if (state && state.isTooltipActive) {
                   const idx = state.activeTooltipIndex;
