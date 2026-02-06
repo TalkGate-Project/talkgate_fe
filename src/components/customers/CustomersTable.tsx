@@ -273,11 +273,14 @@ export default function CustomersTable({
 
   return (
     <>
-      <div className="overflow-hidden" style={{ width: "100%" }}>
-        <table className="w-full text-left border-collapse">
+      <div
+        className="overflow-x-auto w-full min-w-0"
+        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+      >
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-4 md:px-6 h-[40px] align-middle rounded-l-[8px]">
+              <th className="px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] whitespace-nowrap">
                 <div
                   className="flex items-center justify-center md:justify-start relative"
                   ref={dropdownRef}
@@ -317,7 +320,7 @@ export default function CustomersTable({
                   )}
                 </div>
               </th>
-              {/* 데스크탑: 모든 열 */}
+              {/* PC/모바일 동일: 모든 열 (모바일은 가로 스크롤로 확인) */}
               {[
                 "이름",
                 "신청경로",
@@ -331,7 +334,7 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  className={`hidden md:table-cell typo-title-4 font-medium px-4 h-[40px] ${
+                  className={`table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
                     idx === arr.length - 1 ? "rounded-r-[8px]" : ""
                   } ${h === "카테고리" ? "text-center" : ""} ${
                     h === "전체확인"
@@ -343,16 +346,6 @@ export default function CustomersTable({
                   {h}
                 </th>
               ))}
-              {/* 모바일: 이름, 카테고리, 담당자만 표시 */}
-              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px]">
-                이름
-              </th>
-              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px] text-center">
-                카테고리
-              </th>
-              <th className="md:hidden typo-title-4 font-medium px-1 h-[40px] rounded-r-[8px]">
-                담당자
-              </th>
             </tr>
           </thead>
           <tbody className="typo-body-3">
@@ -364,14 +357,9 @@ export default function CustomersTable({
                     key={`skeleton-${idx}`}
                     className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
                   >
-                    {/* 데스크탑: 모든 열 */}
                     <td
-                      className="hidden md:table-cell px-4 md:px-6"
-                      style={{
-                        height: "48px",
-                        paddingLeft: "24px",
-                        paddingRight: "24px",
-                      }}
+                      className="px-2 md:px-6"
+                      style={{ height: "48px" }}
                     >
                       <div className="flex items-center justify-start h-full">
                         <div className="w-6 h-6 bg-neutral-20 rounded" />
@@ -380,25 +368,7 @@ export default function CustomersTable({
                     {Array.from({ length: 9 }).map((_, colIdx) => (
                       <td
                         key={colIdx}
-                        className="hidden md:table-cell px-4"
-                        style={{ height: "48px" }}
-                      >
-                        <div
-                          className="h-4 bg-neutral-20 rounded"
-                          style={{ flex: 1 }}
-                        />
-                      </td>
-                    ))}
-                    {/* 모바일: 체크박스, 이름, 전화번호, 담당자 */}
-                    <td className="md:hidden px-4" style={{ height: "48px" }}>
-                      <div className="flex items-center justify-center h-full">
-                        <div className="w-6 h-6 bg-neutral-20 rounded" />
-                      </div>
-                    </td>
-                    {Array.from({ length: 3 }).map((_, colIdx) => (
-                      <td
-                        key={`mobile-${colIdx}`}
-                        className="md:hidden px-4"
+                        className="px-2 md:px-4"
                         style={{ height: "48px" }}
                       >
                         <div
@@ -416,13 +386,7 @@ export default function CustomersTable({
               <tr>
                 <td
                   colSpan={10}
-                  className="px-6 h-[72px] text-center text-red-500 md:table-cell"
-                >
-                  데이터를 불러오지 못했습니다
-                </td>
-                <td
-                  colSpan={4}
-                  className="md:hidden px-6 h-[72px] text-center text-red-500"
+                  className="px-2 md:px-6 h-[72px] text-center text-red-500"
                 >
                   데이터를 불러오지 못했습니다
                 </td>
@@ -471,7 +435,7 @@ export default function CustomersTable({
                       }
                     }}
                   >
-                    <td className="px-4 md:px-6 h-[48px]">
+                    <td className="px-2 md:px-6 h-[48px] whitespace-nowrap">
                       <div className="flex items-center justify-center md:justify-start h-full">
                         <Checkbox
                           checked={checked}
@@ -481,8 +445,7 @@ export default function CustomersTable({
                         />
                       </div>
                     </td>
-                    {/* 데스크탑: 모든 열 */}
-                    <td className="hidden md:table-cell px-6 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       <button
                         className="cursor-pointer text-inherit"
                         onClick={() => onCustomerClick(c.id)}
@@ -490,19 +453,19 @@ export default function CustomersTable({
                         {c.name || "-"}
                       </button>
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {c.applicationRoute || "-"}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {c.mediaCompany || "-"}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {c.site || "-"}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {c.assignedTeamName || "-"}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span>{c.assignedMemberName || "-"}</span>
                         {c.assignedMemberName && (
@@ -529,7 +492,7 @@ export default function CustomersTable({
                         )}
                       </div>
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 text-center">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap">
                       {(() => {
                         // 마지막 상담내용의 카테고리를 찾기
                         const notes = Array.isArray(c.recentNotes)
@@ -568,10 +531,10 @@ export default function CustomersTable({
                         );
                       })()}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle text-neutral-90 opacity-80">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                       {formatDateTime(c.applicationDate || c.createdAt)}
                     </td>
-                    <td className="hidden md:table-cell px-4 h-[48px] align-middle">
+                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
                       <div className="flex items-center justify-center">
                         {c.status !== "confirmed" &&
                         c.assignedMember?.id === myMemberId ? (
@@ -602,81 +565,6 @@ export default function CustomersTable({
                         ) : null}
                       </div>
                     </td>
-                    {/* 모바일: 이름, 카테고리, 담당자만 표시 */}
-                    <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
-                      <button
-                        className="cursor-pointer text-inherit"
-                        onClick={() => onCustomerClick(c.id)}
-                      >
-                        {c.name || "-"}
-                      </button>
-                    </td>
-                    <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 text-center">
-                      {(() => {
-                        // 마지막 상담내용의 카테고리를 찾기
-                        const notes = Array.isArray(c.recentNotes)
-                          ? c.recentNotes
-                          : [];
-
-                        // 상담/노트가 없는 경우에만 "-" 표시
-                        if (notes.length === 0)
-                          return <span className="opacity-80">-</span>;
-
-                        // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
-                        const sortedNotes = [...notes].sort(
-                          (a, b) =>
-                            new Date(b.createdAt).getTime() -
-                            new Date(a.createdAt).getTime()
-                        );
-                        const lastNote = sortedNotes[0];
-
-                        // 카테고리 정보 확인
-                        const categoryId = lastNote.categoryId;
-                        const category = categories.find(
-                          (cat) => cat.id === categoryId
-                        );
-                        const categoryName = category?.name || "일반";
-                        const badgeStyle = getBadgeStyle(
-                          categoryName,
-                          categoryId || 0
-                        );
-
-                        return (
-                          <span
-                            className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                          >
-                            {categoryName}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="md:hidden px-1 h-[48px] align-middle text-neutral-90 opacity-80">
-                      <div className="flex items-center gap-1">
-                        <span>{c.assignedMemberName || "-"}</span>
-                        {c.assignedMemberName && (
-                          <div className="flex items-center justify-center">
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 20 20"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
-                                fill={
-                                  c.status === "confirmed"
-                                    ? "#00E272"
-                                    : "#B0B0B0"
-                                }
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 );
               })}
@@ -684,13 +572,7 @@ export default function CustomersTable({
               <tr>
                 <td
                   colSpan={10}
-                  className="hidden md:table-cell px-6 h-[72px] text-center text-neutral-60"
-                >
-                  결과가 없습니다
-                </td>
-                <td
-                  colSpan={4}
-                  className="md:hidden px-6 h-[72px] text-center text-neutral-60"
+                  className="px-2 md:px-6 h-[72px] text-center text-neutral-60"
                 >
                   결과가 없습니다
                 </td>
