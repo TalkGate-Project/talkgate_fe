@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
+import { decryptToken } from '@/lib/crypto';
 
 /**
  * 2FA 로그인 API 엔드포인트
@@ -22,6 +23,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 암호화된 토큰을 복호화하여 원본 JWT 복원
+    let decryptedToken: string;
+    try {
+      decryptedToken = decryptToken(twoFactorToken);
+    } catch {
+      return NextResponse.json(
+        { message: '유효하지 않은 인증 토큰입니다.' },
+        { status: 400 }
+      );
+    }
+
     // API 서버로 2FA 로그인 요청 전달
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || (
       process.env.NODE_ENV === "production"
@@ -31,13 +43,14 @@ export async function POST(request: NextRequest) {
     const apiUrl = `${apiBaseUrl}/v1/auth/two-factor/login`;
     
     // 백엔드는 { twoFactorToken, totpCode } 형식을 기대함 (code가 아니라 totpCode!)
+    // 복호화된 원본 JWT를 백엔드에 전달
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
-        twoFactorToken, 
+        twoFactorToken: decryptedToken, 
         totpCode: finalTotpCode, // 백엔드는 totpCode를 기대함
       }),
     });

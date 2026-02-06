@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
+import { encryptToken } from '@/lib/crypto';
 
 /**
  * 소셜 로그인 API 엔드포인트
@@ -40,12 +41,12 @@ export async function POST(
     const accessToken = loginData?.accessToken;
     const refreshToken = loginData?.refreshToken;
 
-    // 2FA가 필요한 경우
+    // 2FA가 필요한 경우: 토큰을 암호화하여 반환 (URL 노출 방지)
     if (loginData?.twoFactorToken) {
       return NextResponse.json({
         success: true,
         requiresTwoFactor: true,
-        twoFactorToken: loginData.twoFactorToken,
+        twoFactorToken: encryptToken(loginData.twoFactorToken),
       });
     }
 
