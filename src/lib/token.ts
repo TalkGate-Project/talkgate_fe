@@ -57,7 +57,6 @@ function buildCookieAttributes(persistent: boolean): string {
 export function setRememberMePreference(enabled: boolean): void {
   if (typeof window === "undefined") return;
   try {
-    console.log("[Token] 💾 setRememberMePreference:", enabled);
     window.localStorage.setItem(REMEMBER_KEY, enabled ? "1" : "0");
   } catch (e) {
     console.error("[Token] ❌ setRememberMePreference 실패:", e);
@@ -68,7 +67,6 @@ export function getRememberMePreference(): boolean {
   if (typeof window === "undefined") return false;
   try {
     const value = window.localStorage.getItem(REMEMBER_KEY) === "1";
-    console.log("[Token] 📖 getRememberMePreference:", value);
     return value;
   } catch {
     return false;

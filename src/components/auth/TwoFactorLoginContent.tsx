@@ -46,13 +46,11 @@ function TwoFactorLoginContentInner() {
 
     setIsSubmitting(true);
     try {
-      console.log("[TwoFactorLogin] 🔑 2FA 로그인 요청 시작");
       const res = await AuthService.twoFactorLogin({
         twoFactorToken,
         totpCode,
       });
       
-      console.log("[TwoFactorLogin] 📥 2FA 로그인 응답:", res);
       const data = (res as any)?.data;
       
       // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
@@ -60,7 +58,6 @@ function TwoFactorLoginContentInner() {
       
       // 서버에서 프로젝트 ID를 반환했으면 저장
       if (data?.projectId != null) {
-        console.log("[TwoFactorLogin] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
         setSelectedProjectId(data.projectId);
       }
       
@@ -71,15 +68,10 @@ function TwoFactorLoginContentInner() {
       const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
       if (isAbsoluteUrl) {
         // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
         window.location.replace(redirectUrl);
       } else {
         // 상대 경로이거나 redirectUrl이 없는 경우
         // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-        if (redirectUrl) {
-          console.log("[TwoFactorLogin] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
-        }
-        console.log("[TwoFactorLogin] ✅ 2FA 인증 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
         window.location.replace("/projects");
       }
     } catch (err: any) {

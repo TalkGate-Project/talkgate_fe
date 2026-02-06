@@ -89,12 +89,6 @@ export default function CustomersActions({
       });
       const blob = blobRes.data;
 
-      // Blob 크기 확인 (디버깅용)
-      console.log("[Excel Download] Blob 수신:", {
-        size: blob.size,
-        type: blob.type,
-      });
-
       if (blob.size < 100) {
         console.warn(
           "[Excel Download] ⚠️ Blob 크기가 너무 작습니다:",

@@ -65,11 +65,6 @@ export function SignupForm() {
     
     if (urlEmail && urlStep === "verify") {
       // 로그인에서 리다이렉트된 경우: 이메일 인증 단계로 복원
-      console.log("[SignupForm] 📥 로그인에서 리다이렉트 - 이메일 인증 단계로 복원:", {
-        email: urlEmail,
-        step: urlStep,
-      });
-      
       // 모달 표시 플래그 설정 (중복 방지)
       modalShownRef.current = true;
       
@@ -106,19 +101,11 @@ export function SignupForm() {
         .then((result) => {
           // 이메일이 이미 가입되어 있다면 (available: false) = 이미 인증 완료
           if (!result.available) {
-            console.log("[SignupForm] ✅ 다른 디바이스에서 이미 인증 완료 - localStorage 정리:", {
-              email: pendingState.email,
-            });
             clearPendingSignupState();
             return;
           }
           
           // 아직 가입되지 않았다면 복구 진행
-          console.log("[SignupForm] 📥 저장된 회원가입 상태 복구:", {
-            email: pendingState.email,
-            step: pendingState.step,
-          });
-          
           // 모달 표시 플래그 설정 (중복 방지)
           modalShownRef.current = true;
           
@@ -138,7 +125,6 @@ export function SignupForm() {
           });
         })
         .catch((error) => {
-          console.error("[SignupForm] ❌ 이메일 상태 확인 실패:", error);
           // 에러 발생 시에도 복구 진행 (사용자 경험 우선)
           modalShownRef.current = true;
           setAccountEmail(pendingState.email);
@@ -190,12 +176,10 @@ export function SignupForm() {
           if (params.tokens) {
             // 토큰을 저장하고 본인인증 단계로 이동
             // ⚠️ 이메일 인증은 스킵하지만 본인인증은 진행해야 함
-            console.log("[SignupPage] 🎉 초대 플로우 - 이메일 인증 스킵, 본인인증 단계로 이동");
             setSignupTokens(params.tokens);
             setStep("profile");
           } else {
             // 토큰이 없는 경우 → 로그인 후 초대 수락으로 이동해야 함
-            console.log("[SignupPage] 🔑 초대 플로우 - 토큰 없음, 로그인 필요");
             window.location.href = "/login";
           }
           return;
@@ -217,11 +201,9 @@ export function SignupForm() {
     // 본인인증 완료 후
     if (isInviteFlow) {
       // 초대 플로우: 프로젝트 가입 페이지로 이동 (이름/전화번호 입력)
-      console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 가입 페이지로 이동 (초대 플로우)");
       window.location.href = "/project-signup";
     } else {
       // 일반 플로우: 프로젝트 가입 페이지 스킵하고 바로 프로젝트 선택 페이지로
-      console.log("[SignupPage] ✅ 본인인증 완료 → 프로젝트 선택 페이지로 이동 (일반 플로우)");
       window.location.href = "/projects";
     }
   };
@@ -230,11 +212,9 @@ export function SignupForm() {
     // 본인인증 스킵 후
     if (isInviteFlow) {
       // 초대 플로우: 프로젝트 가입 페이지로 이동
-      console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 가입 페이지로 이동 (초대 플로우)");
       window.location.href = "/project-signup";
     } else {
       // 일반 플로우: 프로젝트 가입 페이지 스킵하고 바로 프로젝트 선택 페이지로
-      console.log("[SignupPage] ⏭️ 본인인증 스킵 → 프로젝트 선택 페이지로 이동 (일반 플로우)");
       window.location.href = "/projects";
     }
   };

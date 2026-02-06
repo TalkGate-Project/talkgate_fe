@@ -58,11 +58,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           const stateData = JSON.parse(decodeURIComponent(stateParam));
           if (stateData?.returnUrl) {
             extractedReturnUrl = stateData.returnUrl;
-            console.log("[OAuthCallback] 📍 OAuth state에서 returnUrl 추출:", extractedReturnUrl);
           }
-        } catch (e) {
+        } catch {
           // JSON 파싱 실패 시 기존 방식 유지 (하위 호환성)
-          console.log("[OAuthCallback] ⚠️ state 파라미터 파싱 실패, 기존 방식 사용");
         }
       }
       
@@ -86,10 +84,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           const inviteInfo = JSON.parse(inviteBackup) as PendingInviteInfo;
           // localStorage에 복구
           savePendingInviteInfo(inviteInfo);
-          console.log("[OAuthCallback] 🔄 초대 정보 복구됨:", inviteInfo);
           setIsInviteFlow(true);
-        } catch (e) {
-          console.error("[OAuthCallback] 초대 정보 복구 실패:", e);
+        } catch {
+          // 초대 정보 복구 실패 시 무시
         }
         // 백업 삭제
         sessionStorage.removeItem("tg_invite_backup");
@@ -97,7 +94,6 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // localStorage에 이미 초대 정보가 있는지 확인
         const existingInvite = getPendingInviteInfo();
         if (existingInvite?.token) {
-          console.log("[OAuthCallback] ℹ️ 기존 초대 정보 감지:", existingInvite);
           setIsInviteFlow(true);
         }
       }

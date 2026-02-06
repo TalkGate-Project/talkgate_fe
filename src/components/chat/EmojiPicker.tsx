@@ -574,7 +574,9 @@ export default function EmojiPicker({
       const list = raw ? JSON.parse(raw) : [];
       if (Array.isArray(list) && list.every((e) => typeof e === "string"))
         return list as string[];
-    } catch {}
+    } catch {
+      // localStorage 접근 불가 또는 JSON 파싱 실패 시 무시
+    }
     return defaultFrequent;
   });
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -618,7 +620,9 @@ export default function EmojiPicker({
         );
         setRecent(defaultFrequent);
       }
-    } catch {}
+    } catch {
+      // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+    }
   }, []);
 
   const recentTop5 = useMemo(() => {
@@ -636,10 +640,14 @@ export default function EmojiPicker({
         const next = [emoji, ...prev.filter((e) => e !== emoji)].slice(0, 10);
         try {
           window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
-        } catch {}
+        } catch {
+          // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+        }
         return next;
       });
-    } catch {}
+    } catch {
+      // 상태 업데이트 실패 시 무시 (이모지 선택에는 영향 없음)
+    }
     onClose();
   };
 

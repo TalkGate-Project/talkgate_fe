@@ -34,7 +34,6 @@ export function SocialSignupForm() {
       window.history.pushState(null, "", window.location.href);
       
       // 안내 모달 표시
-      console.log("[SocialSignup] ⬅️ 뒤로가기 감지 - 안내 모달 표시");
       
       showErrorModal({
         type: "info",
@@ -67,18 +66,15 @@ export function SocialSignupForm() {
 
   // 약관 동의 완료
   const handleTermsComplete = () => {
-    console.log("[SocialSignup] ✅ 약관 동의 완료 → 휴대폰 본인인증 단계");
     setStep("phone");
   };
 
   // 휴대폰 인증 완료 또는 스킵
   const handlePhoneComplete = () => {
-    console.log("[SocialSignup] ✅ 휴대폰 인증 완료 → 프로젝트 가입 페이지로 이동");
     router.replace("/project-signup");
   };
 
   const handlePhoneSkip = () => {
-    console.log("[SocialSignup] ⏭️ 휴대폰 인증 스킵 → 프로젝트 가입 페이지로 이동");
     router.replace("/project-signup");
   };
 
@@ -93,34 +89,28 @@ export function SocialSignupForm() {
         const currentEmail = userData?.email?.toLowerCase();
         const inviteEmail = pendingInvite.email.toLowerCase();
         
-        console.log("[SocialSignup] 📧 이메일 비교:", { currentEmail, inviteEmail });
         
         if (currentEmail && inviteEmail && currentEmail !== inviteEmail) {
           // 이메일 불일치 → 모달 표시
-          console.log("[SocialSignup] ⚠️ 이메일 불일치 - 모달 표시");
           setLoggedInEmail(userData?.email);
           setShowWrongAccountModal(true);
           return;
         }
       } catch (err) {
-        console.error("[SocialSignup] 사용자 정보 조회 실패:", err);
         // 조회 실패 시에도 계속 진행 (초대 수락 페이지에서 다시 확인)
       }
       
       // 이메일 일치 또는 확인 불가 → 초대 수락 페이지로 이동
-      console.log("[SocialSignup] 🎉 초대 플로우 - 초대 수락 페이지로 이동");
       window.location.href = "/invite/accept";
       return;
     }
     
     // 일반 플로우 → 프로젝트 선택 페이지로 이동
-    console.log("[SocialSignup] 🎉 완료 - 프로젝트 선택으로 이동");
     router.replace("/projects");
   };
 
   // 잘못된 계정 모달에서 취소 클릭
   const handleWrongAccountCancel = () => {
-    console.log("[SocialSignup] ❌ 이메일 불일치 - 취소, 초대 정보 삭제");
     clearPendingInviteInfo();
     // 모달을 닫지 않고 바로 페이지 이동 (페이지 새로고침으로 모달도 자연스럽게 사라짐)
     // zoom 적용을 위해 전체 페이지 새로고침
@@ -129,7 +119,6 @@ export function SocialSignupForm() {
 
   // 잘못된 계정 모달에서 로그아웃 클릭
   const handleWrongAccountLogout = () => {
-    console.log("[SocialSignup] 🔓 이메일 불일치 - 로그아웃 후 재로그인");
     // 초대 정보는 유지 (로그아웃 후 재로그인 시 필요)
     performLogout({
       redirectUrl: "/login",

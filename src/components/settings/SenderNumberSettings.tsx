@@ -273,8 +273,7 @@ export default function SenderNumberSettings() {
   // 백엔드에서 자동으로 발신번호를 추가하므로 별도 API 호출 불필요
   const handlePersonalVerificationSuccess = useCallback(
     async (result: VerificationResult) => {
-      console.log("[SenderNumberSettings] ✅ 본인인증 성공:", result);
-      
+      void result; // 추후 필요 시 사용
       // 본인인증 상태를 다시 조회
       await refetchVerification();
       

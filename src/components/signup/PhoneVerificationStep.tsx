@@ -23,7 +23,6 @@ export function PhoneVerificationStep({
   // 본인인증 성공 핸들러
   const handleVerificationSuccess = useCallback(
     (result: VerificationResult) => {
-      console.log("[PhoneVerificationStep] ✅ 본인인증 성공:", result);
       onComplete();
     },
     [onComplete]

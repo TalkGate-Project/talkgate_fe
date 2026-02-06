@@ -53,7 +53,6 @@ export function LoginForm() {
     if (isInviteFlow && pendingInvite?.email && !hasCheckedEmailDuplicate && !checking) {
       const checkEmail = async () => {
         try {
-          console.log("[LoginPage] 📧 초대 플로우 - 이메일 중복 체크:", pendingInvite.email);
           const result = await SignupService.checkEmailAvailable({ email: pendingInvite.email });
           const isDuplicate = !result.available; // available이 false면 중복
           
@@ -118,7 +117,6 @@ export function LoginForm() {
     const isLogoutRedirect = searchParams.get('logout') === 'success';
     
     if (isLogoutRedirect) {
-      console.log("[LoginPage] 🚪 로그아웃 후 리다이렉트 - 로그인 폼 표시");
       const url = new URL(window.location.href);
       url.searchParams.delete('logout');
       window.history.replaceState({}, '', url.pathname + (url.search || ''));
@@ -130,7 +128,6 @@ export function LoginForm() {
     const hasTokenHint = hasAuthTokenHint();
     
     if (!hasTokenHint) {
-      console.log("[LoginPage] 🔍 인증 토큰 없음 - 로그인 폼 표시");
       setChecking(false);
       return;
     }
@@ -141,15 +138,12 @@ export function LoginForm() {
         // 이미 인증된 상태
         const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
         if (isAbsoluteUrl) {
-          console.log("[LoginPage] ✅ 이미 인증됨 + 절대 리디렉션 URL 있음 →", redirectUrl);
           window.location.replace(redirectUrl);
         } else {
-          console.log("[LoginPage] ✅ 이미 인증됨 → 프로젝트 선택으로 이동 (서브도메인 필수)");
           router.replace("/projects");
         }
       })
       .catch((err) => {
-        console.log("[LoginPage] ⚠️ 인증 확인 실패 - 로그인 폼 표시", err);
         setChecking(false);
       });
   };
@@ -160,7 +154,6 @@ export function LoginForm() {
     // bfcache에서 복원될 때 인증 상태 재확인 (뒤로가기 시)
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) {
-        console.log("[LoginPage] 🔄 bfcache에서 복원됨 - 인증 상태 재확인");
         setChecking(true);
         checkAuthAndRedirect();
       }
@@ -186,12 +179,9 @@ export function LoginForm() {
           setInvalid(false);
           setIsSubmitting(true);
           setRememberMePreference(autoLogin);
-          console.log("[LoginPage] 🔑 로그인 요청 시작:", { email, hasRedirectUrl: !!redirectUrl });
           AuthService.login({ email, password, rememberMe: autoLogin })
             .then((res) => {
-              console.log("[LoginPage] 📥 로그인 응답 전체:", res);
               const data = (res as any)?.data;
-              console.log("[LoginPage] 📦 추출된 data:", data);
               
               // Check if this is a 2FA required response
               if (data?.requiresTwoFactor && data?.twoFactorToken) {
@@ -199,20 +189,17 @@ export function LoginForm() {
                 const twoFactorUrl = redirectUrl 
                   ? `/login/two-factor?token=${data.twoFactorToken}&redirectUrl=${encodeURIComponent(redirectUrl)}`
                   : `/login/two-factor?token=${data.twoFactorToken}`;
-                console.log("[LoginPage] 🔐 2FA 필요 →", twoFactorUrl);
                 router.push(twoFactorUrl);
                 return;
               }
               
               // Normal login success
-              console.log("[LoginPage] ✅ 로그인 성공 확인");
               
               // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
               queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
               
               // 서버에서 프로젝트 ID를 반환했으면 저장 (나중에 프로젝트 선택 시 사용)
               if (data?.projectId != null) {
-                console.log("[LoginPage] 📁 서버에서 프로젝트 ID 받음:", data.projectId);
                 setSelectedProjectId(data.projectId);
               }
               
@@ -223,13 +210,11 @@ export function LoginForm() {
                 const loggedInEmail = email.toLowerCase();
                 
                 if (inviteEmail === loggedInEmail) {
-                  // 이메일 일치 → 프로젝트 가입 페이지로 이동 (이름/연락처 입력)
-                  console.log("[LoginPage] 🎉 초대 이메일 일치 → 프로젝트 가입 페이지로 이동");
+                  // 이메일 일치 → 프로젝트 가입 페이지로 이동 (이름/연락처 입력) 
                   window.location.href = "/project-signup";
                   return;
                 } else {
                   // 이메일 불일치 → 초대 정보 삭제 후 경고 표시
-                  console.log("[LoginPage] ⚠️ 초대 이메일 불일치:", { inviteEmail, loggedInEmail });
                   clearPendingInviteInfo();
                   showErrorModal({
                     title: "알림",
@@ -254,34 +239,20 @@ export function LoginForm() {
               const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
               if (isAbsoluteUrl) {
                 // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-                console.log("[LoginPage] ✅ 로그인 성공 + 절대 리디렉션 URL 있음 →", redirectUrl);
                 window.location.replace(redirectUrl);
               } else {
                 // 상대 경로이거나 redirectUrl이 없는 경우
                 // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-                if (redirectUrl) {
-                  console.log("[LoginPage] ⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
-                }
-                console.log("[LoginPage] ✅ 로그인 성공 → 프로젝트 선택으로 이동 (서브도메인 필수)");
                 window.location.replace("/projects");
               }
             })
             .catch((err: any) => {
-              console.error("[LoginPage] ❌ 로그인 실패:", err);
-              console.error("[LoginPage] ❌ 에러 상세:", {
-                status: err?.status,
-                code: err?.data?.code,
-                message: err?.data?.message,
-                error: err,
-              });
-              
               const status = err?.status;
               const code = err?.data?.code;
               const msg = String(err?.data?.message || "").toUpperCase();
               
               // EMAIL_NOT_VERIFIED 에러 처리 (403 또는 401)
               if ((status === 403 || status === 401) && (code === "EMAIL_NOT_VERIFIED" || msg.includes("EMAIL_NOT_VERIFIED") || msg.includes("EMAIL NOT VERIFIED"))) {
-                console.log("[LoginPage] 📧 이메일 인증 미완료 - 회원가입 페이지로 이동");
                 // 회원가입 페이지로 리다이렉트하면서 이메일과 verify step 정보 전달
                 const signupUrl = `/signup?email=${encodeURIComponent(email)}&step=verify`;
                 router.push(signupUrl);
@@ -422,7 +393,6 @@ export function LoginForm() {
             // 초대 정보가 있으면 sessionStorage에 백업 (OAuth 리다이렉트 후 복구용)
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
-              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
             // returnUrl을 OAuth state 파라미터에 포함하여 전달
             initiateSocialLogin("kakao", redirectUrl || undefined);
@@ -437,7 +407,6 @@ export function LoginForm() {
           onClick={() => {
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
-              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
             // returnUrl을 OAuth state 파라미터에 포함하여 전달
             initiateSocialLogin("naver", redirectUrl || undefined);
@@ -451,7 +420,6 @@ export function LoginForm() {
           onClick={() => {
             if (pendingInvite?.token) {
               sessionStorage.setItem("tg_invite_backup", JSON.stringify(pendingInvite));
-              console.log("[LoginPage] 💾 소셜 로그인 전 초대 정보 백업:", pendingInvite);
             }
             // returnUrl을 OAuth state 파라미터에 포함하여 전달
             initiateSocialLogin("google", redirectUrl || undefined);

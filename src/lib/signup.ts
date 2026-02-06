@@ -26,9 +26,9 @@ export function savePendingSignupState(state: Omit<PendingSignupState, 'timestam
       timestamp: Date.now(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithTimestamp));
-    console.log("[signup] 💾 회원가입 상태 저장:", { email: state.email, step: state.step });
-  } catch (error) {
-    console.error("[signup] ❌ 회원가입 상태 저장 실패:", error);
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+    // 저장 실패해도 회원가입 진행에 영향 없음
   }
 }
 
@@ -46,15 +46,12 @@ export function getPendingSignupState(): PendingSignupState | null {
     
     // 만료 체크 (24시간 경과 시 삭제)
     if (Date.now() - state.timestamp > EXPIRY_MS) {
-      console.log("[signup] ⏰ 저장된 회원가입 상태 만료 - 삭제");
       clearPendingSignupState();
       return null;
     }
     
-    console.log("[signup] 📥 저장된 회원가입 상태 복구:", { email: state.email, step: state.step });
     return state;
   } catch (error) {
-    console.error("[signup] ❌ 회원가입 상태 복구 실패:", error);
     clearPendingSignupState();
     return null;
   }
@@ -68,8 +65,7 @@ export function clearPendingSignupState(): void {
   
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log("[signup] 🗑️ 회원가입 상태 삭제");
-  } catch (error) {
-    console.error("[signup] ❌ 회원가입 상태 삭제 실패:", error);
+  } catch {
+    // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
   }
 }

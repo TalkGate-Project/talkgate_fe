@@ -140,13 +140,5 @@ export function deleteAuthCookies(
     // domain을 명시하지 않으면 현재 호스트 기준으로 삭제됨
     response.cookies.set(cookieName, '', deleteOptions);
   });
-
-  console.log('[Cookie Utils] 🍪 쿠키 삭제 헤더 추가 완료:', {
-    cookiesToDelete,
-    isProduction,
-    shouldUseSecure,
-    hostname,
-    deleteOptions,
-  });
 }
 

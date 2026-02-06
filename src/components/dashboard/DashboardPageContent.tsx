@@ -82,7 +82,6 @@ function DashboardContentInner() {
   useEffect(() => {
     if (!hasRefetchedRef.current && hasProject) {
       hasRefetchedRef.current = true;
-      console.log("[Dashboard] 🔄 대시보드 첫 진입 - 사용자 정보 refetch");
       queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
     }
   }, [hasProject, queryClient]);

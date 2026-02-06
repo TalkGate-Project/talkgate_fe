@@ -78,7 +78,9 @@ export function cleanupSessionBeforeLogin(): void {
       try {
         window.localStorage.removeItem(key);
         debugLog(`🗑️ localStorage 항목 삭제: ${key}`);
-      } catch {}
+      } catch {
+        // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
+      }
     });
   } catch (e) {
     debugLog("❌ localStorage 정리 실패", e);
@@ -188,6 +190,7 @@ export function getDebugState(): AuthDebugState | null {
     const stored = window.sessionStorage.getItem(DEBUG_STATE_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
+    // sessionStorage 접근 불가 또는 JSON 파싱 실패 시 무시
     return null;
   }
 }
@@ -202,6 +205,7 @@ export function getDebugLogs(): AuthDebugEntry[] {
     const stored = window.sessionStorage.getItem(DEBUG_LOG_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch {
+    // sessionStorage 접근 불가 또는 JSON 파싱 실패 시 무시
     return [];
   }
 }
@@ -235,7 +239,9 @@ export function clearDebugLogs(): void {
   try {
     window.sessionStorage.removeItem(DEBUG_LOG_KEY);
     window.sessionStorage.removeItem(DEBUG_STATE_KEY);
-  } catch {}
+  } catch {
+    // sessionStorage 접근 불가 환경에서는 무시
+  }
 }
 
 /**
