@@ -12,9 +12,9 @@ import { logger } from '@/lib/logger';
 const ALGORITHM = 'aes-256-gcm';
 
 function getEncryptionKey(): Buffer {
-  const key = process.env.TOKEN_ENCRYPTION_KEY;
+  const key = process.env.NEXT_PUBLIC_TOKEN_ENCRYPTION_KEY;
   if (!key) {
-    throw new Error('TOKEN_ENCRYPTION_KEY 환경변수가 설정되지 않았습니다.');
+    throw new Error('NEXT_PUBLIC_TOKEN_ENCRYPTION_KEY 환경변수가 설정되지 않았습니다.');
   }
   return Buffer.from(key, 'hex');
 }
