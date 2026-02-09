@@ -10,6 +10,7 @@ import { ProjectPartnersService } from "@/services/projectPartners";
 import { CouponsService } from "@/services/coupons";
 import type { ProjectPartner, ProjectPartnerStatus } from "@/types/projectPartners";
 import type { CouponInfo } from "@/types/coupons";
+import { formatCouponCodeForDisplay } from "@/utils/format";
 
 /** 상태 칩: 수락(Primary-10/80), 대기(Warning-10/60), 거절(Error-10/40) */
 function PartnerStatusBadge({ status }: { status: ProjectPartnerStatus }) {
@@ -182,7 +183,7 @@ export default function PartnerRegistrationSettings() {
   const handleCopyCouponCode = useCallback(async () => {
     if (!coupon?.code) return;
     try {
-      await navigator.clipboard.writeText(coupon.code);
+      await navigator.clipboard.writeText(formatCouponCodeForDisplay(coupon.code));
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 1500);
     } catch {
@@ -375,7 +376,7 @@ export default function PartnerRegistrationSettings() {
           ) : (
             <>
               <span className="flex-1 min-w-0 font-medium text-[14px] leading-[17px] tracking-[-0.02em] text-foreground truncate">
-                {coupon.code}
+                {formatCouponCodeForDisplay(coupon.code)}
               </span>
               <button
                 type="button"

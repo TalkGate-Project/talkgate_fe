@@ -238,4 +238,15 @@ export function formatPhoneInput(value: string): string {
   return formatPhoneNumber(numbers);
 }
 
+/**
+ * 쿠폰 코드를 유저 노출용으로 포맷합니다.
+ * 영문은 대문자로, 숫자/기타 문자는 그대로 유지합니다. (예: basic1 → BASIC1)
+ * @param code - 쿠폰 코드 문자열
+ * @returns 노출용 쿠폰 코드
+ */
+export function formatCouponCodeForDisplay(code: string): string {
+  if (code == null || typeof code !== "string") return "";
+  return code.toUpperCase();
+}
+
 
