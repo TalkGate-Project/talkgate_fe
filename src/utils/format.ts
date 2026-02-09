@@ -175,29 +175,65 @@ export function formatAmountKR(amount: number): string {
   return new Intl.NumberFormat("ko-KR").format(amount) + "원";
 }
 
+/** 서울 지역번호 (2자리). 9자리: 02-XXX-XXXX, 10자리: 02-XXXX-XXXX */
+const SEOUL_PREFIX = "02";
+/** 지역번호 (3자리, 10자리). 0XX-XXX-XXXX */
+const REGIONAL_PREFIXES = [
+  "031", "032", "033", "041", "042", "043", "044",
+  "051", "052", "053", "054", "055", "061", "062", "063", "064",
+];
+/** 휴대/인터넷전화 (3자리, 11자리). 010-XXXX-YYYY, 070-XXXX-YYYY */
+const MOBILE_PREFIXES = ["010", "070"];
+/** 구 이동통신 등 (3자리, 10자리). 0XX-XXX-XXXX */
+const LEGACY_10_PREFIXES = ["011", "016", "017", "018", "019"];
+
 /**
  * 전화번호를 하이픈이 포함된 형식으로 포맷합니다.
- * 숫자만 입력받아 자동으로 하이픈을 추가합니다.
+ * 대한민국 번호 체계(02, 지역번호, 010/070)에 맞춰 접두사·자리수별로 하이픈을 넣습니다.
+ * 인식 불가 번호는 하이픈 없이 숫자만 반환합니다.
  * @param value - 전화번호 (숫자만 포함된 문자열 또는 하이픈이 포함된 문자열)
- * @returns 포맷된 전화번호 문자열 (예: "010-1234-5678")
+ * @returns 포맷된 전화번호 문자열 (예: "02-1234-5678", "010-1234-5678")
  */
 export function formatPhoneNumber(value: string): string {
   if (!value) return "";
-  // 숫자만 추출
   const numbers = value.replace(/\D/g, "");
-  if (numbers.length <= 3) return numbers;
-  if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+  const len = numbers.length;
+  if (len <= 2) return numbers;
+
+  // 서울: 02 — 9자리(2-3-4), 10자리(2-4-4)
+  if (numbers.startsWith(SEOUL_PREFIX)) {
+    if (len <= 5) return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
+    if (len <= 9) return `${numbers.slice(0, 2)}-${numbers.slice(2, 5)}-${numbers.slice(5, 9)}`;
+    return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6, 10)}`;
+  }
+
+  // 휴대/인터넷: 010, 070 — 11자리(3-4-4)
+  const mobilePrefix = MOBILE_PREFIXES.find((p) => numbers.startsWith(p));
+  if (mobilePrefix && len >= 3) {
+    if (len <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+  }
+
+  // 지역번호·구 이동통신: 031~064, 011/016/017/018/019 — 10자리(3-3-4)
+  const regionalPrefix =
+    REGIONAL_PREFIXES.find((p) => numbers.startsWith(p)) ??
+    LEGACY_10_PREFIXES.find((p) => numbers.startsWith(p));
+  if (regionalPrefix && len >= 3) {
+    if (len <= 6) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+  }
+
+  // 인식 불가: 하이픈 없이 숫자만
+  return numbers;
 }
 
 /**
  * 전화번호 입력 핸들러에서 사용하는 함수입니다.
- * 숫자만 입력받아 하이픈이 포함된 형식으로 변환합니다.
+ * 숫자만 입력받아 대한민국 번호 체계에 맞게 하이픈을 넣습니다.
  * @param value - 입력된 값
  * @returns 포맷된 전화번호 문자열 (최대 11자리)
  */
 export function formatPhoneInput(value: string): string {
-  // 숫자만 추출하고 최대 11자리로 제한
   const numbers = value.replace(/\D/g, "").slice(0, 11);
   return formatPhoneNumber(numbers);
 }
