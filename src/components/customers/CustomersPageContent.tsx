@@ -273,6 +273,7 @@ function CustomersPageContentInner() {
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
             onShareSuccess={refetch}
+            onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
           />
         }

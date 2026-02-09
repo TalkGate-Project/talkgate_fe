@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { AssetsService } from "@/services/assets";
 import { SmsService } from "@/services/sms";
 import { showErrorModal } from "@/lib/errorModalEvents";
-import { formatPhoneInput, formatPhoneNumber } from "@/utils/format";
+import { formatPhoneInput } from "@/utils/format";
 
 interface CommonSenderNumberModalProps {
   isOpen: boolean;
@@ -85,7 +85,7 @@ export default function CommonSenderNumberModal({
       return;
     }
 
-    if (!file4) {
+    if (documentType === "manager" && !file4) {
       showErrorModal({
         type: "error",
         headline: "재직증명서를 첨부해주세요",
@@ -97,32 +97,31 @@ export default function CommonSenderNumberModal({
     setIsSubmitting(true);
 
     try {
-      // 1. 각 파일에 대한 Presigned URL 발급
-      const uploadPromises = [file1, file2, file3, file4].map(async (file) => {
-        // Presigned URL 요청
+      // 1. 각 파일에 대한 Presigned URL 발급 (대표자 선택 시 3개, 담당자 선택 시 4개)
+      const filesToUpload = documentType === "manager" ? [file1, file2, file3, file4!] : [file1, file2, file3];
+      const uploadPromises = filesToUpload.map(async (file) => {
         const presignRes = await AssetsService.presignSenderNumberDoc({
           fileName: file.name,
           fileType: file.type,
         });
 
         const { uploadUrl, fileUrl } = presignRes.data.data;
-
-        // S3에 파일 업로드
         await AssetsService.uploadToS3(uploadUrl, file, file.type);
-
         return fileUrl;
       });
 
-      const [url1, url2, url3, url4] = await Promise.all(uploadPromises);
+      const urls = await Promise.all(uploadPromises);
+      const [url1, url2, url3] = urls;
+      const url4 = documentType === "manager" ? urls[3] : undefined;
 
       // 2. 프로젝트 발신번호 등록 API 호출
-      const cleanedNumber = phoneNumber.replace(/-/g, ""); // 하이픈 제거
+      const cleanedNumber = phoneNumber.replace(/-/g, "");
       await SmsService.registerProjectSenderNumber({
         number: cleanedNumber,
         documentImage1: url1,
         documentImage2: url2,
         documentImage3: url3,
-        documentImage4: url4,
+        ...(url4 !== undefined && { documentImage4: url4 }),
       });
 
       showErrorModal({
@@ -238,7 +237,7 @@ export default function CommonSenderNumberModal({
                 const formatted = formatPhoneInput(e.target.value);
                 setPhoneNumber(formatted);
               }}
-              placeholder="010-1234-5678"
+              placeholder="02-1234-5678 또는 010-1234-5678"
               className="w-full h-[42px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] text-neutral-90 dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
             />
             <p className="mt-1.5 text-[12px] text-neutral-60 dark:text-neutral-60">
@@ -317,7 +316,10 @@ export default function CommonSenderNumberModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <button
                       type="button"
-                      onClick={() => setDocumentType("representative")}
+                      onClick={() => {
+                        setDocumentType("representative");
+                        setFile4(null);
+                      }}
                       className="cursor-pointer flex items-center justify-center w-5 h-5"
                       aria-label="대표자 신분증 사본 선택"
                     >
@@ -380,31 +382,33 @@ export default function CommonSenderNumberModal({
                 </div>
               </div>
 
-              {/* 서류 4 */}
-              <div>
-                <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-2">
-                  4. 재직증명서
-                </label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => fileInput4Ref.current?.click()}
-                    className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
-                  >
-                    파일선택
-                  </button>
-                  <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
-                    {file4 ? file4.name : "선택된 파일 없음"}
-                  </span>
-                  <input
-                    ref={fileInput4Ref}
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, setFile4)}
-                    className="hidden"
-                  />
+              {/* 서류 4: 담당자 신분증 선택 시에만 노출 */}
+              {documentType === "manager" && (
+                <div>
+                  <label className="block text-[14px] font-medium text-neutral-90 dark:text-neutral-80 mb-2">
+                    4. 재직증명서
+                  </label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => fileInput4Ref.current?.click()}
+                      className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-medium text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
+                    >
+                      파일선택
+                    </button>
+                    <span className="text-[14px] text-neutral-60 dark:text-neutral-60 truncate min-w-0 flex-1">
+                      {file4 ? file4.name : "선택된 파일 없음"}
+                    </span>
+                    <input
+                      ref={fileInput4Ref}
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileChange(e, setFile4)}
+                      className="hidden"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

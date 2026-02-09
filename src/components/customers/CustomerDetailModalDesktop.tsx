@@ -306,42 +306,79 @@ export default function CustomerDetailModalDesktop({
       </div>
 
       {/* Footer - 모달 하단에 고정 */}
-      <div className="flex-none flex justify-end items-center gap-2 pt-2 border-t border-neutral-30 dark:border-neutral-30">
+      <div className="flex-none flex justify-between items-center gap-2 -mx-7 px-7 pt-2 border-t border-neutral-30 dark:border-neutral-30">
         {loading || !detail ? (
           <div className="h-[34px]" />
         ) : (
           <>
+            {/* 좌측: 삭제 버튼 */}
             <button
-              className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-                }`}
-              onClick={actions.resetForm}
-              disabled={!hasChanges}
-            >
-              초기화
-            </button>
-            <button
-              className={`h-[34px] px-4 rounded-[5px] text-body-3 ${canSave
-                  ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
-                  : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
-                }`}
+              className="h-[34px] w-[34px] flex items-center justify-center rounded-[5px] cursor-pointer hover:bg-neutral-20 dark:hover:bg-neutral-20 transition-colors"
               onClick={() => {
-                actions.saveForm().then(() => {
-                  onRefetch?.();
-                  onClose();
-                }).catch((e: any) => {
-                  showErrorModal({
-                    title: "오류 발생",
-                    headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
-                    confirmText: "확인",
-                    cancelText: null,
-                    hideCancel: true,
-                  });
+                showConfirmModal({
+                  title: "고객 삭제",
+                  headline: "해당 고객을 삭제하시겠습니까?",
+                  message: "삭제된 고객 정보는 복구할 수 없습니다.",
+                  type: "warning",
+                  confirmText: "삭제",
+                  cancelText: "취소",
+                  onConfirm: async () => {
+                    try {
+                      const pid = getSelectedProjectId();
+                      if (!pid || !customerId) return;
+                      await CustomersService.remove(String(customerId)).withProject(pid);
+                      onRefetch?.();
+                      onClose();
+                    } catch {
+                      showErrorModalEvent({
+                        title: "오류 발생",
+                        headline: "고객 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+                        confirmText: "확인",
+                      });
+                    }
+                  },
                 });
               }}
-              disabled={!canSave}
             >
-              적용완료
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
+
+            {/* 우측: 초기화 + 적용완료 */}
+            <div className="flex items-center gap-2">
+              <button
+                className={`h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-body-3 text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${hasChanges ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+                  }`}
+                onClick={actions.resetForm}
+                disabled={!hasChanges}
+              >
+                초기화
+              </button>
+              <button
+                className={`h-[34px] px-4 rounded-[5px] text-body-3 ${canSave
+                    ? "cursor-pointer bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
+                    : "cursor-not-allowed bg-neutral-40 dark:bg-neutral-40 text-neutral-60 dark:text-neutral-60"
+                  }`}
+                onClick={() => {
+                  actions.saveForm().then(() => {
+                    onRefetch?.();
+                    onClose();
+                  }).catch((e: any) => {
+                    showErrorModal({
+                      title: "오류 발생",
+                      headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
+                      confirmText: "확인",
+                      cancelText: null,
+                      hideCancel: true,
+                    });
+                  });
+                }}
+                disabled={!canSave}
+              >
+                적용완료
+              </button>
+            </div>
           </>
         )}
       </div>
