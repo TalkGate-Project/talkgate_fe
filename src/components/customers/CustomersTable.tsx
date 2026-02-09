@@ -277,7 +277,20 @@ export default function CustomersTable({
         className="overflow-x-auto w-full min-w-0"
         style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
-        <table className="w-full min-w-[900px] text-left border-collapse">
+        <table className="w-full min-w-[900px] text-left border-collapse table-fixed">
+          <colgroup>
+            <col style={{ width: "6%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "8%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "8%" }} />
+          </colgroup>
           <thead>
             <tr className="bg-neutral-20 text-neutral-60">
               <th className="px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] whitespace-nowrap">
@@ -297,10 +310,10 @@ export default function CustomersTable({
                     />
                   </div>
                   {dropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] shadow-lg z-50 min-w-[176px]">
+                    <div className="absolute top-full left-0 mt-1 w-[240px] min-w-[240px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] shadow-lg z-50 flex flex-col">
                       <button
                         onClick={handleSelectAllList}
-                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors"
+                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors whitespace-nowrap"
                       >
                         전체 목록 선택&nbsp;
                         <span className="text-neutral-60">
@@ -309,7 +322,7 @@ export default function CustomersTable({
                       </button>
                       <button
                         onClick={handleSelectAllPage}
-                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-t border-neutral-30 dark:border-neutral-30"
+                        className="cursor-pointer w-full h-[48px] text-left px-4 py-2 text-[14px] text-neutral-90 dark:text-neutral-90 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors border-t border-neutral-30 dark:border-neutral-30 whitespace-nowrap"
                       >
                         현재 페이지 선택&nbsp;
                         <span className="text-neutral-60">
@@ -334,6 +347,7 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
+                  colSpan={h === "담당자" ? 2 : 1}
                   className={`table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
                     idx === arr.length - 1 ? "rounded-r-[8px]" : ""
                   } ${h === "카테고리" ? "text-center" : ""} ${
@@ -358,7 +372,7 @@ export default function CustomersTable({
                     className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
                   >
                     <td
-                      className="px-2 md:px-6"
+                      className="px-2 pr-4 md:pr-6 md:px-6 min-w-[48px] overflow-visible"
                       style={{ height: "48px" }}
                     >
                       <div className="flex items-center justify-start h-full">
@@ -435,7 +449,7 @@ export default function CustomersTable({
                       }
                     }}
                   >
-                    <td className="px-2 md:px-6 h-[48px] whitespace-nowrap">
+                    <td className="px-2 pr-4 md:pr-6 md:px-6 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
                       <div className="flex items-center justify-center md:justify-start h-full">
                         <Checkbox
                           checked={checked}
