@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AssetsService } from "@/services/assets";
 import { SmsService } from "@/services/sms";
 import { showErrorModal } from "@/lib/errorModalEvents";
-import { formatPhoneInput } from "@/utils/format";
+import { formatPhoneInput, getPhoneFormatCursorPosition } from "@/utils/format";
 
 interface CommonSenderNumberModalProps {
   isOpen: boolean;
@@ -34,6 +34,34 @@ export default function CommonSenderNumberModal({
   const fileInput2Ref = useRef<HTMLInputElement>(null);
   const fileInput3Ref = useRef<HTMLInputElement>(null);
   const fileInput4Ref = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const nextCursorRef = useRef<number | null>(null);
+  const prevOpenRef = useRef(false);
+
+  // 모달이 열릴 때만 폼 초기화 (닫았다 다시 열면 번호·파일·선택 초기화)
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) {
+      setPhoneNumber("");
+      setDocumentType("manager");
+      setFile1(null);
+      setFile2(null);
+      setFile3(null);
+      setFile4(null);
+      [fileInput1Ref, fileInput2Ref, fileInput3Ref, fileInput4Ref].forEach((ref) => {
+        if (ref.current) ref.current.value = "";
+      });
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  // 포맷 적용 후 커서 위치 복원 (백스페이스 등에서 자연스럽게 동작하도록)
+  useEffect(() => {
+    if (phoneInputRef.current && nextCursorRef.current !== null) {
+      const pos = nextCursorRef.current;
+      phoneInputRef.current.setSelectionRange(pos, pos);
+      nextCursorRef.current = null;
+    }
+  }, [phoneNumber]);
 
   if (!isOpen) return null;
 
@@ -231,11 +259,16 @@ export default function CommonSenderNumberModal({
               발신번호
             </label>
             <input
+              ref={phoneInputRef}
               type="text"
               value={phoneNumber}
               onChange={(e) => {
-                const formatted = formatPhoneInput(e.target.value);
+                const raw = e.target.value;
+                const selectionStart = e.target.selectionStart ?? raw.length;
+                const digitsBeforeCursor = raw.slice(0, selectionStart).replace(/\D/g, "").length;
+                const formatted = formatPhoneInput(raw);
                 setPhoneNumber(formatted);
+                nextCursorRef.current = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
               }}
               placeholder="02-1234-5678 또는 010-1234-5678"
               className="w-full h-[42px] px-4 rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] text-neutral-90 dark:text-neutral-80 placeholder:text-neutral-40 dark:placeholder:text-neutral-50 focus:outline-none focus:border-neutral-60 dark:focus:border-neutral-60"

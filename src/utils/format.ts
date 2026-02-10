@@ -239,6 +239,27 @@ export function formatPhoneInput(value: string): string {
 }
 
 /**
+ * 포맷된 전화번호 문자열에서, "커서 앞에 있는 숫자 개수"에 해당하는 커서 위치를 구합니다.
+ * 입력 필드에서 백스페이스 등 후 포맷을 다시 적용했을 때 커서를 올바른 자리에 두기 위해 사용합니다.
+ * @param formatted - 하이픈이 포함된 전화번호 문자열
+ * @param digitsBeforeCursor - 커서 앞에 있어야 할 숫자(0-9)의 개수
+ * @returns 커서를 둘 위치 (0 ~ formatted.length)
+ */
+export function getPhoneFormatCursorPosition(
+  formatted: string,
+  digitsBeforeCursor: number
+): number {
+  let digits = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (/\d/.test(formatted[i])) {
+      digits++;
+      if (digits === digitsBeforeCursor) return i + 1;
+    }
+  }
+  return formatted.length;
+}
+
+/**
  * 쿠폰 코드를 유저 노출용으로 포맷합니다.
  * 영문은 대문자로, 숫자/기타 문자는 그대로 유지합니다. (예: basic1 → BASIC1)
  * @param code - 쿠폰 코드 문자열
