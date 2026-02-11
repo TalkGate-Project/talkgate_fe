@@ -261,7 +261,7 @@ export default function SecurityTab() {
           보안 설정
         </h1>
 
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
 
         <div className="px-4 md:px-7 py-3 md:py-[30px] h-[90px] md:h-auto">
           <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
@@ -301,7 +301,7 @@ export default function SecurityTab() {
             </div>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
       </div>
 
       {/* Second Box - Change Password */}
@@ -329,7 +329,7 @@ export default function SecurityTab() {
             </button>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
       </div>
 
       {/* Third Box - Delete Account */}

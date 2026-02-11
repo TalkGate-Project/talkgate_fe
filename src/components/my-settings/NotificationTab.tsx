@@ -80,7 +80,7 @@ export default function NotificationTab() {
         알림 설정
       </h1>
 
-      <div className="border-b border-[#E2E2E266]"></div>
+      <div className="border-b border-[#e9e9e9] dark:!border-[#44444455]"></div>
 
       {/* Notification Settings */}
       <div className="px-6 md:px-7 py-4 md:py-6">
@@ -103,7 +103,7 @@ export default function NotificationTab() {
         </div>
 
         {/* Divider */}
-        <div className="w-full border-b border-[#E2E2E266] my-4 md:my-4"></div>
+        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-4 md:my-4"></div>
 
         {/* 새로운 소식 */}
         <div className="flex items-center justify-between py-4">

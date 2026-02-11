@@ -186,7 +186,7 @@ export default function BillingTab() {
         </div>
 
         {/* 구분선 */}
-        <div className="w-full h-[1px] bg-border opacity-70"></div>
+        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455]"></div>
 
         <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-9">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}

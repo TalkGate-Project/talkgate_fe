@@ -276,7 +276,7 @@ export default function ProfileTab() {
         </div>
       </div>
 
-      <div className="border-b border-[#E2E2E266]"></div>
+      <div className="border-b border-[#e9e9e9] dark:!border-[#44444455]"></div>
 
       {/* Sub-title and Verification Button Row - 데스크탑에서만 표시 */}
       <div className="hidden md:flex px-7 py-6 items-start justify-between mb-1">
@@ -294,10 +294,10 @@ export default function ProfileTab() {
       </div>
 
       {/* Divider */}
-      <div className="hidden md:block mx-4 md:mx-7 h-[1px] bg-border mb-6 md:mb-8"></div>
+      <div className="hidden md:block mx-4 md:mx-7 h-[1px] bg-border dark:!bg-[#44444455] mb-6 md:mb-8"></div>
 
       {/* Avatar - Full width centered */}
-      <div className="flex flex-col items-center justify-center mb-6 md:mb-8 gap-3">
+      <div className="flex flex-col items-center justify-center mt-6 md:mt-0 mb-6 md:mb-8 gap-3">
         <div className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-full bg-neutral-60 flex items-center justify-center overflow-hidden relative">
           {user?.profileImageUrl ? (
             <img
