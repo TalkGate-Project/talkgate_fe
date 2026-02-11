@@ -309,7 +309,7 @@ export default function SalesTab({
         </div>
         {/* 웹: 기존 그리드 유지 */}
         <div className="hidden md:block">
-          <div className="subdescription text-[14px] text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-2 gap-6">
+          <div className="subdescription text-[14px] text-neutral-60 dark:text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-2 gap-6">
             <span>날짜</span>
             <span>금액</span>
           </div>
@@ -424,9 +424,9 @@ export default function SalesTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           {/* 날짜 */}
           <div>
-            <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60">
-              날짜
-            </div>
+          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
+            날짜
+          </div>
             <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-2 h-[34px]">
               <div className="relative h-[34px]">
                 <DatePicker
@@ -462,9 +462,9 @@ export default function SalesTab({
 
           {/* 컬러 */}
           <div>
-            <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60">
-              컬러
-            </div>
+          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
+            컬러
+          </div>
             <div className="flex items-center gap-2 h-[34px]">
               {[
                 { hex: "#00E272", cls: "bg-primary-60" },
@@ -499,7 +499,7 @@ export default function SalesTab({
 
         {/* 일정내용 */}
         <div>
-          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60">
+          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
             일정내용
           </div>
           <div className="flex gap-2">
