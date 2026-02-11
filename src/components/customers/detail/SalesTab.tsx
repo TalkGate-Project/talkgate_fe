@@ -237,17 +237,17 @@ export default function SalesTab({
             매출 내역
           </div>
         </div>
-        <div className="subdescription text-[14px] text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <span>날짜</span>
-          <span>금액</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="grid grid-cols-[180px_minmax(0,1fr)] gap-2">
+        {/* 모바일: label + input 구역별 배치 */}
+        <div className="md:hidden space-y-4 mb-4">
+          <label className="block">
+            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+              날짜
+            </span>
             <div className="relative h-[34px]">
               <DatePicker
                 value={paymentDate}
                 onChange={setPaymentDate}
-                className="h-[34px] pr-9 font-medium"
+                className="h-[34px] w-full pr-9 font-medium"
               />
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
                 <svg
@@ -267,15 +267,20 @@ export default function SalesTab({
                 </svg>
               </div>
             </div>
+          </label>
+          <label className="block">
+            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+              금액
+            </span>
             <input
               value={paymentAmount}
               onChange={(e) =>
                 setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="금액을 입력하세요."
-              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
-          </div>
+          </label>
           <div className="grid grid-cols-[140px_minmax(0,1fr)_auto] gap-2">
             <SelectField
               value={paymentMethod}
@@ -300,6 +305,74 @@ export default function SalesTab({
             >
               추가
             </button>
+          </div>
+        </div>
+        {/* 웹: 기존 그리드 유지 */}
+        <div className="hidden md:block">
+          <div className="subdescription text-[14px] text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-2 gap-6">
+            <span>날짜</span>
+            <span>금액</span>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-[180px_minmax(0,1fr)] gap-2">
+              <div className="relative h-[34px]">
+                <DatePicker
+                  value={paymentDate}
+                  onChange={setPaymentDate}
+                  className="h-[34px] pr-9 font-medium"
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <input
+                value={paymentAmount}
+                onChange={(e) =>
+                  setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
+                }
+                placeholder="금액을 입력하세요."
+                className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              />
+            </div>
+          <div className="grid grid-cols-[140px_minmax(0,1fr)_auto] gap-2">
+            <SelectField
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="h-[34px] rounded-[5px] text-[14px] font-medium"
+            >
+              {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </SelectField>
+            <input
+              value={paymentDesc}
+              onChange={(e) => setPaymentDesc(e.target.value)}
+              placeholder="설명을 입력하세요."
+              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+            />
+            <button
+              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
+              onClick={handleAddPayment}
+            >
+              추가
+            </button>
+          </div>
           </div>
         </div>
 
@@ -451,38 +524,65 @@ export default function SalesTab({
             const normalizedColor = sc.colorCode 
               ? (sc.colorCode.startsWith("#") ? sc.colorCode : `#${sc.colorCode}`)
               : "#00E272";
+
+            const deleteButton = (
+              <button
+                className="cursor-pointer w-5 h-5 shrink-0 grid place-items-center rounded-full bg-[#000] dark:bg-neutral-80 text-white dark:text-neutral-20 text-[16px] leading-[1]"
+                onClick={() => {
+                  showConfirmModal({
+                    title: "확인",
+                    message: "일정을 삭제하시겠습니까?",
+                    confirmText: "삭제",
+                    cancelText: "취소",
+                    onConfirm: () => onRemoveSchedule(sc.id),
+                  });
+                }}
+              >
+                ×
+              </button>
+            );
             
             return (
               <div
                 key={sc.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]"
+                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 text-[14px]"
               >
-                
-                <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">
-                  {formatScheduleTime(sc.scheduleTime)}
-                </span>
-                <span
-                  className="w-4 h-4 rounded-full shrink-0"
-                  style={{ backgroundColor: normalizedColor }}
-                />
-                <span className="text-ink dark:text-neutral-80 flex-1 truncate">{sc.description}</span>
-                <span className="ml-auto text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
-                  {formatCreatedAt(sc.createdAt)}
-                </span>
-                <button
-                  className="cursor-pointer ml-2 w-5 h-5 grid place-items-center rounded-full bg-[#000] dark:bg-neutral-80 text-white dark:text-neutral-20 text-[16px] leading-[1]"
-                  onClick={() => {
-                    showConfirmModal({
-                      title: "확인",
-                      message: "일정을 삭제하시겠습니까?",
-                      confirmText: "삭제",
-                      cancelText: "취소",
-                      onConfirm: () => onRemoveSchedule(sc.id),
-                    });
-                  }}
-                >
-                  ×
-                </button>
+                {/* 모바일: 날짜/일정내용 2줄 + 삭제버튼 안쪽 */}
+                <div className="md:hidden flex flex-col gap-1">
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">
+                        {formatScheduleTime(sc.scheduleTime)}
+                      </span>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span
+                          className="w-3 h-3 rounded-full shrink-0"
+                          style={{ backgroundColor: normalizedColor }}
+                        />
+                        <span className="text-ink dark:text-neutral-80 text-[12px] truncate max-w-[120px]">{sc.description}</span>
+                      </div>
+                    </div>
+                    <span className="mt-0.75 text-neutral-60 dark:text-neutral-60 text-[12px] flex-1 min-w-0 truncate">{formatCreatedAt(sc.createdAt)}</span>
+                    <div className="h-full flex items-center justify-center min-h-[52px]">
+                    {deleteButton}
+                    </div>
+                  </div>
+                </div>
+                {/* 웹: 기존 가로 배치 유지 */}
+                <div className="hidden md:flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">
+                    {formatScheduleTime(sc.scheduleTime)}
+                  </span>
+                  <span
+                    className="w-4 h-4 rounded-full shrink-0"
+                    style={{ backgroundColor: normalizedColor }}
+                  />
+                  <span className="text-ink dark:text-neutral-80 flex-1 truncate">{sc.description}</span>
+                  <span className="ml-auto text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+                    {formatCreatedAt(sc.createdAt)}
+                  </span>
+                  {deleteButton}
+                </div>
               </div>
             );
           })}
