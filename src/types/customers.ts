@@ -235,7 +235,33 @@ export type UpdateCustomerResponse = {
   data: CustomerListItem;
 };
 
-// Delete requires x-project-id header; use method args rather than body
+// Bulk delete customers
+export type DeleteCustomersFilterConditions = {
+  name?: string;
+  contact1?: string;
+  contact2?: string;
+  noteContent?: string;
+  assignType?: "all" | string;
+  teamId?: number;
+  memberId?: number;
+  applicationRoute?: string;
+  mediaCompany?: string;
+  site?: string;
+  categoryIds?: (number | string)[];
+  applicationDateFrom?: string;
+  applicationDateTo?: string;
+  assignedAtFrom?: string;
+  assignedAtTo?: string;
+  projectPartnerId?: number;
+};
+
+export type BulkDeleteCustomersInput = {
+  deleteType: "ids" | "filter";
+  customerIds?: number[];
+  filterConditions?: DeleteCustomersFilterConditions;
+  expectedCount?: number;
+  projectId: string; // header: x-project-id
+};
 
 // Assign customers
 export type AssignCustomersFilterConditions = {

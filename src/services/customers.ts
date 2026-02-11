@@ -22,6 +22,7 @@ import {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkDeleteCustomersInput,
   UnassignCustomersInput,
   UnassignCustomersResponse,
   ConfirmCustomerResponse,
@@ -69,15 +70,12 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
-  // 고객 삭제 (Admin)
-  remove(customerId: string) {
-    return {
-      withProject(projectId: string) {
-        return apiClient.delete<void>(`/v1/customers/${customerId}`, {
-          headers: { "x-project-id": projectId },
-        });
-      },
-    } as const;
+  // 고객 일괄 삭제 (Admin 또는 SubAdmin)
+  bulkDelete(input: BulkDeleteCustomersInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<BasicSuccessResponse>(`/v1/customers/bulk-delete`, body, {
+      headers: { "x-project-id": projectId },
+    });
   },
   // 고객 할당 (Admin 또는 팀장)
   assign(input: AssignCustomersInput) {
@@ -196,6 +194,8 @@ export type {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkDeleteCustomersInput,
+  DeleteCustomersFilterConditions,
   UnassignCustomersInput,
   UnassignCustomersResponse,
   ConfirmCustomerResponse,

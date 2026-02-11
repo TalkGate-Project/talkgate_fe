@@ -311,7 +311,11 @@ export default function CustomerDetailModalMobile({
                     try {
                       const pid = getSelectedProjectId();
                       if (!pid || !customerId) return;
-                      await CustomersService.remove(String(customerId)).withProject(pid);
+                      await CustomersService.bulkDelete({
+                        projectId: pid,
+                        deleteType: "ids",
+                        customerIds: [customerId],
+                      });
                       onRefetch?.();
                       onClose();
                     } catch {

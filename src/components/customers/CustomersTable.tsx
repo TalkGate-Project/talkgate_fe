@@ -788,7 +788,7 @@ export default function CustomersTable({
               <tr>
                 <td
                   colSpan={11}
-                  className="px-2 md:px-6 h-[72px] text-center text-neutral-60"
+                  className="px-2 md:px-6 pt-10 pb-10 min-h-[200px] text-center text-neutral-60"
                 >
                   결과가 없습니다
                 </td>

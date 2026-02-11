@@ -5,6 +5,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import CustomerShareModal from "@/components/customers/CustomerShareModal";
 import CustomerExcelUploadModal from "@/components/customers/CustomerExcelUploadModal";
+import type { DeleteCustomersFilterConditions } from "@/types/customers";
 
 type CustomersActionsProps = {
   projectId: string;
@@ -22,6 +23,41 @@ type CustomersActionsProps = {
   /** 데이터 제공자일 때만 파트너배정 버튼 표시 (기본 비노출) */
   isDataProvider?: boolean;
 };
+
+function buildDeleteFilterConditions(
+  appliedFilters?: Record<string, unknown>
+): DeleteCustomersFilterConditions {
+  if (!appliedFilters || Object.keys(appliedFilters).length === 0) {
+    return {};
+  }
+
+  const f = appliedFilters as Record<string, unknown>;
+  const conditions: DeleteCustomersFilterConditions = {};
+
+  if (typeof f.name === "string") conditions.name = f.name;
+  if (typeof f.contact1 === "string") conditions.contact1 = f.contact1;
+  if (typeof f.contact2 === "string") conditions.contact2 = f.contact2;
+  if (typeof f.noteContent === "string") conditions.noteContent = f.noteContent;
+  if (f.assignType != null) conditions.assignType = String(f.assignType);
+  if (typeof f.teamId === "number") conditions.teamId = f.teamId;
+  if (typeof f.memberId === "number") conditions.memberId = f.memberId;
+  if (typeof f.applicationRoute === "string") conditions.applicationRoute = f.applicationRoute;
+  if (typeof f.mediaCompany === "string") conditions.mediaCompany = f.mediaCompany;
+  if (typeof f.site === "string") conditions.site = f.site;
+  if (Array.isArray(f.categoryIds)) {
+    conditions.categoryIds = f.categoryIds.map((id) => (id === null ? "null" : id)) as (
+      | number
+      | string
+    )[];
+  }
+  if (typeof f.applicationDateFrom === "string") conditions.applicationDateFrom = f.applicationDateFrom;
+  if (typeof f.applicationDateTo === "string") conditions.applicationDateTo = f.applicationDateTo;
+  if (typeof f.assignedAtFrom === "string") conditions.assignedAtFrom = f.assignedAtFrom;
+  if (typeof f.assignedAtTo === "string") conditions.assignedAtTo = f.assignedAtTo;
+  if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
+
+  return Object.keys(conditions).length > 0 ? conditions : {};
+}
 
 export default function CustomersActions({
   projectId,
@@ -140,51 +176,6 @@ export default function CustomersActions({
 
   const deleteCount = selectionMode === "all" ? total : selectedIds.length;
 
-  /** 전체 목록 선택 시 필터 조건으로 삭제할 고객 ID 목록을 페이지네이션으로 조회 */
-  const fetchAllFilteredCustomerIds = async (): Promise<number[]> => {
-    const limit = 100;
-    let page = 1;
-    const ids: number[] = [];
-    const baseQuery: Record<string, any> = {
-      projectId,
-      name: appliedFilters?.name,
-      contact1: appliedFilters?.contact1,
-      contact2: appliedFilters?.contact2,
-      noteContent: appliedFilters?.noteContent,
-      teamId: appliedFilters?.teamId,
-      memberId: appliedFilters?.memberId,
-      applicationRoute: appliedFilters?.applicationRoute,
-      mediaCompany: appliedFilters?.mediaCompany,
-      site: appliedFilters?.site,
-      applicationDateFrom: appliedFilters?.applicationDateFrom,
-      applicationDateTo: appliedFilters?.applicationDateTo,
-      assignedAtFrom: appliedFilters?.assignedAtFrom,
-      assignedAtTo: appliedFilters?.assignedAtTo,
-    };
-    if (
-      appliedFilters?.categoryIds &&
-      Array.isArray(appliedFilters.categoryIds) &&
-      appliedFilters.categoryIds.length > 0
-    ) {
-      baseQuery.categoryIds = appliedFilters.categoryIds.map((id: number | null) =>
-        id === null ? "null" : id
-      );
-    }
-    while (true) {
-      const res = await CustomersService.list({
-        ...baseQuery,
-        page,
-        limit,
-      } as any);
-      const list = res.data?.data?.customers ?? [];
-      const totalCount = res.data?.data?.total ?? 0;
-      list.forEach((c: { id: number }) => ids.push(c.id));
-      if (ids.length >= totalCount || list.length < limit) break;
-      page += 1;
-    }
-    return ids;
-  };
-
   const handleBulkDelete = () => {
     showConfirmModal({
       title: "고객 삭제",
@@ -195,15 +186,21 @@ export default function CustomersActions({
       cancelText: "취소",
       onConfirm: async () => {
         try {
-          const idsToDelete =
-            selectionMode === "all"
-              ? await fetchAllFilteredCustomerIds()
-              : selectedIds;
-          await Promise.all(
-            idsToDelete.map((id) =>
-              CustomersService.remove(String(id)).withProject(projectId)
-            )
-          );
+          if (selectionMode === "all") {
+            const filterConditions = buildDeleteFilterConditions(appliedFilters);
+            await CustomersService.bulkDelete({
+              projectId,
+              deleteType: "filter",
+              filterConditions,
+              expectedCount: total,
+            });
+          } else {
+            await CustomersService.bulkDelete({
+              projectId,
+              deleteType: "ids",
+              customerIds: selectedIds,
+            });
+          }
           onDeleteSuccess?.();
         } catch {
           showErrorModal({
