@@ -266,7 +266,7 @@ export default function ProfileTab() {
   return (
     <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px]">
       {/* Title - 모바일에서는 제목과 버튼을 같은 행에 배치 */}
-      <div className="px-4 md:px-7 py-4 md:py-7 flex items-center justify-between gap-3">
+      <div className="px-6 md:px-7 py-4 md:py-7 flex items-center justify-between gap-3">
         <h1 className="text-[20px] md:text-[24px] font-bold text-foreground">
           프로필 설정
         </h1>
@@ -294,7 +294,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Divider */}
-      <div className="mx-4 md:mx-7 h-[1px] bg-border mb-6 md:mb-8"></div>
+      <div className="hidden md:block mx-4 md:mx-7 h-[1px] bg-border mb-6 md:mb-8"></div>
 
       {/* Avatar - Full width centered */}
       <div className="flex flex-col items-center justify-center mb-6 md:mb-8 gap-3">
@@ -336,7 +336,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Form Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-[788px] mx-auto px-4 md:px-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-[788px] mx-auto px-6 md:px-0">
         {/* 이름 */}
         <div>
           <label className="block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-2">

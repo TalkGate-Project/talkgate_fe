@@ -76,14 +76,14 @@ export default function NotificationTab() {
   return (
     <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px]">
       {/* Title */}
-      <h1 className="px-4 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
+      <h1 className="px-6 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
         알림 설정
       </h1>
 
       <div className="border-b border-[#E2E2E266]"></div>
 
       {/* Notification Settings */}
-      <div className="px-4 md:px-7 py-4 md:py-6">
+      <div className="px-6 md:px-7 py-4 md:py-6">
         {/* 상담 채팅 */}
         <div className="flex items-center justify-between py-4 md:py-4">
           <div className="flex-1 min-w-0 pr-4">

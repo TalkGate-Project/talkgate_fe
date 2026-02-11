@@ -182,7 +182,7 @@ export default function BillingTab() {
       <div className="space-y-4 md:space-y-6">
         {/* 페이지 제목 */}
         <div className="px-6 md:px-7 pt-5 md:pt-7">
-          <h1 className="text-[18px] md:text-[24px] font-bold text-foreground">구독 관리</h1>
+          <h1 className="text-[20px] md:text-[24px] font-bold text-foreground">구독 관리</h1>
         </div>
 
         {/* 구분선 */}
