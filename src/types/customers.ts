@@ -50,12 +50,30 @@ export type CustomerListItem = {
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   createdAt: string;
   recentNotes: RecentNote[];
+  duplicateCount?: number;
 };
 
 export type CustomersListResponse = {
   result: true;
   data: {
     customers: CustomerListItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
+/** 연락처(contact1)가 동일한 고객 목록 조회 시 각 항목 타입 */
+export type CustomerDuplicateItem = CustomerListItem & {
+  duplicateCount: number;
+};
+
+/** 고객 중복 데이터 목록 조회 응답 (GET /v1/customers/{customerId}/duplicates) */
+export type CustomerDuplicatesResponse = {
+  result: true;
+  data: {
+    customers: CustomerDuplicateItem[];
     total: number;
     page: number;
     limit: number;
@@ -217,7 +235,33 @@ export type UpdateCustomerResponse = {
   data: CustomerListItem;
 };
 
-// Delete requires x-project-id header; use method args rather than body
+// Bulk delete customers
+export type DeleteCustomersFilterConditions = {
+  name?: string;
+  contact1?: string;
+  contact2?: string;
+  noteContent?: string;
+  assignType?: "all" | string;
+  teamId?: number;
+  memberId?: number;
+  applicationRoute?: string;
+  mediaCompany?: string;
+  site?: string;
+  categoryIds?: (number | string)[];
+  applicationDateFrom?: string;
+  applicationDateTo?: string;
+  assignedAtFrom?: string;
+  assignedAtTo?: string;
+  projectPartnerId?: number;
+};
+
+export type BulkDeleteCustomersInput = {
+  deleteType: "ids" | "filter";
+  customerIds?: number[];
+  filterConditions?: DeleteCustomersFilterConditions;
+  expectedCount?: number;
+  projectId: string; // header: x-project-id
+};
 
 // Assign customers
 export type AssignCustomersFilterConditions = {

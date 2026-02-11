@@ -5,6 +5,7 @@ import {
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
+  CustomerDuplicatesResponse,
   UpdateCustomerInput,
   UpdateCustomerResponse,
   AssignCustomersInput,
@@ -21,6 +22,7 @@ import {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkDeleteCustomersInput,
   UnassignCustomersInput,
   UnassignCustomersResponse,
   ConfirmCustomerResponse,
@@ -44,6 +46,12 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
+  // 고객 중복 데이터 목록 조회 (연락처 contact1 동일한 고객 목록, 권한 범위 내)
+  duplicates(customerId: string, projectId: string) {
+    return apiClient.get<CustomerDuplicatesResponse>(`/v1/customers/${customerId}/duplicates`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
   // 고객 상세 조회
   detail(customerId: string) {
     // Require x-project-id header for detail, align with Swagger
@@ -62,15 +70,12 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
-  // 고객 삭제 (Admin)
-  remove(customerId: string) {
-    return {
-      withProject(projectId: string) {
-        return apiClient.delete<void>(`/v1/customers/${customerId}`, {
-          headers: { "x-project-id": projectId },
-        });
-      },
-    } as const;
+  // 고객 일괄 삭제 (Admin 또는 SubAdmin)
+  bulkDelete(input: BulkDeleteCustomersInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<BasicSuccessResponse>(`/v1/customers/bulk-delete`, body, {
+      headers: { "x-project-id": projectId },
+    });
   },
   // 고객 할당 (Admin 또는 팀장)
   assign(input: AssignCustomersInput) {
@@ -170,6 +175,8 @@ export type {
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
+  CustomerDuplicateItem,
+  CustomerDuplicatesResponse,
   UpdateCustomerInput,
   UpdateCustomerResponse,
   AssignCustomersInput,
@@ -187,6 +194,8 @@ export type {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkDeleteCustomersInput,
+  DeleteCustomersFilterConditions,
   UnassignCustomersInput,
   UnassignCustomersResponse,
   ConfirmCustomerResponse,
