@@ -104,7 +104,26 @@ export default function KpiCard({
           <div className="text-[18px] leading-[1] tracking-[1px] text-foreground font-bold" style={montserratStyle}>
             {formattedValue}
           </div>
-          {icon}
+          <div
+            className="w-[32px] h-[32px] rounded-[8px] grid place-items-center shrink-0 [&>svg]:w-4 [&>svg]:h-4"
+            style={{
+              background:
+                "color-mix(in srgb, var(--primary-60) 10%, transparent)",
+            }}
+          >
+            {icon ?? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--primary-60)"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="9" />
+              </svg>
+            )}
+          </div>
         </div>
       </div>
     </>
