@@ -136,20 +136,71 @@ export default function CustomersActions({
     }
   };
 
-  const hasSelection = selectedIds.length > 0;
+  const hasSelection = selectedIds.length > 0 || selectionMode === "all";
+
+  const deleteCount = selectionMode === "all" ? total : selectedIds.length;
+
+  /** 전체 목록 선택 시 필터 조건으로 삭제할 고객 ID 목록을 페이지네이션으로 조회 */
+  const fetchAllFilteredCustomerIds = async (): Promise<number[]> => {
+    const limit = 100;
+    let page = 1;
+    const ids: number[] = [];
+    const baseQuery: Record<string, any> = {
+      projectId,
+      name: appliedFilters?.name,
+      contact1: appliedFilters?.contact1,
+      contact2: appliedFilters?.contact2,
+      noteContent: appliedFilters?.noteContent,
+      teamId: appliedFilters?.teamId,
+      memberId: appliedFilters?.memberId,
+      applicationRoute: appliedFilters?.applicationRoute,
+      mediaCompany: appliedFilters?.mediaCompany,
+      site: appliedFilters?.site,
+      applicationDateFrom: appliedFilters?.applicationDateFrom,
+      applicationDateTo: appliedFilters?.applicationDateTo,
+      assignedAtFrom: appliedFilters?.assignedAtFrom,
+      assignedAtTo: appliedFilters?.assignedAtTo,
+    };
+    if (
+      appliedFilters?.categoryIds &&
+      Array.isArray(appliedFilters.categoryIds) &&
+      appliedFilters.categoryIds.length > 0
+    ) {
+      baseQuery.categoryIds = appliedFilters.categoryIds.map((id: number | null) =>
+        id === null ? "null" : id
+      );
+    }
+    while (true) {
+      const res = await CustomersService.list({
+        ...baseQuery,
+        page,
+        limit,
+      } as any);
+      const list = res.data?.data?.customers ?? [];
+      const totalCount = res.data?.data?.total ?? 0;
+      list.forEach((c: { id: number }) => ids.push(c.id));
+      if (ids.length >= totalCount || list.length < limit) break;
+      page += 1;
+    }
+    return ids;
+  };
 
   const handleBulkDelete = () => {
     showConfirmModal({
       title: "고객 삭제",
-      headline: `선택한 ${selectedIds.length}명의 고객을 삭제하시겠습니까?`,
+      headline: `선택한 ${deleteCount}명의 고객을 삭제하시겠습니까?`,
       message: "삭제된 고객 정보는 복구할 수 없습니다.",
       type: "warning",
       confirmText: "삭제",
       cancelText: "취소",
       onConfirm: async () => {
         try {
+          const idsToDelete =
+            selectionMode === "all"
+              ? await fetchAllFilteredCustomerIds()
+              : selectedIds;
           await Promise.all(
-            selectedIds.map((id) =>
+            idsToDelete.map((id) =>
               CustomersService.remove(String(id)).withProject(projectId)
             )
           );
