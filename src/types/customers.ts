@@ -50,12 +50,30 @@ export type CustomerListItem = {
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   createdAt: string;
   recentNotes: RecentNote[];
+  duplicateCount?: number;
 };
 
 export type CustomersListResponse = {
   result: true;
   data: {
     customers: CustomerListItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+};
+
+/** 연락처(contact1)가 동일한 고객 목록 조회 시 각 항목 타입 */
+export type CustomerDuplicateItem = CustomerListItem & {
+  duplicateCount: number;
+};
+
+/** 고객 중복 데이터 목록 조회 응답 (GET /v1/customers/{customerId}/duplicates) */
+export type CustomerDuplicatesResponse = {
+  result: true;
+  data: {
+    customers: CustomerDuplicateItem[];
     total: number;
     page: number;
     limit: number;

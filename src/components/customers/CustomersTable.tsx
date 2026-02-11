@@ -1,5 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { CustomerListItem, RecentNote } from "@/types/customers";
+import { Fragment, useState, useRef, useEffect } from "react";
+import {
+  CustomerDuplicateItem,
+  CustomerListItem,
+  RecentNote,
+} from "@/types/customers";
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
@@ -63,6 +67,18 @@ export default function CustomersTable({
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [expandedDuplicateRows, setExpandedDuplicateRows] = useState<
+    Record<number, boolean>
+  >({});
+  const [duplicateRows, setDuplicateRows] = useState<
+    Record<number, CustomerDuplicateItem[]>
+  >({});
+  const [duplicateLoadingRows, setDuplicateLoadingRows] = useState<
+    Record<number, boolean>
+  >({});
+  const [duplicateErrorRows, setDuplicateErrorRows] = useState<
+    Record<number, boolean>
+  >({});
   
   // 현재 사용자의 멤버 정보 가져오기
   const { member: myMember } = useMyMember(projectId);
@@ -271,6 +287,42 @@ export default function CustomersTable({
     });
   };
 
+  const handleToggleDuplicateRow = async (
+    customerId: number,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    const isOpen = Boolean(expandedDuplicateRows[customerId]);
+    const nextOpen = !isOpen;
+
+    setExpandedDuplicateRows((prev) => ({
+      ...prev,
+      [customerId]: nextOpen,
+    }));
+
+    if (!nextOpen) return;
+    if (duplicateRows[customerId]) return;
+    if (duplicateLoadingRows[customerId]) return;
+
+    setDuplicateLoadingRows((prev) => ({ ...prev, [customerId]: true }));
+    setDuplicateErrorRows((prev) => ({ ...prev, [customerId]: false }));
+
+    try {
+      const response = await CustomersService.duplicates(
+        String(customerId),
+        projectId
+      );
+      const rows = (response.data?.data?.customers ?? []).filter(
+        (item) => item.id !== customerId
+      );
+      setDuplicateRows((prev) => ({ ...prev, [customerId]: rows }));
+    } catch {
+      setDuplicateErrorRows((prev) => ({ ...prev, [customerId]: true }));
+    } finally {
+      setDuplicateLoadingRows((prev) => ({ ...prev, [customerId]: false }));
+    }
+  };
+
   return (
     <>
       <div
@@ -412,177 +464,324 @@ export default function CustomersTable({
                 const checked =
                   selectedIds.includes(c.id) || selectionMode === "all";
                 const isLastRow = index === customers.length - 1;
+                const duplicateCount = Number(c.duplicateCount ?? 0);
+                const canToggleDuplicate = duplicateCount > 0;
+                const isDuplicateOpen = Boolean(expandedDuplicateRows[c.id]);
+                const duplicateItems = duplicateRows[c.id] ?? [];
+                const duplicateLoading = Boolean(duplicateLoadingRows[c.id]);
+                const duplicateError = Boolean(duplicateErrorRows[c.id]);
                 return (
-                  <tr
-                    key={c.id}
-                    className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${
-                      hoveredId === c.id ? "md:bg-neutral-10" : ""
-                    }`}
-                    style={
-                      !isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}
-                    }
-                    onMouseEnter={(e) => {
-                      // 모바일에서는 호버 이벤트 비활성화
-                      if (
-                        typeof window !== "undefined" &&
-                        window.innerWidth >= 768
-                      ) {
-                        handleMouseEnter(e, c);
+                  <Fragment key={c.id}>
+                    <tr
+                      className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${
+                        hoveredId === c.id ? "md:bg-neutral-10" : ""
+                      }`}
+                      style={
+                        !isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}
                       }
-                    }}
-                    onMouseMove={(e) => {
-                      // 모바일에서는 호버 이벤트 비활성화
-                      if (
-                        typeof window !== "undefined" &&
-                        window.innerWidth >= 768
-                      ) {
-                        handleMouseMove(e);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      // 모바일에서는 호버 이벤트 비활성화
-                      if (
-                        typeof window !== "undefined" &&
-                        window.innerWidth >= 768
-                      ) {
-                        handleMouseLeave();
-                      }
-                    }}
-                  >
-                    <td className="px-2 pr-4 md:pr-6 md:px-6 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
-                      <div className="flex items-center justify-center md:justify-start h-full">
-                        <Checkbox
-                          checked={checked}
-                          onChange={(next) => onSelect(c.id, next)}
-                          ariaLabel={`select ${c.name}`}
-                          size={24}
-                        />
-                      </div>
-                    </td>
-                    <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      <button
-                        className="cursor-pointer text-inherit"
-                        onClick={() => onCustomerClick(c.id)}
-                      >
-                        {c.name || "-"}
-                      </button>
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {c.contact1 || c.contact2 || "-"}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {c.applicationRoute || "-"}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {c.mediaCompany || "-"}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {c.site || "-"}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {c.assignedTeamName || "-"}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span>{c.assignedMemberName || "-"}</span>
-                        {c.assignedMemberName && (
-                          <div className="flex items-center justify-center">
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 20 20"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
+                      onMouseEnter={(e) => {
+                        // 모바일에서는 호버 이벤트 비활성화
+                        if (
+                          typeof window !== "undefined" &&
+                          window.innerWidth >= 768
+                        ) {
+                          handleMouseEnter(e, c);
+                        }
+                      }}
+                      onMouseMove={(e) => {
+                        // 모바일에서는 호버 이벤트 비활성화
+                        if (
+                          typeof window !== "undefined" &&
+                          window.innerWidth >= 768
+                        ) {
+                          handleMouseMove(e);
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        // 모바일에서는 호버 이벤트 비활성화
+                        if (
+                          typeof window !== "undefined" &&
+                          window.innerWidth >= 768
+                        ) {
+                          handleMouseLeave();
+                        }
+                      }}
+                    >
+                      <td className="px-2 pr-4 md:pr-6 md:px-6 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
+                        <div className="flex items-center justify-center md:justify-start h-full">
+                          <Checkbox
+                            checked={checked}
+                            onChange={(next) => onSelect(c.id, next)}
+                            ariaLabel={`select ${c.name}`}
+                            size={24}
+                          />
+                        </div>
+                      </td>
+                      <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        <button
+                          className="cursor-pointer text-inherit"
+                          onClick={() => onCustomerClick(c.id)}
+                        >
+                          {c.name || "-"}
+                        </button>
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{c.contact1 || c.contact2 || "-"}</span>
+                          {canToggleDuplicate && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleToggleDuplicateRow(c.id, e)}
+                              className="cursor-pointer inline-flex items-center justify-center h-[18px] min-w-[36px] px-1 rounded-[9px] bg-[#474747] text-white text-[13px] leading-none font-medium tracking-[-0.08em]"
+                              aria-label={
+                                isDuplicateOpen
+                                  ? "중복 고객 목록 닫기"
+                                  : "중복 고객 목록 펼치기"
+                              }
                             >
-                              <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
-                                fill={
-                                  c.status === "confirmed"
-                                    ? "#00E272"
-                                    : "#B0B0B0"
-                                }
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap">
-                      {(() => {
-                        // 마지막 상담내용의 카테고리를 찾기
-                        const notes = Array.isArray(c.recentNotes)
-                          ? c.recentNotes
-                          : [];
+                              <span className="inline-flex items-center h-full leading-none">+</span>
+                              <span className="inline-flex items-center h-full leading-none translate-y-[1px]">
+                                {duplicateCount}
+                              </span>
+                              <div className="ml-0.5 w-[12px] h-[12px] shrink-0 flex items-center justify-center">
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 12 12"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className={`w-full h-full transition-transform ${
+                                    isDuplicateOpen ? "rotate-180" : ""
+                                  }`}
+                                >
+                                  <path
+                                    d="M3 4.5L6 7.5L9 4.5"
+                                    stroke="#FFFFFF"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </div>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        {c.mediaCompany || "-"}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        {c.site || "-"}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        {c.applicationRoute || "-"}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        {c.assignedTeamName || "-"}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{c.assignedMemberName || "-"}</span>
+                          {c.assignedMemberName && (
+                            <div className="flex items-center justify-center">
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
+                                  fill={
+                                    c.status === "confirmed"
+                                      ? "#00E272"
+                                      : "#B0B0B0"
+                                  }
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap">
+                        {(() => {
+                          // 마지막 상담내용의 카테고리를 찾기
+                          const notes = Array.isArray(c.recentNotes)
+                            ? c.recentNotes
+                            : [];
 
-                        // 상담/노트가 없는 경우에만 "-" 표시
-                        if (notes.length === 0)
-                          return <span className="opacity-80">-</span>;
+                          // 상담/노트가 없는 경우에만 "-" 표시
+                          if (notes.length === 0)
+                            return <span className="opacity-80">-</span>;
 
-                        // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
-                        const sortedNotes = [...notes].sort(
-                          (a, b) =>
-                            new Date(b.createdAt).getTime() -
-                            new Date(a.createdAt).getTime()
-                        );
-                        const lastNote = sortedNotes[0];
+                          // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
+                          const sortedNotes = [...notes].sort(
+                            (a, b) =>
+                              new Date(b.createdAt).getTime() -
+                              new Date(a.createdAt).getTime()
+                          );
+                          const lastNote = sortedNotes[0];
 
-                        // 카테고리 정보 확인
-                        const categoryId = lastNote.categoryId;
-                        const category = categories.find(
-                          (cat) => cat.id === categoryId
-                        );
-                        const categoryName = category?.name || "일반";
-                        const badgeStyle = getBadgeStyle(
-                          categoryName,
-                          categoryId || 0
-                        );
+                          // 카테고리 정보 확인
+                          const categoryId = lastNote.categoryId;
+                          const category = categories.find(
+                            (cat) => cat.id === categoryId
+                          );
+                          const categoryName = category?.name || "일반";
+                          const badgeStyle = getBadgeStyle(
+                            categoryName,
+                            categoryId || 0
+                          );
 
-                        return (
-                          <span
-                            className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                          >
-                            {categoryName}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                      {formatDateTime(c.applicationDate || c.createdAt)}
-                    </td>
-                    <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
-                      <div className="flex items-center justify-center">
-                        {c.status !== "confirmed" &&
-                        c.assignedMember?.id === myMemberId ? (
-                          <button
-                            onClick={(e) => handleConfirmCustomer(c.id, e)}
-                            className="cursor-pointer flex items-center justify-center relative group"
-                            aria-label="고객 확인"
-                          >
-                            <svg
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
+                          return (
+                            <span
+                              className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                             >
-                              <path
-                                d="M5 13L9 17L19 7"
-                                stroke="#00E272"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                              확인
+                              {categoryName}
                             </span>
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
+                          );
+                        })()}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                        {formatDateTime(c.applicationDate || c.createdAt)}
+                      </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
+                        <div className="flex items-center justify-center">
+                          {c.status !== "confirmed" &&
+                          c.assignedMember?.id === myMemberId ? (
+                            <button
+                              onClick={(e) => handleConfirmCustomer(c.id, e)}
+                              className="cursor-pointer flex items-center justify-center relative group"
+                              aria-label="고객 확인"
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M5 13L9 17L19 7"
+                                  stroke="#00E272"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                확인
+                              </span>
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                    {isDuplicateOpen &&
+                      (duplicateLoading ? (
+                        <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8]">
+                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+                          <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
+                            중복 고객 목록을 불러오는 중입니다...
+                          </td>
+                        </tr>
+                      ) : duplicateError ? (
+                        <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8]">
+                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+                          <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
+                            중복 고객 목록을 불러오지 못했습니다.
+                          </td>
+                        </tr>
+                      ) : duplicateItems.length === 0 ? (
+                        <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8]">
+                          <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+                          <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
+                            중복 고객이 없습니다.
+                          </td>
+                        </tr>
+                      ) : (
+                        duplicateItems.map((item, itemIndex) => (
+                          <tr
+                            key={`${c.id}-duplicate-${item.id}`}
+                            className={`bg-[#F8F8F8] ${
+                              itemIndex === duplicateItems.length - 1
+                                ? "border-b border-[#E2E2E2]"
+                                : ""
+                            }`}
+                          >
+                            {/* 체크박스 열은 비워 둠 */}
+                            <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+                            <td className="table-cell px-2 md:px-6 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              <button
+                                type="button"
+                                className="cursor-pointer text-inherit"
+                                onClick={() => onCustomerClick(item.id)}
+                              >
+                                {item.name || "-"}
+                              </button>
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.contact1 || item.contact2 || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.mediaCompany || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.site || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.applicationRoute || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.assignedTeamName || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {item.assignedMemberName || "-"}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap">
+                              {(() => {
+                                const notes = Array.isArray(item.recentNotes)
+                                  ? item.recentNotes
+                                  : [];
+                                if (notes.length === 0)
+                                  return <span className="opacity-80">-</span>;
+
+                                const sortedNotes = [...notes].sort(
+                                  (a, b) =>
+                                    new Date(b.createdAt).getTime() -
+                                    new Date(a.createdAt).getTime()
+                                );
+                                const lastNote = sortedNotes[0];
+                                const categoryId = lastNote.categoryId;
+                                const category = categories.find(
+                                  (cat) => cat.id === categoryId
+                                );
+                                const categoryName = category?.name || "일반";
+                                const badgeStyle = getBadgeStyle(
+                                  categoryName,
+                                  categoryId || 0
+                                );
+
+                                return (
+                                  <span
+                                    className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                  >
+                                    {categoryName}
+                                  </span>
+                                );
+                              })()}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                              {formatDateTime(item.applicationDate || item.createdAt)}
+                            </td>
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />
+                          </tr>
+                        ))
+                      ))}
+                  </Fragment>
                 );
               })}
             {!loading && customers.length === 0 && !error && (

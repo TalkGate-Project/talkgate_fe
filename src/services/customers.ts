@@ -5,6 +5,7 @@ import {
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
+  CustomerDuplicatesResponse,
   UpdateCustomerInput,
   UpdateCustomerResponse,
   AssignCustomersInput,
@@ -41,6 +42,12 @@ export const CustomersService = {
   create(input: CreateCustomerInput) {
     const { projectId, ...body } = input;
     return apiClient.post<CreateCustomerResponse>(`/v1/customers`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  // 고객 중복 데이터 목록 조회 (연락처 contact1 동일한 고객 목록, 권한 범위 내)
+  duplicates(customerId: string, projectId: string) {
+    return apiClient.get<CustomerDuplicatesResponse>(`/v1/customers/${customerId}/duplicates`, {
       headers: { "x-project-id": projectId },
     });
   },
@@ -170,6 +177,8 @@ export type {
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
+  CustomerDuplicateItem,
+  CustomerDuplicatesResponse,
   UpdateCustomerInput,
   UpdateCustomerResponse,
   AssignCustomersInput,
