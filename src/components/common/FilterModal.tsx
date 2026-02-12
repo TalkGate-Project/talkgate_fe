@@ -15,6 +15,7 @@ function getBodyZoom(): number {
 }
 
 export type FilterValues = {
+    name?: string;
     teamId?: number;
     memberId?: number;
     applicationRoute?: string;
