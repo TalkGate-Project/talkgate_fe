@@ -257,11 +257,11 @@ export default function SecurityTab() {
       {/* First Box - 2-Step Verification */}
       <div className="bg-card rounded-none md:rounded-[14px] md:mb-6">
         {/* Title */}
-        <h1 className="px-4 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
+        <h1 className="px-6 md:px-7 py-4 md:py-7 text-[20px] md:text-[24px] font-bold text-foreground">
           보안 설정
         </h1>
 
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
 
         <div className="px-4 md:px-7 py-3 md:py-[30px] h-[90px] md:h-auto">
           <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
@@ -301,7 +301,7 @@ export default function SecurityTab() {
             </div>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
       </div>
 
       {/* Second Box - Change Password */}
@@ -329,7 +329,7 @@ export default function SecurityTab() {
             </button>
           </div>
         </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
+        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
       </div>
 
       {/* Third Box - Delete Account */}
@@ -340,7 +340,7 @@ export default function SecurityTab() {
         <div className="block md:hidden px-4 py-3 h-[90px]">
           <div className="flex items-center justify-between h-full gap-3">
             {/* Left side: Title + Badge and Description */}
-            <div className="flex-1 min-w-0">
+            <div className="pl-2 md:pl-0 flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-[14px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
                 <span className="inline-flex items-center justify-center px-3 py-1 bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] h-[22px] opacity-80 flex-shrink-0">

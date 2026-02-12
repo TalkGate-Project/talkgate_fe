@@ -182,11 +182,11 @@ export default function BillingTab() {
       <div className="space-y-4 md:space-y-6">
         {/* 페이지 제목 */}
         <div className="px-6 md:px-7 pt-5 md:pt-7">
-          <h1 className="text-[18px] md:text-[24px] font-bold text-foreground">구독 관리</h1>
+          <h1 className="text-[20px] md:text-[24px] font-bold text-foreground">구독 관리</h1>
         </div>
 
         {/* 구분선 */}
-        <div className="w-full h-[1px] bg-border opacity-70"></div>
+        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455]"></div>
 
         <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-9">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}

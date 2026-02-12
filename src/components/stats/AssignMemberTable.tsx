@@ -189,7 +189,7 @@ export default function AssignMemberTable() {
   return (
     <div className="mt-4">
       {Header}
-      <div className="h-[40px] bg-neutral-20 rounded-[8px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1.5fr 1fr' }}>
+      <div className="h-[40px] bg-neutral-20 rounded-[8px] md:rounded-[12px] grid items-center pl-5 md:px-[30px] text-[13px] md:text-[16px] text-neutral-70 font-medium" style={{ gridTemplateColumns: '1.5fr 1.5fr 1fr' }}>
         <div className="md:col-span-1">이름</div>
         <div className="md:col-span-1">팀</div>
         <div className="md:col-span-1 flex items-center gap-1 cursor-pointer" onClick={() => {
