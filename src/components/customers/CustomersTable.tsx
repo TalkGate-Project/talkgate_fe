@@ -331,15 +331,14 @@ export default function CustomersTable({
       >
         <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
           <colgroup>
-            <col style={{ width: "6%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "8%" }} />
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "18%" }} />
             <col style={{ width: "10%" }} />
             <col style={{ width: "10%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "9%" }} />
             <col style={{ width: "11%" }} />
             <col style={{ width: "8%" }} />
           </colgroup>
@@ -399,7 +398,7 @@ export default function CustomersTable({
               ].map((h, idx, arr) => (
                 <th
                   key={h}
-                  colSpan={h === "담당자" ? 2 : 1}
+                  colSpan={1}
                   className={`bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
                     idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
                   } ${h === "카테고리" ? "text-center" : ""} ${
@@ -527,12 +526,12 @@ export default function CustomersTable({
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span>{c.contact1 || c.contact2 || "-"}</span>
+                          <span className="truncate min-w-0 block">{c.contact1 || c.contact2 || "-"}</span>
                           {canToggleDuplicate && (
                             <button
                               type="button"
                               onClick={(e) => handleToggleDuplicateRow(c.id, e)}
-                              className="cursor-pointer inline-flex items-center justify-center h-[18px] min-w-[36px] px-1 rounded-[9px] bg-[#474747] text-white text-[13px] leading-none font-medium tracking-[-0.08em]"
+                              className="cursor-pointer inline-flex items-center justify-center h-[18px] min-w-[36px] px-1 rounded-[9px] bg-[#474747] text-white text-[13px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
                               aria-label={
                                 isDuplicateOpen
                                   ? "중복 고객 목록 닫기"
@@ -568,16 +567,19 @@ export default function CustomersTable({
                         </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        {c.mediaCompany || "-"}
+                        <div className="max-w-[120px] md:max-w-[180px] truncate" title={c.mediaCompany || ""}>
+                          {c.mediaCompany || "-"}
+                        </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        {c.site || "-"}
+                        <div className="max-w-[150px] md:max-w-[200px] truncate" title={c.site || ""}>
+                          {c.site || "-"}
+                        </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        {c.applicationRoute || "-"}
-                      </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        {c.assignedTeamName || "-"}
+                        <div className="max-w-[120px] md:max-w-[180px] truncate" title={c.applicationRoute || ""}>
+                          {c.applicationRoute || "-"}
+                        </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -682,21 +684,21 @@ export default function CustomersTable({
                     </tr>
                     {isDuplicateOpen &&
                       (duplicateLoading ? (
-                        <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8]">
+                        <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
                             중복 고객 목록을 불러오는 중입니다...
                           </td>
                         </tr>
                       ) : duplicateError ? (
-                        <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8]">
+                        <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
                             중복 고객 목록을 불러오지 못했습니다.
                           </td>
                         </tr>
                       ) : duplicateItems.length === 0 ? (
-                        <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8]">
+                        <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
                             중복 고객이 없습니다.
@@ -706,9 +708,9 @@ export default function CustomersTable({
                         duplicateItems.map((item, itemIndex) => (
                           <tr
                             key={`${c.id}-duplicate-${item.id}`}
-                            className={`bg-[#F8F8F8] ${
+                            className={`bg-[#F8F8F8] dark:bg-neutral-20 ${
                               itemIndex === duplicateItems.length - 1
-                                ? "border-b border-[#E2E2E2]"
+                                ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : ""
                             }`}
                           >
@@ -724,19 +726,22 @@ export default function CustomersTable({
                               </button>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {item.contact1 || item.contact2 || "-"}
+                              <span className="truncate min-w-0 block">{item.contact1 || item.contact2 || "-"}</span>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {item.mediaCompany || "-"}
+                              <div className="max-w-[120px] md:max-w-[180px] truncate" title={item.mediaCompany || ""}>
+                                {item.mediaCompany || "-"}
+                              </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {item.site || "-"}
+                              <div className="max-w-[150px] md:max-w-[200px] truncate" title={item.site || ""}>
+                                {item.site || "-"}
+                              </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {item.applicationRoute || "-"}
-                            </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              {item.assignedTeamName || "-"}
+                              <div className="max-w-[120px] md:max-w-[180px] truncate" title={item.applicationRoute || ""}>
+                                {item.applicationRoute || "-"}
+                              </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               {item.assignedMemberName || "-"}
