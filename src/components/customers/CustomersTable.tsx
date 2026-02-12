@@ -571,26 +571,26 @@ export default function CustomersTable({
                             <button
                               type="button"
                               onClick={(e) => handleToggleDuplicateRow(c.id, e)}
-                              className="cursor-pointer inline-flex items-center justify-center h-[18px] min-w-[36px] px-1 rounded-[9px] bg-[#474747] text-white text-[13px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
+                              className="cursor-pointer inline-flex items-center justify-center h-[24px] min-w-[52px] px-1 rounded-[16px] bg-[#474747] text-white text-[14px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
                               aria-label={
                                 isDuplicateOpen
                                   ? "중복 고객 목록 닫기"
                                   : "중복 고객 목록 펼치기"
                               }
                             >
-                              <span className="inline-flex items-center h-full leading-none">+</span>
-                              <span className="inline-flex items-center h-full leading-none translate-y-[1px]">
+                              <span className="inline-flex items-center h-full leading-[22px]">+&nbsp;</span>
+                              <span className="inline-flex items-center h-full leading-[22px] translate-y-[1px]">
                                 {duplicateCount}
                               </span>
-                              <div className="ml-0.5 w-[12px] h-[12px] shrink-0 flex items-center justify-center">
+                              <div className="ml-0.5 w-[16px] h-[16px] shrink-0 flex items-center justify-center">
                                 <svg
                                   width="12"
                                   height="12"
                                   viewBox="0 0 12 12"
                                   fill="none"
                                   xmlns="http://www.w3.org/2000/svg"
-                                  className={`w-full h-full transition-transform ${
-                                    isDuplicateOpen ? "rotate-180" : ""
+                                  className={`w-full h-full transition-transform translate-y-[1px] ${
+                                    isDuplicateOpen ? "rotate-180 !translate-y-[0.5px]" : ""
                                   }`}
                                 >
                                   <path
