@@ -284,7 +284,7 @@ export default function FilterModal({
                                                                     setPartnerSearch(partner.name);
                                                                     setPartnerOpen(false);
                                                                 }}
-                                                                className="w-full h-[48px] px-4 flex items-center gap-2 text-left hover:bg-neutral-10 dark:hover:bg-neutral-30"
+                                                                className="cursor-pointer w-full h-[48px] px-4 flex items-center gap-2 text-left hover:bg-neutral-10 dark:hover:bg-neutral-30"
                                                             >
                                                                 <div className="w-5 h-5 rounded-full overflow-hidden bg-neutral-20 dark:bg-neutral-30 flex items-center justify-center shrink-0">
                                                                     {partner.logoUrl ? (
