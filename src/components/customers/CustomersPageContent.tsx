@@ -238,12 +238,12 @@ function CustomersPageContentInner() {
         className="rounded-none md:rounded-[14px] mb-0 md:mb-9"
         title={
           <div className="flex items-end gap-3">
-            <h1 className="text-[20px] md:text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
+            <h1 className="text-[20px] md:text-[24px] leading-[20px] font-bold text-neutral-90 px-1.5 md:px-0">고객목록</h1>
             <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-40" />
             <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
           </div>
         }
-        bodyClassName="px-4 md:px-7 md:pb-[22px] md:pt-[30px] md:border-t md:border-neutral-30"
+        bodyClassName="px-6 md:px-7 pb-4 md:pb-[22px] md:pt-[30px] md:border-t md:border-neutral-30"
       >
         <CustomersFilterBar
           filters={filters}
@@ -263,7 +263,7 @@ function CustomersPageContentInner() {
 
       {/* Bottom panel: actions (top-right) + table */}
       <Panel
-        className="rounded-none md:rounded-[14px]"
+        className="rounded-none md:rounded-[14px] border-t border-neutral-30 md:border-t-0"
         action={
           <CustomersActions
             projectId={projectId!}
@@ -283,7 +283,7 @@ function CustomersPageContentInner() {
             isDataProvider={project?.isDataProvider ?? false}
           />
         }
-        headerClassName="px-4 md:px-7 py-4 md:py-6"
+        headerClassName="px-6 md:px-7 py-4 md:py-6"
         bodyClassName="px-6 md:px-7 pb-2 md:pb-4 pt-0 overflow-x-auto flex flex-col"
       >
         <div className="min-h-[300px] md:min-h-[400px] flex-1">

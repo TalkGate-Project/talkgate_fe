@@ -571,7 +571,7 @@ export default function CustomersTable({
                             <button
                               type="button"
                               onClick={(e) => handleToggleDuplicateRow(c.id, e)}
-                              className="cursor-pointer inline-flex items-center justify-center h-[24px] min-w-[52px] px-1 rounded-[16px] bg-[#474747] text-white text-[14px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
+                              className="cursor-pointer inline-flex items-center justify-center h-[24px] min-w-[48px] px-1 rounded-[16px] bg-[#474747] text-white text-[14px] leading-none font-medium tracking-[-0.08em] flex-shrink-0"
                               aria-label={
                                 isDuplicateOpen
                                   ? "중복 고객 목록 닫기"
