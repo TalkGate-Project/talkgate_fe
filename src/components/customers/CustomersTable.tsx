@@ -505,12 +505,13 @@ export default function CustomersTable({
                 return (
                   <Fragment key={c.id}>
                     <tr
-                      className={`border-b border-[#E2E2E2] dark:!border-[#44444455] ${
+                      className={`cursor-pointer border-b border-[#E2E2E2] dark:!border-[#44444455] ${
                         hoveredId === c.id ? "md:bg-neutral-10" : ""
                       }`}
                       style={
                         !isLastRow ? { borderBottom: "1px solid #e2e2e255" } : {}
                       }
+                      onClick={() => onCustomerClick(c.id)}
                       onMouseEnter={(e) => {
                         // 모바일에서는 호버 이벤트 비활성화
                         if (
@@ -539,7 +540,10 @@ export default function CustomersTable({
                         }
                       }}
                     >
-                      <td className="pr-0 md:pl-6 md:pr-4 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
+                      <td
+                        className="pr-0 md:pl-6 md:pr-4 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center justify-center md:justify-start h-full">
                           <Checkbox
                             checked={checked}
@@ -550,15 +554,12 @@ export default function CustomersTable({
                         </div>
                       </td>
                       <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <button
-                          className="cursor-pointer text-inherit inline-flex items-center h-full align-middle"
-                          onClick={() => onCustomerClick(c.id)}
-                        >
+                        <div className="inline-flex items-center h-full align-middle">
                           <TruncateWithTooltip
                             text={c.name || "-"}
                             className="leading-[17px] min-w-[4ch] max-w-[9ch] md:max-w-[12ch]"
                           />
-                        </button>
+                        </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -760,25 +761,22 @@ export default function CustomersTable({
                         duplicateItems.map((item, itemIndex) => (
                           <tr
                             key={`${c.id}-duplicate-${item.id}`}
-                            className={`bg-[#F8F8F8] dark:bg-neutral-20 ${
+                            className={`cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 ${
                               itemIndex === duplicateItems.length - 1
                                 ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : ""
                             }`}
+                            onClick={() => onCustomerClick(item.id)}
                           >
                             {/* 체크박스 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                             <td className="table-cell px-2 md:px-6 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <button
-                                type="button"
-                                className="cursor-pointer text-inherit inline-flex items-center h-full align-middle"
-                                onClick={() => onCustomerClick(item.id)}
-                              >
+                              <div className="inline-flex items-center h-full align-middle">
                                 <TruncateWithTooltip
                                   text={item.name || "-"}
                                   className="leading-[17px] min-w-[4ch] max-w-[9ch] md:max-w-[12ch]"
                                 />
-                              </button>
+                              </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <TruncateWithTooltip
