@@ -506,7 +506,7 @@ export default function CustomersTable({
                         }
                       }}
                     >
-                      <td className="px-2 pr-4 md:pr-6 md:px-6 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
+                      <td className="pr-0 md:pl-6 md:pr-4 h-[48px] whitespace-nowrap min-w-[48px] overflow-visible">
                         <div className="flex items-center justify-center md:justify-start h-full">
                           <Checkbox
                             checked={checked}

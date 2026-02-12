@@ -204,11 +204,11 @@ function LabeledSelect({ label, options, placeholder, value, onChange, freeText 
 
 function Pill({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
-        <div className="flex items-center gap-2 px-2.5 h-[22px] rounded-full bg-[#D6FAE8] shrink-0 whitespace-nowrap">
-            <span className="text-[12px] leading-[14px] font-medium text-[#00B55B] opacity-80">{label}</span>
+        <div className="flex items-center gap-2 px-2.5 h-[22px] rounded-full bg-[#D6FAE8] dark:bg-[#D6FAE8]/90 shrink-0 whitespace-nowrap">
+            <span className="text-[12px] leading-[14px] font-medium text-[#00B55B] dark:text-[#004824] opacity-80">{label}</span>
             <button aria-label="remove" onClick={onRemove} className="w-3 h-3 grid place-items-center">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L9 3M3 3L9 9" stroke="#00B55B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#00B55B] dark:text-[#004824]" />
                 </svg>
             </button>
         </div>

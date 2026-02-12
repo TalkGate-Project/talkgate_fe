@@ -497,8 +497,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                       onChange={setScheduledDate}
                       placeholder="날짜 선택"
                       minDate={new Date()}
-                      className="pr-10"
-                      panelOffsetY={16}
+                      className="pr-10 dark:bg-neutral-20"
+                      panelOffsetY={6}
                     />
                     {/* 달력 아이콘 */}
                     <svg
@@ -551,9 +551,9 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                       onChange={setScheduledTime}
                       placeholder="시간 선택"
                       minuteStep={10}
-                      className="pr-10"
+                      className="pr-10 dark:bg-neutral-20"
                       restrictAdHours
-                      panelOffsetY={16}
+                      panelOffsetY={6}
                     />
                     {/* 시계 아이콘 */}
                     <svg
