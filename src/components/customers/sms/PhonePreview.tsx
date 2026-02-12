@@ -12,6 +12,7 @@ type PhonePreviewProps = {
   imageFiles: ImageFileWithPreview[];
   contentType: ContentType;
   businessName: string;
+  mode?: "desktop" | "mobile";
 };
 
 export default function PhonePreview({
@@ -21,6 +22,7 @@ export default function PhonePreview({
   imageFiles,
   contentType,
   businessName,
+  mode = "desktop",
 }: PhonePreviewProps) {
   const { phoneScreenRef, dragHandlers } = usePhoneDragScroll();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,6 +112,76 @@ export default function PhonePreview({
       resizeObserver.disconnect();
     };
   }, []);
+
+  if (mode === "mobile") {
+    return (
+      <div className="h-full flex flex-col">
+        <div
+          ref={phoneScreenRef}
+          className="flex-1 min-h-0 overflow-y-auto select-none"
+          style={{ cursor: "grab" }}
+          {...dragHandlers}
+        >
+          <div className="flex justify-center py-3 sticky top-0 bg-card dark:bg-neutral-10 z-[1]">
+            <span className="inline-flex items-center h-[34px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[14px] text-neutral-70 dark:text-neutral-60">
+              {senderNumber || "010-0000-0000"}
+            </span>
+          </div>
+          <div className="pt-2 pb-4 flex flex-col items-start">
+            <div className="bg-neutral-20 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[90%]">
+              {(() => {
+                const hasValidTitle = title.trim().length > 0;
+                const shouldShowTitle = hasValidTitle || contentType === "advertising";
+
+                if (!shouldShowTitle) return null;
+
+                return (
+                  <div className="font-semibold text-[14px] leading-[20px] text-ink dark:text-neutral-90 mb-2">
+                    {contentType === "advertising"
+                      ? hasValidTitle
+                        ? `(광고) ${title}`
+                        : "제목없음"
+                      : title}
+                  </div>
+                );
+              })()}
+              <div className="text-[13px] leading-[20px] text-neutral-80 dark:text-neutral-70 whitespace-pre-wrap break-words">
+                <span className="block mb-1">[Web발신]</span>
+                {contentType === "advertising" && (
+                  <span className="block mb-1">
+                    (광고){businessName ? `[${businessName}]` : ""}
+                  </span>
+                )}
+                {body || (
+                  <span className="text-neutral-50 dark:text-neutral-50">
+                    메시지 내용이 여기에 표시됩니다.
+                  </span>
+                )}
+                {contentType === "advertising" && (
+                  <span className="block mt-2 text-neutral-60 dark:text-neutral-60">
+                    수신거부 080-880-4005
+                  </span>
+                )}
+              </div>
+            </div>
+            {imageFiles.length > 0 && (
+              <div className="mt-2 space-y-1 max-w-[90%]">
+                {imageFiles.map((img) => (
+                  <img
+                    key={img.id}
+                    src={img.previewUrl}
+                    alt="첨부 이미지 미리보기"
+                    className="w-full rounded-[8px] object-cover"
+                    draggable={false}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

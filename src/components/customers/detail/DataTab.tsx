@@ -31,7 +31,7 @@ export default function DataTab({ form, setForm }: Props) {
         />
       </label>
 
-      {/* 좌: 매체사 / 우: IP주소 (입력 가능) */}
+      {/* 좌: 매체사 / 우: 키워드 */}
       <label className="block">
         <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">매체사</span>
         <input
@@ -44,14 +44,14 @@ export default function DataTab({ form, setForm }: Props) {
         />
       </label>
       <label className="block">
-        <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">IP주소</span>
+        <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">키워드</span>
         <input
-          value={form.ipAddress}
+          value={form.keyword}
           onChange={(e) =>
-            setForm((prev) => ({ ...prev, ipAddress: e.target.value }))
+            setForm((prev) => ({ ...prev, keyword: e.target.value }))
           }
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-          placeholder="IP주소를 입력하세요."
+          placeholder="키워드를 입력하세요."
         />
       </label>
 
@@ -79,7 +79,7 @@ export default function DataTab({ form, setForm }: Props) {
         />
       </label>
 
-      {/* 좌: 신청시간 (읽기 전용, 위치 변경) */}
+      {/* 좌: 신청시간 / 우: 배정시간 */}
       <label className="block">
         <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">신청시간</span>
         <input
@@ -89,6 +89,30 @@ export default function DataTab({ form, setForm }: Props) {
           }
           disabled
           className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
+        />
+      </label>
+      <label className="block">
+        <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">배정시간</span>
+        <input
+          value={form.assignedAt}
+          onChange={(e) =>
+            setForm((prev) => ({ ...prev, assignedAt: e.target.value }))
+          }
+          disabled
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] bg-neutral-10 dark:bg-neutral-20 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
+        />
+      </label>
+
+      {/* IP 주소 (단독 행) */}
+      <label className="block">
+        <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">IP 주소</span>
+        <input
+          value={form.ipAddress}
+          onChange={(e) =>
+            setForm((prev) => ({ ...prev, ipAddress: e.target.value }))
+          }
+          className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+          placeholder="IP 주소를 입력하세요."
         />
       </label>
     </div>

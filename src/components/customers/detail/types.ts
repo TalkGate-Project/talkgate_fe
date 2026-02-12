@@ -16,8 +16,10 @@ export type CustomerFormState = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  keyword: string;
   ipAddress: string;
   applicationDate: string;
+  assignedAt: string;
   assignedMemberName: string;
   assignedTeamName: string;
   specialNotes: string;
@@ -45,8 +47,10 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   applicationRoute: "",
   site: "",
   mediaCompany: "",
+  keyword: "",
   ipAddress: "",
   applicationDate: "",
+  assignedAt: "",
   assignedMemberName: "",
   assignedTeamName: "",
   specialNotes: "",
@@ -76,8 +80,10 @@ export const FORM_TO_API_FIELD_MAP: Record<
   applicationRoute: "applicationRoute",
   site: "site",
   mediaCompany: "mediaCompany",
+  keyword: "keyword",
   ipAddress: "ipAddress",
   applicationDate: "applicationDate",
+  assignedAt: null, // 읽기 전용 필드
   assignedMemberName: null, // 읽기 전용 필드
   assignedTeamName: null, // 읽기 전용 필드
   specialNotes: "specialNotes",
@@ -92,8 +98,10 @@ export const EMPTY_DISPLAY_DASH_FIELDS: Array<keyof CustomerFormState> = [
   "applicationRoute",
   "site",
   "mediaCompany",
+  "keyword",
   "ipAddress",
   "applicationDate",
+  "assignedAt",
   "assignedMemberName",
   "assignedTeamName",
   "specialNotes",
