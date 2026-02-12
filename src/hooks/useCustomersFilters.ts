@@ -5,6 +5,8 @@ import { CustomersListQuery } from "@/types/customers";
 export type CustomerFilters = {
   name?: string;
   contact1?: string;
+  assignType?: "all" | "assigned" | "unassigned";
+  projectPartnerId?: number;
   teamId?: number;
   memberId?: number;
   applicationRoute?: string;
@@ -49,6 +51,7 @@ export function useCustomersFilters(projectId: string | null) {
     obj.contact2 = g("contact2");
     obj.noteContent = g("noteContent");
     obj.assignType = g("assignType");
+    obj.projectPartnerId = gi("projectPartnerId");
     obj.teamId = gi("teamId");
     obj.memberId = gi("memberId");
     obj.applicationRoute = g("applicationRoute");
@@ -74,6 +77,8 @@ export function useCustomersFilters(projectId: string | null) {
       const next = {
         name: applied.name,
         contact1: applied.contact1,
+        assignType: applied.assignType,
+        projectPartnerId: applied.projectPartnerId,
         teamId: applied.teamId,
         memberId: applied.memberId,
         applicationRoute: applied.applicationRoute,
@@ -101,6 +106,8 @@ export function useCustomersFilters(projectId: string | null) {
             limit: applied.limit || 10,
             name: applied.name,
             contact1: applied.contact1,
+            assignType: applied.assignType,
+            projectPartnerId: applied.projectPartnerId,
             teamId: applied.teamId,
             memberId: applied.memberId,
             applicationRoute: applied.applicationRoute,
@@ -135,6 +142,8 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("limit", limit);
     setIf("name", filterValues.name);
     setIf("contact1", filterValues.contact1);
+    setIf("assignType", filterValues.assignType);
+    setIf("projectPartnerId", filterValues.projectPartnerId);
     setIf("teamId", filterValues.teamId);
     setIf("memberId", filterValues.memberId);
     setIf("applicationRoute", filterValues.applicationRoute);

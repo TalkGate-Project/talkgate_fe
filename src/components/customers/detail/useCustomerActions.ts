@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { CustomersService } from "@/services/customers";
 import { ConversationsService } from "@/services/conversations";
 import type { CustomerDetail, UpdateCustomerInput } from "@/types/customers";
@@ -51,6 +51,7 @@ export function useCustomerActions({
   getChangedFields,
   commitForm,
 }: UseCustomerActionsParams): CustomerActions {
+  const isAddingNoteRef = useRef(false);
   // =========================================================================
   // Form Save
   // =========================================================================
@@ -263,26 +264,31 @@ export function useCustomerActions({
 
   const addNote = useCallback(
     async (categoryId: number | null, note: string) => {
-      if (!detail) return;
+      if (!detail || isAddingNoteRef.current) return;
 
-      const res = await CustomersService.addNote({
-        customerId: detail.id,
-        categoryId,
-        note,
-        projectId: getProjectId(),
-      });
+      isAddingNoteRef.current = true;
+      try {
+        const res = await CustomersService.addNote({
+          customerId: detail.id,
+          categoryId,
+          note,
+          projectId: getProjectId(),
+        });
 
-      const newNote = res.data?.data;
+        const newNote = res.data?.data;
 
-      if (newNote) {
-        setDetail((prev) =>
-          prev
-            ? {
-                ...prev,
-                notes: [newNote, ...prev.notes],
-              }
-            : prev
-        );
+        if (newNote) {
+          setDetail((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  notes: [newNote, ...prev.notes],
+                }
+              : prev
+          );
+        }
+      } finally {
+        isAddingNoteRef.current = false;
       }
     },
     [detail, setDetail]

@@ -384,7 +384,7 @@ export default function SecurityTab() {
           <div className="w-full h-[1px] border-t border-neutral-30 dark:border-neutral-30 mb-3"></div>
 
           {/* Bottom Action Section */}
-          <div className="flex items-center justify-between px-6 py-3 bg-[rgba(255,235,235,0.5)] dark:bg-danger-10/20 rounded-[5px] min-h-[48px]">
+          <div className="flex items-center justify-between px-6 py-3 bg-[rgba(255,235,235,0.5)] dark:bg-neutral-20 rounded-[5px] min-h-[48px]">
             <span className="text-[16px] font-semibold text-danger-40 dark:text-danger-40 leading-[19px]">
               계정 삭제
             </span>

@@ -86,6 +86,8 @@ export type CustomersListQuery = {
   contact1?: string;
   contact2?: string;
   noteContent?: string;
+  assignType?: "all" | "assigned" | "unassigned";
+  projectPartnerId?: number;
   teamId?: number; // -1: 할당 대기 중
   memberId?: number;
   applicationRoute?: string;
@@ -174,6 +176,7 @@ export type CustomerDetail = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  keyword?: string | null;
   ipAddress?: string | null;
   assignedMember?: AssignedMember | null;
   assignedTeamName?: string | null;
@@ -220,6 +223,7 @@ export type UpdateCustomerInput = {
   applicationRoute?: string;
   site?: string;
   mediaCompany?: string;
+  keyword?: string;
   ipAddress?: string;
   specialNotes?: string;
   summary?: string;
@@ -269,6 +273,8 @@ export type AssignCustomersFilterConditions = {
   contact1?: string;
   contact2?: string;
   noteContent?: string;
+  assignType?: "all" | "assigned" | "unassigned";
+  projectPartnerId?: number;
   teamId?: number;
   memberId?: number;
   applicationRoute?: string;
