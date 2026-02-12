@@ -12,7 +12,7 @@ type Props = {
   conversation: CustomerDetail["conversation"];
   notes: CustomerDetail["notes"];
   categories: { id: number; name: string; color?: string }[];
-  onAddNote: (categoryId: number | null, note: string) => void;
+  onAddNote: (categoryId: number | null, note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
   customerId: number;
   onUnlinkConversation?: () => void;
@@ -34,6 +34,7 @@ export default function ConsultationPanel({
   const router = useRouter();
   const [noteCategoryId, setNoteCategoryId] = useState<number | "">("");
   const [noteInput, setNoteInput] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
@@ -45,11 +46,16 @@ export default function ConsultationPanel({
     }
   }, [notes]);
 
-  const handleAddNote = () => {
-    if (!noteInput.trim()) return;
+  const handleAddNote = async () => {
+    if (!noteInput.trim() || isAddingNote) return;
     const catId = typeof noteCategoryId === "number" ? noteCategoryId : null;
-    onAddNote(catId, noteInput.trim());
-    setNoteInput("");
+    setIsAddingNote(true);
+    try {
+      await onAddNote(catId, noteInput.trim());
+      setNoteInput("");
+    } finally {
+      setIsAddingNote(false);
+    }
   };
 
   const hasConversation = Boolean(conversation);
@@ -211,17 +217,18 @@ export default function ConsultationPanel({
             value={noteInput}
             onChange={(e) => setNoteInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.repeat && !isAddingNote) {
                 e.preventDefault();
-                handleAddNote();
+                void handleAddNote();
               }
             }}
             placeholder="상담 내용을 입력하세요."
             className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
           />
           <button
-            className="cursor-pointer w-[48px] h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0"
-            onClick={handleAddNote}
+            className="cursor-pointer w-[48px] min-w-[48px] shrink-0 h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => void handleAddNote()}
+            disabled={isAddingNote || !noteInput.trim()}
           >
             추가
           </button>

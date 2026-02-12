@@ -176,6 +176,7 @@ export type CustomerDetail = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  keyword?: string | null;
   ipAddress?: string | null;
   assignedMember?: AssignedMember | null;
   assignedTeamName?: string | null;
@@ -222,6 +223,7 @@ export type UpdateCustomerInput = {
   applicationRoute?: string;
   site?: string;
   mediaCompany?: string;
+  keyword?: string;
   ipAddress?: string;
   specialNotes?: string;
   summary?: string;

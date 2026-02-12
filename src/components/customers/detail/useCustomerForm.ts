@@ -34,6 +34,9 @@ export function useCustomerForm(): UseCustomerFormReturn {
     const formattedApplicationDate = detail.applicationDate
       ? dayjs(detail.applicationDate).format("YYYY-MM-DD HH:mm")
       : "";
+    const formattedAssignedAt = detail.assignedAt
+      ? dayjs(detail.assignedAt).format("YYYY-MM-DD HH:mm")
+      : "";
 
     // 생년월일 처리: birth 필드를 그대로 사용
     const birth = detail.birth ?? "";
@@ -50,10 +53,13 @@ export function useCustomerForm(): UseCustomerFormReturn {
       applicationRoute: detail.applicationRoute ?? "",
       site: detail.site ?? "",
       mediaCompany: detail.mediaCompany ?? "",
+      keyword: detail.keyword ?? "",
       ipAddress: detail.ipAddress ?? "",
       applicationDate: formattedApplicationDate ?? "",
-      assignedMemberName: detail.assignedMemberName ?? "",
-      assignedTeamName: detail.assignedTeamName ?? "",
+      assignedAt: formattedAssignedAt ?? "",
+      assignedMemberName: detail.assignedMemberName ?? detail.assignedMember?.name ?? "",
+      assignedTeamName:
+        detail.assignedTeamName ?? detail.assignedMember?.teamName ?? "",
       specialNotes: detail.specialNotes ?? "",
       summary: detail.summary ?? "",
       assetStatus: detail.assetStatus ?? "",
@@ -82,7 +88,13 @@ export function useCustomerForm(): UseCustomerFormReturn {
     // 일반 필드 비교
     (Object.keys(form) as Array<keyof CustomerFormState>).forEach((key) => {
       // 읽기 전용 필드는 스킵
-      if (key === "assignedMemberName" || key === "assignedTeamName") return;
+      if (
+        key === "assignedAt" ||
+        key === "assignedMemberName" ||
+        key === "assignedTeamName"
+      ) {
+        return;
+      }
 
       if (form[key] !== originalForm[key]) {
         const apiField = FORM_TO_API_FIELD_MAP[key];
