@@ -76,15 +76,15 @@ export default function RegistrationDetailTable({
         />
       </div>
 
-      <div className="overflow-hidden rounded-[12px]">
-        <table className="w-full border-collapse">
+      <div className="overflow-hidden rounded-[8px] md:rounded-[12px]">
+        <table className="w-full border-separate border-spacing-0">
           <thead>
-            <tr className="bg-neutral-20 h-[40px]">
-              <th className="text-center md:text-left px-1 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px]">날짜</th>
-              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">신청 건수</th>
-              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">직접입력</th>
-              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">API</th>
-              <th className="text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-r-[8px]">파트너 공유</th>
+            <tr className="h-[40px]">
+              <th className="bg-neutral-20 text-center md:text-left px-1 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px] md:rounded-l-[12px]">날짜</th>
+              <th className="bg-neutral-20 text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">신청 건수</th>
+              <th className="bg-neutral-20 text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">직접입력</th>
+              <th className="bg-neutral-20 text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">API</th>
+              <th className="bg-neutral-20 text-center md:text-left px-1 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-r-[8px] md:rounded-r-[12px]">파트너 공유</th>
             </tr>
           </thead>
           <tbody>
@@ -124,7 +124,7 @@ export default function RegistrationDetailTable({
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.id} className="border-b border-neutral-30/40 dark:!border-[#44444455]">
+                <tr key={row.id} className="[&>td]:border-b [&>td]:border-neutral-30/40 [&>td]:dark:!border-[#44444455]">
                   <td className="px-1 md:px-4 py-3 text-center md:text-left pl-1 md:pl-[30px] text-[14px] font-medium text-foreground opacity-80">{formatTableDateKR(row.statisticsDate)}</td>
                   <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">{NUMBER_FORMATTER.format(row.totalCount)}건</td>
                   <td className="px-1 md:px-4 py-3 text-center md:text-left text-[14px] font-medium text-foreground opacity-80">

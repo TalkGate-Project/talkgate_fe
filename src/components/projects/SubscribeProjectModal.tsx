@@ -6,6 +6,7 @@ import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.pn
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { LANDING_URLS } from "@/lib/constants";
 import { SubscriptionService } from "@/services/subscription";
+import { formatCouponCodeForDisplay } from "@/utils/format";
 
 type Project = {
   id: string;
@@ -127,7 +128,7 @@ export default function SubscribeProjectModal({
   const [couponApplying, setCouponApplying] = useState(false);
 
   const handleCouponApply = async () => {
-    const code = couponCode.trim();
+    const code = formatCouponCodeForDisplay(couponCode.trim());
     if (!code) {
       showErrorModal({
         type: "error",
@@ -314,7 +315,7 @@ export default function SubscribeProjectModal({
             <input
               type="text"
               value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
+              onChange={(e) => setCouponCode(formatCouponCodeForDisplay(e.target.value))}
               placeholder="쿠폰 코드를 입력하세요"
               disabled={couponApplying}
               className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"

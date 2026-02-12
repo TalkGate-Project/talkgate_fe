@@ -77,7 +77,8 @@ export const SmsService = {
     documentImage1: string;
     documentImage2: string;
     documentImage3: string;
-    documentImage4: string;
+    /** 담당자 신분증 선택 시에만 필요. 대표자 신분증 선택 시 생략 */
+    documentImage4?: string;
   }) {
     return apiClient.post<{
       result: boolean;

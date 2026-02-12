@@ -37,6 +37,8 @@ export default function SubscriptionManagement({ onBack }: SubscriptionManagemen
           프로젝트 구독 : {subscription?.isActive ? "1개" : "0개"}
         </span>
       </div>
+      
+      <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mb-7"></div>
 
       {/* 구독 카드 그리드 */}
       <div className="px-7 pb-7">

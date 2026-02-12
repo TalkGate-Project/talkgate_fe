@@ -87,7 +87,7 @@ export default function AssignedCustomersTable() {
       bodyClassName="px-4 md:px-7 pb-4 md:pb-6 pt-4 md:pt-4 flex flex-col gap-4 min-h-0"
     >
       <div
-        className="flex-1 min-h-0 overflow-y-auto rounded-[12px] bg-card"
+        className="flex-1 min-h-0 overflow-y-auto rounded-[4px] md:rounded-[8px] bg-card"
         style={{ width: "100%" }}
       >
         {waitingForProject ? (
@@ -110,17 +110,17 @@ export default function AssignedCustomersTable() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-separate border-spacing-0">
               <thead>
-                <tr className="bg-neutral-20 text-neutral-60">
+                <tr className="text-neutral-60">
                   {HEADER_LABELS.map((label, index) => (
                     <th
                       key={label}
-                      className={`text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
+                      className={`bg-neutral-20 text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
                         index === 0
-                          ? "rounded-l-[8px]"
+                          ? "rounded-l-[8px] md:rounded-l-[12px]"
                           : index === HEADER_LABELS.length - 1
-                          ? "rounded-r-[8px] w-[40px] md:w-[90px]"
+                          ? "rounded-r-[8px] md:rounded-r-[12px] w-[40px] md:w-[90px]"
                           : ""
                       }`}
                     >
@@ -224,20 +224,20 @@ export default function AssignedCustomersTable() {
 function LoadingTableSkeleton() {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full text-left border-separate border-spacing-0">
         <thead>
-          <tr className="bg-neutral-20 text-neutral-60">
+          <tr className="text-neutral-60">
             {HEADER_LABELS.map((label, index) => (
-              <th
-                key={label}
-                className={`text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
-                  index === 0
-                    ? "rounded-l-[8px]"
-                    : index === HEADER_LABELS.length - 1
-                    ? "rounded-r-[8px] w-[40px] md:w-[90px]"
-                    : ""
-                }`}
-              >
+            <th
+                    key={label}
+                    className={`bg-neutral-20 text-[12px] md:typo-title-4 font-medium h-[36px] md:h-[40px] px-2 md:px-6 text-neutral-70 whitespace-nowrap ${
+                      index === 0
+                        ? "rounded-tl-[8px] rounded-bl-[8px] md:rounded-tl-[12px] md:rounded-bl-[12px]"
+                        : index === HEADER_LABELS.length - 1
+                        ? "rounded-tr-[8px] rounded-br-[8px] md:rounded-tr-[12px] md:rounded-br-[12px] w-[40px] md:w-[90px]"
+                        : ""
+                    }`}
+                  >
                 {label}
               </th>
             ))}

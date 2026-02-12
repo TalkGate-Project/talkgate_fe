@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
+import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import CustomerShareModal from "@/components/customers/CustomerShareModal";
 import CustomerExcelUploadModal from "@/components/customers/CustomerExcelUploadModal";
+import type { DeleteCustomersFilterConditions } from "@/types/customers";
 
 type CustomersActionsProps = {
   projectId: string;
@@ -17,9 +19,45 @@ type CustomersActionsProps = {
   onCreateOpen: () => void;
   onSmsOpen: () => void;
   onShareSuccess?: () => void;
+  onDeleteSuccess?: () => void;
   /** 데이터 제공자일 때만 파트너배정 버튼 표시 (기본 비노출) */
   isDataProvider?: boolean;
 };
+
+function buildDeleteFilterConditions(
+  appliedFilters?: Record<string, unknown>
+): DeleteCustomersFilterConditions {
+  if (!appliedFilters || Object.keys(appliedFilters).length === 0) {
+    return {};
+  }
+
+  const f = appliedFilters as Record<string, unknown>;
+  const conditions: DeleteCustomersFilterConditions = {};
+
+  if (typeof f.name === "string") conditions.name = f.name;
+  if (typeof f.contact1 === "string") conditions.contact1 = f.contact1;
+  if (typeof f.contact2 === "string") conditions.contact2 = f.contact2;
+  if (typeof f.noteContent === "string") conditions.noteContent = f.noteContent;
+  if (f.assignType != null) conditions.assignType = String(f.assignType);
+  if (typeof f.teamId === "number") conditions.teamId = f.teamId;
+  if (typeof f.memberId === "number") conditions.memberId = f.memberId;
+  if (typeof f.applicationRoute === "string") conditions.applicationRoute = f.applicationRoute;
+  if (typeof f.mediaCompany === "string") conditions.mediaCompany = f.mediaCompany;
+  if (typeof f.site === "string") conditions.site = f.site;
+  if (Array.isArray(f.categoryIds)) {
+    conditions.categoryIds = f.categoryIds.map((id) => (id === null ? "null" : id)) as (
+      | number
+      | string
+    )[];
+  }
+  if (typeof f.applicationDateFrom === "string") conditions.applicationDateFrom = f.applicationDateFrom;
+  if (typeof f.applicationDateTo === "string") conditions.applicationDateTo = f.applicationDateTo;
+  if (typeof f.assignedAtFrom === "string") conditions.assignedAtFrom = f.assignedAtFrom;
+  if (typeof f.assignedAtTo === "string") conditions.assignedAtTo = f.assignedAtTo;
+  if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
+
+  return Object.keys(conditions).length > 0 ? conditions : {};
+}
 
 export default function CustomersActions({
   projectId,
@@ -33,6 +71,7 @@ export default function CustomersActions({
   onCreateOpen,
   onSmsOpen,
   onShareSuccess,
+  onDeleteSuccess,
   isDataProvider = false,
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -133,6 +172,49 @@ export default function CustomersActions({
     }
   };
 
+  const hasSelection = selectedIds.length > 0 || selectionMode === "all";
+
+  const deleteCount = selectionMode === "all" ? total : selectedIds.length;
+
+  const handleBulkDelete = () => {
+    showConfirmModal({
+      title: "고객 삭제",
+      headline: `선택한 ${deleteCount}명의 고객을 삭제하시겠습니까?`,
+      message: "삭제된 고객 정보는 복구할 수 없습니다.",
+      type: "warning",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          if (selectionMode === "all") {
+            const filterConditions = buildDeleteFilterConditions(appliedFilters);
+            await CustomersService.bulkDelete({
+              projectId,
+              deleteType: "filter",
+              filterConditions,
+              expectedCount: total,
+            });
+          } else {
+            await CustomersService.bulkDelete({
+              projectId,
+              deleteType: "ids",
+              customerIds: selectedIds,
+            });
+          }
+          onDeleteSuccess?.();
+        } catch {
+          showErrorModal({
+            title: "오류 발생",
+            headline: "고객 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            confirmText: "확인",
+            cancelText: null,
+            hideCancel: true,
+          });
+        }
+      },
+    });
+  };
+
   const iconOnlyButtonClass =
     "cursor-pointer h-9 w-9 flex items-center justify-center rounded-[8px] bg-neutral-90 text-neutral-20 flex-shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -183,6 +265,17 @@ export default function CustomersActions({
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
             <path d="M5.83333 6.66665H14.1667M5.83333 9.99998H9.16667M10 16.6666L6.66667 13.3333H4.16667C3.24619 13.3333 2.5 12.5871 2.5 11.6666V4.99998C2.5 4.07951 3.24619 3.33331 4.16667 3.33331H15.8333C16.7538 3.33331 17.5 4.07951 17.5 4.99998V11.6666C17.5 12.5871 16.7538 13.3333 15.8333 13.3333H13.3333L10 16.6666Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className={iconOnlyButtonClass}
+          onClick={handleBulkDelete}
+          disabled={!hasSelection}
+          aria-label="고객 삭제"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </div>
@@ -240,6 +333,23 @@ export default function CustomersActions({
           </button>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            disabled={!hasSelection}
+            className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            aria-label="고객 삭제"
+          >
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+              <path
+                d="M25.333 9.33333L24.1766 25.5233C24.0769 26.9188 22.9157 28 21.5167 28H10.4827C9.08362 28 7.92245 26.9188 7.82277 25.5233L6.66634 9.33333M13.333 14.6667V22.6667M18.6663 14.6667V22.6667M19.9997 9.33333V5.33333C19.9997 4.59695 19.4027 4 18.6663 4H13.333C12.5966 4 11.9997 4.59695 11.9997 5.33333V9.33333M5.33301 9.33333H26.6663"
+                stroke="#B0B0B0"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
           <button
             type="button"
             onClick={() => setExcelUploadModalOpen(true)}

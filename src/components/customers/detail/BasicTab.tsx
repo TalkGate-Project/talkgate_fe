@@ -99,7 +99,7 @@ export default function BasicTab({
       {/* Name */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">이름</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">이름</span>
           <span className="text-[14px] text-danger-40 font-medium">*</span>
         </div>
         <div>
@@ -118,7 +118,7 @@ export default function BasicTab({
       {/* Contact 1 */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">연락처1</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">연락처1</span>
           <span className="text-[14px] text-danger-40 font-medium">*</span>
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
@@ -160,7 +160,7 @@ export default function BasicTab({
       {/* Contact 2 */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">연락처2</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">연락처2</span>
         </div>
         <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-2">
           <div>
@@ -198,7 +198,7 @@ export default function BasicTab({
       {/* Birth */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">생년월일</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">생년월일</span>
         </div>
         <div>
           <BirthInput
@@ -213,7 +213,7 @@ export default function BasicTab({
       {/* Job */}
       <div>
         <div className="mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">직업</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">직업</span>
         </div>
         <div>
           <input
@@ -228,7 +228,7 @@ export default function BasicTab({
       {/* Age Range */}
       <div>
         <div className="mb-1">
-          <span className="text-[14px] text-[#6B7280] font-medium">연령대</span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">연령대</span>
         </div>
         <div>
           <input
