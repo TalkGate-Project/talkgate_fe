@@ -1,9 +1,10 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState, useCallback } from "react";
+import { ReactNode, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
+import { ProjectPartnersService } from "@/services/projectPartners";
 import Checkbox from "@/components/common/Checkbox";
 
 function getBodyZoom(): number {
@@ -20,6 +21,8 @@ export type FilterValues = {
     mediaCompany?: string;
     site?: string;
     categoryIds?: (number | null)[];
+    assignType?: "all" | "assigned" | "unassigned";
+    projectPartnerId?: number;
     noteContent?: string;
     applicationDateFrom?: string;
     applicationDateTo?: string;
@@ -34,6 +37,9 @@ type FilterModalProps = {
     onClose: () => void;
     onApply: (values: FilterValues, meta: { categories: CustomerNoteCategory[] }) => void;
     defaults?: FilterValues;
+    projectId?: string | null;
+    isAdminOrSubAdmin?: boolean;
+    isDataProvider?: boolean;
     teamOptions?: Option[];
     memberOptions?: Option[];
     routeOptions?: Option[];
@@ -42,11 +48,100 @@ type FilterModalProps = {
     categoryOptions?: Option[];
 };
 
-export default function FilterModal({ open, onClose, onApply, defaults, teamOptions = [], memberOptions = [], routeOptions = [], mediaOptions = [], siteOptions = [], categoryOptions = [] }: FilterModalProps) {
+type ProjectPartnerOption = {
+    id: number;
+    name: string;
+    logoUrl?: string | null;
+};
+
+export default function FilterModal({
+    open,
+    onClose,
+    onApply,
+    defaults,
+    projectId,
+    isAdminOrSubAdmin = false,
+    isDataProvider = false,
+    teamOptions = [],
+    memberOptions = [],
+    routeOptions = [],
+    mediaOptions = [],
+    siteOptions = [],
+    categoryOptions = [],
+}: FilterModalProps) {
     const [form, setForm] = useState<FilterValues>(defaults || {});
     const [isMobile, setIsMobile] = useState(false);
+    const [partnerOpen, setPartnerOpen] = useState(false);
+    const [partnerSearch, setPartnerSearch] = useState("");
+    const [partnerOptions, setPartnerOptions] = useState<ProjectPartnerOption[]>([]);
+    const [loadingPartners, setLoadingPartners] = useState(false);
+    const partnerWrapRef = useRef<HTMLDivElement | null>(null);
     
     useEffect(() => { if (open) setForm(defaults || {}); }, [open, defaults]);
+
+    const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
+    const shouldShowAssignFilter = isAdminOrSubAdmin;
+
+    const selectedPartner = useMemo(
+        () => partnerOptions.find((partner) => partner.id === form.projectPartnerId),
+        [partnerOptions, form.projectPartnerId]
+    );
+    const filteredPartners = useMemo(() => {
+        const term = partnerSearch.trim().toLowerCase();
+        if (!term) return partnerOptions;
+        return partnerOptions.filter((partner) => partner.name.toLowerCase().includes(term));
+    }, [partnerOptions, partnerSearch]);
+
+    useEffect(() => {
+        if (!open || !shouldShowPartnerFilter || !projectId) return;
+        let cancelled = false;
+
+        const run = async () => {
+            setLoadingPartners(true);
+            try {
+                const response = await ProjectPartnersService.list(
+                    { page: 1, limit: 100 },
+                    { "x-project-id": projectId }
+                );
+                if (cancelled) return;
+                const list = response.data?.data?.list ?? [];
+                const approvedOnly = list.filter((partner) =>
+                    "status" in partner ? (partner as any).status === "approved" : true
+                );
+                const normalized = approvedOnly.map((partner: any) => ({
+                    id: partner.id,
+                    name: partner.partnerProjectName ?? `파트너 ${partner.id}`,
+                    logoUrl:
+                        partner.partnerProjectLogoUrl ??
+                        partner.projectLogoUrl ??
+                        partner.logoUrl ??
+                        null,
+                }));
+                setPartnerOptions(normalized);
+            } catch {
+                if (!cancelled) setPartnerOptions([]);
+            } finally {
+                if (!cancelled) setLoadingPartners(false);
+            }
+        };
+
+        void run();
+        return () => {
+            cancelled = true;
+        };
+    }, [open, shouldShowPartnerFilter, projectId]);
+
+    useEffect(() => {
+        if (!open || !partnerOpen) return;
+        const onDocClick = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (partnerWrapRef.current && !partnerWrapRef.current.contains(target)) {
+                setPartnerOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", onDocClick);
+        return () => document.removeEventListener("mousedown", onDocClick);
+    }, [open, partnerOpen]);
     
     useEffect(() => {
         const checkMobile = () => {
@@ -118,6 +213,144 @@ export default function FilterModal({ open, onClose, onApply, defaults, teamOpti
 
                     {/* Body */}
                     <div className="flex-1 overflow-auto px-4 md:px-7 pt-[18px] space-y-3 pb-7">
+                        {(shouldShowPartnerFilter || shouldShowAssignFilter) && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-1">
+                                {shouldShowPartnerFilter && (
+                                    <div ref={partnerWrapRef} className="relative">
+                                        <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">
+                                            파트너 업체
+                                            <span className="ml-1 text-[14px] text-[#B0B0B0] dark:text-neutral-60">
+                                                (선택한 업체에 배정된 고객을 제외 합니다.)
+                                            </span>
+                                        </label>
+                                        <div
+                                            className="w-full h-[34px] px-3 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-neutral-20 flex items-center gap-2"
+                                            onClick={() => {
+                                                if (!selectedPartner) setPartnerSearch("");
+                                                setPartnerOpen(true);
+                                            }}
+                                        >
+                                            <input
+                                                value={partnerOpen ? partnerSearch : (selectedPartner?.name ?? "")}
+                                                onFocus={() => setPartnerOpen(true)}
+                                                onChange={(e) => {
+                                                    if (selectedPartner) {
+                                                        setForm((f) => ({ ...f, projectPartnerId: undefined }));
+                                                    }
+                                                    setPartnerSearch(e.target.value);
+                                                    setPartnerOpen(true);
+                                                }}
+                                                placeholder="전체"
+                                                autoComplete="off"
+                                                className="flex-1 min-w-0 h-[17px] bg-transparent outline-none text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60"
+                                            />
+                                            {selectedPartner && (
+                                                <button
+                                                    type="button"
+                                                    aria-label="선택 파트너 해제"
+                                                    className="cursor-pointer w-5 h-5 grid place-items-center shrink-0"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setForm((f) => ({ ...f, projectPartnerId: undefined }));
+                                                        setPartnerSearch("");
+                                                        setPartnerOpen(false);
+                                                    }}
+                                                >
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M6 14L14 6M6 6L14 14" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                            <span className="w-5 h-5 grid place-items-center shrink-0 pointer-events-none">
+                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        {partnerOpen && (
+                                            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 bg-white dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                                                <div className="max-h-[220px] overflow-auto">
+                                                    {loadingPartners ? (
+                                                        <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                                            불러오는 중...
+                                                        </div>
+                                                    ) : (
+                                                        filteredPartners.map((partner) => (
+                                                            <button
+                                                                key={partner.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setForm((f) => ({ ...f, projectPartnerId: partner.id }));
+                                                                    setPartnerSearch(partner.name);
+                                                                    setPartnerOpen(false);
+                                                                }}
+                                                                className="w-full h-[48px] px-4 flex items-center gap-2 text-left hover:bg-neutral-10 dark:hover:bg-neutral-30"
+                                                            >
+                                                                <div className="w-5 h-5 rounded-full overflow-hidden bg-neutral-20 dark:bg-neutral-30 flex items-center justify-center shrink-0">
+                                                                    {partner.logoUrl ? (
+                                                                        <img src={partner.logoUrl} alt={partner.name} className="w-5 h-5 object-cover" />
+                                                                    ) : (
+                                                                        <span className="text-[10px] font-semibold text-neutral-60 dark:text-neutral-50">
+                                                                            {partner.name.charAt(0).toUpperCase()}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[14px] leading-[20px] text-[#000] dark:text-neutral-80 truncate">
+                                                                    {partner.name}
+                                                                </span>
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                    {!loadingPartners && filteredPartners.length === 0 && (
+                                                        <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                                            업체가 없습니다.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {shouldShowAssignFilter && (
+                                    <div>
+                                        <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">고객 배정 여부</label>
+                                        <div className="h-[34px] flex items-center gap-6">
+                                            {([
+                                                { id: "all", label: "전체" },
+                                                { id: "assigned", label: "배정됨" },
+                                                { id: "unassigned", label: "배정대기" },
+                                            ] as const).map((item) => (
+                                                <label key={item.id} className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="assignType"
+                                                        checked={(form.assignType ?? "all") === item.id}
+                                                        onChange={() => setForm((f) => ({ ...f, assignType: item.id }))}
+                                                        className="sr-only"
+                                                    />
+                                                    <span
+                                                        className={`w-5 h-5 rounded-full border grid place-items-center ${
+                                                            (form.assignType ?? "all") === item.id
+                                                                ? "border-primary-60"
+                                                                : "border-[#B0B0B0] dark:border-neutral-60"
+                                                        }`}
+                                                    >
+                                                        {(form.assignType ?? "all") === item.id && (
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-primary-60" />
+                                                        )}
+                                                    </span>
+                                                    <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">
+                                                        {item.label}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />

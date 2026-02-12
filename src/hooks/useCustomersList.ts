@@ -20,6 +20,8 @@ export function useCustomersList(params: CustomersListQuery | null) {
         contact1: params.contact1,
         contact2: params.contact2,
         noteContent: params.noteContent,
+        assignType: params.assignType,
+        projectPartnerId: params.projectPartnerId,
         teamId: params.teamId,
         memberId: params.memberId,
         applicationRoute: params.applicationRoute,
