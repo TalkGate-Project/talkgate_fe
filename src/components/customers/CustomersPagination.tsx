@@ -18,16 +18,12 @@ export default function CustomersPagination({
   onPageChange,
 }: CustomersPaginationProps) {
   return (
-    <div className="h-[64px] flex items-center justify-center md:justify-between gap-4 mt-0 md:mt-2">
-      <div className="hidden md:block text-[14px] font-normal" style={{ color: '#B0B0B0' }}>
-        총 {total.toLocaleString()}건 ({selectedCount}개 선택)
-      </div>
+    <div className="h-[64px] flex items-center justify-center gap-4 mt-0 md:mt-2">
       <Pagination
         page={page}
         totalPages={totalPages}
         onPageChange={onPageChange}
       />
-      <div></div>
     </div>
   );
 }

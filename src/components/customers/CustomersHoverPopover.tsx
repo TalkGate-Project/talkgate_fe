@@ -42,20 +42,21 @@ export default function CustomersHoverPopover({
 
               return (
                 <div key={n.id} className="bg-neutral-10 rounded-[12px] p-4">
-                  <div className="flex items-center justify-between text-neutral-60 text-[14px]">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-3 text-neutral-60 text-[14px]">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span
-                        className={`inline-flex items-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                        className={`inline-flex items-center h-[22px] max-w-[140px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                        title={categoryName}
                       >
-                        {categoryName}
+                        <span className="block min-w-0 truncate">{categoryName}</span>
                       </span>
                       {n.memberName && (
-                        <span className="text-[12px] text-neutral-80">
+                        <span className="text-[12px] text-neutral-80 truncate max-w-[72px]" title={n.memberName}>
                           {n.memberName}
                         </span>
                       )}
                     </div>
-                    <span>{formatDateTime(n.createdAt)}</span>
+                    <span className="flex-shrink-0">{formatDateTime(n.createdAt)}</span>
                   </div>
                   <div className="mt-2 text-[14px] text-neutral-70">{n.note}</div>
                 </div>

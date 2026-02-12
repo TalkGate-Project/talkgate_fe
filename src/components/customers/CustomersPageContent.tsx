@@ -272,6 +272,8 @@ function CustomersPageContentInner() {
             selectionMode={selectionMode}
             total={total}
             selectedCount={selectionMode === "all" ? total : selectedIds.length}
+            limit={limit}
+            onLimitChange={handleLimitChange}
             onUploadSuccess={refetch}
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
