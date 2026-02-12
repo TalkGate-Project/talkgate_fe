@@ -181,17 +181,13 @@ export default function CustomerExcelUploadModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center md:bg-black/50 md:dark:bg-[#000000CC]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC] md:block hidden"
+        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
         aria-hidden
       />
       <div
-        className="relative bg-white dark:bg-neutral-10 md:rounded-[14px] md:w-[440px] w-full max-h-[90vh] md:max-h-[600px] flex flex-col"
-        style={{
-          boxShadow: "0px 13px 61px rgba(169, 169, 169, 0.366013)",
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
+        className="relative bg-white dark:bg-neutral-10 md:rounded-[14px] md:w-[440px] w-full max-h-[90vh] md:max-h-[600px] flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
       >
         {/* 헤더 - font-weight 600, 18px, line-height 21px */}
         <div className="flex items-center px-6 pt-6 pb-0">
@@ -262,7 +258,7 @@ export default function CustomerExcelUploadModal({
                 </h3>
                 {/* textbox: bg #FFFFFF, border 1px dashed #E2E2E2 */}
                 <div
-                  className={`relative rounded-[5px] bg-white dark:bg-card border border-dashed transition-colors ${isDragging
+                  className={`relative rounded-[5px] bg-white dark:bg-neutral-10 border border-dashed transition-colors ${isDragging
                     ? "border-primary-80 border-2"
                     : "border-[#E2E2E2] dark:border-neutral-30"
                     }`}

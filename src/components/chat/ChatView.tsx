@@ -268,6 +268,7 @@ export default function ChatView({ projectId }: Props) {
             projectId={projectId} 
             conversationId={activeId}
             isResizable={isWideLayout}
+            widthMode={isWideLayout ? widthMode : undefined}
           />
         </div>
       )}

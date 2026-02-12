@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
+import { ProjectPartnersService } from "@/services/projectPartners";
+import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
 
 type FilterChipsProps = {
@@ -45,6 +47,7 @@ export default function FilterChips({
 }: FilterChipsProps) {
   // 카테고리 목록을 가져와서 이름을 표시하기 위한 상태
   const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const [partnerNameMap, setPartnerNameMap] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     CustomerNoteCategoriesService.list()
@@ -55,6 +58,28 @@ export default function FilterChips({
       .catch(() => {
         setCategories([]);
       });
+  }, []);
+
+  useEffect(() => {
+    const projectId = getSelectedProjectId();
+    if (!projectId) return;
+    let cancelled = false;
+    ProjectPartnersService.list({ page: 1, limit: 100 }, { "x-project-id": projectId })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data?.data?.list ?? [];
+        const map = new Map<number, string>();
+        list.forEach((partner: any) => {
+          map.set(partner.id, partner.partnerProjectName ?? `파트너 업체 ${partner.id}`);
+        });
+        setPartnerNameMap(map);
+      })
+      .catch(() => {
+        if (!cancelled) setPartnerNameMap(new Map());
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 카테고리 ID로 이름 찾기
@@ -95,6 +120,18 @@ export default function FilterChips({
         <Chip 
           label={`상담 내용: ${filters.noteContent.length > 20 ? filters.noteContent.slice(0, 20) + "..." : filters.noteContent}`} 
           onRemove={() => onRemove("noteContent")} 
+        />
+      )}
+      {filters.assignType && filters.assignType !== "all" && (
+        <Chip
+          label={filters.assignType === "assigned" ? "배정됨" : "배정대기"}
+          onRemove={() => onRemove("assignType")}
+        />
+      )}
+      {typeof filters.projectPartnerId === "number" && (
+        <Chip
+          label={partnerNameMap.get(filters.projectPartnerId) ?? `파트너 업체 ${filters.projectPartnerId}`}
+          onRemove={() => onRemove("projectPartnerId")}
         />
       )}
       {Array.isArray(filters.categoryIds) &&

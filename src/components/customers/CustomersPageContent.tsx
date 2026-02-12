@@ -20,6 +20,7 @@ import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
+import { useMyMember } from "@/hooks/useMyMember";
 import { MembersTreeService } from "@/services/membersTree";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
@@ -80,6 +81,7 @@ function CustomersPageContentInner() {
   const [detailId, setDetailId] = useState<number | null>(null);
 
   const { project } = useCurrentProjectDetail();
+  const { isAdminOrSubAdmin } = useMyMember(projectId);
 
   // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환, 직속 상위 멤버 제외)
   const { data: treeData } = useMembersTreeWithoutParent(projectId);
@@ -197,11 +199,13 @@ function CustomersPageContentInner() {
             mediaCompany: applied.mediaCompany,
             site: applied.site,
             categoryIds: categoryIds && categoryIds.length > 0 ? categoryIds : undefined,
+            assignType: applied.assignType,
+            projectPartnerId: applied.projectPartnerId,
             applicationDateFrom: applied.applicationDateFrom,
             applicationDateTo: applied.applicationDateTo,
             assignedAtFrom: applied.assignedAtFrom,
             assignedAtTo: applied.assignedAtTo,
-          },
+          } as any,
           expectedCount: total,
           projectId: projectId!,
         });
@@ -311,6 +315,9 @@ function CustomersPageContentInner() {
         onClose={() => setFilterOpen(false)}
         defaults={filters}
         onApply={handleFilterApply}
+        projectId={projectId}
+        isAdminOrSubAdmin={isAdminOrSubAdmin}
+        isDataProvider={project?.isDataProvider ?? false}
         teamOptions={teamOptions}
         memberOptions={memberOptions}
       />

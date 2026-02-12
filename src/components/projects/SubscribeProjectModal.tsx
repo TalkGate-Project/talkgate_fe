@@ -95,8 +95,8 @@ function TeamScheduleIcon() {
         fill="#00E272"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M10 12.2857C10 11.0233 11.0233 10 12.2857 10H23.7143C24.9767 10 26 11.0233 26 12.2857V23.7143C26 24.9767 24.9767 26 23.7143 26H12.2857C11.0233 26 10 24.9767 10 23.7143V12.2857ZM22.5714 13.4286H13.4286V22.5714L18 20.2857L22.5714 22.5714V13.4286Z"
         fill="url(#paint0_linear_2562_32580)"
       />
@@ -109,8 +109,8 @@ function TeamScheduleIcon() {
           y2="34.1538"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#55E49D" />
-          <stop offset="1" stop-color="#00E272" />
+          <stop stopColor="#55E49D" />
+          <stop offset="1" stopColor="#00E272" />
         </linearGradient>
       </defs>
     </svg>
@@ -223,22 +223,22 @@ export default function SubscribeProjectModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* 배경 오버레이 */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => !submitting && onClose()}
       />
 
-      {/* 모달 컨테이너: 모바일 전체 화면, 데스크톱 고정 크기 */}
+      {/* 모달 컨테이너 */}
       <div
-        className="relative w-[440px] h-[675px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white dark:bg-neutral-10 shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto"
+        className="relative w-[440px] h-[526px] md:h-[675px] rounded-[14px] max-md:w-full max-md:max-w-[344px] max-md:h-auto max-md:min-h-[500px] max-md:max-h-[calc(100dvh-32px)] max-md:rounded-[12px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.36)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto"
         style={{
           filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
         }}
       >
         {/* 헤더 이미지 영역 */}
-        <div className="relative w-full h-[155px] rounded-t-[14px] overflow-hidden">
+        <div className="relative w-full h-[155px] max-md:h-[136px] rounded-t-[14px] max-md:rounded-t-[12px] overflow-hidden shrink-0">
           {/* 배경 패턴 (추상적인 기하학적 도형) */}
           <div className="absolute inset-0">
             <Image
@@ -250,7 +250,7 @@ export default function SubscribeProjectModal({
           </div>
 
           {/* 우측 상단 아이콘 및 닫기 버튼 */}
-          <div className="absolute top-6 right-7 flex items-center gap-2">
+          <div className="absolute top-6 right-7 max-md:top-4 max-md:right-4 flex items-center gap-2">
             <button
               aria-label="close"
               className="cursor-pointer w-6 h-6 flex items-center justify-center text-white hover:opacity-70 transition-opacity"
@@ -275,50 +275,52 @@ export default function SubscribeProjectModal({
           </div>
         </div>
 
-        {/* 본문 영역: 모바일 패딩·하단 여백 강화, 데스크톱 유지 */}
-        <div className="flex-1 px-[48px] pt-8 pb-6 max-md:px-4 max-md:pb-[max(2rem,env(safe-area-inset-bottom,0px))] flex flex-col">
+        {/* 본문 영역 */}
+        <div className="flex-1 px-[48px] pt-8 pb-6 max-md:px-6 max-md:pt-5 overflow-y-auto flex flex-col">
           {/* 제목 및 설명 */}
-          <div className="text-center mb-[30px]">
-            <h2 className="text-[16px] font-semibold text-neutral-90 dark:text-white">
+          <div className="text-center mb-[30px] max-md:mb-5">
+            <h2 className="text-[16px] max-md:text-[14px] font-semibold text-neutral-90 dark:text-white leading-[24px] max-md:tracking-[-0.04em]">
               이 프로젝트는 아직 활성화되지 않았어요.
             </h2>
-            <p className="text-[16px] font-semibold text-neutral-90 dark:text-white">
+            <p className="text-[16px] max-md:text-[14px] font-semibold text-neutral-90 dark:text-white leading-[24px] max-md:tracking-[-0.04em]">
               구독을 시작하고 모든 기능을 이용해보세요!
             </p>
           </div>
 
           {/* 기능 리스트 */}
-          <div className="flex-1 space-y-4 mb-4">
+          <div className="flex-1 space-y-4 max-md:space-y-3 mb-4">
             {features.map((feature) => (
               <div
                 key={feature.number}
-                className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-10 max-md:px-4"
+                className="w-full h-[64px] max-md:h-[48px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] max-md:rounded-[8px] flex items-center gap-4 px-10 max-md:px-4"
               >
                 {/* 번호 */}
-                <span className="text-[16px] font-bold text-[#00E272] leading-[19px] min-w-[21px]">
+                <span className="text-[16px] max-md:text-[14px] font-bold text-[#00E272] leading-[19px] max-md:leading-[17px] min-w-[21px] max-md:min-w-[16px]">
                   {feature.number}
                 </span>
 
                 {/* 제목 */}
-                <span className="text-[16px] font-bold text-neutral-90 dark:text-white leading-[19px] flex-1">
+                <span className="text-[16px] max-md:text-[14px] font-bold text-neutral-90 dark:text-white leading-[19px] max-md:leading-[17px] flex-1">
                   {feature.title}
                 </span>
 
                 {/* 아이콘 */}
-                <div className="flex-shrink-0">{feature.icon}</div>
+                <div className="flex-shrink-0 max-md:scale-[0.78]">
+                  {feature.icon}
+                </div>
               </div>
             ))}
           </div>
 
           {/* 쿠폰 등록하기 영역 */}
-          <div className="w-full h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] flex items-center gap-4 px-7 max-md:px-4 mb-6">
+          <div className="w-full md:h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] max-md:rounded-none flex items-center gap-4 max-md:gap-3 px-7 max-md:px-0 mb-6 max-md:mb-4 shrink-0">
             <input
               type="text"
               value={couponCode}
               onChange={(e) => setCouponCode(formatCouponCodeForDisplay(e.target.value))}
               placeholder="쿠폰 코드를 입력하세요"
               disabled={couponApplying}
-              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"
+              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 max-md:bg-transparent px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"
             />
             <button
               type="button"
@@ -330,11 +332,11 @@ export default function SubscribeProjectModal({
             </button>
           </div>
 
-          {/* 구독하기 버튼: 모바일 전체 너비, 데스크톱 344px 유지 */}
+          {/* 구독하기 버튼 */}
           <button
             onClick={handleSubscribe}
             disabled={submitting}
-            className="cursor-pointer w-[344px] max-md:w-full h-[52px] bg-neutral-90 dark:bg-neutral-90 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-10 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer w-[344px] max-md:w-full h-[52px] max-md:h-[48px] bg-neutral-90 dark:bg-neutral-90 rounded-[30px] flex items-center justify-center gap-[10px] text-white dark:text-neutral-10 text-[18px] font-semibold leading-[27px] tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             <span>구독하기</span>
             <svg
