@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -14,6 +14,8 @@ type CustomersActionsProps = {
   selectionMode: "page" | "all" | null;
   total: number;
   selectedCount: number;
+  limit: number;
+  onLimitChange: (limit: number) => void;
   onUploadSuccess: () => void;
   onAssignOpen: () => void;
   onCreateOpen: () => void;
@@ -66,6 +68,8 @@ export default function CustomersActions({
   selectionMode,
   total,
   selectedCount,
+  limit,
+  onLimitChange,
   onUploadSuccess,
   onAssignOpen,
   onCreateOpen,
@@ -76,6 +80,42 @@ export default function CustomersActions({
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
+  const [limitPopoverOpen, setLimitPopoverOpen] = useState(false);
+  const desktopLimitPopoverRef = useRef<HTMLDivElement | null>(null);
+  const mobileLimitPopoverRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!limitPopoverOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const clickedDesktopPopover =
+        desktopLimitPopoverRef.current?.contains(target) ?? false;
+      const clickedMobilePopover =
+        mobileLimitPopoverRef.current?.contains(target) ?? false;
+
+      if (
+        !clickedDesktopPopover &&
+        !clickedMobilePopover
+      ) {
+        setLimitPopoverOpen(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLimitPopoverOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [limitPopoverOpen]);
 
   const handleExcelDownload = async () => {
     try {
@@ -219,68 +259,129 @@ export default function CustomersActions({
     "cursor-pointer h-9 w-9 flex items-center justify-center rounded-[8px] bg-neutral-90 text-neutral-20 flex-shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
-    <div className="w-full flex justify-between items-end md:items-center gap-2 md:gap-3">
-      {/* 모바일: 4개 버튼 아이콘만 표시 */}
-      <div className="md:hidden flex items-center gap-2">
-        <button
-          type="button"
-          className={iconOnlyButtonClass}
-          onClick={onCreateOpen}
-          aria-label="고객등록"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path d="M18 10C18 10 14.9526 10 13 10M15.5 12.3333V7.27778M11.3333 6.11111C11.3333 7.82933 9.84095 9.22222 8 9.22222C6.15905 9.22222 4.66667 7.82933 4.66667 6.11111C4.66667 4.39289 6.15905 3 8 3C9.84095 3 11.3333 4.39289 11.3333 6.11111ZM3 16.2222C3 13.6449 5.23858 11.5556 8 11.5556C10.7614 11.5556 13 13.6449 13 16.2222V17H3V16.2222Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={iconOnlyButtonClass}
-          onClick={onAssignOpen}
-          disabled={selectedIds.length === 0 && selectionMode !== "all"}
-          aria-label="직원배정"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path d="M8.03017 11.1363C7.73727 10.8434 7.2624 10.8434 6.96951 11.1363C6.67661 11.4292 6.67661 11.9041 6.96951 12.197L7.49984 11.6667L8.03017 11.1363ZM9.1665 13.3333L8.63617 13.8637C8.92907 14.1566 9.40394 14.1566 9.69683 13.8637L9.1665 13.3333ZM13.0302 10.5303C13.3231 10.2374 13.3231 9.76256 13.0302 9.46967C12.7373 9.17678 12.2624 9.17678 11.9695 9.46967L12.4998 10L13.0302 10.5303ZM15.8332 5.83333H15.0832V15.8333H15.8332H16.5832V5.83333H15.8332ZM14.1665 17.5V16.75H5.83317V17.5V18.25H14.1665V17.5ZM4.1665 15.8333H4.9165V5.83333H4.1665H3.4165V15.8333H4.1665ZM5.83317 4.16667V4.91667H7.49984V4.16667V3.41667H5.83317V4.16667ZM12.4998 4.16667V4.91667H14.1665V4.16667V3.41667H12.4998V4.16667ZM5.83317 17.5V16.75C5.32691 16.75 4.9165 16.3396 4.9165 15.8333H4.1665H3.4165C3.4165 17.168 4.49848 18.25 5.83317 18.25V17.5ZM15.8332 15.8333H15.0832C15.0832 16.3396 14.6728 16.75 14.1665 16.75V17.5V18.25C15.5012 18.25 16.5832 17.168 16.5832 15.8333H15.8332ZM15.8332 5.83333H16.5832C16.5832 4.49865 15.5012 3.41667 14.1665 3.41667V4.16667V4.91667C14.6728 4.91667 15.0832 5.32707 15.0832 5.83333H15.8332ZM4.1665 5.83333H4.9165C4.9165 5.32707 5.32691 4.91667 5.83317 4.91667V4.16667V3.41667C4.49848 3.41667 3.4165 4.49865 3.4165 5.83333H4.1665ZM7.49984 11.6667L6.96951 12.197L8.63617 13.8637L9.1665 13.3333L9.69683 12.803L8.03017 11.1363L7.49984 11.6667ZM9.1665 13.3333L9.69683 13.8637L13.0302 10.5303L12.4998 10L11.9695 9.46967L8.63617 12.803L9.1665 13.3333ZM9.1665 2.5V3.25H10.8332V2.5V1.75H9.1665V2.5ZM10.8332 5.83333V5.08333H9.1665V5.83333V6.58333H10.8332V5.83333ZM9.1665 5.83333V5.08333C8.66024 5.08333 8.24984 4.67293 8.24984 4.16667H7.49984H6.74984C6.74984 5.50135 7.83182 6.58333 9.1665 6.58333V5.83333ZM12.4998 4.16667H11.7498C11.7498 4.67293 11.3394 5.08333 10.8332 5.08333V5.83333V6.58333C12.1679 6.58333 13.2498 5.50135 13.2498 4.16667H12.4998ZM10.8332 2.5V3.25C11.3394 3.25 11.7498 3.66041 11.7498 4.16667H12.4998H13.2498C13.2498 2.83198 12.1679 1.75 10.8332 1.75V2.5ZM9.1665 2.5V1.75C7.83182 1.75 6.74984 2.83198 6.74984 4.16667H7.49984H8.24984C8.24984 3.66041 8.66024 3.25 9.1665 3.25V2.5Z" fill="currentColor" />
-          </svg>
-        </button>
-        {isDataProvider && (
-          <button
-            type="button"
-            className={iconOnlyButtonClass}
-            onClick={() => setShareModalOpen(true)}
-            disabled={selectedIds.length === 0 && selectionMode !== "all"}
-            aria-label="파트너배정"
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <path d="M6.66683 4.16667H5.00016C4.07969 4.16667 3.3335 4.91286 3.3335 5.83333V15.8333C3.3335 16.7538 4.07969 17.5 5.00016 17.5H13.3335C14.254 17.5 15.0002 16.7538 15.0002 15.8333V15M6.66683 4.16667C6.66683 5.08714 7.41302 5.83333 8.3335 5.83333H10.0002C10.9206 5.83333 11.6668 5.08714 11.6668 4.16667M6.66683 4.16667C6.66683 3.24619 7.41302 2.5 8.3335 2.5H10.0002C10.9206 2.5 11.6668 3.24619 11.6668 4.16667M11.6668 4.16667H13.3335C14.254 4.16667 15.0002 4.91286 15.0002 5.83333V8.33333M16.6668 11.6667H8.3335M8.3335 11.6667L10.8335 9.16667M8.3335 11.6667L10.8335 14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        )}
-        <button
-          type="button"
-          className={iconOnlyButtonClass}
-          onClick={onSmsOpen}
-          disabled={selectedIds.length === 0 && selectionMode !== "all"}
-          aria-label="문자전송"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path d="M5.83333 6.66665H14.1667M5.83333 9.99998H9.16667M10 16.6666L6.66667 13.3333H4.16667C3.24619 13.3333 2.5 12.5871 2.5 11.6666V4.99998C2.5 4.07951 3.24619 3.33331 4.16667 3.33331H15.8333C16.7538 3.33331 17.5 4.07951 17.5 4.99998V11.6666C17.5 12.5871 16.7538 13.3333 15.8333 13.3333H13.3333L10 16.6666Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={iconOnlyButtonClass}
-          onClick={handleBulkDelete}
-          disabled={!hasSelection}
-          aria-label="고객 삭제"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-      <div className="md:hidden text-[11px] text-neutral-50">
-        총 {total.toLocaleString()}건 ({selectedCount}개 선택)
+    <div className="w-full flex justify-between items-start md:items-center gap-2 md:gap-3">
+      {/* 모바일: 좌측 액션 + 우측(삭제/페이지개수), 카운트는 하단 좌측 */}
+      <div className="md:hidden w-full flex flex-col gap-2">
+        <div className="w-full flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={iconOnlyButtonClass}
+              onClick={onCreateOpen}
+              aria-label="고객등록"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M18 10C18 10 14.9526 10 13 10M15.5 12.3333V7.27778M11.3333 6.11111C11.3333 7.82933 9.84095 9.22222 8 9.22222C6.15905 9.22222 4.66667 7.82933 4.66667 6.11111C4.66667 4.39289 6.15905 3 8 3C9.84095 3 11.3333 4.39289 11.3333 6.11111ZM3 16.2222C3 13.6449 5.23858 11.5556 8 11.5556C10.7614 11.5556 13 13.6449 13 16.2222V17H3V16.2222Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={iconOnlyButtonClass}
+              onClick={onAssignOpen}
+              disabled={selectedIds.length === 0 && selectionMode !== "all"}
+              aria-label="직원배정"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M8.03017 11.1363C7.73727 10.8434 7.2624 10.8434 6.96951 11.1363C6.67661 11.4292 6.67661 11.9041 6.96951 12.197L7.49984 11.6667L8.03017 11.1363ZM9.1665 13.3333L8.63617 13.8637C8.92907 14.1566 9.40394 14.1566 9.69683 13.8637L9.1665 13.3333ZM13.0302 10.5303C13.3231 10.2374 13.3231 9.76256 13.0302 9.46967C12.7373 9.17678 12.2624 9.17678 11.9695 9.46967L12.4998 10L13.0302 10.5303ZM15.8332 5.83333H15.0832V15.8333H15.8332H16.5832V5.83333H15.8332ZM14.1665 17.5V16.75H5.83317V17.5V18.25H14.1665V17.5ZM4.1665 15.8333H4.9165V5.83333H4.1665H3.4165V15.8333H4.1665ZM5.83317 4.16667V4.91667H7.49984V4.16667V3.41667H5.83317V4.16667ZM12.4998 4.16667V4.91667H14.1665V4.16667V3.41667H12.4998V4.16667ZM5.83317 17.5V16.75C5.32691 16.75 4.9165 16.3396 4.9165 15.8333H4.1665H3.4165C3.4165 17.168 4.49848 18.25 5.83317 18.25V17.5ZM15.8332 15.8333H15.0832C15.0832 16.3396 14.6728 16.75 14.1665 16.75V17.5V18.25C15.5012 18.25 16.5832 17.168 16.5832 15.8333H15.8332ZM15.8332 5.83333H16.5832C16.5832 4.49865 15.5012 3.41667 14.1665 3.41667V4.16667V4.91667C14.6728 4.91667 15.0832 5.32707 15.0832 5.83333H15.8332ZM4.1665 5.83333H4.9165C4.9165 5.32707 5.32691 4.91667 5.83317 4.91667V4.16667V3.41667C4.49848 3.41667 3.4165 4.49865 3.4165 5.83333H4.1665ZM7.49984 11.6667L6.96951 12.197L8.63617 13.8637L9.1665 13.3333L9.69683 12.803L8.03017 11.1363L7.49984 11.6667ZM9.1665 13.3333L9.69683 13.8637L13.0302 10.5303L12.4998 10L11.9695 9.46967L8.63617 12.803L9.1665 13.3333ZM9.1665 2.5V3.25H10.8332V2.5V1.75H9.1665V2.5ZM10.8332 5.83333V5.08333H9.1665V5.83333V6.58333H10.8332V5.83333ZM9.1665 5.83333V5.08333C8.66024 5.08333 8.24984 4.67293 8.24984 4.16667H7.49984H6.74984C6.74984 5.50135 7.83182 6.58333 9.1665 6.58333V5.83333ZM12.4998 4.16667H11.7498C11.7498 4.67293 11.3394 5.08333 10.8332 5.08333V5.83333V6.58333C12.1679 6.58333 13.2498 5.50135 13.2498 4.16667H12.4998ZM10.8332 2.5V3.25C11.3394 3.25 11.7498 3.66041 11.7498 4.16667H12.4998H13.2498C13.2498 2.83198 12.1679 1.75 10.8332 1.75V2.5ZM9.1665 2.5V1.75C7.83182 1.75 6.74984 2.83198 6.74984 4.16667H7.49984H8.24984C8.24984 3.66041 8.66024 3.25 9.1665 3.25V2.5Z" fill="currentColor" />
+              </svg>
+            </button>
+            {isDataProvider && (
+              <button
+                type="button"
+                className={iconOnlyButtonClass}
+                onClick={() => setShareModalOpen(true)}
+                disabled={selectedIds.length === 0 && selectionMode !== "all"}
+                aria-label="파트너배정"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M6.66683 4.16667H5.00016C4.07969 4.16667 3.3335 4.91286 3.3335 5.83333V15.8333C3.3335 16.7538 4.07969 17.5 5.00016 17.5H13.3335C14.254 17.5 15.0002 16.7538 15.0002 15.8333V15M6.66683 4.16667C6.66683 5.08714 7.41302 5.83333 8.3335 5.83333H10.0002C10.9206 5.83333 11.6668 5.08714 11.6668 4.16667M6.66683 4.16667C6.66683 3.24619 7.41302 2.5 8.3335 2.5H10.0002C10.9206 2.5 11.6668 3.24619 11.6668 4.16667M11.6668 4.16667H13.3335C14.254 4.16667 15.0002 4.91286 15.0002 5.83333V8.33333M16.6668 11.6667H8.3335M8.3335 11.6667L10.8335 9.16667M8.3335 11.6667L10.8335 14.1667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            <button
+              type="button"
+              className={iconOnlyButtonClass}
+              onClick={onSmsOpen}
+              disabled={selectedIds.length === 0 && selectionMode !== "all"}
+              aria-label="문자전송"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M5.83333 6.66665H14.1667M5.83333 9.99998H9.16667M10 16.6666L6.66667 13.3333H4.16667C3.24619 13.3333 2.5 12.5871 2.5 11.6666V4.99998C2.5 4.07951 3.24619 3.33331 4.16667 3.33331H15.8333C16.7538 3.33331 17.5 4.07951 17.5 4.99998V11.6666C17.5 12.5871 16.7538 13.3333 15.8333 13.3333H13.3333L10 16.6666Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleBulkDelete}
+              disabled={!hasSelection}
+              className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+              aria-label="고객 삭제"
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                <path
+                  d="M25.333 9.33333L24.1766 25.5233C24.0769 26.9188 22.9157 28 21.5167 28H10.4827C9.08362 28 7.92245 26.9188 7.82277 25.5233L6.66634 9.33333M13.333 14.6667V22.6667M18.6663 14.6667V22.6667M19.9997 9.33333V5.33333C19.9997 4.59695 19.4027 4 18.6663 4H13.333C12.5966 4 11.9997 4.59695 11.9997 5.33333V9.33333M5.33301 9.33333H26.6663"
+                  stroke="#B0B0B0"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <div className="relative" ref={mobileLimitPopoverRef}>
+              <button
+                type="button"
+                onClick={() => setLimitPopoverOpen((prev) => !prev)}
+                className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+                aria-label="페이지당 개수 선택"
+                aria-haspopup="menu"
+                aria-expanded={limitPopoverOpen}
+              >
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M4 5.33325H21.3333M4 10.6666H16M4 15.9999H16M22.6667 10.6666V26.6666M22.6667 26.6666L17.3333 21.3333M22.6667 26.6666L28 21.3333"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {limitPopoverOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-2 w-[105px] rounded-[8px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-[0px_8px_16px_rgba(0,0,0,0.45)] z-50 overflow-hidden"
+                >
+                  {[10, 50, 100].map((option) => {
+                    const isSelected = limit === option;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={isSelected}
+                        onClick={() => {
+                          onLimitChange(option);
+                          setLimitPopoverOpen(false);
+                        }}
+                        className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${
+                          isSelected
+                            ? "bg-neutral-20 dark:bg-neutral-20"
+                            : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                        }`}
+                      >
+                        {option}개씩
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="text-[11px] text-neutral-50 text-left">
+          총 {total.toLocaleString()}건 ({selectedCount}개 선택)
+        </div>
       </div>
 
       {/* 데스크탑: 왼쪽 섹션(4버튼) + 오른쪽 섹션(엑셀 아이콘 2개), 같은 행 */}
@@ -331,6 +432,9 @@ export default function CustomersActions({
             </svg>
             <span>문자전송</span>
           </button>
+          <div className="text-[14px] text-neutral-50">
+            총 {total.toLocaleString()}건 ({selectedCount}개 선택)
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
@@ -340,7 +444,7 @@ export default function CustomersActions({
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             aria-label="고객 삭제"
           >
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
                 d="M25.333 9.33333L24.1766 25.5233C24.0769 26.9188 22.9157 28 21.5167 28H10.4827C9.08362 28 7.92245 26.9188 7.82277 25.5233L6.66634 9.33333M13.333 14.6667V22.6667M18.6663 14.6667V22.6667M19.9997 9.33333V5.33333C19.9997 4.59695 19.4027 4 18.6663 4H13.333C12.5966 4 11.9997 4.59695 11.9997 5.33333V9.33333M5.33301 9.33333H26.6663"
                 stroke="#B0B0B0"
@@ -356,7 +460,7 @@ export default function CustomersActions({
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 업로드"
           >
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
                 d="M5.33301 21.3334L5.33301 22.6667C5.33301 24.8758 7.12387 26.6667 9.33301 26.6667L22.6663 26.6667C24.8755 26.6667 26.6663 24.8758 26.6663 22.6667L26.6663 21.3334M21.333 10.6667L15.9997 5.33335M15.9997 5.33335L10.6663 10.6667M15.9997 5.33335L15.9997 21.3334"
                 stroke="currentColor"
@@ -382,7 +486,7 @@ export default function CustomersActions({
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 다운로드"
           >
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
                 d="M5.33301 21.3334L5.33301 22.6667C5.33301 24.8758 7.12387 26.6667 9.33301 26.6667L22.6663 26.6667C24.8755 26.6667 26.6663 24.8758 26.6663 22.6667L26.6663 21.3334M21.333 16L15.9997 21.3334M15.9997 21.3334L10.6663 16M15.9997 21.3334L15.9997 5.33335"
                 stroke="currentColor"
@@ -392,6 +496,55 @@ export default function CustomersActions({
               />
             </svg>
           </button>
+          <div className="relative" ref={desktopLimitPopoverRef}>
+            <button
+              type="button"
+              onClick={() => setLimitPopoverOpen((prev) => !prev)}
+              className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+              aria-label="페이지당 개수 선택"
+              aria-haspopup="menu"
+              aria-expanded={limitPopoverOpen}
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M4 5.33325H21.3333M4 10.6666H16M4 15.9999H16M22.6667 10.6666V26.6666M22.6667 26.6666L17.3333 21.3333M22.6667 26.6666L28 21.3333"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {limitPopoverOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-2 w-[105px] rounded-[8px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-[0px_8px_16px_rgba(0,0,0,0.45)] z-50 overflow-hidden"
+              >
+                {[10, 50, 100].map((option) => {
+                  const isSelected = limit === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        onLimitChange(option);
+                        setLimitPopoverOpen(false);
+                      }}
+                      className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${
+                        isSelected
+                          ? "bg-neutral-20 dark:bg-neutral-20"
+                          : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                      }`}
+                    >
+                      {option}개씩
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
