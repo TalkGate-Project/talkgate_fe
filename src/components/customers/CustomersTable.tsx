@@ -329,7 +329,7 @@ export default function CustomersTable({
         className="overflow-x-auto w-full min-w-0"
         style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
-        <table className="w-full min-w-[900px] text-left border-collapse table-fixed">
+        <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
           <colgroup>
             <col style={{ width: "6%" }} />
             <col style={{ width: "9%" }} />
@@ -344,8 +344,8 @@ export default function CustomersTable({
             <col style={{ width: "8%" }} />
           </colgroup>
           <thead>
-            <tr className="bg-neutral-20 text-neutral-60">
-              <th className="px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] whitespace-nowrap">
+            <tr className="text-neutral-60">
+              <th className="bg-neutral-20 px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] md:rounded-l-[12px] whitespace-nowrap">
                 <div
                   className="flex items-center justify-center md:justify-start relative"
                   ref={dropdownRef}
@@ -400,8 +400,8 @@ export default function CustomersTable({
                 <th
                   key={h}
                   colSpan={h === "담당자" ? 2 : 1}
-                  className={`table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
-                    idx === arr.length - 1 ? "rounded-r-[8px]" : ""
+                  className={`bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
+                    idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
                   } ${h === "카테고리" ? "text-center" : ""} ${
                     h === "전체확인"
                       ? "text-center font-semibold underline cursor-pointer"

@@ -231,7 +231,7 @@ function CustomersPageContentInner() {
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
       {/* Top panel: title + search */}
       <Panel
-        className="rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] mb-0 md:mb-9"
+        className="rounded-none md:rounded-[14px] mb-0 md:mb-9"
         title={
           <div className="flex items-end gap-3">
             <h1 className="text-[20px] md:text-[24px] leading-[20px] font-bold text-neutral-90">고객목록</h1>
@@ -259,7 +259,7 @@ function CustomersPageContentInner() {
 
       {/* Bottom panel: actions (top-right) + table */}
       <Panel
-        className="rounded-[14px] md:rounded-[14px] rounded-t-[14px]"
+        className="rounded-none md:rounded-[14px]"
         action={
           <CustomersActions
             projectId={projectId!}
@@ -278,7 +278,7 @@ function CustomersPageContentInner() {
           />
         }
         headerClassName="px-4 md:px-7 py-4 md:py-6"
-        bodyClassName="px-0 md:px-7 pb-2 md:pb-4 pt-0 overflow-x-auto flex flex-col"
+        bodyClassName="px-6 md:px-7 pb-2 md:pb-4 pt-0 overflow-x-auto flex flex-col"
       >
         <div className="min-h-[300px] md:min-h-[400px] flex-1">
         <CustomersTable
