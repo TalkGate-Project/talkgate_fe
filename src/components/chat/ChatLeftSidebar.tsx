@@ -29,6 +29,31 @@ type Props = {
   conversationsWithDraft?: Set<number>;
 };
 
+function LocalIconTooltip({
+  label,
+  children,
+  position = "top",
+}: {
+  label: string;
+  children: React.ReactNode;
+  position?: "top" | "bottom";
+}) {
+  return (
+    <span className="relative inline-flex group">
+      {children}
+      <span
+        className={`pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity ${
+          position === "bottom" ? "top-full mt-2" : "-top-9"
+        }`}
+      >
+        <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+          {label}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 export default function ChatLeftSidebar({
   statusFilter,
   setStatusFilter,
@@ -114,13 +139,15 @@ export default function ChatLeftSidebar({
           <h2 className="text-[16px] font-bold text-neutral-90">상담채팅</h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
-            <button
-              aria-label="filter"
-              className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px]"
-              onClick={() => setFilterOpen(true)}
-            >
-              <FilterIcon />
-            </button>
+            <LocalIconTooltip label="필터 설정" position="bottom">
+              <button
+                aria-label="filter"
+                className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px]"
+                onClick={() => setFilterOpen(true)}
+              >
+                <FilterIcon />
+              </button>
+            </LocalIconTooltip>
             {/* Segmented toggle: list | album */}
             <div className="w-[51px] h-[26px] rounded-[6px] border border-border overflow-hidden flex">
               <button
