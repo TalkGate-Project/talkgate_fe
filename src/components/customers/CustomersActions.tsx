@@ -329,44 +329,32 @@ export default function CustomersActions({
               </svg>
             </button>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-4 flex-shrink-0">
             <LocalIconTooltip label="고객삭제">
               <button
                 type="button"
                 onClick={handleBulkDelete}
                 disabled={!hasSelection}
-                className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 aria-label="고객 삭제"
               >
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                  <path
-                    d="M25.333 9.33333L24.1766 25.5233C24.0769 26.9188 22.9157 28 21.5167 28H10.4827C9.08362 28 7.92245 26.9188 7.82277 25.5233L6.66634 9.33333M13.333 14.6667V22.6667M18.6663 14.6667V22.6667M19.9997 9.33333V5.33333C19.9997 4.59695 19.4027 4 18.6663 4H13.333C12.5966 4 11.9997 4.59695 11.9997 5.33333V9.33333M5.33301 9.33333H26.6663"
-                    stroke="#B0B0B0"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
             </LocalIconTooltip>
-            <div className="relative" ref={mobileLimitPopoverRef}>
+            <div className="relative h-6" ref={mobileLimitPopoverRef}>
               <LocalIconTooltip label="목록 개수">
                 <button
                   type="button"
                   onClick={() => setLimitPopoverOpen((prev) => !prev)}
-                  className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+                  className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
                   aria-label="목록 개수"
                   aria-haspopup="menu"
                   aria-expanded={limitPopoverOpen}
                 >
-                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M4 5.33325H21.3333M4 10.6666H16M4 15.9999H16M22.6667 10.6666V26.6666M22.6667 26.6666L17.3333 21.3333M22.6667 26.6666L28 21.3333"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 4H16M3 8H12M3 12H12M17 8V20M17 20L13 16M17 20L21 16" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
                 </button>
               </LocalIconTooltip>
@@ -387,11 +375,10 @@ export default function CustomersActions({
                           onLimitChange(option);
                           setLimitPopoverOpen(false);
                         }}
-                        className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${
-                          isSelected
-                            ? "bg-neutral-20 dark:bg-neutral-20"
-                            : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
-                        }`}
+                        className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${isSelected
+                          ? "bg-neutral-20 dark:bg-neutral-20"
+                          : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                          }`}
                       >
                         {option}개씩
                       </button>
@@ -459,41 +446,30 @@ export default function CustomersActions({
             총 {total.toLocaleString()}건 ({selectedCount}개 선택)
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <LocalIconTooltip label="고객삭제">
             <button
               type="button"
               onClick={handleBulkDelete}
               disabled={!hasSelection}
-              className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               aria-label="고객 삭제"
             >
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                <path
-                  d="M25.333 9.33333L24.1766 25.5233C24.0769 26.9188 22.9157 28 21.5167 28H10.4827C9.08362 28 7.92245 26.9188 7.82277 25.5233L6.66634 9.33333M13.333 14.6667V22.6667M18.6663 14.6667V22.6667M19.9997 9.33333V5.33333C19.9997 4.59695 19.4027 4 18.6663 4H13.333C12.5966 4 11.9997 4.59695 11.9997 5.33333V9.33333M5.33301 9.33333H26.6663"
-                  stroke="#B0B0B0"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
+
             </button>
           </LocalIconTooltip>
           <LocalIconTooltip label="엑셀 업로드">
             <button
               type="button"
               onClick={() => setExcelUploadModalOpen(true)}
-              className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
               aria-label="엑셀 업로드"
             >
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                <path
-                  d="M5.33301 21.3334L5.33301 22.6667C5.33301 24.8758 7.12387 26.6667 9.33301 26.6667L22.6663 26.6667C24.8755 26.6667 26.6663 24.8758 26.6663 22.6667L26.6663 21.3334M21.333 10.6667L15.9997 5.33335M15.9997 5.33335L10.6663 10.6667M15.9997 5.33335L15.9997 21.3334"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 8L12 4M12 4L8 8M12 4L12 16" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
           </LocalIconTooltip>
@@ -511,38 +487,26 @@ export default function CustomersActions({
                   onConfirm: handleExcelDownload,
                 });
               }}
-              className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
               aria-label="엑셀 다운로드"
             >
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                <path
-                  d="M5.33301 21.3334L5.33301 22.6667C5.33301 24.8758 7.12387 26.6667 9.33301 26.6667L22.6663 26.6667C24.8755 26.6667 26.6663 24.8758 26.6663 22.6667L26.6663 21.3334M21.333 16L15.9997 21.3334M15.9997 21.3334L10.6663 16M15.9997 21.3334L15.9997 5.33335"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 12L12 16M12 16L8 12M12 16L12 4" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
           </LocalIconTooltip>
-          <div className="relative" ref={desktopLimitPopoverRef}>
+          <div className="relative h-6" ref={desktopLimitPopoverRef}>
             <LocalIconTooltip label="목록 개수">
               <button
                 type="button"
                 onClick={() => setLimitPopoverOpen((prev) => !prev)}
-                className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
                 aria-label="페이지당 개수 선택"
                 aria-haspopup="menu"
                 aria-expanded={limitPopoverOpen}
               >
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M4 5.33325H21.3333M4 10.6666H16M4 15.9999H16M22.6667 10.6666V26.6666M22.6667 26.6666L17.3333 21.3333M22.6667 26.6666L28 21.3333"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 4H16M3 8H12M3 12H12M17 8V20M17 20L13 16M17 20L21 16" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </button>
             </LocalIconTooltip>
@@ -563,11 +527,10 @@ export default function CustomersActions({
                         onLimitChange(option);
                         setLimitPopoverOpen(false);
                       }}
-                      className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${
-                        isSelected
-                          ? "bg-neutral-20 dark:bg-neutral-20"
-                          : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
-                      }`}
+                      className={`cursor-pointer w-full h-[49px] px-5 text-left text-[14px] font-medium tracking-[-0.02em] text-neutral-90 dark:text-neutral-90 transition-colors ${isSelected
+                        ? "bg-neutral-20 dark:bg-neutral-20"
+                        : "bg-white dark:bg-neutral-10 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                        }`}
                     >
                       {option}개씩
                     </button>
