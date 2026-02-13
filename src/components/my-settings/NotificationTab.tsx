@@ -83,14 +83,14 @@ export default function NotificationTab() {
       <div className="border-b border-[#e9e9e9] dark:!border-[#44444455]"></div>
 
       {/* Notification Settings */}
-      <div className="px-6 md:px-7 py-4 md:py-6">
+      <div className="px-6 md:px-7 py-0 md:py-6">
         {/* 상담 채팅 */}
-        <div className="flex items-center justify-between py-4 md:py-4">
+        <div className="flex items-center justify-between py-6 md:py-4">
           <div className="flex-1 min-w-0 pr-4">
-            <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
+            <div className="text-[16px] leading-[1] font-semibold text-foreground mb-1">
               상담 채팅
             </div>
-            <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
+            <div className="text-[14px] leading-[1] font-medium text-neutral-60">
               상담 채팅에서 실시간 알림을 받습니다.
             </div>
           </div>
@@ -103,15 +103,15 @@ export default function NotificationTab() {
         </div>
 
         {/* Divider */}
-        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-4 md:my-4"></div>
+        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-0 md:my-4"></div>
 
         {/* 새로운 소식 */}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex items-center justify-between py-6 md:py-4">
           <div className="flex-1 min-w-0 pr-4">
-            <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
+            <div className="text-[16px] leading-[1] font-semibold text-foreground mb-1">
               새로운 소식
             </div>
-            <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
+            <div className="text-[14px] leading-[1] font-medium text-neutral-60">
               새로운 소식에서 실시간 알림을 받습니다.
             </div>
           </div>
@@ -122,6 +122,9 @@ export default function NotificationTab() {
             />
           </div>
         </div>
+
+        {/* Divider */}
+        <div className="md:hidden w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-0 md:my-4"></div>
       </div>
     </div>
   );
