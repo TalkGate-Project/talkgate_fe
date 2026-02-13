@@ -48,20 +48,46 @@ function TruncateWithTooltip({
     const el = textRef.current;
     if (!el) return;
     const check = () => {
-      setIsTruncated(el.scrollWidth > el.clientWidth);
+      // 소수점 오차(zoom/브라우저 렌더링)로 인한 깜빡임 방지
+      setIsTruncated(el.scrollWidth - el.clientWidth > 1);
     };
+
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [text]);
+    const rafId = window.requestAnimationFrame(check);
+    const timerId = window.setTimeout(check, 0);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(check);
+      resizeObserver.observe(el);
+      if (el.parentElement) resizeObserver.observe(el.parentElement);
+    } else {
+      window.addEventListener("resize", check);
+    }
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timerId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener("resize", check);
+      }
+    };
+  }, [text, className]);
 
   return (
-    <span
-      ref={textRef}
-      className={`block truncate ${className}`}
-      title={isTruncated ? text : undefined}
-    >
-      {text}
+    <span className={`relative block min-w-0 group ${className}`}>
+      <span ref={textRef} className="block truncate">
+        {text}
+      </span>
+      {isTruncated && (
+        <span className="pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 -top-9 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+            {text}
+          </span>
+        </span>
+      )}
     </span>
   );
 }
@@ -688,12 +714,10 @@ export default function CustomersTable({
                             <span
                               className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                             >
-                              <span
-                                className="block min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                title={categoryName}
-                              >
-                                {categoryName}
-                              </span>
+                              <TruncateWithTooltip
+                                text={categoryName}
+                                className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              />
                             </span>
                           );
                         })()}
@@ -836,12 +860,10 @@ export default function CustomersTable({
                                   <span
                                     className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                                   >
-                                    <span
-                                      className="block min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                      title={categoryName}
-                                    >
-                                      {categoryName}
-                                    </span>
+                                    <TruncateWithTooltip
+                                      text={categoryName}
+                                      className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                    />
                                   </span>
                                 );
                               })()}
