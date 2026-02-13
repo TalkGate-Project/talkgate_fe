@@ -641,37 +641,29 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
         </div>
 
         {/* Mobile Footer */}
-        <div className="md:hidden border-t border-neutral-30 dark:border-neutral-30 px-6 py-4 grid grid-cols-2 gap-3">
+        {!isMobilePreviewOpen && (
+          <div className="md:hidden border-t border-neutral-30 dark:border-neutral-30 px-6 py-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => (isMobilePreviewOpen ? setIsMobilePreviewOpen(false) : onClose())}
+            onClick={onClose}
             className="h-[50px] rounded-[10px] border border-neutral-30 dark:border-neutral-30 text-[18px] font-semibold text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 cursor-pointer"
           >
             취소
           </button>
-          {isMobilePreviewOpen ? (
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-[50px] rounded-[10px] text-[18px] font-semibold bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-pointer"
-            >
-              확인
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSend || sending || uploadingImages}
-              className={`h-[50px] rounded-[10px] text-[18px] font-semibold ${
-                canSend && !sending && !uploadingImages
-                  ? "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-pointer"
-                  : "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-not-allowed opacity-50"
-              }`}
-            >
-              발송요청
-            </button>
-          )}
-        </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSend || sending || uploadingImages}
+            className={`h-[50px] rounded-[10px] text-[18px] font-semibold ${
+              canSend && !sending && !uploadingImages
+                ? "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-pointer"
+                : "bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 cursor-not-allowed opacity-50"
+            }`}
+          >
+            발송요청
+          </button>
+          </div>
+        )}
 
         {/* Desktop Footer */}
         <div className="hidden md:flex border-t border-neutral-30 dark:border-neutral-30 px-7 py-3 justify-end gap-3">
