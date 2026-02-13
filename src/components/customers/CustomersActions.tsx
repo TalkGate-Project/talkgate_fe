@@ -317,6 +317,7 @@ export default function CustomersActions({
               disabled={!hasSelection}
               className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               aria-label="고객 삭제"
+              title="고객삭제"
             >
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                 <path
@@ -333,9 +334,10 @@ export default function CustomersActions({
                 type="button"
                 onClick={() => setLimitPopoverOpen((prev) => !prev)}
                 className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
-                aria-label="페이지당 개수 선택"
+                aria-label="목록 개수"
                 aria-haspopup="menu"
                 aria-expanded={limitPopoverOpen}
+                title="목록 개수"
               >
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -443,6 +445,7 @@ export default function CustomersActions({
             disabled={!hasSelection}
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             aria-label="고객 삭제"
+            title="고객삭제"
           >
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
@@ -459,6 +462,7 @@ export default function CustomersActions({
             onClick={() => setExcelUploadModalOpen(true)}
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 업로드"
+            title="엑셀 업로드"
           >
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
@@ -485,6 +489,7 @@ export default function CustomersActions({
             }}
             className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
             aria-label="엑셀 다운로드"
+            title="엑셀 다운로드"
           >
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
               <path
@@ -504,6 +509,7 @@ export default function CustomersActions({
               aria-label="페이지당 개수 선택"
               aria-haspopup="menu"
               aria-expanded={limitPopoverOpen}
+              title="목록 개수"
             >
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
