@@ -297,6 +297,8 @@ function CustomersPageContentInner() {
           allSelectedOnPage={allSelectedOnPage(customers)}
           onCustomerClick={setDetailId}
           totalCount={total}
+          page={page}
+          limit={limit}
           selectionMode={selectionMode}
           projectId={projectId}
           onRefetch={refetch}
