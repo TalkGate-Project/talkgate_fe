@@ -43,7 +43,7 @@ const SIDEBAR_ITEMS = [
 export default function MySettingsSidebar({ activeTab, onTabChange }: MySettingsSidebarProps) {
   const [projectId] = useSelectedProjectId();
   const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+  const [projectName, setProjectName] = useState<string>("-");
 
   // 프로젝트 정보 로드
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function MySettingsSidebar({ activeTab, onTabChange }: MySettings
         if (projectResponse.data?.data) {
           const project = projectResponse.data.data;
           setProjectLogoUrl(project.logoUrl || null);
-          setProjectName(project.name || "거래소 텔레마케팅 관리");
+          setProjectName(project.name || "-");
         }
       } catch (error) {
         console.error("Failed to fetch project info:", error);
