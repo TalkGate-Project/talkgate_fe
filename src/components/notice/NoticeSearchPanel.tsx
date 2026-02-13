@@ -39,7 +39,7 @@ export default function NoticeSearchPanel({
       {/* 검색 및 버튼 영역 */}
       <div className="flex items-center gap-2 md:gap-3">
         {/* 검색 영역 */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 md:max-w-[294px]">
           <input
             type="text"
             placeholder="검색어를 입력하세요"
