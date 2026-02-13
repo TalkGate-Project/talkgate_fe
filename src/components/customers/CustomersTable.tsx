@@ -29,6 +29,8 @@ type CustomersTableProps = {
   allSelectedOnPage: boolean;
   onCustomerClick: (customerId: number) => void;
   totalCount: number;
+  page: number;
+  limit: number;
   selectionMode: "page" | "all" | null;
   projectId: string;
   onRefetch: () => void;
@@ -48,20 +50,46 @@ function TruncateWithTooltip({
     const el = textRef.current;
     if (!el) return;
     const check = () => {
-      setIsTruncated(el.scrollWidth > el.clientWidth);
+      // 소수점 오차(zoom/브라우저 렌더링)로 인한 깜빡임 방지
+      setIsTruncated(el.scrollWidth - el.clientWidth > 1);
     };
+
     check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [text]);
+    const rafId = window.requestAnimationFrame(check);
+    const timerId = window.setTimeout(check, 0);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(check);
+      resizeObserver.observe(el);
+      if (el.parentElement) resizeObserver.observe(el.parentElement);
+    } else {
+      window.addEventListener("resize", check);
+    }
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timerId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener("resize", check);
+      }
+    };
+  }, [text, className]);
 
   return (
-    <span
-      ref={textRef}
-      className={`block truncate ${className}`}
-      title={isTruncated ? text : undefined}
-    >
-      {text}
+    <span className={`relative block min-w-0 group ${className}`}>
+      <span ref={textRef} className="block truncate">
+        {text}
+      </span>
+      {isTruncated && (
+        <span className="pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 -top-9 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+            {text}
+          </span>
+        </span>
+      )}
     </span>
   );
 }
@@ -85,6 +113,8 @@ export default function CustomersTable({
   allSelectedOnPage,
   onCustomerClick,
   totalCount,
+  page,
+  limit,
   selectionMode,
   projectId,
   onRefetch,
@@ -116,6 +146,8 @@ export default function CustomersTable({
   // 현재 사용자의 멤버 정보 가져오기
   const { member: myMember } = useMyMember(projectId);
   const myMemberId = myMember?.id;
+  const normalizedPage = Math.max(1, page);
+  const normalizedLimit = Math.max(1, limit);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -365,12 +397,13 @@ export default function CustomersTable({
         <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
           <colgroup>
             <col style={{ width: "5%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "18%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "10%" }} />
+            <col style={{ width: "6%" }} />
             <col style={{ width: "9%" }} />
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "8%" }} />
+            <col style={{ width: "9%" }} />
+            <col style={{ width: "10%" }} />
             <col style={{ width: "9%" }} />
             <col style={{ width: "11%" }} />
             <col style={{ width: "8%" }} />
@@ -416,6 +449,9 @@ export default function CustomersTable({
                     </div>
                   )}
                 </div>
+              </th>
+              <th className="bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap text-center">
+                {""}
               </th>
               {/* PC/모바일 동일: 모든 열 (모바일은 가로 스크롤로 확인) */}
               {[
@@ -502,6 +538,8 @@ export default function CustomersTable({
                 const duplicateItems = duplicateRows[c.id] ?? [];
                 const duplicateLoading = Boolean(duplicateLoadingRows[c.id]);
                 const duplicateError = Boolean(duplicateErrorRows[c.id]);
+                const rowNumber =
+                  totalCount - (normalizedPage - 1) * normalizedLimit - index;
                 return (
                   <Fragment key={c.id}>
                     <tr
@@ -553,19 +591,21 @@ export default function CustomersTable({
                           />
                         </div>
                       </td>
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-center text-neutral-70 whitespace-nowrap">
+                        {rowNumber > 0 ? rowNumber : "-"}
+                      </td>
                       <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <div className="inline-flex items-center h-full align-middle">
-                          <TruncateWithTooltip
-                            text={c.name || "-"}
-                            className="leading-[17px] min-w-[4ch] max-w-[9ch] md:max-w-[12ch]"
-                          />
+                        <div className="flex items-center h-full min-w-0 overflow-hidden">
+                          <span className="block min-w-0 w-full truncate leading-[17px]">
+                            {c.name || "-"}
+                          </span>
                         </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <TruncateWithTooltip
                             text={c.contact1 || c.contact2 || "-"}
-                            className="min-w-0 max-w-[12ch] md:max-w-[18ch]"
+                            className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                           />
                           {canToggleDuplicate && (
                             <button
@@ -628,7 +668,7 @@ export default function CustomersTable({
                         <div className="flex items-center gap-2 min-w-0">
                           <TruncateWithTooltip
                             text={c.assignedMemberName || "-"}
-                            className="min-w-0 max-w-[8ch] md:max-w-[12ch]"
+                            className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
                           />
                           {c.assignedMemberName && (
                             <div className="flex items-center justify-center flex-shrink-0">
@@ -688,12 +728,10 @@ export default function CustomersTable({
                             <span
                               className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                             >
-                              <span
-                                className="block min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                title={categoryName}
-                              >
-                                {categoryName}
-                              </span>
+                              <TruncateWithTooltip
+                                text={categoryName}
+                                className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                              />
                             </span>
                           );
                         })()}
@@ -737,7 +775,8 @@ export default function CustomersTable({
                       (duplicateLoading ? (
                         <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td colSpan={10} className="px-2 md:px-4 h-[44px]">
+                          <td className="px-2 md:px-4 h-[44px]" />
+                          <td colSpan={9} className="px-2 md:px-4 h-[44px]">
                             <div className="h-full w-full flex items-center justify-center">
                               <LoadingSpinner size="sm" aria-label="중복 고객 목록 로딩 중" />
                             </div>
@@ -746,14 +785,16 @@ export default function CustomersTable({
                       ) : duplicateError ? (
                         <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
+                          <td className="px-2 md:px-4 h-[44px]" />
+                          <td colSpan={9} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
                             중복 고객 목록을 불러오지 못했습니다.
                           </td>
                         </tr>
                       ) : duplicateItems.length === 0 ? (
                         <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
-                          <td colSpan={10} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
+                          <td className="px-2 md:px-4 h-[44px]" />
+                          <td colSpan={9} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
                             중복 고객이 없습니다.
                           </td>
                         </tr>
@@ -768,20 +809,20 @@ export default function CustomersTable({
                             }`}
                             onClick={() => onCustomerClick(item.id)}
                           >
-                            {/* 체크박스 열은 비워 둠 */}
+                            {/* 체크박스/순번 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
+                            <td className="px-2 md:px-4 h-[44px]" />
                             <td className="table-cell px-2 md:px-6 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <div className="inline-flex items-center h-full align-middle">
-                                <TruncateWithTooltip
-                                  text={item.name || "-"}
-                                  className="leading-[17px] min-w-[4ch] max-w-[9ch] md:max-w-[12ch]"
-                                />
+                              <div className="flex items-center h-full min-w-0 overflow-hidden">
+                                <span className="block min-w-0 w-full truncate leading-[17px]">
+                                  {item.name || "-"}
+                                </span>
                               </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <TruncateWithTooltip
                                 text={item.contact1 || item.contact2 || "-"}
-                                className="min-w-0 max-w-[12ch] md:max-w-[18ch]"
+                                className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                               />
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
@@ -805,7 +846,7 @@ export default function CustomersTable({
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <TruncateWithTooltip
                                 text={item.assignedMemberName || "-"}
-                                className="min-w-0 max-w-[8ch] md:max-w-[12ch]"
+                                className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
                               />
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
@@ -836,12 +877,10 @@ export default function CustomersTable({
                                   <span
                                     className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
                                   >
-                                    <span
-                                      className="block min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                      title={categoryName}
-                                    >
-                                      {categoryName}
-                                    </span>
+                                    <TruncateWithTooltip
+                                      text={categoryName}
+                                      className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                    />
                                   </span>
                                 );
                               })()}

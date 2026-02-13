@@ -16,6 +16,7 @@ function getBodyZoom(): number {
 
 export type FilterValues = {
     name?: string;
+    contact1?: string;
     teamId?: number;
     memberId?: number;
     applicationRoute?: string;
@@ -215,7 +216,7 @@ export default function FilterModal({
                     {/* Body */}
                     <div className="flex-1 overflow-auto px-4 md:px-7 pt-[18px] space-y-3 pb-7">
                         {(shouldShowPartnerFilter || shouldShowAssignFilter) && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-5">
                                 {shouldShowPartnerFilter && (
                                     <div ref={partnerWrapRef} className="relative">
                                         <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">
@@ -353,14 +354,31 @@ export default function FilterModal({
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            <LabeledSelect
+                                label="이름"
+                                options={[]}
+                                placeholder="이름을 입력해주세요"
+                                value={form.name || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, name: v || undefined }))}
+                                freeText
+                            />
+                            <LabeledSelect
+                                label="연락처"
+                                options={[]}
+                                placeholder="연락처를 입력해주세요"
+                                value={form.contact1 || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, contact1: v || undefined }))}
+                                freeText
+                            />
+
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
 
-                            <LabeledSelect label="신청경로" options={routeOptions} placeholder="전체" value={form.applicationRoute || ""} onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))} freeText />
-                            <LabeledSelect label="매체사" options={mediaOptions} placeholder="전체" value={form.mediaCompany || ""} onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))} freeText />
+                            <LabeledSelect label="신청경로" options={routeOptions} placeholder="" value={form.applicationRoute || ""} onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))} freeText />
+                            <LabeledSelect label="매체사" options={mediaOptions} placeholder="" value={form.mediaCompany || ""} onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))} freeText />
 
                             <CategorySelector defaultIds={form.categoryIds} onChangeIds={handleCategoryIds} />
-                            <LabeledSelect label="사이트" options={siteOptions} placeholder="전체" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
+                            <LabeledSelect label="사이트" options={siteOptions} placeholder="" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
 
                             {/* 상담 내용 */}
                             <div className="col-span-1 md:col-span-2">

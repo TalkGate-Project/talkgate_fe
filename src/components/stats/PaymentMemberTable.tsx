@@ -46,6 +46,31 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function LocalIconTooltip({
+  label,
+  children,
+  position = "top",
+}: {
+  label: string;
+  children: React.ReactNode;
+  position?: "top" | "bottom";
+}) {
+  return (
+    <span className="relative inline-flex group">
+      {children}
+      <span
+        className={`pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity ${
+          position === "bottom" ? "top-full mt-2" : "-top-9"
+        }`}
+      >
+        <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+          {label}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 function getDefaultRange() {
   const end = new Date();
   const start = new Date(end);
@@ -174,21 +199,23 @@ export default function PaymentMemberTable() {
     <div className="mb-3 flex flex-col md:flex-row md:items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="text-[16px] font-semibold text-foreground">팀원별 매출 현황</div>
-        <button
-          aria-label="filter"
-          className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
-          onClick={() => setOpen(true)}
-        >
-          <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
-              stroke="var(--neutral-40)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></path>
-          </svg>
-        </button>
+        <LocalIconTooltip label="필터 설정" position="bottom">
+          <button
+            aria-label="filter"
+            className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-border text-neutral-60"
+            onClick={() => setOpen(true)}
+          >
+            <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
+                stroke="var(--neutral-40)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              ></path>
+            </svg>
+          </button>
+        </LocalIconTooltip>
       </div>
       <div className="h-0 border-b border-neutral-30 md:hidden my-3"></div>
       {/* Date range picker */}

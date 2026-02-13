@@ -50,7 +50,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const [mounted, setMounted] = useState(false);
   const [projectId] = useSelectedProjectId();
   const [projectLogoUrl, setProjectLogoUrl] = useState<string | null>(null);
-  const [projectName, setProjectName] = useState<string>("거래소 텔레마케팅 관리");
+  const [projectName, setProjectName] = useState<string>("-");
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         if (projectResponse.data?.data) {
           const project = projectResponse.data.data;
           setProjectLogoUrl(project.logoUrl || null);
-          setProjectName(project.name || "거래소 텔레마케팅 관리");
+          setProjectName(project.name || "-");
         }
       } catch (error) {
         console.error("Failed to fetch project info:", error);
@@ -296,7 +296,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 {pathname === "/my-settings" ? (
                   <div className="flex-1">
                     <h2 className="text-[18px] font-bold text-foreground mb-1">개인 설정</h2>
-                    <p className="text-[14px] text-neutral-60">거래소 텔레마케팅 관리</p>
+                    <p className="text-[14px] text-neutral-60">{projectName}</p>
                   </div>
                 ) : pathname === "/settings" ? (
                   <div className="flex-1">

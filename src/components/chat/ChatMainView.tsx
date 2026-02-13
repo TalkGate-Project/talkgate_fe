@@ -39,6 +39,25 @@ type Props = {
   widthMode?: "normal" | "swapped"; // 너비 모드: normal = 메인 넓음, swapped = 메인 좁음
 };
 
+function LocalIconTooltip({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative inline-flex group">
+      {children}
+      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-9 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatMainView({
   activeConversation,
   messages,
@@ -303,26 +322,27 @@ export default function ChatMainView({
           <div className="flex items-center gap-1 md:gap-2 shrink-0">
             {/* 너비 치환 버튼 (웹에서만 표시) */}
             {onSwapWidths && (
-              <button
-                className="hidden lg:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
-                onClick={onSwapWidths}
-                aria-label="너비 치환"
-                title="메인 뷰와 사이드바 너비 교환"
-              >
-                {widthMode === "normal" ? (
-                  // 메인 뷰를 줄여야 할 때 (왼쪽 화살표)
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9.16671 15.8333L3.33337 9.99996L9.16671 4.16663M15.8334 15.8333L10 9.99996L15.8334 4.16663" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+              <LocalIconTooltip label="메인 뷰와 사이드바 너비 교환">
+                <button
+                  className="hidden lg:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
+                  onClick={onSwapWidths}
+                  aria-label="너비 치환"
+                >
+                  {widthMode === "normal" ? (
+                    // 메인 뷰를 줄여야 할 때 (왼쪽 화살표)
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9.16671 15.8333L3.33337 9.99996L9.16671 4.16663M15.8334 15.8333L10 9.99996L15.8334 4.16663" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
 
-                ) : (
-                  // 메인 뷰를 늘려야 할 때 (오른쪽 화살표)
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.8333 15.8334L16.6666 10.0001L10.8333 4.16675M4.16663 15.8334L9.99996 10.0001L4.16662 4.16675" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  ) : (
+                    // 메인 뷰를 늘려야 할 때 (오른쪽 화살표)
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10.8333 15.8334L16.6666 10.0001L10.8333 4.16675M4.16663 15.8334L9.99996 10.0001L4.16662 4.16675" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
 
-                )}
-              </button>
+                  )}
+                </button>
+              </LocalIconTooltip>
             )}
             {/* 모바일에서는 연동 버튼과 상담완료 버튼만 표시 */}
             <button

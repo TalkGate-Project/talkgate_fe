@@ -554,6 +554,25 @@ const emojiCategories = {
   ],
 };
 
+function LocalIconTooltip({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative inline-flex group">
+      {children}
+      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 -top-9 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
+          {label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EmojiPicker({
   isOpen,
   onClose,
@@ -675,44 +694,45 @@ export default function EmojiPicker({
               {emoji}
             </button>
           ))}
-          <button
-            onClick={() => onToggleMode?.("full")}
-            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
-            aria-label="expand-emoji"
-            title="더보기"
-          >
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 26 26"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <LocalIconTooltip label="더보기">
+            <button
+              onClick={() => onToggleMode?.("full")}
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
+              aria-label="expand-emoji"
             >
-              <rect
-                x="0.5"
-                y="0.5"
-                width="25"
-                height="25"
-                rx="12.5"
-                className="fill-white dark:fill-neutral-20"
-              />
-              <rect
-                x="0.5"
-                y="0.5"
-                width="25"
-                height="25"
-                rx="12.5"
-                className="stroke-[#E2E2E2] dark:stroke-neutral-30"
-              />
-              <path
-                d="M17.6667 11L13 15.6667L8.33337 11"
-                className="stroke-[#B0B0B0] dark:stroke-neutral-60"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 26 26"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="0.5"
+                  y="0.5"
+                  width="25"
+                  height="25"
+                  rx="12.5"
+                  className="fill-white dark:fill-neutral-20"
+                />
+                <rect
+                  x="0.5"
+                  y="0.5"
+                  width="25"
+                  height="25"
+                  rx="12.5"
+                  className="stroke-[#E2E2E2] dark:stroke-neutral-30"
+                />
+                <path
+                  d="M17.6667 11L13 15.6667L8.33337 11"
+                  className="stroke-[#B0B0B0] dark:stroke-neutral-60"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </LocalIconTooltip>
         </div>
       </div>
     );
@@ -743,46 +763,47 @@ export default function EmojiPicker({
               {emoji}
             </button>
           ))}
-          <button
-            onClick={() => onToggleMode?.("compact")}
-            className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
-            aria-label="collapse-emoji"
-            title="접기"
-          >
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 26 26"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <LocalIconTooltip label="접기">
+            <button
+              onClick={() => onToggleMode?.("compact")}
+              className="cursor-pointer w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-30 rounded text-gray-500 dark:text-neutral-60"
+              aria-label="collapse-emoji"
             >
-              <rect
-                x="-0.5"
-                y="0.5"
-                width="25"
-                height="25"
-                rx="12.5"
-                transform="matrix(1 0 0 -1 1 26)"
-                className="fill-white dark:fill-neutral-20"
-              />
-              <rect
-                x="-0.5"
-                y="0.5"
-                width="25"
-                height="25"
-                rx="12.5"
-                transform="matrix(1 0 0 -1 1 26)"
-                className="stroke-[#E2E2E2] dark:stroke-neutral-30"
-              />
-              <path
-                d="M17.6666 15L12.9999 10.3333L8.33325 15"
-                className="stroke-[#B0B0B0] dark:stroke-neutral-60"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 26 26"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="-0.5"
+                  y="0.5"
+                  width="25"
+                  height="25"
+                  rx="12.5"
+                  transform="matrix(1 0 0 -1 1 26)"
+                  className="fill-white dark:fill-neutral-20"
+                />
+                <rect
+                  x="-0.5"
+                  y="0.5"
+                  width="25"
+                  height="25"
+                  rx="12.5"
+                  transform="matrix(1 0 0 -1 1 26)"
+                  className="stroke-[#E2E2E2] dark:stroke-neutral-30"
+                />
+                <path
+                  d="M17.6666 15L12.9999 10.3333L8.33325 15"
+                  className="stroke-[#B0B0B0] dark:stroke-neutral-60"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </LocalIconTooltip>
         </div>
       </div>
 

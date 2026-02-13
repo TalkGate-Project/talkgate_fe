@@ -253,7 +253,7 @@ export default function SecurityTab() {
   };
 
   return (
-    <>
+    <div className="bg-card md:bg-transparent min-h-[calc(100vh-54px)] md:min-h-0">
       {/* First Box - 2-Step Verification */}
       <div className="bg-card rounded-none md:rounded-[14px] md:mb-6">
         {/* Title */}
@@ -261,9 +261,9 @@ export default function SecurityTab() {
           보안 설정
         </h1>
 
-        <div className="border-b border-[#e9e9e9] dark:!border-[#44444455] mx-4 md:mx-0"></div>
+        <div className="w-full h-[1px] bg-[#e9e9e9] dark:bg-[#44444455]"></div>
 
-        <div className="px-4 md:px-7 py-3 md:py-[30px] h-[90px] md:h-auto">
+        <div className="px-4 md:px-7 py-6 md:py-9 md:h-auto">
           <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
             2단계 인증
           </h2>
@@ -273,10 +273,10 @@ export default function SecurityTab() {
 
           <div className="flex items-center justify-between h-full md:h-auto py-0 md:py-3 pl-2 md:pl-6 pr-0 gap-3">
             <div className="flex-1 min-w-0">
-              <div className="text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
+              <div className="text-[16px] leading-[1] font-semibold text-foreground mb-1">
                 2단계 인증 (2FA)
               </div>
-              <div className="text-[12px] md:text-[14px] font-medium text-neutral-60">
+              <div className="text-[14px] leading-[1] font-medium text-neutral-60">
                 로그인 시 추가 보안 인증을 사용합니다.
               </div>
             </div>
@@ -306,8 +306,8 @@ export default function SecurityTab() {
 
       {/* Second Box - Change Password */}
       <div className="bg-card rounded-none md:rounded-[14px] md:mb-6">
-        <div className="px-4 md:px-7 py-3 md:py-6 h-[90px] md:h-auto">
-          <h2 className="hidden md:block text-[14px] md:text-[16px] font-semibold text-foreground mb-1">
+        <div className="px-4 md:px-7 py-6 md:h-auto">
+          <h2 className="hidden md:block text-[16px] font-semibold text-foreground mb-1">
             비밀번호 변경
           </h2>
           <p className="hidden md:block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-3">
@@ -333,21 +333,19 @@ export default function SecurityTab() {
       </div>
 
       {/* Third Box - Delete Account */}
-      <div className="bg-card rounded-none md:rounded-[14px] shadow-sm pb-[140px] md:pb-0">
-        <div className="border-t border-[#E2E2E2] dark:border-neutral-30 opacity-60 mx-4 md:mx-0"></div>
-        
+      <div className="bg-card rounded-none md:rounded-[14px] md:shadow-sm pb-[140px] md:pb-0">
         {/* Mobile Layout */}
-        <div className="block md:hidden px-4 py-3 h-[90px]">
+        <div className="block md:hidden px-4 py-6">
           <div className="flex items-center justify-between h-full gap-3">
             {/* Left side: Title + Badge and Description */}
             <div className="pl-2 md:pl-0 flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-[14px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-[16px] font-semibold text-danger-40 tracking-[0.2px] leading-[19px]">계정 삭제</h2>
                 <span className="inline-flex items-center justify-center px-3 py-1 bg-danger-10 dark:bg-danger-10/30 text-[12px] font-medium text-danger-40 dark:text-danger-40 rounded-[30px] h-[22px] opacity-80 flex-shrink-0">
                   주의
                 </span>
               </div>
-              <p className="text-[12px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
+              <p className="text-[14px] text-danger-40 dark:text-danger-40 font-medium tracking-[0.2px] leading-[17px]">
                 계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
               </p>
             </div>
@@ -427,6 +425,6 @@ export default function SecurityTab() {
         onClose={() => setShowDeleteAccountModal(false)}
         onConfirm={handleDeleteAccount}
       />
-    </>
+    </div>
   );
 }
