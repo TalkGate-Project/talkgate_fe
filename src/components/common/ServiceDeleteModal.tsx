@@ -14,7 +14,7 @@ export default function ServiceDeleteModal({
   isOpen,
   onClose,
   onConfirm,
-  serviceName = "거래소 텔레마케팅 관리",
+  serviceName = "-",
 }: ServiceDeleteModalProps) {
   const [inputValue, setInputValue] = useState("");
   const [isConfirmed, setIsConfirmed] = useState(false);

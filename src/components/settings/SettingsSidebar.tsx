@@ -31,7 +31,7 @@ export default function SettingsSidebar({ activeTab, onTabChange }: SettingsSide
   const [mounted, setMounted] = useState(false);
 
   const projectLogoUrl = project?.logoUrl ?? null;
-  const projectName = project?.name ?? "거래소 텔레마케팅 관리";
+  const projectName = project?.name ?? "-";
 
   // 클라이언트 마운트 후에만 조건부 렌더링 (hydration mismatch 방지)
   useEffect(() => {
