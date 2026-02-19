@@ -59,6 +59,7 @@ export default function CustomerDetailModalMobile({
     actions,
   } = useCustomerDetail(customerId, open, {
     onCustomerUpdated: notifyCustomerUpdated,
+    onFetchErrorClose: onClose,
   });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
