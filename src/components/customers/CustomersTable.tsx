@@ -183,7 +183,7 @@ export default function CustomersTable({
         "전체확인",
       ];
   const colWidths = isDataProvider
-    ? ["5%", "6%", "10%", "16%", "11%", "9%", "12%", "11%", "10%", "10%"]
+    ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "10%", "17%"]
     : ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
   const totalColumns = colWidths.length;
   const detailColSpan = totalColumns - 2;

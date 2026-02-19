@@ -10,6 +10,7 @@ import ConsultationTab from "./detail/ConsultationTab";
 import ConversationCard from "./detail/ConversationCard";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { CustomersService } from "@/services/customers";
 import { getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -45,11 +46,15 @@ export default function CustomerDetailModalMobile({
     actions,
   } = useCustomerDetail(customerId, open);
 
-  // 현재 사용자의 멤버 정보 가져오기 (role이 member면 직원배정 버튼 숨김)
+  // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();
-  const { member: myMember, isMember } = useMyMember(projectId);
+  const { member: myMember, role } = useMyMember(projectId);
   const myMemberId = myMember?.id;
-  const showAssignButton = Boolean(onAssignClick) && !isMember;
+  const canAssignCustomer =
+    role === "admin" || role === "subAdmin" || role === "leader";
+  const showAssignButton = Boolean(onAssignClick) && canAssignCustomer;
+  const { project } = useCurrentProjectDetail();
+  const isDataProviderProject = project?.isDataProvider === true;
 
   const handleClose = () => {
     if (!loading) onClose();
@@ -279,7 +284,13 @@ export default function CustomerDetailModalMobile({
               />
             )}
 
-            {tab === "data" && <DataTab form={form} setForm={setForm} />}
+            {tab === "data" && (
+              <DataTab
+                form={form}
+                setForm={setForm}
+                isDataProvider={isDataProviderProject}
+              />
+            )}
 
             {tab === "sales" && (
               <SalesTab

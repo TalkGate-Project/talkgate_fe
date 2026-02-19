@@ -82,7 +82,9 @@ function CustomersPageContentInner() {
   const [detailId, setDetailId] = useState<number | null>(null);
 
   const { project } = useCurrentProjectDetail();
-  const { isAdminOrSubAdmin, isMember } = useMyMember(projectId);
+  const { isAdminOrSubAdmin, role } = useMyMember(projectId);
+  const canAssignCustomer =
+    role === "admin" || role === "subAdmin" || role === "leader";
 
   // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환, 직속 상위 멤버 제외)
   const { data: treeData } = useMembersTreeWithoutParent(projectId);
@@ -297,7 +299,7 @@ function CustomersPageContentInner() {
             onShareSuccess={refetch}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
-            showAssignButton={!isMember}
+            showAssignButton={canAssignCustomer}
           />
         }
         headerClassName="px-6 md:px-7 py-4 md:py-6"
