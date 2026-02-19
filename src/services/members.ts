@@ -24,8 +24,8 @@ export const MembersService = {
   list(query?: Record<string, string | number | boolean>) {
     return apiClient.get<MemberListResponse>(`/v1/members`, { query });
   },
-  remove(payload: Record<string, unknown>) {
-    return apiClient.delete<void>(`/v1/members`, { body: payload } as any);
+  remove(memberId: number) {
+    return apiClient.delete<void>(`/v1/members/${memberId}`);
   },
   my(headers?: Record<string, string>) {
     return apiClient.get<MyMemberResponse>(`/v1/members/my`, headers ? { headers } : undefined);
