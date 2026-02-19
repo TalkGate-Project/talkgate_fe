@@ -47,6 +47,9 @@ function CustomersPageContentInner() {
     setLimit,
     query,
     applied,
+    sortType,
+    sortOrder,
+    toggleSort,
     pushPage,
     applyFilters,
     removeFilterAndApply,
@@ -323,6 +326,9 @@ function CustomersPageContentInner() {
           onRefetch={refetch}
           onFilterByContact={handleFilterByContact}
           isDataProvider={project?.isDataProvider ?? false}
+          sortType={sortType}
+          sortOrder={sortOrder}
+          onToggleSort={toggleSort}
         />
         </div>
         <CustomersPagination

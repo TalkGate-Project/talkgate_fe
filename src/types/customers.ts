@@ -99,6 +99,8 @@ export type CustomersListQuery = {
   applicationDateTo?: string;   // YYYY-MM-DD
   assignedAtFrom?: string;      // YYYY-MM-DD
   assignedAtTo?: string;        // YYYY-MM-DD
+  sortType?: "applicationDate" | "assignedMember";
+  sortOrder?: "ASC" | "DESC";
   page: number;                 // required
   limit: number;                // required
   projectId: string;            // header: x-project-id

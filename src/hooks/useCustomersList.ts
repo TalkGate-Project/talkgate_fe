@@ -32,6 +32,8 @@ export function useCustomersList(params: CustomersListQuery | null) {
         applicationDateTo: params.applicationDateTo,
         assignedAtFrom: params.assignedAtFrom,
         assignedAtTo: params.assignedAtTo,
+        sortType: params.sortType,
+        sortOrder: params.sortOrder,
         page: params.page,
         limit: params.limit,
       },

@@ -19,6 +19,8 @@ export type CustomerFilters = {
   assignedAtFrom?: string;
   assignedAtTo?: string;
 };
+export type CustomerSortType = "applicationDate" | "assignedMember";
+export type CustomerSortOrder = "ASC" | "DESC";
 
 export function useCustomersFilters(projectId: string | null) {
   const router = useRouter();
@@ -62,6 +64,16 @@ export function useCustomersFilters(projectId: string | null) {
     obj.applicationDateTo = g("applicationDateTo");
     obj.assignedAtFrom = g("assignedAtFrom");
     obj.assignedAtTo = g("assignedAtTo");
+    const rawSortType = g("sortType");
+    const rawSortOrder = g("sortOrder");
+    obj.sortType =
+      rawSortType === "applicationDate" || rawSortType === "assignedMember"
+        ? rawSortType
+        : undefined;
+    obj.sortOrder =
+      rawSortOrder === "ASC" || rawSortOrder === "DESC"
+        ? rawSortOrder
+        : undefined;
     obj.page = Number(searchParams.get("page") || "1");
     obj.limit = Number(searchParams.get("limit") || "10");
     return obj;
@@ -120,6 +132,8 @@ export function useCustomersFilters(projectId: string | null) {
             applicationDateTo: applied.applicationDateTo,
             assignedAtFrom: applied.assignedAtFrom,
             assignedAtTo: applied.assignedAtTo,
+            sortType: applied.sortType,
+            sortOrder: applied.sortOrder,
           }
         : null,
     [projectId, applied]
@@ -167,7 +181,29 @@ export function useCustomersFilters(projectId: string | null) {
     // Apply draft filters to URL; this triggers data fetching
     const valuesToApply = filterValues ?? filters;
     const params = buildFilterParams(valuesToApply);
+    if (applied.sortType) params.set("sortType", applied.sortType);
+    if (applied.sortOrder) params.set("sortOrder", applied.sortOrder);
     router.push(`/customers?${params.toString()}`);
+  }
+
+  function toggleSort(column: CustomerSortType) {
+    const currentType = applied.sortType as CustomerSortType | undefined;
+    const currentOrder = applied.sortOrder as CustomerSortOrder | undefined;
+    const params = new URLSearchParams(searchParams?.toString());
+
+    if (currentType !== column) {
+      params.set("sortType", column);
+      params.set("sortOrder", "DESC");
+    } else if (currentOrder === "DESC") {
+      params.set("sortOrder", "ASC");
+    } else {
+      params.delete("sortType");
+      params.delete("sortOrder");
+    }
+
+    params.set("page", "1");
+    params.set("limit", String(applied.limit || limit));
+    router.push(`/customers?${params.toString()}`, { scroll: false });
   }
 
   function removeFilter(key: keyof CustomerFilters) {
@@ -238,6 +274,9 @@ export function useCustomersFilters(projectId: string | null) {
     setLimit,
     query,
     applied,
+    sortType: applied.sortType as CustomerSortType | undefined,
+    sortOrder: applied.sortOrder as CustomerSortOrder | undefined,
+    toggleSort,
     pushPage,
     applyFilters,
     removeFilter,
