@@ -42,6 +42,7 @@ export type CustomerListItem = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  keyword?: string | null;
   assignedMember?: AssignedMember | null;
   assignedTeamName?: string | null;
   assignedMemberName?: string | null;

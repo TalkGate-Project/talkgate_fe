@@ -9,6 +9,8 @@ export type CustomerDetailModalProps = {
   onClose: () => void;
   customerId: number | null;
   onRefetch?: () => void;
+  /** 상세 모달에서 직원배정 클릭 시 (고객 1명 배정용) */
+  onAssignClick?: () => void;
 };
 
 export default function CustomerDetailModal(props: CustomerDetailModalProps) {
@@ -43,8 +45,8 @@ export default function CustomerDetailModal(props: CustomerDetailModalProps) {
   }, []);
 
   return isMobile ? (
-    <CustomerDetailModalMobile {...props} onRefetch={props.onRefetch} />
+    <CustomerDetailModalMobile {...props} onRefetch={props.onRefetch} onAssignClick={props.onAssignClick} />
   ) : (
-    <CustomerDetailModalDesktop {...props} onRefetch={props.onRefetch} />
+    <CustomerDetailModalDesktop {...props} onRefetch={props.onRefetch} onAssignClick={props.onAssignClick} />
   );
 }

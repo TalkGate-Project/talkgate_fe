@@ -76,12 +76,13 @@ function CustomersPageContentInner() {
 
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isAssignOpen, setAssignOpen] = useState(false);
+  const [assignFromDetailId, setAssignFromDetailId] = useState<number | null>(null);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
   const { project } = useCurrentProjectDetail();
-  const { isAdminOrSubAdmin } = useMyMember(projectId);
+  const { isAdminOrSubAdmin, isMember } = useMyMember(projectId);
 
   // 권한에 맞는 트리 구조 조회 (자신이 조회할 수 있는 범위 내에서만 반환, 직속 상위 멤버 제외)
   const { data: treeData } = useMembersTreeWithoutParent(projectId);
@@ -185,12 +186,16 @@ function CustomersPageContentInner() {
 
   const handleAssign = async (targetId: number) => {
     try {
+      // 상세 모달에서 연 "직원배정"인 경우: 해당 고객 1명만 배정
+      const effectiveIds = assignFromDetailId != null ? [assignFromDetailId] : selectedIds;
+      const effectiveMode = assignFromDetailId != null ? null : selectionMode;
+
       // assignmentType 결정 로직:
       // - 전체목록선택 모드(selectionMode === "all")일 때는 filter 사용 (우선순위 높음)
       //   → 이 경우 selectedIds는 비어있지만, UI상 체크박스들이 체크되어 보일 수 있음
       //   → 전체목록선택 후 개별 체크박스를 추가로 체크해도 filter가 우선 적용됨
       // - 그 외의 경우(체크박스로 개별 선택한 경우)는 ids 사용
-      if (selectionMode === "all") {
+      if (effectiveMode === "all") {
         // 전체 목록 선택: 필터 기준으로 배정
         // categoryIds에서 null을 number[]로 변환 (null은 제외)
         const categoryIds = applied.categoryIds?.filter((id: number | null): id is number => id !== null);
@@ -219,15 +224,17 @@ function CustomersPageContentInner() {
           projectId: projectId!,
         });
       } else {
-        // 체크박스로 선택한 경우: ID 기준으로 배정
+        // 체크박스로 선택한 경우(또는 상세 모달에서 1명 배정): ID 기준으로 배정
         await CustomersService.assign({
           assignmentType: "ids",
           memberId: targetId as any,
-          customerIds: selectedIds,
+          customerIds: effectiveIds,
           projectId: projectId!,
         });
       }
       clearSelection();
+      setAssignFromDetailId(null);
+      setAssignOpen(false);
       // 배정 성공 후 정렬 순서가 달라질 수 있으므로 1페이지로 리디렉션
       setPage(1);
       pushPage(1);
@@ -290,6 +297,7 @@ function CustomersPageContentInner() {
             onShareSuccess={refetch}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
+            showAssignButton={!isMember}
           />
         }
         headerClassName="px-6 md:px-7 py-4 md:py-6"
@@ -312,6 +320,7 @@ function CustomersPageContentInner() {
           projectId={projectId}
           onRefetch={refetch}
           onFilterByContact={handleFilterByContact}
+          isDataProvider={project?.isDataProvider ?? false}
         />
         </div>
         <CustomersPagination
@@ -338,15 +347,31 @@ function CustomersPageContentInner() {
 
       <AssignCustomersModal
         open={isAssignOpen}
-        onClose={() => setAssignOpen(false)}
-        selectedCustomerIds={selectedIds}
-        selectionMode={selectionMode}
-        totalCount={total}
+        onClose={() => {
+          setAssignOpen(false);
+          setAssignFromDetailId(null);
+        }}
+        selectedCustomerIds={assignFromDetailId != null ? [assignFromDetailId] : selectedIds}
+        selectionMode={assignFromDetailId != null ? null : selectionMode}
+        totalCount={assignFromDetailId != null ? 1 : total}
         onAssign={handleAssign}
         projectId={projectId!}
       />
 
-      <CustomerDetailModal open={detailId !== null} onClose={() => setDetailId(null)} customerId={detailId} onRefetch={refetch} />
+      <CustomerDetailModal
+        open={detailId !== null}
+        onClose={() => setDetailId(null)}
+        customerId={detailId}
+        onRefetch={refetch}
+        onAssignClick={
+          detailId != null
+            ? () => {
+                setAssignFromDetailId(detailId);
+                setAssignOpen(true);
+              }
+            : undefined
+        }
+      />
 
       <CustomerCreateModal
         open={isCreateOpen}
