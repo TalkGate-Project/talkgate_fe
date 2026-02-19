@@ -130,7 +130,7 @@ export default function CustomerCreateModal({
     setTouchedContact1(false);
   };
 
-  const submitCreate = async () => {
+  const submitCreate = async (resolvedProjectId: string) => {
     setSubmitting(true);
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] =
@@ -140,7 +140,7 @@ export default function CustomerCreateModal({
         }));
 
       await CustomersService.create({
-        projectId,
+        projectId: resolvedProjectId,
         name: name.trim(),
         contact1: contact1.trim(),
         contact2: contact2.trim() || undefined,
@@ -215,13 +215,13 @@ export default function CustomerCreateModal({
         confirmText: "등록",
         cancelText: "취소",
         onConfirm: async () => {
-          await submitCreate();
+          await submitCreate(projectId);
         },
       });
       return;
     }
 
-    await submitCreate();
+    await submitCreate(projectId);
   };
 
   return (
