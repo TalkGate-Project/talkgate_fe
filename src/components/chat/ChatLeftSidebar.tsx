@@ -142,10 +142,10 @@ export default function ChatLeftSidebar({
             <LocalIconTooltip label="필터 설정" position="bottom">
               <button
                 aria-label="filter"
-                className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px]"
+                className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-neutral-30"
                 onClick={() => setFilterOpen(true)}
               >
-                <FilterIcon />
+                <FilterIcon size={16} />
               </button>
             </LocalIconTooltip>
             {/* Segmented toggle: list | album */}
@@ -231,7 +231,7 @@ export default function ChatLeftSidebar({
         {/* List/Album */}
         {viewMode === "list" ? (
           <div
-            className="mt-2 md:mt-3 flex-1 overflow-auto min-h-0"
+            className="mt-2 md:mt-3 flex-1 overflow-auto min-h-0 pb-10"
             ref={convScrollRef}
             onScroll={onConversationsScroll}
           >
@@ -323,7 +323,7 @@ export default function ChatLeftSidebar({
             )}
           </div>
         ) : (
-          <div className="mt-2 md:mt-4 flex-1 overflow-auto px-3 md:px-4 min-h-0">
+          <div className="mt-2 md:mt-4 flex-1 overflow-auto px-3 md:px-4 min-h-0 pb-10">
             {filteredConversations.length === 0 ? (
               <div className="h-full flex items-center justify-center text-neutral-60 text-[14px]">
                 대기중인 상담이 없습니다.

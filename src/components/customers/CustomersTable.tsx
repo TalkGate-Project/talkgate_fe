@@ -1071,7 +1071,10 @@ export default function CustomersTable({
                               className="bg-[#F8F8F8] dark:bg-neutral-20 border-b border-[#E2E2E2] dark:border-[#44444455]"
                             >
                               <td colSpan={totalColumns} className="px-2 md:px-4 py-2 align-middle">
-                                <div className="flex justify-center items-center">
+                                <div
+                                  className="border-t border-t-[rgba(226,226,226,0.4)] dark:border-t-[rgba(68,68,68,0.25)] pt-2 w-[calc(100%+0.5rem+0.5rem)] -ml-2 md:w-[calc(100%+1rem+1rem)] md:-ml-4"
+                                >
+                                  <div className="flex justify-center items-center px-2 md:px-4">
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -1088,6 +1091,7 @@ export default function CustomersTable({
                                     </svg>
                                     <span className="shrink-0 ml-1 leading-none translate-y-[1px]">더보기</span>
                                   </button>
+                                </div>
                                 </div>
                               </td>
                             </tr>
