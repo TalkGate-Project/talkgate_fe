@@ -34,6 +34,8 @@ type CustomersTableProps = {
   selectionMode: "page" | "all" | null;
   projectId: string;
   onRefetch: () => void;
+  /** 연락처로 필터 적용 후 페이지 새로고침 (중복 "더보기" 클릭 시) */
+  onFilterByContact?: (contact: string) => void;
 };
 
 function TruncateWithTooltip({
@@ -118,6 +120,7 @@ export default function CustomersTable({
   selectionMode,
   projectId,
   onRefetch,
+  onFilterByContact,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -799,11 +802,14 @@ export default function CustomersTable({
                           </td>
                         </tr>
                       ) : (
-                        duplicateItems.map((item, itemIndex) => (
+                        <>
+                          {duplicateItems.map((item, itemIndex) => (
                           <tr
                             key={`${c.id}-duplicate-${item.id}`}
                             className={`cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 ${
-                              itemIndex === duplicateItems.length - 1
+                              itemIndex === duplicateItems.length - 1 && duplicateCount <= 5
+                                ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
+                                : itemIndex < duplicateItems.length - 1
                                 ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : ""
                             }`}
@@ -890,8 +896,37 @@ export default function CustomersTable({
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />
                           </tr>
-                        ))
-                      ))}
+                          ))}
+                          {duplicateCount > 5 && (
+                            <tr
+                              key={`${c.id}-duplicate-more`}
+                              className="bg-[#F8F8F8] dark:bg-neutral-20 border-b border-[#E2E2E2] dark:border-[#44444455]"
+                            >
+                              <td colSpan={11} className="px-2 md:px-4 py-2 align-middle">
+                                <div className="flex justify-center items-center">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const contact = c.contact1 || c.contact2 || "";
+                                      if (contact && onFilterByContact) onFilterByContact(contact);
+                                    }}
+                                    style={{ width: 80, height: 28 }}
+                                    className="flex justify-center items-center shrink-0 bg-white dark:bg-neutral-10 border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] text-[#808080] dark:text-neutral-60 font-semibold text-[14px] leading-none tracking-[-0.02em] cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
+                                    aria-label="연락처로 필터 적용하여 전체 보기"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+                                      <path d="M8 3.33331V12.6666M3.33331 8H12.6666" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    <span className="shrink-0 ml-1 leading-none translate-y-[1px]">더보기</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))
+                    }
                   </Fragment>
                 );
               })}

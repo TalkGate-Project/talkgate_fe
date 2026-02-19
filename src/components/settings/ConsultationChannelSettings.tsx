@@ -37,6 +37,7 @@ interface ChannelCardProps {
   isConnected: boolean;
   onConnect: () => void;
   onDisconnect: () => void;
+  comingSoon?: boolean;
 }
 
 function ChannelCard({
@@ -46,6 +47,7 @@ function ChannelCard({
   isConnected,
   onConnect,
   onDisconnect,
+  comingSoon = false,
 }: ChannelCardProps) {
   return (
     <div className="flex items-center justify-between px-3 md:px-6 py-4 md:py-5 border border-neutral-30 rounded-lg min-h-[84px] md:min-h-[132px]">
@@ -60,7 +62,7 @@ function ChannelCard({
             {/* Channel Name */}
             <h3 className="flex items-center md:block gap-2 md:gap-0 text-[16px] font-semibold text-foreground mb-1 leading-6">
               {name}
-              {isConnected && (
+              {!comingSoon && isConnected && (
                 <div className="flex md:hidden items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
                   <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
                     연결됨
@@ -79,7 +81,7 @@ function ChannelCard({
 
       {/* Right Content - Status and Button */}
       <div className="flex items-center gap-3">
-        {isConnected && (
+        {!comingSoon && isConnected && (
           <div className="hidden md:flex items-center justify-center px-3 py-1 bg-primary-10 dark:bg-[#D6FAE8E5] rounded-[30px]">
             <span className="text-[12px] font-medium text-primary-80 opacity-80 dark:text-primary-100 leading-[1]">
               연결됨
@@ -88,14 +90,17 @@ function ChannelCard({
         )}
 
         <button
-          onClick={isConnected ? onDisconnect : onConnect}
-          className={`cursor-pointer flex items-center justify-center w-[72px] h-[34px] rounded-[5px] text-[14px] font-semibold ${
-            isConnected
-              ? "bg-card border border-border text-foreground hover:bg-neutral-10"
-              : "bg-neutral-90 text-neutral-0 hover:opacity-90"
+          disabled={comingSoon}
+          onClick={comingSoon ? undefined : isConnected ? onDisconnect : onConnect}
+          className={`flex items-center justify-center w-[72px] h-[34px] rounded-[5px] text-[14px] font-semibold ${
+            comingSoon
+              ? "bg-neutral-20 text-neutral-50 cursor-not-allowed"
+              : isConnected
+                ? "cursor-pointer bg-card border border-border text-foreground hover:bg-neutral-10"
+                : "cursor-pointer bg-neutral-90 text-neutral-0 hover:opacity-90"
           } transition-colors`}
         >
-          {isConnected ? "연결해제" : "연결하기"}
+          {comingSoon ? "준비중" : isConnected ? "연결해제" : "연결하기"}
         </button>
       </div>
     </div>
@@ -257,7 +262,13 @@ export default function ConsultationChannelSettings() {
     return () => window.removeEventListener("message", handleMessage);
   }, [projectId]);
 
-  const channels = [
+  type ChannelId = Platform | "kakao";
+  const channels: {
+    id: ChannelId;
+    name: string;
+    description: string;
+    comingSoon?: boolean;
+  }[] = [
     {
       id: "instagram" as Platform,
       name: "Instagram",
@@ -273,9 +284,16 @@ export default function ConsultationChannelSettings() {
       name: "LINE",
       description: "라인 공식 계정 연동",
     },
+    {
+      id: "kakao",
+      name: "KakaoTalk",
+      description: "카카오톡 채팅 연동",
+      comingSoon: true,
+    },
   ];
 
-  const isConnected = (platform: Platform) => {
+  const isConnected = (platform: ChannelId) => {
+    if (platform === "kakao") return false;
     return integrations.some(
       (integration) => integration.platform === platform
     );
@@ -283,13 +301,14 @@ export default function ConsultationChannelSettings() {
 
   const connectedCount = integrations.length;
 
-  const handleConnect = (platform: Platform) => {
+  const handleConnect = (platform: ChannelId) => {
+    if (platform === "kakao") return;
     // 인스타그램은 OAuth 방식으로 처리
     if (platform === "instagram") {
       handleInstagramConnect();
       return;
     }
-    setModalPlatform(platform);
+    setModalPlatform(platform as Platform);
   };
 
   const handleInstagramConnect = () => {
@@ -426,7 +445,7 @@ export default function ConsultationChannelSettings() {
     }
   };
 
-  const renderIcon = (platform: Platform) => {
+  const renderIcon = (platform: ChannelId) => {
     switch (platform) {
       case "instagram":
         return (
@@ -454,6 +473,16 @@ export default function ConsultationChannelSettings() {
             <img
               src="/icons/platform/line.png"
               alt="Line"
+              className="w-full h-full"
+            />
+          </div>
+        );
+      case "kakao":
+        return (
+          <div className="w-8 h-8">
+            <img
+              src="/icons/platform/kakao.png"
+              alt="KakaoTalk"
               className="w-full h-full"
             />
           </div>
@@ -506,7 +535,10 @@ export default function ConsultationChannelSettings() {
             icon={renderIcon(channel.id)}
             isConnected={isConnected(channel.id)}
             onConnect={() => handleConnect(channel.id)}
-            onDisconnect={() => handleDisconnect(channel.id)}
+            onDisconnect={() =>
+              channel.id !== "kakao" && handleDisconnect(channel.id)
+            }
+            comingSoon={channel.comingSoon}
           />
         ))}
       </div>

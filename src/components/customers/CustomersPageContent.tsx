@@ -174,6 +174,15 @@ function CustomersPageContentInner() {
     applyFilters(mergedFilters);
   };
 
+  /** 중복 "더보기" 클릭: 연락처로 필터 적용 후 전체 새로고침 (다른 상태 초기화) */
+  const handleFilterByContact = (contact: string) => {
+    const params = new URLSearchParams();
+    params.set("page", "1");
+    params.set("limit", String(limit));
+    params.set("contact1", contact);
+    window.location.assign(`/customers?${params.toString()}`);
+  };
+
   const handleAssign = async (targetId: number) => {
     try {
       // assignmentType 결정 로직:
@@ -302,6 +311,7 @@ function CustomersPageContentInner() {
           selectionMode={selectionMode}
           projectId={projectId}
           onRefetch={refetch}
+          onFilterByContact={handleFilterByContact}
         />
         </div>
         <CustomersPagination
