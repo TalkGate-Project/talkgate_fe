@@ -80,8 +80,8 @@ function CustomersPageContentInner() {
   } = useCustomersSelection();
 
   useEffect(() => {
-    syncSelectionWithCustomers(customers);
-  }, [customers, syncSelectionWithCustomers]);
+    syncSelectionWithCustomers(data?.data.customers ?? []);
+  }, [data?.data.customers, syncSelectionWithCustomers]);
 
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isAssignOpen, setAssignOpen] = useState(false);
