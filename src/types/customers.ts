@@ -113,6 +113,8 @@ export type CreateCustomerInput = {
   name: string;
   contact1: string;
   contact2?: string;
+  contact1Type?: ContactType | null;
+  contact2Type?: ContactType | null;
   birth?: string;
   residentId?: string;
   ageRange?: string;
@@ -122,6 +124,8 @@ export type CreateCustomerInput = {
   applicationRoute?: string;
   site?: string;
   mediaCompany?: string;
+  ipAddress?: string;
+  keyword?: string;
   specialNotes?: string;
   teamId?: number;
   summary?: string;

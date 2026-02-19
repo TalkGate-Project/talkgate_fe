@@ -69,6 +69,8 @@ export default function CustomerCreateModal({
   const [applicationRoute, setApplicationRoute] = useState("");
   const [site, setSite] = useState("");
   const [mediaCompany, setMediaCompany] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [ipAddress, setIpAddress] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
 
   if (!open) return null;
@@ -119,6 +121,8 @@ export default function CustomerCreateModal({
     setApplicationRoute("");
     setSite("");
     setMediaCompany("");
+    setKeyword("");
+    setIpAddress("");
     setSpecialNotes("");
     setAttemptedSubmit(false);
     setTouchedName(false);
@@ -161,6 +165,8 @@ export default function CustomerCreateModal({
         applicationRoute: applicationRoute || undefined,
         site: site || undefined,
         mediaCompany: mediaCompany || undefined,
+        keyword: keyword || undefined,
+        ipAddress: ipAddress || undefined,
         specialNotes: specialNotes || undefined,
       });
       onCreated?.();
@@ -554,6 +560,36 @@ export default function CustomerCreateModal({
                       type="text"
                       value={mediaCompany}
                       onChange={(e) => setMediaCompany(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                    />
+                  </div>
+                </div>
+
+                {/* 키워드 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    키워드
+                  </label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                    <input
+                      type="text"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                    />
+                  </div>
+                </div>
+
+                {/* IP 주소 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    IP 주소
+                  </label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                    <input
+                      type="text"
+                      value={ipAddress}
+                      onChange={(e) => setIpAddress(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                     />
                   </div>
