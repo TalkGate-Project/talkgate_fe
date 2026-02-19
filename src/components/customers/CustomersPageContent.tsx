@@ -64,8 +64,40 @@ function CustomersPageContentInner() {
   }, [projectId]);
 
   const customers: CustomerListItem[] = data?.data.customers ?? [];
-  const totalPages = data?.data.totalPages ?? 1;
-  const total = data?.data.total ?? 0;
+  // fetch error 시 totalPages 기본값(1)로 인한 페이지 표시 점프를 방지
+  const totalPages = data?.data.totalPages ?? (error ? page : 1);
+  const total = data?.data.total ?? (error ? customers.length : 0);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (!query || !data?.data) return;
+
+    const requestedPage = query.page;
+    const responsePage = data.data.page;
+    const responseTotalPages = data.data.totalPages;
+
+    // QA 재현 시 page 보정/응답 불일치 여부를 빠르게 확인하기 위한 개발용 진단 로그
+    if (requestedPage !== responsePage) {
+      console.warn("[customers] page mismatch after refetch", {
+        requestedPage,
+        responsePage,
+        responseTotalPages,
+        query,
+      });
+    }
+  }, [data, query]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    if (!error || !query) return;
+
+    console.warn("[customers] refetch failed; preserving current page view", {
+      requestedPage: query.page,
+      requestedLimit: query.limit,
+      query,
+      error,
+    });
+  }, [error, query]);
 
   const {
     selectedIds,
@@ -90,7 +122,7 @@ function CustomersPageContentInner() {
   const [isSmsOpen, setSmsOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
-  const { project } = useCurrentProjectDetail();
+  const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
   const { isAdminOrSubAdmin, role } = useMyMember(projectId);
   const canAssignCustomer =
     role === "admin" || role === "subAdmin" || role === "leader";
@@ -333,6 +365,7 @@ function CustomersPageContentInner() {
           onRefetch={refetch}
           onFilterByContact={handleFilterByContact}
           isDataProvider={project?.isDataProvider ?? false}
+          isDataProviderReady={!isProjectLoading}
           sortType={sortType}
           sortOrder={sortOrder}
           onToggleSort={toggleSort}

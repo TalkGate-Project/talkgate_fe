@@ -11,7 +11,6 @@ import {
   CustomerNoteCategoriesService,
   CustomerNoteCategory,
 } from "@/services/customerNoteCategories";
-import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -38,6 +37,8 @@ type CustomersTableProps = {
   onFilterByContact?: (contact: string) => void;
   /** 데이터 제공자 프로젝트 여부 (컬럼 분기용) */
   isDataProvider?: boolean;
+  /** 데이터 제공자 여부가 확정되었는지 (헤더 안정화용) */
+  isDataProviderReady?: boolean;
   sortType?: "applicationDate" | "assignedMember";
   sortOrder?: "ASC" | "DESC";
   onToggleSort?: (column: "applicationDate" | "assignedMember") => void;
@@ -133,6 +134,7 @@ export default function CustomersTable({
   onRefetch,
   onFilterByContact,
   isDataProvider = false,
+  isDataProviderReady = true,
   sortType,
   sortOrder,
   onToggleSort,
@@ -191,8 +193,12 @@ export default function CustomersTable({
   const colWidths = isDataProvider
     ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "10%", "17%"]
     : ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
+  const fallbackColWidths = ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
+  const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
   const totalColumns = colWidths.length;
+  const skeletonTotalColumns = skeletonColWidths.length;
   const detailColSpan = totalColumns - 2;
+  const shouldRenderSkeleton = !isDataProviderReady || loading;
 
   // Fetch categories on mount
   useEffect(() => {
@@ -435,11 +441,71 @@ export default function CustomersTable({
 
   return (
     <>
-      <div
-        className="overflow-x-auto w-full min-w-0"
-        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-      >
-        <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
+      {shouldRenderSkeleton ? (
+        <div
+          className="overflow-x-auto w-full min-w-0"
+          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+        >
+          <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
+            <colgroup>
+              {skeletonColWidths.map((width, idx) => (
+                <col key={`skeleton-col-${idx}`} style={{ width }} />
+              ))}
+            </colgroup>
+            <thead>
+              <tr className="text-neutral-60">
+                <th className="bg-neutral-20 px-2 md:px-6 h-[40px] align-middle rounded-l-[8px] md:rounded-l-[12px] whitespace-nowrap">
+                  <div className="w-6 h-6 bg-neutral-30 rounded animate-pulse mx-auto md:mx-0" />
+                </th>
+                <th className="bg-neutral-20 px-2 md:px-4 h-[40px] whitespace-nowrap text-center">
+                  <div className="h-3 w-6 bg-neutral-30 rounded animate-pulse mx-auto" />
+                </th>
+                {Array.from({ length: skeletonTotalColumns - 2 }).map((_, idx, arr) => (
+                  <th
+                    key={`skeleton-header-${idx}`}
+                    className={`bg-neutral-20 px-2 md:px-4 h-[40px] whitespace-nowrap ${
+                      idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
+                    }`}
+                  >
+                    <div className="h-3 w-16 bg-neutral-30 rounded animate-pulse mx-auto" />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="typo-body-3">
+              {Array.from({ length: 10 }).map((_, idx) => (
+                <tr
+                  key={`skeleton-${idx}`}
+                  className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
+                >
+                  <td
+                    className="px-2 pr-4 md:pr-6 md:px-6 min-w-[48px] overflow-visible"
+                    style={{ height: "48px" }}
+                  >
+                    <div className="flex items-center justify-start h-full">
+                      <div className="w-6 h-6 bg-neutral-20 rounded" />
+                    </div>
+                  </td>
+                  {Array.from({ length: skeletonTotalColumns - 1 }).map((_, colIdx) => (
+                    <td
+                      key={colIdx}
+                      className="px-2 md:px-4"
+                      style={{ height: "48px" }}
+                    >
+                      <div className="h-4 bg-neutral-20 rounded" />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div
+          className="overflow-x-auto w-full min-w-0"
+          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+        >
+          <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
           <colgroup>
             {colWidths.map((width, idx) => (
               <col key={`col-${idx}`} style={{ width }} />
@@ -559,41 +625,9 @@ export default function CustomersTable({
               ))}
             </tr>
           </thead>
-          <tbody className="typo-body-3">
-            {/* 로딩 중일 때 스켈레톤 표시 */}
-            {loading && (
-              <>
-                {Array.from({ length: 10 }).map((_, idx) => (
-                  <tr
-                    key={`skeleton-${idx}`}
-                    className="border-b border-[#E2E2E2] dark:!border-[#44444455] animate-pulse"
-                  >
-                    <td
-                      className="px-2 pr-4 md:pr-6 md:px-6 min-w-[48px] overflow-visible"
-                      style={{ height: "48px" }}
-                    >
-                      <div className="flex items-center justify-start h-full">
-                        <div className="w-6 h-6 bg-neutral-20 rounded" />
-                      </div>
-                    </td>
-                    {Array.from({ length: totalColumns - 1 }).map((_, colIdx) => (
-                      <td
-                        key={colIdx}
-                        className="px-2 md:px-4"
-                        style={{ height: "48px" }}
-                      >
-                        <div
-                          className="h-4 bg-neutral-20 rounded"
-                          style={{ flex: 1 }}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </>
-            )}
+            <tbody className="typo-body-3">
             {/* 에러 상태 */}
-            {Boolean(error) && !loading && (
+            {Boolean(error) && (
               <tr>
                 <td
                   colSpan={totalColumns}
@@ -604,21 +638,20 @@ export default function CustomersTable({
               </tr>
             )}
             {/* 실제 데이터 표시 */}
-            {!loading &&
-              customers.map((c, index) => {
-                const checked =
-                  selectedIds.includes(c.id) || selectionMode === "all";
-                const isLastRow = index === customers.length - 1;
-                const duplicateCount = Number(c.duplicateCount ?? 0);
-                const canToggleDuplicate = duplicateCount > 0;
-                const isDuplicateOpen = Boolean(expandedDuplicateRows[c.id]);
-                const duplicateItems = duplicateRows[c.id] ?? [];
-                const duplicateLoading = Boolean(duplicateLoadingRows[c.id]);
-                const duplicateError = Boolean(duplicateErrorRows[c.id]);
-                const rowNumber =
-                  totalCount - (normalizedPage - 1) * normalizedLimit - index;
-                return (
-                  <Fragment key={c.id}>
+            {customers.map((c, index) => {
+              const checked =
+                selectedIds.includes(c.id) || selectionMode === "all";
+              const isLastRow = index === customers.length - 1;
+              const duplicateCount = Number(c.duplicateCount ?? 0);
+              const canToggleDuplicate = duplicateCount > 0;
+              const isDuplicateOpen = Boolean(expandedDuplicateRows[c.id]);
+              const duplicateItems = duplicateRows[c.id] ?? [];
+              const duplicateLoading = Boolean(duplicateLoadingRows[c.id]);
+              const duplicateError = Boolean(duplicateErrorRows[c.id]);
+              const rowNumber =
+                totalCount - (normalizedPage - 1) * normalizedLimit - index;
+              return (
+                <Fragment key={c.id}>
                     <tr
                       className={`cursor-pointer border-b border-[#E2E2E2] dark:!border-[#44444455] ${
                         hoveredId === c.id ? "md:bg-neutral-10" : ""
@@ -1099,10 +1132,10 @@ export default function CustomersTable({
                         </>
                       ))
                     }
-                  </Fragment>
-                );
-              })}
-            {!loading && customers.length === 0 && !error && (
+                </Fragment>
+              );
+            })}
+            {customers.length === 0 && !error && (
               <tr>
                 <td
                   colSpan={totalColumns}
@@ -1112,9 +1145,10 @@ export default function CustomersTable({
                 </td>
               </tr>
             )}
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
+      )}
       {hoverInfo && (
         <CustomersHoverPopover
           name={hoverInfo.name}
