@@ -24,6 +24,7 @@ type UseCustomerActionsParams = {
   setMessengersLocal: React.Dispatch<React.SetStateAction<MessengerLocal[]>>;
   getChangedFields: () => Partial<Omit<UpdateCustomerInput, "projectId">>;
   commitForm: () => void;
+  onCustomerUpdated?: () => void;
 };
 
 type CustomerActions = {
@@ -50,6 +51,7 @@ export function useCustomerActions({
   setMessengersLocal,
   getChangedFields,
   commitForm,
+  onCustomerUpdated,
 }: UseCustomerActionsParams): CustomerActions {
   const isAddingNoteRef = useRef(false);
   // =========================================================================
@@ -287,11 +289,12 @@ export function useCustomerActions({
               : prev
           );
         }
+        onCustomerUpdated?.();
       } finally {
         isAddingNoteRef.current = false;
       }
     },
-    [detail, setDetail]
+    [detail, onCustomerUpdated, setDetail]
   );
 
   const removeNote = useCallback(
@@ -328,6 +331,7 @@ export function useCustomerActions({
               }
             : prev
         );
+        onCustomerUpdated?.();
       } catch (error) {
         showErrorModal({
           title: "오류 발생",
@@ -338,7 +342,7 @@ export function useCustomerActions({
         });
       }
     },
-    [setDetail]
+    [onCustomerUpdated, setDetail]
   );
 
   // =========================================================================

@@ -20,9 +20,8 @@ function LocalIconTooltip({
     <span className="relative inline-flex group">
       {children}
       <span
-        className={`pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity ${
-          position === "bottom" ? "top-full mt-2" : "-top-9"
-        }`}
+        className={`pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity ${position === "bottom" ? "top-full mt-2" : "-top-9"
+          }`}
       >
         <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
           {label}
@@ -42,20 +41,13 @@ export default function CustomersFilterBar({
     <div className="mb-2 md:mb-3 flex items-center gap-3">
       <LocalIconTooltip label="필터 설정" position="bottom">
         <button
-          className="cursor-pointer w-9 h-9 grid place-items-center shrink-0 bg-transparent"
+          className="cursor-pointer w-9 h-9 grid place-items-center shrink-0 bg-transparent border border-neutral-30 rounded-[6px]"
           onClick={onFilterOpen}
           aria-label="필터"
           type="button"
         >
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" stroke="#E2E2E2" />
-            <path
-              d="M10.5 11.5C10.5 10.9477 10.9477 10.5 11.5 10.5H24.5C25.0523 10.5 25.5 10.9477 25.5 11.5V13.4191C25.5 13.6843 25.3946 13.9387 25.2071 14.1262L19.9596 19.3738C19.772 19.5613 19.6667 19.8157 19.6667 20.0809V22.1667L16.3333 25.5V20.0809C16.3333 19.8157 16.228 19.5613 16.0404 19.3738L10.7929 14.1262C10.6054 13.9387 10.5 13.6843 10.5 13.4191V11.5Z"
-              stroke="#B0B0B0"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.5 3.5C2.5 2.94771 2.94772 2.5 3.5 2.5H16.5C17.0523 2.5 17.5 2.94772 17.5 3.5V5.41912C17.5 5.68434 17.3946 5.93869 17.2071 6.12623L11.9596 11.3738C11.772 11.5613 11.6667 11.8157 11.6667 12.0809V14.1667L8.33333 17.5V12.0809C8.33333 11.8157 8.22798 11.5613 8.04044 11.3738L2.79289 6.12623C2.60536 5.93869 2.5 5.68434 2.5 5.41912V3.5Z" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
       </LocalIconTooltip>

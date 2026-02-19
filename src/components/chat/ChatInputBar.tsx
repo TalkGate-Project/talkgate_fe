@@ -164,7 +164,7 @@ export default function ChatInputBar({
               }
             }}
             rows={1}
-            className="w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10 dark:bg-neutral-20 lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
+            className="w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10  lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
             placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
             disabled={disabled}
           />
@@ -276,7 +276,7 @@ export default function ChatInputBar({
               disabled={disabled || attachmentUploading}
             >
               <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 17H10.01M17 17H17.01M24 17H24.01M11 17C11 17.5523 10.5523 18 10 18C9.44772 18 9 17.5523 9 17C9 16.4477 9.44772 16 10 16C10.5523 16 11 16.4477 11 17ZM18 17C18 17.5523 17.5523 18 17 18C16.4477 18 16 17.5523 16 17C16 16.4477 16.4477 16 17 16C17.5523 16 18 16.4477 18 17ZM25 17C25 17.5523 24.5523 18 24 18C23.4477 18 23 17.5523 23 17C23 16.4477 23.4477 16 24 16C24.5523 16 25 16.4477 25 17Z" stroke="#252525" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 17H10.01M17 17H17.01M24 17H24.01M11 17C11 17.5523 10.5523 18 10 18C9.44772 18 9 17.5523 9 17C9 16.4477 9.44772 16 10 16C10.5523 16 11 16.4477 11 17ZM18 17C18 17.5523 17.5523 18 17 18C16.4477 18 16 17.5523 16 17C16 16.4477 16.4477 16 17 16C17.5523 16 18 16.4477 18 17ZM25 17C25 17.5523 24.5523 18 24 18C23.4477 18 23 17.5523 23 17C23 16.4477 23.4477 16 24 16C24.5523 16 25 16.4477 25 17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
             {/* 말줄임표 메뉴 팝업 */}

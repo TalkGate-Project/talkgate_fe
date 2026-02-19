@@ -196,7 +196,7 @@ export default function ConsultationPanel({
           상담 내용 기록
         </div>
         <div className="border-b border-[#E2E2E2] dark:border-neutral-30 mb-2 flex-shrink-0" />
-        <p className="text-[14px] text-[#6B7280] font-medium mb-2 flex-shrink-0">상담 카테고리</p>
+        <p className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium mb-2 flex-shrink-0">상담 카테고리</p>
         
         <div className="flex gap-2 mb-3 flex-shrink-0">
           <SelectField

@@ -6,12 +6,23 @@ import { useCustomerForm } from "./useCustomerForm";
 import type { CustomerValidation } from "./types";
 import { useCustomerActions } from "./useCustomerActions";
 import type { NoteCategory } from "./types";
+import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
 
 // Re-export types for backward compatibility
 export type { CustomerFormState, CustomerValidation } from "./types";
 export { INITIAL_FORM_STATE } from "./types";
 
-export function useCustomerDetail(customerId: number | null, open: boolean) {
+type UseCustomerDetailOptions = {
+  onCustomerUpdated?: () => void;
+  onFetchErrorClose?: () => void;
+};
+
+export function useCustomerDetail(
+  customerId: number | null,
+  open: boolean,
+  options?: UseCustomerDetailOptions
+) {
+  const onFetchErrorClose = options?.onFetchErrorClose;
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
   const [categories, setCategories] = useState<NoteCategory[]>([]);
@@ -56,6 +67,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     setMessengersLocal,
     getChangedFields,
     commitForm,
+    onCustomerUpdated: options?.onCustomerUpdated,
   });
 
   // =========================================================================
@@ -77,10 +89,34 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
       }
     } catch (err) {
       setDetail(null);
+      const errorCode = String((err as any)?.data?.code || "");
+      const errorStatus = (err as any)?.status;
+
+      let headline = "고객 정보를 불러올 수 없습니다.";
+      let description = "잠시 후 다시 시도해주세요.";
+
+      if (errorCode === "CUSTOMER_DELETED") {
+        headline = "삭제된 고객 정보는 확인할 수 없습니다.";
+        description = "해당 고객이 삭제되어 상세 정보를 조회할 수 없습니다.";
+      } else if (errorCode === "CUSTOMER_NOT_FOUND" || errorStatus === 404) {
+        headline = "존재하지 않는 고객 정보입니다.";
+        description = "고객이 삭제되었거나 더 이상 존재하지 않습니다.";
+      } else if (errorCode === "FORBIDDEN" || errorStatus === 403) {
+        headline = "고객 정보를 조회할 권한이 없습니다.";
+        description = "권한이 있는 멤버만 해당 고객 정보를 확인할 수 있습니다.";
+      }
+
+      onFetchErrorClose?.();
+      showErrorModalEvent({
+        headline,
+        description,
+        hideCancel: true,
+        confirmText: "확인",
+      });
     } finally {
       setLoading(false);
     }
-  }, [customerId, initializeForm]);
+  }, [customerId, initializeForm, onFetchErrorClose]);
 
   const fetchCategories = useCallback(async () => {
     try {

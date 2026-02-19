@@ -42,6 +42,7 @@ export type CustomerListItem = {
   applicationRoute: string;
   site: string;
   mediaCompany: string;
+  keyword?: string | null;
   assignedMember?: AssignedMember | null;
   assignedTeamName?: string | null;
   assignedMemberName?: string | null;
@@ -98,6 +99,8 @@ export type CustomersListQuery = {
   applicationDateTo?: string;   // YYYY-MM-DD
   assignedAtFrom?: string;      // YYYY-MM-DD
   assignedAtTo?: string;        // YYYY-MM-DD
+  sortType?: "applicationDate" | "assignedMember";
+  sortOrder?: "ASC" | "DESC";
   page: number;                 // required
   limit: number;                // required
   projectId: string;            // header: x-project-id
@@ -112,6 +115,8 @@ export type CreateCustomerInput = {
   name: string;
   contact1: string;
   contact2?: string;
+  contact1Type?: ContactType | null;
+  contact2Type?: ContactType | null;
   birth?: string;
   residentId?: string;
   ageRange?: string;
@@ -121,6 +126,8 @@ export type CreateCustomerInput = {
   applicationRoute?: string;
   site?: string;
   mediaCompany?: string;
+  ipAddress?: string;
+  keyword?: string;
   specialNotes?: string;
   teamId?: number;
   summary?: string;

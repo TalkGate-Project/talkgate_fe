@@ -1,27 +1,9 @@
-export default function FilterIcon() {
+type FilterIconProps = { size?: number };
+
+export default function FilterIcon({ size = 20 }: FilterIconProps) {
   return (
-    <svg
-      width="26"
-      height="26"
-      viewBox="0 0 26 26"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect 
-        x="0.5" 
-        y="0.5" 
-        width="25" 
-        height="25" 
-        rx="5.5" 
-        className="stroke-[#E2E2E2] dark:stroke-neutral-30"
-      />
-      <path
-        d="M7 8C7 7.44772 7.44772 7 8 7H18C18.5523 7 19 7.44772 19 8V9.25245C19 9.51767 18.8946 9.77202 18.7071 9.95956L14.6262 14.0404C14.4387 14.228 14.3333 14.4823 14.3333 14.7475V16.3333L11.6667 19V14.7475C11.6667 14.4823 11.5613 14.228 11.3738 14.0404L7.29289 9.95956C7.10536 9.77202 7 9.51767 7 9.25245V8Z"
-        className="stroke-[#B0B0B0] dark:stroke-neutral-30"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.5 3.5C2.5 2.94771 2.94772 2.5 3.5 2.5H16.5C17.0523 2.5 17.5 2.94772 17.5 3.5V5.41912C17.5 5.68434 17.3946 5.93869 17.2071 6.12623L11.9596 11.3738C11.772 11.5613 11.6667 11.8157 11.6667 12.0809V14.1667L8.33333 17.5V12.0809C8.33333 11.8157 8.22798 11.5613 8.04044 11.3738L2.79289 6.12623C2.60536 5.93869 2.5 5.68434 2.5 5.41912V3.5Z" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   );
 }

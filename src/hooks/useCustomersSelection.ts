@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CustomerListItem } from "@/types/customers";
 
 export type SelectionMode = "page" | "all";
@@ -58,6 +58,29 @@ export function useCustomersSelection() {
     setSelectionMode(null);
   };
 
+  const removeFromSelection = useCallback((ids: number[]) => {
+    if (ids.length === 0) return;
+    const idsToRemove = new Set(ids);
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => !idsToRemove.has(id));
+      if (next.length === 0 && selectionMode === "page") {
+        setSelectionMode(null);
+      }
+      return next;
+    });
+  }, [selectionMode]);
+
+  const syncSelectionWithCustomers = useCallback((customers: CustomerListItem[]) => {
+    const validIds = new Set(customers.map((customer) => customer.id));
+    setSelectedIds((prev) => {
+      const next = prev.filter((id) => validIds.has(id));
+      if (next.length === 0 && prev.length > 0 && selectionMode === "page") {
+        setSelectionMode(null);
+      }
+      return next;
+    });
+  }, [selectionMode]);
+
   return {
     selectedIds,
     setSelectedIds,
@@ -66,6 +89,8 @@ export function useCustomersSelection() {
     toggleSelectAll,
     toggleSelect,
     clearSelection,
+    removeFromSelection,
+    syncSelectionWithCustomers,
   };
 }
 
