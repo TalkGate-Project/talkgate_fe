@@ -34,6 +34,13 @@ type CustomersTableProps = {
   selectionMode: "page" | "all" | null;
   projectId: string;
   onRefetch: () => void;
+  /** 연락처로 필터 적용 후 페이지 새로고침 (중복 "더보기" 클릭 시) */
+  onFilterByContact?: (contact: string) => void;
+  /** 데이터 제공자 프로젝트 여부 (컬럼 분기용) */
+  isDataProvider?: boolean;
+  sortType?: "applicationDate" | "assignedMember";
+  sortOrder?: "ASC" | "DESC";
+  onToggleSort?: (column: "applicationDate" | "assignedMember") => void;
 };
 
 function TruncateWithTooltip({
@@ -103,6 +110,12 @@ function getBodyZoom(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
+function getCustomerKeyword(
+  customer: CustomerListItem | CustomerDuplicateItem
+): string | null | undefined {
+  return (customer as CustomerListItem & { keyword?: string | null }).keyword;
+}
+
 export default function CustomersTable({
   customers,
   loading,
@@ -118,6 +131,11 @@ export default function CustomersTable({
   selectionMode,
   projectId,
   onRefetch,
+  onFilterByContact,
+  isDataProvider = false,
+  sortType,
+  sortOrder,
+  onToggleSort,
 }: CustomersTableProps) {
   const [hoverInfo, setHoverInfo] = useState<{
     name: string;
@@ -148,6 +166,33 @@ export default function CustomersTable({
   const myMemberId = myMember?.id;
   const normalizedPage = Math.max(1, page);
   const normalizedLimit = Math.max(1, limit);
+  const tableHeaders = isDataProvider
+    ? [
+        "이름",
+        "연락처",
+        "매체사",
+        "사이트",
+        "신청경로",
+        "키워드",
+        "카테고리",
+        "신청시간",
+      ]
+    : [
+        "이름",
+        "연락처",
+        "매체사",
+        "사이트",
+        "신청경로",
+        "카테고리",
+        "담당자",
+        "신청시간",
+        "전체확인",
+      ];
+  const colWidths = isDataProvider
+    ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "10%", "17%"]
+    : ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
+  const totalColumns = colWidths.length;
+  const detailColSpan = totalColumns - 2;
 
   // Fetch categories on mount
   useEffect(() => {
@@ -396,17 +441,9 @@ export default function CustomersTable({
       >
         <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
           <colgroup>
-            <col style={{ width: "5%" }} />
-            <col style={{ width: "6%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "8%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "9%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "8%" }} />
+            {colWidths.map((width, idx) => (
+              <col key={`col-${idx}`} style={{ width }} />
+            ))}
           </colgroup>
           <thead>
             <tr className="text-neutral-60">
@@ -454,30 +491,70 @@ export default function CustomersTable({
                 {""}
               </th>
               {/* PC/모바일 동일: 모든 열 (모바일은 가로 스크롤로 확인) */}
-              {[
-                "이름",
-                "연락처",
-                "매체사",
-                "사이트",
-                "신청경로",
-                "담당자",
-                "카테고리",
-                "신청시간",
-                "전체확인",
-              ].map((h, idx, arr) => (
+              {tableHeaders.map((h, idx, arr) => (
                 <th
                   key={h}
                   colSpan={1}
                   className={`bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
                     idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
                   } ${h === "카테고리" ? "text-center" : ""} ${
-                    h === "전체확인"
+                    !isDataProvider && h === "전체확인"
                       ? "text-center font-semibold underline cursor-pointer"
                       : ""
                   }`}
-                  onClick={h === "전체확인" ? handleConfirmAll : undefined}
+                  onClick={!isDataProvider && h === "전체확인" ? handleConfirmAll : undefined}
                 >
-                  {h}
+                  {!isDataProvider && (h === "담당자" || h === "신청시간") ? (
+                    <div className="inline-flex items-center gap-1">
+                      <span>{h}</span>
+                      <button
+                        type="button"
+                        className="cursor-pointer inline-flex items-center justify-center w-4 h-4 text-neutral-60 hover:text-neutral-90"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleSort?.(
+                            h === "담당자" ? "assignedMember" : "applicationDate"
+                          );
+                        }}
+                        aria-label={`${h} 정렬 토글`}
+                      >
+                        <svg
+                          width="10"
+                          height="12"
+                          viewBox="0 0 10 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5 1L8 4H2L5 1Z"
+                            fill={
+                              sortType ===
+                                (h === "담당자"
+                                  ? "assignedMember"
+                                  : "applicationDate") &&
+                              sortOrder === "ASC"
+                                ? "#111111"
+                                : "#B0B0B0"
+                            }
+                          />
+                          <path
+                            d="M5 11L2 8H8L5 11Z"
+                            fill={
+                              sortType ===
+                                (h === "담당자"
+                                  ? "assignedMember"
+                                  : "applicationDate") &&
+                              sortOrder === "DESC"
+                                ? "#111111"
+                                : "#B0B0B0"
+                            }
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    h
+                  )}
                 </th>
               ))}
             </tr>
@@ -499,7 +576,7 @@ export default function CustomersTable({
                         <div className="w-6 h-6 bg-neutral-20 rounded" />
                       </div>
                     </td>
-                    {Array.from({ length: 10 }).map((_, colIdx) => (
+                    {Array.from({ length: totalColumns - 1 }).map((_, colIdx) => (
                       <td
                         key={colIdx}
                         className="px-2 md:px-4"
@@ -519,7 +596,7 @@ export default function CustomersTable({
             {Boolean(error) && !loading && (
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={totalColumns}
                   className="px-2 md:px-6 h-[72px] text-center text-red-500"
                 >
                   데이터를 불러오지 못했습니다
@@ -664,119 +741,162 @@ export default function CustomersTable({
                           className="max-w-[120px] md:max-w-[180px]"
                         />
                       </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <TruncateWithTooltip
-                            text={c.assignedMemberName || "-"}
-                            className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
-                          />
-                          {c.assignedMemberName && (
-                            <div className="flex items-center justify-center flex-shrink-0">
-                              <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  clipRule="evenodd"
-                                  d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
-                                  fill={
-                                    c.status === "confirmed"
-                                      ? "#00E272"
-                                      : "#B0B0B0"
-                                  }
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                        {(() => {
-                          // 마지막 상담내용의 카테고리를 찾기
-                          const notes = Array.isArray(c.recentNotes)
-                            ? c.recentNotes
-                            : [];
+                      {isDataProvider ? (
+                        <>
+                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                            <TruncateWithTooltip
+                              text={getCustomerKeyword(c) || "-"}
+                              className="max-w-[120px] md:max-w-[180px]"
+                            />
+                          </td>
+                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
+                            {(() => {
+                              const notes = Array.isArray(c.recentNotes)
+                                ? c.recentNotes
+                                : [];
+                              if (notes.length === 0)
+                                return <span className="opacity-80">-</span>;
+                              const sortedNotes = [...notes].sort(
+                                (a, b) =>
+                                  new Date(b.createdAt).getTime() -
+                                  new Date(a.createdAt).getTime()
+                              );
+                              const lastNote = sortedNotes[0];
+                              const categoryId = lastNote.categoryId;
+                              const category = categories.find(
+                                (cat) => cat.id === categoryId
+                              );
+                              const categoryName = category?.name || "일반";
+                              const badgeStyle = getBadgeStyle(
+                                categoryName,
+                                categoryId || 0
+                              );
 
-                          // 상담/노트가 없는 경우에만 "-" 표시
-                          if (notes.length === 0)
-                            return <span className="opacity-80">-</span>;
+                              return (
+                                <span
+                                  className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                >
+                                  <TruncateWithTooltip
+                                    text={categoryName}
+                                    className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                  />
+                                </span>
+                              );
+                            })()}
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
+                            {(() => {
+                              const notes = Array.isArray(c.recentNotes)
+                                ? c.recentNotes
+                                : [];
+                              if (notes.length === 0)
+                                return <span className="opacity-80">-</span>;
+                              const sortedNotes = [...notes].sort(
+                                (a, b) =>
+                                  new Date(b.createdAt).getTime() -
+                                  new Date(a.createdAt).getTime()
+                              );
+                              const lastNote = sortedNotes[0];
+                              const categoryId = lastNote.categoryId;
+                              const category = categories.find(
+                                (cat) => cat.id === categoryId
+                              );
+                              const categoryName = category?.name || "일반";
+                              const badgeStyle = getBadgeStyle(
+                                categoryName,
+                                categoryId || 0
+                              );
 
-                          // createdAt 기준으로 정렬하여 가장 최근 노트 찾기
-                          const sortedNotes = [...notes].sort(
-                            (a, b) =>
-                              new Date(b.createdAt).getTime() -
-                              new Date(a.createdAt).getTime()
-                          );
-                          const lastNote = sortedNotes[0];
-
-                          // 카테고리 정보 확인
-                          const categoryId = lastNote.categoryId;
-                          const category = categories.find(
-                            (cat) => cat.id === categoryId
-                          );
-                          const categoryName = category?.name || "일반";
-                          const badgeStyle = getBadgeStyle(
-                            categoryName,
-                            categoryId || 0
-                          );
-
-                          return (
-                            <span
-                              className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                            >
+                              return (
+                                <span
+                                  className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                >
+                                  <TruncateWithTooltip
+                                    text={categoryName}
+                                    className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                  />
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                            <div className="flex items-center gap-2 min-w-0">
                               <TruncateWithTooltip
-                                text={categoryName}
-                                className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                text={c.assignedMemberName || "-"}
+                                className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
                               />
-                            </span>
-                          );
-                        })()}
-                      </td>
+                              {c.assignedMemberName && (
+                                <div className="flex items-center justify-center flex-shrink-0">
+                                  <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      clipRule="evenodd"
+                                      d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
+                                      fill={
+                                        c.status === "confirmed"
+                                          ? "#00E272"
+                                          : "#B0B0B0"
+                                      }
+                                    />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         {formatDateTime(c.applicationDate || c.createdAt)}
                       </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
-                        <div className="flex items-center justify-center">
-                          {c.status !== "confirmed" &&
-                          c.assignedMember?.id === myMemberId ? (
-                            <button
-                              onClick={(e) => handleConfirmCustomer(c.id, e)}
-                              className="cursor-pointer flex items-center justify-center relative group"
-                              aria-label="고객 확인"
-                            >
-                              <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
+                      {!isDataProvider && (
+                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle whitespace-nowrap">
+                          <div className="flex items-center justify-center">
+                            {c.status !== "confirmed" &&
+                            c.assignedMember?.id === myMemberId ? (
+                              <button
+                                onClick={(e) => handleConfirmCustomer(c.id, e)}
+                                className="cursor-pointer flex items-center justify-center relative group"
+                                aria-label="고객 확인"
                               >
-                                <path
-                                  d="M5 13L9 17L19 7"
-                                  stroke="#00E272"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                확인
-                              </span>
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M5 13L9 17L19 7"
+                                    stroke="#00E272"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-90 text-neutral-0 text-[12px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                  확인
+                                </span>
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                     {isDuplicateOpen &&
                       (duplicateLoading ? (
                         <tr key={`${c.id}-duplicates-loading`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={9} className="px-2 md:px-4 h-[44px]">
+                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px]">
                             <div className="h-full w-full flex items-center justify-center">
                               <LoadingSpinner size="sm" aria-label="중복 고객 목록 로딩 중" />
                             </div>
@@ -786,7 +906,7 @@ export default function CustomersTable({
                         <tr key={`${c.id}-duplicates-error`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={9} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
+                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px] text-[13px] text-red-500">
                             중복 고객 목록을 불러오지 못했습니다.
                           </td>
                         </tr>
@@ -794,16 +914,19 @@ export default function CustomersTable({
                         <tr key={`${c.id}-duplicates-empty`} className="bg-[#F8F8F8] dark:bg-neutral-20">
                           <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                           <td className="px-2 md:px-4 h-[44px]" />
-                          <td colSpan={9} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
+                          <td colSpan={detailColSpan} className="px-2 md:px-4 h-[44px] text-[13px] text-neutral-60">
                             중복 고객이 없습니다.
                           </td>
                         </tr>
                       ) : (
-                        duplicateItems.map((item, itemIndex) => (
+                        <>
+                          {duplicateItems.map((item, itemIndex) => (
                           <tr
                             key={`${c.id}-duplicate-${item.id}`}
                             className={`cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 ${
-                              itemIndex === duplicateItems.length - 1
+                              itemIndex === duplicateItems.length - 1 && duplicateCount <= 5
+                                ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
+                                : itemIndex < duplicateItems.length - 1
                                 ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : ""
                             }`}
@@ -843,62 +966,142 @@ export default function CustomersTable({
                                 className="max-w-[120px] md:max-w-[180px]"
                               />
                             </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <TruncateWithTooltip
-                                text={item.assignedMemberName || "-"}
-                                className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
-                              />
-                            </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                              {(() => {
-                                const notes = Array.isArray(item.recentNotes)
-                                  ? item.recentNotes
-                                  : [];
-                                if (notes.length === 0)
-                                  return <span className="opacity-80">-</span>;
+                            {isDataProvider ? (
+                              <>
+                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                                  <TruncateWithTooltip
+                                    text={getCustomerKeyword(item) || "-"}
+                                    className="max-w-[120px] md:max-w-[180px]"
+                                  />
+                                </td>
+                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
+                                  {(() => {
+                                    const notes = Array.isArray(item.recentNotes)
+                                      ? item.recentNotes
+                                      : [];
+                                    if (notes.length === 0)
+                                      return <span className="opacity-80">-</span>;
 
-                                const sortedNotes = [...notes].sort(
-                                  (a, b) =>
-                                    new Date(b.createdAt).getTime() -
-                                    new Date(a.createdAt).getTime()
-                                );
-                                const lastNote = sortedNotes[0];
-                                const categoryId = lastNote.categoryId;
-                                const category = categories.find(
-                                  (cat) => cat.id === categoryId
-                                );
-                                const categoryName = category?.name || "일반";
-                                const badgeStyle = getBadgeStyle(
-                                  categoryName,
-                                  categoryId || 0
-                                );
+                                    const sortedNotes = [...notes].sort(
+                                      (a, b) =>
+                                        new Date(b.createdAt).getTime() -
+                                        new Date(a.createdAt).getTime()
+                                    );
+                                    const lastNote = sortedNotes[0];
+                                    const categoryId = lastNote.categoryId;
+                                    const category = categories.find(
+                                      (cat) => cat.id === categoryId
+                                    );
+                                    const categoryName = category?.name || "일반";
+                                    const badgeStyle = getBadgeStyle(
+                                      categoryName,
+                                      categoryId || 0
+                                    );
 
-                                return (
-                                  <span
-                                    className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                                  >
-                                    <TruncateWithTooltip
-                                      text={categoryName}
-                                      className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                    />
-                                  </span>
-                                );
-                              })()}
-                            </td>
+                                    return (
+                                      <span
+                                        className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                      >
+                                        <TruncateWithTooltip
+                                          text={categoryName}
+                                          className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                        />
+                                      </span>
+                                    );
+                                  })()}
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
+                                  {(() => {
+                                    const notes = Array.isArray(item.recentNotes)
+                                      ? item.recentNotes
+                                      : [];
+                                    if (notes.length === 0)
+                                      return <span className="opacity-80">-</span>;
+
+                                    const sortedNotes = [...notes].sort(
+                                      (a, b) =>
+                                        new Date(b.createdAt).getTime() -
+                                        new Date(a.createdAt).getTime()
+                                    );
+                                    const lastNote = sortedNotes[0];
+                                    const categoryId = lastNote.categoryId;
+                                    const category = categories.find(
+                                      (cat) => cat.id === categoryId
+                                    );
+                                    const categoryName = category?.name || "일반";
+                                    const badgeStyle = getBadgeStyle(
+                                      categoryName,
+                                      categoryId || 0
+                                    );
+
+                                    return (
+                                      <span
+                                        className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                      >
+                                        <TruncateWithTooltip
+                                          text={categoryName}
+                                          className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                        />
+                                      </span>
+                                    );
+                                  })()}
+                                </td>
+                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                                  <TruncateWithTooltip
+                                    text={item.assignedMemberName || "-"}
+                                    className="min-w-0 max-w-[10ch] md:max-w-[14ch]"
+                                  />
+                                </td>
+                              </>
+                            )}
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               {formatDateTime(item.applicationDate || item.createdAt)}
                             </td>
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />
+                            {!isDataProvider && (
+                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle whitespace-nowrap" />
+                            )}
                           </tr>
-                        ))
-                      ))}
+                          ))}
+                          {duplicateCount > 5 && (
+                            <tr
+                              key={`${c.id}-duplicate-more`}
+                              className="bg-[#F8F8F8] dark:bg-neutral-20 border-b border-[#E2E2E2] dark:border-[#44444455]"
+                            >
+                              <td colSpan={totalColumns} className="px-2 md:px-4 py-2 align-middle">
+                                <div className="flex justify-center items-center">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const contact = c.contact1 || c.contact2 || "";
+                                      if (contact && onFilterByContact) onFilterByContact(contact);
+                                    }}
+                                    style={{ width: 80, height: 28 }}
+                                    className="flex justify-center items-center shrink-0 bg-white dark:bg-neutral-10 border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] text-[#808080] dark:text-neutral-60 font-semibold text-[14px] leading-none tracking-[-0.02em] cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
+                                    aria-label="연락처로 필터 적용하여 전체 보기"
+                                  >
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+                                      <path d="M8 3.33331V12.6666M3.33331 8H12.6666" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                    <span className="shrink-0 ml-1 leading-none translate-y-[1px]">더보기</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      ))
+                    }
                   </Fragment>
                 );
               })}
             {!loading && customers.length === 0 && !error && (
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={totalColumns}
                   className="px-2 md:px-6 pt-10 pb-10 min-h-[200px] text-center text-neutral-60"
                 >
                   결과가 없습니다

@@ -456,6 +456,7 @@ export default function SalesTab({
                 value={scheduleTime}
                 onChange={setScheduleTime}
                 minuteStep={10}
+                className="rounded-[5px] border-[#E5E7EB] dark:border-[#444444] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
               />
             </div>
           </div>

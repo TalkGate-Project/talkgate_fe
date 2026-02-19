@@ -385,6 +385,19 @@ body {
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
+/* Mobile viewport uses fixed page background by theme. */
+@media (max-width: 767px) {
+  body {
+    background-color: #ffffff;
+  }
+
+  .dark body,
+  html[data-theme="dark"] body,
+  [data-theme="dark"] body {
+    background-color: #111111;
+  }
+}
+
 /* 모든 요소에 Pretendard 적용 */
 * {
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;

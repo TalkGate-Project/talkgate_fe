@@ -7,6 +7,7 @@ import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
 
@@ -69,6 +70,8 @@ export default function CustomerCreateModal({
   const [applicationRoute, setApplicationRoute] = useState("");
   const [site, setSite] = useState("");
   const [mediaCompany, setMediaCompany] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [ipAddress, setIpAddress] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
 
   if (!open) return null;
@@ -119,27 +122,15 @@ export default function CustomerCreateModal({
     setApplicationRoute("");
     setSite("");
     setMediaCompany("");
+    setKeyword("");
+    setIpAddress("");
     setSpecialNotes("");
     setAttemptedSubmit(false);
     setTouchedName(false);
     setTouchedContact1(false);
   };
 
-  const handleSubmit = async () => {
-    setAttemptedSubmit(true);
-    if (!projectId) {
-      showErrorModal({
-        title: "알림",
-        headline: "프로젝트를 선택해주세요.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
-      return;
-    }
-    if (!isValid) {
-      return;
-    }
+  const submitCreate = async () => {
     setSubmitting(true);
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] =
@@ -161,6 +152,8 @@ export default function CustomerCreateModal({
         applicationRoute: applicationRoute || undefined,
         site: site || undefined,
         mediaCompany: mediaCompany || undefined,
+        keyword: keyword || undefined,
+        ipAddress: ipAddress || undefined,
         specialNotes: specialNotes || undefined,
       });
       onCreated?.();
@@ -177,6 +170,58 @@ export default function CustomerCreateModal({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const hasDuplicateContact = async (targetContact: string) => {
+    if (!projectId || !targetContact) return false;
+    try {
+      const response = await CustomersService.list({
+        projectId,
+        contact1: targetContact,
+        page: 1,
+        limit: 1,
+      });
+      return (response.data.data.customers?.length ?? 0) > 0;
+    } catch {
+      // 중복 조회 실패 시 등록 자체는 막지 않는다.
+      return false;
+    }
+  };
+
+  const handleSubmit = async () => {
+    setAttemptedSubmit(true);
+    if (!projectId) {
+      showErrorModal({
+        title: "알림",
+        headline: "프로젝트를 선택해주세요.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!isValid) {
+      return;
+    }
+
+    const targetContact = contact1.trim();
+    const isDuplicate = await hasDuplicateContact(targetContact);
+    if (isDuplicate) {
+      showConfirmModal({
+        title: "중복 안내",
+        headline: "연락처가 동일한 고객 데이터가 존재해요.",
+        message: "그래도 등록할까요?",
+        type: "warning",
+        confirmText: "등록",
+        cancelText: "취소",
+        onConfirm: async () => {
+          await submitCreate();
+        },
+      });
+      return;
+    }
+
+    await submitCreate();
   };
 
   return (
@@ -554,6 +599,36 @@ export default function CustomerCreateModal({
                       type="text"
                       value={mediaCompany}
                       onChange={(e) => setMediaCompany(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                    />
+                  </div>
+                </div>
+
+                {/* 키워드 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    키워드
+                  </label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                    <input
+                      type="text"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                    />
+                  </div>
+                </div>
+
+                {/* IP 주소 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                    IP 주소
+                  </label>
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                    <input
+                      type="text"
+                      value={ipAddress}
+                      onChange={(e) => setIpAddress(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                     />
                   </div>
