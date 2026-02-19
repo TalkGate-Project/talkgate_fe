@@ -7,6 +7,7 @@ import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
 
@@ -129,21 +130,7 @@ export default function CustomerCreateModal({
     setTouchedContact1(false);
   };
 
-  const handleSubmit = async () => {
-    setAttemptedSubmit(true);
-    if (!projectId) {
-      showErrorModal({
-        title: "알림",
-        headline: "프로젝트를 선택해주세요.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
-      return;
-    }
-    if (!isValid) {
-      return;
-    }
+  const submitCreate = async () => {
     setSubmitting(true);
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] =
@@ -183,6 +170,58 @@ export default function CustomerCreateModal({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const hasDuplicateContact = async (targetContact: string) => {
+    if (!projectId || !targetContact) return false;
+    try {
+      const response = await CustomersService.list({
+        projectId,
+        contact1: targetContact,
+        page: 1,
+        limit: 1,
+      });
+      return (response.data.data.customers?.length ?? 0) > 0;
+    } catch {
+      // 중복 조회 실패 시 등록 자체는 막지 않는다.
+      return false;
+    }
+  };
+
+  const handleSubmit = async () => {
+    setAttemptedSubmit(true);
+    if (!projectId) {
+      showErrorModal({
+        title: "알림",
+        headline: "프로젝트를 선택해주세요.",
+        confirmText: "확인",
+        cancelText: null,
+        hideCancel: true,
+      });
+      return;
+    }
+    if (!isValid) {
+      return;
+    }
+
+    const targetContact = contact1.trim();
+    const isDuplicate = await hasDuplicateContact(targetContact);
+    if (isDuplicate) {
+      showConfirmModal({
+        title: "중복 안내",
+        headline: "연락처가 동일한 고객 데이터가 존재해요.",
+        message: "그래도 등록할까요?",
+        type: "warning",
+        confirmText: "등록",
+        cancelText: "취소",
+        onConfirm: async () => {
+          await submitCreate();
+        },
+      });
+      return;
+    }
+
+    await submitCreate();
   };
 
   return (

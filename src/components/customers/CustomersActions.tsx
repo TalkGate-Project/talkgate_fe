@@ -26,6 +26,8 @@ export type CustomersActionsProps = {
   isDataProvider?: boolean;
   /** role이 member가 아닐 때만 직원배정 버튼 표시 (기본 true) */
   showAssignButton?: boolean;
+  /** admin/subAdmin일 때만 삭제 버튼 표시 */
+  showDeleteButton?: boolean;
 };
 
 function LocalIconTooltip({
@@ -99,6 +101,7 @@ export default function CustomersActions({
   onDeleteSuccess,
   isDataProvider = false,
   showAssignButton = true,
+  showDeleteButton = true,
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
@@ -335,19 +338,21 @@ export default function CustomersActions({
             </button>
           </div>
           <div className="flex items-center gap-4 flex-shrink-0">
-            <LocalIconTooltip label="고객삭제">
-              <button
-                type="button"
-                onClick={handleBulkDelete}
-                disabled={!hasSelection}
-                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                aria-label="고객 삭제"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-            </LocalIconTooltip>
+            {showDeleteButton && (
+              <LocalIconTooltip label="고객삭제">
+                <button
+                  type="button"
+                  onClick={handleBulkDelete}
+                  disabled={!hasSelection}
+                  className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  aria-label="고객 삭제"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </LocalIconTooltip>
+            )}
             <div className="relative h-6" ref={mobileLimitPopoverRef}>
               <LocalIconTooltip label="목록 개수">
                 <button
@@ -454,20 +459,22 @@ export default function CustomersActions({
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <LocalIconTooltip label="고객삭제">
-            <button
-              type="button"
-              onClick={handleBulkDelete}
-              disabled={!hasSelection}
-              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-              aria-label="고객 삭제"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
+          {showDeleteButton && (
+            <LocalIconTooltip label="고객삭제">
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={!hasSelection}
+                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                aria-label="고객 삭제"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
 
-            </button>
-          </LocalIconTooltip>
+              </button>
+            </LocalIconTooltip>
+          )}
           <LocalIconTooltip label="엑셀 업로드">
             <button
               type="button"

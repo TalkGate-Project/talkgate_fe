@@ -75,7 +75,13 @@ function CustomersPageContentInner() {
     toggleSelectAll,
     toggleSelect,
     clearSelection,
+    removeFromSelection,
+    syncSelectionWithCustomers,
   } = useCustomersSelection();
+
+  useEffect(() => {
+    syncSelectionWithCustomers(customers);
+  }, [customers, syncSelectionWithCustomers]);
 
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isAssignOpen, setAssignOpen] = useState(false);
@@ -303,6 +309,7 @@ function CustomersPageContentInner() {
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
             showAssignButton={canAssignCustomer}
+            showDeleteButton={isAdminOrSubAdmin}
           />
         }
         headerClassName="px-6 md:px-7 py-4 md:py-6"
@@ -370,7 +377,12 @@ function CustomersPageContentInner() {
         open={detailId !== null}
         onClose={() => setDetailId(null)}
         customerId={detailId}
-        onRefetch={refetch}
+        onCustomerUpdated={refetch}
+        onCustomerDeleted={(deletedCustomerId) => {
+          removeFromSelection([deletedCustomerId]);
+          refetch();
+          setDetailId(null);
+        }}
         onAssignClick={
           detailId != null
             ? () => {

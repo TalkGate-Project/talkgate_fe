@@ -11,7 +11,15 @@ import type { NoteCategory } from "./types";
 export type { CustomerFormState, CustomerValidation } from "./types";
 export { INITIAL_FORM_STATE } from "./types";
 
-export function useCustomerDetail(customerId: number | null, open: boolean) {
+type UseCustomerDetailOptions = {
+  onCustomerUpdated?: () => void;
+};
+
+export function useCustomerDetail(
+  customerId: number | null,
+  open: boolean,
+  options?: UseCustomerDetailOptions
+) {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
   const [categories, setCategories] = useState<NoteCategory[]>([]);
@@ -56,6 +64,7 @@ export function useCustomerDetail(customerId: number | null, open: boolean) {
     setMessengersLocal,
     getChangedFields,
     commitForm,
+    onCustomerUpdated: options?.onCustomerUpdated,
   });
 
   // =========================================================================
