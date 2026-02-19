@@ -319,8 +319,8 @@ export default function MemberSettings() {
 
   // 멤버 삭제 mutation
   const deleteMutation = useMutation({
-    mutationFn: (payload: { memberIds: number[] }) =>
-      MembersService.remove(payload),
+    mutationFn: (memberId: number) =>
+      MembersService.remove(memberId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["members", "list", projectId],
@@ -360,7 +360,7 @@ export default function MemberSettings() {
 
   const handleDeleteConfirm = () => {
     if (selectedMember) {
-      deleteMutation.mutate({ memberIds: [selectedMember.id] });
+      deleteMutation.mutate(selectedMember.id);
     }
   };
 
