@@ -287,6 +287,27 @@ function CustomersPageContentInner() {
     }
   };
 
+  const handleAssignModalClose = useCallback(() => {
+    setAssignOpen(false);
+    setAssignFromDetailId(null);
+  }, []);
+
+  const handleDetailClose = useCallback(() => {
+    setDetailId(null);
+  }, []);
+
+  const handleDetailDeleted = useCallback((deletedCustomerId: number) => {
+    removeFromSelection([deletedCustomerId]);
+    refetch();
+    setDetailId(null);
+  }, [removeFromSelection, refetch]);
+
+  const handleDetailAssignClick = useCallback(() => {
+    if (detailId == null) return;
+    setAssignFromDetailId(detailId);
+    setAssignOpen(true);
+  }, [detailId]);
+
   if (!projectId) return null;
 
   return (
@@ -395,10 +416,7 @@ function CustomersPageContentInner() {
 
       <AssignCustomersModal
         open={isAssignOpen}
-        onClose={() => {
-          setAssignOpen(false);
-          setAssignFromDetailId(null);
-        }}
+        onClose={handleAssignModalClose}
         selectedCustomerIds={assignFromDetailId != null ? [assignFromDetailId] : selectedIds}
         selectionMode={assignFromDetailId != null ? null : selectionMode}
         totalCount={assignFromDetailId != null ? 1 : total}
@@ -408,22 +426,11 @@ function CustomersPageContentInner() {
 
       <CustomerDetailModal
         open={detailId !== null}
-        onClose={() => setDetailId(null)}
+        onClose={handleDetailClose}
         customerId={detailId}
         onCustomerUpdated={refetch}
-        onCustomerDeleted={(deletedCustomerId) => {
-          removeFromSelection([deletedCustomerId]);
-          refetch();
-          setDetailId(null);
-        }}
-        onAssignClick={
-          detailId != null
-            ? () => {
-                setAssignFromDetailId(detailId);
-                setAssignOpen(true);
-              }
-            : undefined
-        }
+        onCustomerDeleted={handleDetailDeleted}
+        onAssignClick={detailId != null ? handleDetailAssignClick : undefined}
       />
 
       <CustomerCreateModal

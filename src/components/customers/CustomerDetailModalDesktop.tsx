@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useCallback } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
@@ -39,6 +39,7 @@ export default function CustomerDetailModalDesktop({
   const [tab, setTab] = useState<"basic" | "data" | "sales">("basic");
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const [leftHeight, setLeftHeight] = useState<number | null>(null);
+  const hasPendingListRefreshRef = useRef(false);
 
   // 왼쪽 패널 높이 측정
   useLayoutEffect(() => {
@@ -54,13 +55,9 @@ export default function CustomerDetailModalDesktop({
     return () => observer.disconnect();
   }, []);
 
-  const notifyCustomerUpdated = () => {
-    if (onCustomerUpdated) {
-      onCustomerUpdated();
-      return;
-    }
-    onRefetch?.();
-  };
+  const markListRefreshPending = useCallback(() => {
+    hasPendingListRefreshRef.current = true;
+  }, []);
 
   const {
     loading,
@@ -73,7 +70,6 @@ export default function CustomerDetailModalDesktop({
     validation,
     actions,
   } = useCustomerDetail(customerId, open, {
-    onCustomerUpdated: notifyCustomerUpdated,
     onFetchErrorClose: onClose,
   });
 
@@ -88,8 +84,52 @@ export default function CustomerDetailModalDesktop({
   const isDataProviderProject = project?.isDataProvider === true;
 
   const handleClose = () => {
-    if (!loading) onClose();
+    if (loading) return;
+    if (hasPendingListRefreshRef.current) {
+      hasPendingListRefreshRef.current = false;
+      if (onCustomerUpdated) {
+        onCustomerUpdated();
+      } else {
+        onRefetch?.();
+      }
+    }
+    onClose();
   };
+
+  const handleAddPayment = useCallback(async (date: string, amount: string, method: string, desc: string) => {
+    await actions.addPayment(date, amount, method, desc);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemovePayment = useCallback(async (id: number) => {
+    await actions.removePayment(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddSchedule = useCallback(async (dateIso: string, desc: string, colorCode: string) => {
+    await actions.addSchedule(dateIso, desc, colorCode);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemoveSchedule = useCallback(async (id: number) => {
+    await actions.removeSchedule(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddNote = useCallback(async (categoryId: number | null, note: string) => {
+    await actions.addNote(categoryId, note);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemoveNote = useCallback(async (id: number) => {
+    await actions.removeNote(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleUnlinkConversation = useCallback(async () => {
+    await actions.unlinkConversation();
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
 
   const canSave = hasChanges && validation.isValid;
   const showValidation = hasChanges;
@@ -107,7 +147,7 @@ export default function CustomerDetailModalDesktop({
           await CustomersService.confirm(String(detail.id), projectId);
           // 모달 데이터 새로고침
           await actions.refetch();
-          notifyCustomerUpdated();
+          markListRefreshPending();
         } catch (error: any) {
           const errorCode = error?.data?.code;
           const errorStatus = error?.status;
@@ -234,7 +274,7 @@ export default function CustomerDetailModalDesktop({
         <button
           aria-label="close"
           className="cursor-pointer w-6 h-6 grid place-items-center"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <svg
             width="24"
@@ -325,10 +365,10 @@ export default function CustomerDetailModalDesktop({
                   setForm={setForm}
                   paymentHistories={detail.paymentHistories}
                   schedules={detail.schedules}
-                  onAddPayment={actions.addPayment}
-                  onRemovePayment={actions.removePayment}
-                  onAddSchedule={actions.addSchedule}
-                  onRemoveSchedule={actions.removeSchedule}
+                  onAddPayment={handleAddPayment}
+                  onRemovePayment={handleRemovePayment}
+                  onAddSchedule={handleAddSchedule}
+                  onRemoveSchedule={handleRemoveSchedule}
                 />
               )}
             </div>
@@ -340,9 +380,9 @@ export default function CustomerDetailModalDesktop({
               conversation={detail.conversation}
               notes={detail.notes}
               categories={categories}
-              onAddNote={actions.addNote}
-              onRemoveNote={actions.removeNote}
-              onUnlinkConversation={actions.unlinkConversation}
+              onAddNote={handleAddNote}
+              onRemoveNote={handleRemoveNote}
+              onUnlinkConversation={handleUnlinkConversation}
               maxHeight={leftHeight}
             />
           </div>
@@ -383,9 +423,9 @@ export default function CustomerDetailModalDesktop({
                         if (customerId) {
                           onCustomerDeleted?.(customerId);
                         } else {
-                          notifyCustomerUpdated();
+                          markListRefreshPending();
                         }
-                        onClose();
+                        handleClose();
                       } catch {
                         showErrorModalEvent({
                           title: "오류 발생",
@@ -420,8 +460,8 @@ export default function CustomerDetailModalDesktop({
                   }`}
                 onClick={() => {
                   actions.saveForm().then(() => {
-                    notifyCustomerUpdated();
-                    onClose();
+                    markListRefreshPending();
+                    handleClose();
                   }).catch((e: any) => {
                     showErrorModal({
                       title: "오류 발생",
