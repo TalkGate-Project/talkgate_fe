@@ -335,10 +335,10 @@ function CustomersPageContentInner() {
           filters={filters}
           onFilterChange={setFilters}
           onFilterOpen={() => setFilterOpen(true)}
-          onSearch={() => applyFilters(filters)}
+          onSearch={(override) => applyFilters(override ?? filters)}
         />
         <FilterChips
-          filters={filters}
+          filters={applied}
           onRemove={removeFilterAndApply}
           onRemoveCategory={removeCategoryFilterAndApply}
           onRemoveDateRange={removeDateRangeFilterAndApply}
