@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 
 type CustomersFilterBarProps = {
   filters: CustomerFilters;
   onFilterChange: (filters: CustomerFilters) => void;
   onFilterOpen: () => void;
-  onSearch: () => void;
+  onSearch: (filtersToApply?: CustomerFilters) => void;
 };
 
 function LocalIconTooltip({
@@ -37,6 +38,18 @@ export default function CustomersFilterBar({
   onFilterOpen,
   onSearch,
 }: CustomersFilterBarProps) {
+  const [searchInput, setSearchInput] = useState(filters.name ?? "");
+
+  useEffect(() => {
+    setSearchInput(filters.name ?? "");
+  }, [filters.name]);
+
+  const handleSearch = () => {
+    const nextFilters = { ...filters, name: searchInput.trim() || undefined };
+    onFilterChange(nextFilters);
+    onSearch(nextFilters);
+  };
+
   return (
     <div className="mb-2 md:mb-3 flex items-center gap-3">
       <LocalIconTooltip label="필터 설정" position="bottom">
@@ -56,18 +69,18 @@ export default function CustomersFilterBar({
         <input
           className="w-full h-[36px] px-3 pr-10 rounded-[8px] border border-neutral-30 bg-neutral-0 text-[14px] outline-none placeholder:text-neutral-60 text-neutral-90"
           placeholder="이름으로 검색..."
-          value={filters.name ?? ""}
-          onChange={(e) => onFilterChange({ ...filters, name: e.target.value })}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              onSearch();
+              handleSearch();
             }
           }}
         />
         <button
           className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer p-1"
-          onClick={onSearch}
+          onClick={handleSearch}
           aria-label="검색"
           type="button"
         >
