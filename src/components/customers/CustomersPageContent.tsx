@@ -209,13 +209,19 @@ function CustomersPageContentInner() {
   };
 
   const handleFilterApply = (values: any) => {
-    // 기존 필터(이름, 핸드폰번호 등)와 모달에서 설정한 필터를 병합
-    const mergedFilters = { ...filters, ...values };
-    setFilters(mergedFilters);
+    // 모달에서 넘긴 값을 새 필터 상태 전체로 사용 (병합하지 않음 → 초기화 시 빈 값이 적용됨)
+    const newFilters = { ...values };
+    setFilters(newFilters);
     setFilterOpen(false);
     setPage(1);
-    // URL에 필터 적용하여 검색 실행
-    applyFilters(mergedFilters);
+    applyFilters(newFilters);
+  };
+
+  /** 초기화 버튼: 빈 필터 적용, 모달은 닫지 않음 */
+  const handleFilterReset = () => {
+    setFilters({});
+    setPage(1);
+    applyFilters({});
   };
 
   /** 중복 "더보기" 클릭: 연락처로 필터 적용 후 전체 새로고침 (다른 상태 초기화) */
@@ -287,6 +293,27 @@ function CustomersPageContentInner() {
     }
   };
 
+  const handleAssignModalClose = useCallback(() => {
+    setAssignOpen(false);
+    setAssignFromDetailId(null);
+  }, []);
+
+  const handleDetailClose = useCallback(() => {
+    setDetailId(null);
+  }, []);
+
+  const handleDetailDeleted = useCallback((deletedCustomerId: number) => {
+    removeFromSelection([deletedCustomerId]);
+    refetch();
+    setDetailId(null);
+  }, [removeFromSelection, refetch]);
+
+  const handleDetailAssignClick = useCallback(() => {
+    if (detailId == null) return;
+    setAssignFromDetailId(detailId);
+    setAssignOpen(true);
+  }, [detailId]);
+
   if (!projectId) return null;
 
   return (
@@ -308,10 +335,10 @@ function CustomersPageContentInner() {
           filters={filters}
           onFilterChange={setFilters}
           onFilterOpen={() => setFilterOpen(true)}
-          onSearch={() => applyFilters(filters)}
+          onSearch={(override) => applyFilters(override ?? filters)}
         />
         <FilterChips
-          filters={filters}
+          filters={applied}
           onRemove={removeFilterAndApply}
           onRemoveCategory={removeCategoryFilterAndApply}
           onRemoveDateRange={removeDateRangeFilterAndApply}
@@ -340,6 +367,7 @@ function CustomersPageContentInner() {
             onShareSuccess={refetch}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
+            showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
             showAssignButton={canAssignCustomer}
             showDeleteButton={isAdminOrSubAdmin}
           />
@@ -386,6 +414,7 @@ function CustomersPageContentInner() {
         onClose={() => setFilterOpen(false)}
         defaults={filters}
         onApply={handleFilterApply}
+        onReset={handleFilterReset}
         projectId={projectId}
         isAdminOrSubAdmin={isAdminOrSubAdmin}
         isDataProvider={project?.isDataProvider ?? false}
@@ -395,10 +424,7 @@ function CustomersPageContentInner() {
 
       <AssignCustomersModal
         open={isAssignOpen}
-        onClose={() => {
-          setAssignOpen(false);
-          setAssignFromDetailId(null);
-        }}
+        onClose={handleAssignModalClose}
         selectedCustomerIds={assignFromDetailId != null ? [assignFromDetailId] : selectedIds}
         selectionMode={assignFromDetailId != null ? null : selectionMode}
         totalCount={assignFromDetailId != null ? 1 : total}
@@ -408,22 +434,11 @@ function CustomersPageContentInner() {
 
       <CustomerDetailModal
         open={detailId !== null}
-        onClose={() => setDetailId(null)}
+        onClose={handleDetailClose}
         customerId={detailId}
         onCustomerUpdated={refetch}
-        onCustomerDeleted={(deletedCustomerId) => {
-          removeFromSelection([deletedCustomerId]);
-          refetch();
-          setDetailId(null);
-        }}
-        onAssignClick={
-          detailId != null
-            ? () => {
-                setAssignFromDetailId(detailId);
-                setAssignOpen(true);
-              }
-            : undefined
-        }
+        onCustomerDeleted={handleDetailDeleted}
+        onAssignClick={detailId != null ? handleDetailAssignClick : undefined}
       />
 
       <CustomerCreateModal

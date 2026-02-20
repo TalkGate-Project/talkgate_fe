@@ -103,6 +103,18 @@ export default function FilterChips({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {filters.name && (
+        <Chip
+          label={`이름: ${filters.name.length > 20 ? filters.name.slice(0, 20) + "..." : filters.name}`}
+          onRemove={() => onRemove("name")}
+        />
+      )}
+      {filters.contact1 && (
+        <Chip
+          label={`연락처: ${filters.contact1}`}
+          onRemove={() => onRemove("contact1")}
+        />
+      )}
       {filters.teamId && (
         <Chip label={`팀 ${getTeamName(filters.teamId)}`} onRemove={() => onRemove("teamId")} />
       )}

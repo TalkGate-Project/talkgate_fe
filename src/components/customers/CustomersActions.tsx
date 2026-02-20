@@ -22,8 +22,10 @@ export type CustomersActionsProps = {
   onSmsOpen: () => void;
   onShareSuccess?: () => void;
   onDeleteSuccess?: () => void;
-  /** 데이터 제공자일 때만 파트너배정 버튼 표시 (기본 비노출) */
+  /** 데이터 제공자 프로젝트일 때만 파트너배정 버튼 노출 조건에 포함 (기본 false) */
   isDataProvider?: boolean;
+  /** 어드민/서브어드민일 때만 파트너배정 버튼 표시 (isDataProvider && admin|subAdmin 권한, 기본 비노출) */
+  showPartnerAssignButton?: boolean;
   /** role이 member가 아닐 때만 직원배정 버튼 표시 (기본 true) */
   showAssignButton?: boolean;
   /** admin/subAdmin일 때만 삭제 버튼 표시 */
@@ -100,6 +102,7 @@ export default function CustomersActions({
   onShareSuccess,
   onDeleteSuccess,
   isDataProvider = false,
+  showPartnerAssignButton = false,
   showAssignButton = true,
   showDeleteButton = true,
 }: CustomersActionsProps) {
@@ -312,7 +315,7 @@ export default function CustomersActions({
               </svg>
             </button>
             )}
-            {isDataProvider && (
+            {showPartnerAssignButton && (
               <button
                 type="button"
                 className={iconOnlyButtonClass}
@@ -430,7 +433,7 @@ export default function CustomersActions({
             <span>직원배정</span>
           </button>
           )}
-          {isDataProvider && (
+          {showPartnerAssignButton && (
             <button
               type="button"
               className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
