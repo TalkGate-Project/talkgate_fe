@@ -38,6 +38,8 @@ type FilterModalProps = {
     open: boolean;
     onClose: () => void;
     onApply: (values: FilterValues, meta: { categories: CustomerNoteCategory[] }) => void;
+    /** 초기화 클릭 시 호출. 전달 시 빈 필터 적용만 하고 모달은 닫지 않음. 미전달 시 onApply({}) 호출로 적용 후 부모가 모달 닫음. */
+    onReset?: () => void;
     defaults?: FilterValues;
     projectId?: string | null;
     isAdminOrSubAdmin?: boolean;
@@ -60,6 +62,7 @@ export default function FilterModal({
     open,
     onClose,
     onApply,
+    onReset,
     defaults,
     projectId,
     isAdminOrSubAdmin = false,
@@ -417,7 +420,7 @@ export default function FilterModal({
                     {/* Footer */}
                     <div className="border-t border-[#E2E2E2] dark:border-[#444444] shrink-0" />
                     <div className="px-4 md:px-7 py-3 flex items-center justify-end gap-3 shrink-0">
-                        <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => setForm({})}>초기화</button>
+                        <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => { setForm({}); if (onReset) onReset(); else onApply({}, { categories: [] }); }}>초기화</button>
                         <button className="cursor-pointer w-[72px] md:w-[72px] h-[40px] md:h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>확인</button>
                     </div>
                 </div>

@@ -209,13 +209,19 @@ function CustomersPageContentInner() {
   };
 
   const handleFilterApply = (values: any) => {
-    // 기존 필터(이름, 핸드폰번호 등)와 모달에서 설정한 필터를 병합
-    const mergedFilters = { ...filters, ...values };
-    setFilters(mergedFilters);
+    // 모달에서 넘긴 값을 새 필터 상태 전체로 사용 (병합하지 않음 → 초기화 시 빈 값이 적용됨)
+    const newFilters = { ...values };
+    setFilters(newFilters);
     setFilterOpen(false);
     setPage(1);
-    // URL에 필터 적용하여 검색 실행
-    applyFilters(mergedFilters);
+    applyFilters(newFilters);
+  };
+
+  /** 초기화 버튼: 빈 필터 적용, 모달은 닫지 않음 */
+  const handleFilterReset = () => {
+    setFilters({});
+    setPage(1);
+    applyFilters({});
   };
 
   /** 중복 "더보기" 클릭: 연락처로 필터 적용 후 전체 새로고침 (다른 상태 초기화) */
@@ -408,6 +414,7 @@ function CustomersPageContentInner() {
         onClose={() => setFilterOpen(false)}
         defaults={filters}
         onApply={handleFilterApply}
+        onReset={handleFilterReset}
         projectId={projectId}
         isAdminOrSubAdmin={isAdminOrSubAdmin}
         isDataProvider={project?.isDataProvider ?? false}
