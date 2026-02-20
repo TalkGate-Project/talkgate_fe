@@ -100,7 +100,7 @@ export function useCustomerDetail(
       let headline = "고객 정보를 불러올 수 없습니다.";
 
       if (errorCode === "CUSTOMER_DELETED") {
-        headline = "삭제된 고객 정보는 확인할 수 없습니다.";
+        headline = "삭제된 고객 정보입니다.";
       } else if (errorCode === "CUSTOMER_NOT_FOUND" || errorStatus === 404) {
         headline = "존재하지 않는 고객 정보입니다.";
       } else if (errorCode === "FORBIDDEN" || errorStatus === 403) {
