@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
@@ -38,14 +38,11 @@ export default function CustomerDetailModalMobile({
   onAssignClick,
 }: CustomerDetailModalProps) {
   const [tab, setTab] = useState<"basic" | "data" | "sales" | "consultation">("basic");
+  const hasPendingListRefreshRef = useRef(false);
 
-  const notifyCustomerUpdated = () => {
-    if (onCustomerUpdated) {
-      onCustomerUpdated();
-      return;
-    }
-    onRefetch?.();
-  };
+  const markListRefreshPending = useCallback(() => {
+    hasPendingListRefreshRef.current = true;
+  }, []);
 
   const {
     loading,
@@ -58,7 +55,6 @@ export default function CustomerDetailModalMobile({
     validation,
     actions,
   } = useCustomerDetail(customerId, open, {
-    onCustomerUpdated: notifyCustomerUpdated,
     onFetchErrorClose: onClose,
   });
 
@@ -73,8 +69,52 @@ export default function CustomerDetailModalMobile({
   const isDataProviderProject = project?.isDataProvider === true;
 
   const handleClose = () => {
-    if (!loading) onClose();
+    if (loading) return;
+    if (hasPendingListRefreshRef.current) {
+      hasPendingListRefreshRef.current = false;
+      if (onCustomerUpdated) {
+        onCustomerUpdated();
+      } else {
+        onRefetch?.();
+      }
+    }
+    onClose();
   };
+
+  const handleAddPayment = useCallback(async (date: string, amount: string, method: string, desc: string) => {
+    await actions.addPayment(date, amount, method, desc);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemovePayment = useCallback(async (id: number) => {
+    await actions.removePayment(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddSchedule = useCallback(async (dateIso: string, desc: string, colorCode: string) => {
+    await actions.addSchedule(dateIso, desc, colorCode);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemoveSchedule = useCallback(async (id: number) => {
+    await actions.removeSchedule(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddNote = useCallback(async (categoryId: number | null, note: string) => {
+    await actions.addNote(categoryId, note);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleRemoveNote = useCallback(async (id: number) => {
+    await actions.removeNote(id);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleUnlinkConversation = useCallback(async () => {
+    await actions.unlinkConversation();
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
 
   const canSave = hasChanges && validation.isValid;
   const showValidation = hasChanges;
@@ -92,7 +132,7 @@ export default function CustomerDetailModalMobile({
           await CustomersService.confirm(String(detail.id), projectId);
           // 모달 데이터 새로고침
           await actions.refetch();
-          notifyCustomerUpdated();
+          markListRefreshPending();
         } catch (error: any) {
           const errorCode = error?.data?.code;
           const errorStatus = error?.status;
@@ -201,7 +241,7 @@ export default function CustomerDetailModalMobile({
         <button
           aria-label="close"
           className="cursor-pointer w-6 h-6 grid place-items-center"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <svg
             width="24"
@@ -229,7 +269,7 @@ export default function CustomerDetailModalMobile({
             customerId={detail.id}
             customerName={detail.name || ""}
             conversation={detail.conversation}
-            onUnlinkConversation={actions.unlinkConversation}
+            onUnlinkConversation={handleUnlinkConversation}
           />
         </div>
       )}
@@ -314,10 +354,10 @@ export default function CustomerDetailModalMobile({
                 setForm={setForm}
                 paymentHistories={detail.paymentHistories}
                 schedules={detail.schedules}
-                onAddPayment={actions.addPayment}
-                onRemovePayment={actions.removePayment}
-                onAddSchedule={actions.addSchedule}
-                onRemoveSchedule={actions.removeSchedule}
+                onAddPayment={handleAddPayment}
+                onRemovePayment={handleRemovePayment}
+                onAddSchedule={handleAddSchedule}
+                onRemoveSchedule={handleRemoveSchedule}
               />
             )}
 
@@ -326,8 +366,8 @@ export default function CustomerDetailModalMobile({
                 customerName={detail.name || ""}
                 notes={detail.notes}
                 categories={categories}
-                onAddNote={actions.addNote}
-                onRemoveNote={actions.removeNote}
+                onAddNote={handleAddNote}
+                onRemoveNote={handleRemoveNote}
               />
             )}
           </>
@@ -368,9 +408,9 @@ export default function CustomerDetailModalMobile({
                         if (customerId) {
                           onCustomerDeleted?.(customerId);
                         } else {
-                          notifyCustomerUpdated();
+                          markListRefreshPending();
                         }
-                        onClose();
+                        handleClose();
                       } catch {
                         showErrorModalEvent({
                           title: "오류 발생",
@@ -411,8 +451,8 @@ export default function CustomerDetailModalMobile({
                 }`}
                 onClick={() => {
                   actions.saveForm().then(() => {
-                    notifyCustomerUpdated();
-                    onClose();
+                    markListRefreshPending();
+                    handleClose();
                   }).catch((e: any) => {
                     showErrorModal({
                       title: "오류 발생",

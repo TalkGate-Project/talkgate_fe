@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CustomersService } from "@/services/customers";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 import type { CustomerDetail } from "@/types/customers";
@@ -13,7 +13,6 @@ export type { CustomerFormState, CustomerValidation } from "./types";
 export { INITIAL_FORM_STATE } from "./types";
 
 type UseCustomerDetailOptions = {
-  onCustomerUpdated?: () => void;
   onFetchErrorClose?: () => void;
 };
 
@@ -26,6 +25,11 @@ export function useCustomerDetail(
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
   const [categories, setCategories] = useState<NoteCategory[]>([]);
+  const detailRef = useRef<CustomerDetail | null>(null);
+
+  useEffect(() => {
+    detailRef.current = detail;
+  }, [detail]);
 
   // Form 상태 관리
   const {
@@ -67,7 +71,6 @@ export function useCustomerDetail(
     setMessengersLocal,
     getChangedFields,
     commitForm,
-    onCustomerUpdated: options?.onCustomerUpdated,
   });
 
   // =========================================================================
@@ -76,7 +79,9 @@ export function useCustomerDetail(
 
   const fetchDetail = useCallback(async () => {
     if (!customerId) return;
-    setLoading(true);
+    const shouldBlockLoading =
+      !detailRef.current || detailRef.current.id !== customerId;
+    setLoading(shouldBlockLoading);
     try {
       const res = await CustomersService.detail(String(customerId)).withProject(
         (window as any)?.tgSelectedProjectId || ""
@@ -127,12 +132,23 @@ export function useCustomerDetail(
     }
   }, []);
 
+  const fetchDetailRef = useRef(fetchDetail);
+  const fetchCategoriesRef = useRef(fetchCategories);
+
+  useEffect(() => {
+    fetchDetailRef.current = fetchDetail;
+  }, [fetchDetail]);
+
+  useEffect(() => {
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchCategories]);
+
   useEffect(() => {
     if (open && customerId) {
-      fetchDetail();
-      fetchCategories();
+      fetchDetailRef.current();
+      fetchCategoriesRef.current();
     }
-  }, [open, customerId, fetchDetail, fetchCategories]);
+  }, [open, customerId]);
 
   // =========================================================================
   // Reset Form (wrapper)
