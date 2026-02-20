@@ -361,6 +361,7 @@ function CustomersPageContentInner() {
             onShareSuccess={refetch}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
+            showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
             showAssignButton={canAssignCustomer}
             showDeleteButton={isAdminOrSubAdmin}
           />
