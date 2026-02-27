@@ -36,22 +36,18 @@ export default function DeleteMemberModal({
 
   const avatar = member.name ? member.name[0] : "?";
   const roleLabel = member.role ? ROLE_LABELS[member.role] || member.role : "-";
-  const isLeader = member.role === "leader";
-  const isSubAdmin = member.role === "subAdmin";
-  const hasSubordinates = isLeader || isSubAdmin; // 팀장이나 부관리자는 하위 구성원이 있다고 가정
-  const canDelete = !hasSubordinates; // 하위 구성원이 있으면 삭제 불가
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC] cursor-pointer" onClick={handleClose} />
 
       {/* Modal */}
       <div className="relative w-[440px] bg-white dark:bg-neutral-10 rounded-[14px]">
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center text-neutral-50 dark:text-neutral-50"
+          className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center text-neutral-50 dark:text-neutral-50 cursor-pointer"
           aria-label="닫기"
         >
           <svg
@@ -99,24 +95,16 @@ export default function DeleteMemberModal({
 
           {/* Warning Message */}
           <div className="text-center mb-6">
-            {hasSubordinates ? (
-              <div className="text-danger-40 text-[16px] leading-[21px] font-semibold">
-                하위 조직 및 구성원이 존재합니다.
-              </div>
-            ) : (
-              <div className="text-danger-40 text-[18px] leading-[21px] font-semibold">
-                정말로 멤버를 삭제하시겠습니까?
-              </div>
-            )}
+            <div className="text-danger-40 text-[18px] leading-[21px] font-semibold">
+              정말로 멤버를 삭제하시겠습니까?
+            </div>
           </div>
 
           {/* Member Info */}
           <div className="bg-neutral-10 dark:bg-neutral-20 rounded-[5px] py-3 px-6 mb-6">
             <div className="flex items-center gap-4">
               {/* Left div - Profile thumbnail */}
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-[18px] leading-[21px] ${
-                hasSubordinates ? "bg-[#4CAF50]" : "bg-neutral-60 dark:bg-neutral-40"
-              }`}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-[18px] leading-[21px] bg-neutral-60 dark:bg-neutral-40">
                 {avatar}
               </div>
 
@@ -129,11 +117,7 @@ export default function DeleteMemberModal({
                   {member.email || `ID: ${member.userId}`}
                 </div>
                 <div className="flex gap-2 mt-1">
-                  <span className={`px-3 py-1 text-[12px] leading-[14px] font-medium rounded-[30px] opacity-80 ${
-                    hasSubordinates 
-                      ? "bg-primary-10 text-primary-80 dark:bg-primary-100/30 dark:text-primary-40" 
-                      : "bg-neutral-30 text-neutral-70 dark:bg-neutral-30 dark:text-neutral-50"
-                  }`}>
+                  <span className="px-3 py-1 text-[12px] leading-[14px] font-medium rounded-[30px] opacity-80 bg-neutral-30 text-neutral-70 dark:bg-neutral-30 dark:text-neutral-50">
                     {roleLabel}
                   </span>
                   <span className="px-3 py-1 bg-secondary-10 text-secondary-40 dark:bg-secondary-80/30 dark:text-secondary-20 text-[12px] leading-[14px] font-medium rounded-[30px] opacity-80">
@@ -147,19 +131,16 @@ export default function DeleteMemberModal({
           {/* Action Buttons */}
           <div className="flex justify-end gap-3">
             <button
+              type="button"
               onClick={handleClose}
-              className="px-3 h-[34px] bg-white dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] font-semibold text-ink dark:text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 dark:hover:bg-neutral-25 flex items-center justify-center"
+              className="px-3 h-[34px] bg-white dark:bg-neutral-20 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] font-semibold text-ink dark:text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 dark:hover:bg-neutral-25 flex items-center justify-center cursor-pointer"
             >
               취소
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
-              disabled={!canDelete}
-              className={`px-3 h-[34px] rounded-[5px] text-[14px] leading-[17px] font-semibold tracking-[-0.02em] transition-colors flex items-center justify-center ${
-                canDelete
-                  ? "bg-neutral-90 text-neutral-20 dark:bg-neutral-80 dark:text-neutral-20 hover:bg-neutral-100 dark:hover:bg-neutral-70"
-                  : "bg-neutral-40 text-neutral-60 dark:bg-neutral-30 dark:text-neutral-50 cursor-not-allowed"
-              }`}
+              className="px-3 h-[34px] rounded-[5px] text-[14px] leading-[17px] font-semibold tracking-[-0.02em] transition-colors flex items-center justify-center cursor-pointer bg-neutral-90 text-neutral-20 dark:bg-neutral-80 dark:text-neutral-20 hover:bg-neutral-100 dark:hover:bg-neutral-70"
             >
               멤버삭제
             </button>
