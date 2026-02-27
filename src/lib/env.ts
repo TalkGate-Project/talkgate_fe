@@ -6,6 +6,7 @@ export type AppEnv = {
   NEXT_PUBLIC_API_TIMEOUT_MS: number; // integer milliseconds
   NEXT_PUBLIC_WS_CHAT_BASE_URL?: string; // WebSocket URL for chat namespace
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL?: string; // WebSocket URL for notification namespace
+  NEXT_PUBLIC_WS_TEAM_CHAT_BASE_URL?: string; // WebSocket URL for team-chat namespace
   NEXT_PUBLIC_GOOGLE_CLIENT_ID?: string;
   /**
    * Kakao OAuth Client ID (Kakao Console: REST API Key)
@@ -136,6 +137,7 @@ export const env: AppEnv = {
   //   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "notification"),
   NEXT_PUBLIC_WS_CHAT_BASE_URL: getWebSocketUrl(apiBaseUrl, "chat"),
   NEXT_PUBLIC_WS_NOTIFICATION_BASE_URL: getWebSocketUrl(apiBaseUrl, "notification"),
+  NEXT_PUBLIC_WS_TEAM_CHAT_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_TEAM_CHAT_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "team-chat"),
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: googleClientId,
   NEXT_PUBLIC_KAKAO_REST_API_KEY: kakaoClientId,
   NEXT_PUBLIC_NAVER_CLIENT_ID: naverClientId,

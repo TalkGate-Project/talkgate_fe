@@ -32,15 +32,18 @@ import SecurityIcon from "@/components/my-settings/icons/SecurityIcon";
 
 // Settings 상수 및 타입
 import { SETTINGS_ITEMS, type SettingsTab, type SettingsSidebarItem } from "@/components/settings/constants";
+import { DOCUMENTATION_URL } from "@/lib/constants";
 
-interface MobileDrawerProps {
+export interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  isDarkMode?: boolean;
+  onToggleTheme?: () => void;
 }
 
 type MySettingsTab = "profile" | "notification" | "billing" | "security";
 
-export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
+export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleTheme }: MobileDrawerProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -421,6 +424,74 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                       </Link>
                     );
                   })}
+                  {/* 이용가이드 */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.open(DOCUMENTATION_URL, "_blank");
+                      onClose();
+                    }}
+                    className="flex items-center gap-4 px-5 py-3 rounded-[4px] transition-colors text-neutral-60 dark:text-neutral-50 hover:bg-neutral-10 dark:hover:bg-neutral-20"
+                  >
+                    <div className="text-neutral-50 dark:text-neutral-50">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M9 9C9.54912 7.83481 10.2584 7 12.0001 7C14.2092 7 15.5 8.34315 15.5 10C15.5 11.3994 14.7224 12.5751 12.9943 12.9066C12.4519 13.0106 12.0001 13.4477 12.0001 14M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-[16px] font-medium text-neutral-60 dark:text-neutral-60">이용가이드</span>
+                  </button>
+                  {/* 라이트모드 / 다크모드 */}
+                  {typeof isDarkMode === "boolean" && onToggleTheme && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleTheme()}
+                      className="flex items-center gap-4 px-5 py-3 rounded-[4px] transition-colors text-neutral-60 dark:text-neutral-50 hover:bg-neutral-10 dark:hover:bg-neutral-20 w-full"
+                    >
+                      <div className="text-neutral-50 dark:text-neutral-50">
+                        {isDarkMode ? (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                              d="M20.3542 15.3542C19.3176 15.7708 18.1856 16.0001 17 16.0001C12.0294 16.0001 8 11.9706 8 7.00006C8 5.81449 8.22924 4.68246 8.64581 3.64587C5.33648 4.9758 3 8.21507 3 12.0001C3 16.9706 7.02944 21.0001 12 21.0001C15.785 21.0001 19.0243 18.6636 20.3542 15.3542Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 18a6 6 0 100-12 6 6 0 000 12z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M12 1v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M12 21v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M4.22 4.22L5.64 5.64" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18.36 18.36l1.42 1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M1 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M21 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M4.22 19.78L5.64 18.36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-[16px] font-medium text-neutral-60 dark:text-neutral-60 flex-1 text-left">
+                        {isDarkMode ? "다크모드" : "라이트모드"}
+                      </span>
+                      <div
+                        className={`relative w-10 h-6 rounded-full flex-shrink-0 p-[3px] transition-colors ${!isDarkMode ? "bg-primary-60" : "bg-neutral-40"}`}
+                      >
+                        <div
+                          className={`absolute top-[3px] h-[18px] w-[18px] rounded-full shadow transition-all ${
+                            !isDarkMode ? "left-[3px] bg-white" : "left-[calc(100%-21px)] bg-neutral-90"
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  )}
                 </nav>
               )}
             </div>
