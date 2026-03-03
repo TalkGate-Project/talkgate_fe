@@ -10,6 +10,8 @@ import type {
   UpdateProjectPartnerStatusResponse,
   ProjectPartnersWithApiKeyQuery,
   ProjectPartnersWithApiKeyResponse,
+  ProjectPartnerCopiedCustomersQuery,
+  ProjectPartnerCopiedCustomersResponse,
 } from "@/types/projectPartners";
 import type { ApiSuccess } from "@/types/common";
 
@@ -101,6 +103,28 @@ export const ProjectPartnersService = {
           apiKeyId: query.apiKeyId,
           page: query.page,
           limit: query.limit,
+        },
+        ...(headers ? { headers } : {}),
+      }
+    );
+  },
+
+  /**
+   * 특정 파트너에게 복제된 고객 목록 조회 (Admin, SubAdmin만 가능)
+   * GET /v1/project-partners/{id}/copied-customers
+   */
+  listCopiedCustomers(
+    id: number,
+    query: ProjectPartnerCopiedCustomersQuery,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.get<ProjectPartnerCopiedCustomersResponse>(
+      `/v1/project-partners/${id}/copied-customers`,
+      {
+        query: {
+          page: query.page,
+          limit: query.limit,
+          ...(query.name ? { name: query.name } : {}),
         },
         ...(headers ? { headers } : {}),
       }
