@@ -1,4 +1,4 @@
-import { hasAdminAccess, isAdmin } from "@/utils/permissions";
+import { hasAdminAccess } from "@/utils/permissions";
 import type { MemberRole } from "@/types/members";
 
 export type SettingsTab =
@@ -48,10 +48,10 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
     key: "general",
     label: "일반",
     icon: GeneralIcon,
-    // 일반 탭은 **총관리자(admin)**만, my API 데이터 기준으로 엄격하게 제한
+    // 일반 탭은 어드민/서브어드민 접근 가능
     canAccess: ({ role, isLoading }) => {
       if (isLoading) return false;
-      return isAdmin(role);
+      return hasAdminAccess(role);
     },
   },
   {
