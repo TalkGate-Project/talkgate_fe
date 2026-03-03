@@ -150,7 +150,7 @@ export default function CustomerShareModal({
       const partnerIds = Array.from(selectedPartnerIds);
 
       if (selectionMode === "all") {
-        const filterConditions = buildFilterConditions(appliedFilters);
+        const filterConditions = buildFilterConditions(appliedFilters) ?? {};
         await CustomersService.copyToPartner({
           projectId,
           partnerIds,
