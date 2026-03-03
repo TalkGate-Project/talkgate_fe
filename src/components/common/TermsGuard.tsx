@@ -41,7 +41,11 @@ export default function TermsGuard() {
   const queryClient = useQueryClient();
   const hasShownModalRef = useRef(false);
   const previousPathnameRef = useRef<string | null>(null);
-  
+  // 약관/가입 플로우에서 막 전환된 직후에는 refetch 완료까지 모달 표시 스킵 (캐시 스테일 이슈 방지)
+  const skipTermsModalUntilRefetchRef = useRef(false);
+
+  const signupFlowPaths = ["/social-signup", "/project-signup"] as const;
+
   useEffect(() => {
     if (isAuthRoute) {
       previousPathnameRef.current = pathname ?? null;
@@ -49,10 +53,14 @@ export default function TermsGuard() {
     }
     // pathname이 변경되었을 때 (약관 동의 완료 후 페이지 이동 등) 캐시 무효화 및 refetch
     if (previousPathnameRef.current !== null && previousPathnameRef.current !== pathname) {
-      // /social-signup에서 다른 페이지로 이동한 경우 (약관 동의 완료 가능성)
-      if (previousPathnameRef.current === "/social-signup" && pathname !== "/social-signup") {
+      const fromSignupFlow = signupFlowPaths.some((p) => previousPathnameRef.current === p);
+      // /social-signup 또는 /project-signup에서 다른 페이지로 이동한 경우 (약관 동의 완료·프로젝트 가입 완료 가능성)
+      if (fromSignupFlow && pathname !== "/social-signup" && pathname !== "/project-signup") {
         queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
-        refetch();
+        skipTermsModalUntilRefetchRef.current = true;
+        refetch().finally(() => {
+          skipTermsModalUntilRefetchRef.current = false;
+        });
         hasShownModalRef.current = false; // 모달 표시 플래그 리셋
       }
     }
@@ -61,6 +69,8 @@ export default function TermsGuard() {
 
   useEffect(() => {
     if (isAuthRoute) return;
+    // signup 플로우에서 막 전환된 직후 refetch 대기 중이면 모달 스킵 (약관 동의 후 프로젝트 페이지 진입 시 스테일 캐시로 모달 재노출 방지)
+    if (skipTermsModalUntilRefetchRef.current) return;
     // 로딩 중이면 체크하지 않음
     if (loading) return;
 

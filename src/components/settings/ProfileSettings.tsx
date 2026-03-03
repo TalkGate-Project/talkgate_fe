@@ -147,21 +147,21 @@ export default function ProfileSettings() {
     
     setIsSaving(true);
     try {
-      // PATCH 메서드 특성상 빈 문자열은 필드를 제외해야 함
       const payload: UpdateProfilePayload = {
         name,
       };
-      
-      // phone이 비어있지 않을 때만 포함 (빈 문자열이면 필드 자체를 제외)
+      // 연락처: 값이 있으면 전달, 기존에 값이 있었다가 삭제한 경우 null로 전달해 서버에서 삭제 반영
       if (phone.trim()) {
         payload.phone = phone.trim();
+      } else if (originalPhone !== "") {
+        payload.phone = null;
       }
-      
-      // profileImageUrl이 있을 때만 포함
+      // 프로필 이미지: 값이 있으면 전달, 기존에 있었다가 삭제한 경우 null로 전달
       if (profileImageUrl) {
         payload.profileImageUrl = profileImageUrl;
+      } else if (originalProfileImageUrl !== null && originalProfileImageUrl !== "") {
+        payload.profileImageUrl = null;
       }
-      
       await MembersService.updateSelf(
         payload,
         { "x-project-id": projectId }
