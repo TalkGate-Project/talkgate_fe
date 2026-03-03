@@ -6,6 +6,7 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole, MyMember } from "@/types/members";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import SettingsSidebar from "./SettingsSidebar";
 import GeneralSettings from "./GeneralSettings";
 import ProfileSettings from "./ProfileSettings";
@@ -73,10 +74,10 @@ function canAccessTab(
 ): boolean {
   const role = member?.role;
 
-  // 일반 탭은 **총관리자(admin)**만, my API 데이터가 없는 경우에도 차단
+  // 일반 탭은 어드민/서브어드민 접근 가능
   if (tab === "general") {
     if (!member) return false;
-    return isAdmin(role);
+    return hasAdminAccess(role);
   }
 
   // 고객등록 API 탭은 **총관리자(admin) 및 부관리자(subAdmin)** 접근 가능
@@ -154,29 +155,11 @@ export default function SettingsClient() {
     router.push(`/settings?${params.toString()}`);
   }, [router, searchParams]);
 
-  // 서버와 클라이언트 초기 렌더링을 일치시키기 위해 첫 렌더링에서는 항상 실제 컨텐츠 구조를 유지
-  // Suspense fallback이 이미 스켈레톤을 처리하므로 여기서는 클라이언트 마운트 후에만 로딩 상태 표시
+  // 권한 확정 전에는 설정 컨텐츠를 노출하지 않고 스피너만 표시
   if (!mounted || loading) {
     return (
-      <div className="flex gap-8">
-        <div className="hidden lg:block w-[280px] bg-card rounded-[14px] pt-7 pb-5 flex flex-col self-start">
-          <div className="px-7 pb-7 mb-1 border-b border-neutral-30/40">
-            <div className="h-5 w-32 bg-neutral-20 rounded mb-2 animate-pulse" />
-            <div className="h-4 w-40 bg-neutral-20 rounded animate-pulse" />
-          </div>
-          <div className="space-y-1">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 px-8 py-3">
-                <div className="w-5 h-5 bg-neutral-20 rounded animate-pulse" />
-                <div className="h-4 w-20 bg-neutral-20 rounded animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="flex-1 w-full lg:w-auto bg-card rounded-[14px] p-7">
-          <div className="h-6 w-40 bg-neutral-20 rounded mb-4 animate-pulse" />
-          <div className="h-40 bg-neutral-20 rounded animate-pulse" />
-        </div>
+      <div className="min-h-[320px] flex items-center justify-center">
+        <LoadingSpinner size="lg" variant="primary" aria-label="설정 로딩 중" />
       </div>
     );
   }

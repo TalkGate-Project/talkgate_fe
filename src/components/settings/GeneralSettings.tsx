@@ -5,9 +5,11 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useGeneralSettings } from "@/hooks/useGeneralSettings";
 import { useBrandIconUpload } from "@/hooks/useBrandIconUpload";
 import { useStatusManagement } from "@/hooks/useStatusManagement";
+import { useMyMember } from "@/hooks/useMyMember";
 import { ProjectsService } from "@/services/projects";
 import { setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, canUseSubdomain } from "@/lib/subdomain";
+import { hasAdminAccess, isSubAdmin } from "@/utils/permissions";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import ProjectNameSection from "./ProjectNameSection";
@@ -18,6 +20,7 @@ import ProjectDeleteSection from "./ProjectDeleteSection";
 
 export default function GeneralSettings() {
   const [projectId] = useSelectedProjectId();
+  const { member, loading: memberLoading } = useMyMember(projectId);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // 초기 데이터 로드 및 상태 관리
@@ -222,7 +225,7 @@ export default function GeneralSettings() {
   }, [projectId]);
 
   // Hydration 에러 방지를 위해 클라이언트에서만 렌더링
-  if (!mounted || isLoading) {
+  if (!mounted || isLoading || memberLoading) {
     return (
       <div className="space-y-6">
         <div className="md:bg-card md:rounded-[14px] md:shadow-sm p-6 md:p-7 animate-pulse">
@@ -233,26 +236,38 @@ export default function GeneralSettings() {
     );
   }
 
+  const role = member?.role;
+  const canAccessGeneral = hasAdminAccess(role);
+  const isSubAdminView = isSubAdmin(role);
+
+  if (!canAccessGeneral) {
+    return null;
+  }
+
   return (
     <div className="md:space-y-8">
-      <ProjectNameSection
-        serviceName={serviceName}
-        setServiceName={setServiceName}
-        originalServiceName={originalServiceName}
-        isSaving={isSaving}
-        onUpdate={handleUpdateProjectName}
-      />
+      {!isSubAdminView && (
+        <>
+          <ProjectNameSection
+            serviceName={serviceName}
+            setServiceName={setServiceName}
+            originalServiceName={originalServiceName}
+            isSaving={isSaving}
+            onUpdate={handleUpdateProjectName}
+          />
 
-      <BrandIconAndDomainSection
-        subdomain={subdomain}
-        setSubdomain={setSubdomain}
-        originalSubdomain={originalSubdomain}
-        brandIcon={brandIcon}
-        isSaving={isSaving}
-        onUpdateSubdomain={handleUpdateSubdomain}
-        onBrandIconUpload={handleBrandIconUpload}
-        onRemoveBrandIcon={handleRemoveBrandIcon}
-      />
+          <BrandIconAndDomainSection
+            subdomain={subdomain}
+            setSubdomain={setSubdomain}
+            originalSubdomain={originalSubdomain}
+            brandIcon={brandIcon}
+            isSaving={isSaving}
+            onUpdateSubdomain={handleUpdateSubdomain}
+            onBrandIconUpload={handleBrandIconUpload}
+            onRemoveBrandIcon={handleRemoveBrandIcon}
+          />
+        </>
+      )}
 
       <StatusManagementSection
         newStatusName={newStatusName}
@@ -263,24 +278,28 @@ export default function GeneralSettings() {
         onDeleteStatus={handleDeleteStatus}
       />
 
-      <ProjectFeaturesSection
-        isAttendanceEnabled={isAttendanceEnabled}
-        isSaving={isSaving}
-        onToggle={handleToggleAttendance}
-      />
+      {!isSubAdminView && (
+        <>
+          <ProjectFeaturesSection
+            isAttendanceEnabled={isAttendanceEnabled}
+            isSaving={isSaving}
+            onToggle={handleToggleAttendance}
+          />
 
-      <ProjectDeleteSection
-        serviceName={serviceName}
-        onDelete={() => setIsDeleteModalOpen(true)}
-      />
+          <ProjectDeleteSection
+            serviceName={serviceName}
+            onDelete={() => setIsDeleteModalOpen(true)}
+          />
 
-      {/* Service Delete Modal */}
-      <ServiceDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteService}
-        serviceName={serviceName}
-      />
+          {/* Service Delete Modal */}
+          <ServiceDeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onConfirm={handleDeleteService}
+            serviceName={serviceName}
+          />
+        </>
+      )}
     </div>
   );
 }
