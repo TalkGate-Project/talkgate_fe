@@ -30,6 +30,14 @@ export type FilterValues = {
     applicationDateTo?: string;
     assignedAtFrom?: string;
     assignedAtTo?: string;
+    /** 키워드 */
+    keyword?: string;
+    /** IP 주소 */
+    ipAddress?: string;
+    /** 특이사항 */
+    notablePoints?: string;
+    /** 요약정보 */
+    summaryInfo?: string;
 };
 
 type Option = { label: string; value: string | number };
@@ -415,6 +423,40 @@ export default function FilterModal({
                                     />
                                 </div>
                             </div>
+
+                            {/* 키워드, IP 주소, 특이사항, 요약정보 */}
+                            <LabeledSelect
+                                label="키워드"
+                                options={[]}
+                                placeholder="키워드를 입력해주세요"
+                                value={form.keyword || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, keyword: v || undefined }))}
+                                freeText
+                            />
+                            <LabeledSelect
+                                label="IP 주소"
+                                options={[]}
+                                placeholder="IP 주소를 입력해주세요"
+                                value={form.ipAddress || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, ipAddress: v || undefined }))}
+                                freeText
+                            />
+                            <LabeledSelect
+                                label="특이사항"
+                                options={[]}
+                                placeholder="특이사항을 입력해주세요"
+                                value={form.notablePoints || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, notablePoints: v || undefined }))}
+                                freeText
+                            />
+                            <LabeledSelect
+                                label="요약정보"
+                                options={[]}
+                                placeholder="요약정보를 입력해주세요"
+                                value={form.summaryInfo || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, summaryInfo: v || undefined }))}
+                                freeText
+                            />
                         </div>
                     </div>
 

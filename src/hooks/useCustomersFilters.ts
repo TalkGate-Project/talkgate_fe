@@ -18,6 +18,10 @@ export type CustomerFilters = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  keyword?: string;
+  ipAddress?: string;
+  notablePoints?: string;
+  summaryInfo?: string;
 };
 export type CustomerSortType = "applicationDate" | "assignedMember";
 export type CustomerSortOrder = "ASC" | "DESC";
@@ -64,6 +68,10 @@ export function useCustomersFilters(projectId: string | null) {
     obj.applicationDateTo = g("applicationDateTo");
     obj.assignedAtFrom = g("assignedAtFrom");
     obj.assignedAtTo = g("assignedAtTo");
+    obj.keyword = g("keyword");
+    obj.ipAddress = g("ipAddress");
+    obj.notablePoints = g("notablePoints");
+    obj.summaryInfo = g("summaryInfo");
     const rawSortType = g("sortType");
     const rawSortOrder = g("sortOrder");
     obj.sortType =
@@ -102,6 +110,10 @@ export function useCustomersFilters(projectId: string | null) {
         applicationDateTo: applied.applicationDateTo,
         assignedAtFrom: applied.assignedAtFrom,
         assignedAtTo: applied.assignedAtTo,
+        keyword: applied.keyword,
+        ipAddress: applied.ipAddress,
+        notablePoints: applied.notablePoints,
+        summaryInfo: applied.summaryInfo,
       } as CustomerFilters;
       const prevStr = JSON.stringify(prev);
       const nextStr = JSON.stringify(next);
@@ -132,6 +144,10 @@ export function useCustomersFilters(projectId: string | null) {
             applicationDateTo: applied.applicationDateTo,
             assignedAtFrom: applied.assignedAtFrom,
             assignedAtTo: applied.assignedAtTo,
+            keyword: applied.keyword,
+            ipAddress: applied.ipAddress,
+            notablePoints: applied.notablePoints,
+            summaryInfo: applied.summaryInfo,
             sortType: applied.sortType,
             sortOrder: applied.sortOrder,
           }
@@ -174,6 +190,10 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("applicationDateTo", filterValues.applicationDateTo);
     setIf("assignedAtFrom", filterValues.assignedAtFrom);
     setIf("assignedAtTo", filterValues.assignedAtTo);
+    setIf("keyword", filterValues.keyword);
+    setIf("ipAddress", filterValues.ipAddress);
+    setIf("notablePoints", filterValues.notablePoints);
+    setIf("summaryInfo", filterValues.summaryInfo);
     return params;
   }
 

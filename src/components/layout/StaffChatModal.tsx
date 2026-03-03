@@ -440,14 +440,14 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                         }}
                         className="cursor-pointer flex items-center gap-1.5 min-w-0 text-left hover:bg-neutral-20 dark:hover:bg-neutral-30 rounded-[8px] p-1 -m-1"
                       >
-                        <div className="relative w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-30 text-[11px] grid place-items-center shrink-0">
+                        <div className="relative dark:text-[#111111] w-7 h-7 rounded-full bg-neutral-20 dark:bg-[#B9B9B9] text-[11px] grid place-items-center shrink-0">
                           {initial(p.name)}
                           <span
-                            className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-neutral-30"
+                            className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-[#959595]"
                               }`}
                           />
                         </div>
-                        <span className="text-[11px] truncate">{p.name}</span>
+                        <span className="text-[11px] truncate dark:text-[#F5F5F5]">{p.name}</span>
                       </button>
                     ))}
                   </div>
@@ -479,8 +479,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               {messages.map((msg: TeamMessage) => {
                 if (msg.type === "system") {
                   return (
-                    <div key={msg.id} className="flex justify-center py-1">
-                      <span className="rounded-full bg-primary-10/40 px-3 py-1 text-[12px] text-primary-80 font-medium">
+                    <div key={msg.id} className="flex justify-center items-center">
+                      <span className="rounded-full bg-primary-10/40 px-3 pt-1 pb-[3px] text-[12px] text-primary-80 font-medium">
                         {formatSystemMessageContent(msg)}
                       </span>
                     </div>
@@ -518,7 +518,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                         ))}
                       <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
                         <div
-                          className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 text-foreground rounded-bl-[6px]"
+                          className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
                             }`}
                         >
                           {msg.type === "text" && (msg.content ?? "")}
@@ -658,7 +658,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 type="button"
                 onClick={handleSend}
                 disabled={sending || !inputText.trim()}
-                className="cursor-pointer w-8 h-8 rounded-full bg-[#252525] text-white grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+                className="cursor-pointer w-8 h-8 rounded-full bg-[#252525] text-white dark:bg-[#F5F5F5] dark:text-neutral-50 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="전송"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
