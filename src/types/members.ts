@@ -77,11 +77,11 @@ export interface MemberDetailResponse {
   data: MemberDetail;
 }
 
-// 프로필 업데이트 요청 타입
+// 프로필 업데이트 요청 타입 (기존 값 삭제 시 null 전달로 서버에서 해당 필드 공란 처리)
 export interface UpdateProfilePayload {
   name?: string;
-  phone?: string;
-  profileImageUrl?: string;
+  phone?: string | null;
+  profileImageUrl?: string | null;
 }
 
 // 프로필 업데이트 응답 타입 (간략한 정보만 반환)
