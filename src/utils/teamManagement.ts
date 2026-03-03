@@ -42,10 +42,9 @@ export function transformMembers(
 }
 
 export function isAssignedMember(node: MemberTreeNode, teamNameByLeader: Map<number, string>): boolean {
-  if (node.teamName) return true;
-  if (node.role === "leader" || teamNameByLeader.has(node.id)) return true;
-  if (node.descendants && node.descendants.length > 0) return true;
-  return false;
+  if (node.teamName?.trim()) return true;
+  if (node.role === "leader") return true;
+  return teamNameByLeader.has(node.id);
 }
 
 export function findNodeWithParent(

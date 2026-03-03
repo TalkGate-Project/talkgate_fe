@@ -3,6 +3,45 @@ import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { transformMembers, isAssignedMember } from "@/utils/teamManagement";
 
+function splitMembersByAssignment(
+  nodes: MemberTreeNode[],
+  teamNameByLeader: Map<number, string>,
+  depth: number = 0,
+  hasAssignedAncestor: boolean = false
+): { assigned: MemberTreeNode[]; unassigned: MemberTreeNode[] } {
+  const assigned: MemberTreeNode[] = [];
+  const unassigned: MemberTreeNode[] = [];
+
+  nodes.forEach((node) => {
+    // 루트에 떠 있는 일반 멤버는 팀명이 있더라도 미배정 목록으로 분류한다.
+    // (API 트리/팀 메타가 잠시 불일치하는 케이스 방어)
+    const isRootMember = depth === 0 && node.role !== "leader";
+    const selfAssigned = !isRootMember && isAssignedMember(node, teamNameByLeader);
+    const { assigned: assignedDescendants, unassigned: unassignedDescendants } = splitMembersByAssignment(
+      node.descendants ?? [],
+      teamNameByLeader,
+      depth + 1,
+      hasAssignedAncestor || selfAssigned
+    );
+    const assignedMember = hasAssignedAncestor || selfAssigned;
+    const currentNode: MemberTreeNode = {
+      ...node,
+      descendants: assignedMember ? assignedDescendants : unassignedDescendants,
+    };
+
+    if (assignedMember) {
+      assigned.push(currentNode);
+      unassigned.push(...unassignedDescendants);
+      return;
+    }
+
+    unassigned.push(currentNode);
+    assigned.push(...assignedDescendants);
+  });
+
+  return { assigned, unassigned };
+}
+
 export function useTeamMembers(
   treeData: MemberTreeNode[] | undefined,
   teamsData: Array<{ leaderMemberId: number; name: string }> | undefined
@@ -17,18 +56,7 @@ export function useTeamMembers(
 
   const { assignedTreeData, unassignedTreeData } = useMemo(() => {
     if (!treeData) return { assignedTreeData: [], unassignedTreeData: [] };
-
-    const assigned: MemberTreeNode[] = [];
-    const unassigned: MemberTreeNode[] = [];
-
-    treeData.forEach((node) => {
-      if (isAssignedMember(node, teamNameByLeader)) {
-        assigned.push(node);
-      } else {
-        unassigned.push(node);
-      }
-    });
-
+    const { assigned, unassigned } = splitMembersByAssignment(treeData, teamNameByLeader);
     return { assignedTreeData: assigned, unassignedTreeData: unassigned };
   }, [treeData, teamNameByLeader]);
 

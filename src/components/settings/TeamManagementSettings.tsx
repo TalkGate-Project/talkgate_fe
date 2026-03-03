@@ -47,7 +47,7 @@ export default function TeamManagementSettings() {
   }, [router]);
 
   const { data: treeData, isLoading: treeLoading, error: treeError } = useMembersTreeWithoutParent(projectId);
-  const { data: teamsData } = useTeams(projectId);
+  const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useTeams(projectId);
   const moveMutation = useMoveTeamMutation(projectId);
   const removeParentMutation = useRemoveParentMutation(projectId);
   const { isAdminOrSubAdmin } = useMyMember(projectId);
@@ -131,11 +131,11 @@ export default function TeamManagementSettings() {
 
   if (!projectId) return null;
 
-  if (treeLoading) {
+  if (treeLoading || teamsLoading) {
     return <TeamManagementLoading />;
   }
 
-  if (treeError) {
+  if (treeError || teamsError) {
     return <TeamManagementError />;
   }
 
