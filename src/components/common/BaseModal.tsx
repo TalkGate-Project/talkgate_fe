@@ -8,6 +8,9 @@ type BaseModalProps = {
   children: React.ReactNode;
   overlayClassName?: string;
   containerClassName?: string;
+  positionerClassName?: string;
+  disableAutoContainerSizing?: boolean;
+  closeOnOverlayClick?: boolean;
   ariaLabel?: string;
   fullScreenOnMobile?: boolean;
 };
@@ -39,7 +42,17 @@ function unlockBodyScroll() {
   }
 }
 
-export default function BaseModal({ onClose, children, overlayClassName = "", containerClassName = "", ariaLabel = "dialog", fullScreenOnMobile = false }: BaseModalProps) {
+export default function BaseModal({
+  onClose,
+  children,
+  overlayClassName = "",
+  containerClassName = "",
+  positionerClassName = "",
+  disableAutoContainerSizing = false,
+  closeOnOverlayClick = true,
+  ariaLabel = "dialog",
+  fullScreenOnMobile = false,
+}: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -99,11 +112,24 @@ export default function BaseModal({ onClose, children, overlayClassName = "", co
       aria-label={ariaLabel}
       onMouseDown={(e) => {
         // only close when clicking real overlay (not children)
-        if (e.target === e.currentTarget) onClose();
+        if (closeOnOverlayClick && e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={`${fullScreenOnMobile ? "h-full p-0 lg:h-auto lg:min-h-full lg:flex lg:items-center lg:justify-center lg:p-4" : "min-h-full flex items-center justify-center p-4 lg:p-4"}`}>
-        <div ref={containerRef} tabIndex={-1} className={`w-full h-full md:w-auto md:h-auto md:max-h-[90vh] ${containerClassName}`}>
+      <div
+        className={
+          positionerClassName ||
+          `${
+            fullScreenOnMobile
+              ? "h-full p-0 lg:h-auto lg:min-h-full lg:flex lg:items-center lg:justify-center lg:p-4"
+              : "min-h-full flex items-center justify-center p-4 lg:p-4"
+          }`
+        }
+      >
+        <div
+          ref={containerRef}
+          tabIndex={-1}
+          className={`${disableAutoContainerSizing ? "" : "w-full h-full md:w-auto md:h-auto md:max-h-[90vh]"} ${containerClassName}`}
+        >
           {children}
         </div>
       </div>

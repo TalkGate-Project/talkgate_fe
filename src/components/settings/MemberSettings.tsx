@@ -28,14 +28,18 @@ function MemberRow({
   onDelete,
   onInfoClick,
   canDelete,
+  currentMemberId,
 }: {
   member: MemberListItem;
   onDelete: (id: number) => void;
   onInfoClick: (id: number) => void;
   /** 현재 사용자가 삭제 권한이 있는지 (admin/subAdmin) */
   canDelete: boolean;
+  /** 현재 로그인한 사용자의 멤버 id (본인 행에는 삭제 버튼 미표시) */
+  currentMemberId: number | null;
 }) {
   const isTargetAdmin = member.role === "admin";
+  const isSelf = currentMemberId != null && member.id === currentMemberId;
   const avatar = member.name ? member.name[0] : "?";
   const joinDate = new Date(member.createdAt)
     .toLocaleDateString("ko-KR", {
@@ -49,7 +53,8 @@ function MemberRow({
   // 삭제 버튼 표시 조건:
   // 1. 현재 사용자가 admin/subAdmin이어야 함 (canDelete)
   // 2. 삭제 대상이 admin이 아니어야 함 (admin은 삭제 불가)
-  const showDeleteButton = canDelete && !isTargetAdmin;
+  // 3. 삭제 대상이 본인이 아니어야 함 (본인은 삭제 불가)
+  const showDeleteButton = canDelete && !isTargetAdmin && !isSelf;
 
   return (
     <>
@@ -471,6 +476,7 @@ export default function MemberSettings() {
                 onDelete={handleDelete}
                 onInfoClick={(id) => setSelectedMemberIdForInfo(id)}
                 canDelete={isAdminOrSubAdmin}
+                currentMemberId={myMember?.id ?? null}
               />
             ))
           )}
