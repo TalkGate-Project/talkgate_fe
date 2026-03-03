@@ -94,6 +94,8 @@ export function ProjectSignupForm() {
       const meRes = await AuthService.me({ suppressAutoLogout: true });
       const userData = (meRes as any)?.data?.data ?? (meRes as any)?.data;
       const email = userData?.email;
+      const meName = typeof userData?.name === "string" ? userData.name.trim() : "";
+      const mePhone = typeof userData?.phone === "string" ? userData.phone.trim() : "";
       
       if (!email && retryCount < MAX_RETRIES) {
         await delay(RETRY_DELAY);
@@ -101,6 +103,16 @@ export function ProjectSignupForm() {
       }
       
       setUserEmail(email);
+
+      // 초대 가입 플로우 초기화 시점에만 기본값을 1회 주입 (기존 입력값이 있으면 유지)
+      if (meName) {
+        setName((prev) => (prev.trim() ? prev : meName));
+      }
+      if (mePhone) {
+        setPhone((prev) => (prev.trim() ? prev : mePhone));
+      }
+      setHasInitializedDefaults(true);
+
       return true;
     } catch (err) {
       if (retryCount < MAX_RETRIES) {

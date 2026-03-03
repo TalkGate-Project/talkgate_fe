@@ -1,15 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { clearTokens } from "@/lib/token";
-import { clearSelectedProjectId } from "@/lib/project";
 import { useMe } from "@/hooks/useMe";
 import UserMenuDropdown from "./UserMenuDropdown";
-import { DOCUMENTATION_URL } from "@/lib/constants";
+import NotificationBell from "./NotificationBell";
+import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
+import StaffChatModal from "./StaffChatModal";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -17,10 +16,13 @@ export default function LiteHeader() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [staffChatModalOpen, setStaffChatModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
+  const teamChatContext = useTeamChatContextSafe();
+  const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -76,128 +78,32 @@ export default function LiteHeader() {
           <Image src="/main_logo.png" alt="Talkgate" width={102} height={24} />
         </div>
 
-        {/* 우측 액션: 다크모드 + 개인화 드롭다운만 */}
+        {/* 우측 액션: 직원채팅 + 알림 + 개인화 드롭다운 */}
         <div className="ml-auto flex items-center gap-4">
+          {/* 직원채팅: 모달로 연다 */}
           <button
-            className="cursor-pointer relative w-7 h-7 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-            onClick={() => window.open(DOCUMENTATION_URL, "_blank")}
+            className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
+            onClick={() => setStaffChatModalOpen(true)}
+            aria-label="직원채팅"
           >
-            <svg
-              width="27"
-              height="27"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
-                d="M9 9C9.54912 7.83481 10.2584 7 12.0001 7C14.2092 7 15.5 8.34315 15.5 10C15.5 11.3994 14.7224 12.5751 12.9943 12.9066C12.4519 13.0106 12.0001 13.4477 12.0001 14M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                d="M8 12H8.01M12 12H12.01M16 12H16.01M21 12C21 16.4183 16.9706 20 12 20C10.4607 20 9.01172 19.6565 7.74467 19.0511L3 20L4.39499 16.28C3.51156 15.0423 3 13.5743 3 12C3 7.58172 7.02944 4 12 4C16.9706 4 21 7.58172 21 12Z"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
+            {mounted && teamChatHasUnread && (
+              <span
+                className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-60 rounded-full"
+                aria-label="읽지 않은 메시지 있음"
+              />
+            )}
           </button>
-          {mounted ? (
-            <button
-              onClick={handleToggleTheme}
-              className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity"
-              aria-label="다크 모드 전환"
-              aria-pressed={isDarkMode}
-            >
-              {isDarkMode ? (
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 18a6 6 0 100-12 6 6 0 000 12z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 1v2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 21v2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M4.22 4.22L5.64 5.64"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M18.36 18.36l1.42 1.42"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M1 12h2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M21 12h2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M4.22 19.78L5.64 18.36"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M18.36 5.64l1.42-1.42"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M20.3542 15.3542C19.3176 15.7708 18.1856 16.0001 17 16.0001C12.0294 16.0001 8 11.9706 8 7.00006C8 5.81449 8.22924 4.68246 8.64581 3.64587C5.33648 4.9758 3 8.21507 3 12.0001C3 16.9706 7.02944 21.0001 12 21.0001C15.785 21.0001 19.0243 18.6636 20.3542 15.3542Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-          ) : (
-            <span className="relative block w-6 h-6" aria-hidden />
-          )}
+
+          <NotificationBell />
 
           {/* 아바타 + 드롭다운 (개인설정/프로젝트 선택/로그아웃) */}
           <div className="relative" ref={menuRef}>
@@ -227,11 +133,18 @@ export default function LiteHeader() {
                 user={user}
                 variant="lite"
                 onClose={() => setOpen(false)}
+                isDarkMode={isDarkMode}
+                onToggleTheme={handleToggleTheme}
               />
             )}
           </div>
         </div>
       </div>
+
+      <StaffChatModal
+        isOpen={staffChatModalOpen}
+        onClose={() => setStaffChatModalOpen(false)}
+      />
     </header>
   );
 }

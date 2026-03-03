@@ -14,6 +14,7 @@ import PersistentModalProvider from "@/providers/PersistentModalProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
 import CustomerModalProvider from "@/providers/CustomerModalProvider";
 import ChatProvider from "@/providers/ChatProvider";
+import TeamChatProvider from "@/providers/TeamChatProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 
@@ -94,6 +95,7 @@ export default async function RootLayout({
                   <CustomerModalProvider>
                     <NotificationProvider>
                       <ChatProvider>
+                      <TeamChatProvider>
                       <ConditionalHeader />
                       <AuthSessionWatcher />
                       <TermsGuard />
@@ -103,6 +105,7 @@ export default async function RootLayout({
                       </Suspense>
                       {/* No fixed padding; header component inserts spacer only when visible */}
                       <div>{children}</div>
+                      </TeamChatProvider>
                       </ChatProvider>
                     </NotificationProvider>
                   </CustomerModalProvider>
