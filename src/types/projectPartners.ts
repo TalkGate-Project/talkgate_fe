@@ -111,3 +111,26 @@ export type ProjectPartnersWithApiKeyResponse = ApiSuccess<{
   limit: number;
   totalPages: number;
 }>;
+
+/** 특정 파트너에게 복제된 고객 목록 조회 쿼리 */
+export type ProjectPartnerCopiedCustomersQuery = {
+  name?: string;
+  page: number;
+  limit: number;
+};
+
+/** 특정 파트너에게 복제된 고객 목록 단일 항목 */
+export type ProjectPartnerCopiedCustomer = {
+  customerId: number;
+  customerName: string;
+  copiedAt: string;
+};
+
+/** 특정 파트너에게 복제된 고객 목록 응답 */
+export type ProjectPartnerCopiedCustomersResponse = ApiSuccess<{
+  list: ProjectPartnerCopiedCustomer[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}>;
