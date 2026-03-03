@@ -85,7 +85,8 @@ export default function FilterModal({
     useEffect(() => { if (open) setForm(defaults || {}); }, [open, defaults]);
 
     const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
-    const shouldShowAssignFilter = isAdminOrSubAdmin;
+    /** 일반 프로젝트일 때만 어드민/서브어드민에게 고객 배정 여부 노출 (파트너 프로젝트는 노출하지 않음) */
+    const shouldShowAssignFilter = !isDataProvider && isAdminOrSubAdmin;
 
     const selectedPartner = useMemo(
         () => partnerOptions.find((partner) => partner.id === form.projectPartnerId),

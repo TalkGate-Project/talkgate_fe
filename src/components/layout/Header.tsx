@@ -13,8 +13,8 @@ import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
 import { useChatContextSafe } from "@/providers/ChatProvider";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
+import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import MobileDrawer from "./MobileDrawer";
-import StaffChatModal from "./StaffChatModal";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -38,7 +38,6 @@ export default function Header() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [staffChatModalOpen, setStaffChatModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -48,6 +47,7 @@ export default function Header() {
   const hasUnread = chatContext?.hasUnread ?? false;
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
+  const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
   // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
   // 프로젝트가 근태 메뉴를 사용하는 경우에만 헤더의 근태 메뉴 표시
@@ -182,7 +182,7 @@ export default function Header() {
             {/* 직원채팅: 모달로 연다 (모달 UI는 별도 작업에서 구현) */}
             <button
               className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-              onClick={() => setStaffChatModalOpen(true)}
+              onClick={toggleStaffChatModal}
               aria-label="직원채팅"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -248,12 +248,6 @@ export default function Header() {
         onClose={() => setDrawerOpen(false)}
         isDarkMode={isDarkMode}
         onToggleTheme={handleToggleTheme}
-      />
-
-      {/* 직원채팅 모달 */}
-      <StaffChatModal
-        isOpen={staffChatModalOpen}
-        onClose={() => setStaffChatModalOpen(false)}
       />
     </>
   );

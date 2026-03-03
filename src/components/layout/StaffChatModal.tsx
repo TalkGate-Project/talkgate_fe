@@ -299,9 +299,11 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       onClose={onClose}
       ariaLabel="직원채팅"
       closeOnOverlayClick={false}
+      disableScrollLock
+      overlayClassName="pointer-events-none"
       disableAutoContainerSizing
       positionerClassName="absolute top-[44px] right-[88px]"
-      containerClassName="bg-card dark:bg-neutral-10 rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
+      containerClassName="pointer-events-auto bg-card dark:bg-neutral-10 rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
     >
       <div className="flex flex-col h-full">
         {!isDetail ? (

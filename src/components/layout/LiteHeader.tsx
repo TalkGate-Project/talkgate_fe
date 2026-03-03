@@ -8,7 +8,7 @@ import { useMe } from "@/hooks/useMe";
 import UserMenuDropdown from "./UserMenuDropdown";
 import NotificationBell from "./NotificationBell";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
-import StaffChatModal from "./StaffChatModal";
+import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -16,13 +16,13 @@ export default function LiteHeader() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [staffChatModalOpen, setStaffChatModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
+  const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -83,7 +83,7 @@ export default function LiteHeader() {
           {/* 직원채팅: 모달로 연다 */}
           <button
             className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-            onClick={() => setStaffChatModalOpen(true)}
+            onClick={toggleStaffChatModal}
             aria-label="직원채팅"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -140,11 +140,6 @@ export default function LiteHeader() {
           </div>
         </div>
       </div>
-
-      <StaffChatModal
-        isOpen={staffChatModalOpen}
-        onClose={() => setStaffChatModalOpen(false)}
-      />
     </header>
   );
 }
