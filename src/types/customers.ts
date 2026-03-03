@@ -99,6 +99,10 @@ export type CustomersListQuery = {
   applicationDateTo?: string;   // YYYY-MM-DD
   assignedAtFrom?: string;      // YYYY-MM-DD
   assignedAtTo?: string;        // YYYY-MM-DD
+  keyword?: string;
+  ipAddress?: string;
+  notablePoints?: string;
+  summaryInfo?: string;
   sortType?: "applicationDate" | "assignedMember";
   sortOrder?: "ASC" | "DESC";
   page: number;                 // required

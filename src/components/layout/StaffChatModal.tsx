@@ -299,9 +299,11 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       onClose={onClose}
       ariaLabel="직원채팅"
       closeOnOverlayClick={false}
+      disableScrollLock
+      overlayClassName="pointer-events-none"
       disableAutoContainerSizing
       positionerClassName="absolute top-[44px] right-[88px]"
-      containerClassName="bg-card dark:bg-neutral-10 rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
+      containerClassName="pointer-events-auto bg-card dark:bg-neutral-10 rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
     >
       <div className="flex flex-col h-full">
         {!isDetail ? (
@@ -438,14 +440,14 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                         }}
                         className="cursor-pointer flex items-center gap-1.5 min-w-0 text-left hover:bg-neutral-20 dark:hover:bg-neutral-30 rounded-[8px] p-1 -m-1"
                       >
-                        <div className="relative w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-30 text-[11px] grid place-items-center shrink-0">
+                        <div className="relative dark:text-[#111111] w-7 h-7 rounded-full bg-neutral-20 dark:bg-[#B9B9B9] text-[11px] grid place-items-center shrink-0">
                           {initial(p.name)}
                           <span
-                            className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-neutral-30"
+                            className={`absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full border border-card dark:border-[#252525] ${p.isOnline ? "bg-primary-60" : "bg-[#959595]"
                               }`}
                           />
                         </div>
-                        <span className="text-[11px] truncate">{p.name}</span>
+                        <span className="text-[11px] truncate dark:text-[#F5F5F5]">{p.name}</span>
                       </button>
                     ))}
                   </div>
@@ -456,7 +458,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             <div
               ref={messagesScrollRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto bg-neutral-10/50 px-3 py-2.5 flex flex-col gap-2"
+              className="flex-1 overflow-y-auto bg-neutral-10/50 px-3 py-2.5 flex flex-col gap-5"
             >
               {uploadError && (
                 <div className="mx-1 rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
@@ -477,8 +479,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               {messages.map((msg: TeamMessage) => {
                 if (msg.type === "system") {
                   return (
-                    <div key={msg.id} className="flex justify-center py-1">
-                      <span className="rounded-full bg-primary-10/40 px-3 py-1 text-[12px] text-primary-80 font-medium">
+                    <div key={msg.id} className="flex justify-center items-center">
+                      <span className="rounded-full bg-primary-10/40 px-3 pt-1 pb-[3px] text-[12px] text-primary-80 font-medium">
                         {formatSystemMessageContent(msg)}
                       </span>
                     </div>
@@ -488,7 +490,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 const isMine = msg.senderMemberId === memberId;
                 const unreadCount = msg.unreadCount ?? 0;
                 const unreadLabel = unreadCount > 0 ? (
-                  <span className="text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0">
+                  <span
+                    className={`text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0 ${!isMine ? "-translate-y-[30px]" : ""}`}
+                  >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 ) : null;
@@ -512,21 +516,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                             {initial(msg.senderName)}
                           </div>
                         ))}
-                      <div className="min-w-0">
-                        {!isMine &&
-                          (msg.senderMemberId != null ? (
-                            <button
-                              type="button"
-                              onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
-                              className="mb-1 text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer"
-                            >
-                              {msg.senderName}
-                            </button>
-                          ) : (
-                            <div className="mb-1 text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
-                          ))}
+                      <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
                         <div
-                          className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 text-foreground rounded-bl-[6px]"
+                          className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
                             }`}
                         >
                           {msg.type === "text" && (msg.content ?? "")}
@@ -560,6 +552,18 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                             {formatMessageTime(msg.sentAt)}
                           </div>
                         </div>
+                        {!isMine &&
+                          (msg.senderMemberId != null ? (
+                            <button
+                              type="button"
+                              onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
+                              className="text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer text-left"
+                            >
+                              {msg.senderName}
+                            </button>
+                          ) : (
+                            <div className="text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
+                          ))}
                       </div>
                       {!isMine && unreadLabel}
                     </div>
@@ -654,7 +658,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 type="button"
                 onClick={handleSend}
                 disabled={sending || !inputText.trim()}
-                className="cursor-pointer w-8 h-8 rounded-full bg-[#252525] text-white grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+                className="cursor-pointer w-8 h-8 rounded-full bg-[#252525] text-white dark:bg-[#F5F5F5] dark:text-neutral-50 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="전송"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

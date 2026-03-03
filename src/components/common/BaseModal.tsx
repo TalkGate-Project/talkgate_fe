@@ -13,6 +13,7 @@ type BaseModalProps = {
   closeOnOverlayClick?: boolean;
   ariaLabel?: string;
   fullScreenOnMobile?: boolean;
+  disableScrollLock?: boolean;
 };
 
 // Simple shared counter to handle nested modals scroll lock
@@ -52,11 +53,14 @@ export default function BaseModal({
   closeOnOverlayClick = true,
   ariaLabel = "dialog",
   fullScreenOnMobile = false,
+  disableScrollLock = false,
 }: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    lockBodyScroll();
+    if (!disableScrollLock) {
+      lockBodyScroll();
+    }
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
@@ -86,9 +90,11 @@ export default function BaseModal({
     window.addEventListener("keydown", handleKey);
     return () => {
       window.removeEventListener("keydown", handleKey);
-      unlockBodyScroll();
+      if (!disableScrollLock) {
+        unlockBodyScroll();
+      }
     };
-  }, [onClose]);
+  }, [onClose, disableScrollLock]);
 
   useEffect(() => {
     // focus first focusable
