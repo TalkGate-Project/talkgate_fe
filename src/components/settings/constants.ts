@@ -132,7 +132,7 @@ export const SETTINGS_ITEMS: SettingsSidebarItem[] = [
   },
   {
     key: "partner-registration",
-    label: "파트너등록",
+    label: "파트너",
     icon: PartnerRegistrationIcon,
     offsetLeft: -2, // 2px 왼쪽으로 이동
     // 데이터 제공자(isDataProvider === true)일 때만 표시, 어드민/서브어드민 접근 가능

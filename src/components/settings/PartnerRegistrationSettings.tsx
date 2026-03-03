@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -8,9 +9,14 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import PartnerRegisterModal from "./PartnerRegisterModal";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { CouponsService } from "@/services/coupons";
-import type { ProjectPartner, ProjectPartnerStatus } from "@/types/projectPartners";
+import type {
+  ProjectPartner,
+  ProjectPartnerCopiedCustomer,
+  ProjectPartnerStatus,
+} from "@/types/projectPartners";
 import type { CouponInfo } from "@/types/coupons";
 import { formatCouponCodeForDisplay } from "@/utils/format";
+import { formatDateTime } from "@/utils/datetime";
 
 /** 상태 칩: 수락(Primary-10/80), 대기(Warning-10/60), 거절(Error-10/40) */
 function PartnerStatusBadge({ status }: { status: ProjectPartnerStatus }) {
@@ -103,7 +109,10 @@ function DeleteButton({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
       disabled={disabled}
       className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       aria-label="삭제"
@@ -132,6 +141,8 @@ function DeleteButton({
 const PAGE_SIZE = 10;
 
 export default function PartnerRegistrationSettings() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [projectId] = useSelectedProjectId();
   const [page, setPage] = useState(1);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -150,6 +161,24 @@ export default function PartnerRegistrationSettings() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponNotFound, setCouponNotFound] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const [searchName, setSearchName] = useState("");
+  const [detailPage, setDetailPage] = useState(1);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailTotalPages, setDetailTotalPages] = useState(1);
+  const [copiedCustomers, setCopiedCustomers] = useState<ProjectPartnerCopiedCustomer[]>([]);
+
+  const partnerIdParam = searchParams.get("partnerId");
+  const selectedPartnerId = useMemo(() => {
+    if (!partnerIdParam) return null;
+    const parsed = Number(partnerIdParam);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
+  }, [partnerIdParam]);
+  const isDetailView = selectedPartnerId != null;
+  const selectedPartner = useMemo(
+    () => partners.find((partner) => partner.id === selectedPartnerId) ?? null,
+    [partners, selectedPartnerId]
+  );
 
   const fetchCoupon = useCallback(async () => {
     if (!projectId) {
@@ -331,6 +360,177 @@ export default function PartnerRegistrationSettings() {
     fetchPartners();
   };
 
+  const handleOpenPartnerDetail = useCallback(
+    (partnerId: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("partnerId", String(partnerId));
+      router.push(`/settings?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
+  const handleBackFromDetail = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("partnerId");
+    router.push(`/settings?${params.toString()}`);
+  }, [router, searchParams]);
+
+  const fetchCopiedCustomers = useCallback(async () => {
+    if (!projectId || !selectedPartnerId) {
+      setCopiedCustomers([]);
+      setDetailTotalPages(1);
+      setDetailLoading(false);
+      return;
+    }
+
+    setDetailLoading(true);
+    try {
+      const res = await ProjectPartnersService.listCopiedCustomers(
+        selectedPartnerId,
+        {
+          page: detailPage,
+          limit: PAGE_SIZE,
+          ...(searchName.trim() ? { name: searchName.trim() } : {}),
+        },
+        { "x-project-id": projectId }
+      );
+      const data = res.data?.data;
+      if (data) {
+        setCopiedCustomers(data.list ?? []);
+        setDetailTotalPages(Math.max(1, data.totalPages ?? 1));
+      } else {
+        setCopiedCustomers([]);
+        setDetailTotalPages(1);
+      }
+    } catch {
+      setCopiedCustomers([]);
+      setDetailTotalPages(1);
+      showErrorModal({
+        type: "error",
+        headline: "배정된 고객 목록을 불러오는데 실패했습니다.",
+        hideCancel: true,
+      });
+    } finally {
+      setDetailLoading(false);
+    }
+  }, [projectId, selectedPartnerId, detailPage, searchName]);
+
+  useEffect(() => {
+    if (!isDetailView) return;
+    fetchCopiedCustomers();
+  }, [isDetailView, fetchCopiedCustomers]);
+
+  useEffect(() => {
+    if (!isDetailView) return;
+    setSearchName("");
+    setDetailPage(1);
+  }, [selectedPartnerId, isDetailView]);
+
+  if (isDetailView) {
+    return (
+      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
+        <div className="flex items-center gap-3 px-4 md:px-7 h-[64px] md:h-[76px]">
+          <button
+            type="button"
+            onClick={handleBackFromDetail}
+            className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors"
+            aria-label="뒤로가기"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12.5 5L7.5 10L12.5 15"
+                stroke="#B0B0B0"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <h1 className="text-[20px] md:text-[24px] font-bold text-foreground leading-[1]">
+            배정된 고객 목록
+          </h1>
+          <span className="text-[12px] md:text-[14px] text-neutral-60 truncate">
+            status {selectedPartner?.partnerProjectName ?? `파트너 ${selectedPartnerId}`}
+          </span>
+        </div>
+
+        <div className="w-full h-[1px] bg-neutral-30 opacity-70" />
+
+        <div className="px-4 md:px-7 pt-4 md:pt-6">
+          <div className="relative w-full md:w-[260px]">
+            <input
+              type="text"
+              value={searchName}
+              onChange={(e) => {
+                setSearchName(e.target.value);
+                setDetailPage(1);
+              }}
+              placeholder="이름으로 검색..."
+              className="w-full h-10 rounded-[5px] border border-neutral-30 bg-neutral-10 dark:bg-neutral-20 px-3 pr-10 text-[14px] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-primary-50"
+            />
+            <svg
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="7" stroke="#B0B0B0" strokeWidth="2" />
+              <path d="M20 20L16.65 16.65" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+
+          <div className="hidden md:flex mt-4 h-[40px] items-center rounded-[8px] bg-neutral-20 dark:bg-neutral-20 pl-6 pr-4">
+            <div className="w-[200px] text-[16px] font-medium text-neutral-60">고객 ID</div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60">고객이름</div>
+            <div className="w-[180px] text-[16px] font-medium text-neutral-60 text-right">배정시간</div>
+          </div>
+
+          <div className="flex md:hidden mt-4 h-[40px] items-center rounded-[8px] bg-neutral-20 dark:bg-neutral-20 px-4">
+            <div className="w-[100px] text-[14px] font-medium text-neutral-60">고객 ID</div>
+            <div className="flex-1 text-[14px] font-medium text-neutral-60">고객이름</div>
+            <div className="w-[110px] text-[14px] font-medium text-neutral-60 text-right">배정시간</div>
+          </div>
+
+          <div className="pt-2">
+            {detailLoading ? (
+              <div className="flex items-center justify-center py-12 text-[14px] text-neutral-60">불러오는 중...</div>
+            ) : copiedCustomers.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-[14px] text-neutral-60">
+                배정된 고객이 없습니다.
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                {copiedCustomers.map((customer) => (
+                  <div
+                    key={`${customer.customerId}-${customer.copiedAt}`}
+                    className="flex items-center py-3 md:py-4 px-2 md:px-2 border-b border-neutral-30/50 last:border-b-0"
+                  >
+                    <div className="w-[100px] md:w-[200px] text-[13px] md:text-[14px] text-neutral-80 truncate">
+                      {customer.customerId}
+                    </div>
+                    <div className="flex-1 text-[13px] md:text-[14px] text-foreground truncate">
+                      {customer.customerName}
+                    </div>
+                    <div className="w-[110px] md:w-[180px] text-[12px] md:text-[14px] text-neutral-70 text-right whitespace-nowrap">
+                      {formatDateTime(customer.copiedAt)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center mt-6">
+            <Pagination page={detailPage} totalPages={detailTotalPages} onPageChange={setDetailPage} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
       {/* 헤더: 제목 + 업체등록 버튼 */}
@@ -435,7 +635,15 @@ export default function PartnerRegistrationSettings() {
             {partners.map((item) => (
               <div key={item.id}>
                 {/* 모바일 뷰 (md 미만): 이름 밑에 설명 */}
-                <div className="flex md:hidden items-center px-4 py-4 gap-3 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors">
+                <div
+                  className={`flex md:hidden items-center px-4 py-4 gap-3 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors ${
+                    editingPartnerId === item.id ? "" : "cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (editingPartnerId === item.id) return;
+                    handleOpenPartnerDetail(item.id);
+                  }}
+                >
                   <div className="flex-1 min-w-0 flex flex-col gap-1">
                     <div className="text-[16px] font-bold text-foreground truncate">
                       {item.partnerProjectName}
@@ -457,7 +665,10 @@ export default function PartnerRegistrationSettings() {
                         />
                         <button
                           type="button"
-                          onClick={handleSaveDescription}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSaveDescription();
+                          }}
                           disabled={savingPartnerId === item.id}
                           className="h-[30px] px-3 rounded-[4px] bg-neutral-90 text-white text-[12px] font-medium whitespace-nowrap"
                         >
@@ -465,7 +676,10 @@ export default function PartnerRegistrationSettings() {
                         </button>
                         <button
                           type="button"
-                          onClick={handleCancelEditDescription}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelEditDescription();
+                          }}
                           disabled={savingPartnerId === item.id}
                           className="h-[30px] px-3 rounded-[4px] bg-neutral-20 text-neutral-80 text-[12px] font-medium whitespace-nowrap"
                         >
@@ -486,7 +700,10 @@ export default function PartnerRegistrationSettings() {
                   <div className="w-[80px] flex-shrink-0 flex items-center justify-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleStartEditDescription(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartEditDescription(item);
+                      }}
                       className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors text-neutral-50"
                       aria-label="설명 수정"
                       disabled={editingPartnerId === item.id}
@@ -501,7 +718,15 @@ export default function PartnerRegistrationSettings() {
                 </div>
 
                 {/* 데스크탑 뷰 (md 이상): 테이블 형태 */}
-                <div className="hidden md:flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors">
+                <div
+                  className={`hidden md:flex items-center pl-4 md:pl-10 pr-4 gap-3 py-3 md:py-4 border-b border-neutral-30/50 last:border-b-0 hover:bg-neutral-5 dark:hover:bg-neutral-15 transition-colors ${
+                    editingPartnerId === item.id ? "" : "cursor-pointer"
+                  }`}
+                  onClick={() => {
+                    if (editingPartnerId === item.id) return;
+                    handleOpenPartnerDetail(item.id);
+                  }}
+                >
                   <div className="w-[160px] md:w-[240px] flex-shrink-0 text-[14px] font-medium text-foreground truncate">
                     {item.partnerProjectName}
                   </div>
@@ -524,7 +749,10 @@ export default function PartnerRegistrationSettings() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            onClick={handleCancelEditDescription}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelEditDescription();
+                            }}
                             disabled={savingPartnerId === item.id}
                             className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 transition-colors disabled:opacity-50"
                           >
@@ -532,7 +760,10 @@ export default function PartnerRegistrationSettings() {
                           </button>
                           <button
                             type="button"
-                            onClick={handleSaveDescription}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveDescription();
+                            }}
                             disabled={savingPartnerId === item.id}
                             className="cursor-pointer min-w-[48px] h-[34px] flex items-center justify-center rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold text-neutral-0 hover:opacity-90 disabled:opacity-50"
                           >
@@ -554,7 +785,10 @@ export default function PartnerRegistrationSettings() {
                       <>
                         <button
                           type="button"
-                          onClick={() => handleStartEditDescription(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartEditDescription(item);
+                          }}
                           className="cursor-pointer w-8 h-8 min-w-8 min-h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-30 transition-colors"
                           aria-label="설명 수정"
                         >
