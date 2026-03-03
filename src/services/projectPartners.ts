@@ -2,6 +2,8 @@ import { apiClient } from "@/lib/apiClient";
 import type {
   CreateProjectPartnerInput,
   CreateProjectPartnerResponse,
+  ProjectPartnerCopiedCustomersQuery,
+  ProjectPartnerCopiedCustomersResponse,
   ProjectPartnerListQuery,
   ProjectPartnerListResponse,
   ProjectPartnerRequestsQuery,
