@@ -456,7 +456,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             <div
               ref={messagesScrollRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto bg-neutral-10/50 px-3 py-2.5 flex flex-col gap-2"
+              className="flex-1 overflow-y-auto bg-neutral-10/50 px-3 py-2.5 flex flex-col gap-5"
             >
               {uploadError && (
                 <div className="mx-1 rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
@@ -488,7 +488,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 const isMine = msg.senderMemberId === memberId;
                 const unreadCount = msg.unreadCount ?? 0;
                 const unreadLabel = unreadCount > 0 ? (
-                  <span className="text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0">
+                  <span
+                    className={`text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0 ${!isMine ? "-translate-y-[30px]" : ""}`}
+                  >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 ) : null;
@@ -512,19 +514,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                             {initial(msg.senderName)}
                           </div>
                         ))}
-                      <div className="min-w-0">
-                        {!isMine &&
-                          (msg.senderMemberId != null ? (
-                            <button
-                              type="button"
-                              onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
-                              className="mb-1 text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer"
-                            >
-                              {msg.senderName}
-                            </button>
-                          ) : (
-                            <div className="mb-1 text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
-                          ))}
+                      <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
                         <div
                           className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 text-foreground rounded-bl-[6px]"
                             }`}
@@ -560,6 +550,18 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                             {formatMessageTime(msg.sentAt)}
                           </div>
                         </div>
+                        {!isMine &&
+                          (msg.senderMemberId != null ? (
+                            <button
+                              type="button"
+                              onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
+                              className="text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer text-left"
+                            >
+                              {msg.senderName}
+                            </button>
+                          ) : (
+                            <div className="text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
+                          ))}
                       </div>
                       {!isMine && unreadLabel}
                     </div>
