@@ -12,6 +12,8 @@ import type {
   UpdateProjectPartnerStatusResponse,
   ProjectPartnersWithApiKeyQuery,
   ProjectPartnersWithApiKeyResponse,
+  ProjectPartnerCopiedCustomersQuery,
+  ProjectPartnerCopiedCustomersResponse,
 } from "@/types/projectPartners";
 import type { ApiSuccess } from "@/types/common";
 

@@ -161,6 +161,7 @@ export default function PartnerRegistrationSettings() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponNotFound, setCouponNotFound] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const [searchInput, setSearchInput] = useState("");
   const [searchName, setSearchName] = useState("");
   const [detailPage, setDetailPage] = useState(1);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -422,9 +423,15 @@ export default function PartnerRegistrationSettings() {
 
   useEffect(() => {
     if (!isDetailView) return;
+    setSearchInput("");
     setSearchName("");
     setDetailPage(1);
   }, [selectedPartnerId, isDetailView]);
+
+  const handleSearchSubmit = () => {
+    setSearchName(searchInput.trim());
+    setDetailPage(1);
+  };
 
   if (isDetailView) {
     return (
@@ -450,7 +457,7 @@ export default function PartnerRegistrationSettings() {
             배정된 고객 목록
           </h1>
           <span className="text-[12px] md:text-[14px] text-neutral-60 truncate">
-            status {selectedPartner?.partnerProjectName ?? `파트너 ${selectedPartnerId}`}
+            {selectedPartner?.partnerProjectName ?? `파트너 ${selectedPartnerId}`}
           </span>
         </div>
 
@@ -460,38 +467,44 @@ export default function PartnerRegistrationSettings() {
           <div className="relative w-full md:w-[260px]">
             <input
               type="text"
-              value={searchName}
-              onChange={(e) => {
-                setSearchName(e.target.value);
-                setDetailPage(1);
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearchSubmit();
               }}
               placeholder="이름으로 검색..."
               className="w-full h-10 rounded-[5px] border border-neutral-30 bg-neutral-10 dark:bg-neutral-20 px-3 pr-10 text-[14px] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-primary-50"
             />
-            <svg
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
+            <button
+              type="button"
+              onClick={handleSearchSubmit}
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-20 dark:hover:bg-neutral-30 transition-colors cursor-pointer"
+              aria-label="검색"
             >
-              <circle cx="11" cy="11" r="7" stroke="#B0B0B0" strokeWidth="2" />
-              <path d="M20 20L16.65 16.65" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="7" stroke="#B0B0B0" strokeWidth="2" />
+                <path d="M20 20L16.65 16.65" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
           </div>
 
-          <div className="hidden md:flex mt-4 h-[40px] items-center rounded-[8px] bg-neutral-20 dark:bg-neutral-20 pl-6 pr-4">
-            <div className="w-[200px] text-[16px] font-medium text-neutral-60">고객 ID</div>
-            <div className="flex-1 text-[16px] font-medium text-neutral-60">고객이름</div>
-            <div className="w-[180px] text-[16px] font-medium text-neutral-60 text-right">배정시간</div>
+          <div className="hidden md:flex mt-4 h-[40px] items-center rounded-[8px] bg-neutral-20 dark:bg-neutral-20 px-10">
+            <div className="w-[200px] text-[16px] font-medium text-neutral-60 text-left">고객 ID</div>
+            <div className="flex-1 text-[16px] font-medium text-neutral-60 text-left">고객이름</div>
+            <div className="w-[200px] text-[16px] font-medium text-neutral-60 text-left">배정시간</div>
           </div>
 
           <div className="flex md:hidden mt-4 h-[40px] items-center rounded-[8px] bg-neutral-20 dark:bg-neutral-20 px-4">
-            <div className="w-[100px] text-[14px] font-medium text-neutral-60">고객 ID</div>
-            <div className="flex-1 text-[14px] font-medium text-neutral-60">고객이름</div>
-            <div className="w-[110px] text-[14px] font-medium text-neutral-60 text-right">배정시간</div>
+            <div className="w-[100px] text-[14px] font-medium text-neutral-60 text-left">고객 ID</div>
+            <div className="flex-1 text-[14px] font-medium text-neutral-60 text-left">고객이름</div>
+            <div className="w-[120px] text-[14px] font-medium text-neutral-60 text-left">배정시간</div>
           </div>
 
           <div className="pt-2">
@@ -506,15 +519,15 @@ export default function PartnerRegistrationSettings() {
                 {copiedCustomers.map((customer) => (
                   <div
                     key={`${customer.customerId}-${customer.copiedAt}`}
-                    className="flex items-center py-3 md:py-4 px-2 md:px-2 border-b border-neutral-30/50 last:border-b-0"
+                    className="flex items-center py-3 md:py-4 px-4 md:px-10 border-b border-neutral-30/50 last:border-b-0"
                   >
-                    <div className="w-[100px] md:w-[200px] text-[13px] md:text-[14px] text-neutral-80 truncate">
+                    <div className="w-[100px] md:w-[200px] text-[13px] md:text-[14px] text-neutral-80 truncate text-left">
                       {customer.customerId}
                     </div>
-                    <div className="flex-1 text-[13px] md:text-[14px] text-foreground truncate">
+                    <div className="flex-1 text-[13px] md:text-[14px] text-foreground truncate text-left">
                       {customer.customerName}
                     </div>
-                    <div className="w-[110px] md:w-[180px] text-[12px] md:text-[14px] text-neutral-70 text-right whitespace-nowrap">
+                    <div className="w-[120px] md:w-[200px] text-[12px] md:text-[14px] text-neutral-70 text-left whitespace-nowrap">
                       {formatDateTime(customer.copiedAt)}
                     </div>
                   </div>
