@@ -9,10 +9,12 @@ type BaseModalProps = {
   overlayClassName?: string;
   containerClassName?: string;
   positionerClassName?: string;
+  positionerStyle?: React.CSSProperties;
   disableAutoContainerSizing?: boolean;
   closeOnOverlayClick?: boolean;
   ariaLabel?: string;
   fullScreenOnMobile?: boolean;
+  disableScrollLock?: boolean;
 };
 
 // Simple shared counter to handle nested modals scroll lock
@@ -48,15 +50,19 @@ export default function BaseModal({
   overlayClassName = "",
   containerClassName = "",
   positionerClassName = "",
+  positionerStyle,
   disableAutoContainerSizing = false,
   closeOnOverlayClick = true,
   ariaLabel = "dialog",
   fullScreenOnMobile = false,
+  disableScrollLock = false,
 }: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    lockBodyScroll();
+    if (!disableScrollLock) {
+      lockBodyScroll();
+    }
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
@@ -86,9 +92,11 @@ export default function BaseModal({
     window.addEventListener("keydown", handleKey);
     return () => {
       window.removeEventListener("keydown", handleKey);
-      unlockBodyScroll();
+      if (!disableScrollLock) {
+        unlockBodyScroll();
+      }
     };
-  }, [onClose]);
+  }, [onClose, disableScrollLock]);
 
   useEffect(() => {
     // focus first focusable
@@ -124,6 +132,7 @@ export default function BaseModal({
               : "min-h-full flex items-center justify-center p-4 lg:p-4"
           }`
         }
+        style={positionerStyle}
       >
         <div
           ref={containerRef}

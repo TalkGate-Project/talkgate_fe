@@ -238,68 +238,108 @@ export default function NotificationBell() {
 
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-5 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
-          {/* 헤더 */}
-          <div className="px-5 md:px-[30px] pb-5 border-b border-border flex items-center justify-between">
-            <span className="text-[16px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
-              새로운 소식
-            </span>
-            {isRefreshing && (
-              <span className="text-[12px] text-neutral-60 animate-pulse">
-                업데이트 중...
+        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-4 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
+          <div className="h-full flex flex-col">
+            {/* 헤더 */}
+            <div className="h-10 px-5 border-b border-border flex items-start justify-between">
+              <span className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
+                새로운 소식
               </span>
-            )}
-          </div>
+              {isRefreshing && (
+                <span className="text-[12px] text-neutral-60 animate-pulse">
+                  업데이트 중...
+                </span>
+              )}
+            </div>
 
-          {/* 목록 */}
-          <div className="max-h-[260px] overflow-y-auto pt-3">
-            {isInitialLoading ? (
-              <div className="px-5 py-6 text-[13px] text-neutral-60">불러오는 중...</div>
-            ) : notifications.length === 0 ? (
-              <div className="px-5 py-6 text-[13px] text-neutral-60">알림이 없습니다.</div>
-            ) : (
-              notifications.map((notification) => {
-                const isUnread = !notification.isRead;
+            {/* 목록 */}
+            <div className="flex-1 overflow-y-auto">
+              {isInitialLoading ? (
+                <div className="px-5 py-6 text-[13px] text-neutral-60">불러오는 중...</div>
+              ) : notifications.length === 0 ? (
+                <div className="px-5 py-6 text-[13px] text-neutral-60">알림이 없습니다.</div>
+              ) : (
+                notifications.map((notification) => {
+                  const isUnread = !notification.isRead;
+                  const projectName = notification.project?.name?.trim() ?? "";
+                  const projectLogoUrl = notification.project?.logoUrl ?? null;
+                  const hasProjectInfo = projectName.length > 0 || Boolean(projectLogoUrl);
+                  const projectInitial = projectName.length > 0 ? projectName.charAt(0) : "•";
 
-                return (
-                  <button
-                    key={notification.id}
-                    type="button"
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left px-5 py-3 transition-colors ${
-                      isUnread
-                        ? "bg-[var(--notification-unread-bg)] hover:bg-[var(--notification-unread-bg)]/50 cursor-pointer"
-                        : "bg-card hover:bg-muted cursor-pointer"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1 gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[16px] font-semibold leading-[1] tracking-[-0.02em] text-foreground truncate">
-                          {notification.title}
-                        </span>
-                        {isUnread && <span className="w-2 h-2 rounded-full bg-[var(--notification-unread-border)] flex-shrink-0" />}
+                  return (
+                    <button
+                      key={notification.id}
+                      type="button"
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`w-full text-left px-5 transition-colors cursor-pointer flex items-center ${
+                        hasProjectInfo ? "h-[100px]" : "h-[64px]"
+                      } ${
+                        isUnread
+                          ? "bg-[#D6FAE84D] hover:bg-[#D6FAE880]"
+                          : "bg-card hover:bg-muted"
+                      }`}
+                    >
+                      <div className="w-full flex flex-col gap-1">
+                        {hasProjectInfo && (
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-4 h-4 rounded-full overflow-hidden bg-[#252525] flex items-center justify-center flex-shrink-0">
+                                {projectLogoUrl ? (
+                                  <img
+                                    src={projectLogoUrl}
+                                    alt={projectName || "프로젝트"}
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <span className="text-[10px] leading-none font-semibold text-white">
+                                    {projectInitial}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-[14px] font-medium leading-[16px] tracking-[-0.02em] text-foreground truncate">
+                                {projectName || "프로젝트"}
+                              </span>
+                            </div>
+                            <span className="text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-nowrap">
+                              {formatNotificationTime(notification.createdAt)}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground truncate">
+                              {notification.title}
+                            </span>
+                            {isUnread && <span className="w-2 h-2 rounded-full bg-[#00E272] flex-shrink-0" />}
+                          </div>
+                          {!hasProjectInfo && (
+                            <span className="text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-nowrap">
+                              {formatNotificationTime(notification.createdAt)}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-neutral-60 line-clamp-1">
+                          {notification.content}
+                        </p>
                       </div>
-                      <span className="text-[14px] font-medium leading-[1] text-neutral-60 whitespace-nowrap">
-                        {formatNotificationTime(notification.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-[16px] leading-[1] font-medium tracking-[-0.02em] text-neutral-60 overflow-hidden text-ellipsis line-clamp-2">
-                      {notification.content}
-                    </p>
-                  </button>
-                );
-              })
-            )}
-          </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
 
-          {/* 모두 보기 버튼 */}
-          <button
-            type="button"
-            onClick={handleClickViewAll}
-            className="cursor-pointer mt-2 w-full text-center text-[13px] font-semibold leading-[18px] tracking-[-0.02em] text-secondary-60 hover:bg-muted py-2"
-          >
-            모든 알림 보기
-          </button>
+            {/* 모두 보기 버튼 */}
+            <button
+              type="button"
+              onClick={handleClickViewAll}
+              className="cursor-pointer h-[52px] w-full text-center text-[16px] font-medium leading-[19px] tracking-[-0.02em] text-[#4D82F3] hover:bg-muted"
+            >
+              모든 알림 보기
+            </button>
+          </div>
         </div>
       )}
     </div>

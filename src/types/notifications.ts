@@ -5,8 +5,17 @@ export type NotificationType = "customer_registration" | "customer_assignment" |
 // UI에서 사용하는 카테고리 타입 (필터링용)
 export type NotificationCategory = "all" | "notice" | "customer" | "system" | "security";
 
+export interface NotificationProject {
+  id: number;
+  name: string;
+  logoUrl?: string | null;
+  subDomain?: string | null;
+}
+
 export interface Notification {
   id: number;
+  userId?: number;
+  projectId?: number;
   type: NotificationType;
   title: string;
   content: string;
@@ -14,6 +23,7 @@ export interface Notification {
   isRead: boolean;
   readAt?: string | null; // ISO string
   createdAt: string; // ISO string
+  project?: NotificationProject;
 }
 
 export interface NotificationListResponse {

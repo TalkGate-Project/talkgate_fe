@@ -15,7 +15,9 @@ import NotificationProvider from "@/providers/NotificationProvider";
 import CustomerModalProvider from "@/providers/CustomerModalProvider";
 import ChatProvider from "@/providers/ChatProvider";
 import TeamChatProvider from "@/providers/TeamChatProvider";
+import TeamChatWindowProvider from "@/providers/TeamChatWindowProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
+import GlobalStaffChatModal from "@/components/layout/GlobalStaffChatModal";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
@@ -95,17 +97,20 @@ export default async function RootLayout({
                   <CustomerModalProvider>
                     <NotificationProvider>
                       <ChatProvider>
-                      <TeamChatProvider>
-                      <ConditionalHeader />
-                      <AuthSessionWatcher />
-                      <TermsGuard />
-                      {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
-                      <Suspense fallback={null}>
-                        <UiScaleToggle initialZoom={uiZoomMode as "normal" | "compact"} />
-                      </Suspense>
-                      {/* No fixed padding; header component inserts spacer only when visible */}
-                      <div>{children}</div>
-                      </TeamChatProvider>
+                        <TeamChatProvider>
+                          <TeamChatWindowProvider>
+                            <ConditionalHeader />
+                            <GlobalStaffChatModal />
+                            <AuthSessionWatcher />
+                            <TermsGuard />
+                            {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
+                            <Suspense fallback={null}>
+                              <UiScaleToggle initialZoom={uiZoomMode as "normal" | "compact"} />
+                            </Suspense>
+                            {/* No fixed padding; header component inserts spacer only when visible */}
+                            <div>{children}</div>
+                          </TeamChatWindowProvider>
+                        </TeamChatProvider>
                       </ChatProvider>
                     </NotificationProvider>
                   </CustomerModalProvider>

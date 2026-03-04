@@ -163,6 +163,27 @@ export default function FilterChips({
           onRemove={() => onRemoveDateRange("assigned")}
         />
       )}
+      {filters.keyword && (
+        <Chip
+          label={`키워드: ${filters.keyword.length > 20 ? filters.keyword.slice(0, 20) + "..." : filters.keyword}`}
+          onRemove={() => onRemove("keyword")}
+        />
+      )}
+      {filters.ipAddress && (
+        <Chip label={`IP 주소: ${filters.ipAddress}`} onRemove={() => onRemove("ipAddress")} />
+      )}
+      {filters.notablePoints && (
+        <Chip
+          label={`특이사항: ${filters.notablePoints.length > 20 ? filters.notablePoints.slice(0, 20) + "..." : filters.notablePoints}`}
+          onRemove={() => onRemove("notablePoints")}
+        />
+      )}
+      {filters.summaryInfo && (
+        <Chip
+          label={`요약정보: ${filters.summaryInfo.length > 20 ? filters.summaryInfo.slice(0, 20) + "..." : filters.summaryInfo}`}
+          onRemove={() => onRemove("summaryInfo")}
+        />
+      )}
     </div>
   );
 }

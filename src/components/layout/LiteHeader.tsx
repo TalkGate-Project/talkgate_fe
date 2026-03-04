@@ -1,28 +1,31 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
+import { getSelectedProjectId } from "@/lib/project";
 import UserMenuDropdown from "./UserMenuDropdown";
 import NotificationBell from "./NotificationBell";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
-import StaffChatModal from "./StaffChatModal";
+import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
 export default function LiteHeader() {
+  const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [staffChatModalOpen, setStaffChatModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hasProject, setHasProject] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
+  const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -35,6 +38,14 @@ export default function LiteHeader() {
 
   useEffect(() => {
     setMounted(true);
+    setHasProject(Boolean(getSelectedProjectId()));
+    const handleProjectChange = (e: CustomEvent<{ projectId: string | null }>) => {
+      setHasProject(Boolean(e.detail.projectId));
+    };
+    window.addEventListener("tg:selected-project-change", handleProjectChange as EventListener);
+    return () => {
+      window.removeEventListener("tg:selected-project-change", handleProjectChange as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -66,6 +77,8 @@ export default function LiteHeader() {
   const handleToggleTheme = () => {
     setIsDarkMode((prev) => !prev);
   };
+  const isProjectsRoot = pathname === "/projects";
+  const canShowStaffChatButton = Boolean(user) && hasProject && !isProjectsRoot;
 
   return (
     <header
@@ -81,27 +94,29 @@ export default function LiteHeader() {
         {/* 우측 액션: 직원채팅 + 알림 + 개인화 드롭다운 */}
         <div className="ml-auto flex items-center gap-4">
           {/* 직원채팅: 모달로 연다 */}
-          <button
-            className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-            onClick={() => setStaffChatModalOpen(true)}
-            aria-label="직원채팅"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M8 12H8.01M12 12H12.01M16 12H16.01M21 12C21 16.4183 16.9706 20 12 20C10.4607 20 9.01172 19.6565 7.74467 19.0511L3 20L4.39499 16.28C3.51156 15.0423 3 13.5743 3 12C3 7.58172 7.02944 4 12 4C16.9706 4 21 7.58172 21 12Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {mounted && teamChatHasUnread && (
-              <span
-                className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-60 rounded-full"
-                aria-label="읽지 않은 메시지 있음"
-              />
-            )}
-          </button>
+          {canShowStaffChatButton && (
+            <button
+              className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
+              onClick={toggleStaffChatModal}
+              aria-label="직원채팅"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M8 12H8.01M12 12H12.01M16 12H16.01M21 12C21 16.4183 16.9706 20 12 20C10.4607 20 9.01172 19.6565 7.74467 19.0511L3 20L4.39499 16.28C3.51156 15.0423 3 13.5743 3 12C3 7.58172 7.02944 4 12 4C16.9706 4 21 7.58172 21 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {mounted && teamChatHasUnread && (
+                <span
+                  className="absolute top-1 right-1 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]"
+                  aria-label="읽지 않은 메시지 있음"
+                />
+              )}
+            </button>
+          )}
 
           <NotificationBell />
 
@@ -140,11 +155,6 @@ export default function LiteHeader() {
           </div>
         </div>
       </div>
-
-      <StaffChatModal
-        isOpen={staffChatModalOpen}
-        onClose={() => setStaffChatModalOpen(false)}
-      />
     </header>
   );
 }
