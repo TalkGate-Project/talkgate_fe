@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, type ReactNode } from "react";
+import { useMemo, useState, useEffect, useRef, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
@@ -13,6 +13,52 @@ import DateRangePicker from "@/components/common/DateRangePicker";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
+const MIN_CHART_WIDTH = 720;
+const MIN_WIDTH_PER_BAR = 96;
+const MAX_LABEL_WIDTH = 90;
+const LABEL_FONT = "500 14px sans-serif";
+let labelMeasureCanvas: HTMLCanvasElement | null = null;
+
+function measureLabelWidth(label: string) {
+  if (typeof document === "undefined") {
+    return label.length * 8;
+  }
+
+  if (!labelMeasureCanvas) {
+    labelMeasureCanvas = document.createElement("canvas");
+  }
+
+  const context = labelMeasureCanvas.getContext("2d");
+  if (!context) {
+    return label.length * 8;
+  }
+
+  context.font = LABEL_FONT;
+  return context.measureText(label).width;
+}
+
+function truncateLabel(label: string, maxWidth: number) {
+  if (measureLabelWidth(label) <= maxWidth) {
+    return { text: label, truncated: false };
+  }
+
+  let left = 0;
+  let right = label.length;
+  let best = "...";
+
+  while (left <= right) {
+    const middle = Math.floor((left + right) / 2);
+    const candidate = `${label.slice(0, middle)}...`;
+    if (measureLabelWidth(candidate) <= maxWidth) {
+      best = candidate;
+      left = middle + 1;
+    } else {
+      right = middle - 1;
+    }
+  }
+
+  return { text: best, truncated: true };
+}
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -42,6 +88,8 @@ export default function PaymentBarChart() {
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [labelTooltip, setLabelTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
+  const labelTooltipTimeoutRef = useRef<number | null>(null);
   const { data: teamsData } = useTeams(projectId);
 
   useEffect(() => {
@@ -87,13 +135,9 @@ export default function PaymentBarChart() {
       }));
   }, [data]);
 
-  // 모바일에서 차트 최소 너비 계산 (데이터 개수에 따라 동적 조정)
+  // 데이터가 많아지면 웹/모바일 모두 가로 스크롤 가능하도록 최소 너비 계산
   const minChartWidth = useMemo(() => {
-    const dataCount = chartData.length;
-    // 각 바당 최소 80px (바 크기 + 간격)
-    const minWidthPerBar = 80;
-    // 최소 600px, 데이터가 많으면 더 넓게
-    return Math.max(600, dataCount * minWidthPerBar);
+    return Math.max(MIN_CHART_WIDTH, chartData.length * MIN_WIDTH_PER_BAR);
   }, [chartData.length]);
 
   const handleBarClick = (teamName: string) => {
@@ -115,10 +159,62 @@ export default function PaymentBarChart() {
     [chartData]
   );
 
+  const clearLabelTooltipTimeout = () => {
+    if (labelTooltipTimeoutRef.current !== null) {
+      window.clearTimeout(labelTooltipTimeoutRef.current);
+      labelTooltipTimeoutRef.current = null;
+    }
+  };
+
+  const showLabelTooltip = (text: string, x: number, y: number) => {
+    setLabelTooltip({ text, x, y: y - 8 });
+  };
+
+  const hideLabelTooltip = () => {
+    clearLabelTooltipTimeout();
+    setLabelTooltip(null);
+  };
+
+  const handleLabelTouch = (
+    event: React.TouchEvent<SVGTextElement>,
+    text: string,
+    x: number,
+    y: number
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    clearLabelTooltipTimeout();
+    showLabelTooltip(text, x, y);
+    labelTooltipTimeoutRef.current = window.setTimeout(() => {
+      setLabelTooltip(null);
+      labelTooltipTimeoutRef.current = null;
+    }, 2000);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearLabelTooltipTimeout();
+    };
+  }, []);
+
+  useEffect(() => {
+    const closeTooltip = () => setLabelTooltip(null);
+    window.addEventListener("scroll", closeTooltip, true);
+    window.addEventListener("resize", closeTooltip);
+
+    return () => {
+      window.removeEventListener("scroll", closeTooltip, true);
+      window.removeEventListener("resize", closeTooltip);
+    };
+  }, []);
+
   const renderXAxisTick = (props: any) => {
     const { x, y, payload } = props;
     const label: string = payload?.value ?? "";
     const count = teamToCount[label] ?? 0;
+    const { text: truncatedLabel, truncated } = truncateLabel(label, MAX_LABEL_WIDTH);
+
     return (
       <g transform={`translate(${x},${y})`}>
         <text
@@ -129,8 +225,21 @@ export default function PaymentBarChart() {
           fill="var(--foreground)"
           fontSize={14}
           fontWeight={500}
+          style={{ cursor: truncated ? "help" : "default" }}
+          onMouseEnter={() => {
+            if (!truncated || isMobile) return;
+            showLabelTooltip(label, x, y);
+          }}
+          onMouseLeave={() => {
+            if (!truncated || isMobile) return;
+            hideLabelTooltip();
+          }}
+          onTouchStart={(event) => {
+            if (!truncated) return;
+            handleLabelTouch(event, label, x, y);
+          }}
         >
-          {label}
+          {truncatedLabel}
         </text>
         <text
           x={0}
@@ -228,8 +337,16 @@ export default function PaymentBarChart() {
   return (
     <div className="w-full">
       {Header}
-      <div className="h-[320px] overflow-x-auto overflow-y-hidden scrollbar-hide">
-        <div className="h-full" style={{ minWidth: isMobile ? `${minChartWidth}px` : '100%' }}>
+      <div className="relative h-[320px] overflow-x-auto overflow-y-hidden">
+        <div className="h-full" style={{ minWidth: `${minChartWidth}px` }}>
+          {labelTooltip && (
+            <div
+              className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-[6px] border border-border bg-card px-2 py-1 text-[12px] text-foreground shadow-lg whitespace-nowrap"
+              style={{ left: `${labelTooltip.x}px`, top: `${Math.max(8, labelTooltip.y)}px` }}
+            >
+              {labelTooltip.text}
+            </div>
+          )}
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: isMobile ? 0 : 16, left: 0, bottom: 56 }}>
           <defs>

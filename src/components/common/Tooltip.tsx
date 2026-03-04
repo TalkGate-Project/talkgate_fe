@@ -20,6 +20,7 @@ type TooltipProps = {
   delay?: number;
   multiline?: boolean;
   maxWidth?: string;
+  disablePortal?: boolean;
 };
 
 export default function Tooltip({
@@ -30,6 +31,7 @@ export default function Tooltip({
   delay = 0.2,
   multiline = false,
   maxWidth = "300px",
+  disablePortal = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [finalPosition, setFinalPosition] = useState(position);
@@ -67,6 +69,12 @@ export default function Tooltip({
 
   // 툴팁 위치 계산 및 스타일 업데이트 (Portal 사용 시)
   useEffect(() => {
+    if (disablePortal) {
+      setTooltipStyle({});
+      lastCheckedPositionRef.current = null;
+      return;
+    }
+
     if (!isVisible || !containerRef.current) {
       setTooltipStyle({});
       lastCheckedPositionRef.current = null;
@@ -207,31 +215,58 @@ export default function Tooltip({
     });
 
     return () => cancelAnimationFrame(rafId);
-  }, [isVisible, finalPosition]);
+  }, [isVisible, finalPosition, disablePortal]);
+
+  const inlinePositionClass =
+    finalPosition === "top"
+      ? "absolute left-1/2 -translate-x-1/2 bottom-full mb-2"
+      : finalPosition === "bottom"
+        ? "absolute left-1/2 -translate-x-1/2 top-full mt-2"
+        : finalPosition === "left"
+          ? "absolute right-full mr-2 top-1/2 -translate-y-1/2"
+          : "absolute left-full ml-2 top-1/2 -translate-y-1/2";
+
+  const tooltipBoxClass = `px-3 py-2.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[13px] rounded-lg shadow-xl pointer-events-none ${
+    multiline ? "whitespace-normal break-words" : "whitespace-nowrap"
+  }`;
 
   const tooltipContent = (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
-          ref={tooltipRef}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.15, delay }}
-          className={`z-[9999] px-3 py-2.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[13px] rounded-lg shadow-xl pointer-events-none ${
-            multiline 
-              ? "whitespace-normal break-words" 
-              : "whitespace-nowrap"
-          }`}
-          style={{
-            ...tooltipStyle,
-            maxWidth: multiline ? maxWidth : undefined,
-            lineHeight: multiline ? "1.6" : undefined,
-          }}
-        >
-          {content}
-
-        </motion.div>
+        disablePortal ? (
+          <div className={`z-[9999] ${inlinePositionClass}`}>
+            <motion.div
+              ref={tooltipRef}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15, delay }}
+              className={tooltipBoxClass}
+              style={{
+                maxWidth: multiline ? maxWidth : undefined,
+                lineHeight: multiline ? "1.6" : undefined,
+              }}
+            >
+              {content}
+            </motion.div>
+          </div>
+        ) : (
+          <motion.div
+            ref={tooltipRef}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.15, delay }}
+            className={`z-[9999] ${tooltipBoxClass}`}
+            style={{
+              ...tooltipStyle,
+              maxWidth: multiline ? maxWidth : undefined,
+              lineHeight: multiline ? "1.6" : undefined,
+            }}
+          >
+            {content}
+          </motion.div>
+        )
       )}
     </AnimatePresence>
   );
@@ -245,8 +280,11 @@ export default function Tooltip({
         onMouseLeave={() => setIsVisible(false)}
       >
         {children}
+        {disablePortal ? tooltipContent : null}
       </div>
-      {typeof window !== "undefined" && createPortal(tooltipContent, document.body)}
+      {!disablePortal &&
+        typeof window !== "undefined" &&
+        createPortal(tooltipContent, document.body)}
     </>
   );
 }

@@ -78,7 +78,7 @@ export default function CustomerShareModal({
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const limit = 20;
+  const limit = 5;
 
   const fetchPartners = useCallback(async () => {
     if (!projectId) return;
@@ -244,7 +244,7 @@ export default function CustomerShareModal({
           </button>
         </div>
 
-        <p className="px-7 pb-4 text-[16px] font-medium text-center">
+        <p className="px-7 pb-[30px] text-[16px] font-medium text-center">
           배정할 파트너를 선택해주세요.
         </p>
 
@@ -266,11 +266,7 @@ export default function CustomerShareModal({
                 return (
                   <div
                     key={partner.id}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-[8px] cursor-pointer transition-colors ${
-                      checked
-                        ? "bg-neutral-10 dark:bg-neutral-20"
-                        : "bg-transparent hover:bg-neutral-10/50 dark:hover:bg-neutral-20/50"
-                    }`}
+                    className="flex items-center gap-3 h-[48px] px-6 rounded-[5px] cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 transition-colors"
                     onClick={() => togglePartner(partner.id)}
                   >
                     <div
@@ -284,7 +280,7 @@ export default function CustomerShareModal({
                         size={24}
                       />
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-neutral-20 dark:bg-neutral-30 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-neutral-20 dark:bg-neutral-30 flex-shrink-0 overflow-hidden flex items-center justify-center">
                       <span className="text-[14px] font-semibold text-neutral-60 dark:text-neutral-50">
                         {partner.partnerProjectName.charAt(0).toUpperCase() ||
                           "?"}
@@ -300,7 +296,7 @@ export default function CustomerShareModal({
           )}
 
           {totalPages > 1 && !loading && (
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-6">
               <Pagination
                 page={page}
                 totalPages={totalPages}

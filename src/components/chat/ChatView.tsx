@@ -242,7 +242,11 @@ export default function ChatView({ projectId }: Props) {
           onOpenLinkFlow={openLinkFlow}
           onOpenUnlinkModal={openUnlinkModal}
           onOpenCustomerDetail={openCustomerDetail}
+          onOpenAiSidebar={!isWideLayout ? () => setIsAiSidebarOpen(true) : undefined}
           onCloseConversation={handleCloseConversationMobile}
+          onCompleteConversation={() => {
+            void closeConversation();
+          }}
           attachmentUploading={attachmentUploading}
           onAttachImage={onAttachImage}
           onAttachFile={onAttachFile}
@@ -279,7 +283,6 @@ export default function ChatView({ projectId }: Props) {
           projectId={projectId}
           conversationId={activeId}
           isOpen={isAiSidebarOpen}
-          onOpen={() => setIsAiSidebarOpen(true)}
           onClose={() => setIsAiSidebarOpen(false)}
         />
       )}
