@@ -111,7 +111,7 @@ export default function LiteHeader() {
               </svg>
               {mounted && teamChatHasUnread && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary-60 rounded-full"
+                  className="absolute top-1 right-1 block w-[6px] h-[6px] rounded-full bg-[#51F8A5]"
                   aria-label="읽지 않은 메시지 있음"
                 />
               )}

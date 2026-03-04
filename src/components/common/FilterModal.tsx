@@ -366,6 +366,7 @@ export default function FilterModal({
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            {/* 이름 / 연락처 */}
                             <LabeledSelect
                                 label="이름"
                                 options={[]}
@@ -383,16 +384,55 @@ export default function FilterModal({
                                 freeText
                             />
 
+                            {/* 담당팀 / 담당자 */}
                             <LabeledSelect label="담당팀" options={teamOptions} placeholder="전체" value={form.teamId ? String(form.teamId) : ""} onChange={(v) => setForm((f) => ({ ...f, teamId: v ? Number(v) : undefined }))} />
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
 
+                            {/* 신청경로 / 매체사 */}
                             <LabeledSelect label="신청경로" options={routeOptions} placeholder="" value={form.applicationRoute || ""} onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))} freeText />
                             <LabeledSelect label="매체사" options={mediaOptions} placeholder="" value={form.mediaCompany || ""} onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))} freeText />
 
-                            <CategorySelector defaultIds={form.categoryIds} onChangeIds={handleCategoryIds} />
+                            {/* 사이트 / 특이사항 */}
                             <LabeledSelect label="사이트" options={siteOptions} placeholder="" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
+                            <LabeledSelect
+                                label="특이사항"
+                                options={[]}
+                                placeholder="특이사항을 입력해주세요"
+                                value={form.notablePoints || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, notablePoints: v || undefined }))}
+                                freeText
+                            />
 
-                            {/* 상담 내용 */}
+                            {/* 키워드 / IP 주소 */}
+                            <LabeledSelect
+                                label="키워드"
+                                options={[]}
+                                placeholder="키워드를 입력해주세요"
+                                value={form.keyword || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, keyword: v || undefined }))}
+                                freeText
+                            />
+                            <LabeledSelect
+                                label="IP 주소"
+                                options={[]}
+                                placeholder="IP 주소를 입력해주세요"
+                                value={form.ipAddress || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, ipAddress: v || undefined }))}
+                                freeText
+                            />
+
+                            {/* 상담 카테고리 / 요약정보 */}
+                            <CategorySelector defaultIds={form.categoryIds} onChangeIds={handleCategoryIds} />
+                            <LabeledSelect
+                                label="요약정보"
+                                options={[]}
+                                placeholder="요약정보를 입력해주세요"
+                                value={form.summaryInfo || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, summaryInfo: v || undefined }))}
+                                freeText
+                            />
+
+                            {/* 상담 내용 (한 줄 전체) */}
                             <div className="col-span-1 md:col-span-2">
                                 <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 내용</label>
                                 <div className="border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] px-3 py-2 min-h-[66px] flex items-start bg-white dark:bg-neutral-20">
@@ -423,40 +463,6 @@ export default function FilterModal({
                                     />
                                 </div>
                             </div>
-
-                            {/* 키워드, IP 주소, 특이사항, 요약정보 */}
-                            <LabeledSelect
-                                label="키워드"
-                                options={[]}
-                                placeholder="키워드를 입력해주세요"
-                                value={form.keyword || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, keyword: v || undefined }))}
-                                freeText
-                            />
-                            <LabeledSelect
-                                label="IP 주소"
-                                options={[]}
-                                placeholder="IP 주소를 입력해주세요"
-                                value={form.ipAddress || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, ipAddress: v || undefined }))}
-                                freeText
-                            />
-                            <LabeledSelect
-                                label="특이사항"
-                                options={[]}
-                                placeholder="특이사항을 입력해주세요"
-                                value={form.notablePoints || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, notablePoints: v || undefined }))}
-                                freeText
-                            />
-                            <LabeledSelect
-                                label="요약정보"
-                                options={[]}
-                                placeholder="요약정보를 입력해주세요"
-                                value={form.summaryInfo || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, summaryInfo: v || undefined }))}
-                                freeText
-                            />
                         </div>
                     </div>
 

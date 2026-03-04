@@ -21,10 +21,11 @@ type Props = {
 
 const MAX_ATTACHMENT_FILE_SIZE = 30 * 1024 * 1024;
 const STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY = "talkgate.staffChatModal.contentOpacity";
-const DEFAULT_STAFF_CHAT_CONTENT_OPACITY = 100;
+const DEFAULT_STAFF_CHAT_CONTENT_OPACITY = 0;
 const MIN_STAFF_CHAT_CONTENT_OPACITY = 0;
-const MAX_STAFF_CHAT_CONTENT_OPACITY = 100;
+const MAX_STAFF_CHAT_CONTENT_OPACITY = 80;
 const INVALID_DROP_FEEDBACK_MS = 1400;
+const BOTTOM_STICK_THRESHOLD = 24;
 
 function formatTime(value?: string | null) {
   if (!value) return "";
@@ -147,6 +148,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const invalidDropTimerRef = useRef<number | null>(null);
   const uploadErrorTimerRef = useRef<number | null>(null);
   const initialScrollDoneRoomRef = useRef<number | null>(null);
+  const isAtBottomRef = useRef(true);
   const isComposingRef = useRef(false);
   const [projectId] = useSelectedProjectId();
   const {
@@ -185,6 +187,20 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const participants: TeamRoomParticipant[] = Array.isArray(rawParticipants) ? rawParticipants : [];
   const hasMore = activeRoomId != null ? (hasMoreByRoomId?.[activeRoomId] ?? false) : false;
   const nextCursor = activeRoomId != null ? messagesCursorByRoomId?.[activeRoomId] ?? null : null;
+
+  const isAtBottom = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return true;
+    return el.scrollHeight - (el.scrollTop + el.clientHeight) <= BOTTOM_STICK_THRESHOLD;
+  }, []);
+
+  const scrollMessagesToBottom = useCallback(() => {
+    const el = messagesScrollRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    isAtBottomRef.current = true;
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -337,15 +353,29 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   useEffect(() => {
     if (!isOpen || activeRoomId == null || messages.length === 0) return;
     if (initialScrollDoneRoomRef.current === activeRoomId) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+
+    // 방 진입 직후 렌더 타이밍 이슈를 피하기 위해 프레임 단위로 하단 고정
+    requestAnimationFrame(() => {
+      scrollMessagesToBottom();
+      requestAnimationFrame(() => {
+        scrollMessagesToBottom();
+      });
+    });
     initialScrollDoneRoomRef.current = activeRoomId;
-  }, [isOpen, activeRoomId, messages.length]);
+  }, [isOpen, activeRoomId, messages.length, scrollMessagesToBottom]);
 
   useEffect(() => {
     if (activeRoomId == null) {
       initialScrollDoneRoomRef.current = null;
+      isAtBottomRef.current = true;
     }
   }, [activeRoomId]);
+
+  useEffect(() => {
+    if (!isOpen || activeRoomId == null) return;
+    if (!isAtBottomRef.current) return;
+    scrollMessagesToBottom();
+  }, [isOpen, activeRoomId, messages.length, pendingUploads.length, scrollMessagesToBottom]);
 
   useEffect(() => {
     if (!uploadError) return;
@@ -360,6 +390,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
 
   const handleSelectRoom = useCallback(
     (room: TeamRoom) => {
+      isAtBottomRef.current = true;
+      initialScrollDoneRoomRef.current = null;
       setActiveRoomId?.(room.id);
       setViewMode("detail");
       setShowParticipants(false);
@@ -532,9 +564,11 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
 
   const handleScroll = useCallback(() => {
     const el = messagesScrollRef.current;
-    if (!el || !hasMore) return;
+    if (!el) return;
+    isAtBottomRef.current = isAtBottom(el);
+    if (!hasMore) return;
     if (el.scrollTop < 100) handleLoadMore();
-  }, [hasMore, handleLoadMore]);
+  }, [hasMore, handleLoadMore, isAtBottom]);
 
   const handleEmojiSelect = useCallback((emoji: string) => {
     setInputText((prev) => prev + emoji);
@@ -554,7 +588,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   const isDetail = viewMode === "detail" && !!activeRoom;
-  const contentBackgroundAlpha = contentOpacity / 100;
+  const modalOpacity = 1 - contentOpacity / 100;
+  const opacitySliderValue = MAX_STAFF_CHAT_CONTENT_OPACITY - contentOpacity;
   const opacityControl = (
     <label
       data-no-drag="true"
@@ -566,8 +601,12 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         type="range"
         min={MIN_STAFF_CHAT_CONTENT_OPACITY}
         max={MAX_STAFF_CHAT_CONTENT_OPACITY}
-        value={contentOpacity}
-        onChange={(e) => setContentOpacity(Number(e.target.value))}
+        value={opacitySliderValue}
+        onChange={(e) => {
+          const uiValue = Number(e.target.value);
+          const nextOpacity = MAX_STAFF_CHAT_CONTENT_OPACITY - uiValue;
+          setContentOpacity(nextOpacity);
+        }}
         className="w-[50px] h-[20px] cursor-pointer appearance-none bg-transparent accent-[#595959] [&::-webkit-slider-runnable-track]:h-[4px] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[#E2E2E2] dark:[&::-webkit-slider-runnable-track]:bg-[#4A4A4A] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:mt-[-4px] [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#595959] dark:[&::-webkit-slider-thumb]:bg-[#DADADA] [&::-moz-range-track]:h-[4px] [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[#E2E2E2] dark:[&::-moz-range-track]:bg-[#4A4A4A] [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-[#595959] dark:[&::-moz-range-thumb]:bg-[#DADADA]"
       />
     </label>
@@ -585,7 +624,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       positionerStyle={{ top: windowPosition.top, left: windowPosition.left }}
       containerClassName="pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
     >
-      <div className="relative flex flex-col h-full">
+      <div className="relative flex flex-col h-full bg-neutral-0 dark:bg-neutral-10" style={{ opacity: modalOpacity }}>
         {uploadError && (
           <div className="absolute left-3 right-3 top-16 z-30 pointer-events-none rounded-[10px] border border-danger-20 bg-danger-10/95 text-danger-60 text-[12px] px-3 py-2 shadow-sm">
             {uploadError}
@@ -594,7 +633,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         {!isDetail ? (
           <>
             <div
-              className="h-[58px] px-5 flex items-center justify-between border-b border-neutral-30/40 cursor-move select-none touch-none bg-card dark:bg-neutral-10"
+              className="h-[58px] px-5 flex items-center justify-between border-b border-neutral-30/40 cursor-move select-none touch-none bg-neutral-0 dark:bg-neutral-10"
               onPointerDown={handleHeaderPointerDown}
             >
               <div className="flex items-center gap-2.5">
@@ -635,8 +674,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             )}
 
             <div className="relative flex-1 min-h-0">
-              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
-              <div className="relative h-full min-h-0 overflow-y-auto">
+              <div className="relative h-full min-h-0 overflow-y-auto bg-neutral-0 dark:bg-neutral-10">
                 {(rooms ?? []).map((room) => (
                   <button
                     key={room.id}
@@ -670,7 +708,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                         </span>
                         {room.unreadCount > 0 && (
                           <span className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-[6px] py-[2px] rounded-[20px] bg-[#D83232] text-[#FFFFFF] text-[12px] leading-[14px] font-medium text-center">
-                            {room.unreadCount > 9 ? "9+" : room.unreadCount}
+                            {room.unreadCount > 99 ? "99+" : room.unreadCount}
                           </span>
                         )}
                       </div>
@@ -686,7 +724,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         ) : (
           <>
             <div
-              className="relative h-[56px] px-3 flex items-center justify-between border-b border-border cursor-move select-none touch-none bg-card dark:bg-neutral-10"
+              className="relative h-[56px] px-3 flex items-center justify-between border-b border-border cursor-move select-none touch-none bg-neutral-0 dark:bg-neutral-10"
               onPointerDown={handleHeaderPointerDown}
             >
               <div className="flex items-center gap-1.5 min-w-0">
@@ -732,9 +770,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               {showParticipants && (
                 <div
                   data-no-drag="true"
-                  className="absolute right-3 top-[46px] z-20 w-[220px] rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl"
+                  className="absolute right-3 top-[46px] z-20 w-[220px] overflow-x-hidden rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl"
                 >
-                  <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto overflow-x-hidden">
                     {participants.map((p) => (
                       <button
                         key={p.memberId}
@@ -743,7 +781,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                           setShowParticipants(false);
                           setMemberInfoModalMemberId(p.memberId);
                         }}
-                        className="cursor-pointer flex items-center gap-1.5 min-w-0 text-left hover:bg-neutral-20 dark:hover:bg-neutral-30 rounded-[8px] p-1 -m-1"
+                        className="cursor-pointer flex items-center gap-1.5 min-w-0 max-w-full text-left hover:bg-neutral-20 dark:hover:bg-neutral-30 rounded-[8px] p-1 -m-1"
                       >
                         <div className="relative dark:text-[#111111] w-7 h-7 rounded-full bg-neutral-20 dark:bg-[#B9B9B9] text-[11px] grid place-items-center shrink-0">
                           {initial(p.name)}
@@ -767,7 +805,6 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
-              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
               {dragOverlayMessage && (
                 <div
                   className={`absolute inset-0 z-10 pointer-events-none flex items-center justify-center px-6 ${dragOverlayInvalid
@@ -796,7 +833,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               <div
                 ref={messagesScrollRef}
                 onScroll={handleScroll}
-                className="relative h-full min-h-0 overflow-y-auto px-3 pt-6 pb-2.5"
+                className="relative h-full min-h-0 overflow-y-auto bg-neutral-0 dark:bg-neutral-10 px-3 pt-6 pb-2.5"
               >
                 <div className="flex flex-col gap-5">
                 {hasMore && (
@@ -953,7 +990,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             </div>
 
             {draftAttachments.length > 0 && (
-              <div className="border-t border-border bg-card dark:bg-neutral-10 px-2.5 py-2">
+              <div className="border-t border-border bg-neutral-0 dark:bg-neutral-10 px-2.5 py-2">
                 <div className="flex items-center gap-2 overflow-x-auto">
                   {draftAttachments.map((draft) => (
                     <div key={draft.draftId} className="shrink-0 h-14 rounded-[10px] border border-border bg-neutral-0 dark:bg-neutral-20 px-2.5 flex items-center gap-2 max-w-[220px]">
@@ -987,7 +1024,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               </div>
             )}
 
-            <div className="h-[56px] px-2.5 border-t border-border bg-card dark:bg-neutral-10 flex items-center gap-2">
+            <div className="h-[56px] px-2.5 border-t border-border bg-neutral-0 dark:bg-neutral-10 flex items-center gap-2">
               <label className={`w-8 h-8 rounded-full bg-neutral-20 text-neutral-60 grid place-items-center shrink-0 ${(uploading || sending) ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-30"}`}>
                 <input
                   type="file"

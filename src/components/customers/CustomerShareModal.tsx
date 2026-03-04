@@ -218,7 +218,7 @@ export default function CustomerShareModal({
       >
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0">
           <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[21px]">
-            프로젝트 공유하기
+            파트너 배정하기
           </h2>
           <button
             onClick={onClose}
@@ -245,7 +245,7 @@ export default function CustomerShareModal({
         </div>
 
         <p className="px-7 pb-4 text-[16px] font-medium text-center">
-          공유할 프로젝트를 선택해주세요.
+          배정할 파트너를 선택해주세요.
         </p>
 
         <div className="overflow-y-auto px-7 pb-4 max-h-[50vh]">

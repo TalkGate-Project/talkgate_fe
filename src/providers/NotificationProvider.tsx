@@ -4,8 +4,8 @@ import { useEffect, useRef, useCallback } from "react";
 import { notificationSocket } from "@/lib/notificationSocket";
 import { getAccessToken } from "@/lib/token";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMe } from "@/hooks/useMe";
 import type { NewNotificationEvent } from "@/types/notifications";
-import { isNotificationEnabled } from "@/utils/notificationSettings";
 
 // Browser notification permission status
 export type NotificationPermission = "default" | "granted" | "denied";
@@ -94,6 +94,7 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
  */
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [projectId, ready] = useSelectedProjectId();
+  const { user } = useMe();
   const permissionRequestedRef = useRef(false);
 
   // Request notification permission once when component mounts
@@ -114,9 +115,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
   // Handle new notification event
   const handleNewNotification = useCallback((event: NewNotificationEvent) => {
     // 알림 설정 확인 (새로운 소식 알림이 켜져 있는지)
-    // 현재 프로젝트 ID를 사용하여 프로젝트별 설정 확인
-    const currentProjectId = projectId;
-    const isNewsNotificationEnabled = isNotificationEnabled("news", currentProjectId);
+    const isNewsNotificationEnabled = Boolean(user?.isAllowNewNotification);
     
     if (!isNewsNotificationEnabled) {
       // 알림 설정이 꺼져 있으면 브라우저 알림을 표시하지 않음
@@ -143,7 +142,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
         })
       );
     }
-  }, [projectId]);
+  }, [user?.isAllowNewNotification]);
 
   // Connect to notification WebSocket when project is ready
   useEffect(() => {
