@@ -175,7 +175,7 @@ export default function ChatInputBar({
               }
             }}
             rows={1}
-            className="w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10  lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
+            className="mt-2 md:0 w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10  lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
             placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
             disabled={disabled}
           />

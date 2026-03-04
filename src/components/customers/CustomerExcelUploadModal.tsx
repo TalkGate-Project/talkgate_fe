@@ -374,7 +374,7 @@ export default function CustomerExcelUploadModal({
         <div className="border-t border-[#E2E2E2] dark:border-neutral-30 px-6 py-4 flex items-center justify-end gap-3">
           <button
             type="button"
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 text-[14px] font-semibold leading-[17px] text-[#000000] dark:text-foreground bg-white dark:bg-card hover:bg-[#F8F8F8] dark:hover:bg-neutral-25 transition-colors disabled:opacity-50 tracking-[-0.02em]"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 text-[14px] font-semibold leading-[17px] text-[#000000] dark:text-foreground bg-white dark:bg-neutral-10 hover:bg-[#F8F8F8] dark:hover:bg-neutral-25 transition-colors disabled:opacity-50 tracking-[-0.02em]"
             onClick={handleClose}
             disabled={submitting}
           >
