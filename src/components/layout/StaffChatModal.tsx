@@ -4,11 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import BaseModal from "@/components/common/BaseModal";
 import EmojiPicker from "@/components/chat/EmojiPicker";
 import { useEmojiPicker } from "@/hooks/useEmojiPicker";
+import { useDraggableFloatingWindow } from "@/hooks/useDraggableFloatingWindow";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
+import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import type { TeamRoom, TeamMessage, TeamRoomParticipant } from "@/types/teamChat";
 import { AssetsService } from "@/services/assets";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import { clampStaffChatWindowPosition } from "@/lib/staffChatWindowPosition";
 
 type Props = {
   isOpen: boolean;
@@ -17,6 +20,10 @@ type Props = {
 
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY = "talkgate.staffChatModal.contentOpacity";
+const DEFAULT_STAFF_CHAT_CONTENT_OPACITY = 100;
+const MIN_STAFF_CHAT_CONTENT_OPACITY = 0;
+const MAX_STAFF_CHAT_CONTENT_OPACITY = 100;
 
 function formatTime(value?: string | null) {
   if (!value) return "";
@@ -105,12 +112,14 @@ function formatSystemMessageContent(msg: TeamMessage): string {
 
 export default function StaffChatModal({ isOpen, onClose }: Props) {
   const ctx = useTeamChatContextSafe();
+  const { windowPosition, setWindowPosition } = useTeamChatWindow();
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
   const [showParticipants, setShowParticipants] = useState(false);
+  const [contentOpacity, setContentOpacity] = useState(DEFAULT_STAFF_CHAT_CONTENT_OPACITY);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const [memberInfoModalMemberId, setMemberInfoModalMemberId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -162,6 +171,20 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       setViewMode("list");
     }
   }, [isOpen, activeRoomId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY);
+    const parsed = Number(stored);
+    if (!Number.isFinite(parsed)) return;
+    const next = Math.min(MAX_STAFF_CHAT_CONTENT_OPACITY, Math.max(MIN_STAFF_CHAT_CONTENT_OPACITY, parsed));
+    setContentOpacity(next);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY, String(contentOpacity));
+  }, [contentOpacity]);
 
   const removePendingUpload = useCallback((tempId: string) => {
     setPendingUploads((prev) => {
@@ -290,9 +313,38 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
     setInputText((prev) => prev + emoji);
   }, []);
 
+  const clampModalPositionToViewport = useCallback(
+    (position: { left: number; top: number }) =>
+      clampStaffChatWindowPosition(position, window.innerWidth, window.innerHeight),
+    []
+  );
+  const { handlePointerDown: handleHeaderPointerDown } = useDraggableFloatingWindow({
+    position: windowPosition,
+    onChangePosition: setWindowPosition,
+    clampPosition: clampModalPositionToViewport,
+  });
+
   if (!isOpen) return null;
 
   const isDetail = viewMode === "detail" && !!activeRoom;
+  const contentBackgroundAlpha = contentOpacity / 100;
+  const opacityControl = (
+    <label
+      data-no-drag="true"
+      className="flex items-center w-[50px] h-[20px]"
+      title="채팅 배경 투명도"
+      aria-label="채팅 배경 투명도"
+    >
+      <input
+        type="range"
+        min={MIN_STAFF_CHAT_CONTENT_OPACITY}
+        max={MAX_STAFF_CHAT_CONTENT_OPACITY}
+        value={contentOpacity}
+        onChange={(e) => setContentOpacity(Number(e.target.value))}
+        className="w-[50px] h-[20px] cursor-pointer appearance-none bg-transparent accent-[#595959] [&::-webkit-slider-runnable-track]:h-[4px] [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[#E2E2E2] dark:[&::-webkit-slider-runnable-track]:bg-[#4A4A4A] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:mt-[-4px] [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#595959] dark:[&::-webkit-slider-thumb]:bg-[#DADADA] [&::-moz-range-track]:h-[4px] [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[#E2E2E2] dark:[&::-moz-range-track]:bg-[#4A4A4A] [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:bg-[#595959] dark:[&::-moz-range-thumb]:bg-[#DADADA]"
+      />
+    </label>
+  );
 
   return (
     <BaseModal
@@ -302,13 +354,17 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       disableScrollLock
       overlayClassName="pointer-events-none"
       disableAutoContainerSizing
-      positionerClassName="absolute top-[44px] right-[88px]"
-      containerClassName="pointer-events-auto bg-card dark:bg-neutral-10 rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
+      positionerClassName="absolute"
+      positionerStyle={{ top: windowPosition.top, left: windowPosition.left }}
+      containerClassName="pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
     >
       <div className="flex flex-col h-full">
         {!isDetail ? (
           <>
-            <div className="h-[58px] px-5 flex items-center justify-between border-b border-neutral-30/40">
+            <div
+              className="h-[58px] px-5 flex items-center justify-between border-b border-neutral-30/40 cursor-move select-none touch-none bg-card dark:bg-neutral-10"
+              onPointerDown={handleHeaderPointerDown}
+            >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-full bg-gradient-to-b from-primary-20 to-primary-60 grid place-items-center">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -324,16 +380,19 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 </span>
                 <h2 className="text-[16px] leading-[19px] font-bold text-foreground">팀 대화</h2>
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="cursor-pointer text-neutral-100 hover:opacity-70"
-                aria-label="닫기"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
+              <div data-no-drag="true" className="flex items-center gap-2">
+                {opacityControl}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="cursor-pointer text-neutral-100 hover:opacity-70"
+                  aria-label="닫기"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {socketError && (
@@ -343,53 +402,59 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               <div className="px-4 py-2 text-neutral-60 text-[13px]">연결 중...</div>
             )}
 
-            <div className="flex-1 overflow-y-auto bg-neutral-10">
-              {(rooms ?? []).map((room) => (
-                <button
-                  key={room.id}
-                  type="button"
-                  onClick={() => handleSelectRoom(room)}
-                  className="cursor-pointer w-full h-[72px] px-5 flex items-center gap-2 border-b border-neutral-30/40 hover:bg-neutral-0 transition-colors text-left"
-                >
-                  <div className="w-10 h-10 rounded-full bg-primary-10 text-primary-60 grid place-items-center shrink-0">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary-60">
-                      <path
-                        d="M3 21H21M5 21V7.8C5 7.07993 5.38608 6.41518 6.01005 6.0572L11.0101 3.18878C11.629 2.83374 12.3918 2.83374 13.0107 3.18878L18.0107 6.0572C18.6347 6.41518 19.0208 7.07993 19.0208 7.8V21M9 21V15.5C9 14.6716 9.67157 14 10.5 14H13.5C14.3284 14 15 14.6716 15 15.5V21M9 10H9.01M15 10H15.01"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1 h-10 relative pr-12">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[16px] leading-[19px] font-semibold text-foreground truncate">
-                        {formatRoomName(room)}
-                      </p>
-                      <span className="text-[12px] leading-[14px] text-neutral-60 shrink-0">
-                        {formatTime(room.lastMessage?.sentAt)}
-                      </span>
+            <div className="relative flex-1 min-h-0">
+              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
+              <div className="relative h-full min-h-0 overflow-y-auto">
+                {(rooms ?? []).map((room) => (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => handleSelectRoom(room)}
+                    className="cursor-pointer w-full h-[72px] px-5 flex items-center gap-2 border-b border-neutral-30/40 hover:bg-neutral-0 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary-10 text-primary-60 grid place-items-center shrink-0">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary-60">
+                        <path
+                          d="M3 21H21M5 21V7.8C5 7.07993 5.38608 6.41518 6.01005 6.0572L11.0101 3.18878C11.629 2.83374 12.3918 2.83374 13.0107 3.18878L18.0107 6.0572C18.6347 6.41518 19.0208 7.07993 19.0208 7.8V21M9 21V15.5C9 14.6716 9.67157 14 10.5 14H13.5C14.3284 14 15 14.6716 15 15.5V21M9 10H9.01M15 10H15.01"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </div>
-                    <p className="mt-[4px] text-[14px] leading-[17px] font-medium text-neutral-70 truncate">
-                      {formatRoomLastMessagePreview(room.lastMessage ?? null, room.participantCount)}
-                    </p>
-                  </div>
-                  {room.unreadCount > 0 && (
-                    <span className="min-w-[20px] h-[18px] px-[6px] rounded-[20px] bg-danger-40 text-white text-[12px] leading-[14px] font-medium grid place-items-center">
-                      {room.unreadCount > 9 ? "9+" : room.unreadCount}
-                    </span>
-                  )}
-                </button>
-              ))}
-              {(rooms?.length ?? 0) === 0 && connected && (
-                <div className="px-5 py-6 text-[14px] leading-[20px] text-neutral-60">참여 중인 팀 대화가 없습니다.</div>
-              )}
+                    <div className="min-w-0 flex-1 h-10 relative pr-12">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-[16px] leading-[19px] font-semibold text-foreground truncate">
+                          {formatRoomName(room)}
+                        </p>
+                        <span className="text-[12px] leading-[14px] text-neutral-60 shrink-0">
+                          {formatTime(room.lastMessage?.sentAt)}
+                        </span>
+                      </div>
+                      <p className="mt-[4px] text-[14px] leading-[17px] font-medium text-neutral-70 truncate">
+                        {formatRoomLastMessagePreview(room.lastMessage ?? null, room.participantCount)}
+                      </p>
+                    </div>
+                    {room.unreadCount > 0 && (
+                      <span className="min-w-[20px] h-[18px] px-[6px] rounded-[20px] bg-danger-40 text-white text-[12px] leading-[14px] font-medium grid place-items-center">
+                        {room.unreadCount > 9 ? "9+" : room.unreadCount}
+                      </span>
+                    )}
+                  </button>
+                ))}
+                {(rooms?.length ?? 0) === 0 && connected && (
+                  <div className="px-5 py-6 text-[14px] leading-[20px] text-neutral-60">참여 중인 팀 대화가 없습니다.</div>
+                )}
+              </div>
             </div>
           </>
         ) : (
           <>
-            <div className="relative h-[56px] px-3 flex items-center justify-between border-b border-border">
+            <div
+              className="relative h-[56px] px-3 flex items-center justify-between border-b border-border cursor-move select-none touch-none bg-card dark:bg-neutral-10"
+              onPointerDown={handleHeaderPointerDown}
+            >
               <div className="flex items-center gap-1.5 min-w-0">
                 <button
                   type="button"
@@ -416,19 +481,25 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                   <span className="text-[12px]">· {activeRoom?.participantCount ?? 0}</span>
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="cursor-pointer text-neutral-70 hover:text-foreground p-1"
-                aria-label="닫기"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
+              <div data-no-drag="true" className="flex items-center gap-2">
+                {opacityControl}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="cursor-pointer text-neutral-70 hover:text-foreground p-1"
+                  aria-label="닫기"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
               {showParticipants && (
-                <div className="absolute right-3 top-[46px] z-20 w-[220px] rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl">
+                <div
+                  data-no-drag="true"
+                  className="absolute right-3 top-[46px] z-20 w-[220px] rounded-[10px] bg-card dark:bg-[#252525] text-foreground dark:text-white border border-border dark:border-neutral-30 p-3 shadow-xl"
+                >
                   <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto">
                     {participants.map((p) => (
                       <button
@@ -455,168 +526,174 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               )}
             </div>
 
-            <div
-              ref={messagesScrollRef}
-              onScroll={handleScroll}
-              className="flex-1 overflow-y-auto bg-neutral-10/50 px-3 py-2.5 flex flex-col gap-5"
-            >
-              {uploadError && (
-                <div className="mx-1 rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
-                  {uploadError}
-                </div>
-              )}
-              {hasMore && (
-                <div className="flex justify-center py-1">
-                  <button
-                    type="button"
-                    onClick={handleLoadMore}
-                    className="cursor-pointer text-[12px] text-primary-60 hover:underline"
-                  >
-                    이전 메시지 더 보기
-                  </button>
-                </div>
-              )}
-              {messages.map((msg: TeamMessage) => {
-                if (msg.type === "system") {
+            <div className="relative flex-1 min-h-0">
+              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
+              <div
+                ref={messagesScrollRef}
+                onScroll={handleScroll}
+                className="relative h-full min-h-0 overflow-y-auto px-3 pt-6 pb-2.5"
+              >
+                <div className="flex flex-col gap-5">
+                {uploadError && (
+                  <div className="mx-1 rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
+                    {uploadError}
+                  </div>
+                )}
+                {hasMore && (
+                  <div className="flex justify-center py-1">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      className="cursor-pointer text-[12px] text-primary-60 hover:underline"
+                    >
+                      이전 메시지 더 보기
+                    </button>
+                  </div>
+                )}
+                {messages.map((msg: TeamMessage) => {
+                  if (msg.type === "system") {
+                    return (
+                      <div key={msg.id} className="flex justify-center items-center">
+                        <span className="rounded-full bg-primary-10/40 px-3 pt-1 pb-[3px] text-[12px] text-primary-80 font-medium">
+                          {formatSystemMessageContent(msg)}
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  const isMine = msg.senderMemberId === memberId;
+                  const unreadCount = msg.unreadCount ?? 0;
+                  const unreadLabel = unreadCount > 0 ? (
+                    <span
+                      className={`text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0 ${!isMine ? "-translate-y-[30px]" : ""}`}
+                    >
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null;
+
                   return (
-                    <div key={msg.id} className="flex justify-center items-center">
-                      <span className="rounded-full bg-primary-10/40 px-3 pt-1 pb-[3px] text-[12px] text-primary-80 font-medium">
-                        {formatSystemMessageContent(msg)}
-                      </span>
-                    </div>
-                  );
-                }
-
-                const isMine = msg.senderMemberId === memberId;
-                const unreadCount = msg.unreadCount ?? 0;
-                const unreadLabel = unreadCount > 0 ? (
-                  <span
-                    className={`text-[12px] leading-[14px] text-primary-80 font-semibold shrink-0 ${!isMine ? "-translate-y-[30px]" : ""}`}
-                  >
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                ) : null;
-
-                return (
-                  <div key={msg.id} className={`w-full flex ${isMine ? "justify-end" : "justify-start"}`}>
-                    <div className="max-w-[84%] flex items-end gap-2">
-                      {isMine && unreadLabel}
-                      {!isMine &&
-                        (msg.senderMemberId != null ? (
-                          <button
-                            type="button"
-                            onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
-                            className="cursor-pointer w-8 h-8 rounded-full bg-neutral-50 text-[14px] grid place-items-center shrink-0 text-neutral-80 hover:ring-2 hover:ring-primary-40 focus:outline-none focus:ring-2 focus:ring-primary-40 rounded-full"
-                            aria-label={`${msg.senderName} 프로필 보기`}
-                          >
-                            {initial(msg.senderName)}
-                          </button>
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-neutral-50 text-[14px] grid place-items-center shrink-0 text-neutral-80">
-                            {initial(msg.senderName)}
-                          </div>
-                        ))}
-                      <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
-                        <div
-                          className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
-                            }`}
-                        >
-                          {msg.type === "text" && (msg.content ?? "")}
-                          {msg.type === "image" && msg.fileUrl && (
-                            <a
-                              href={msg.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="cursor-pointer block"
-                            >
-                              <img src={msg.fileUrl} alt={msg.fileName ?? "이미지"} className="max-w-full max-h-[220px] rounded-[10px] object-contain" />
-                            </a>
-                          )}
-                          {msg.type === "image" && !msg.fileUrl && (
-                            <div className="text-[13px] leading-[18px] text-neutral-60">이미지 준비중...</div>
-                          )}
-                          {msg.type === "file" && msg.fileUrl && (
-                            <a
-                              href={msg.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="cursor-pointer underline"
-                            >
-                              {msg.fileName ?? "파일"}
-                            </a>
-                          )}
-                          {msg.type === "file" && !msg.fileUrl && (
-                            <div className="text-[13px] leading-[18px] text-neutral-60">{msg.fileName ?? "파일"} 업로드 중...</div>
-                          )}
-                          <div className={`mt-2 text-[12px] leading-[14px] ${isMine ? "text-neutral-40" : "text-neutral-60"}`}>
-                            {formatMessageTime(msg.sentAt)}
-                          </div>
-                        </div>
+                    <div key={msg.id} className={`w-full flex ${isMine ? "justify-end" : "justify-start"}`}>
+                      <div className="max-w-[84%] flex items-end gap-2">
+                        {isMine && unreadLabel}
                         {!isMine &&
                           (msg.senderMemberId != null ? (
                             <button
                               type="button"
                               onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
-                              className="text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer text-left"
+                              className="cursor-pointer w-8 h-8 rounded-full bg-neutral-50 text-[14px] grid place-items-center shrink-0 text-neutral-80 hover:ring-2 hover:ring-primary-40 focus:outline-none focus:ring-2 focus:ring-primary-40 rounded-full"
+                              aria-label={`${msg.senderName} 프로필 보기`}
                             >
-                              {msg.senderName}
+                              {initial(msg.senderName)}
                             </button>
                           ) : (
-                            <div className="text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
-                          ))}
-                      </div>
-                      {!isMine && unreadLabel}
-                    </div>
-                  </div>
-                );
-              })}
-              {activeRoomId != null &&
-                pendingUploads
-                  .filter((p) => p.roomId === activeRoomId)
-                  .map((p) => (
-                    <div key={p.tempId} className="w-full flex justify-end">
-                      <div className="max-w-[84%] flex items-end gap-2">
-                        <div className="rounded-[18px] px-4 py-3 rounded-br-[6px] bg-neutral-90 text-neutral-0 flex items-center gap-2 min-h-[52px]">
-                          {p.type === "image" && p.previewUrl ? (
-                            <img
-                              src={p.previewUrl}
-                              alt=""
-                              className="w-12 h-12 rounded-[8px] object-cover shrink-0 opacity-90"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-[8px] bg-neutral-70 flex items-center justify-center shrink-0">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-40">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14 2 14 8 20 8" />
-                                <line x1="12" y1="18" x2="12" y2="12" />
-                                <line x1="9" y1="15" x2="15" y2="15" />
-                              </svg>
+                            <div className="w-8 h-8 rounded-full bg-neutral-50 text-[14px] grid place-items-center shrink-0 text-neutral-80">
+                              {initial(msg.senderName)}
                             </div>
-                          )}
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[13px] leading-[18px] text-neutral-20">{p.fileName}</span>
-                            <div className="flex items-center gap-1.5 text-[12px] text-neutral-40">
-                              <svg
-                                className="animate-spin shrink-0"
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                aria-hidden
+                          ))}
+                        <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
+                          <div
+                            className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
+                              }`}
+                          >
+                            {msg.type === "text" && (msg.content ?? "")}
+                            {msg.type === "image" && msg.fileUrl && (
+                              <a
+                                href={msg.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="cursor-pointer block"
                               >
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="12" />
-                              </svg>
-                              전송 중...
+                                <img src={msg.fileUrl} alt={msg.fileName ?? "이미지"} className="max-w-full max-h-[220px] rounded-[10px] object-contain" />
+                              </a>
+                            )}
+                            {msg.type === "image" && !msg.fileUrl && (
+                              <div className="text-[13px] leading-[18px] text-neutral-60">이미지 준비중...</div>
+                            )}
+                            {msg.type === "file" && msg.fileUrl && (
+                              <a
+                                href={msg.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="cursor-pointer underline"
+                              >
+                                {msg.fileName ?? "파일"}
+                              </a>
+                            )}
+                            {msg.type === "file" && !msg.fileUrl && (
+                              <div className="text-[13px] leading-[18px] text-neutral-60">{msg.fileName ?? "파일"} 업로드 중...</div>
+                            )}
+                            <div className={`mt-2 text-[12px] leading-[14px] ${isMine ? "text-neutral-40" : "text-neutral-60"}`}>
+                              {formatMessageTime(msg.sentAt)}
+                            </div>
+                          </div>
+                          {!isMine &&
+                            (msg.senderMemberId != null ? (
+                              <button
+                                type="button"
+                                onClick={() => setMemberInfoModalMemberId(msg.senderMemberId)}
+                                className="text-[12px] leading-[14px] text-neutral-60 hover:underline cursor-pointer text-left"
+                              >
+                                {msg.senderName}
+                              </button>
+                            ) : (
+                              <div className="text-[12px] leading-[14px] text-neutral-60">{msg.senderName}</div>
+                            ))}
+                        </div>
+                        {!isMine && unreadLabel}
+                      </div>
+                    </div>
+                  );
+                })}
+                {activeRoomId != null &&
+                  pendingUploads
+                    .filter((p) => p.roomId === activeRoomId)
+                    .map((p) => (
+                      <div key={p.tempId} className="w-full flex justify-end">
+                        <div className="max-w-[84%] flex items-end gap-2">
+                          <div className="rounded-[18px] px-4 py-3 rounded-br-[6px] bg-neutral-90 text-neutral-0 flex items-center gap-2 min-h-[52px]">
+                            {p.type === "image" && p.previewUrl ? (
+                              <img
+                                src={p.previewUrl}
+                                alt=""
+                                className="w-12 h-12 rounded-[8px] object-cover shrink-0 opacity-90"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-[8px] bg-neutral-70 flex items-center justify-center shrink-0">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-40">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                  <polyline points="14 2 14 8 20 8" />
+                                  <line x1="12" y1="18" x2="12" y2="12" />
+                                  <line x1="9" y1="15" x2="15" y2="15" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[13px] leading-[18px] text-neutral-20">{p.fileName}</span>
+                              <div className="flex items-center gap-1.5 text-[12px] text-neutral-40">
+                                <svg
+                                  className="animate-spin shrink-0"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  aria-hidden
+                                >
+                                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="12" />
+                                </svg>
+                                전송 중...
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-              <div ref={messagesEndRef} />
+                    ))}
+                <div ref={messagesEndRef} />
+                </div>
+              </div>
             </div>
 
-            <div className="h-[56px] px-2.5 border-t border-border flex items-center gap-2">
+            <div className="relative h-[56px] px-2.5 border-t border-border flex items-center gap-2">
+              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
               <label className={`w-8 h-8 rounded-full bg-neutral-20 text-neutral-60 grid place-items-center shrink-0 ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-30"}`}>
                 <input
                   type="file"
