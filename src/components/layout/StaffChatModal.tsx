@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import EmojiPicker from "@/components/chat/EmojiPicker";
 import { useEmojiPicker } from "@/hooks/useEmojiPicker";
@@ -12,18 +12,19 @@ import type { TeamRoom, TeamMessage, TeamRoomParticipant } from "@/types/teamCha
 import { AssetsService } from "@/services/assets";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { clampStaffChatWindowPosition } from "@/lib/staffChatWindowPosition";
+import { isImeComposing } from "@/lib/ime";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_ATTACHMENT_FILE_SIZE = 30 * 1024 * 1024;
 const STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY = "talkgate.staffChatModal.contentOpacity";
 const DEFAULT_STAFF_CHAT_CONTENT_OPACITY = 100;
 const MIN_STAFF_CHAT_CONTENT_OPACITY = 0;
 const MAX_STAFF_CHAT_CONTENT_OPACITY = 100;
+const INVALID_DROP_FEEDBACK_MS = 1400;
 
 function formatTime(value?: string | null) {
   if (!value) return "";
@@ -81,6 +82,21 @@ type PendingUpload = {
   previewUrl: string | null;
 };
 
+type DraftAttachment = {
+  draftId: string;
+  type: "image" | "file";
+  file: File;
+  fileName: string;
+  fileSize: number;
+  previewUrl: string | null;
+};
+
+function isSupportedAttachment(file: File): boolean {
+  if (file.type.startsWith("image/")) return true;
+  const lower = file.name.toLowerCase();
+  return lower.endsWith(".pdf") || lower.endsWith(".doc") || lower.endsWith(".docx");
+}
+
 /** 팀에서 나감/제외된 시스템 메시지를 "OOO 멤버가 팀 변경으로 채팅방에서 제외되었습니다."로 통일 */
 function formatSystemMessageDisplay(content: string | null): string {
   const raw = content?.trim() ?? "";
@@ -117,13 +133,21 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dragOverlayMessage, setDragOverlayMessage] = useState<string | null>(null);
+  const [dragOverlayInvalid, setDragOverlayInvalid] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
   const [showParticipants, setShowParticipants] = useState(false);
   const [contentOpacity, setContentOpacity] = useState(DEFAULT_STAFF_CHAT_CONTENT_OPACITY);
+  const [draftAttachments, setDraftAttachments] = useState<DraftAttachment[]>([]);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const [memberInfoModalMemberId, setMemberInfoModalMemberId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const dragCounterRef = useRef(0);
+  const invalidDropTimerRef = useRef<number | null>(null);
+  const uploadErrorTimerRef = useRef<number | null>(null);
+  const initialScrollDoneRoomRef = useRef<number | null>(null);
+  const isComposingRef = useRef(false);
   const [projectId] = useSelectedProjectId();
   const {
     emojiPickerOpen,
@@ -176,7 +200,10 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem(STAFF_CHAT_CONTENT_OPACITY_STORAGE_KEY);
     const parsed = Number(stored);
-    if (!Number.isFinite(parsed)) return;
+    if (!Number.isFinite(parsed)) {
+      setContentOpacity(DEFAULT_STAFF_CHAT_CONTENT_OPACITY);
+      return;
+    }
     const next = Math.min(MAX_STAFF_CHAT_CONTENT_OPACITY, Math.max(MIN_STAFF_CHAT_CONTENT_OPACITY, parsed));
     setContentOpacity(next);
   }, []);
@@ -195,6 +222,83 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
     });
   }, []);
 
+  const releaseDraftAttachmentPreview = useCallback((draft: DraftAttachment) => {
+    if (draft.previewUrl) URL.revokeObjectURL(draft.previewUrl);
+  }, []);
+
+  const removeDraftAttachment = useCallback(
+    (draftId: string) => {
+      setDraftAttachments((prev) => {
+        const target = prev.find((d) => d.draftId === draftId);
+        if (target) releaseDraftAttachmentPreview(target);
+        return prev.filter((d) => d.draftId !== draftId);
+      });
+    },
+    [releaseDraftAttachmentPreview]
+  );
+
+  const clearDraftAttachments = useCallback(
+    (options?: { releasePreview?: boolean }) => {
+      const releasePreview = options?.releasePreview ?? true;
+      setDraftAttachments((prev) => {
+        if (releasePreview) {
+          prev.forEach(releaseDraftAttachmentPreview);
+        }
+        return [];
+      });
+    },
+    [releaseDraftAttachmentPreview]
+  );
+
+  const showInvalidDropFeedback = useCallback((message: string) => {
+    setDragOverlayInvalid(true);
+    setDragOverlayMessage(message);
+    if (invalidDropTimerRef.current != null) {
+      window.clearTimeout(invalidDropTimerRef.current);
+      invalidDropTimerRef.current = null;
+    }
+    invalidDropTimerRef.current = window.setTimeout(() => {
+      setDragOverlayMessage(null);
+      setDragOverlayInvalid(false);
+      invalidDropTimerRef.current = null;
+    }, INVALID_DROP_FEEDBACK_MS);
+  }, []);
+
+  const validateAttachmentFile = useCallback((file: File): string | null => {
+    if (!isSupportedAttachment(file)) {
+      return "이미지, PDF, DOC, DOCX 파일만 첨부할 수 있습니다.";
+    }
+    if (file.size > MAX_ATTACHMENT_FILE_SIZE) {
+      return "파일은 30MB 이하만 첨부할 수 있습니다.";
+    }
+    return null;
+  }, []);
+
+  const addDraftAttachment = useCallback(
+    (file: File) => {
+      const validationError = validateAttachmentFile(file);
+      if (validationError) {
+        setUploadError(validationError);
+        return { ok: false as const, error: validationError };
+      }
+
+      const messageType = detectTeamMessageType(file);
+      const previewUrl = messageType === "image" ? URL.createObjectURL(file) : null;
+      const draft: DraftAttachment = {
+        draftId: `draft_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        type: messageType,
+        file,
+        fileName: file.name,
+        fileSize: file.size,
+        previewUrl,
+      };
+      setUploadError(null);
+      setDraftAttachments((prev) => [...prev, draft]);
+      return { ok: true as const };
+    },
+    [validateAttachmentFile]
+  );
+
   useEffect(() => {
     if (!isOpen || activeRoomId == null) {
       setPendingUploads((prev) => {
@@ -203,8 +307,26 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         });
         return [];
       });
+      clearDraftAttachments();
+      setDragOverlayMessage(null);
+      setDragOverlayInvalid(false);
+      dragCounterRef.current = 0;
+      if (!isOpen) {
+        setActiveRoomId?.(null);
+      }
     }
-  }, [isOpen, activeRoomId]);
+  }, [isOpen, activeRoomId, clearDraftAttachments, setActiveRoomId]);
+
+  useEffect(() => {
+    return () => {
+      if (invalidDropTimerRef.current != null) {
+        window.clearTimeout(invalidDropTimerRef.current);
+      }
+      if (uploadErrorTimerRef.current != null) {
+        window.clearTimeout(uploadErrorTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !activeRoomId || !loadTeamMessages) return;
@@ -213,8 +335,28 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   }, [isOpen, activeRoomId, loadTeamMessages, loadRoomParticipants]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, pendingUploads.length]);
+    if (!isOpen || activeRoomId == null || messages.length === 0) return;
+    if (initialScrollDoneRoomRef.current === activeRoomId) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    initialScrollDoneRoomRef.current = activeRoomId;
+  }, [isOpen, activeRoomId, messages.length]);
+
+  useEffect(() => {
+    if (activeRoomId == null) {
+      initialScrollDoneRoomRef.current = null;
+    }
+  }, [activeRoomId]);
+
+  useEffect(() => {
+    if (!uploadError) return;
+    if (uploadErrorTimerRef.current != null) {
+      window.clearTimeout(uploadErrorTimerRef.current);
+    }
+    uploadErrorTimerRef.current = window.setTimeout(() => {
+      setUploadError(null);
+      uploadErrorTimerRef.current = null;
+    }, 1500);
+  }, [uploadError]);
 
   const handleSelectRoom = useCallback(
     (room: TeamRoom) => {
@@ -226,9 +368,17 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   );
 
   const handleBackToList = useCallback(() => {
+    setActiveRoomId?.(null);
     setViewMode("list");
     setShowParticipants(false);
-  }, []);
+  }, [setActiveRoomId]);
+
+  const handleCloseModal = useCallback(() => {
+    setActiveRoomId?.(null);
+    setViewMode("list");
+    setShowParticipants(false);
+    onClose();
+  }, [setActiveRoomId, onClose]);
 
   const handleLoadMore = useCallback(() => {
     if (!activeRoomId || !loadTeamMessages || !hasMore) return;
@@ -236,71 +386,148 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   }, [activeRoomId, loadTeamMessages, hasMore, nextCursor]);
 
   const handleSend = useCallback(async () => {
-    if (!activeRoomId || !sendTeamMessage || !inputText.trim()) return;
+    if (!activeRoomId || !sendTeamMessage) return;
+    const text = inputText.trim();
+    const attachmentsToSend = draftAttachments;
+    if (!text && attachmentsToSend.length === 0) return;
+
     setSending(true);
+    setUploadError(null);
     try {
-      sendTeamMessage({
-        roomId: activeRoomId,
-        type: "text",
-        content: inputText.trim(),
-      });
-      setInputText("");
-    } finally {
-      setSending(false);
-    }
-  }, [activeRoomId, sendTeamMessage, inputText]);
-
-  const handleFileSelect = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !activeRoomId || !sendTeamMessage) return;
-      e.target.value = "";
-      const messageType = detectTeamMessageType(file);
-      const maxSize = messageType === "image" ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
-      if (file.size > maxSize) {
-        setUploadError(
-          messageType === "image"
-            ? "이미지는 8MB 이하만 업로드할 수 있습니다."
-            : "파일은 20MB 이하만 업로드할 수 있습니다."
-        );
-        return;
-      }
-      setUploadError(null);
-      const tempId = `upload_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-      const previewUrl = messageType === "image" ? URL.createObjectURL(file) : null;
-      setPendingUploads((prev) => [
-        ...prev,
-        { tempId, roomId: activeRoomId, type: messageType, fileName: file.name, fileSize: file.size, previewUrl },
-      ]);
-      setUploading(true);
-      try {
-        const fileType = file.type || (messageType === "image" ? "image/jpeg" : "application/octet-stream");
-        const res = await AssetsService.presignTeamChatAttachment({
-          fileName: file.name,
-          fileType,
-        });
-        const uploadUrl = res?.data?.data?.uploadUrl;
-        const fileUrl = res?.data?.data?.fileUrl;
-        if (!uploadUrl || !fileUrl) throw new Error("Presigned response missing uploadUrl or fileUrl");
-
-        await AssetsService.uploadToS3(uploadUrl, file, fileType);
+      if (text) {
         sendTeamMessage({
           roomId: activeRoomId,
-          type: messageType,
-          fileUrl,
-          fileName: file.name,
-          fileType,
-          fileSize: file.size,
+          type: "text",
+          content: text,
         });
-      } catch (err) {
-        console.error("Team chat file upload failed:", err);
-        setUploadError("파일 전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
-      } finally {
-        setUploading(false);
-        removePendingUpload(tempId);
+        setInputText("");
       }
+
+      if (attachmentsToSend.length > 0) {
+        setUploading(true);
+        setDraftAttachments([]);
+        for (const draft of attachmentsToSend) {
+          const tempId = `upload_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+          setPendingUploads((prev) => [
+            ...prev,
+            {
+              tempId,
+              roomId: activeRoomId,
+              type: draft.type,
+              fileName: draft.fileName,
+              fileSize: draft.fileSize,
+              previewUrl: draft.previewUrl,
+            },
+          ]);
+          try {
+            const fileType =
+              draft.file.type || (draft.type === "image" ? "image/jpeg" : "application/octet-stream");
+            const res = await AssetsService.presignTeamChatAttachment({
+              fileName: draft.fileName,
+              fileType,
+            });
+            const uploadUrl = res?.data?.data?.uploadUrl;
+            const fileUrl = res?.data?.data?.fileUrl;
+            if (!uploadUrl || !fileUrl) throw new Error("Presigned response missing uploadUrl or fileUrl");
+            await AssetsService.uploadToS3(uploadUrl, draft.file, fileType);
+            sendTeamMessage({
+              roomId: activeRoomId,
+              type: draft.type,
+              fileUrl,
+              fileName: draft.fileName,
+              fileType,
+              fileSize: draft.fileSize,
+            });
+          } catch (err) {
+            console.error("Team chat file upload failed:", err);
+            setUploadError(`${draft.fileName} 전송에 실패했습니다. 잠시 후 다시 시도해주세요.`);
+            if (draft.previewUrl) URL.revokeObjectURL(draft.previewUrl);
+          } finally {
+            removePendingUpload(tempId);
+          }
+        }
+      }
+    } finally {
+      setUploading(false);
+      setSending(false);
+    }
+  }, [activeRoomId, sendTeamMessage, inputText, draftAttachments, removePendingUpload]);
+
+  const handleFileSelect = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      addDraftAttachment(file);
     },
-    [activeRoomId, sendTeamMessage, removePendingUpload]
+    [addDraftAttachment]
+  );
+
+  const handleDragEnter = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterRef.current += 1;
+      if (dragOverlayInvalid) return;
+      setDragOverlayMessage("파일을 놓아 첨부하세요.");
+      setDragOverlayInvalid(false);
+    },
+    [dragOverlayInvalid]
+  );
+
+  const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+    if (dragCounterRef.current === 0) {
+      setDragOverlayMessage(null);
+      setDragOverlayInvalid(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    const validationError = validateAttachmentFile(file);
+    if (validationError) {
+      setDragOverlayInvalid(true);
+      setDragOverlayMessage(validationError);
+      e.dataTransfer.dropEffect = "none";
+      return;
+    }
+    setDragOverlayInvalid(false);
+    setDragOverlayMessage("파일을 놓아 첨부하세요.");
+    e.dataTransfer.dropEffect = "copy";
+  }, [validateAttachmentFile]);
+
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounterRef.current = 0;
+      const file = e.dataTransfer.files?.[0];
+      if (!file) {
+        setDragOverlayMessage(null);
+        setDragOverlayInvalid(false);
+        return;
+      }
+
+      const validationError = validateAttachmentFile(file);
+      if (validationError) {
+        setDragOverlayMessage(null);
+        setDragOverlayInvalid(false);
+        setUploadError(validationError);
+        showInvalidDropFeedback(validationError);
+        return;
+      }
+
+      setDragOverlayMessage(null);
+      setDragOverlayInvalid(false);
+      addDraftAttachment(file);
+    },
+    [addDraftAttachment, showInvalidDropFeedback, validateAttachmentFile]
   );
 
   const handleScroll = useCallback(() => {
@@ -348,7 +575,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
 
   return (
     <BaseModal
-      onClose={onClose}
+      onClose={handleCloseModal}
       ariaLabel="직원채팅"
       closeOnOverlayClick={false}
       disableScrollLock
@@ -358,7 +585,12 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       positionerStyle={{ top: windowPosition.top, left: windowPosition.left }}
       containerClassName="pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
     >
-      <div className="flex flex-col h-full">
+      <div className="relative flex flex-col h-full">
+        {uploadError && (
+          <div className="absolute left-3 right-3 top-16 z-30 pointer-events-none rounded-[10px] border border-danger-20 bg-danger-10/95 text-danger-60 text-[12px] px-3 py-2 shadow-sm">
+            {uploadError}
+          </div>
+        )}
         {!isDetail ? (
           <>
             <div
@@ -384,7 +616,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 {opacityControl}
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleCloseModal}
                   className="cursor-pointer text-neutral-100 hover:opacity-70"
                   aria-label="닫기"
                 >
@@ -423,24 +655,26 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                         />
                       </svg>
                     </div>
-                    <div className="min-w-0 flex-1 h-10 relative pr-12">
-                      <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
                         <p className="text-[16px] leading-[19px] font-semibold text-foreground truncate">
                           {formatRoomName(room)}
                         </p>
-                        <span className="text-[12px] leading-[14px] text-neutral-60 shrink-0">
+                        <p className="mt-[4px] text-[14px] leading-[17px] font-medium text-neutral-70 truncate">
+                          {formatRoomLastMessagePreview(room.lastMessage ?? null, room.participantCount)}
+                        </p>
+                      </div>
+                      <div className="shrink-0 min-w-[84px] h-10 flex flex-col items-end justify-between">
+                        <span className="text-[12px] leading-[14px] text-neutral-60 whitespace-nowrap text-right">
                           {formatTime(room.lastMessage?.sentAt)}
                         </span>
+                        {room.unreadCount > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-[6px] py-[2px] rounded-[20px] bg-[#D83232] text-[#FFFFFF] text-[12px] leading-[14px] font-medium text-center">
+                            {room.unreadCount > 9 ? "9+" : room.unreadCount}
+                          </span>
+                        )}
                       </div>
-                      <p className="mt-[4px] text-[14px] leading-[17px] font-medium text-neutral-70 truncate">
-                        {formatRoomLastMessagePreview(room.lastMessage ?? null, room.participantCount)}
-                      </p>
                     </div>
-                    {room.unreadCount > 0 && (
-                      <span className="min-w-[20px] h-[18px] px-[6px] rounded-[20px] bg-danger-40 text-white text-[12px] leading-[14px] font-medium grid place-items-center">
-                        {room.unreadCount > 9 ? "9+" : room.unreadCount}
-                      </span>
-                    )}
                   </button>
                 ))}
                 {(rooms?.length ?? 0) === 0 && connected && (
@@ -485,7 +719,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 {opacityControl}
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleCloseModal}
                   className="cursor-pointer text-neutral-70 hover:text-foreground p-1"
                   aria-label="닫기"
                 >
@@ -526,19 +760,45 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               )}
             </div>
 
-            <div className="relative flex-1 min-h-0">
+            <div
+              className="relative flex-1 min-h-0"
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
               <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
+              {dragOverlayMessage && (
+                <div
+                  className={`absolute inset-0 z-10 pointer-events-none flex items-center justify-center px-6 ${dragOverlayInvalid
+                      ? "bg-danger-10/55 border-2 border-dashed border-danger-40"
+                      : "bg-primary-10/35 border-2 border-dashed border-primary-60/60"
+                    }`}
+                >
+                  <div className="rounded-[12px] px-4 py-3 bg-card/85 dark:bg-neutral-10/90 shadow-sm flex items-center gap-2">
+                    {dragOverlayInvalid ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D83232" strokeWidth="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary-60">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                    )}
+                    <span className={`text-[13px] font-medium ${dragOverlayInvalid ? "text-danger-60" : "text-primary-70"}`}>
+                      {dragOverlayMessage}
+                    </span>
+                  </div>
+                </div>
+              )}
               <div
                 ref={messagesScrollRef}
                 onScroll={handleScroll}
                 className="relative h-full min-h-0 overflow-y-auto px-3 pt-6 pb-2.5"
               >
                 <div className="flex flex-col gap-5">
-                {uploadError && (
-                  <div className="mx-1 rounded-[8px] border border-danger-20 bg-danger-10 text-danger-60 text-[12px] px-3 py-2">
-                    {uploadError}
-                  </div>
-                )}
                 {hasMore && (
                   <div className="flex justify-center py-1">
                     <button
@@ -692,15 +952,49 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               </div>
             </div>
 
-            <div className="relative h-[56px] px-2.5 border-t border-border flex items-center gap-2">
-              <div aria-hidden className="absolute inset-0 bg-neutral-10 pointer-events-none" style={{ opacity: contentBackgroundAlpha }} />
-              <label className={`w-8 h-8 rounded-full bg-neutral-20 text-neutral-60 grid place-items-center shrink-0 ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-30"}`}>
+            {draftAttachments.length > 0 && (
+              <div className="border-t border-border bg-card dark:bg-neutral-10 px-2.5 py-2">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  {draftAttachments.map((draft) => (
+                    <div key={draft.draftId} className="shrink-0 h-14 rounded-[10px] border border-border bg-neutral-0 dark:bg-neutral-20 px-2.5 flex items-center gap-2 max-w-[220px]">
+                      {draft.type === "image" && draft.previewUrl ? (
+                        <img src={draft.previewUrl} alt="" className="w-10 h-10 rounded-[8px] object-cover shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-[8px] bg-neutral-20 dark:bg-neutral-30 flex items-center justify-center shrink-0">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-neutral-60">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[12px] leading-[15px] text-foreground truncate">{draft.fileName}</p>
+                        <p className="text-[11px] leading-[13px] text-neutral-60">{Math.max(1, Math.round(draft.fileSize / 1024))}KB</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="cursor-pointer text-neutral-60 hover:text-neutral-90 p-1"
+                        onClick={() => removeDraftAttachment(draft.draftId)}
+                        aria-label={`${draft.fileName} 첨부 제거`}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="h-[56px] px-2.5 border-t border-border bg-card dark:bg-neutral-10 flex items-center gap-2">
+              <label className={`w-8 h-8 rounded-full bg-neutral-20 text-neutral-60 grid place-items-center shrink-0 ${(uploading || sending) ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-30"}`}>
                 <input
                   type="file"
                   className="hidden"
                   accept="image/*,.pdf,.doc,.docx"
                   onChange={handleFileSelect}
-                  disabled={uploading}
+                  disabled={uploading || sending}
                 />
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5V19M5 12H19" />
@@ -710,8 +1004,21 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                onCompositionStart={() => {
+                  isComposingRef.current = true;
+                }}
+                onCompositionEnd={() => {
+                  isComposingRef.current = false;
+                }}
+                onBlur={() => {
+                  isComposingRef.current = false;
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !isImeComposing(e.nativeEvent, isComposingRef.current)
+                  ) {
                     e.preventDefault();
                     handleSend();
                   }
@@ -734,7 +1041,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               <button
                 type="button"
                 onClick={handleSend}
-                disabled={sending || !inputText.trim()}
+                disabled={sending || (!inputText.trim() && draftAttachments.length === 0)}
                 className="cursor-pointer w-8 h-8 rounded-full bg-[#252525] text-white dark:bg-[#F5F5F5] dark:text-neutral-50 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="전송"
               >

@@ -1,6 +1,7 @@
 "use client";
 
 import { Ref, useState, useEffect, useRef } from "react";
+import { isImeComposing } from "@/lib/ime";
 
 type Props = {
   input: string;
@@ -37,6 +38,7 @@ export default function ChatInputBar({
 }: Props) {
   // 모바일에서 파일 첨부 처리
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const isComposingRef = useRef(false);
   
   // 웹에서 영역이 좁을 때 말줄임표 메뉴 처리
   const [showEllipsisMenu, setShowEllipsisMenu] = useState(false);
@@ -153,11 +155,20 @@ export default function ChatInputBar({
           <textarea
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false;
+            }}
+            onBlur={() => {
+              isComposingRef.current = false;
+            }}
             onKeyDown={(e) => {
               if (
                 e.key === "Enter" &&
                 !e.shiftKey &&
-                !e.nativeEvent.isComposing
+                !isImeComposing(e.nativeEvent, isComposingRef.current)
               ) {
                 e.preventDefault();
                 onSend();
