@@ -102,11 +102,15 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
   const [hasMoreByRoomId, setHasMoreByRoomId] = useState<Record<number, boolean>>({});
   const [participantsByRoomId, setParticipantsByRoomId] = useState<Record<number, TeamRoomParticipant[]>>({});
   const loadingMessagesRef = useRef<Record<number, boolean>>({});
+  const loadingCursorByRoomRef = useRef<Record<number, number | undefined>>({});
+  const initialMessagesLoadedByRoomRef = useRef<Record<number, boolean>>({});
   const loadingParticipantsRef = useRef<Record<number, boolean>>({});
   const participantsTimeoutRef = useRef<Record<number, ReturnType<typeof setTimeout> | null>>({});
   const activeRoomIdRef = useRef<number | null>(null);
   const roomsRef = useRef<TeamRoom[]>([]);
   const messagesByRoomIdRef = useRef<Record<number, TeamMessage[]>>({});
+  const memberIdRef = useRef<number | null>(null);
+  const lastAppliedReadByRoomMemberRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     activeRoomIdRef.current = activeRoomId;
@@ -117,6 +121,9 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     messagesByRoomIdRef.current = messagesByRoomId;
   }, [messagesByRoomId]);
+  useEffect(() => {
+    memberIdRef.current = memberId;
+  }, [memberId]);
 
   const totalUnreadCount = useMemo(
     () => rooms.reduce((sum, r) => sum + r.unreadCount, 0),
@@ -148,14 +155,15 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
     const socket = socketRef.current;
     if (!socket) return;
     if (loadingMessagesRef.current[roomId]) return;
-    const messages = messagesByRoomId[roomId] ?? [];
+    const hasLoadedInitial = initialMessagesLoadedByRoomRef.current[roomId] ?? false;
     const hasMore = hasMoreByRoomId[roomId] ?? true;
-    if (cursor === undefined && messages.length > 0) return;
+    if (cursor === undefined && hasLoadedInitial) return;
     if (cursor !== undefined && !hasMore) return;
 
     loadingMessagesRef.current[roomId] = true;
+    loadingCursorByRoomRef.current[roomId] = cursor;
     socket.emit("getTeamMessages", { roomId, limit: 50, cursor: cursor ?? undefined });
-  }, [messagesByRoomId, hasMoreByRoomId]);
+  }, [hasMoreByRoomId]);
 
   const sendTeamMessage = useCallback((payload: SendTeamMessagePayload) => {
     const socket = socketRef.current;
@@ -191,6 +199,9 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
       setMessagesCursorByRoomId({});
       setHasMoreByRoomId({});
       setParticipantsByRoomId({});
+      loadingCursorByRoomRef.current = {};
+      initialMessagesLoadedByRoomRef.current = {};
+      lastAppliedReadByRoomMemberRef.current = {};
       return;
     }
 
@@ -256,6 +267,11 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
       const { roomId, messages: list, nextCursor, hasMore } = payload ?? {};
       if (roomId == null) return;
       loadingMessagesRef.current[roomId] = false;
+      const requestedCursor = loadingCursorByRoomRef.current[roomId];
+      if (requestedCursor === undefined) {
+        initialMessagesLoadedByRoomRef.current[roomId] = true;
+      }
+      delete loadingCursorByRoomRef.current[roomId];
 
       setMessagesByRoomId((prev) => {
         const existing = prev[roomId] ?? [];
@@ -284,15 +300,41 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
 
     const handleTeamReadCountUpdated = (payload: TeamReadCountUpdatedEvent) => {
       const { roomId, memberId: readerId, previousLastReadId, lastReadMessageId } = payload ?? {};
-      if (roomId == null) return;
+      if (roomId == null || readerId == null) return;
+
+      const roomMemberKey = `${roomId}:${readerId}`;
+      const lastApplied = lastAppliedReadByRoomMemberRef.current[roomMemberKey] ?? 0;
+      const effectivePreviousLastReadId = Math.max(previousLastReadId, lastApplied);
+      if (lastReadMessageId <= effectivePreviousLastReadId) return;
+      lastAppliedReadByRoomMemberRef.current[roomMemberKey] = lastReadMessageId;
+
+      // 상세 메시지의 unreadCount는 "누가 읽었든" 실시간 감소되어야 한다.
+      setMessagesByRoomId((prev) => {
+        const list = prev[roomId];
+        if (!list || list.length === 0) return prev;
+        let changed = false;
+        const nextList = list.map((m) => {
+          if (m.id <= effectivePreviousLastReadId || m.id > lastReadMessageId) return m;
+          if (m.senderMemberId === readerId) return m;
+          const nextUnread = Math.max(0, m.unreadCount - 1);
+          if (nextUnread === m.unreadCount) return m;
+          changed = true;
+          return { ...m, unreadCount: nextUnread };
+        });
+        if (!changed) return prev;
+        return { ...prev, [roomId]: nextList };
+      });
+
+      // 방 목록 unread 배지는 "내가 읽었을 때만" 감소해야 한다.
+      if (memberIdRef.current == null || readerId !== memberIdRef.current) return;
       const messagesInRoom = messagesByRoomIdRef.current[roomId] ?? [];
       let decrease = 0;
       for (const m of messagesInRoom) {
-        if (m.id <= previousLastReadId || m.id > lastReadMessageId) continue;
+        if (m.id <= effectivePreviousLastReadId || m.id > lastReadMessageId) continue;
         if (m.senderMemberId === readerId) continue;
         decrease += 1;
       }
-      if (decrease === 0 && lastReadMessageId > previousLastReadId) decrease = 1;
+      if (decrease === 0 && lastReadMessageId > effectivePreviousLastReadId) decrease = 1;
       setRooms((prev) =>
         prev.map((r) => (r.id !== roomId ? r : { ...r, unreadCount: Math.max(0, r.unreadCount - decrease) }))
       );
@@ -341,6 +383,15 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
         const next = { ...prev };
         roomIds.forEach((id) => delete next[id]);
         return next;
+      });
+      roomIds.forEach((id) => {
+        delete loadingCursorByRoomRef.current[id];
+        delete initialMessagesLoadedByRoomRef.current[id];
+        Object.keys(lastAppliedReadByRoomMemberRef.current).forEach((key) => {
+          if (key.startsWith(`${id}:`)) {
+            delete lastAppliedReadByRoomMemberRef.current[key];
+          }
+        });
       });
     };
 
@@ -401,6 +452,7 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
       if (!msg) return;
       const rid = msg.roomId;
       const isSystem = msg.type === "system";
+      const isMine = memberIdRef.current != null && msg.senderMemberId === memberIdRef.current;
 
       if (rid === activeId) {
         setMessagesByRoomId((prev) => {
@@ -412,7 +464,7 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
         // 현재 보고 있는 방이어도 방 목록의 최신 메시지/시간은 실시간 반영
         updateRoomLastMessage(rid, msg);
       } else {
-        if (!isSystem) {
+        if (!isSystem && !isMine) {
           setRooms((prev) =>
             prev.map((r) => {
               if (r.id !== rid) return r;
@@ -442,21 +494,7 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
     });
     socket.on("teamMessageSent", handleTeamMessageSent as (p: TeamMessageSentEvent) => void);
     socket.on("teamMessagesMarkedRead", handleTeamMessagesMarkedRead as (p: TeamMessagesMarkedReadEvent) => void);
-    socket.on("teamReadCountUpdated", (p: TeamReadCountUpdatedEvent) => {
-      const { roomId, memberId: readerId, previousLastReadId, lastReadMessageId } = p ?? {};
-      if (roomId == null) return;
-      const messagesInRoom = messagesByRoomIdRef.current[roomId] ?? [];
-      let decrease = 0;
-      for (const m of messagesInRoom) {
-        if (m.id <= previousLastReadId || m.id > lastReadMessageId) continue;
-        if (m.senderMemberId === readerId) continue;
-        decrease += 1;
-      }
-      if (decrease === 0 && lastReadMessageId > previousLastReadId) decrease = 1;
-      setRooms((prev) =>
-        prev.map((r) => (r.id !== roomId ? r : { ...r, unreadCount: Math.max(0, r.unreadCount - decrease) }))
-      );
-    });
+    socket.on("teamReadCountUpdated", handleTeamReadCountUpdated as (p: TeamReadCountUpdatedEvent) => void);
     socket.on("teamRoomParticipants", handleTeamRoomParticipants as (p: TeamRoomParticipantsEvent) => void);
     socket.on("teamRoomRemoved", handleTeamRoomRemoved as (p: TeamRoomRemovedEvent) => void);
     socket.on("participantOnlineStatus", handleParticipantOnlineStatus as (p: ParticipantOnlineStatusEvent) => void);
@@ -481,7 +519,7 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
       socket.off("newTeamMessage");
       socket.off("teamMessageSent", handleTeamMessageSent as (p: TeamMessageSentEvent) => void);
       socket.off("teamMessagesMarkedRead", handleTeamMessagesMarkedRead as (p: TeamMessagesMarkedReadEvent) => void);
-      socket.off("teamReadCountUpdated");
+      socket.off("teamReadCountUpdated", handleTeamReadCountUpdated as (p: TeamReadCountUpdatedEvent) => void);
       socket.off("teamRoomParticipants", handleTeamRoomParticipants as (p: TeamRoomParticipantsEvent) => void);
       socket.off("teamRoomRemoved", handleTeamRoomRemoved as (p: TeamRoomRemovedEvent) => void);
       socket.off("participantOnlineStatus", handleParticipantOnlineStatus as (p: ParticipantOnlineStatusEvent) => void);

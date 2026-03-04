@@ -6,6 +6,7 @@ import type { AiAssistantMessage } from "@/types/conversations";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Image from "next/image";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import { isImeComposing } from "@/lib/ime";
 
 type Props = {
   projectId: number;
@@ -26,6 +27,7 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
   const [showTooltip, setShowTooltip] = useState(false);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const isComposingRef = useRef(false);
 
   const hasActiveConversation = useMemo(
     () => !!conversationId,
@@ -453,11 +455,20 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false;
+            }}
+            onBlur={() => {
+              isComposingRef.current = false;
+            }}
             onKeyDown={(e) => {
               if (
                 e.key === "Enter" &&
                 !e.shiftKey &&
-                !e.nativeEvent.isComposing
+                !isImeComposing(e.nativeEvent, isComposingRef.current)
               ) {
                 e.preventDefault();
                 void handleSend();

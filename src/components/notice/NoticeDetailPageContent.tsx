@@ -98,6 +98,22 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
     router.push(buildDetailUrl(neighbours.next.id));
   };
 
+  const getNoticeErrorMessage = () => {
+    if (!error && !notice) return "찾을 수 없는 게시물입니다.";
+    const rawError = (error || "").toLowerCase();
+    if (
+      rawError.includes("404") ||
+      rawError.includes("not found") ||
+      rawError.includes("찾을 수 없")
+    ) {
+      return "찾을 수 없는 게시물입니다.";
+    }
+    if (rawError.includes("delete") || rawError.includes("삭제")) {
+      return "삭제된 게시물입니다.";
+    }
+    return "공지사항을 불러오지 못했습니다.";
+  };
+
   if (!projectId) return null;
 
   // 서버와 클라이언트 초기 렌더링을 일치시키기 위해 첫 렌더링에서는 항상 같은 구조 유지
@@ -111,7 +127,7 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
       <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
         <div className="bg-card rounded-none md:rounded-[14px] p-4 md:p-6 text-center">
           <p className="mb-4 text-[14px] text-danger-40">
-            {error || "공지사항을 찾을 수 없습니다."}
+            {getNoticeErrorMessage()}
           </p>
           <button
             onClick={handleBackToList}
