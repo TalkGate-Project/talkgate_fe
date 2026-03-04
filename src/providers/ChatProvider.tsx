@@ -14,8 +14,8 @@ import { usePathname } from "next/navigation";
 import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMe } from "@/hooks/useMe";
 import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
-import { isNotificationEnabled } from "@/utils/notificationSettings";
 import { getAccessToken } from "@/lib/token";
 import type {
   ConversationsListEvent,
@@ -93,6 +93,7 @@ export function useChatContextSafe() {
 export default function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
   const pathname = usePathname();
+  const { user } = useMe();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
@@ -366,8 +367,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         const isConsultPage = pathname === "/consult";
         const isIncomingMessage = message?.direction === "incoming";
         const isNotActiveConversation = messageConvId !== activeId;
-        const currentProjectId = projectId ? String(projectId) : null;
-        const isChatNotificationEnabled = isNotificationEnabled("consultationChat", currentProjectId);
+        const isChatNotificationEnabled = Boolean(user?.isAllowChatNotification);
         
         if (!isConsultPage && isIncomingMessage && isNotActiveConversation && isChatNotificationEnabled) {
           // 대화방 이름과 메시지 내용 추출
@@ -460,7 +460,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socket.off("messagesMarkedRead", handleMessagesMarkedRead as any);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [projectId, pathname]); // filters는 ref로 참조하므로 의존성 배열에서 제외
+  }, [projectId, pathname, user?.isAllowChatNotification]); // filters는 ref로 참조하므로 의존성 배열에서 제외
 
   // ============================================
   // 필터 변경 시 대화 목록 재요청

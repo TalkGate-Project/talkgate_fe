@@ -92,3 +92,42 @@ export function showChatNotification(
   });
 }
 
+/**
+ * 직원 채팅 메시지 알림 표시
+ * @param roomName 방 이름
+ * @param messageContent 메시지 내용
+ */
+export function showOrganizationChatNotification(
+  roomName: string,
+  messageContent?: string
+): void {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    return;
+  }
+
+  const title = roomName || "직원 채팅";
+  const body = messageContent || "새로운 직원 채팅 메시지가 도착했습니다.";
+
+  const notification = new Notification(title, {
+    body,
+    icon: NOTIFICATION_ICON_PATH,
+    badge: NOTIFICATION_ICON_PATH,
+    tag: `organization-chat-${Date.now()}`,
+    requireInteraction: false,
+  });
+
+  notification.onclick = () => {
+    window.focus();
+    window.dispatchEvent(new CustomEvent("tg:open-staff-chat"));
+    notification.close();
+  };
+
+  setTimeout(() => {
+    notification.close();
+  }, 5000);
+}
+

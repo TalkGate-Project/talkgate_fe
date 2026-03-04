@@ -16,6 +16,7 @@ export type MeUser = {
   isAllowPrivacy: boolean;
   isAllowChatNotification: boolean;
   isAllowNewNotification: boolean;
+  isAllowOrganizationChatNotification: boolean;
   twoFactorEnabled: boolean;
   createdAt: string;
   updatedAt: string;

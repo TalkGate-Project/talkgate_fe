@@ -58,6 +58,9 @@ export type UpdateProfileInput = {
   name?: string;
   profileImageUrl?: string;
   phone?: string;
+  isAllowChatNotification?: boolean;
+  isAllowNewNotification?: boolean;
+  isAllowOrganizationChatNotification?: boolean;
 };
 
 export type ResendEmailVerificationInput = {

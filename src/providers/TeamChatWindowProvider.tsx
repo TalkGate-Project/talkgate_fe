@@ -123,6 +123,29 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.dispatchEvent(
+      new CustomEvent("tg:staff-chat-visibility-changed", {
+        detail: { isOpen },
+      })
+    );
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleOpenStaffChat = () => {
+      open();
+    };
+
+    window.addEventListener("tg:open-staff-chat", handleOpenStaffChat);
+    return () => {
+      window.removeEventListener("tg:open-staff-chat", handleOpenStaffChat);
+    };
+  }, [open]);
+
   const value = useMemo<TeamChatWindowContextValue>(
     () => ({ isOpen, open, close, toggle, windowPosition, setWindowPosition, resetWindowPosition }),
     [isOpen, open, close, toggle, windowPosition, setWindowPosition, resetWindowPosition]

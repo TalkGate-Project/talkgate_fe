@@ -14,6 +14,8 @@ import type { Socket } from "socket.io-client";
 import { teamChatSocket } from "@/lib/teamChatSocket";
 import { getAccessToken } from "@/lib/token";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMe } from "@/hooks/useMe";
+import { showOrganizationChatNotification } from "@/utils/notification";
 import type {
   TeamRoom,
   TeamMessage,
@@ -85,6 +87,7 @@ export function useTeamChatContextSafe() {
 
 export default function TeamChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
+  const { user } = useMe();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
@@ -111,6 +114,8 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
   const messagesByRoomIdRef = useRef<Record<number, TeamMessage[]>>({});
   const memberIdRef = useRef<number | null>(null);
   const lastAppliedReadByRoomMemberRef = useRef<Record<string, number>>({});
+  const isOrganizationChatNotificationEnabledRef = useRef(false);
+  const isStaffChatOpenRef = useRef(false);
 
   useEffect(() => {
     activeRoomIdRef.current = activeRoomId;
@@ -124,6 +129,23 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     memberIdRef.current = memberId;
   }, [memberId]);
+  useEffect(() => {
+    isOrganizationChatNotificationEnabledRef.current = Boolean(user?.isAllowOrganizationChatNotification);
+  }, [user?.isAllowOrganizationChatNotification]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleVisibilityChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ isOpen?: boolean }>;
+      isStaffChatOpenRef.current = Boolean(customEvent.detail?.isOpen);
+    };
+
+    window.addEventListener("tg:staff-chat-visibility-changed", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("tg:staff-chat-visibility-changed", handleVisibilityChange);
+    };
+  }, []);
 
   const totalUnreadCount = useMemo(
     () => rooms.reduce((sum, r) => sum + r.unreadCount, 0),
@@ -453,6 +475,25 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
       const rid = msg.roomId;
       const isSystem = msg.type === "system";
       const isMine = memberIdRef.current != null && msg.senderMemberId === memberIdRef.current;
+      const isStaffChatClosed = !isStaffChatOpenRef.current;
+      const isNotActiveRoom = activeId == null || rid !== activeId;
+      const canNotifyBrowser =
+        !isSystem &&
+        !isMine &&
+        isOrganizationChatNotificationEnabledRef.current &&
+        (isStaffChatClosed || isNotActiveRoom);
+
+      if (canNotifyBrowser) {
+        const roomName = roomsRef.current.find((room) => room.id === rid)?.name || "직원 채팅";
+        const messageContent =
+          msg.content ||
+          (msg.type === "image"
+            ? "이미지"
+            : msg.type === "file"
+              ? msg.fileName || "파일"
+              : "새 메시지");
+        showOrganizationChatNotification(roomName, messageContent);
+      }
 
       if (rid === activeId) {
         setMessagesByRoomId((prev) => {
