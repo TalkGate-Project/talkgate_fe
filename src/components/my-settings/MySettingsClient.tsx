@@ -54,16 +54,18 @@ export default function MySettingsClient() {
   return (
     <div className="flex gap-0 md:gap-6">
       {/* 사이드바 - 모바일에서 숨김 */}
-      <div className="hidden lg:block">
+      <div className="hidden md:block">
         <MySettingsSidebar 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
         />
       </div>
       
-      {/* 메인 컨텐츠 */}
-      <div className="flex-1 w-full lg:w-auto">
-        <ActiveComponent />
+      {/* 메인 컨텐츠: 780~1079 구간에서 우측 컨테이너 가로 스크롤 허용 */}
+      <div className="flex-1 w-full md:w-auto min-w-0 md:overflow-x-auto lg:overflow-x-visible">
+        <div className="md:min-w-max lg:min-w-0">
+          <ActiveComponent />
+        </div>
       </div>
     </div>
   );

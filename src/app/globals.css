@@ -173,15 +173,15 @@
 
 @theme inline {
   /* Breakpoints (min-width) */
-  --breakpoint-mobile: 390px;  /* 390 */
-  --breakpoint-tablet: 768px;  /* 768 */
-  --breakpoint-desktop: 1280px;/* 1280 */
+  --breakpoint-mobile: 0px;  /* 0 */
+  --breakpoint-tablet: 780px;  /* 640 */
+  --breakpoint-desktop: 1080px;/* 1280 */
   --breakpoint-desktop-full: 1920px; /* 1920 */
 
   /* Map to Tailwind aliases (sm/md/lg/xl). Use concrete values (media queries don't support var()). */
   --breakpoint-sm: 390px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1280px;
+  --breakpoint-md: 780px;
+  --breakpoint-lg: 1080px;
   --breakpoint-xl: 1920px;
   /* Palette: Grayscale 50-900 (light theme baseline) */
   --color-gray-50: #f8f8f8;
@@ -386,7 +386,7 @@ body {
 }
 
 /* Mobile viewport uses fixed page background by theme. */
-@media (max-width: 767px) {
+@media (max-width: 639px) {
   body {
     background-color: #ffffff;
   }

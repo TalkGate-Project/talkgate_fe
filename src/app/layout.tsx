@@ -72,7 +72,7 @@ export default async function RootLayout({
 }>) {
   // Middleware에서 설정한 zoom 모드 확인
   const headersList = await headers();
-  const uiZoomMode = headersList.get("x-ui-zoom") || "compact";
+  const uiZoomMode = headersList.get("x-ui-zoom") || "normal";
   const initialZoom = uiZoomMode === "normal" ? 1 : 0.8;
 
   return (

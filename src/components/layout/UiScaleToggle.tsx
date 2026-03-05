@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 
 const COMPACT_ZOOM = 0.8;
-const MOBILE_BREAKPOINT = 1280; // 1280px 미만은 모바일/태블릿으로 간주하여 zoom 적용 안 함
+const MOBILE_BREAKPOINT = 1080; // 1280px 미만은 모바일/태블릿으로 간주하여 zoom 적용 안 함
 
 type UiScaleMode = "normal" | "compact";
 
@@ -48,7 +48,7 @@ export default function UiScaleToggle({ initialZoom }: Props) {
   const uiScaleParam = searchParams.get("uiScale");
   
   // 화면 너비 상태 관리
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean | null>(null);
 
   useEffect(() => {
     // 초기 체크
@@ -94,15 +94,21 @@ export default function UiScaleToggle({ initialZoom }: Props) {
       return;
     }
     
-    // 3. 화면 너비가 1280px 미만이면 normal 모드 강제 (모바일/태블릿 호환성)
+    // 3. 초기 화면 폭 측정 전에는 서버 초기값을 유지하여 깜빡임 완화
+    if (isSmallScreen === null) {
+      applyScale(initialZoom === "compact" ? "compact" : "normal");
+      return;
+    }
+
+    // 4. 화면 너비가 1280px 미만이면 normal 모드 강제 (모바일/중간 디바이스)
     if (isSmallScreen) {
       applyScale("normal");
       return;
     }
 
-    // 4. 그 외 페이지(데스크탑 대시보드 등)는 compact 모드 (zoom: 0.8)
+    // 5. 그 외 페이지(웹/PC, 대형 모니터)는 compact 모드 (zoom: 0.8)
     applyScale("compact");
-  }, [isDev, uiScaleParam, isAuthPage, isSmallScreen]);
+  }, [isDev, uiScaleParam, isAuthPage, isSmallScreen, initialZoom]);
 
   // UI는 렌더링하지 않음
   return null;

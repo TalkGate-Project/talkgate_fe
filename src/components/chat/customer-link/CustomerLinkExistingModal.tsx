@@ -133,10 +133,10 @@ export default function CustomerLinkExistingModal({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/30 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 lg:h-auto lg:min-h-full lg:flex lg:items-center lg:justify-center lg:p-4">
-        <div className="w-full h-full lg:w-[848px] lg:h-auto lg:max-h-[523px] rounded-t-[14px] lg:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col lg:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] lg:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:lg:shadow-none dark:lg:drop-shadow-none">
+      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
+        <div className="w-full h-full md:w-[848px] md:h-auto md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none">
           {/* Header with back button */}
-          <div className="flex items-center gap-3 px-4 lg:px-6 pt-4 lg:pt-6 pb-3 shrink-0 border-b border-[#E2E2E266]">
+          <div className="flex items-center gap-3 px-4 md:px-6 pt-4 md:pt-6 pb-3 shrink-0 border-b border-[#E2E2E266]">
             <button
               onClick={() => !linking && onBack()}
               className="flex items-center gap-2 text-neutral-90 dark:text-neutral-70 hover:text-neutral-90 transition-colors"
@@ -182,16 +182,16 @@ export default function CustomerLinkExistingModal({
             </svg>
           </button>
         </div>
-        <div className="mt-3 lg:mt-[18px] leading-[1] px-4 lg:px-6 pb-3 text-[14px] text-neutral-60 shrink-0">
+        <div className="mt-3 md:mt-[18px] leading-[1] px-4 md:px-6 pb-3 text-[14px] text-neutral-60 shrink-0">
           현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다.
         </div>
 
-        <div className="border-b border-[#E2E2E266] mx-4 lg:mx-7 mb-3 shrink-0"></div>
+        <div className="border-b border-[#E2E2E266] mx-4 md:mx-7 mb-3 shrink-0"></div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 lg:px-6 pb-4 lg:pb-6 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-4 md:pb-6 min-h-0">
           {/* Search */}
-          <div className="mb-3 w-full lg:max-w-[188px] flex items-center gap-3">
+          <div className="mb-3 w-full md:max-w-[188px] flex items-center gap-3">
             <div className="flex-1 relative">
               <input
                 type="text"
@@ -223,7 +223,7 @@ export default function CustomerLinkExistingModal({
 
           {/* Table - 데스크탑, 모바일은 카드 리스트 */}
           {/* 데스크탑 테이블 */}
-          <div className="hidden lg:block overflow-hidden rounded-[12px] min-h-[340px]">
+          <div className="hidden md:block overflow-hidden rounded-[12px] min-h-[340px]">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-neutral-20 text-neutral-60">
@@ -319,7 +319,7 @@ export default function CustomerLinkExistingModal({
           </div>
 
           {/* 모바일 카드 리스트 */}
-          <div className="lg:hidden space-y-3 min-h-[340px]">
+          <div className="md:hidden space-y-3 min-h-[340px]">
             {loading &&
               Array.from({ length: PAGE_LIMIT }).map((_, idx) => (
                 <div
@@ -383,7 +383,7 @@ export default function CustomerLinkExistingModal({
               onPageChange={(n) => fetchCustomers(n, searchKeyword)}
               disabled={loading}
             />
-            <div className="min-w-[100px] hidden lg:block"></div>
+            <div className="min-w-[100px] hidden md:block"></div>
           </div>
           <div className="border-t border-[#E2E2E266] w-full mt-4 pt-3 flex items-center justify-end shrink-0">
             <button

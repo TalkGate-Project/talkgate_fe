@@ -171,14 +171,14 @@ function DashboardContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-background text-foreground">
-      <div className="mx-auto max-w-[1324px] w-full px-0 pt-0 md:pt-9 pb-6">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 pt-0 md:pt-9 pb-6">
         <GreetingBanner
           userName={member?.name ?? member?.email ?? null}
           todayQuote={summary?.todayQuote ?? null}
           loading={bannerLoading}
         />
 
-        <div className="mt-4 md:mt-9 grid grid-cols-2 gap-4 md:gap-6 md:gap-9 md:grid-cols-4 lg:grid-cols-4 px-6 md:px-0">
+        <div className="mt-4 md:mt-9 grid grid-cols-2 gap-4 md:gap-8 lg:gap-9 md:grid-cols-2 lg:grid-cols-4 px-6 md:px-0">
           {cards.map((card) => (
             <KpiCard
               key={card.label}

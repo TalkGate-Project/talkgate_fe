@@ -26,6 +26,7 @@ const MIN_STAFF_CHAT_CONTENT_OPACITY = 0;
 const MAX_STAFF_CHAT_CONTENT_OPACITY = 80;
 const INVALID_DROP_FEEDBACK_MS = 1400;
 const BOTTOM_STICK_THRESHOLD = 24;
+const MOBILE_BREAKPOINT_PX = 780;
 
 function formatTime(value?: string | null) {
   if (!value) return "";
@@ -142,6 +143,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const [draftAttachments, setDraftAttachments] = useState<DraftAttachment[]>([]);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const [memberInfoModalMemberId, setMemberInfoModalMemberId] = useState<number | null>(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const dragCounterRef = useRef(0);
@@ -200,6 +202,19 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
     }
     messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
     isAtBottomRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX - 1}px)`);
+    const syncViewport = () => {
+      setIsMobileViewport(mediaQuery.matches);
+    };
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+    return () => {
+      mediaQuery.removeEventListener("change", syncViewport);
+    };
   }, []);
 
   useEffect(() => {
@@ -588,8 +603,17 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   const isDetail = viewMode === "detail" && !!activeRoom;
-  const modalOpacity = 1 - contentOpacity / 100;
+  const modalOpacity = isMobileViewport ? 1 : 1 - contentOpacity / 100;
   const opacitySliderValue = MAX_STAFF_CHAT_CONTENT_OPACITY - contentOpacity;
+  const canDragWindow = !isMobileViewport;
+  const modalOverlayClassName = "pointer-events-none";
+  const modalPositionerClassName = isMobileViewport
+    ? "absolute inset-x-0 top-[54px] h-[calc(100dvh-54px)]"
+    : "absolute";
+  const modalPositionerStyle = isMobileViewport ? undefined : { top: windowPosition.top, left: windowPosition.left };
+  const modalContainerClassName = isMobileViewport
+    ? "pointer-events-auto flex h-[calc(100dvh-54px)] w-screen flex-col overflow-hidden rounded-none bg-neutral-0 shadow-none"
+    : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]";
   const opacityControl = (
     <label
       data-no-drag="true"
@@ -618,11 +642,11 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       ariaLabel="직원채팅"
       closeOnOverlayClick={false}
       disableScrollLock
-      overlayClassName="pointer-events-none"
+      overlayClassName={modalOverlayClassName}
       disableAutoContainerSizing
-      positionerClassName="absolute"
-      positionerStyle={{ top: windowPosition.top, left: windowPosition.left }}
-      containerClassName="pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]"
+      positionerClassName={modalPositionerClassName}
+      positionerStyle={modalPositionerStyle}
+      containerClassName={modalContainerClassName}
     >
       <div className="relative flex flex-col h-full bg-neutral-0 dark:bg-neutral-10" style={{ opacity: modalOpacity }}>
         {uploadError && (
@@ -633,8 +657,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         {!isDetail ? (
           <>
             <div
-              className="h-[58px] px-5 flex items-center justify-between border-b border-neutral-30/40 cursor-move select-none touch-none bg-neutral-0 dark:bg-neutral-10"
-              onPointerDown={handleHeaderPointerDown}
+              className={`h-[58px] px-4 md:px-5 flex items-center justify-between border-b border-neutral-30/40 bg-neutral-0 dark:bg-neutral-10 ${canDragWindow ? "cursor-move select-none touch-none" : ""}`}
+              onPointerDown={canDragWindow ? handleHeaderPointerDown : undefined}
             >
               <div className="flex items-center gap-2.5">
                 <span className="w-6 h-6 rounded-full bg-gradient-to-b from-primary-20 to-primary-60 grid place-items-center">
@@ -652,7 +676,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 <h2 className="text-[16px] leading-[19px] font-bold text-foreground">팀 대화</h2>
               </div>
               <div data-no-drag="true" className="flex items-center gap-2">
-                {opacityControl}
+                {!isMobileViewport && opacityControl}
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -680,7 +704,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                     key={room.id}
                     type="button"
                     onClick={() => handleSelectRoom(room)}
-                    className="cursor-pointer w-full h-[72px] px-5 flex items-center gap-2 border-b border-neutral-30/40 hover:bg-neutral-0 transition-colors text-left"
+                    className="cursor-pointer w-full h-[74px] md:h-[72px] px-4 md:px-5 flex items-center gap-2 border-b border-neutral-30/40 hover:bg-neutral-0 transition-colors text-left"
                   >
                     <div className="w-10 h-10 rounded-full bg-primary-10 text-primary-60 grid place-items-center shrink-0">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-primary-60">
@@ -724,8 +748,8 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
         ) : (
           <>
             <div
-              className="relative h-[56px] px-3 flex items-center justify-between border-b border-border cursor-move select-none touch-none bg-neutral-0 dark:bg-neutral-10"
-              onPointerDown={handleHeaderPointerDown}
+              className={`relative h-[56px] px-3 md:px-4 flex items-center justify-between border-b border-border bg-neutral-0 dark:bg-neutral-10 ${canDragWindow ? "cursor-move select-none touch-none" : ""}`}
+              onPointerDown={canDragWindow ? handleHeaderPointerDown : undefined}
             >
               <div className="flex items-center gap-1.5 min-w-0">
                 <button
@@ -754,7 +778,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                 </button>
               </div>
               <div data-no-drag="true" className="flex items-center gap-2">
-                {opacityControl}
+                {!isMobileViewport && opacityControl}
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -833,7 +857,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               <div
                 ref={messagesScrollRef}
                 onScroll={handleScroll}
-                className="relative h-full min-h-0 overflow-y-auto bg-neutral-0 dark:bg-neutral-10 px-3 pt-6 pb-2.5"
+                className="relative h-full min-h-0 overflow-y-auto bg-neutral-0 dark:bg-neutral-10 px-4 md:px-3 pt-5 md:pt-6 pb-3"
               >
                 <div className="flex flex-col gap-5">
                 {hasMore && (
@@ -887,9 +911,9 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
                               {initial(msg.senderName)}
                             </div>
                           ))}
-                        <div className={`min-w-0 flex flex-col gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
+                        <div className={`min-w-0 flex flex-col gap-1.5 md:gap-2 ${!isMine ? "-translate-y-2" : ""}`}>
                           <div
-                            className={`rounded-[18px] px-4 py-3 text-[16px] leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
+                            className={`rounded-[16px] md:rounded-[18px] px-3.5 md:px-4 py-2.5 md:py-3 text-[14px] md:text-[16px] leading-[22px] md:leading-[23px] break-words ${isMine ? "bg-neutral-90 text-neutral-0 rounded-br-[6px]" : "bg-neutral-20 dark:bg-[#333333] text-foreground rounded-bl-[6px]"
                               }`}
                           >
                             {msg.type === "text" && (msg.content ?? "")}
@@ -990,7 +1014,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             </div>
 
             {draftAttachments.length > 0 && (
-              <div className="border-t border-border bg-neutral-0 dark:bg-neutral-10 px-2.5 py-2">
+              <div className="border-t border-border bg-neutral-0 dark:bg-neutral-10 px-3 md:px-2.5 py-2">
                 <div className="flex items-center gap-2 overflow-x-auto">
                   {draftAttachments.map((draft) => (
                     <div key={draft.draftId} className="shrink-0 h-14 rounded-[10px] border border-border bg-neutral-0 dark:bg-neutral-20 px-2.5 flex items-center gap-2 max-w-[220px]">
@@ -1024,7 +1048,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               </div>
             )}
 
-            <div className="h-[56px] px-2.5 border-t border-border bg-neutral-0 dark:bg-neutral-10 flex items-center gap-2">
+            <div className="h-[64px] md:h-[56px] px-3 md:px-2.5 border-t border-border bg-neutral-0 dark:bg-neutral-10 flex items-center gap-2 pb-[env(safe-area-inset-bottom)]">
               <label className={`w-8 h-8 rounded-full bg-neutral-20 text-neutral-60 grid place-items-center shrink-0 ${(uploading || sending) ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-30"}`}>
                 <input
                   type="file"
