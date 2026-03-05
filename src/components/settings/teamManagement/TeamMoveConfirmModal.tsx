@@ -19,22 +19,33 @@ export default function TeamMoveConfirmModal({
   onConfirm,
   onCancel,
 }: TeamMoveConfirmModalProps) {
+  const currentLocationLabel = currentParent
+    ? `${currentParent.name} (${currentParent.department})`
+    : "루트";
+  const targetLocationLabel = `${target.name} (${target.department})`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-card rounded-[12px] md:rounded-[16px] shadow-xl w-full max-w-[420px] p-4 md:p-6">
+      <div className="bg-card rounded-[12px] md:rounded-[16px] shadow-xl w-full max-w-[500px] p-4 md:p-6">
         <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-4">조직 이동 확인</h2>
         <div className="rounded-[12px] bg-neutral-10 px-3 md:px-4 py-4 md:py-5 mb-4 md:mb-5 flex flex-col gap-3 md:gap-4">
           <div>
             <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 항목</span>
-            <span className="inline-flex items-center px-3 py-1 rounded-[6px] bg-card text-[13px] md:text-[14px] font-semibold text-foreground">
+            <span
+              className="inline-flex max-w-full min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap px-3 py-1 rounded-[6px] bg-card text-[13px] md:text-[14px] font-semibold text-foreground"
+              title={source.name}
+            >
               {source.name}
             </span>
           </div>
           <div className="flex items-center justify-between gap-2 md:gap-3">
             <div className="flex-1 min-w-0">
               <span className="block text-[12px] font-medium text-neutral-60 mb-1">현재 위치</span>
-              <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-[6px] bg-warning-10 text-[12px] md:text-[14px] font-semibold text-warning-60 truncate">
-                {currentParent ? `${currentParent.name} (${currentParent.department})` : "루트"}
+              <span
+                className="inline-flex max-w-full min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 md:px-3 py-1 rounded-[6px] bg-warning-10 text-[12px] md:text-[14px] font-semibold text-warning-60"
+                title={currentLocationLabel}
+              >
+                {currentLocationLabel}
               </span>
             </div>
             <svg
@@ -54,8 +65,11 @@ export default function TeamMoveConfirmModal({
             </svg>
             <div className="flex-1 min-w-0">
               <span className="block text-[12px] font-medium text-neutral-60 mb-1">이동할 위치</span>
-              <span className="inline-flex items-center px-2 md:px-3 py-1 rounded-[6px] bg-primary-10 text-[12px] md:text-[14px] font-semibold text-primary-80 truncate">
-                {`${target.name} (${target.department})`}
+              <span
+                className="inline-flex max-w-full min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 md:px-3 py-1 rounded-[6px] bg-primary-10 text-[12px] md:text-[14px] font-semibold text-primary-80"
+                title={targetLocationLabel}
+              >
+                {targetLocationLabel}
               </span>
             </div>
           </div>
