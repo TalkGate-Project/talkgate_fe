@@ -141,7 +141,7 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
   }
 
   return (
-    <main className="container mx-auto max-w-[1324px] md:pt-6 md:pb-12">
+    <main className="container mx-auto max-w-[1324px] px-0 md:px-6 lg:px-0 md:pt-6 md:pb-12">
       <div className="bg-card rounded-none md:rounded-[14px] px-4 md:px-7 py-4 md:py-[22px]">
         <div className="flex items-center justify-between mb-4 md:mb-5">
           <div className="flex items-center gap-3 md:gap-4">

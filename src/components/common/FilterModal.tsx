@@ -159,7 +159,7 @@ export default function FilterModal({
     
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
+            setIsMobile(window.innerWidth < 780);
         };
         checkMobile();
         window.addEventListener("resize", checkMobile);
@@ -206,8 +206,8 @@ export default function FilterModal({
             <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
 
             {/* Modal container (centered) */}
-            <div className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[848px] md:h-auto md:max-h-[90vh]" style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}>
-                <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] flex flex-col">
+            <div className="absolute inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-[960px] md:h-auto md:max-h-[90vh] lg:w-[848px] lg:max-w-[848px]" style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}>
+                <div className="relative w-full h-full md:h-auto md:max-h-[90vh] bg-white dark:bg-neutral-10 md:rounded-[14px] md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none flex flex-col overflow-hidden">
                     {/* Header */}
                     <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2">
@@ -483,7 +483,7 @@ function LabeledSelect({ label, options, placeholder, value, onChange, freeText 
         <div>
             <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
             <div className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20">
-                <div className="flex flex-row items-center p-0 gap-[30px] w-full md:w-[360px] h-[17px]">
+                <div className="flex flex-row items-center p-0 gap-[30px] w-full lg:w-[360px] h-[17px]">
                     {freeText ? (
                         <input value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60" placeholder={placeholder} />
                     ) : (
@@ -611,7 +611,7 @@ function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: (number | 
 
             {/* Selected pills - ensure dropdown overlays them when open */}
             {selected.length > 0 && (
-                <div className="w-full md:w-[384px] mt-2 overflow-x-auto no-scrollbar">
+                <div className="w-full lg:w-[384px] mt-2 overflow-x-auto no-scrollbar">
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
                         {selected.map((id, index) => {
                             if (id === null) {
@@ -696,8 +696,8 @@ function DateRange({
     onEndChange: (date: Date | null) => void; 
 }) {
     return (
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-            <div className="relative flex-1 md:w-[175px]">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+            <div className="relative flex-1 lg:w-[175px]">
                 <DatePicker value={startValue} onChange={onStartChange} className="cursor-pointer pr-10 w-full" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -705,8 +705,8 @@ function DateRange({
                     </svg>
                 </div>
             </div>
-            <span className="text-[14px] text-[#000] dark:text-neutral-80 hidden md:inline">-</span>
-            <div className="relative flex-1 md:w-[175px]">
+            <span className="text-[14px] text-[#000] dark:text-neutral-80 hidden lg:inline">-</span>
+            <div className="relative flex-1 lg:w-[175px]">
                 <DatePicker value={endValue} onChange={onEndChange} className="cursor-pointer pr-10 w-full" />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -192,10 +192,10 @@ export default function CustomerLinkCreateModal({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/30 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 lg:h-auto lg:min-h-full lg:flex lg:items-center lg:justify-center lg:p-4">
-        <div className="w-full h-full lg:w-[848px] lg:h-[523px] lg:max-h-[523px] rounded-t-[14px] lg:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col lg:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] lg:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:lg:shadow-none dark:lg:drop-shadow-none">
+      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
+        <div className="w-full h-full md:w-[848px] md:h-[523px] md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none">
           {/* Header with back button */}
-          <div className="flex items-center gap-3 px-4 lg:px-7 pt-4 lg:pt-6 pb-3 lg:pb-4 shrink-0 border-b border-neutral-30 dark:border-neutral-30">
+          <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-6 pb-3 md:pb-4 shrink-0 border-b border-neutral-30 dark:border-neutral-30">
             <button
               onClick={() => !submitting && onBack()}
               className="flex items-center gap-2 text-neutral-90 dark:text-neutral-70 hover:text-neutral-90 transition-colors"
@@ -243,12 +243,12 @@ export default function CustomerLinkCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 lg:px-7 pb-4 lg:pb-6 pt-3 lg:pt-[14px] min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 pb-4 md:pb-6 pt-3 md:pt-[14px] min-h-0">
           {/* 기본 정보 */}
-          <div className="mb-5 lg:mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 lg:mb-4">기본 정보</h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 lg:pt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4 lg:gap-y-5 mb-4">
+          <div className="mb-5 md:mb-6">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 md:mb-4">기본 정보</h3>
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 md:pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 md:gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
@@ -270,13 +270,13 @@ export default function CustomerLinkCreateModal({
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     연락처1<span className="text-danger-60">*</span>
                   </label>
-                  <div className="flex gap-2 lg:gap-3">
-                    <div className="w-[90px] lg:w-[106px] shrink-0">
-                      <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
+                  <div className="flex gap-2 md:gap-3">
+                    <div className="w-[90px] md:w-[106px] shrink-0">
+                      <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
                         <select
                           value={contact1Type}
                           onChange={(e) => setContact1Type(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 lg:pr-6"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 md:pr-6"
                         >
                           {contactTypes.map((type) => (
                             <option key={type} value={type}>
@@ -285,7 +285,7 @@ export default function CustomerLinkCreateModal({
                           ))}
                         </select>
                         <svg
-                          className="absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                          className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                           width="10"
                           height="8"
                           viewBox="0 0 10 8"
@@ -297,12 +297,12 @@ export default function CustomerLinkCreateModal({
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                      <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={contact1}
                           onChange={(e) => setContact1(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
                           placeholder="010-1234-5678"
                         />
                       </div>
@@ -313,13 +313,13 @@ export default function CustomerLinkCreateModal({
                 {/* 연락처2 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연락처2</label>
-                  <div className="flex gap-2 lg:gap-3">
-                    <div className="w-[90px] lg:w-[106px] shrink-0">
-                      <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
+                  <div className="flex gap-2 md:gap-3">
+                    <div className="w-[90px] md:w-[106px] shrink-0">
+                      <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
                         <select
                           value={contact2Type}
                           onChange={(e) => setContact2Type(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 lg:pr-6"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 md:pr-6"
                         >
                           {contactTypes.map((type) => (
                             <option key={type} value={type}>
@@ -328,7 +328,7 @@ export default function CustomerLinkCreateModal({
                           ))}
                         </select>
                         <svg
-                          className="absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                          className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                           width="10"
                           height="8"
                           viewBox="0 0 10 8"
@@ -340,12 +340,12 @@ export default function CustomerLinkCreateModal({
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                      <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                         <input
                           type="text"
                           value={contact2}
                           onChange={(e) => setContact2(e.target.value)}
-                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                          className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
                           placeholder="선택사항"
                         />
                       </div>
@@ -397,16 +397,16 @@ export default function CustomerLinkCreateModal({
           </div>
 
           {/* 메신저 계정 */}
-          <div className="mb-5 lg:mb-6">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 lg:mb-4">메신저 계정</h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 lg:pt-4">
-              <div className="flex flex-col lg:flex-row gap-3 mb-3">
-                <div className="w-full lg:w-[106px] shrink-0">
-                  <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] relative bg-card dark:bg-neutral-10">
+          <div className="mb-5 md:mb-6">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 md:mb-4">메신저 계정</h3>
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 md:pt-4">
+              <div className="flex flex-col md:flex-row gap-3 mb-3">
+                <div className="w-full md:w-[106px] shrink-0">
+                  <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] relative bg-card dark:bg-neutral-10">
                     <select
                       value={currentMessengerType}
                       onChange={(e) => setCurrentMessengerType(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 lg:pr-6"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-4 md:pr-6"
                     >
                       {messengerTypes.map((type) => (
                         <option key={type} value={type}>
@@ -415,7 +415,7 @@ export default function CustomerLinkCreateModal({
                       ))}
                     </select>
                     <svg
-                      className="absolute right-2 lg:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 pointer-events-none"
                       width="10"
                       height="8"
                       viewBox="0 0 10 8"
@@ -427,12 +427,12 @@ export default function CustomerLinkCreateModal({
                   </div>
                 </div>
                 <div className="flex-1">
-                  <div className="flex flex-col justify-center items-center px-2 lg:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] bg-card dark:bg-neutral-10">
+                  <div className="flex flex-col justify-center items-center px-2 md:px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={currentMessengerAccount}
                       onChange={(e) => setCurrentMessengerAccount(e.target.value)}
-                      className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] lg:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[13px] md:text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
                       placeholder="계정 ID를 입력하세요"
                     />
                   </div>
@@ -440,7 +440,7 @@ export default function CustomerLinkCreateModal({
                 <button
                   type="button"
                   onClick={handleAddMessenger}
-                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] lg:text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 whitespace-nowrap shrink-0"
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[13px] md:text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 whitespace-nowrap shrink-0"
                 >
                   추가
                 </button>
@@ -486,9 +486,9 @@ export default function CustomerLinkCreateModal({
 
           {/* 데이터 정보 */}
           <div>
-            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 lg:mb-4">데이터 정보</h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 lg:pt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 md:mb-4">데이터 정보</h3>
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 md:pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">신청 경로</label>
@@ -550,13 +550,13 @@ export default function CustomerLinkCreateModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-neutral-30 dark:border-neutral-30 px-4 lg:px-6 py-3 lg:py-4 flex justify-end gap-2 lg:gap-3 shrink-0">
-          <div className="flex gap-2 lg:gap-3 w-full lg:w-auto">
+        <div className="border-t border-neutral-30 dark:border-neutral-30 px-4 md:px-6 py-3 md:py-4 flex justify-end gap-2 md:gap-3 shrink-0">
+          <div className="flex gap-2 md:gap-3 w-full md:w-auto">
             <button
               type="button"
               onClick={handleReset}
               disabled={submitting}
-              className="cursor-pointer flex-1 lg:flex-none h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10 disabled:opacity-60"
+              className="cursor-pointer flex-1 md:flex-none h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10 disabled:opacity-60"
             >
               초기화
             </button>
@@ -564,7 +564,7 @@ export default function CustomerLinkCreateModal({
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="cursor-pointer flex-1 lg:flex-none h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
+              className="cursor-pointer flex-1 md:flex-none h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
             >
               {submitting ? "적용 중..." : "확인"}
             </button>

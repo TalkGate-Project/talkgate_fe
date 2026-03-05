@@ -200,8 +200,8 @@ export async function middleware(req: NextRequest) {
   const protocol = req.nextUrl.protocol;
 
   // UI Zoom 설정을 위한 헤더 처리
-  // 기본값은 compact (0.8)
-  let uiZoomMode = "compact";
+  // 기본값은 normal (1.0)로 시작하고, 데스크톱(>=1280)은 클라이언트에서 compact(0.8) 적용
+  let uiZoomMode = "normal";
   
   // 1. 모바일 기기는 무조건 normal (1.0) - 서버사이드에서 User-Agent로 감지
   const isMobile = isMobileDevice(userAgent);

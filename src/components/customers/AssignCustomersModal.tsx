@@ -395,7 +395,8 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     <BaseModal
       onClose={() => !loading && onClose()}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-full h-full md:w-[848px] md:h-auto md:min-h-[500px] md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 p-4 md:p-6 flex flex-col"
+      positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:h-auto md:min-h-[500px] md:max-h-[90vh] lg:w-[848px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 p-4 md:p-6 flex flex-col"
       ariaLabel="고객 배정"
       fullScreenOnMobile={true}
     >

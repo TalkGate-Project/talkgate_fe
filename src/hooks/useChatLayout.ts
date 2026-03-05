@@ -1,31 +1,38 @@
 import { useEffect, useState } from "react";
 
+const TABLET_BREAKPOINT = 780;
+const DESKTOP_BREAKPOINT = 1280;
+
 /**
  * 채팅 레이아웃 관련 로직을 관리하는 훅
- * 1280px 기준으로 레이아웃 전환 및 AI 사이드바 상태 관리
+ * 모바일/태블릿/데스크톱 레이아웃 상태를 관리합니다.
  */
 export function useChatLayout() {
-  // 화면 폭에 따른 레이아웃 제어 (1280px 이상: 기존 3컬럼, 미만: AI 도우미 플로팅)
+  // 780px 이상이면 리스트/메인 2컬럼(모바일 오버레이 해제)
   const [isWideLayout, setIsWideLayout] = useState(true);
+  // 1280px 이상이면 데스크톱 3컬럼(우측 AI 고정)
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
 
-  // 1280px 기준으로 레이아웃 전환
+  // breakpoints: mobile(<780), tablet(780-1079), desktop(>=1080)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleResize = () => {
-      setIsWideLayout(window.innerWidth >= 1279);
+      const width = window.innerWidth;
+      setIsWideLayout(width >= TABLET_BREAKPOINT);
+      setIsDesktopLayout(width >= DESKTOP_BREAKPOINT);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 넓은 레이아웃으로 전환되면 플로팅 패널은 자동으로 닫기
+  // 데스크톱으로 전환되면 플로팅 패널은 자동으로 닫기
   useEffect(() => {
-    if (isWideLayout && isAiSidebarOpen) {
+    if (isDesktopLayout && isAiSidebarOpen) {
       setIsAiSidebarOpen(false);
     }
-  }, [isWideLayout, isAiSidebarOpen]);
+  }, [isDesktopLayout, isAiSidebarOpen]);
 
   // AI 사이드바 닫기 이벤트 리스너
   useEffect(() => {
@@ -39,7 +46,9 @@ export function useChatLayout() {
   }, []);
 
   return {
+    isMobileLayout: !isWideLayout,
     isWideLayout,
+    isDesktopLayout,
     isAiSidebarOpen,
     setIsAiSidebarOpen,
   };

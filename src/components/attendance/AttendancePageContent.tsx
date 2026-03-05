@@ -173,7 +173,7 @@ function AttendancePageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12">
         {/* Top panel: title + date selector */}
         <AttendanceHeader
           selectedDate={selectedDate}

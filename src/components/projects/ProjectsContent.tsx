@@ -122,7 +122,7 @@ export default function ProjectsContent() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-background px-6 md:px-0">
+    <main className="min-h-screen bg-background px-6 lg:px-0">
       <div className="max-w-[1422px] mx-auto pt-6 md:pt-[90px] pb-24 ">
         <h1 className="text-[18px] md:text-[32px] leading-[38px] font-bold text-foreground text-center mb-3 md:mb-6 lg:mb-6">
           프로젝트 선택

@@ -315,7 +315,7 @@ export default function CalendarSection() {
 
         {/* Right schedule list */}
         <aside
-          className="order-1 lg:order-2 lg:shrink-0 w-full max-w-[343px]"
+          className="order-1 lg:order-2 lg:shrink-0 w-full lg:max-w-[343px]"
         >
           <div 
             className="bg-neutral-10 rounded-[12px] p-4 md:p-7 h-full relative flex flex-col min-h-[182px] lg:min-h-[var(--calendar-height)]"

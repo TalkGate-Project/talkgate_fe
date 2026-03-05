@@ -99,10 +99,10 @@ export default function ChatInputBar({
   }, [showEllipsisMenu]);
 
   return (
-    <div className="h-[64px] lg:h-[76px] px-4 lg:px-6 border-t border-border dark:border-neutral-30">
-      <div className="h-full flex items-center gap-2 lg:gap-1">
+    <div className="h-[64px] md:h-[76px] px-4 md:px-6 border-t border-border dark:border-neutral-30">
+      <div className="h-full flex items-center gap-2 md:gap-1">
         {/* 모바일: 통합 파일 첨부 버튼 (+) */}
-        <div className="lg:hidden relative">
+        <div className="md:hidden relative">
           <button
             aria-label="attach"
             className="cursor-pointer w-8 h-8 rounded-full bg-neutral-20 dark:bg-neutral-20 grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
@@ -175,7 +175,7 @@ export default function ChatInputBar({
               }
             }}
             rows={1}
-            className="mt-2 md:0 w-full h-8 lg:h-[44px] rounded-[20px] lg:rounded-[8px] px-3 lg:px-4 pr-8 lg:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10  lg:bg-transparent resize-none leading-[18px] py-[7px] lg:leading-[20px] lg:py-[12px]"
+            className="mt-2 md:0 w-full h-8 md:h-[44px] rounded-[20px] md:rounded-[8px] px-3 md:px-4 pr-8 md:pr-4 text-[14px] outline-none disabled:cursor-not-allowed bg-neutral-10  md:bg-transparent resize-none leading-[18px] py-[7px] md:leading-[20px] md:py-[12px]"
             placeholder={disabled ? "채팅을 선택해주세요" : "메세지를 입력하세요."}
             disabled={disabled}
           />
@@ -183,7 +183,7 @@ export default function ChatInputBar({
           <button
             ref={mobileEmojiButtonRef || emojiButtonRef}
             aria-label="emoji"
-            className="lg:hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
+            className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={onClickEmoji}
             disabled={disabled}
           >
@@ -209,7 +209,7 @@ export default function ChatInputBar({
         {/* 데스크탑: 이미지 첨부 (입력 필드 오른쪽) - 넓은 화면에서만 표시 */}
         <button
           aria-label="attach image"
-          className={`hidden lg:grid ${shouldShowEllipsis ? "lg:hidden" : "lg:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`hidden md:grid ${shouldShowEllipsis ? "md:hidden" : "md:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
           onClick={onAttachImage}
           disabled={disabled || attachmentUploading}
         >
@@ -232,7 +232,7 @@ export default function ChatInputBar({
         {/* 데스크탑: 파일 첨부 (입력 필드 오른쪽) - 넓은 화면에서만 표시 */}
         <button
           aria-label="attach file"
-          className={`hidden lg:grid ${shouldShowEllipsis ? "lg:hidden" : "lg:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`hidden md:grid ${shouldShowEllipsis ? "md:hidden" : "md:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
           onClick={onAttachFile}
           disabled={disabled || attachmentUploading}
         >
@@ -256,7 +256,7 @@ export default function ChatInputBar({
         <button
           ref={emojiButtonRef}
           aria-label="emoji"
-          className={`hidden lg:grid ${shouldShowEllipsis ? "lg:hidden" : "lg:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`hidden md:grid ${shouldShowEllipsis ? "md:hidden" : "md:grid"} cursor-pointer mr-2 place-items-center disabled:opacity-40 disabled:cursor-not-allowed`}
           onClick={onClickEmoji}
           disabled={disabled}
         >
@@ -279,7 +279,7 @@ export default function ChatInputBar({
 
         {/* 웹: 말줄임표 버튼 (widthMode가 swapped일 때만 표시) */}
         {shouldShowEllipsis && (
-          <div className="hidden lg:block relative" ref={ellipsisMenuRef}>
+          <div className="hidden md:block relative" ref={ellipsisMenuRef}>
             <button
               aria-label="more options"
               className="cursor-pointer w-[34px] h-[34px] grid place-items-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
@@ -376,7 +376,7 @@ export default function ChatInputBar({
 
         {/* 모바일: 원형 전송 버튼 */}
         <button
-          className="lg:hidden cursor-pointer w-8 h-8 rounded-full bg-neutral-90 dark:bg-neutral-90 grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          className="md:hidden cursor-pointer w-8 h-8 rounded-full bg-neutral-90 dark:bg-neutral-90 grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           onClick={onSend}
           disabled={disabled || !connected}
           aria-label="전송"
@@ -401,7 +401,7 @@ export default function ChatInputBar({
         {/* 데스크탑: 전송 버튼 - swapped 모드일 때는 아이콘, 아닐 때는 텍스트 */}
         {shouldShowEllipsis ? (
           <button
-            className="hidden lg:grid cursor-pointer w-[34px] h-[34px] rounded-full bg-neutral-90 dark:bg-transparent grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed shrink-0 text-neutral-20 dark:text-neutral-60"
+            className="hidden md:grid cursor-pointer w-[34px] h-[34px] rounded-full bg-neutral-90 dark:bg-transparent grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed shrink-0 text-neutral-20 dark:text-neutral-60"
             onClick={onSend}
             disabled={disabled || !connected}
             aria-label="전송"
@@ -413,7 +413,7 @@ export default function ChatInputBar({
           </button>
         ) : (
           <button
-            className="hidden lg:block cursor-pointer h-[34px] text-[14px] px-3 rounded-[8px] bg-neutral-90 text-neutral-20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            className="hidden md:block cursor-pointer h-[34px] text-[14px] px-3 rounded-[8px] bg-neutral-90 text-neutral-20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             onClick={onSend}
             disabled={disabled || !connected}
           >

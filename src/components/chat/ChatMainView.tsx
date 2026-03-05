@@ -38,6 +38,7 @@ type Props = {
   onDropFile?: (file: File) => void;
   onSwapWidths?: () => void;
   isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
+  enforceMinWidth?: boolean; // 데스크톱 고정 레이아웃일 때만 최소 너비 강제
   widthMode?: "normal" | "swapped"; // 너비 모드: normal = 메인 넓음, swapped = 메인 좁음
 };
 
@@ -87,6 +88,7 @@ export default function ChatMainView({
   onDropFile,
   onSwapWidths,
   isResizable = false,
+  enforceMinWidth = false,
   widthMode,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -224,7 +226,7 @@ export default function ChatMainView({
   return (
     <div className={`${isResizable ? "w-full" : "flex-1"} flex ${isResizable ? "" : "justify-center"} h-full`}>
       <div
-        className={`w-full ${isResizable ? "" : "lg:min-w-[688px]"} h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
+        className={`w-full ${!isResizable && enforceMinWidth ? "min-w-[688px]" : "min-w-0"} h-full rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
         onDragEnter={canDrop ? handleDragEnter : undefined}
         onDragLeave={canDrop ? handleDragLeave : undefined}
         onDragOver={canDrop ? handleDragOver : undefined}
@@ -266,7 +268,7 @@ export default function ChatMainView({
             {/* 모바일 뒤로가기 버튼 */}
             <button
               onClick={onCloseConversation}
-              className="lg:hidden cursor-pointer p-1 -ml-1 mr-1 text-neutral-90 dark:text-neutral-70"
+              className="md:hidden cursor-pointer p-1 -ml-1 mr-1 text-neutral-90 dark:text-neutral-70"
               aria-label="뒤로가기"
             >
               <svg
@@ -288,7 +290,7 @@ export default function ChatMainView({
             {activeConversation ? (
               <>
                 {/* 프로필 썸네일: 데스크탑에서만 표시 */}
-                <div className="hidden lg:block">
+                <div className="hidden md:block">
                   <ConversationAvatar
                     name={activeConversation.name}
                     profileUrl={activeConversation.profileUrl}
@@ -325,7 +327,7 @@ export default function ChatMainView({
               <button
                 type="button"
                 aria-label="open-ai-assistant"
-                className="lg:hidden cursor-pointer h-[42px] w-[42px] shrink-0 flex items-center justify-center translate-y-[3px]"
+                className="cursor-pointer h-[42px] w-[42px] shrink-0 flex items-center justify-center translate-y-[3px]"
                 onClick={onOpenAiSidebar}
               >
                 <svg
@@ -388,7 +390,7 @@ export default function ChatMainView({
             {onSwapWidths && (
               <LocalIconTooltip label="메인 뷰와 사이드바 너비 교환">
                 <button
-                  className="hidden lg:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
+                  className="hidden md:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
                   onClick={onSwapWidths}
                   aria-label="너비 치환"
                 >
@@ -421,13 +423,13 @@ export default function ChatMainView({
             {activeConversation && activeConversation.customerId && (
               <button
                 onClick={onOpenCustomerDetail}
-                className="hidden lg:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-card border border-border text-[12px] md:text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="hidden md:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-card border border-border text-[12px] md:text-[14px] disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap items-center justify-center leading-none"
               >
                 고객정보
               </button>
             )}
             <button
-              className="lg:hidden cursor-pointer h-[36px] w-[36px] rounded-[6px] border border-[#E2E2E2] dark:border-neutral-30 bg-card dark:bg-neutral-10 text-neutral-50 dark:text-neutral-60 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="md:hidden cursor-pointer h-[36px] w-[36px] rounded-[6px] border border-[#E2E2E2] dark:border-neutral-30 bg-card dark:bg-neutral-10 text-neutral-50 dark:text-neutral-60 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               onClick={onCompleteConversation}
               disabled={
                 !activeConversation || activeConversation?.status === "closed"
@@ -460,7 +462,7 @@ export default function ChatMainView({
             </button>
             {widthMode !== "swapped" && (
               <button
-                className="hidden lg:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap items-center justify-center leading-none"
+                className="hidden md:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap items-center justify-center leading-none"
                 onClick={onCompleteConversation}
                 disabled={
                   !activeConversation || activeConversation?.status === "closed"

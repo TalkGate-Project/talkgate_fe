@@ -527,6 +527,7 @@ export default function CustomersTable({
                       onChange={() => {}}
                       ariaLabel="전체 선택"
                       size={24}
+                      className="shrink-0 min-w-[24px] min-h-[24px]"
                     />
                   </div>
                   {dropdownOpen && (
@@ -698,6 +699,7 @@ export default function CustomersTable({
                             onChange={(next) => onSelect(c.id, next)}
                             ariaLabel={`select ${c.name}`}
                             size={24}
+                            className="shrink-0 min-w-[24px] min-h-[24px]"
                           />
                         </div>
                       </td>
