@@ -124,7 +124,7 @@ export default function Header() {
         className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50"
         style={{ zoom: 1 }}
       >
-        <div className="mx-auto w-full md:max-w-[1324px] h-full px-4 md:px-6 md:px-0 flex items-center justify-between md:justify-start">
+        <div className="mx-auto w-full md:max-w-[1324px] h-full px-4 md:px-6 lg:px-0 flex items-center justify-between md:justify-start">
           {/* 모바일 햄버거 메뉴 (좌측) */}
           <div className="md:hidden flex items-center mr-4">
             <button
