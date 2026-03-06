@@ -273,7 +273,7 @@ export default function CustomerApiSettings() {
   return (
     <>
       {/* Box 1: API 정보 */}
-      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
+      <div className="bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
         <div className="flex items-center justify-between px-4 md:px-7">
           <h1 className="text-[20px] md:text-[24px] font-bold text-foreground px-4 md:px-7 leading-[1] h-[64px] md:h-[76px] flex items-center">
             고객등록 API

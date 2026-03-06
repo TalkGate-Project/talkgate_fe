@@ -19,7 +19,7 @@ export default function ProjectNameSection({
   onUpdate,
 }: Props) {
   return (
-    <div className="md:bg-card md:rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] md:shadow-sm pb-5 md:pb-7">
+    <div className="md:bg-card md:rounded-[14px] rounded-t-none md:rounded-t-[14px] md:shadow-sm pb-5 md:pb-7">
       <h1 className="text-[18px] py-[18px] md:py-0 md:text-[24px] font-bold text-neutral-90 leading-[20px] px-6 md:px-7 md:h-[76px] flex items-center">
         일반설정
       </h1>

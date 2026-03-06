@@ -132,7 +132,7 @@ export default function ApiKeyHistoryView({
   };
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
+    <div className="bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-7 h-[64px] md:h-[76px]">
         <div className="flex items-center gap-3">

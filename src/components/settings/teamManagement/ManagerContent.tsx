@@ -244,7 +244,7 @@ export default function ManagerContent({
                   </div>
                   {/* 변경 타입 */}
                   <div className="text-[13px] text-neutral-60">
-                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type}
+                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type === "teamUpdate" ? "팀명변경" : history.type}
                   </div>
                 </div>
                 {/* 데스크탑 레이아웃 */}
@@ -278,7 +278,7 @@ export default function ManagerContent({
                     </>
                   )}
                   <span className="ml-auto text-[14px] text-neutral-60 whitespace-nowrap">
-                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type}
+                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type === "teamUpdate" ? "팀명변경" : history.type}
                   </span>
                 </div>
               </div>
