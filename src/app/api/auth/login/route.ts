@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { getRememberPolicy, setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
 import { encryptToken } from '@/lib/crypto';
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       setAuthCookies(nextResponse, request, {
         accessToken,
         refreshToken,
-        maxAge: rememberMe ? 60 * 60 * 24 * 30 : undefined, // 30일 또는 세션
+        rememberPolicy: getRememberPolicy(Boolean(rememberMe)),
       });
     }
     

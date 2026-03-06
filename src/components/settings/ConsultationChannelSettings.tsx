@@ -509,7 +509,7 @@ export default function ConsultationChannelSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-32">
+    <div className="bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-32">
       {/* Header */}
       <div className="flex items-center justify-between px-6 md:px-7 py-4.5 md:py-0 md:h-[76px]">
         <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-5">

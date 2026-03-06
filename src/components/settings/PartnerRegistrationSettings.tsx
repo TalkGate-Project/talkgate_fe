@@ -435,7 +435,7 @@ export default function PartnerRegistrationSettings() {
 
   if (isDetailView) {
     return (
-      <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
+      <div className="bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
         <div className="flex items-center gap-3 px-4 md:px-7 h-[64px] md:h-[76px]">
           <button
             type="button"
@@ -545,7 +545,7 @@ export default function PartnerRegistrationSettings() {
   }
 
   return (
-    <div className="bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
+    <div className="bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-4 md:pb-7 flex flex-col">
       {/* 헤더: 제목 + 업체등록 버튼 */}
       <div className="flex items-center justify-between px-4 md:px-7 h-[64px] md:h-[76px]">
         <h1 className="text-[20px] md:text-[24px] font-bold text-foreground leading-[1]">

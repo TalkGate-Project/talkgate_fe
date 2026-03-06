@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { getRememberPolicy, setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
 import { encryptToken } from '@/lib/crypto';
 
@@ -17,7 +17,7 @@ export async function POST(
   
   try {
     const body = await request.json();
-    const { code, callbackUrl } = body;
+    const { code, callbackUrl, rememberMe } = body;
 
     // API 서버로 소셜 로그인 요청 전달
     // 환경변수를 참조하지 못한 경우 api-dev.talkgate.im으로 폴백
@@ -73,7 +73,7 @@ export async function POST(
       setAuthCookies(nextResponse, request, {
         accessToken,
         refreshToken,
-        maxAge: 60 * 60 * 24 * 30, // 소셜 로그인은 기본 30일
+        rememberPolicy: getRememberPolicy(Boolean(rememberMe)),
       });
     }
     
