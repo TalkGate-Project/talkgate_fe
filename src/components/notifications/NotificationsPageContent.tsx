@@ -281,35 +281,63 @@ function NotificationsPageContentInner() {
                 <div className="text-center py-12 text-neutral-60">알림이 없습니다.</div>
               ) : (
                 <div className="space-y-3">
-                  {filteredNotifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      onClick={() => handleNotificationClick(notification)}
-                      className={`box-border flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 md:py-5 rounded-[12px] border cursor-pointer transition-colors ${
-                        !notification.read
-                          ? "bg-notification-unread border-notification-unread hover:opacity-90"
-                          : "bg-card border-neutral-30 hover:bg-neutral-10"
-                      }`}
-                    >
-                      <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                        {getIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] md:text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground truncate">
-                            {notification.title}
-                          </span>
-                          {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60 flex-shrink-0" />}
+                  {filteredNotifications.map((notification) => {
+                    const projectName = notification.project?.name?.trim() ?? "";
+                    const projectLogoUrl = notification.project?.logoUrl ?? null;
+                    const hasProjectInfo = projectName.length > 0 || Boolean(projectLogoUrl);
+                    const projectInitial = projectName.length > 0 ? projectName.charAt(0) : "•";
+
+                    return (
+                      <div
+                        key={notification.id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`box-border flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 md:py-5 rounded-[12px] border cursor-pointer transition-colors ${
+                          !notification.read
+                            ? "bg-notification-unread border-notification-unread hover:opacity-90"
+                            : "bg-card border-neutral-30 hover:bg-neutral-10"
+                        }`}
+                      >
+                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                          {getIcon(notification.type)}
                         </div>
-                        <p className="mt-1 text-[13px] md:text-[14px] leading-[20px] md:leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 line-clamp-2">
-                          {notification.content}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          {hasProjectInfo && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="w-4 h-4 rounded-full overflow-hidden bg-[#252525] flex items-center justify-center flex-shrink-0">
+                                {projectLogoUrl ? (
+                                  <img
+                                    src={projectLogoUrl}
+                                    alt={projectName || "프로젝트"}
+                                    className="w-full h-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <span className="text-[10px] leading-none font-semibold text-white">
+                                    {projectInitial}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-[14px] leading-[20px] font-medium tracking-[-0.02em] text-[#252525] truncate">
+                                {projectName || "프로젝트"}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px] md:text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-[#252525] truncate">
+                              {notification.title}
+                            </span>
+                            {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60 flex-shrink-0" />}
+                          </div>
+                          <p className="mt-1 text-[13px] md:text-[14px] leading-[20px] md:leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 line-clamp-2">
+                            {notification.content}
+                          </p>
+                        </div>
+                        <div className="text-[12px] md:text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 text-right flex-shrink-0 whitespace-nowrap">
+                          {formatTime(notification.createdAt)}
+                        </div>
                       </div>
-                      <div className="text-[12px] md:text-[14px] leading-[24px] font-medium tracking-[-0.02em] text-neutral-60 text-right flex-shrink-0 whitespace-nowrap">
-                        {formatTime(notification.createdAt)}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
