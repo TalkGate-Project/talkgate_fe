@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
@@ -224,6 +225,25 @@ export default function CustomerCreateModal({
     await submitCreate(projectId);
   };
 
+  const shouldIgnoreEnterSubmit = (target: EventTarget | null) => {
+    if (!target || !(target instanceof HTMLElement)) return false;
+
+    // IME 조합 중 Enter(확정) 입력은 제출로 취급하지 않는다.
+    // (React KeyboardEvent에서 isComposing은 별도 체크하지만, 안전하게 타겟 기반 예외만 여기서는 둔다)
+
+    // Enter 입력이 정상 동작해야 하는 필드/컨트롤은 제외
+    if (target.isContentEditable) return true;
+    const tag = target.tagName.toLowerCase();
+    if (tag === "textarea") return true;
+    if (tag === "select" || tag === "option") return true;
+
+    // 기본 Enter 동작(클릭/선택)이 있는 요소에서는 중복 제출 방지
+    if (tag === "button" || tag === "a") return true;
+    if (target.closest("button, a, [role='button'], [role='link']")) return true;
+
+    return false;
+  };
+
   return (
     <BaseModal
       onClose={() => (!submitting ? onClose() : undefined)}
@@ -233,7 +253,19 @@ export default function CustomerCreateModal({
       ariaLabel="고객 등록"
       fullScreenOnMobile={true}
     >
-      <div className="relative w-full h-full flex flex-col overflow-hidden">
+      <div
+        className="relative w-full h-full flex flex-col overflow-hidden"
+        onKeyDown={(e) => {
+          if (submitting) return;
+          if (e.key !== "Enter") return;
+          if ((e.nativeEvent as KeyboardEvent).isComposing) return;
+          if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+          if (shouldIgnoreEnterSubmit(e.target)) return;
+
+          e.preventDefault();
+          void handleSubmit();
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-6 pb-4 shrink-0">
           <div className="flex items-center gap-2">
@@ -669,9 +701,13 @@ export default function CustomerCreateModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !projectId || !isValid}
-            className="cursor-pointer h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60"
+            className="cursor-pointer h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60 inline-flex items-center justify-center"
           >
-            등록
+            {submitting ? (
+              <LoadingSpinner size="sm" variant="white" aria-label="등록 중" />
+            ) : (
+              "등록"
+            )}
           </button>
         </div>
       </div>
