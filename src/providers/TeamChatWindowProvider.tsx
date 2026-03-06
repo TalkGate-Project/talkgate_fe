@@ -2,10 +2,12 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  clampStaffChatWindowPosition,
-  getDefaultStaffChatWindowPosition,
+  clampStaffChatWindowBounds,
   STAFF_CHAT_POSITION_STORAGE_KEY,
+  getDefaultStaffChatWindowBounds,
   type StaffChatWindowPosition,
+  type StaffChatWindowSize,
+  type StaffChatWindowBounds,
 } from "@/lib/staffChatWindowPosition";
 
 type TeamChatWindowContextValue = {
@@ -14,10 +16,16 @@ type TeamChatWindowContextValue = {
   close: () => void;
   toggle: () => void;
   windowPosition: StaffChatWindowPosition;
+  windowSize: StaffChatWindowSize;
   setWindowPosition: (
     position:
       | StaffChatWindowPosition
       | ((prev: StaffChatWindowPosition) => StaffChatWindowPosition)
+  ) => void;
+  setWindowSize: (
+    size:
+      | StaffChatWindowSize
+      | ((prev: StaffChatWindowSize) => StaffChatWindowSize)
   ) => void;
   resetWindowPosition: () => void;
 };
@@ -43,16 +51,16 @@ function getViewport() {
   return { width: window.innerWidth, height: window.innerHeight };
 }
 
-function clampPositionWithViewport(position: StaffChatWindowPosition): StaffChatWindowPosition {
+function clampBoundsWithViewport(bounds: StaffChatWindowBounds): StaffChatWindowBounds {
   const viewport = getViewport();
-  if (!viewport) return position;
-  return clampStaffChatWindowPosition(position, viewport.width, viewport.height);
+  if (!viewport) return bounds;
+  return clampStaffChatWindowBounds(bounds, viewport.width, viewport.height);
 }
 
 export default function TeamChatWindowProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [windowPosition, setWindowPositionState] = useState<StaffChatWindowPosition>(
-    getDefaultStaffChatWindowPosition(1200)
+  const [windowBounds, setWindowBoundsState] = useState<StaffChatWindowBounds>(
+    getDefaultStaffChatWindowBounds(1200)
   );
 
   const open = useCallback(() => setIsOpen(true), []);
@@ -64,9 +72,28 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
         | StaffChatWindowPosition
         | ((prev: StaffChatWindowPosition) => StaffChatWindowPosition)
     ) => {
-      setWindowPositionState((prev) => {
-        const next = typeof position === "function" ? position(prev) : position;
-        return clampPositionWithViewport(next);
+      setWindowBoundsState((prev) => {
+        const nextPosition =
+          typeof position === "function"
+            ? position({ left: prev.left, top: prev.top })
+            : position;
+        return clampBoundsWithViewport({ ...prev, ...nextPosition });
+      });
+    },
+    []
+  );
+  const setWindowSize = useCallback(
+    (
+      size:
+        | StaffChatWindowSize
+        | ((prev: StaffChatWindowSize) => StaffChatWindowSize)
+    ) => {
+      setWindowBoundsState((prev) => {
+        const nextSize =
+          typeof size === "function"
+            ? size({ width: prev.width, height: prev.height })
+            : size;
+        return clampBoundsWithViewport({ ...prev, ...nextSize });
       });
     },
     []
@@ -74,9 +101,9 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
   const resetWindowPosition = useCallback(() => {
     const viewport = getViewport();
     if (!viewport) return;
-    setWindowPositionState(
-      clampStaffChatWindowPosition(
-        getDefaultStaffChatWindowPosition(viewport.width),
+    setWindowBoundsState(
+      clampStaffChatWindowBounds(
+        getDefaultStaffChatWindowBounds(viewport.width),
         viewport.width,
         viewport.height
       )
@@ -87,34 +114,45 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
     const viewport = getViewport();
     if (!viewport) return;
 
-    const fallback = getDefaultStaffChatWindowPosition(viewport.width);
+    const fallback = getDefaultStaffChatWindowBounds(viewport.width);
     const stored = window.localStorage.getItem(STAFF_CHAT_POSITION_STORAGE_KEY);
 
     if (!stored) {
-      setWindowPositionState(clampStaffChatWindowPosition(fallback, viewport.width, viewport.height));
+      setWindowBoundsState(clampStaffChatWindowBounds(fallback, viewport.width, viewport.height));
       return;
     }
 
     try {
-      const parsed = JSON.parse(stored) as Partial<StaffChatWindowPosition>;
+      const parsed = JSON.parse(stored) as Partial<StaffChatWindowBounds>;
       const left = Number(parsed.left);
       const top = Number(parsed.top);
+      const width = Number(parsed.width);
+      const height = Number(parsed.height);
       if (!Number.isFinite(left) || !Number.isFinite(top)) throw new Error("invalid staff chat position");
-      setWindowPositionState(
-        clampStaffChatWindowPosition({ left, top }, viewport.width, viewport.height)
+      setWindowBoundsState(
+        clampStaffChatWindowBounds(
+          {
+            left,
+            top,
+            width: Number.isFinite(width) ? width : fallback.width,
+            height: Number.isFinite(height) ? height : fallback.height,
+          },
+          viewport.width,
+          viewport.height
+        )
       );
     } catch {
-      setWindowPositionState(clampStaffChatWindowPosition(fallback, viewport.width, viewport.height));
+      setWindowBoundsState(clampStaffChatWindowBounds(fallback, viewport.width, viewport.height));
     }
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(STAFF_CHAT_POSITION_STORAGE_KEY, JSON.stringify(windowPosition));
-  }, [windowPosition]);
+    window.localStorage.setItem(STAFF_CHAT_POSITION_STORAGE_KEY, JSON.stringify(windowBounds));
+  }, [windowBounds]);
 
   useEffect(() => {
     const handleResize = () => {
-      setWindowPositionState((prev) => clampPositionWithViewport(prev));
+      setWindowBoundsState((prev) => clampBoundsWithViewport(prev));
     };
 
     window.addEventListener("resize", handleResize);
@@ -146,9 +184,28 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
     };
   }, [open]);
 
+  const windowPosition = useMemo<StaffChatWindowPosition>(
+    () => ({ left: windowBounds.left, top: windowBounds.top }),
+    [windowBounds.left, windowBounds.top]
+  );
+  const windowSize = useMemo<StaffChatWindowSize>(
+    () => ({ width: windowBounds.width, height: windowBounds.height }),
+    [windowBounds.width, windowBounds.height]
+  );
+
   const value = useMemo<TeamChatWindowContextValue>(
-    () => ({ isOpen, open, close, toggle, windowPosition, setWindowPosition, resetWindowPosition }),
-    [isOpen, open, close, toggle, windowPosition, setWindowPosition, resetWindowPosition]
+    () => ({
+      isOpen,
+      open,
+      close,
+      toggle,
+      windowPosition,
+      windowSize,
+      setWindowPosition,
+      setWindowSize,
+      resetWindowPosition,
+    }),
+    [isOpen, open, close, toggle, windowPosition, windowSize, setWindowPosition, setWindowSize, resetWindowPosition]
   );
 
   return <TeamChatWindowContext.Provider value={value}>{children}</TeamChatWindowContext.Provider>;

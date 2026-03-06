@@ -5,13 +5,14 @@ import BaseModal from "@/components/common/BaseModal";
 import EmojiPicker from "@/components/chat/EmojiPicker";
 import { useEmojiPicker } from "@/hooks/useEmojiPicker";
 import { useDraggableFloatingWindow } from "@/hooks/useDraggableFloatingWindow";
+import { useResizableFloatingWindow } from "@/hooks/useResizableFloatingWindow";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
 import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import type { TeamRoom, TeamMessage, TeamRoomParticipant } from "@/types/teamChat";
 import { AssetsService } from "@/services/assets";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
-import { clampStaffChatWindowPosition } from "@/lib/staffChatWindowPosition";
+import { clampStaffChatWindowPosition, clampStaffChatWindowSize } from "@/lib/staffChatWindowPosition";
 import { isImeComposing } from "@/lib/ime";
 
 type Props = {
@@ -130,7 +131,7 @@ function formatSystemMessageContent(msg: TeamMessage): string {
 
 export default function StaffChatModal({ isOpen, onClose }: Props) {
   const ctx = useTeamChatContextSafe();
-  const { windowPosition, setWindowPosition } = useTeamChatWindow();
+  const { windowPosition, windowSize, setWindowPosition, setWindowSize } = useTeamChatWindow();
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -591,13 +592,30 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
 
   const clampModalPositionToViewport = useCallback(
     (position: { left: number; top: number }) =>
-      clampStaffChatWindowPosition(position, window.innerWidth, window.innerHeight),
-    []
+      clampStaffChatWindowPosition(position, windowSize, window.innerWidth, window.innerHeight),
+    [windowSize]
+  );
+  const clampModalSizeToViewport = useCallback(
+    (size: { width: number; height: number }) =>
+      clampStaffChatWindowSize(size, windowPosition, window.innerWidth, window.innerHeight),
+    [windowPosition]
   );
   const { handlePointerDown: handleHeaderPointerDown } = useDraggableFloatingWindow({
     position: windowPosition,
     onChangePosition: setWindowPosition,
     clampPosition: clampModalPositionToViewport,
+  });
+  const { handlePointerDown: handleRightResizePointerDown } = useResizableFloatingWindow({
+    axis: "horizontal",
+    size: windowSize,
+    onChangeSize: setWindowSize,
+    clampSize: clampModalSizeToViewport,
+  });
+  const { handlePointerDown: handleBottomResizePointerDown } = useResizableFloatingWindow({
+    axis: "vertical",
+    size: windowSize,
+    onChangeSize: setWindowSize,
+    clampSize: clampModalSizeToViewport,
   });
 
   if (!isOpen) return null;
@@ -606,6 +624,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const modalOpacity = isMobileViewport ? 1 : 1 - contentOpacity / 100;
   const opacitySliderValue = MAX_STAFF_CHAT_CONTENT_OPACITY - contentOpacity;
   const canDragWindow = !isMobileViewport;
+  const canResizeWindow = !isMobileViewport;
   const modalOverlayClassName = "pointer-events-none";
   const modalPositionerClassName = isMobileViewport
     ? "absolute inset-x-0 top-[54px] h-[calc(100dvh-54px)]"
@@ -613,7 +632,10 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const modalPositionerStyle = isMobileViewport ? undefined : { top: windowPosition.top, left: windowPosition.left };
   const modalContainerClassName = isMobileViewport
     ? "pointer-events-auto flex h-[calc(100dvh-54px)] w-screen flex-col overflow-hidden rounded-none bg-neutral-0 shadow-none"
-    : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden w-[388px] h-[644px]";
+    : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden";
+  const modalContentStyle = isMobileViewport
+    ? { opacity: modalOpacity }
+    : { opacity: modalOpacity, width: windowSize.width, height: windowSize.height };
   const opacityControl = (
     <label
       data-no-drag="true"
@@ -648,7 +670,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       positionerStyle={modalPositionerStyle}
       containerClassName={modalContainerClassName}
     >
-      <div className="relative flex flex-col h-full bg-neutral-0 dark:bg-neutral-10" style={{ opacity: modalOpacity }}>
+      <div className="relative flex flex-col h-full bg-neutral-0 dark:bg-neutral-10" style={modalContentStyle}>
         {uploadError && (
           <div className="absolute left-3 right-3 top-16 z-30 pointer-events-none rounded-[10px] border border-danger-20 bg-danger-10/95 text-danger-60 text-[12px] px-3 py-2 shadow-sm">
             {uploadError}
@@ -1120,6 +1142,28 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
               mode={emojiPickerMode}
               onToggleMode={setEmojiPickerMode}
               triggerRef={emojiButtonRef}
+            />
+          </>
+        )}
+        {canResizeWindow && (
+          <>
+            <div
+              data-no-drag="true"
+              aria-hidden="true"
+              className="absolute right-0 top-0 z-40 h-full w-2 cursor-ew-resize touch-none"
+              onPointerDown={(e) => {
+                handleCloseEmojiPicker();
+                handleRightResizePointerDown(e);
+              }}
+            />
+            <div
+              data-no-drag="true"
+              aria-hidden="true"
+              className="absolute bottom-0 left-0 z-40 h-2 w-full cursor-ns-resize touch-none"
+              onPointerDown={(e) => {
+                handleCloseEmojiPicker();
+                handleBottomResizePointerDown(e);
+              }}
             />
           </>
         )}
