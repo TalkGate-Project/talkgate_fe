@@ -22,11 +22,12 @@ export default function ChatFloatingAiSidebar({ projectId, conversationId, isOpe
       {isOpen && (
         <div className="fixed inset-0 z-[90]">
           <div
-            className="absolute inset-0 bg-black/20"
+            className="absolute inset-0"
             onClick={onClose}
+            aria-hidden
           />
-          <div className="absolute bottom-0 md:bottom-44 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[520px] md:max-h-[80vh] flex flex-col">
-            <div className="h-full bg-background rounded-t-[14px] md:rounded-[14px] shadow-lg flex flex-col min-h-0 overflow-hidden">
+          <div className="absolute bottom-0 right-0 w-full md:w-[320px] md:max-w-[90vw] h-[calc(100vh-54px)] md:h-auto md:min-h-[520px] md:max-h-[80vh] min-[780px]:top-4 min-[780px]:bottom-44 min-[780px]:h-auto flex flex-col">
+            <div className="h-full rounded-t-[14px] md:rounded-[14px] shadow-lg flex flex-col min-h-0 overflow-hidden">
               <ChatRightSidebar
                 projectId={projectId}
                 conversationId={conversationId}
