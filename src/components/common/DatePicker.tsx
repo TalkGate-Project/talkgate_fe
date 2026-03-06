@@ -187,6 +187,10 @@ export default function DatePicker(props: DatePickerProps) {
 	}
 
 	const monthCells = useMemo(() => generateMonthCells(view), [view]);
+	const today = useMemo(() => {
+		const now = new Date();
+		return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	}, []);
 
 	return (
 		<div ref={rootRef} className="relative w-full">
@@ -250,6 +254,18 @@ export default function DatePicker(props: DatePickerProps) {
 							<div className="flex items-center gap-2">
 								<button
 									type="button"
+									className="w-[30px] h-[30px] flex items-center justify-center rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+									onClick={() => onChange(null)}
+									aria-label="선택 날짜 초기화"
+									disabled={!value}
+								>
+									<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<path d="M2 2.8V5.8H5" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
+										<path d="M2.3 5.2C2.96 3.66 4.49 2.58 6.28 2.58C8.68 2.58 10.62 4.52 10.62 6.92C10.62 9.32 8.68 11.26 6.28 11.26C4.49 11.26 2.95 10.16 2.29 8.62" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
+									</svg>
+								</button>
+								<button
+									type="button"
 									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
 									onClick={goPrev}
 									aria-label="이전"
@@ -294,6 +310,10 @@ export default function DatePicker(props: DatePickerProps) {
 									
 									// Check if date is disabled based on min/max
 									const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+									const isToday =
+										dateOnly.getFullYear() === today.getFullYear() &&
+										dateOnly.getMonth() === today.getMonth() &&
+										dateOnly.getDate() === today.getDate();
 									const minDateOnly = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
 									const maxDateOnly = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
 									
@@ -304,19 +324,30 @@ export default function DatePicker(props: DatePickerProps) {
 									const baseCls =
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
-									const selectedCls = isSelected ? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30" : "hover:bg-neutral-20 dark:hover:bg-neutral-30";
+									const selectedCls = isSelected
+										? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30 hover:bg-[#D6FAE8] dark:hover:bg-primary-40/30"
+										: "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
 										return (
 											<button
 											key={date.toISOString() + inCurrent}
 											type="button"
-											className={`${baseCls} ${textCls} ${isDisabled ? disabledCls : selectedCls} ${disabledCls}`}
+											className={`${baseCls} ${textCls} ${isDisabled ? "" : selectedCls} ${disabledCls}`}
 											onClick={() => !isDisabled && onSelectDay(date)}
 											disabled={isDisabled || undefined}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
-											{date.getDate()}
+											{isToday && !isSelected ? (
+												<div className="relative w-[24px] h-[24px] flex items-center justify-center">
+													<div className="absolute w-full h-full bg-[#252525] dark:bg-[#F5F5F5] rounded-full" />
+													<span className="relative text-[#FFFFFF] dark:text-[#111111]">
+														{date.getDate()}
+													</span>
+												</div>
+											) : (
+												date.getDate()
+											)}
 										</button>
 									);
 								})}
