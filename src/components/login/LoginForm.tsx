@@ -186,9 +186,10 @@ export function LoginForm() {
               // Check if this is a 2FA required response
               if (data?.requiresTwoFactor && data?.twoFactorToken) {
                 // Navigate to 2FA login page with the token (리디렉션 URL 유지)
+                const rememberMeParam = `rememberMe=${autoLogin ? "1" : "0"}`;
                 const twoFactorUrl = redirectUrl 
-                  ? `/login/two-factor?token=${data.twoFactorToken}&redirectUrl=${encodeURIComponent(redirectUrl)}`
-                  : `/login/two-factor?token=${data.twoFactorToken}`;
+                  ? `/login/two-factor?token=${data.twoFactorToken}&${rememberMeParam}&redirectUrl=${encodeURIComponent(redirectUrl)}`
+                  : `/login/two-factor?token=${data.twoFactorToken}&${rememberMeParam}`;
                 router.push(twoFactorUrl);
                 return;
               }

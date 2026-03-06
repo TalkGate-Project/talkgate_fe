@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { setSelectedProjectId } from "@/lib/project";
 import { setAuthSessionActive } from "@/lib/authSession";
+import { getRememberMePreference } from "@/lib/token";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
 
@@ -20,6 +21,9 @@ function TwoFactorLoginContentInner() {
   
   const twoFactorToken = searchParams.get("token");
   const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
+  const rememberMe = searchParams.get("rememberMe") === "1" || (
+    searchParams.get("rememberMe") == null && getRememberMePreference()
+  );
 
   // Security: Redirect if no token provided
   useEffect(() => {
@@ -49,6 +53,7 @@ function TwoFactorLoginContentInner() {
       const res = await AuthService.twoFactorLogin({
         twoFactorToken,
         totpCode,
+        rememberMe,
       });
       
       const data = (res as any)?.data;

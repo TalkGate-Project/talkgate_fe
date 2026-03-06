@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
+import { getRememberPolicy, setAuthCookies, setProjectIdCookie } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
 import { decryptToken } from '@/lib/crypto';
 
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     // 클라이언트에서 totpCode로 보내거나 code로 보내는 경우 모두 처리
-    const { twoFactorToken, totpCode, code } = body;
+    const { twoFactorToken, totpCode, code, rememberMe } = body;
     // code가 오면 totpCode로 변환 (하위 호환성)
     const finalTotpCode = totpCode || code;
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       setAuthCookies(nextResponse, request, {
         accessToken,
         refreshToken,
-        maxAge: 60 * 60 * 24 * 30, // 30일
+        rememberPolicy: getRememberPolicy(Boolean(rememberMe)),
       });
     }
     

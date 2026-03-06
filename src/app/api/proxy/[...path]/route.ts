@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
+import { getRememberPolicyFromRequest, setAuthCookies } from '@/lib/cookies';
 
 /**
  * API 프록시 라우트
@@ -45,24 +46,6 @@ function shouldSkipRefresh(apiPath: string, method: string): boolean {
   
   // 기타 예외 경로
   return SKIP_REFRESH_PATHS.some(path => apiPath.startsWith(path));
-}
-
-/**
- * 쿠키 옵션 생성
- */
-function getCookieOptions(request: NextRequest) {
-  const hostname = request.headers.get('host')?.split(':')[0] || '';
-  const isProduction = hostname.endsWith('.talkgate.im') || hostname === 'talkgate.im';
-  const isSecure = request.nextUrl.protocol === 'https:';
-
-  return {
-    httpOnly: false, // Refresh Token은 HttpOnly가 아님 (정책)
-    secure: isSecure,
-    sameSite: (isSecure ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
-    path: '/',
-    ...(isProduction && { domain: '.talkgate.im' }),
-    maxAge: 60 * 60 * 24 * 30, // 30일
-  };
 }
 
 /**
@@ -403,7 +386,6 @@ async function handleRequest(
         if (newAccessToken || newRefreshToken) {
           logger.server('[API Proxy] ✅ refresh 응답 - 새 토큰을 쿠키에 설정');
           
-          const cookieOptions = getCookieOptions(request);
           const apiResponse = isBlob
             ? new NextResponse(data, {
                 status: response.status,
@@ -415,10 +397,11 @@ async function handleRequest(
               });
 
           if (newAccessToken) {
-            apiResponse.cookies.set('tg_access_token', newAccessToken, cookieOptions);
-          }
-          if (newRefreshToken) {
-            apiResponse.cookies.set('tg_refresh_token', newRefreshToken, cookieOptions);
+            setAuthCookies(apiResponse, request, {
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+              rememberPolicy: getRememberPolicyFromRequest(request),
+            });
           }
 
           return apiResponse;
@@ -474,7 +457,6 @@ async function handleRequest(
               }
               
               // 쿠키 업데이트
-              const cookieOptions = getCookieOptions(request);
               const apiResponse = isBlob
                 ? new NextResponse(data, {
                     status: response.status,
@@ -485,12 +467,11 @@ async function handleRequest(
                     headers: responseHeaders,
                   });
               
-              if (tokensToUse.refreshToken) {
-                apiResponse.cookies.set('tg_refresh_token', tokensToUse.refreshToken, cookieOptions);
-              }
-              if (tokensToUse.accessToken) {
-                apiResponse.cookies.set('tg_access_token', tokensToUse.accessToken, cookieOptions);
-              }
+              setAuthCookies(apiResponse, request, {
+                accessToken: tokensToUse.accessToken,
+                refreshToken: tokensToUse.refreshToken,
+                rememberPolicy: getRememberPolicyFromRequest(request),
+              });
               
               return apiResponse;
             } else {
@@ -534,7 +515,6 @@ async function handleRequest(
               }
               
               // 쿠키 업데이트
-              const cookieOptions = getCookieOptions(request);
               const apiResponse = isBlob
                 ? new NextResponse(data, {
                     status: response.status,
@@ -545,12 +525,11 @@ async function handleRequest(
                     headers: responseHeaders,
                   });
               
-              if (tokens.accessToken) {
-                apiResponse.cookies.set('tg_access_token', tokens.accessToken, cookieOptions);
-              }
-              if (tokens.refreshToken) {
-                apiResponse.cookies.set('tg_refresh_token', tokens.refreshToken, cookieOptions);
-              }
+              setAuthCookies(apiResponse, request, {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                rememberPolicy: getRememberPolicyFromRequest(request),
+              });
               
               // refresh 성공 표시
               apiResponse.headers.set('X-Refresh-Attempted', 'true');
