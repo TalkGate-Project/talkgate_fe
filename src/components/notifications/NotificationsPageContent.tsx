@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotificationsService, Notification, NotificationCategory, NotificationType } from "@/services/notifications";
 import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon, NoticeShieldIcon } from "@/components/notice/icons/NoticeIcons";
-import { useCustomerModal } from "@/providers/CustomerModalProvider";
+import { setSelectedProjectId } from "@/lib/project";
+import { getCurrentSubdomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 
 // API 타입을 UI에서 사용하는 형태로 변환
 type UINotification = Omit<Notification, "isRead"> & { read: boolean };
@@ -26,7 +27,6 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
 
 function NotificationsPageContentInner() {
   const router = useRouter();
-  const { openCustomerModal } = useCustomerModal();
   const searchParams = useSearchParams();
   const [notifications, setNotifications] = useState<UINotification[]>([]);
   const [counts, setCounts] = useState({ all: 0, notice: 0, customer: 0, system: 0, security: 0, unread: 0 });
@@ -125,22 +125,51 @@ function NotificationsPageContentInner() {
     }
   };
 
+  const navigateByNotificationProject = useCallback((notification: UINotification, path: string) => {
+    const targetSubdomain = notification.project?.subDomain?.trim();
+    if (!targetSubdomain) {
+      router.push(path);
+      return;
+    }
+
+    const currentSubdomain = getCurrentSubdomain();
+    if (currentSubdomain === targetSubdomain) {
+      router.push(path);
+      return;
+    }
+
+    const subdomainUrl = getProjectSubdomainUrl(targetSubdomain, path);
+    if (!subdomainUrl) {
+      router.push(path);
+      return;
+    }
+
+    window.location.href = subdomainUrl;
+  }, [router]);
+
   const handleNotificationClick = async (notification: UINotification) => {
     // 읽음 처리
     if (!notification.read) {
       await handleMarkAsRead(notification.id);
     }
 
+    if (notification.projectId) {
+      setSelectedProjectId(String(notification.projectId));
+    }
+
     // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     if (notification.type === "notice" && notification.referenceId) {
       // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
-      router.push(`/notice/${notification.referenceId}`);
+      navigateByNotificationProject(notification, `/notice/${notification.referenceId}`);
     } else if (notification.type === "customer_registration" && notification.referenceId) {
-      // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
-      openCustomerModal(notification.referenceId);
+      // 고객 등록 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
-      router.push("/customers");
+      navigateByNotificationProject(notification, "/customers");
     } else if (notification.type === "system") {
       // 시스템 알림: 결제관리 메뉴로 이동
       router.push("/my-settings?tab=billing");
@@ -317,13 +346,13 @@ function NotificationsPageContentInner() {
                                   </span>
                                 )}
                               </span>
-                              <span className="text-[14px] leading-[20px] font-medium tracking-[-0.02em] text-[#252525] truncate">
+                              <span className="text-[14px] leading-[20px] font-medium tracking-[-0.02em] text-foreground truncate">
                                 {projectName || "프로젝트"}
                               </span>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-[14px] md:text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-[#252525] truncate">
+                            <span className="text-[14px] md:text-[16px] leading-[24px] font-semibold tracking-[-0.02em] text-foreground truncate">
                               {notification.title}
                             </span>
                             {!notification.read && <span className="w-2 h-2 rounded-full bg-primary-60 flex-shrink-0" />}
