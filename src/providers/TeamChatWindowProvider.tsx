@@ -15,8 +15,14 @@ type TeamChatWindowContextValue = {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  windowBounds: StaffChatWindowBounds;
   windowPosition: StaffChatWindowPosition;
   windowSize: StaffChatWindowSize;
+  setWindowBounds: (
+    bounds:
+      | StaffChatWindowBounds
+      | ((prev: StaffChatWindowBounds) => StaffChatWindowBounds)
+  ) => void;
   setWindowPosition: (
     position:
       | StaffChatWindowPosition
@@ -66,6 +72,19 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
+  const setWindowBounds = useCallback(
+    (
+      bounds:
+        | StaffChatWindowBounds
+        | ((prev: StaffChatWindowBounds) => StaffChatWindowBounds)
+    ) => {
+      setWindowBoundsState((prev) => {
+        const nextBounds = typeof bounds === "function" ? bounds(prev) : bounds;
+        return clampBoundsWithViewport(nextBounds);
+      });
+    },
+    []
+  );
   const setWindowPosition = useCallback(
     (
       position:
@@ -199,13 +218,15 @@ export default function TeamChatWindowProvider({ children }: { children: ReactNo
       open,
       close,
       toggle,
+      windowBounds,
       windowPosition,
       windowSize,
+      setWindowBounds,
       setWindowPosition,
       setWindowSize,
       resetWindowPosition,
     }),
-    [isOpen, open, close, toggle, windowPosition, windowSize, setWindowPosition, setWindowSize, resetWindowPosition]
+    [isOpen, open, close, toggle, windowBounds, windowPosition, windowSize, setWindowBounds, setWindowPosition, setWindowSize, resetWindowPosition]
   );
 
   return <TeamChatWindowContext.Provider value={value}>{children}</TeamChatWindowContext.Provider>;

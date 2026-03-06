@@ -12,7 +12,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import type { TeamRoom, TeamMessage, TeamRoomParticipant } from "@/types/teamChat";
 import { AssetsService } from "@/services/assets";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
-import { clampStaffChatWindowPosition, clampStaffChatWindowSize } from "@/lib/staffChatWindowPosition";
+import { clampStaffChatWindowBounds, clampStaffChatWindowPosition } from "@/lib/staffChatWindowPosition";
 import { isImeComposing } from "@/lib/ime";
 
 type Props = {
@@ -131,7 +131,7 @@ function formatSystemMessageContent(msg: TeamMessage): string {
 
 export default function StaffChatModal({ isOpen, onClose }: Props) {
   const ctx = useTeamChatContextSafe();
-  const { windowPosition, windowSize, setWindowPosition, setWindowSize } = useTeamChatWindow();
+  const { windowBounds, windowPosition, windowSize, setWindowBounds, setWindowPosition } = useTeamChatWindow();
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -595,10 +595,10 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
       clampStaffChatWindowPosition(position, windowSize, window.innerWidth, window.innerHeight),
     [windowSize]
   );
-  const clampModalSizeToViewport = useCallback(
-    (size: { width: number; height: number }) =>
-      clampStaffChatWindowSize(size, windowPosition, window.innerWidth, window.innerHeight),
-    [windowPosition]
+  const clampModalBoundsToViewport = useCallback(
+    (bounds: typeof windowBounds) =>
+      clampStaffChatWindowBounds(bounds, window.innerWidth, window.innerHeight),
+    []
   );
   const { handlePointerDown: handleHeaderPointerDown } = useDraggableFloatingWindow({
     position: windowPosition,
@@ -606,16 +606,34 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
     clampPosition: clampModalPositionToViewport,
   });
   const { handlePointerDown: handleRightResizePointerDown } = useResizableFloatingWindow({
-    axis: "horizontal",
-    size: windowSize,
-    onChangeSize: setWindowSize,
-    clampSize: clampModalSizeToViewport,
+    mode: "right",
+    bounds: windowBounds,
+    onChangeBounds: setWindowBounds,
+    clampBounds: clampModalBoundsToViewport,
   });
   const { handlePointerDown: handleBottomResizePointerDown } = useResizableFloatingWindow({
-    axis: "vertical",
-    size: windowSize,
-    onChangeSize: setWindowSize,
-    clampSize: clampModalSizeToViewport,
+    mode: "bottom",
+    bounds: windowBounds,
+    onChangeBounds: setWindowBounds,
+    clampBounds: clampModalBoundsToViewport,
+  });
+  const { handlePointerDown: handleBottomLeftResizePointerDown } = useResizableFloatingWindow({
+    mode: "bottom-left",
+    bounds: windowBounds,
+    onChangeBounds: setWindowBounds,
+    clampBounds: clampModalBoundsToViewport,
+  });
+  const { handlePointerDown: handleLeftResizePointerDown } = useResizableFloatingWindow({
+    mode: "left",
+    bounds: windowBounds,
+    onChangeBounds: setWindowBounds,
+    clampBounds: clampModalBoundsToViewport,
+  });
+  const { handlePointerDown: handleBottomRightResizePointerDown } = useResizableFloatingWindow({
+    mode: "bottom-right",
+    bounds: windowBounds,
+    onChangeBounds: setWindowBounds,
+    clampBounds: clampModalBoundsToViewport,
   });
 
   if (!isOpen) return null;
@@ -1150,7 +1168,16 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             <div
               data-no-drag="true"
               aria-hidden="true"
-              className="absolute right-0 top-0 z-40 h-full w-2 cursor-ew-resize touch-none"
+              className="absolute left-0 top-0 z-40 h-[calc(100%-14px)] w-2 cursor-ew-resize touch-none"
+              onPointerDown={(e) => {
+                handleCloseEmojiPicker();
+                handleLeftResizePointerDown(e);
+              }}
+            />
+            <div
+              data-no-drag="true"
+              aria-hidden="true"
+              className="absolute right-0 top-0 z-40 h-[calc(100%-14px)] w-2 cursor-ew-resize touch-none"
               onPointerDown={(e) => {
                 handleCloseEmojiPicker();
                 handleRightResizePointerDown(e);
@@ -1159,10 +1186,28 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
             <div
               data-no-drag="true"
               aria-hidden="true"
-              className="absolute bottom-0 left-0 z-40 h-2 w-full cursor-ns-resize touch-none"
+              className="absolute bottom-0 left-[14px] z-40 h-2 w-[calc(100%-28px)] cursor-ns-resize touch-none"
               onPointerDown={(e) => {
                 handleCloseEmojiPicker();
                 handleBottomResizePointerDown(e);
+              }}
+            />
+            <div
+              data-no-drag="true"
+              aria-hidden="true"
+              className="absolute bottom-0 left-0 z-50 h-4 w-4 cursor-nesw-resize touch-none"
+              onPointerDown={(e) => {
+                handleCloseEmojiPicker();
+                handleBottomLeftResizePointerDown(e);
+              }}
+            />
+            <div
+              data-no-drag="true"
+              aria-hidden="true"
+              className="absolute bottom-0 right-0 z-50 h-4 w-4 cursor-nwse-resize touch-none"
+              onPointerDown={(e) => {
+                handleCloseEmojiPicker();
+                handleBottomRightResizePointerDown(e);
               }}
             />
           </>

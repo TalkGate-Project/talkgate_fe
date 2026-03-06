@@ -2,27 +2,29 @@
 
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
 
-type Size = {
+type Bounds = {
+  left: number;
+  top: number;
   width: number;
   height: number;
 };
 
-type ResizeAxis = "horizontal" | "vertical";
+type ResizeMode = "left" | "right" | "bottom" | "bottom-left" | "bottom-right";
 
 type UseResizableFloatingWindowOptions = {
-  axis: ResizeAxis;
-  size: Size;
-  onChangeSize: (next: Size) => void;
-  clampSize: (next: Size) => Size;
+  mode: ResizeMode;
+  bounds: Bounds;
+  onChangeBounds: (next: Bounds) => void;
+  clampBounds: (next: Bounds) => Bounds;
 };
 
 export function useResizableFloatingWindow({
-  axis,
-  size,
-  onChangeSize,
-  clampSize,
+  mode,
+  bounds,
+  onChangeBounds,
+  clampBounds,
 }: UseResizableFloatingWindowOptions) {
-  const resizeStateRef = useRef<{ startX: number; startY: number; initialSize: Size } | null>(null);
+  const resizeStateRef = useRef<{ startX: number; startY: number; initialBounds: Bounds } | null>(null);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -33,20 +35,54 @@ export function useResizableFloatingWindow({
 
       const deltaX = e.clientX - resizeState.startX;
       const deltaY = e.clientY - resizeState.startY;
-      const nextSize =
-        axis === "horizontal"
-          ? {
-              ...resizeState.initialSize,
-              width: resizeState.initialSize.width + deltaX,
-            }
-          : {
-              ...resizeState.initialSize,
-              height: resizeState.initialSize.height + deltaY,
-            };
+      const initialBounds = resizeState.initialBounds;
+      const initialRight = initialBounds.left + initialBounds.width;
+      let nextBounds: Bounds;
 
-      onChangeSize(clampSize(nextSize));
+      if (mode === "left") {
+        const nextWidth = initialBounds.width - deltaX;
+        const clampedWidthBounds = clampBounds({
+          ...initialBounds,
+          width: nextWidth,
+        });
+        nextBounds = {
+          ...initialBounds,
+          left: initialRight - clampedWidthBounds.width,
+          width: clampedWidthBounds.width,
+        };
+      } else if (mode === "right") {
+        nextBounds = {
+          ...initialBounds,
+          width: initialBounds.width + deltaX,
+        };
+      } else if (mode === "bottom") {
+        nextBounds = {
+          ...initialBounds,
+          height: initialBounds.height + deltaY,
+        };
+      } else if (mode === "bottom-left") {
+        const nextWidth = initialBounds.width - deltaX;
+        const clampedWidthBounds = clampBounds({
+          ...initialBounds,
+          width: nextWidth,
+        });
+        nextBounds = {
+          ...initialBounds,
+          left: initialRight - clampedWidthBounds.width,
+          width: clampedWidthBounds.width,
+          height: initialBounds.height + deltaY,
+        };
+      } else {
+        nextBounds = {
+          ...initialBounds,
+          width: initialBounds.width + deltaX,
+          height: initialBounds.height + deltaY,
+        };
+      }
+
+      onChangeBounds(clampBounds(nextBounds));
     },
-    [axis, clampSize, onChangeSize]
+    [clampBounds, mode, onChangeBounds]
   );
 
   const stopResizing = useCallback(() => {
@@ -68,16 +104,23 @@ export function useResizableFloatingWindow({
       resizeStateRef.current = {
         startX: e.clientX,
         startY: e.clientY,
-        initialSize: size,
+        initialBounds: bounds,
       };
 
       document.body.style.userSelect = "none";
-      document.body.style.cursor = axis === "horizontal" ? "ew-resize" : "ns-resize";
+      document.body.style.cursor =
+        mode === "bottom-right"
+          ? "nwse-resize"
+          : mode === "bottom-left"
+            ? "nesw-resize"
+          : mode === "bottom"
+            ? "ns-resize"
+            : "ew-resize";
       window.addEventListener("pointermove", handlePointerMove, { passive: false });
       window.addEventListener("pointerup", stopResizing);
       window.addEventListener("pointercancel", stopResizing);
     },
-    [axis, handlePointerMove, size, stopResizing]
+    [bounds, handlePointerMove, mode, stopResizing]
   );
 
   useEffect(() => stopResizing, [stopResizing]);
