@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
 
 type CustomerModalContextValue = {
@@ -19,6 +20,9 @@ export function useCustomerModal() {
 }
 
 export default function CustomerModalProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [customerId, setCustomerId] = useState<number | null>(null);
 
@@ -48,6 +52,24 @@ export default function CustomerModalProvider({ children }: { children: React.Re
       window.removeEventListener("tg:open-customer-modal", handleOpenCustomerModal as EventListener);
     };
   }, [openCustomerModal]);
+
+  // /customers?openCustomerId=123 형태로 진입하면 고객 상세 모달 자동 오픈
+  useEffect(() => {
+    if (!pathname?.startsWith("/customers")) return;
+    const openCustomerId = searchParams.get("openCustomerId");
+    if (!openCustomerId) return;
+
+    const parsed = Number.parseInt(openCustomerId, 10);
+    if (Number.isNaN(parsed) || parsed <= 0) return;
+
+    openCustomerModal(parsed);
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("openCustomerId");
+    const queryString = next.toString();
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    router.replace(nextUrl);
+  }, [pathname, searchParams, openCustomerModal, router]);
 
   return (
     <CustomerModalContext.Provider value={{ openCustomerModal, closeCustomerModal }}>

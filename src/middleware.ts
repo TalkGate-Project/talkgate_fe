@@ -26,7 +26,6 @@ const AUTHENTICATED_PROJECT_PATHS = [
   "/attendance",
   "/notices",
   "/settings",
-  "/notifications",
 ];
 
 // 인증 필수 + 프로젝트 선택 경로 (서브도메인 불가)
@@ -37,6 +36,7 @@ const PROJECT_SELECTION_PATHS = [
 // 인증 필수 + 서브도메인 선택적 경로
 const AUTHENTICATED_OPTIONAL_SUBDOMAIN_PATHS = [
   "/my-settings",
+  "/notifications",
 ];
 
 // 인증 필수 + 소셜 회원가입 관련 경로 (서브도메인 불필요)
