@@ -34,7 +34,9 @@ export default function PaymentHistorySection({
       </h2>
 
       {/* 구분선 */}
-      <div className="w-full h-[1px] bg-border opacity-70 mb-4 md:mb-6"></div>
+      <div className="px-6 md:px-7 mb-4 md:mb-6">
+        <div className="h-[1px] bg-border opacity-70" />
+      </div>
 
       {/* 테이블 */}
       <div className="px-4 md:px-7 overflow-x-auto">
