@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { NotificationsService, type Notification as TGNotification } from "@/services/notifications";
 import type { NewNotificationEvent } from "@/types/notifications";
 import { setSelectedProjectId } from "@/lib/project";
-import { getCurrentSubdomain, getProjectSubdomainUrl } from "@/lib/subdomain";
+import { getCurrentSubdomain, getMainDomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 
 // 공지 페이지와 동일한 규칙의 상대 시간 포맷터
 function formatNotificationTime(dateString: string) {
@@ -159,7 +159,13 @@ export default function NotificationBell() {
 
   const handleClickViewAll = () => {
     setIsOpen(false);
-    router.push("/notifications");
+    if (typeof window === "undefined") {
+      router.push("/notifications");
+      return;
+    }
+
+    const notificationsUrl = `${window.location.protocol}//${getMainDomain()}/notifications`;
+    window.location.href = notificationsUrl;
   };
 
   const navigateByNotificationProject = useCallback((notification: TGNotification, path: string) => {

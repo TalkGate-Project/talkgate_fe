@@ -88,6 +88,7 @@ export default function LiteHeader() {
   };
   const isProjectsRoot = pathname === "/projects";
   const canShowStaffChatButton = Boolean(user) && hasProject && !isProjectsRoot;
+  const canShowLiteNav = hasProject && !isProjectsRoot;
 
   return (
     <header
@@ -100,24 +101,26 @@ export default function LiteHeader() {
           <Image src="/main_logo.png" alt="Talkgate" width={102} height={24} />
         </div>
 
-        {/* 태블릿 구간(780~1079) 메뉴 노출 */}
-        <nav className="ml-8 hidden md:flex lg:hidden items-center gap-[26px] h-[17px]">
-          {LITE_NAV_ITEMS.map(({ label, href }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                prefetch={true}
-                className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
-                  isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
-                }`}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* 프로젝트 선택 전에는 세부 메뉴를 노출하지 않음 */}
+        {canShowLiteNav && (
+          <nav className="ml-8 hidden md:flex lg:hidden items-center gap-[26px] h-[17px]">
+            {LITE_NAV_ITEMS.map(({ label, href }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={true}
+                  className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
+                    isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         {/* 우측 액션: 직원채팅 + 알림 + 개인화 드롭다운 */}
         <div className="ml-auto flex items-center gap-4">
