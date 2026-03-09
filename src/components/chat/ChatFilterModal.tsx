@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Checkbox from "@/components/common/Checkbox";
-import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
-import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
@@ -42,7 +41,7 @@ export default function ChatFilterModal({
     defaults?.messenger ?? "all"
   );
   const [categoryIds, setCategoryIds] = useState<(number | null)[]>(defaults?.categoryIds ?? []);
-  const [categoryOptions, setCategoryOptions] = useState<CustomerNoteCategory[]>([]);
+  const { categories: categoryOptions } = useCustomerNoteCategories();
   const [categoryOpen, setCategoryOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -53,17 +52,6 @@ export default function ChatFilterModal({
     setMessenger(defaults?.messenger ?? "all");
     setCategoryIds(defaults?.categoryIds ?? []);
   }, [open, defaults]);
-
-  // 카테고리 목록 가져오기
-  useEffect(() => {
-    CustomerNoteCategoriesService.list().then((res) => {
-      const arr = (res.data as any)?.data ?? (res.data as any);
-      setCategoryOptions(Array.isArray(arr) ? arr : []);
-    }).catch((err) => {
-      console.error("Failed to load categories:", err);
-      setCategoryOptions([]);
-    });
-  }, []);
 
   // Dropdown 위치 계산
   useEffect(() => {
