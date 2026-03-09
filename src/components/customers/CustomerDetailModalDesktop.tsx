@@ -6,6 +6,7 @@ import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
 import DataTab from "./detail/DataTab";
 import SalesTab from "./detail/SalesTab";
+import AssignmentTab from "./detail/AssignmentTab";
 import ConsultationPanel from "./detail/ConsultationPanel";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { useMyMember } from "@/hooks/useMyMember";
@@ -36,7 +37,7 @@ export default function CustomerDetailModalDesktop({
   onRefetch,
   onAssignClick,
 }: CustomerDetailModalProps) {
-  const [tab, setTab] = useState<"basic" | "data" | "sales">("basic");
+  const [tab, setTab] = useState<"basic" | "data" | "sales" | "assignment">("basic");
   const leftPanelRef = useRef<HTMLDivElement>(null);
   const [leftHeight, setLeftHeight] = useState<number | null>(null);
   const hasPendingListRefreshRef = useRef(false);
@@ -337,6 +338,17 @@ export default function CustomerDetailModalDesktop({
                 >
                   영업정보
                 </button>
+                {isDataProviderProject && (
+                  <button
+                    className={`cursor-pointer pb-3 text-[16px] ${tab === "assignment"
+                        ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                        : "text-neutral-60 dark:text-neutral-60"
+                      }`}
+                    onClick={() => setTab("assignment")}
+                  >
+                    배정 정보
+                  </button>
+                )}
               </div>
 
               {tab === "basic" && (
@@ -369,6 +381,13 @@ export default function CustomerDetailModalDesktop({
                   onRemovePayment={handleRemovePayment}
                   onAddSchedule={handleAddSchedule}
                   onRemoveSchedule={handleRemoveSchedule}
+                />
+              )}
+
+              {tab === "assignment" && (
+                <AssignmentTab
+                  assignedPartners={detail.assignedPartners ?? []}
+                  onCloseModal={onClose}
                 />
               )}
             </div>
