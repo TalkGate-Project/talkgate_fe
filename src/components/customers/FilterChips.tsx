@@ -151,9 +151,9 @@ export default function FilterChips({
         filters.categoryIds.map((id) => (
           <Chip key={id} label={getCategoryName(id)} onRemove={() => onRemoveCategory(id)} />
         ))}
-      {(filters.applicationDateFrom || filters.applicationDateTo) && (
+      {filters.applicationDateFrom && filters.applicationDateTo && (
         <Chip
-          label={`${formatDateForChip(filters.applicationDateFrom || "")} - ${formatDateForChip(filters.applicationDateTo || "")}`}
+          label={`${formatDateForChip(filters.applicationDateFrom)} - ${formatDateForChip(filters.applicationDateTo)}`}
           onRemove={() => onRemoveDateRange("application")}
         />
       )}
