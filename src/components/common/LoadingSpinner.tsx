@@ -19,7 +19,7 @@ type LoadingSpinnerProps = {
 
 const sizeClasses: Record<LoadingSpinnerSize, string> = {
   xs: "h-3 w-3 border-2",
-  sm: "h-4 w-4 border-2",
+  sm: "h-4 w-4 border-[3px]",
   md: "h-6 w-6 border-[3px]",
   lg: "h-8 w-8 border-[3px]",
   xl: "h-10 w-10 border-4",
@@ -41,7 +41,7 @@ const variantStyles: Record<LoadingSpinnerVariant, VariantStyle> = {
     borderTopColor: "#00e272", // primary-60
   },
   white: {
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "rgba(255, 255, 255, 0.55)",
     borderTopColor: "#ffffff",
   },
   neutral: {

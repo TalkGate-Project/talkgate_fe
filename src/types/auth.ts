@@ -30,6 +30,7 @@ export type LoginOutput = LoginResponse | TwoFactorRequiredResponse;
 export type SocialLoginInput = {
   code: string;
   callbackUrl: string;
+  rememberMe?: boolean;
 };
 
 export type SignupInput = {
@@ -125,6 +126,7 @@ export type TwoFactorDisableInput = {
 export type TwoFactorLoginInput = {
   twoFactorToken: string;
   totpCode: string;
+  rememberMe?: boolean;
 };
 
 export type TwoFactorLoginOutput = {

@@ -51,7 +51,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
   };
 
   return (
-    <div className="absolute -right-10 top-[50px] w-[360px] bg-card dark:bg-neutral-10 rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_13px_61px_0px_#000000B2] py-5 z-50">
+    <div className="absolute -right-10 top-[50px] w-[360px] max-[1080px]:right-5 max-[1280px]:right-4 max-[1080px]:w-[320px] bg-card dark:bg-neutral-10 rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_13px_61px_0px_#000000B2] py-5 z-50">
       {/* 사용자 정보 영역 */}
       <div className="flex flex-col gap-3 px-6 mb-3">
         <div className="flex items-center gap-3">

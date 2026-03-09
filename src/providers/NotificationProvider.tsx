@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { notificationSocket } from "@/lib/notificationSocket";
 import { getAccessToken } from "@/lib/token";
+import { setSelectedProjectId } from "@/lib/project";
+import { getProjectSubdomainUrl } from "@/lib/subdomain";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
 import type { NewNotificationEvent } from "@/types/notifications";
@@ -61,21 +63,27 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
     browserNotification.onclick = () => {
       window.focus();
       browserNotification.close();
+
+      if (notification.projectId) {
+        setSelectedProjectId(String(notification.projectId));
+      }
       
       // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
       if (notification.type === "notice" && notification.referenceId) {
-        window.location.href = `/notice/${notification.referenceId}`;
+        const path = `/notice/${notification.referenceId}`;
+        const targetSubdomain = notification.project?.subDomain?.trim();
+        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
+        window.location.href = subdomainUrl || path;
       } else if (notification.type === "customer_registration" && notification.referenceId) {
-        // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("tg:open-customer-modal", {
-              detail: { customerId: notification.referenceId },
-            })
-          );
-        }
+        const path = `/customers?openCustomerId=${notification.referenceId}`;
+        const targetSubdomain = notification.project?.subDomain?.trim();
+        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
+        window.location.href = subdomainUrl || path;
       } else if (notification.type === "customer_assignment") {
-        window.location.href = "/customers";
+        const path = "/customers";
+        const targetSubdomain = notification.project?.subDomain?.trim();
+        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
+        window.location.href = subdomainUrl || path;
       } else if (notification.type === "system") {
         window.location.href = "/my-settings?tab=billing";
       } else {

@@ -97,11 +97,16 @@ export default function ConsultationTab({
               className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
             >
               <div className="flex items-center justify-between gap-2 text-[12px]">
-                <div className="flex items-center gap-x-2">
+                <div className="flex items-center gap-x-2 min-w-0">
                   <div
-                    className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                    className="max-w-[110px] min-w-0 shrink-0"
+                    title={categoryName}
                   >
-                    {categoryName}
+                    <div
+                      className={`inline-flex items-center justify-center w-full max-w-full px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium overflow-hidden ${badgeStyle.bg} ${badgeStyle.text}`}
+                    >
+                      <span className="block truncate">{categoryName}</span>
+                    </div>
                   </div>
                   {/* 노트를 작성한 담당자 이름이 우선, 없으면 빈 문자열 */}
                   <span className="text-[12px] text-neutral-80 dark:text-neutral-70">

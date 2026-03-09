@@ -8,6 +8,7 @@ export type Tokens = { accessToken?: string | null; refreshToken?: string | null
 
 const ACCESS_COOKIE = "tg_access_token";
 const REFRESH_COOKIE = "tg_refresh_token";
+const REMEMBER_POLICY_COOKIE = "tg_remember_policy";
 const REMEMBER_KEY = "tg_auto_login"; // localStorage flag for persistent login
 
 function isBrowser(): boolean {
@@ -78,6 +79,7 @@ export function setTokens(tokens: Tokens): void {
   
   const rememberMe = getRememberMePreference();
   const attrs = buildCookieAttributes(rememberMe);
+  const rememberPolicy = rememberMe ? "persistent" : "session";
   
   if (tokens.accessToken !== undefined) {
     if (tokens.accessToken) {
@@ -93,6 +95,10 @@ export function setTokens(tokens: Tokens): void {
     } else {
       document.cookie = `${REFRESH_COOKIE}=; Max-Age=0; Path=/`;
     }
+  }
+
+  if (tokens.accessToken || tokens.refreshToken) {
+    document.cookie = `${REMEMBER_POLICY_COOKIE}=${rememberPolicy}; ${attrs}`;
   }
 }
 
@@ -118,6 +124,7 @@ export function clearTokens(): void {
   const attrString = attrs.join("; ");
   document.cookie = `${ACCESS_COOKIE}=; ${attrString}`;
   document.cookie = `${REFRESH_COOKIE}=; ${attrString}`;
+  document.cookie = `${REMEMBER_POLICY_COOKIE}=; ${attrString}`;
 }
 
 export function getAccessToken(): string | null {

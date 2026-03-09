@@ -134,22 +134,24 @@ export default function StatusBarChart() {
     const renderXAxisTick = (props: any) => {
       const { x, y, payload } = props;
       const label: string = payload?.value ?? "";
-      // data 배열에서 label로 해당 항목 찾기
-      const datum = data.find((d) => d.label === label);
+      const tickIndex = typeof payload?.index === "number" ? payload.index : -1;
+      const datum = tickIndex >= 0 ? data[tickIndex] : data.find((d) => d.label === label);
       const p = datum?.percent ?? 0;
       const percentText = `${(Math.round(p * 10) / 10).toFixed(1)}%`;
       return (
         <g transform={`translate(${x},${y})`}>
-          <text
-            x={0}
-            y={0}
-            dy={14}
-            textAnchor="middle"
-            fill="var(--foreground)"
-            fontSize={14}
-            fontWeight={500}
-          >
-            {label}
+          {/* 최대 110px 영역으로 제한하고, 초과 텍스트는 말줄임 처리 */}
+          <foreignObject x={-60} y={4} width={120} height={20}>
+            <div
+              title={label}
+              className="mx-auto w-[110px] overflow-hidden text-ellipsis whitespace-nowrap text-center text-[14px] font-medium text-foreground leading-[20px]"
+            >
+              {label}
+            </div>
+          </foreignObject>
+          {/* SVG text 요소에도 title을 넣어 hover/touch 환경에서 풀네임 확인 가능 */}
+          <text x={0} y={0} dy={14} textAnchor="middle" fill="transparent" fontSize={0}>
+            <title>{label}</title>
           </text>
           <text
             x={0}

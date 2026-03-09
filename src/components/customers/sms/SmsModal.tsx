@@ -559,7 +559,8 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
-      containerClassName="relative w-full h-full md:w-[848px] md:min-w-[848px] md:max-h-[703px] xl:max-h-[753px] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10 md:mt-12"
+      positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:max-h-[90vh] lg:w-[848px] lg:min-w-[848px] lg:max-h-[703px] xl:max-h-[753px] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10"
       ariaLabel="문자 전송"
       fullScreenOnMobile
     >

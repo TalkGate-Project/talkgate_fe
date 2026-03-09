@@ -101,7 +101,7 @@ export default function ConsultationPanel({
 
   return (
     <div
-      className="col-span-12 md:col-span-5 lg:col-span-4 flex flex-col overflow-hidden"
+      className="col-span-12 md:col-span-1 md:w-[330px] md:min-w-[330px] md:max-w-[330px] lg:w-[384px] lg:min-w-[384px] lg:max-w-[384px] flex flex-col overflow-hidden"
       style={panelStyle}
     >
       {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
@@ -204,7 +204,7 @@ export default function ConsultationPanel({
             onChange={(e) =>
               setNoteCategoryId(e.target.value ? Number(e.target.value) : "")
             }
-            className="w-[106px] h-[34px] rounded-[5px] text-body-3"
+            className="min-w-[106px] h-[34px] rounded-[5px] text-body-3"
           >
             <option value="">일반</option>
             {categories.map((c) => (
@@ -249,11 +249,16 @@ export default function ConsultationPanel({
                 className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
               >
                 <div className="flex items-center justify-between gap-2 text-[12px]">
-                  <div className="flex items-center gap-x-2">
+                  <div className="flex items-center gap-x-2 min-w-0">
                     <div
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                      className="max-w-[110px] min-w-0 shrink-0"
+                      title={categoryName}
                     >
-                      {categoryName}
+                      <div
+                        className={`inline-flex items-center justify-center w-full max-w-full px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium overflow-hidden ${badgeStyle.bg} ${badgeStyle.text}`}
+                      >
+                        <span className="block truncate">{categoryName}</span>
+                      </div>
                     </div>
                     {/* 노트를 작성한 담당자 이름이 우선, 없으면 빈 문자열 */}
                     <span className="text-[12px] text-neutral-80 dark:text-neutral-70">

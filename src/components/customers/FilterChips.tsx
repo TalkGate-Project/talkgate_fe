@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
-import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
@@ -12,6 +12,8 @@ type FilterChipsProps = {
   onRemoveDateRange: (type: "application" | "assigned") => void;
   teamOptions?: { label: string; value: number }[];
   memberOptions?: { label: string; value: number }[];
+  /** 파트너 칩 라벨을 위해 project-partners API 호출 여부. true일 때만 필요 시 호출 (데이터제공자 + admin/subAdmin). */
+  shouldFetchPartners?: boolean;
 };
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
@@ -44,23 +46,15 @@ export default function FilterChips({
   onRemoveDateRange,
   teamOptions = [],
   memberOptions = [],
+  shouldFetchPartners = false,
 }: FilterChipsProps) {
-  // 카테고리 목록을 가져와서 이름을 표시하기 위한 상태
-  const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const { categories } = useCustomerNoteCategories();
   const [partnerNameMap, setPartnerNameMap] = useState<Map<number, string>>(new Map());
 
+  // project-partners는 파트너 필터 칩 라벨이 필요할 때만, 데이터제공자 프로젝트의 admin/subAdmin인 경우에만 호출
+  const needPartnerName = typeof filters.projectPartnerId === "number";
   useEffect(() => {
-    CustomerNoteCategoriesService.list()
-      .then((res) => {
-        const arr = (res.data as any)?.data ?? (res.data as any);
-        setCategories(Array.isArray(arr) ? arr : []);
-      })
-      .catch(() => {
-        setCategories([]);
-      });
-  }, []);
-
-  useEffect(() => {
+    if (!shouldFetchPartners || !needPartnerName) return;
     const projectId = getSelectedProjectId();
     if (!projectId) return;
     let cancelled = false;
@@ -80,7 +74,7 @@ export default function FilterChips({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [shouldFetchPartners, needPartnerName]);
 
   // 카테고리 ID로 이름 찾기
   const getCategoryName = (id: number | null): string => {
@@ -151,9 +145,9 @@ export default function FilterChips({
         filters.categoryIds.map((id) => (
           <Chip key={id} label={getCategoryName(id)} onRemove={() => onRemoveCategory(id)} />
         ))}
-      {(filters.applicationDateFrom || filters.applicationDateTo) && (
+      {filters.applicationDateFrom && filters.applicationDateTo && (
         <Chip
-          label={`${formatDateForChip(filters.applicationDateFrom || "")} - ${formatDateForChip(filters.applicationDateTo || "")}`}
+          label={`${formatDateForChip(filters.applicationDateFrom)} - ${formatDateForChip(filters.applicationDateTo)}`}
           onRemove={() => onRemoveDateRange("application")}
         />
       )}

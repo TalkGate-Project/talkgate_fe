@@ -140,7 +140,7 @@ export default function TeamManagementSettings() {
   }
 
   return (
-    <div className="w-full h-full bg-card rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
+    <div className="w-full h-full bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} zoom={zoom} onZoomChange={setZoom} />
       <div className="mx-4 md:mx-7 h-px bg-neutral-30 mb-3" />
 
@@ -171,7 +171,7 @@ export default function TeamManagementSettings() {
           />
         </div>
       ) : (
-        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative">
+        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative md:min-h-[600px]">
           {/* 트리 뷰 영역 - 스크롤은 TeamTreeView 내부에서만 처리 */}
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
             <TeamTreeView

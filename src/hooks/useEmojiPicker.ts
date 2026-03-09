@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
+const DESKTOP_BREAKPOINT = 780;
+
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
   const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
@@ -25,7 +27,7 @@ export function useEmojiPicker() {
     }
     
     // 모바일/데스크탑 버튼 중 활성화된 버튼 찾기
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < DESKTOP_BREAKPOINT;
     const activeButton = isMobile && mobileEmojiButtonRef.current 
       ? mobileEmojiButtonRef.current 
       : emojiButtonRef.current;

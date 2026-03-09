@@ -124,9 +124,9 @@ export default function Header() {
         className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50"
         style={{ zoom: 1 }}
       >
-        <div className="mx-auto w-full lg:max-w-[1324px] h-full px-4 lg:px-0 flex items-center justify-between lg:justify-start">
+        <div className="mx-auto w-full md:max-w-[1324px] h-full px-4 md:px-6 lg:px-0 flex items-center justify-between md:justify-start">
           {/* 모바일 햄버거 메뉴 (좌측) */}
-          <div className="lg:hidden flex items-center mr-4">
+          <div className="md:hidden flex items-center mr-4">
             <button
               onClick={() => setDrawerOpen(true)}
               className="text-white p-1"
@@ -160,7 +160,7 @@ export default function Header() {
           </div>
 
           {/* 주요 메뉴 (데스크탑: 브랜드 오른쪽 정렬, 모바일: 숨김) */}
-          <nav className="ml-8 hidden lg:flex items-center gap-[26px] h-[17px]">
+          <nav className="ml-8 hidden md:flex items-center gap-[26px] h-[17px]">
             {NAV_ITEMS.map(({ label, href }) => {
               const isActive = pathname === href;
               const isConsult = href === "/consult";

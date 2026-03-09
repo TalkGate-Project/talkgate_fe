@@ -29,7 +29,7 @@ export default function ConsultPageContent() {
 
   return (
     <main className="h-[calc(100vh-54px)] bg-neutral-10 flex flex-col">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-0 pt-0 md:pt-9 pb-0 md:pb-6 flex-1 flex flex-col min-h-0">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 pt-0 md:pt-9 pb-0 md:pb-6 flex-1 flex flex-col min-h-0">
         <ChatView projectId={Number(projectId)} />
       </div>
     </main>

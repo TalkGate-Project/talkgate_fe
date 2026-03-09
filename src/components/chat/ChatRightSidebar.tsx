@@ -1,12 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ConversationsService } from "@/services/conversations";
 import type { AiAssistantMessage } from "@/types/conversations";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Image from "next/image";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { isImeComposing } from "@/lib/ime";
+
+const TOOLTIP_WIDTH = 320;
+const TOOLTIP_GAP = 8;
+const TOOLTIP_PADDING = 16;
+const TOOLTIP_OFFSET_RIGHT_PX = 200; // 태블릿/데스크톱에서 오른쪽으로 이동
+const MOBILE_BREAKPOINT_PX = 780; // 이 미만이면 화면 중앙 배치
+
+function getBodyZoom(): number {
+  if (typeof window === "undefined") return 1;
+  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+  if (!raw) return 1;
+  const parsed = parseFloat(raw);
+  return Number.isNaN(parsed) ? 1 : parsed;
+}
 
 type Props = {
   projectId: number;
@@ -25,8 +40,11 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
   const [nextCursor, setNextCursor] = useState<number | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRafIdRef = useRef<number | null>(null);
   const isComposingRef = useRef(false);
 
   const hasActiveConversation = useMemo(
@@ -85,6 +103,71 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showTooltip]);
+
+  // Portal 툴팁 위치 계산 (getBodyZoom, 뷰포트 클램핑, resize 대응)
+  useEffect(() => {
+    if (!showTooltip) {
+      setTooltipPosition(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
+
+      const zoom = getBodyZoom();
+      const r = triggerRef.current.getBoundingClientRect();
+      const winW = window.innerWidth / zoom;
+      const winH = window.innerHeight / zoom;
+      const isMobile = winW < MOBILE_BREAKPOINT_PX;
+
+      let top: number;
+      let left: number;
+
+      if (isMobile) {
+        // 780px 미만: 화면 중앙 배치
+        left = (winW - TOOLTIP_WIDTH) / 2;
+        left = Math.max(TOOLTIP_PADDING, Math.min(left, winW - TOOLTIP_WIDTH - TOOLTIP_PADDING));
+
+        if (tooltipRef.current) {
+          const tooltipHeight = tooltipRef.current.getBoundingClientRect().height / zoom;
+          top = (winH - tooltipHeight) / 2;
+          top = Math.max(TOOLTIP_PADDING, Math.min(top, winH - tooltipHeight - TOOLTIP_PADDING));
+          setTooltipPosition({ top, left });
+        } else {
+          tooltipRafIdRef.current = requestAnimationFrame(updatePosition);
+        }
+      } else {
+        // 780px 이상(태블릿/데스크톱): 트리거 기준 + 200px 오른쪽
+        top = (r.bottom + TOOLTIP_GAP) / zoom;
+        left = (r.right - TOOLTIP_WIDTH) / zoom + TOOLTIP_OFFSET_RIGHT_PX;
+        left = Math.max(TOOLTIP_PADDING, Math.min(left, winW - TOOLTIP_WIDTH - TOOLTIP_PADDING));
+
+        if (tooltipRef.current) {
+          const tooltipHeight = tooltipRef.current.getBoundingClientRect().height / zoom;
+          if (top + tooltipHeight > winH - TOOLTIP_PADDING) {
+            top = r.top / zoom - tooltipHeight - TOOLTIP_GAP;
+          }
+          top = Math.max(TOOLTIP_PADDING, top);
+          setTooltipPosition({ top, left });
+        } else {
+          tooltipRafIdRef.current = requestAnimationFrame(updatePosition);
+        }
+      }
+    };
+
+    tooltipRafIdRef.current = requestAnimationFrame(() => {
+      updatePosition();
+      tooltipRafIdRef.current = null;
+    });
+
+    const handleResize = () => updatePosition();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      if (tooltipRafIdRef.current != null) cancelAnimationFrame(tooltipRafIdRef.current);
+      window.removeEventListener("resize", handleResize);
     };
   }, [showTooltip]);
 
@@ -248,6 +331,7 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
           </div>
           <div className="relative">
             <div
+              ref={triggerRef}
               data-tooltip-trigger
               className="cursor-pointer flex items-center justify-center"
               onMouseEnter={() => setShowTooltip(true)}
@@ -264,34 +348,44 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
                 <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            {showTooltip && (
-              <div
-                ref={tooltipRef}
-                className="absolute right-0 top-full mt-2 z-50 w-[280px] md:w-[320px] bg-card dark:bg-neutral-10 border border-border dark:border-neutral-30 rounded-[8px] shadow-lg p-4 text-[12px] leading-[18px] text-foreground"
-                onMouseEnter={() => setShowTooltip(true)}
-                onMouseLeave={() => setShowTooltip(false)}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="space-y-2">
-                  <p>
-                    상담자의 편의를 위해 AI 기반 검색 기술을 활용하여 필요한 정보를 제공하는 답변입니다.
-                  </p>
-                  <p>
-                    학습된 내용을 기반으로 AI 모델이 요약한 결과물로서 해당 과정에서 다소 부정확, 부적절한 정보가 포함될 수 있습니다.
-                    Talkgate AI의 답변은 참고용으로만 사용해주시고, 의료, 법률, 금융 등 전문적인 자문이 필요한 경우 해당 분야의 전문가에게 문의하세요.
-                  </p>
-                  <p>
-                    또한 Talkgate AI가 제공하는 답변은 일반적인 정보 제공을 목적으로 하며, 투자 권유, 투자 자문 또는 금융상품에 대한 매수·매도 추천이 아닙니다.
-                  </p>
-                  <p>
-                    본 답변은 특정 개인의 투자 목적, 재무 상태, 위험 선호도를 고려하지 않으며, 투자 판단에 대한 최종 책임은 이용자에게 있습니다.
-                  </p>
-                  <p>
-                    Talkgate 및 주식회사 핑크코브라는 AI 답변의 내용으로 발생한 투자 손실 또는 법적 책임을 부담하지 않습니다.
-                  </p>
-                </div>
-              </div>
-            )}
+            {typeof window !== "undefined" &&
+              showTooltip &&
+              createPortal(
+                <div
+                  ref={tooltipRef}
+                  className="w-[280px] md:w-[320px] bg-card dark:bg-neutral-10 border border-border dark:border-neutral-30 rounded-[8px] shadow-lg p-4 text-[12px] leading-[18px] text-foreground"
+                  style={{
+                    position: "fixed",
+                    top: tooltipPosition?.top ?? 0,
+                    left: tooltipPosition?.left ?? 0,
+                    zIndex: 95,
+                    visibility: tooltipPosition ? "visible" : "hidden",
+                  }}
+                  onMouseEnter={() => setShowTooltip(true)}
+                  onMouseLeave={() => setShowTooltip(false)}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-2">
+                    <p>
+                      상담자의 편의를 위해 AI 기반 검색 기술을 활용하여 필요한 정보를 제공하는 답변입니다.
+                    </p>
+                    <p>
+                      학습된 내용을 기반으로 AI 모델이 요약한 결과물로서 해당 과정에서 다소 부정확, 부적절한 정보가 포함될 수 있습니다.
+                      Talkgate AI의 답변은 참고용으로만 사용해주시고, 의료, 법률, 금융 등 전문적인 자문이 필요한 경우 해당 분야의 전문가에게 문의하세요.
+                    </p>
+                    <p>
+                      또한 Talkgate AI가 제공하는 답변은 일반적인 정보 제공을 목적으로 하며, 투자 권유, 투자 자문 또는 금융상품에 대한 매수·매도 추천이 아닙니다.
+                    </p>
+                    <p>
+                      본 답변은 특정 개인의 투자 목적, 재무 상태, 위험 선호도를 고려하지 않으며, 투자 판단에 대한 최종 책임은 이용자에게 있습니다.
+                    </p>
+                    <p>
+                      Talkgate 및 주식회사 핑크코브라는 AI 답변의 내용으로 발생한 투자 손실 또는 법적 책임을 부담하지 않습니다.
+                    </p>
+                  </div>
+                </div>,
+                document.body
+              )}
           </div>
         </div>
         {/* 모바일 닫기 버튼 */}

@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CustomersService } from "@/services/customers";
-import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import type { CustomerDetail } from "@/types/customers";
 import { useCustomerForm } from "./useCustomerForm";
 import type { CustomerValidation } from "./types";
 import { useCustomerActions } from "./useCustomerActions";
-import type { NoteCategory } from "./types";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
 
 // Re-export types for backward compatibility
@@ -24,7 +23,7 @@ export function useCustomerDetail(
   const onFetchErrorClose = options?.onFetchErrorClose;
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
-  const [categories, setCategories] = useState<NoteCategory[]>([]);
+  const { categories } = useCustomerNoteCategories();
   const detailRef = useRef<CustomerDetail | null>(null);
 
   useEffect(() => {
@@ -118,30 +117,15 @@ export function useCustomerDetail(
     }
   }, [customerId, initializeForm, onFetchErrorClose]);
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const res = await CustomerNoteCategoriesService.list();
-      setCategories(((res as any).data?.data || []) as NoteCategory[]);
-    } catch {
-      setCategories([]);
-    }
-  }, []);
-
   const fetchDetailRef = useRef(fetchDetail);
-  const fetchCategoriesRef = useRef(fetchCategories);
 
   useEffect(() => {
     fetchDetailRef.current = fetchDetail;
   }, [fetchDetail]);
 
   useEffect(() => {
-    fetchCategoriesRef.current = fetchCategories;
-  }, [fetchCategories]);
-
-  useEffect(() => {
     if (open && customerId) {
       fetchDetailRef.current();
-      fetchCategoriesRef.current();
     }
   }, [open, customerId]);
 

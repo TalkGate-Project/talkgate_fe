@@ -54,6 +54,91 @@ function LocalIconTooltip({
   );
 }
 
+function AlbumConversationCard({
+  conversation,
+  isActive,
+  hasDraft,
+  onClick,
+}: {
+  conversation: Conversation;
+  isActive: boolean;
+  hasDraft: boolean;
+  onClick: () => void;
+}) {
+  const nameRef = useRef<HTMLDivElement | null>(null);
+  const [isNameTruncated, setIsNameTruncated] = useState(false);
+
+  const checkNameTruncation = useCallback(() => {
+    const el = nameRef.current;
+    if (!el) return;
+    setIsNameTruncated(el.scrollWidth > el.clientWidth);
+  }, []);
+
+  useEffect(() => {
+    const rafId = requestAnimationFrame(checkNameTruncation);
+    return () => cancelAnimationFrame(rafId);
+  }, [checkNameTruncation, conversation.name]);
+
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(() => {
+      checkNameTruncation();
+    });
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [checkNameTruncation]);
+
+  const card = (
+    <button
+      onClick={onClick}
+      className={`cursor-pointer w-full relative h-[72px] rounded-[5px] border flex flex-col items-center justify-center gap-2 ${
+        isActive
+          ? "border-primary-60 dark:border-neutral-60 bg-card dark:bg-[#333333]"
+          : "border-border"
+      } bg-card hover:bg-neutral-10`}
+    >
+      <div className="absolute -top-1 -right-1">
+        {conversation.unreadCount ? (
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white dark:text-black text-[12px]">
+            {conversation.unreadCount}
+          </span>
+        ) : hasDraft ? (
+          <DraftMessageIcon />
+        ) : null}
+      </div>
+      <div className="px-2 text-center w-full">
+        <div
+          ref={nameRef}
+          className={`text-[12px] font-semibold truncate ${
+            isActive ? "text-ink dark:text-neutral-90" : "text-ink"
+          }`}
+        >
+          {conversation.name}
+        </div>
+      </div>
+      <div className="flex justify-center">
+        <PlatformIcon platform={conversation.platform} />
+      </div>
+    </button>
+  );
+
+  if (!isNameTruncated) return card;
+
+  return (
+    <Tooltip
+      content={conversation.name}
+      position="top"
+      disablePortal
+      className="w-full h-full block"
+    >
+      {card}
+    </Tooltip>
+  );
+}
+
 export default function ChatLeftSidebar({
   statusFilter,
   setStatusFilter,
@@ -133,8 +218,8 @@ export default function ChatLeftSidebar({
   };
 
   return (
-    <div className="w-full lg:max-w-[286px] h-full">
-      <div className="w-full lg:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
+    <div className="w-full md:max-w-[286px] h-full">
+      <div className="w-full md:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
         <div className="px-4 md:px-7 pt-4 md:pt-[26px] pb-3 md:pb-[18px] flex items-center justify-between shrink-0">
           <h2 className="text-[16px] font-bold text-neutral-90">상담채팅</h2>
           <div className="flex items-center gap-2">
@@ -331,38 +416,13 @@ export default function ChatLeftSidebar({
             ) : (
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {filteredConversations.map((c) => (
-                  <Tooltip key={c.id} content={c.name} position="top" className="w-full h-full block">
-                    <button
-                      onClick={() => handleConversationClick(c)}
-                      className={`cursor-pointer w-full relative h-[72px] rounded-[5px] border flex flex-col items-center justify-center gap-2 ${
-                        activeId === c.id
-                          ? "border-primary-60 dark:border-neutral-60 bg-card dark:bg-[#333333]"
-                          : "border-border"
-                      } bg-card hover:bg-neutral-10`}
-                    >
-                      <div className="absolute -top-1 -right-1">
-                        {c.unreadCount ? (
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-danger-40 text-white dark:text-black text-[12px]">
-                            {c.unreadCount}
-                          </span>
-                        ) : conversationsWithDraft.has(c.id) ? (
-                          <DraftMessageIcon />
-                        ) : null}
-                      </div>
-                      <div className="px-2 text-center w-full">
-                        <div className={`text-[12px] font-semibold truncate ${
-                          activeId === c.id
-                            ? "text-ink dark:text-neutral-90"
-                            : "text-ink"
-                        }`}>
-                          {c.name}
-                        </div>
-                      </div>
-                      <div className="flex justify-center">
-                        <PlatformIcon platform={c.platform} />
-                      </div>
-                    </button>
-                  </Tooltip>
+                  <AlbumConversationCard
+                    key={c.id}
+                    conversation={c}
+                    isActive={activeId === c.id}
+                    hasDraft={conversationsWithDraft.has(c.id)}
+                    onClick={() => handleConversationClick(c)}
+                  />
                 ))}
               </div>
             )}

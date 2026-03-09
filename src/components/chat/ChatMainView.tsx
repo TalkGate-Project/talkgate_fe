@@ -23,7 +23,9 @@ type Props = {
   onOpenLinkFlow: () => void;
   onOpenUnlinkModal: () => void;
   onOpenCustomerDetail: () => void;
+  onOpenAiSidebar?: () => void;
   onCloseConversation: () => void;
+  onCompleteConversation: () => void;
   attachmentUploading: boolean;
   onAttachImage: () => void;
   onAttachFile: () => void;
@@ -36,6 +38,7 @@ type Props = {
   onDropFile?: (file: File) => void;
   onSwapWidths?: () => void;
   isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
+  enforceMinWidth?: boolean; // 데스크톱 고정 레이아웃일 때만 최소 너비 강제
   widthMode?: "normal" | "swapped"; // 너비 모드: normal = 메인 넓음, swapped = 메인 좁음
 };
 
@@ -70,7 +73,9 @@ export default function ChatMainView({
   onOpenLinkFlow,
   onOpenUnlinkModal,
   onOpenCustomerDetail,
+  onOpenAiSidebar,
   onCloseConversation,
+  onCompleteConversation,
   attachmentUploading,
   onAttachImage,
   onAttachFile,
@@ -83,6 +88,7 @@ export default function ChatMainView({
   onDropFile,
   onSwapWidths,
   isResizable = false,
+  enforceMinWidth = false,
   widthMode,
 }: Props) {
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -220,7 +226,7 @@ export default function ChatMainView({
   return (
     <div className={`${isResizable ? "w-full" : "flex-1"} flex ${isResizable ? "" : "justify-center"} h-full`}>
       <div
-        className={`w-full ${isResizable ? "" : "lg:min-w-[688px]"} h-full rounded-[14px] lg:rounded-[14px] rounded-t-none lg:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
+        className={`w-full ${!isResizable && enforceMinWidth ? "min-w-[688px]" : "min-w-0"} h-full rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] bg-card dark:bg-neutral-0 flex flex-col relative`}
         onDragEnter={canDrop ? handleDragEnter : undefined}
         onDragLeave={canDrop ? handleDragLeave : undefined}
         onDragOver={canDrop ? handleDragOver : undefined}
@@ -262,7 +268,7 @@ export default function ChatMainView({
             {/* 모바일 뒤로가기 버튼 */}
             <button
               onClick={onCloseConversation}
-              className="lg:hidden cursor-pointer p-1 -ml-1 mr-1 text-neutral-90 dark:text-neutral-70"
+              className="md:hidden cursor-pointer p-1 -ml-1 mr-1 text-neutral-90 dark:text-neutral-70"
               aria-label="뒤로가기"
             >
               <svg
@@ -284,31 +290,28 @@ export default function ChatMainView({
             {activeConversation ? (
               <>
                 {/* 프로필 썸네일: 데스크탑에서만 표시 */}
-                <div className="hidden lg:block">
+                <div className="hidden md:block">
                   <ConversationAvatar
                     name={activeConversation.name}
                     profileUrl={activeConversation.profileUrl}
                     size="md"
                   />
                 </div>
-                {
-                  widthMode === "normal" &&
-                  (
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center leading-[24px] gap-2">
-                        <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
-                          {activeConversation.name}
-                        </span>
-                        <div className="shrink-0 w-5 h-5">
-                          <PlatformIcon platform={activeConversation.platform} />
-                        </div>
-                      </div>
-                      <div className="text-[12px] text-neutral-60 truncate">
-                        {activeConversation.platformConversationId || "-"}
+                {widthMode !== "swapped" && (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center leading-[24px] gap-2">
+                      <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
+                        {activeConversation.name}
+                      </span>
+                      <div className="shrink-0 w-5 h-5">
+                        <PlatformIcon platform={activeConversation.platform} />
                       </div>
                     </div>
-                  )
-                }
+                    <div className="text-[12px] text-neutral-60 truncate">
+                      {activeConversation.platformConversationId || "-"}
+                    </div>
+                  </div>
+                )}
 
               </>
             ) : (
@@ -320,11 +323,74 @@ export default function ChatMainView({
               - linkCustomer API 호출 후 로컬 상태 즉시 업데이트 (Optimistic UI)
           */}
           <div className="flex items-center gap-1 md:gap-2 shrink-0">
+            {onOpenAiSidebar && (
+              <button
+                type="button"
+                aria-label="open-ai-assistant"
+                className="cursor-pointer h-[42px] w-[42px] shrink-0 flex items-center justify-center translate-y-[3px]"
+                onClick={onOpenAiSidebar}
+              >
+                <svg
+                  width="42"
+                  height="42"
+                  viewBox="0 0 42 42"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="block"
+                >
+                  <g filter="url(#filter0_d_4783_37208)">
+                    <circle cx="21" cy="18" r="17" fill="url(#paint0_linear_4783_37208)" />
+                    <path
+                      d="M18.6556 12.8148C19.1323 11.4199 21.0595 11.3776 21.6247 12.6881L21.6725 12.8156L22.3157 14.6967C22.4631 15.1281 22.7013 15.5229 23.0143 15.8544C23.3272 16.186 23.7076 16.4465 24.1298 16.6185L24.3027 16.6831L26.1838 17.3255C27.5786 17.8022 27.6209 19.7296 26.3113 20.2947L26.1838 20.3425L24.3027 20.9858C23.8712 21.1331 23.4763 21.3713 23.1446 21.6843C22.813 21.9972 22.5523 22.3777 22.3803 22.8L22.3157 22.9722L21.6733 24.8541C21.1966 26.249 19.2694 26.2913 18.7051 24.9816L18.6556 24.8541L18.0132 22.973C17.8659 22.5414 17.6277 22.1465 17.3148 21.8148C17.0018 21.4831 16.6214 21.2225 16.1991 21.0504L16.027 20.9858L14.1459 20.3433C12.7503 19.8667 12.708 17.9393 14.0184 17.375L14.1459 17.3255L16.027 16.6831C16.4583 16.5357 16.8531 16.2974 17.1846 15.9845C17.5161 15.6715 17.7767 15.2911 17.9487 14.8689L18.0132 14.6967L18.6556 12.8148ZM26.5409 10.0664C26.69 10.0664 26.8361 10.1082 26.9626 10.1871C27.0892 10.2661 27.191 10.3789 27.2566 10.5128L27.2949 10.606L27.5738 11.4239L28.3924 11.7028C28.5419 11.7536 28.6728 11.8476 28.7688 11.9729C28.8648 12.0982 28.9214 12.2492 28.9314 12.4067C28.9415 12.5642 28.9046 12.7212 28.8254 12.8577C28.7462 12.9942 28.6282 13.1041 28.4865 13.1735L28.3924 13.2117L27.5746 13.4907L27.2957 14.3093C27.2448 14.4587 27.1508 14.5897 27.0254 14.6856C26.9001 14.7814 26.7491 14.838 26.5916 14.848C26.4341 14.8579 26.2772 14.821 26.1407 14.7417C26.0043 14.6624 25.8944 14.5444 25.8251 14.4026L25.7869 14.3093L25.5079 13.4915L24.6893 13.2125C24.5399 13.1618 24.4089 13.0678 24.3129 12.9425C24.217 12.8172 24.1604 12.6662 24.1503 12.5087C24.1402 12.3512 24.1771 12.1942 24.2563 12.0577C24.3356 11.9212 24.4535 11.8113 24.5953 11.7419L24.6893 11.7036L25.5071 11.4247L25.7861 10.606C25.8398 10.4486 25.9415 10.3118 26.0769 10.2151C26.2122 10.1183 26.3745 10.0663 26.5409 10.0664Z"
+                      fill="white"
+                    />
+                  </g>
+                  <defs>
+                    <filter
+                      id="filter0_d_4783_37208"
+                      x="0"
+                      y="0"
+                      width="42"
+                      height="42"
+                      filterUnits="userSpaceOnUse"
+                      colorInterpolationFilters="sRGB"
+                    >
+                      <feFlood floodOpacity="0" result="BackgroundImageFix" />
+                      <feColorMatrix
+                        in="SourceAlpha"
+                        type="matrix"
+                        values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                        result="hardAlpha"
+                      />
+                      <feOffset dy="3" />
+                      <feGaussianBlur stdDeviation="2" />
+                      <feColorMatrix
+                        type="matrix"
+                        values="0 0 0 0 0.0352941 0 0 0 0 0.117647 0 0 0 0 0.258824 0 0 0 0.1 0"
+                      />
+                      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_4783_37208" />
+                      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_4783_37208" result="shape" />
+                    </filter>
+                    <linearGradient
+                      id="paint0_linear_4783_37208"
+                      x1="-12.4618"
+                      y1="17.4618"
+                      x2="20.4618"
+                      y2="50.3855"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop stopColor="#A1FF8B" />
+                      <stop offset="1" stopColor="#3F93FF" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </button>
+            )}
             {/* 너비 치환 버튼 (웹에서만 표시) */}
             {onSwapWidths && (
               <LocalIconTooltip label="메인 뷰와 사이드바 너비 교환">
                 <button
-                  className="hidden lg:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
+                  className="hidden md:flex cursor-pointer h-[34px] w-[34px] md:h-[36px] md:w-[36px] rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 items-center justify-center hover:bg-neutral-20 transition-colors"
                   onClick={onSwapWidths}
                   aria-label="너비 치환"
                 >
@@ -357,15 +423,47 @@ export default function ChatMainView({
             {activeConversation && activeConversation.customerId && (
               <button
                 onClick={onOpenCustomerDetail}
-                className="cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-card border border-border text-[12px] md:text-[14px] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="hidden md:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-card border border-border text-[12px] md:text-[14px] disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap items-center justify-center leading-none"
               >
                 고객정보
               </button>
             )}
+            <button
+              className="md:hidden cursor-pointer h-[36px] w-[36px] rounded-[6px] border border-[#E2E2E2] dark:border-neutral-30 bg-card dark:bg-neutral-10 text-neutral-50 dark:text-neutral-60 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              onClick={onCompleteConversation}
+              disabled={
+                !activeConversation || activeConversation?.status === "closed"
+              }
+              aria-label="상담완료"
+            >
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 36 36"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="0.5"
+                  y="0.5"
+                  width="35"
+                  height="35"
+                  rx="5.5"
+                  stroke="currentColor"
+                />
+                <path
+                  d="M12.166 18.8335L15.4993 22.1668L23.8327 13.8335"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
             {widthMode !== "swapped" && (
               <button
-                className="cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                onClick={onCloseConversation}
+                className="hidden md:inline-flex cursor-pointer h-[34px] md:h-[36px] px-2 md:px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[12px] md:text-[14px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap items-center justify-center leading-none"
+                onClick={onCompleteConversation}
                 disabled={
                   !activeConversation || activeConversation?.status === "closed"
                 }

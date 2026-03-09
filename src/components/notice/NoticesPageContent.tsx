@@ -65,7 +65,7 @@ function NoticesPageContentInner() {
 
   return (
     <main className="min-h-[calc(100vh-54px)] bg-neutral-10 flex flex-col">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:pt-9 md:pb-12 flex flex-col flex-1 md:block min-h-0">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col flex-1 md:block min-h-0">
         {/* 검색 및 글쓰기 패널 */}
         <div className="flex-shrink-0">
           <NoticeSearchPanel

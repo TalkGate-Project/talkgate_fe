@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationsService, type Notification as TGNotification } from "@/services/notifications";
 import type { NewNotificationEvent } from "@/types/notifications";
-import { useCustomerModal } from "@/providers/CustomerModalProvider";
+import { setSelectedProjectId } from "@/lib/project";
+import { getCurrentSubdomain, getMainDomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 
 // 공지 페이지와 동일한 규칙의 상대 시간 포맷터
 function formatNotificationTime(dateString: string) {
@@ -54,7 +55,6 @@ function mergeNotifications(
 
 export default function NotificationBell() {
   const router = useRouter();
-  const { openCustomerModal } = useCustomerModal();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<TGNotification[]>([]);
@@ -159,8 +159,36 @@ export default function NotificationBell() {
 
   const handleClickViewAll = () => {
     setIsOpen(false);
-    router.push("/notifications");
+    if (typeof window === "undefined") {
+      router.push("/notifications");
+      return;
+    }
+
+    const notificationsUrl = `${window.location.protocol}//${getMainDomain()}/notifications`;
+    window.location.href = notificationsUrl;
   };
+
+  const navigateByNotificationProject = useCallback((notification: TGNotification, path: string) => {
+    const targetSubdomain = notification.project?.subDomain?.trim();
+    if (!targetSubdomain) {
+      router.push(path);
+      return;
+    }
+
+    const currentSubdomain = getCurrentSubdomain();
+    if (currentSubdomain === targetSubdomain) {
+      router.push(path);
+      return;
+    }
+
+    const subdomainUrl = getProjectSubdomainUrl(targetSubdomain, path);
+    if (!subdomainUrl) {
+      router.push(path);
+      return;
+    }
+
+    window.location.href = subdomainUrl;
+  }, [router]);
 
   const handleNotificationClick = async (notification: TGNotification) => {
     // 알림을 클릭하면 읽음 처리 후 해당 페이지로 이동
@@ -184,17 +212,25 @@ export default function NotificationBell() {
       }
     }
 
+    const notificationProjectId = notification.projectId;
+    if (notificationProjectId) {
+      setSelectedProjectId(String(notificationProjectId));
+    }
+
     // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     setIsOpen(false);
     if (notification.type === "notice" && notification.referenceId) {
       // 공지사항 알림: 해당 공지사항 상세 페이지로 이동
-      router.push(`/notice/${notification.referenceId}`);
+      navigateByNotificationProject(notification, `/notice/${notification.referenceId}`);
     } else if (notification.type === "customer_registration" && notification.referenceId) {
-      // 고객 등록 알림: 페이지 이동 없이 모달 띄우기
-      openCustomerModal(notification.referenceId);
+      // 고객 등록 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
-      router.push("/customers");
+      navigateByNotificationProject(notification, "/customers");
     } else if (notification.type === "system") {
       // 시스템 알림: 결제관리 메뉴로 이동
       router.push("/my-settings?tab=billing");
@@ -238,7 +274,7 @@ export default function NotificationBell() {
 
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 pb-4 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
+        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
           <div className="h-full flex flex-col">
             {/* 헤더 */}
             <div className="h-10 px-5 border-b border-border flex items-start justify-between">
@@ -275,7 +311,7 @@ export default function NotificationBell() {
                         hasProjectInfo ? "h-[100px]" : "h-[64px]"
                       } ${
                         isUnread
-                          ? "bg-[#D6FAE84D] hover:bg-[#D6FAE880]"
+                          ? "bg-[#D6FAE84D] dark:bg-[#D6FAE81A] hover:bg-[#D6FAE866] dark:hover:bg-[#D6FAE84D]"
                           : "bg-card hover:bg-muted"
                       }`}
                     >

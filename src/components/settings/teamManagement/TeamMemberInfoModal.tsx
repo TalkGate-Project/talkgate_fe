@@ -308,9 +308,9 @@ export default function TeamMemberInfoModal({
   // 로딩 상태
   if (isLoading) {
     return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div className="relative w-full h-full md:w-[904px] md:h-[400px] md:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
+        <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
           <LoadingSpinner size="2xl" />
           <p className="mt-4 text-[14px] text-neutral-60">
             직원 정보를 불러오는 중...
@@ -324,9 +324,9 @@ export default function TeamMemberInfoModal({
   // 에러 상태
   if (isError || !member) {
     return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
         <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div className="relative w-full h-full md:w-[904px] md:h-[400px] md:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
+        <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
           <p className="text-[14px] text-neutral-60">
             직원 정보를 불러오는 중 오류가 발생했습니다.
           </p>
@@ -344,9 +344,9 @@ export default function TeamMemberInfoModal({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
       <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-      <div className="relative w-full h-full md:w-[904px] md:min-w-[600px] md:max-h-[90vh] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col">
+      <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:max-h-[600px] lg:max-h-[800px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col">
         <header className="h-[64px] md:h-auto px-4 md:px-6 pt-4 md:pt-4 pb-[10px] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             {/* 모바일 뒤로가기 버튼 */}
@@ -604,23 +604,6 @@ export default function TeamMemberInfoModal({
             )}
           </section>
         </div>
-
-        <footer className="px-4 md:px-6 py-4 border-t border-border flex justify-end gap-2 md:gap-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="h-[34px] px-3 md:px-4 rounded-[5px] border border-border text-[13px] md:text-[14px] font-semibold text-foreground bg-card dark:bg-neutral-10"
-          >
-            초기화
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-[34px] px-3 md:px-4 rounded-[5px] bg-neutral-90 text-[13px] md:text-[14px] font-semibold text-neutral-0"
-          >
-            적용완료
-          </button>
-        </footer>
       </div>
     </div>,
     document.body

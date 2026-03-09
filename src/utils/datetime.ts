@@ -140,3 +140,43 @@ export function formatDateForChip(dateStr: string): string {
   return `${parts[0]}. ${parts[1]}. ${parts[2]}`;
 }
 
+/** YYYY-MM-DD 형식으로 반환 (필터/API용) */
+function toYYYYMMDD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * 신청시간 퀵 필터: 당일 (오늘 날짜 from = to)
+ * @returns { from: string; to: string } YYYY-MM-DD
+ */
+export function getApplicationDateRangeToday(): { from: string; to: string } {
+  const today = new Date();
+  const s = toYYYYMMDD(today);
+  return { from: s, to: s };
+}
+
+/**
+ * 신청시간 퀵 필터: 당월 (이번 달 1일 ~ 말일)
+ * @returns { from: string; to: string } YYYY-MM-DD
+ */
+export function getApplicationDateRangeThisMonth(): { from: string; to: string } {
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth(), 1);
+  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { from: toYYYYMMDD(from), to: toYYYYMMDD(to) };
+}
+
+/**
+ * 신청시간 퀵 필터: 전월 (저번 달 1일 ~ 말일)
+ * @returns { from: string; to: string } YYYY-MM-DD
+ */
+export function getApplicationDateRangeLastMonth(): { from: string; to: string } {
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const to = new Date(now.getFullYear(), now.getMonth(), 0);
+  return { from: toYYYYMMDD(from), to: toYYYYMMDD(to) };
+}
+

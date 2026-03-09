@@ -6,10 +6,10 @@ import MySettingsClient from "@/components/my-settings/MySettingsClient";
 export default function MySettingsPageContent() {
   return (
     <main className="min-h-screen md:pt-9 md:pb-12 bg-background md:bg-background">
-      <div className="container mx-auto max-w-[1324px] px-0">
+      <div className="container mx-auto max-w-[1324px] px-0 md:px-6 lg:px-0">
         <Suspense fallback={
           <div className="flex gap-6">
-            <div className="hidden lg:block w-[280px] bg-card rounded-[14px] shadow-sm p-6">
+            <div className="hidden md:block w-[280px] bg-card rounded-[14px] shadow-sm p-6">
               <div className="animate-pulse">
                 <div className="h-6 bg-neutral-20 rounded mb-2"></div>
                 <div className="h-4 bg-neutral-20 rounded mb-8"></div>
@@ -20,13 +20,15 @@ export default function MySettingsPageContent() {
                 </div>
               </div>
             </div>
-            <div className="flex-1 bg-card rounded-[14px] shadow-sm p-6">
-              <div className="animate-pulse">
-                <div className="h-8 bg-neutral-20 rounded mb-6"></div>
-                <div className="space-y-4">
-                  <div className="h-4 bg-neutral-20 rounded w-1/3"></div>
-                  <div className="h-4 bg-neutral-20 rounded w-1/2"></div>
-                  <div className="h-32 bg-neutral-20 rounded"></div>
+            <div className="flex-1 min-w-0 md:overflow-x-auto lg:overflow-x-visible">
+              <div className="md:min-w-max lg:min-w-0 bg-card rounded-[14px] shadow-sm p-6">
+                <div className="animate-pulse">
+                  <div className="h-8 bg-neutral-20 rounded mb-6"></div>
+                  <div className="space-y-4">
+                    <div className="h-4 bg-neutral-20 rounded w-1/3"></div>
+                    <div className="h-4 bg-neutral-20 rounded w-1/2"></div>
+                    <div className="h-32 bg-neutral-20 rounded"></div>
+                  </div>
                 </div>
               </div>
             </div>

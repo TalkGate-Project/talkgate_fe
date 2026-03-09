@@ -6,6 +6,7 @@ import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
 import DataTab from "./detail/DataTab";
 import SalesTab from "./detail/SalesTab";
+import AssignmentTab from "./detail/AssignmentTab";
 import ConsultationTab from "./detail/ConsultationTab";
 import ConversationCard from "./detail/ConversationCard";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -37,7 +38,7 @@ export default function CustomerDetailModalMobile({
   onRefetch,
   onAssignClick,
 }: CustomerDetailModalProps) {
-  const [tab, setTab] = useState<"basic" | "data" | "sales" | "consultation">("basic");
+  const [tab, setTab] = useState<"basic" | "data" | "sales" | "assignment" | "consultation">("basic");
   const hasPendingListRefreshRef = useRef(false);
 
   const markListRefreshPending = useCallback(() => {
@@ -307,6 +308,18 @@ export default function CustomerDetailModalMobile({
           >
             영업정보
           </button>
+          {isDataProviderProject && (
+            <button
+              className={`cursor-pointer pb-3 text-[14px] flex-shrink-0 whitespace-nowrap ${
+                tab === "assignment"
+                  ? "font-semibold text-neutral-90 dark:text-neutral-90 border-b-2 border-neutral-90 dark:border-neutral-90"
+                  : "text-neutral-60 dark:text-neutral-60"
+              }`}
+              onClick={() => setTab("assignment")}
+            >
+              배정 정보
+            </button>
+          )}
           <button
             className={`cursor-pointer pb-3 text-[14px] flex-shrink-0 whitespace-nowrap ${
               tab === "consultation"
@@ -358,6 +371,13 @@ export default function CustomerDetailModalMobile({
                 onRemovePayment={handleRemovePayment}
                 onAddSchedule={handleAddSchedule}
                 onRemoveSchedule={handleRemoveSchedule}
+              />
+            )}
+
+            {tab === "assignment" && (
+              <AssignmentTab
+                assignedPartners={detail.assignedPartners ?? []}
+                onCloseModal={onClose}
               />
             )}
 

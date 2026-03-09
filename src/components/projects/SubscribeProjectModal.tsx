@@ -313,14 +313,14 @@ export default function SubscribeProjectModal({
           </div>
 
           {/* 쿠폰 등록하기 영역 */}
-          <div className="w-full md:h-[64px] bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] max-md:rounded-none flex items-center gap-4 max-md:gap-3 px-7 max-md:px-0 mb-6 max-md:mb-4 shrink-0">
+          <div className="w-full md:h-[64px] bg-[#ffffff] md:bg-[#F8F8F8] dark:bg-neutral-20 rounded-[12px] max-md:rounded-none flex items-center gap-4 max-md:gap-3 px-7 max-md:px-0 mb-6 max-md:mb-4 shrink-0">
             <input
               type="text"
               value={couponCode}
               onChange={(e) => setCouponCode(formatCouponCodeForDisplay(e.target.value))}
               placeholder="쿠폰 코드를 입력하세요"
               disabled={couponApplying}
-              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 max-md:bg-transparent px-3 text-neutral-90 dark:text-white placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"
+              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 bg-white dark:bg-neutral-10 max-md:bg-transparent px-3 text-neutral-90 dark:text-white text-[14px] md:text-[16px] placeholder-neutral-50 dark:placeholder-neutral-50 focus:outline-none disabled:opacity-50"
             />
             <button
               type="button"

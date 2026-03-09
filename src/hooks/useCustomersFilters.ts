@@ -140,8 +140,15 @@ export function useCustomersFilters(projectId: string | null) {
             // null을 문자열 "null"로 변환하여 API에 전송 (일반 카테고리)
             categoryIds: applied.categoryIds?.map((id: number | null) => id === null ? "null" : id),
             noteContent: applied.noteContent,
-            applicationDateFrom: applied.applicationDateFrom,
-            applicationDateTo: applied.applicationDateTo,
+            // 신청시간: 둘 다 있을 때만 API 쿼리에 포함
+            applicationDateFrom:
+              applied.applicationDateFrom && applied.applicationDateTo
+                ? applied.applicationDateFrom
+                : undefined,
+            applicationDateTo:
+              applied.applicationDateFrom && applied.applicationDateTo
+                ? applied.applicationDateTo
+                : undefined,
             assignedAtFrom: applied.assignedAtFrom,
             assignedAtTo: applied.assignedAtTo,
             keyword: applied.keyword,
@@ -186,8 +193,11 @@ export function useCustomersFilters(projectId: string | null) {
       });
     }
     setIf("noteContent", filterValues.noteContent);
-    setIf("applicationDateFrom", filterValues.applicationDateFrom);
-    setIf("applicationDateTo", filterValues.applicationDateTo);
+    // 신청시간: 둘 다 있을 때만 URL/쿼리에 포함
+    if (filterValues.applicationDateFrom && filterValues.applicationDateTo) {
+      setIf("applicationDateFrom", filterValues.applicationDateFrom);
+      setIf("applicationDateTo", filterValues.applicationDateTo);
+    }
     setIf("assignedAtFrom", filterValues.assignedAtFrom);
     setIf("assignedAtTo", filterValues.assignedAtTo);
     setIf("keyword", filterValues.keyword);

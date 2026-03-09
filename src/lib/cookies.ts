@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+export const REMEMBER_POLICY_COOKIE = 'tg_remember_policy';
+
+export type RememberPolicy = 'session' | 'persistent';
+
 /**
  * 쿠키 옵션 타입
  */
@@ -34,6 +39,39 @@ export function getCookieOptions(request: NextRequest): CookieOptions {
   };
 }
 
+function withRememberPolicy(
+  cookieOptions: CookieOptions,
+  rememberPolicy: RememberPolicy
+): CookieOptions {
+  if (rememberPolicy === 'persistent') {
+    return {
+      ...cookieOptions,
+      maxAge: AUTH_COOKIE_MAX_AGE,
+    };
+  }
+
+  return cookieOptions;
+}
+
+export function getRememberPolicy(rememberMe?: boolean): RememberPolicy {
+  return rememberMe ? 'persistent' : 'session';
+}
+
+export function getRememberPolicyFromRequest(request: NextRequest): RememberPolicy {
+  const rememberPolicy = request.cookies.get(REMEMBER_POLICY_COOKIE)?.value;
+  return rememberPolicy === 'persistent' ? 'persistent' : 'session';
+}
+
+export function setRememberPolicyCookie(
+  response: NextResponse,
+  request: NextRequest,
+  rememberPolicy: RememberPolicy
+): void {
+  const cookieOptions = withRememberPolicy(getCookieOptions(request), rememberPolicy);
+
+  response.cookies.set(REMEMBER_POLICY_COOKIE, rememberPolicy, cookieOptions);
+}
+
 /**
  * 인증 토큰 쿠키를 설정합니다.
  */
@@ -43,23 +81,23 @@ export function setAuthCookies(
   tokens: {
     accessToken: string;
     refreshToken?: string;
-    maxAge?: number;
+    rememberPolicy?: RememberPolicy;
   }
 ): void {
-  const cookieOptions = getCookieOptions(request);
-  const maxAge = tokens.maxAge || 60 * 60 * 24 * 30; // 기본 30일
+  const rememberPolicy = tokens.rememberPolicy ?? 'session';
+  const cookieOptions = withRememberPolicy(getCookieOptions(request), rememberPolicy);
 
   response.cookies.set('tg_access_token', tokens.accessToken, {
     ...cookieOptions,
-    maxAge,
   });
 
   if (tokens.refreshToken) {
     response.cookies.set('tg_refresh_token', tokens.refreshToken, {
       ...cookieOptions,
-      maxAge,
     });
   }
+
+  setRememberPolicyCookie(response, request, rememberPolicy);
 }
 
 /**
@@ -74,7 +112,7 @@ export function setProjectIdCookie(
   
   response.cookies.set('tg_selected_project_id', String(projectId), {
     ...cookieOptions,
-    maxAge: 60 * 60 * 24 * 30, // 30일
+    maxAge: AUTH_COOKIE_MAX_AGE, // 30일
   });
 }
 
@@ -90,7 +128,7 @@ export function setAttendanceMenuCookie(
   const cookieOptions = getCookieOptions(request);
   response.cookies.set('tg_use_attendance_menu', String(useAttendanceMenu), {
     ...cookieOptions,
-    maxAge: 60 * 60 * 24 * 30, // 30일
+    maxAge: AUTH_COOKIE_MAX_AGE, // 30일
   });
 }
 
@@ -113,6 +151,7 @@ export function deleteAuthCookies(
   const cookiesToDelete = [
     'tg_access_token',
     'tg_refresh_token',
+    REMEMBER_POLICY_COOKIE,
     'tg_selected_project_id',
     'tg_use_attendance_menu',
   ];

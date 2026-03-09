@@ -336,7 +336,7 @@ export default function ProfileTab() {
       </div>
 
       {/* Form Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-[788px] mx-auto px-6 md:px-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 max-w-[788px] mx-auto px-6 lg:px-0">
         {/* 이름 */}
         <div>
           <label className="block text-[12px] md:text-[14px] font-medium text-neutral-60 mb-2">

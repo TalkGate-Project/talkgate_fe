@@ -130,7 +130,11 @@ export const AuthService = {
     return fetch("/api/auth/social/google", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        code: input.code,
+        callbackUrl: input.callbackUrl,
+        rememberMe: input.rememberMe,
+      }),
       credentials: "include",
     }).then(async (res) => {
       const data = await res.json();
@@ -159,7 +163,11 @@ export const AuthService = {
     return fetch("/api/auth/social/kakao", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        code: input.code,
+        callbackUrl: input.callbackUrl,
+        rememberMe: input.rememberMe,
+      }),
       credentials: "include",
     }).then(async (res) => {
       const data = await res.json();
@@ -188,7 +196,11 @@ export const AuthService = {
     return fetch("/api/auth/social/naver", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        code: input.code,
+        callbackUrl: input.callbackUrl,
+        rememberMe: input.rememberMe,
+      }),
       credentials: "include",
     }).then(async (res) => {
       const data = await res.json();
@@ -315,6 +327,7 @@ export const AuthService = {
       body: JSON.stringify({
         twoFactorToken: input.twoFactorToken,
         totpCode: input.totpCode, // 백엔드는 totpCode를 기대함
+        rememberMe: input.rememberMe,
       }),
       credentials: "include",
     }).then(async (res) => {

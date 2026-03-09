@@ -318,7 +318,7 @@ function CustomersPageContentInner() {
 
   return (
     <main className="md:min-h-[calc(100vh-54px)] bg-neutral-10">
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 pt-0 md:pt-9 pb-0 md:pb-12">
       {/* Top panel: title + search */}
       <Panel
         className="rounded-none md:rounded-[14px] mb-0 md:mb-9"
@@ -344,6 +344,7 @@ function CustomersPageContentInner() {
           onRemoveDateRange={removeDateRangeFilterAndApply}
           teamOptions={teamOptions}
           memberOptions={memberOptions}
+          shouldFetchPartners={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
         />
       </Panel>
 

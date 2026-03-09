@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthService } from "@/services/auth";
 import { getCallbackUrl } from "@/lib/oauth";
-import { setRememberMePreference, getRememberMePreference } from "@/lib/token";
+import { getRememberMePreference } from "@/lib/token";
 import { getSelectedProjectId } from "@/lib/project";
 import {
   debugLog,
@@ -159,22 +159,20 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           throw new Error("인가 코드 또는 제공자 정보가 없습니다.");
         }
         
-        // 🔧 소셜 로그인은 기본적으로 자동 로그인(Remember Me) 활성화
-        const prevRememberMe = getRememberMePreference();
-        setRememberMePreference(true);
-        debugLog("⚙️ Remember Me 설정", { before: prevRememberMe, after: true });
+        const rememberMe = getRememberMePreference();
+        debugLog("⚙️ Remember Me 설정", { rememberMe });
         
         // API 호출
         let result: Awaited<ReturnType<typeof AuthService.loginGoogle>>;
         if (provider === "google") {
           debugLog("🔵 Google API 호출 시작");
-          result = await AuthService.loginGoogle({ code, callbackUrl });
+          result = await AuthService.loginGoogle({ code, callbackUrl, rememberMe });
         } else if (provider === "kakao") {
           debugLog("🟡 Kakao API 호출 시작");
-          result = await AuthService.loginKakao({ code, callbackUrl });
+          result = await AuthService.loginKakao({ code, callbackUrl, rememberMe });
         } else if (provider === "naver") {
           debugLog("🟢 Naver API 호출 시작");
-          result = await AuthService.loginNaver({ code, callbackUrl });
+          result = await AuthService.loginNaver({ code, callbackUrl, rememberMe });
         } else {
           throw new Error(`지원하지 않는 소셜 로그인 제공자: ${provider}`);
         }
@@ -194,9 +192,10 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           
           if (mounted) {
             // ✅ 소셜 로그인에서도 returnUrl 유지: 2FA 페이지로 redirectUrl 전달
+            const rememberMeParam = `rememberMe=${rememberMe ? "1" : "0"}`;
             const twoFactorUrl = redirectUrl
-              ? `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&redirectUrl=${encodeURIComponent(redirectUrl)}`
-              : `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}`;
+              ? `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&${rememberMeParam}&redirectUrl=${encodeURIComponent(redirectUrl)}`
+              : `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&${rememberMeParam}`;
             router.push(twoFactorUrl);
           }
           return;

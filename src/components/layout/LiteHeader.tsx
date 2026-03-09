@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,14 @@ import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
 import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
+const LITE_NAV_ITEMS: { label: string; href: string }[] = [
+  { label: "대시보드", href: "/dashboard" },
+  { label: "상담", href: "/consult" },
+  { label: "고객목록", href: "/customers" },
+  { label: "통계", href: "/stats" },
+  { label: "공지사항", href: "/notices" },
+  { label: "설정", href: "/settings" },
+];
 
 export default function LiteHeader() {
   const pathname = usePathname();
@@ -79,17 +88,39 @@ export default function LiteHeader() {
   };
   const isProjectsRoot = pathname === "/projects";
   const canShowStaffChatButton = Boolean(user) && hasProject && !isProjectsRoot;
+  const canShowLiteNav = hasProject && !isProjectsRoot;
 
   return (
     <header
       className="fixed top-0 left-0 right-0 h-[54px] bg-[#252525] z-50"
       style={{ zoom: 1 }}
     >
-      <div className="mx-auto w-full lg:max-w-[1410px] h-full px-4 lg:px-0 flex items-center justify-between lg:justify-start">
+      <div className="mx-auto w-full md:max-w-[1410px] h-full px-4 md:px-6 lg:px-0 flex items-center justify-between md:justify-start">
         {/* 좌측: 로그인으로 이동하는 브랜드 로고 */}
         <div className="flex items-center h-full">
           <Image src="/main_logo.png" alt="Talkgate" width={102} height={24} />
         </div>
+
+        {/* 프로젝트 선택 전에는 세부 메뉴를 노출하지 않음 */}
+        {canShowLiteNav && (
+          <nav className="ml-8 hidden md:flex lg:hidden items-center gap-[26px] h-[17px]">
+            {LITE_NAV_ITEMS.map(({ label, href }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={true}
+                  className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
+                    isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         {/* 우측 액션: 직원채팅 + 알림 + 개인화 드롭다운 */}
         <div className="ml-auto flex items-center gap-4">
