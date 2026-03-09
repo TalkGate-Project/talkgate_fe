@@ -179,7 +179,7 @@ export default function CustomerDetailModalDesktop({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-[92vw] max-w-[1284px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[85vh] md:!h-[86vh] lg:!h-[700px] md:!w-[92vw] md:!max-w-[1284px] md:!min-w-[600px] overflow-hidden"
+      containerClassName="relative w-[92vw] max-w-[1284px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col md:!w-[92vw] md:!max-w-[1284px] md:!min-w-[600px] overflow-hidden"
       ariaLabel="고객정보"
     >
       {/* Header */}
