@@ -179,7 +179,8 @@ export default function CustomerDetailModalDesktop({
     <BaseModal
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-[92vw] max-w-[1284px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col md:!w-[92vw] md:!max-w-[1284px] md:!min-w-[600px] overflow-hidden"
+      positionerClassName="min-h-full flex items-center justify-center p-2"
+      containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[800px] md:!h-[680px] lg:!h-[600px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] overflow-hidden"
       ariaLabel="고객정보"
     >
       {/* Header */}
@@ -299,7 +300,7 @@ export default function CustomerDetailModalDesktop({
       {/* Content Area - 스크롤 가능 */}
       <div className="flex-1 overflow-y-auto min-h-0 -mx-2 pl-2 pr-4 custom-scrollbar">
         {loading && (
-          <div className="py-16 text-center text-neutral-60 dark:text-neutral-60 min-w-[600px]">불러오는 중...</div>
+          <div className="py-16 text-center text-neutral-60 dark:text-neutral-60 min-w-0">불러오는 중...</div>
         )}
 
         {!loading && detail && (
@@ -307,7 +308,7 @@ export default function CustomerDetailModalDesktop({
             {/* Left: form and tabs */}
             <div
               ref={leftPanelRef}
-              className="col-span-12 md:col-span-7 lg:col-span-8 w-full min-w-0 lg:w-[792px] lg:min-w-[792px] lg:max-w-[792px]"
+              className="col-span-12 md:col-span-7 lg:col-span-8 w-full min-w-0 lg:max-w-[792px]"
             >
               {/* Tabs */}
               <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">

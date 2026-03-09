@@ -344,6 +344,7 @@ function CustomersPageContentInner() {
           onRemoveDateRange={removeDateRangeFilterAndApply}
           teamOptions={teamOptions}
           memberOptions={memberOptions}
+          shouldFetchPartners={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
         />
       </Panel>
 
