@@ -3,7 +3,8 @@
 import { ReactNode, useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
-import { CustomerNoteCategoriesService, CustomerNoteCategory } from "@/services/customerNoteCategories";
+import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import Checkbox from "@/components/common/Checkbox";
 
@@ -526,20 +527,13 @@ function arraysEqual(a: (number | null)[], b: (number | null)[]) {
 }
 
 function CategorySelector({ defaultIds, onChangeIds }: { defaultIds?: (number | null)[]; onChangeIds?: (ids: (number | null)[]) => void }) {
-    const [options, setOptions] = useState<CustomerNoteCategory[]>([]);
+    const { categories: options } = useCustomerNoteCategories();
     const [selected, setSelected] = useState<(number | null)[]>(defaultIds || []);
     const [open, setOpen] = useState(false);
     const wrapRef = useRef<HTMLDivElement | null>(null);
     const triggerRef = useRef<HTMLButtonElement | null>(null);
     const panelRef = useRef<HTMLDivElement | null>(null);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number; width: number } | null>(null);
-
-    useEffect(() => {
-        CustomerNoteCategoriesService.list().then((res) => {
-            const arr = (res.data as any)?.data ?? (res.data as any);
-            setOptions(Array.isArray(arr) ? arr : []);
-        });
-    }, []);
 
     useEffect(() => {
         function onDocClick(e: MouseEvent) {

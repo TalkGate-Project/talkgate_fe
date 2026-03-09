@@ -7,10 +7,7 @@ import {
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
-import {
-  CustomerNoteCategoriesService,
-  CustomerNoteCategory,
-} from "@/services/customerNoteCategories";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -147,7 +144,7 @@ export default function CustomersTable({
   } | null>(null);
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [categories, setCategories] = useState<CustomerNoteCategory[]>([]);
+  const { categories } = useCustomerNoteCategories();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [expandedDuplicateRows, setExpandedDuplicateRows] = useState<
@@ -198,18 +195,6 @@ export default function CustomersTable({
   const skeletonTotalColumns = skeletonColWidths.length;
   const detailColSpan = totalColumns - 2;
   const shouldRenderSkeleton = !isDataProviderReady || loading;
-
-  // Fetch categories on mount
-  useEffect(() => {
-    CustomerNoteCategoriesService.list()
-      .then((res) => {
-        // res.data = { result: true, data: [...categories] }
-        setCategories((res.data as any)?.data ?? []);
-      })
-      .catch(() => {
-        // silently fail
-      });
-  }, []);
 
   const handleMouseEnter = (
     e: React.MouseEvent,

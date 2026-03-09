@@ -180,7 +180,7 @@ export default function CustomerDetailModalDesktop({
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       positionerClassName="min-h-full flex items-center justify-center p-2"
-      containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[800px] md:!h-[680px] lg:!h-[600px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] overflow-hidden"
+      containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[630px] md:!h-[600px] lg:!h-[720px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] lg:!w-[calc(100%-32px)] lg:!max-w-[1284px] overflow-hidden"
       ariaLabel="고객정보"
     >
       {/* Header */}
@@ -304,11 +304,11 @@ export default function CustomerDetailModalDesktop({
         )}
 
         {!loading && detail && (
-          <div className="mt-[30px] grid grid-cols-12 gap-6 pb-2">
+          <div className="mt-[30px] grid grid-cols-12 md:grid-cols-[minmax(0,1fr)_330px] lg:grid-cols-[minmax(0,1fr)_384px] gap-6 pb-2">
             {/* Left: form and tabs */}
             <div
               ref={leftPanelRef}
-              className="col-span-12 md:col-span-7 lg:col-span-8 w-full min-w-0 lg:max-w-[792px]"
+              className="col-span-12 md:col-span-1 w-full min-w-0 lg:max-w-[792px]"
             >
               {/* Tabs */}
               <div className="flex gap-6 border-b border-neutral-30 dark:border-neutral-30">
