@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { hasAdminAccess, isAdmin } from "@/utils/permissions";
 import type { MemberRole, MyMember } from "@/types/members";
@@ -102,10 +103,19 @@ function canAccessTab(
 export default function SettingsClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { member, loading } = useMyMember();
-  const { project } = useCurrentProjectDetail();
+  const { member, loading: memberLoading } = useMyMember();
+  const [projectId, projectReady] = useSelectedProjectId();
+  const { project, isLoading: projectLoading } = useCurrentProjectDetail();
   const currentRole = member?.role;
   const [mounted, setMounted] = useState(false);
+
+  /**
+   * 권한/리디렉션 판단 전에 모두 준비될 때까지 대기 (타이밍 이슈 방지).
+   * - projectReady: 쿠키에서 projectId를 읽기 전에는 true가 아니므로 대기.
+   * - projectId가 있을 때만 프로젝트 상세 로딩 대기 (없으면 쿼리 비활성화로 isLoading이 false라 기다리지 않음).
+   */
+  const settingsLoading =
+    memberLoading || !projectReady || (projectId != null && projectLoading);
 
   const isDataProvider = project?.isDataProvider ?? false;
   
@@ -124,29 +134,29 @@ export default function SettingsClient() {
 
   // openInvite 쿼리스트링이 있으면 member 탭으로 이동
   useEffect(() => {
-    if (loading || !mounted) return;
+    if (settingsLoading || !mounted) return;
     if (openInvite === "true" && activeTab !== "member") {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", "member");
       router.replace(`/settings?${params.toString()}`, { scroll: false });
     }
-  }, [openInvite, activeTab, loading, mounted, searchParams, router]);
+  }, [openInvite, activeTab, settingsLoading, mounted, searchParams, router]);
 
-  // 권한 및 isDataProvider 체크 후 잘못된 탭이면 기본 탭으로 리디렉션
+  // 권한 및 isDataProvider 체크 후 잘못된 탭이면 기본 탭으로 리디렉션 (프로젝트 로딩 완료 후에만 실행)
   useEffect(() => {
-    if (loading) return;
-    
+    if (settingsLoading) return;
+
     // 유효하지 않은 탭이거나 권한이 없는 탭이면 기본 탭으로 리디렉션
-    const shouldRedirect = 
-      (tabParam && !isValidTab(tabParam)) || 
+    const shouldRedirect =
+      (tabParam && !isValidTab(tabParam)) ||
       (isValidTab(tabParam) && !canAccessTab(tabParam, member, isDataProvider));
-    
+
     if (shouldRedirect) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", defaultTab);
       router.replace(`/settings?${params.toString()}`);
     }
-  }, [tabParam, searchParams, router, member, loading, defaultTab, isDataProvider]);
+  }, [tabParam, searchParams, router, member, settingsLoading, defaultTab, isDataProvider]);
 
   // 탭 변경 함수
   const handleTabChange = useCallback((tab: SettingsTab) => {
@@ -156,7 +166,7 @@ export default function SettingsClient() {
   }, [router, searchParams]);
 
   // 권한 확정 전에는 설정 컨텐츠를 노출하지 않고 스피너만 표시
-  if (!mounted || loading) {
+  if (!mounted || settingsLoading) {
     return (
       <div className="min-h-[320px] flex items-center justify-center">
         <LoadingSpinner size="lg" variant="primary" aria-label="설정 로딩 중" />

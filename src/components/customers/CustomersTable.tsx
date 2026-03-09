@@ -176,7 +176,6 @@ export default function CustomersTable({
         "사이트",
         "신청경로",
         "키워드",
-        "카테고리",
         "신청시간",
       ]
     : [
@@ -191,7 +190,7 @@ export default function CustomersTable({
         "전체확인",
       ];
   const colWidths = isDataProvider
-    ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "10%", "17%"]
+    ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "17%"]
     : ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
   const fallbackColWidths = ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
   const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
@@ -707,10 +706,16 @@ export default function CustomersTable({
                         {rowNumber > 0 ? rowNumber : "-"}
                       </td>
                       <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <div className="flex items-center h-full min-w-0 overflow-hidden">
-                          <span className="block min-w-0 w-full truncate leading-[17px]">
+                        <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
+                          <span className="block min-w-0 flex-1 truncate leading-[17px]">
                             {c.name || "-"}
                           </span>
+                          {isDataProvider && c.isPartnerUnassigned && (
+                            <span
+                              className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"
+                              aria-hidden
+                            />
+                          )}
                         </div>
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
@@ -777,49 +782,12 @@ export default function CustomersTable({
                         />
                       </td>
                       {isDataProvider ? (
-                        <>
-                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                            <TruncateWithTooltip
-                              text={getCustomerKeyword(c) || "-"}
-                              className="max-w-[120px] md:max-w-[180px]"
-                            />
-                          </td>
-                          <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                            {(() => {
-                              const notes = Array.isArray(c.recentNotes)
-                                ? c.recentNotes
-                                : [];
-                              if (notes.length === 0)
-                                return <span className="opacity-80">-</span>;
-                              const sortedNotes = [...notes].sort(
-                                (a, b) =>
-                                  new Date(b.createdAt).getTime() -
-                                  new Date(a.createdAt).getTime()
-                              );
-                              const lastNote = sortedNotes[0];
-                              const categoryId = lastNote.categoryId;
-                              const category = categories.find(
-                                (cat) => cat.id === categoryId
-                              );
-                              const categoryName = category?.name || "일반";
-                              const badgeStyle = getBadgeStyle(
-                                categoryName,
-                                categoryId || 0
-                              );
-
-                              return (
-                                <span
-                                  className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                                >
-                                  <TruncateWithTooltip
-                                    text={categoryName}
-                                    className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                  />
-                                </span>
-                              );
-                            })()}
-                          </td>
-                        </>
+                        <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                          <TruncateWithTooltip
+                            text={getCustomerKeyword(c) || "-"}
+                            className="max-w-[120px] md:max-w-[180px]"
+                          />
+                        </td>
                       ) : (
                         <>
                           <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
@@ -971,10 +939,16 @@ export default function CustomersTable({
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                             <td className="px-2 md:px-4 h-[44px]" />
                             <td className="table-cell px-2 md:px-6 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <div className="flex items-center h-full min-w-0 overflow-hidden">
-                                <span className="block min-w-0 w-full truncate leading-[17px]">
+                              <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
+                                <span className="block min-w-0 flex-1 truncate leading-[17px]">
                                   {item.name || "-"}
                                 </span>
+                                {isDataProvider && item.isPartnerUnassigned && (
+                                  <span
+                                    className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"
+                                    aria-hidden
+                                  />
+                                )}
                               </div>
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
@@ -1002,50 +976,12 @@ export default function CustomersTable({
                               />
                             </td>
                             {isDataProvider ? (
-                              <>
-                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                                  <TruncateWithTooltip
-                                    text={getCustomerKeyword(item) || "-"}
-                                    className="max-w-[120px] md:max-w-[180px]"
-                                  />
-                                </td>
-                                <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
-                                  {(() => {
-                                    const notes = Array.isArray(item.recentNotes)
-                                      ? item.recentNotes
-                                      : [];
-                                    if (notes.length === 0)
-                                      return <span className="opacity-80">-</span>;
-
-                                    const sortedNotes = [...notes].sort(
-                                      (a, b) =>
-                                        new Date(b.createdAt).getTime() -
-                                        new Date(a.createdAt).getTime()
-                                    );
-                                    const lastNote = sortedNotes[0];
-                                    const categoryId = lastNote.categoryId;
-                                    const category = categories.find(
-                                      (cat) => cat.id === categoryId
-                                    );
-                                    const categoryName = category?.name || "일반";
-                                    const badgeStyle = getBadgeStyle(
-                                      categoryName,
-                                      categoryId || 0
-                                    );
-
-                                    return (
-                                      <span
-                                        className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
-                                      >
-                                        <TruncateWithTooltip
-                                          text={categoryName}
-                                          className="min-w-0 max-w-[62px] md:max-w-[96px] overflow-hidden text-ellipsis whitespace-nowrap"
-                                        />
-                                      </span>
-                                    );
-                                  })()}
-                                </td>
-                              </>
+                              <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                                <TruncateWithTooltip
+                                  text={getCustomerKeyword(item) || "-"}
+                                  className="max-w-[120px] md:max-w-[180px]"
+                                />
+                              </td>
                             ) : (
                               <>
                                 <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">

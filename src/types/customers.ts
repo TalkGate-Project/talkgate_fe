@@ -52,6 +52,8 @@ export type CustomerListItem = {
   createdAt: string;
   recentNotes: RecentNote[];
   duplicateCount?: number;
+  /** 한 번도 파트너에 배정되지 않은 경우 true (데이터 제공자 프로젝트용) */
+  isPartnerUnassigned?: boolean;
 };
 
 export type CustomersListResponse = {
@@ -172,6 +174,13 @@ export type CustomerSchedule = {
   createdAt: string;
 };
 
+/** 고객 상세 - 배정된 파트너 (데이터 제공자용) */
+export type AssignedPartnerItem = {
+  partnerId: number;
+  projectName: string;
+  thumbnailUrl?: string | null;
+};
+
 export type CustomerDetail = {
   id: number;
   name: string;
@@ -211,6 +220,8 @@ export type CustomerDetail = {
   schedules: CustomerSchedule[];
   notes: RecentNote[];
   recentNotes?: RecentNote[]; // 일부 API 응답에서 사용
+  /** 배정 완료된 파트너 목록 (데이터 제공자 프로젝트용) */
+  assignedPartners?: AssignedPartnerItem[];
   createdAt: string;
   updatedAt: string;
 };
