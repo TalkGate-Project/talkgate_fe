@@ -6,6 +6,7 @@ export type CustomerFilters = {
   name?: string;
   contact1?: string;
   assignType?: "all" | "assigned" | "unassigned";
+  filterByLatestCategory?: boolean;
   projectPartnerId?: number;
   teamId?: number;
   memberId?: number;
@@ -52,11 +53,18 @@ export function useCustomersFilters(projectId: string | null) {
         return isNaN(num) ? null : num;
       }) : undefined;
     }
+    function gb(key: string) {
+      const v = g(key);
+      if (v === "true") return true;
+      if (v === "false") return false;
+      return undefined;
+    }
     obj.name = g("name");
     obj.contact1 = g("contact1");
     obj.contact2 = g("contact2");
     obj.noteContent = g("noteContent");
     obj.assignType = g("assignType");
+    obj.filterByLatestCategory = gb("filterByLatestCategory") ?? true;
     obj.projectPartnerId = gi("projectPartnerId");
     obj.teamId = gi("teamId");
     obj.memberId = gi("memberId");
@@ -98,6 +106,7 @@ export function useCustomersFilters(projectId: string | null) {
         name: applied.name,
         contact1: applied.contact1,
         assignType: applied.assignType,
+        filterByLatestCategory: applied.filterByLatestCategory ?? true,
         projectPartnerId: applied.projectPartnerId,
         teamId: applied.teamId,
         memberId: applied.memberId,
@@ -131,6 +140,7 @@ export function useCustomersFilters(projectId: string | null) {
             name: applied.name,
             contact1: applied.contact1,
             assignType: applied.assignType,
+            filterByLatestCategory: applied.filterByLatestCategory ?? true,
             projectPartnerId: applied.projectPartnerId,
             teamId: applied.teamId,
             memberId: applied.memberId,
@@ -180,6 +190,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("name", filterValues.name);
     setIf("contact1", filterValues.contact1);
     setIf("assignType", filterValues.assignType);
+    setIf("filterByLatestCategory", filterValues.filterByLatestCategory ?? true);
     setIf("projectPartnerId", filterValues.projectPartnerId);
     setIf("teamId", filterValues.teamId);
     setIf("memberId", filterValues.memberId);

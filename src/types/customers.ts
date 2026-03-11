@@ -90,6 +90,7 @@ export type CustomersListQuery = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
+  filterByLatestCategory?: boolean;
   projectPartnerId?: number;
   teamId?: number; // -1: 할당 대기 중
   memberId?: number;
