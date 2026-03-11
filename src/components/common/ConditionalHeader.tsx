@@ -43,6 +43,7 @@ export default function ConditionalHeader() {
 
   const isProjectsRoot = pathname === "/projects";
   const isMySettings = pathname.startsWith("/my-settings");
+  const isNotificationsRoute = pathname.startsWith("/notifications");
 
   // 풀 헤더를 노출하는 업무 경로 (프로젝트 선택 상태와 무관한 경로들)
   const isAlwaysFullHeaderRoute =
@@ -53,8 +54,7 @@ export default function ConditionalHeader() {
     pathname.startsWith("/projects/") || // 프로젝트 스코프 경로 (리다이렉트 용도)
     pathname.startsWith("/notice") || // 공지사항 목록 및 상세 페이지
     pathname.startsWith("/attendance") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/notifications");
+    pathname.startsWith("/settings");
 
   // 마운트 전에는 SSR과 CSR이 같은 결과를 반환하도록 함
   // 프로젝트 의존적인 경로는 마운트 후에만 정확히 판단
@@ -62,7 +62,7 @@ export default function ConditionalHeader() {
 
   // 라이트 헤더 노출 조건: 프로젝트 선택 페이지 또는 프로젝트 없는 상태의 개인설정
   // 마운트 전에는 isMySettings만으로 라이트 헤더 표시
-  const isLiteHeaderRoute = isProjectsRoot || (isMySettings && (!mounted || !hasProject));
+  const isLiteHeaderRoute = isProjectsRoot || isNotificationsRoute || (isMySettings && (!mounted || !hasProject));
 
   // 공개 페이지에서는 헤더 숨김
   if (!isFullHeaderRoute && !isLiteHeaderRoute) return null;
