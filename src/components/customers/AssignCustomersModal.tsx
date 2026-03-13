@@ -260,8 +260,12 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const [targetId, setTargetId] = useState<number | null>(null);
   const { user } = useMe();
 
-  const { data: treeData, isLoading: treeLoading } = useMembersTree(projectId);
-  const { data: teamsData } = useTeams(projectId);
+  const { data: treeData, isLoading: treeLoading } = useMembersTree(projectId, {
+    enabled: open && Boolean(projectId),
+  });
+  const { data: teamsData } = useTeams(projectId, {
+    enabled: open && Boolean(projectId),
+  });
 
   // ==========================================================================================
   // 검색 기능 관련 상태 및 핸들러
