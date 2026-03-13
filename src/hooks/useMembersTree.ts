@@ -8,11 +8,17 @@ const treeQueryKey = (projectId: string | number | null | undefined) => ["member
 const treeWithoutParentQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "tree", "without-parent", projectId];
 const teamsQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "teams", projectId];
 
-export function useMembersTree(projectId?: string | number | null) {
+export function useMembersTree(
+  projectId?: string | number | null,
+  options?: { enabled?: boolean }
+) {
   return useQuery<MemberTreeNode[]>({
     queryKey: treeQueryKey(projectId ?? null),
     queryFn: () => MembersTreeService.fetchRoot(projectId as string | number),
-    enabled: Boolean(projectId),
+    enabled:
+      options?.enabled !== undefined
+        ? options.enabled
+        : Boolean(projectId),
   });
 }
 
@@ -24,11 +30,17 @@ export function useMembersTreeWithoutParent(projectId?: string | number | null) 
   });
 }
 
-export function useTeams(projectId?: string | number | null) {
+export function useTeams(
+  projectId?: string | number | null,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: teamsQueryKey(projectId ?? null),
     queryFn: () => MembersTreeService.fetchTeams(projectId as string | number),
-    enabled: Boolean(projectId),
+    enabled:
+      options?.enabled !== undefined
+        ? options.enabled
+        : Boolean(projectId),
   });
 }
 
