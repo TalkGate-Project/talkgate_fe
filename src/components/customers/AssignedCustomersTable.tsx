@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -15,6 +15,7 @@ import type {
 } from "@/types/dashboard";
 import Pagination from "@/components/common/Pagination";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 
@@ -31,6 +32,10 @@ export default function AssignedCustomersTable() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(
     null
   );
+  const [isAssignOpen, setAssignOpen] = useState(false);
+  const [assignFromDetailId, setAssignFromDetailId] = useState<number | null>(null);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setPage(1);
@@ -69,6 +74,42 @@ export default function AssignedCustomersTable() {
   const loading = isLoading && !data;
   const showError = isError && !isFetching;
   const showEmpty = !loading && !showError && rows.length === 0;
+
+  const handleAssign = useCallback(
+    async (targetId: number) => {
+      if (!projectId || assignFromDetailId == null) return;
+      await CustomersService.assign({
+        assignmentType: "ids",
+        memberId: targetId as any,
+        customerIds: [assignFromDetailId],
+        projectId,
+      });
+      setAssignFromDetailId(null);
+      setAssignOpen(false);
+      setSelectedCustomerId(null);
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "recently-assigned", projectId],
+      });
+    },
+    [projectId, assignFromDetailId, queryClient]
+  );
+
+  const handleAssignModalClose = useCallback(() => {
+    setAssignOpen(false);
+    setAssignFromDetailId(null);
+  }, []);
+
+  const handleDetailAssignClick = useCallback(() => {
+    if (selectedCustomerId == null) return;
+    setAssignFromDetailId(selectedCustomerId);
+    setAssignOpen(true);
+  }, [selectedCustomerId]);
+
+  const handleCustomerUpdated = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["dashboard", "recently-assigned", projectId],
+    });
+  }, [projectId, queryClient]);
 
   return (
     <Panel
@@ -216,7 +257,22 @@ export default function AssignedCustomersTable() {
         open={selectedCustomerId !== null}
         onClose={() => setSelectedCustomerId(null)}
         customerId={selectedCustomerId}
+        onCustomerUpdated={handleCustomerUpdated}
+        onAssignClick={selectedCustomerId != null ? handleDetailAssignClick : undefined}
       />
+      {projectId &&
+        isAssignOpen &&
+        assignFromDetailId != null && (
+          <AssignCustomersModal
+            open={isAssignOpen}
+            onClose={handleAssignModalClose}
+            selectedCustomerIds={[assignFromDetailId]}
+            selectionMode={null}
+            totalCount={1}
+            onAssign={handleAssign}
+            projectId={projectId}
+          />
+        )}
     </Panel>
   );
 }
