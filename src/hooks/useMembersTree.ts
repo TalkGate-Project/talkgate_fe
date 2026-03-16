@@ -22,11 +22,17 @@ export function useMembersTree(
   });
 }
 
-export function useMembersTreeWithoutParent(projectId?: string | number | null) {
+export function useMembersTreeWithoutParent(
+  projectId?: string | number | null,
+  options?: { enabled?: boolean }
+) {
   return useQuery<MemberTreeNode[]>({
     queryKey: treeWithoutParentQueryKey(projectId ?? null),
     queryFn: () => MembersTreeService.fetchRootWithoutParent(projectId as string | number),
-    enabled: Boolean(projectId),
+    enabled:
+      options?.enabled !== undefined
+        ? options.enabled
+        : Boolean(projectId),
   });
 }
 
