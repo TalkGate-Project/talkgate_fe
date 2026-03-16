@@ -8,7 +8,6 @@ import { ko } from "date-fns/locale";
 import Panel from "@/components/common/Panel";
 import { useRouter } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
-import { useMyMember } from "@/hooks/useMyMember";
 import { CustomersService } from "@/services/customers";
 import type {
   RecentlyAssignedCustomer,
@@ -37,9 +36,6 @@ export default function AssignedCustomersTable() {
   const [assignFromDetailId, setAssignFromDetailId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
-  const { role } = useMyMember(projectId);
-  const canAssignCustomer =
-    role === "admin" || role === "subAdmin" || role === "leader";
 
   useEffect(() => {
     setPage(1);
@@ -262,11 +258,7 @@ export default function AssignedCustomersTable() {
         onClose={() => setSelectedCustomerId(null)}
         customerId={selectedCustomerId}
         onCustomerUpdated={handleCustomerUpdated}
-        onAssignClick={
-          canAssignCustomer && selectedCustomerId != null
-            ? handleDetailAssignClick
-            : undefined
-        }
+        onAssignClick={selectedCustomerId != null ? handleDetailAssignClick : undefined}
       />
       {projectId &&
         isAssignOpen &&
