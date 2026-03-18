@@ -31,6 +31,33 @@ type Props = {
   isSubmittingProfile: boolean;
 };
 
+function getTeamHistoryTypeLabel(type: TeamChangeLog["type"]): string {
+  switch (type) {
+    case "teamMove":
+      return "팀이동";
+    case "teamDelete":
+      return "팀삭제";
+    case "teamUpdate":
+      return "팀명변경";
+    case "teamCreate":
+      return "팀생성";
+    default:
+      return type;
+  }
+}
+
+function getNextTeamLabel(history: TeamChangeLog): string | null {
+  if (history.newTeamName) {
+    return history.newTeamName;
+  }
+
+  if (history.type === "teamMove") {
+    return "미배정";
+  }
+
+  return null;
+}
+
 export default function ManagerContent({
   member,
   localNotes,
@@ -199,26 +226,68 @@ export default function ManagerContent({
         <div className="h-[1px] bg-border opacity-50 mb-4" />
         <div className="space-y-3">
           {(member?.teamChangeLogs ?? []).length > 0 ? (
-            member?.teamChangeLogs.map((history) => (
-              <div
-                key={history.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[8px] md:rounded-[12px] p-3 md:p-4"
-              >
-                {/* 모바일 레이아웃 */}
-                <div className="md:hidden flex flex-col gap-3">
-                  {/* 날짜 */}
-                  <div className="text-[13px] text-neutral-60">
-                    {formatDateKR(history.createdAt)}
-                  </div>
-                  {/* 팀 정보 영역 */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex flex-col gap-1.5">
-                      <RoleBadge
-                        label={history.previousTeamName || "미배정"}
-                        variant="neutral"
-                      />
+            member?.teamChangeLogs.map((history) => {
+              const nextTeamLabel = getNextTeamLabel(history);
+              const typeLabel = getTeamHistoryTypeLabel(history.type);
+
+              return (
+                <div
+                  key={history.id}
+                  className="bg-neutral-10 dark:bg-neutral-25 rounded-[8px] md:rounded-[12px] p-3 md:p-4"
+                >
+                  {/* 모바일 레이아웃 */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    {/* 날짜 */}
+                    <div className="text-[13px] text-neutral-60">
+                      {formatDateKR(history.createdAt)}
                     </div>
-                    {history.newTeamName && (
+                    {/* 팀 정보 영역 */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1.5">
+                        <RoleBadge
+                          label={history.previousTeamName || "미배정"}
+                          variant="neutral"
+                        />
+                      </div>
+                      {nextTeamLabel && (
+                        <>
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="flex-shrink-0"
+                          >
+                            <path
+                              d="M9 18L15 12L9 6"
+                              stroke="#B0B0B0"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <div className="flex flex-col gap-1.5">
+                            <RoleBadge label={nextTeamLabel} variant="primary" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {/* 변경 타입 */}
+                    <div className="text-[13px] text-neutral-60">
+                      {typeLabel}
+                    </div>
+                  </div>
+                  {/* 데스크탑 레이아웃 */}
+                  <div className="hidden md:flex items-center gap-4">
+                    <span className="text-[14px] text-neutral-60 whitespace-nowrap">
+                      {formatDateKR(history.createdAt)}
+                    </span>
+                    <RoleBadge
+                      label={history.previousTeamName || "미배정"}
+                      variant="neutral"
+                    />
+                    {nextTeamLabel && (
                       <>
                         <svg
                           width="20"
@@ -236,53 +305,16 @@ export default function ManagerContent({
                             strokeLinejoin="round"
                           />
                         </svg>
-                        <div className="flex flex-col gap-1.5">
-                          <RoleBadge label={history.newTeamName} variant="primary" />
-                        </div>
+                        <RoleBadge label={nextTeamLabel} variant="primary" />
                       </>
                     )}
-                  </div>
-                  {/* 변경 타입 */}
-                  <div className="text-[13px] text-neutral-60">
-                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type === "teamUpdate" ? "팀명변경" : history.type}
+                    <span className="ml-auto text-[14px] text-neutral-60 whitespace-nowrap">
+                      {typeLabel}
+                    </span>
                   </div>
                 </div>
-                {/* 데스크탑 레이아웃 */}
-                <div className="hidden md:flex items-center gap-4">
-                  <span className="text-[14px] text-neutral-60 whitespace-nowrap">
-                    {formatDateKR(history.createdAt)}
-                  </span>
-                  <RoleBadge
-                    label={history.previousTeamName || "미배정"}
-                    variant="neutral"
-                  />
-                  {history.newTeamName && (
-                    <>
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="flex-shrink-0"
-                      >
-                        <path
-                          d="M9 18L15 12L9 6"
-                          stroke="#B0B0B0"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <RoleBadge label={history.newTeamName} variant="primary" />
-                    </>
-                  )}
-                  <span className="ml-auto text-[14px] text-neutral-60 whitespace-nowrap">
-                    {history.type === "teamMove" ? "팀이동" : history.type === "teamDelete" ? "팀삭제" : history.type === "teamUpdate" ? "팀명변경" : history.type}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="px-4 py-3 bg-neutral-10 dark:bg-neutral-25 rounded-[12px] text-[13px] md:text-[14px] text-neutral-60">
               팀 변경 이력이 없습니다.
