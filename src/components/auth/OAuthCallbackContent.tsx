@@ -20,6 +20,11 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getPendingInviteInfo, savePendingInviteInfo, type PendingInviteInfo } from "@/lib/invite";
 import { getAuthErrorMessage } from "@/utils/errorMessages";
 import { setAuthSessionActive } from "@/lib/authSession";
+import {
+  getAllowedPostAuthRedirect,
+  getPostAuthDestination,
+  POST_AUTH_REDIRECT_STORAGE_KEY,
+} from "@/lib/postAuthRedirect";
 
 interface OAuthCallbackContentInnerProps {
   provider: string;
@@ -65,16 +70,19 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
       }
       
       // 2. 세션 스토리지에서 리디렉션 URL 가져오기 (fallback, 하위 호환성)
-      const storedRedirectUrl = sessionStorage.getItem("tg_redirect_url");
+      const storedRedirectUrl = sessionStorage.getItem(POST_AUTH_REDIRECT_STORAGE_KEY);
       
       // state에서 추출한 URL이 있으면 우선 사용, 없으면 sessionStorage 사용
-      const finalRedirectUrl = extractedReturnUrl || storedRedirectUrl;
+      const finalRedirectUrl =
+        getAllowedPostAuthRedirect(extractedReturnUrl) ??
+        getAllowedPostAuthRedirect(storedRedirectUrl);
+
+      if (storedRedirectUrl) {
+        sessionStorage.removeItem(POST_AUTH_REDIRECT_STORAGE_KEY);
+      }
+
       if (finalRedirectUrl) {
         setRedirectUrl(finalRedirectUrl);
-        // 사용 후 삭제
-        if (storedRedirectUrl) {
-          sessionStorage.removeItem("tg_redirect_url");
-        }
       }
       
       // 초대 정보 복구 (소셜 로그인 전 LoginForm에서 백업됨)
@@ -150,7 +158,6 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         debugLog("📥 콜백 페이지 로드", {
           provider,
           hasCode: !!code,
-          codePreview: code?.slice(0, 20) + "...",
           callbackUrl,
           prevState,
         });
@@ -187,7 +194,7 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // 2FA가 필요한 경우
         if (result.requiresTwoFactor && result.twoFactorToken) {
           debugLog("🔐 2FA 인증 필요 - 2FA 페이지로 이동", {
-            twoFactorTokenPreview: result.twoFactorToken.slice(0, 20) + "...",
+            hasTwoFactorToken: true,
           });
           
           if (mounted) {
@@ -209,8 +216,10 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           debugLog("🆕 신규 사용자 감지 - 소셜 회원가입 페이지로 이동");
           // returnUrl이 있으면 sessionStorage에 저장 (회원가입 플로우 후 /projects에서 사용)
           if (redirectUrl && typeof window !== "undefined") {
-            sessionStorage.setItem("tg_redirect_url", redirectUrl);
-            debugLog("💾 returnUrl을 sessionStorage에 저장 (회원가입 플로우 후 사용):", redirectUrl);
+            sessionStorage.setItem(POST_AUTH_REDIRECT_STORAGE_KEY, redirectUrl);
+            debugLog("💾 returnUrl을 sessionStorage에 저장 (회원가입 플로우 후 사용)", {
+              hasAllowedRedirectUrl: true,
+            });
           }
           // 초대 플로우인 경우 소셜 로그인 플랫폼 정보를 sessionStorage에 저장 (계정 불일치 시 안내용)
           if (isInviteFlow && typeof window !== "undefined") {
@@ -245,36 +254,22 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
         // 사용자 정보 캐시 무효화 (새로운 사용자 정보를 가져오기 위해)
         queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
         
-        // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
-        const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
+        const destination = getPostAuthDestination(redirectUrl);
         
         debugLog("🎯 리디렉션 결정", {
           hasProjectId: !!projectId,
           projectId,
           hasRedirectUrl: !!redirectUrl,
-          isAbsoluteUrl,
-          redirectUrl,
           isInviteFlow,
-          destination: isAbsoluteUrl ? redirectUrl : "/projects",
+          destination,
         });
         
         if (mounted) {
           setAuthSessionActive();
-          if (isAbsoluteUrl) {
-            // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-            // window.location.replace() 사용하여 히스토리에서 OAuth 콜백 페이지 제거 (뒤로가기 방지)
-            debugLog("🔗 절대 리디렉션 URL로 이동:", redirectUrl);
-            window.location.replace(redirectUrl);
-          } else {
-            // 상대 경로이거나 redirectUrl이 없는 경우
-            // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-            // window.location.replace() 사용하여 히스토리에서 OAuth 콜백 페이지 제거 (뒤로가기 방지)
-            if (redirectUrl) {
-              debugLog("⚠️ 상대 경로 redirectUrl 무시:", redirectUrl);
-            }
-            debugLog("✅ 로그인 성공 - 프로젝트 선택 페이지로 이동 (서브도메인 필수)");
-            window.location.replace("/projects");
-          }
+          debugLog("✅ 로그인 성공 - post-auth destination으로 이동", {
+            destination,
+          });
+          window.location.replace(destination);
         }
       } catch (e: any) {
         markLoginError(provider, e);
@@ -287,8 +282,6 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
           error: errorMessage,
           code: errorCode,
           status: e?.status,
-          data: e?.data,
-          stack: e?.stack,
         });
         
         // 개발 환경에서 디버그 로그 출력

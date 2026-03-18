@@ -18,6 +18,10 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 import { SignupService } from "@/services/signup";
+import {
+  getAllowedPostAuthRedirect,
+  getPostAuthDestination,
+} from "@/lib/postAuthRedirect";
 
 export function LoginForm() {
   const router = useRouter();
@@ -33,8 +37,10 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasCheckedEmailDuplicate, setHasCheckedEmailDuplicate] = useState(false);
   
-  // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
-  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
+  // 랜딩 페이지 등에서 전달된 post-auth redirect는 allowlist를 통과한 값만 사용
+  const redirectUrl = getAllowedPostAuthRedirect(
+    searchParams.get("redirectUrl") || searchParams.get("returnUrl")
+  );
   
   // 초대 플로우 확인
   const pendingInvite = getPendingInviteInfo();
@@ -136,12 +142,7 @@ export function LoginForm() {
     AuthService.me({ suppressAutoLogout: true })
       .then(() => {
         // 이미 인증된 상태
-        const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
-        if (isAbsoluteUrl) {
-          window.location.replace(redirectUrl);
-        } else {
-          router.replace("/projects");
-        }
+        window.location.replace(getPostAuthDestination(redirectUrl));
       })
       .catch((err) => {
         setChecking(false);
@@ -235,17 +236,7 @@ export function LoginForm() {
               setAuthSessionActive();
               // 리다이렉션 처리
               // window.location.replace() 사용하여 히스토리에서 로그인 페이지 제거 (뒤로가기 방지)
-              // redirectUrl이 절대 URL(http:// 또는 https://)인 경우에만 해당 URL로 이동
-              // 상대 경로인 경우 서브도메인 없이 이동하면 미들웨어에서 차단되므로 /projects로 이동
-              const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
-              if (isAbsoluteUrl) {
-                // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-                window.location.replace(redirectUrl);
-              } else {
-                // 상대 경로이거나 redirectUrl이 없는 경우
-                // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-                window.location.replace("/projects");
-              }
+              window.location.replace(getPostAuthDestination(redirectUrl));
             })
             .catch((err: any) => {
               const status = err?.status;

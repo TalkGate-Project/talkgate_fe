@@ -8,6 +8,10 @@ import {
   debugLog,
 } from "./auth-utils";
 import { showErrorModal } from "./errorModalEvents";
+import {
+  getAllowedPostAuthRedirect,
+  POST_AUTH_REDIRECT_STORAGE_KEY,
+} from "./postAuthRedirect";
 
 export type OAuthProvider = "google" | "kakao" | "naver";
 
@@ -63,11 +67,12 @@ function getCurrentOrigin(): string {
 export function buildOAuthAuthorizeUrl(provider: OAuthProvider, returnUrl?: string | null): string {
   const origin = getCurrentOrigin();
   const redirectUri = `${origin}/auth/callback/${provider}`;
+  const allowedReturnUrl = getAllowedPostAuthRedirect(returnUrl);
 
   // state 파라미터에 provider와 returnUrl을 JSON으로 인코딩
   const stateData: { provider: string; returnUrl?: string } = { provider };
-  if (returnUrl) {
-    stateData.returnUrl = returnUrl;
+  if (allowedReturnUrl) {
+    stateData.returnUrl = allowedReturnUrl;
   }
   const state = encodeURIComponent(JSON.stringify(stateData));
 
@@ -105,17 +110,18 @@ export function getCallbackUrl(provider: OAuthProvider): string {
  */
 export function initiateSocialLogin(provider: OAuthProvider, returnUrl?: string | null): void {
   if (typeof window === "undefined") return;
+  const allowedReturnUrl = getAllowedPostAuthRedirect(returnUrl);
 
-  debugLog(`🔑 소셜 로그인 초기화: ${provider}`, { hasReturnUrl: !!returnUrl });
+  debugLog(`🔑 소셜 로그인 초기화: ${provider}`, { hasReturnUrl: !!allowedReturnUrl });
 
   // ✅ 일부 OAuth 제공자에서 state가 누락/변형되는 케이스 대비:
   // 콜백 페이지(`OAuthCallbackContent`)는 state 우선, sessionStorage fallback을 지원하므로
   // 소셜 로그인 시작 시 returnUrl을 sessionStorage에도 백업해 둔다.
   try {
-    if (returnUrl) {
-      window.sessionStorage.setItem("tg_redirect_url", returnUrl);
+    if (allowedReturnUrl) {
+      window.sessionStorage.setItem(POST_AUTH_REDIRECT_STORAGE_KEY, allowedReturnUrl);
       debugLog("💾 returnUrl을 sessionStorage에 백업 (state fallback)", {
-        returnUrlPreview: returnUrl.slice(0, 120),
+        hasAllowedReturnUrl: true,
       });
     }
   } catch {
@@ -129,7 +135,7 @@ export function initiateSocialLogin(provider: OAuthProvider, returnUrl?: string 
   startOAuthFlow(provider);
 
   // 3. OAuth URL 생성 (returnUrl을 state에 포함)
-  const url = buildOAuthAuthorizeUrl(provider, returnUrl);
+  const url = buildOAuthAuthorizeUrl(provider, allowedReturnUrl);
 
   // 4. 환경변수 유효성 검증
   const clientIdMap: Record<OAuthProvider, string | undefined> = {
