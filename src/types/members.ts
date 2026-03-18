@@ -29,11 +29,11 @@ export interface HrNote {
 export interface TeamChangeLog {
   id: number;
   memberId: number;
-  previousTeamName: string;
-  previousTeamLeaderName: string;
-  newTeamName: string;
-  newTeamLeaderName: string;
-  type: "teamMove";
+  previousTeamName: string | null;
+  previousTeamLeaderName: string | null;
+  newTeamName: string | null;
+  newTeamLeaderName: string | null;
+  type: "teamMove" | "teamDelete" | "teamUpdate" | "teamCreate";
   createdAt: string;
 }
 
@@ -82,6 +82,11 @@ export interface UpdateProfilePayload {
   name?: string;
   phone?: string | null;
   profileImageUrl?: string | null;
+}
+
+export interface UpdateMemberRolePayload {
+  memberId: number;
+  role: "subAdmin" | "member";
 }
 
 // 프로필 업데이트 응답 타입 (간략한 정보만 반환)
