@@ -13,6 +13,43 @@ import { clearPendingInviteToken } from "./invite";
 
 const DEBUG_LOG_KEY = "tg_auth_debug_log";
 const DEBUG_STATE_KEY = "tg_auth_debug_state";
+const isDev = process.env.NODE_ENV === "development";
+const REDACTED_KEYS = new Set([
+  "accessToken",
+  "refreshToken",
+  "token",
+  "twoFactorToken",
+  "twoFactorTokenPreview",
+  "code",
+  "codePreview",
+  "searchParams",
+  "stack",
+  "authorization",
+  "cookie",
+  "cookies",
+  "data",
+]);
+
+function sanitizeDebugData(data: unknown): unknown {
+  if (data == null) return data;
+
+  if (Array.isArray(data)) {
+    return data.map(sanitizeDebugData);
+  }
+
+  if (typeof data === "object") {
+    const sanitizedEntries = Object.entries(data as Record<string, unknown>).map(([key, value]) => {
+      if (REDACTED_KEYS.has(key)) {
+        return [key, "[REDACTED]"] as const;
+      }
+      return [key, sanitizeDebugData(value)] as const;
+    });
+
+    return Object.fromEntries(sanitizedEntries);
+  }
+
+  return data;
+}
 
 // ============================================================================
 // 🧹 Session Cleanup Functions
@@ -135,17 +172,19 @@ export interface AuthDebugState {
  * 리디렉션 후에도 로그가 유지되어 디버깅에 유용합니다.
  */
 export function debugLog(message: string, data?: unknown): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !isDev) return;
+
+  const sanitizedData = sanitizeDebugData(data);
 
   const entry: AuthDebugEntry = {
     timestamp: new Date().toISOString(),
     message,
-    data: data ? (typeof data === "object" ? JSON.parse(JSON.stringify(data)) : data) : undefined,
-    url: window.location.href,
+    data: sanitizedData ? (typeof sanitizedData === "object" ? JSON.parse(JSON.stringify(sanitizedData)) : sanitizedData) : undefined,
+    url: window.location.pathname,
   };
 
   // console에도 출력
-  console.log(`[AuthDebug] ${message}`, data ?? "");
+  console.log(`[AuthDebug] ${message}`, sanitizedData ?? "");
 
   try {
     const existing = window.sessionStorage.getItem(DEBUG_LOG_KEY);
@@ -167,7 +206,7 @@ export function debugLog(message: string, data?: unknown): void {
  * 현재 인증 플로우의 상태를 저장합니다.
  */
 export function setDebugState(state: Partial<AuthDebugState>): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !isDev) return;
 
   try {
     const existing = window.sessionStorage.getItem(DEBUG_STATE_KEY);
@@ -184,7 +223,7 @@ export function setDebugState(state: Partial<AuthDebugState>): void {
  * 현재 인증 플로우 상태를 가져옵니다.
  */
 export function getDebugState(): AuthDebugState | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !isDev) return null;
 
   try {
     const stored = window.sessionStorage.getItem(DEBUG_STATE_KEY);
@@ -199,7 +238,7 @@ export function getDebugState(): AuthDebugState | null {
  * 저장된 디버그 로그를 가져옵니다.
  */
 export function getDebugLogs(): AuthDebugEntry[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined" || !isDev) return [];
 
   try {
     const stored = window.sessionStorage.getItem(DEBUG_LOG_KEY);
@@ -214,6 +253,8 @@ export function getDebugLogs(): AuthDebugEntry[] {
  * 디버그 로그를 콘솔에 출력합니다 (개발자 도구에서 호출용).
  */
 export function printDebugLogs(): void {
+  if (!isDev) return;
+
   const logs = getDebugLogs();
   const state = getDebugState();
 
@@ -251,6 +292,8 @@ export function startOAuthFlow(provider: string): void {
   // 기존 디버그 로그 초기화 후 새로 시작
   clearDebugLogs();
   
+  if (!isDev || typeof window === "undefined") return;
+
   setDebugState({
     provider,
     startedAt: new Date().toISOString(),
@@ -260,8 +303,8 @@ export function startOAuthFlow(provider: string): void {
 
   debugLog(`🚀 소셜 로그인 시작: ${provider}`, {
     provider,
-    currentUrl: window.location.href,
-    cookies: document.cookie.split(";").map((c) => c.trim().split("=")[0]),
+    currentPath: window.location.pathname,
+    cookieNames: document.cookie.split(";").map((c) => c.trim().split("=")[0]),
   });
 }
 
@@ -269,13 +312,14 @@ export function startOAuthFlow(provider: string): void {
  * OAuth 콜백 도착 시 호출합니다.
  */
 export function markOAuthCallback(provider: string, hasCode: boolean): void {
+  if (!isDev) return;
+
   setDebugState({
     lastStep: hasCode ? "callback_with_code" : "callback_without_code",
   });
 
   debugLog(`📥 OAuth 콜백 도착: ${provider}`, {
     hasCode,
-    searchParams: window.location.search,
   });
 }
 
@@ -283,6 +327,8 @@ export function markOAuthCallback(provider: string, hasCode: boolean): void {
  * 로그인 성공 시 호출합니다.
  */
 export function markLoginSuccess(provider: string, hasProjectId: boolean): void {
+  if (!isDev) return;
+
   setDebugState({
     lastStep: "login_success",
   });
@@ -297,6 +343,8 @@ export function markLoginSuccess(provider: string, hasProjectId: boolean): void 
  * 로그인 실패 시 호출합니다.
  */
 export function markLoginError(provider: string, error: unknown): void {
+  if (!isDev) return;
+
   const errorMessage = error instanceof Error ? error.message : String(error);
   
   setDebugState({
@@ -306,12 +354,11 @@ export function markLoginError(provider: string, error: unknown): void {
 
   debugLog(`❌ 로그인 실패: ${provider}`, {
     error: errorMessage,
-    stack: error instanceof Error ? error.stack : undefined,
   });
 }
 
 // 개발자 도구 콘솔에서 쉽게 접근할 수 있도록 전역에 노출
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && isDev) {
   (window as any).tgAuthDebug = {
     printLogs: printDebugLogs,
     getLogs: getDebugLogs,
