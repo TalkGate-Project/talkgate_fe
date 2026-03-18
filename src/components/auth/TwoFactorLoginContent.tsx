@@ -7,6 +7,10 @@ import { AuthService } from "@/services/auth";
 import { setSelectedProjectId } from "@/lib/project";
 import { setAuthSessionActive } from "@/lib/authSession";
 import { getRememberMePreference } from "@/lib/token";
+import {
+  getAllowedPostAuthRedirect,
+  getPostAuthDestination,
+} from "@/lib/postAuthRedirect";
 import AuthLayout from "@/components/auth/AuthLayout";
 import AsyncButton from "@/components/common/AsyncButton";
 
@@ -20,7 +24,9 @@ function TwoFactorLoginContentInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const twoFactorToken = searchParams.get("token");
-  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
+  const redirectUrl = getAllowedPostAuthRedirect(
+    searchParams.get("redirectUrl") || searchParams.get("returnUrl")
+  );
   const rememberMe = searchParams.get("rememberMe") === "1" || (
     searchParams.get("rememberMe") == null && getRememberMePreference()
   );
@@ -68,17 +74,7 @@ function TwoFactorLoginContentInner() {
       
       setAuthSessionActive();
       // 2FA 인증 성공 후 리디렉션
-      // window.location.replace() 사용하여 히스토리에서 2FA 페이지 제거 (뒤로가기 방지)
-      // redirectUrl이 절대 URL인 경우에만 해당 URL로 이동
-      const isAbsoluteUrl = redirectUrl && (redirectUrl.startsWith('http://') || redirectUrl.startsWith('https://'));
-      if (isAbsoluteUrl) {
-        // 절대 URL인 경우에만 해당 URL로 이동 (랜딩 페이지 등)
-        window.location.replace(redirectUrl);
-      } else {
-        // 상대 경로이거나 redirectUrl이 없는 경우
-        // 인증된 플로우는 반드시 서브도메인이 필요하므로 /projects로 이동
-        window.location.replace("/projects");
-      }
+      window.location.replace(getPostAuthDestination(redirectUrl));
     } catch (err: any) {
       const status = err?.status;
       const code = err?.data?.code;

@@ -9,6 +9,7 @@ import type {
   MemberListResponse,
   InviteMemberPayload,
   InviteMemberResponse,
+  UpdateMemberRolePayload,
   InvitationListResponse
 } from "@/types/members";
 
@@ -32,6 +33,9 @@ export const MembersService = {
   },
   updateSelf(payload: UpdateProfilePayload, headers?: Record<string, string>) {
     return apiClient.patch<UpdateProfileResponse>(`/v1/members`, payload, headers ? { headers } : undefined);
+  },
+  updateRole(payload: UpdateMemberRolePayload) {
+    return apiClient.patch<void>(`/v1/members/role`, payload);
   },
   detail(memberId: string | number) {
     return apiClient.get<MemberDetailResponse>(`/v1/members/${memberId}`);

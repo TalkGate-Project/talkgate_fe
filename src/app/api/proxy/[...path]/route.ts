@@ -79,13 +79,9 @@ async function refreshAccessToken(
     const expiresIn = exp ? exp - now : null;
     const isExpired = exp ? now >= exp : null;
     
-    logger.server('[API Proxy] 🔄 토큰 리프레시 시도');
-    logger.server('[API Proxy] 🔄 refresh API 호출:', {
+    logger.server('[API Proxy] 🔄 refresh API 호출', {
       apiBaseUrl,
-      refreshTokenLength: refreshToken?.length ?? 0,
-      refreshTokenPreview: refreshToken
-        ? `${refreshToken.substring(0, 10)}...${refreshToken.substring(refreshToken.length - 4)}`
-        : null,
+      hasRefreshToken: !!refreshToken,
       tokenExp: exp ? new Date(exp * 1000).toISOString() : null,
       now: new Date(now * 1000).toISOString(),
       expiresInSeconds: expiresIn,
@@ -93,11 +89,6 @@ async function refreshAccessToken(
     });
 
     const requestBody = JSON.stringify({ refreshToken });
-    logger.server('[API Proxy] 🔄 refresh 요청 body:', {
-      bodyLength: requestBody.length,
-      bodyPreview: requestBody.substring(0, 100) + (requestBody.length > 100 ? '...' : ''),
-      refreshTokenInBody: requestBody.includes(refreshToken),
-    });
 
     const refreshResponse = await fetch(`${apiBaseUrl}/v1/auth/refresh`, {
       method: 'POST',
@@ -106,13 +97,10 @@ async function refreshAccessToken(
     });
 
     if (!refreshResponse.ok) {
-      const errorData = await refreshResponse.json().catch(() => ({}));
+      await refreshResponse.json().catch(() => ({}));
       logger.serverError('[API Proxy] ❌ 토큰 리프레시 실패:', {
         status: refreshResponse.status,
         statusText: refreshResponse.statusText,
-        error: errorData,
-        refreshTokenUsed: refreshToken,
-        refreshTokenLength: refreshToken?.length,
       });
       return null;
     }
@@ -214,12 +202,8 @@ async function handleRequest(
       }
     }
 
-    logger.server('[API Proxy] 🔍 refreshToken 읽기:', {
+    logger.server('[API Proxy] 🔍 refreshToken 상태:', {
       hasRefreshToken: !!refreshToken,
-      refreshTokenLength: refreshToken?.length ?? 0,
-      refreshTokenPreview: refreshToken
-        ? `${refreshToken.substring(0, 10)}...${refreshToken.substring(refreshToken.length - 4)}`
-        : null,
     });
     
     // 요청 헤더 준비
@@ -416,7 +400,6 @@ async function handleRequest(
     if (response.status === 401) {
       logger.server('[API Proxy] ❌ 401 에러 - refreshToken 상태:', {
         hasRefreshToken: !!refreshToken,
-        refreshTokenLength: refreshToken?.length ?? 0,
       });
 
       // 예외 API는 refresh하지 않음

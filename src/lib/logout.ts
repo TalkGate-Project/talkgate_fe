@@ -24,6 +24,7 @@ import { talkgateSocket } from "./realtime";
 import { notificationSocket } from "./notificationSocket";
 import { resetAuthSession, setLoggingOut } from "./authSession";
 import type { QueryClient } from "@tanstack/react-query";
+import { resolveLogoutRedirect } from "./postAuthRedirect";
 
 export interface LogoutOptions {
   redirectUrl?: string;
@@ -123,21 +124,13 @@ export function performLogout(options: LogoutOptions = {}): void {
     const mainDomain = isLocalhost ? currentHost : getMainDomain();
     const protocol = window.location.protocol;
     
-    // 리다이렉트 URL 결정
-    let finalRedirectUrl: string;
-    if (redirectUrl) {
-      // 절대 URL인 경우 그대로 사용, 상대 URL인 경우 절대 URL로 변환
-      if (redirectUrl.startsWith("http://") || redirectUrl.startsWith("https://")) {
-        finalRedirectUrl = redirectUrl;
-      } else if (redirectUrl.startsWith("/")) {
-        finalRedirectUrl = `${protocol}//${mainDomain}${redirectUrl}`;
-      } else {
-        finalRedirectUrl = `${protocol}//${mainDomain}/${redirectUrl}`;
-      }
-    } else {
-      // 기본값: 로그인 페이지로 이동
-      finalRedirectUrl = `${protocol}//${mainDomain}/login?logout=success`;
-    }
+    const currentOrigin = `${protocol}//${mainDomain}`;
+    const fallbackRedirectUrl = `${currentOrigin}/login?logout=success`;
+    const finalRedirectUrl = resolveLogoutRedirect(
+      redirectUrl,
+      currentOrigin,
+      fallbackRedirectUrl
+    );
 
     const logoutUrl = `${protocol}//${mainDomain}/logout?redirect=${encodeURIComponent(finalRedirectUrl)}`;
     

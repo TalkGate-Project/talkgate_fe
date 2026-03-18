@@ -7,7 +7,7 @@ import { getSelectedProjectId } from "@/lib/project";
 import { useMyMember } from "@/hooks/useMyMember";
 import { hasAdminAccess } from "@/utils/permissions";
 import { MembersService } from "@/services/members";
-import type { MemberListItem } from "@/types/members";
+import type { MemberListItem, MemberRole } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
@@ -23,24 +23,64 @@ const ROLE_LABELS: Record<string, string> = {
   member: "멤버",
 };
 
+function getRoleChangeTargetRole(role?: MemberRole): "subAdmin" | "member" | null {
+  if (role === "member" || role === "leader") {
+    return "subAdmin";
+  }
+
+  if (role === "subAdmin") {
+    return "member";
+  }
+
+  return null;
+}
+
+function getRoleChangeConfirmMessage(member: MemberListItem): string | null {
+  if (member.role === "member") {
+    return `${member.name} 멤버를 부관리자로 변경할까요?`;
+  }
+
+  if (member.role === "leader") {
+    if (member.teamName) {
+      return `${member.name} 멤버를 부관리자로 변경할까요? ${member.teamName}은 삭제됩니다.`;
+    }
+
+    return `${member.name} 멤버를 부관리자로 변경할까요? 현재 팀은 삭제됩니다.`;
+  }
+
+  if (member.role === "subAdmin") {
+    return `${member.name} 멤버를 팀원으로 변경할까요?`;
+  }
+
+  return null;
+}
+
 function MemberRow({
   member,
   onDelete,
+  onRoleChange,
   onInfoClick,
   canDelete,
+  canManageRole,
   currentMemberId,
+  isRoleChanging,
 }: {
   member: MemberListItem;
   onDelete: (id: number) => void;
+  onRoleChange: (member: MemberListItem) => void;
   onInfoClick: (id: number) => void;
   /** 현재 사용자가 삭제 권한이 있는지 (admin/subAdmin) */
   canDelete: boolean;
+  /** 현재 사용자가 역할 변경 권한이 있는지 (admin) */
+  canManageRole: boolean;
   /** 현재 로그인한 사용자의 멤버 id (본인 행에는 삭제 버튼 미표시) */
   currentMemberId: number | null;
+  isRoleChanging: boolean;
 }) {
   const isTargetAdmin = member.role === "admin";
   const isSelf = currentMemberId != null && member.id === currentMemberId;
   const avatar = member.name ? member.name[0] : "?";
+  const nextRole = getRoleChangeTargetRole(member.role);
   const joinDate = new Date(member.createdAt)
     .toLocaleDateString("ko-KR", {
       year: "numeric",
@@ -55,21 +95,22 @@ function MemberRow({
   // 2. 삭제 대상이 admin이 아니어야 함 (admin은 삭제 불가)
   // 3. 삭제 대상이 본인이 아니어야 함 (본인은 삭제 불가)
   const showDeleteButton = canDelete && !isTargetAdmin && !isSelf;
+  const showRoleChangeButton =
+    canManageRole && !isTargetAdmin && !isSelf && nextRole !== null;
 
   return (
     <>
       {/* Desktop View */}
       <div className="hidden md:flex items-center py-3 px-10 h-[80px]">
         {/* Member Info */}
-        <div 
+        <div
           className="flex items-center gap-4 w-[280px] min-w-[280px] flex-none cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => onInfoClick(member.id)}
         >
           {/* Avatar */}
           <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] flex-shrink-0 ${
-              isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
-            }`}
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[18px] flex-shrink-0 ${isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
+              }`}
           >
             {avatar}
           </div>
@@ -93,15 +134,31 @@ function MemberRow({
         </div>
 
         {/* Role */}
-        <div className="flex-1 min-w-[120px] text-[14px] font-medium text-neutral-90 text-left">
-          {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
+        <div className="flex-1 min-w-[120px] text-left">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[14px] font-medium text-neutral-90">
+              {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
+            </span>
+            {showRoleChangeButton && (
+              <button
+                type="button"
+                onClick={() => onRoleChange(member)}
+                disabled={isRoleChanging}
+                aria-label={`${member.name} 역할 변경`}
+                className="cursor-pointer w-6 h-6 flex items-center justify-center hover:bg-neutral-10 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 7L20 7M20 7L16 3M20 7L16 11M16 17L4 17M4 17L8 21M4 17L8 13" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Affiliation */}
         <div
-          className={`flex-1 min-w-[120px] text-[14px] font-medium text-left truncate ${
-            member.teamName ? "text-neutral-90" : "text-neutral-60"
-          }`}
+          className={`flex-1 min-w-[120px] text-[14px] font-medium text-left truncate ${member.teamName ? "text-neutral-90" : "text-neutral-60"
+            }`}
         >
           {member.teamName || "소속없음"}
         </div>
@@ -141,15 +198,14 @@ function MemberRow({
       {/* Mobile View - 테이블 형식 3개 열 */}
       <div className="md:hidden flex items-center py-3 pl-0.5 pr-4">
         {/* 이메일 열 - 프로필 썸네일 + 이름 + 이메일 */}
-        <div 
+        <div
           className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => onInfoClick(member.id)}
         >
           {/* Avatar */}
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[16px] flex-shrink-0 ${
-              isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
-            }`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-neutral-0 font-semibold text-[16px] flex-shrink-0 ${isTargetAdmin ? "bg-primary-80" : "bg-neutral-60"
+              }`}
           >
             {avatar}
           </div>
@@ -173,8 +229,28 @@ function MemberRow({
         </div>
 
         {/* 역할 열 */}
-        <div className="w-[60px] flex-none text-[14px] font-medium text-neutral-90 text-left">
-          {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
+        <div className="w-[88px] flex-none text-left">
+          <div className="flex items-center gap-1">
+            <span className="text-[14px] font-medium text-neutral-90">
+              {member.role ? ROLE_LABELS[member.role] || member.role : "-"}
+            </span>
+            {showRoleChangeButton && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRoleChange(member);
+                }}
+                disabled={isRoleChanging}
+                aria-label={`${member.name} 역할 변경`}
+                className="cursor-pointer w-5 h-5 flex items-center justify-center hover:bg-neutral-10 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 7L20 7M20 7L16 3M20 7L16 11M16 17L4 17M4 17L8 21M4 17L8 13" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 삭제 버튼 열 */}
@@ -222,6 +298,7 @@ export default function MemberSettings() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [roleChangingMemberId, setRoleChangingMemberId] = useState<number | null>(null);
   const [selectedMember, setSelectedMember] = useState<MemberListItem | null>(
     null
   );
@@ -248,9 +325,10 @@ export default function MemberSettings() {
   // 현재 사용자 정보 조회
   const { member: myMember } = useMyMember(projectId);
   const myRole = myMember?.role;
-  
+
   // 권한 체크
   const isAdminOrSubAdmin = hasAdminAccess(myRole);
+  const canManageRole = myRole === "admin";
   const canLeaveProject = !isAdminOrSubAdmin && myRole !== undefined;
 
   // 멤버 목록 조회
@@ -288,7 +366,7 @@ export default function MemberSettings() {
       const errorCode = error?.data?.code;
       const errorStatus = error?.status;
       const errorMessage = error?.data?.message || "";
-      
+
       // 403 + MEMBER_COUNT_LIMIT_EXCEEDED: 멤버 수 한도 초과
       if (errorStatus === 403 && errorCode === "MEMBER_COUNT_LIMIT_EXCEEDED") {
         showErrorModal({
@@ -298,7 +376,7 @@ export default function MemberSettings() {
         });
         return;
       }
-      
+
       // 영어 에러 메시지를 한글로 변환
       if (errorMessage.includes("Invitation already exists")) {
         showErrorModal({
@@ -347,6 +425,59 @@ export default function MemberSettings() {
     },
   });
 
+  const roleChangeMutation = useMutation({
+    mutationFn: ({
+      memberId,
+      role,
+    }: {
+      memberId: number;
+      role: "subAdmin" | "member";
+    }) => MembersService.updateRole({ memberId, role }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["members"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["members-tree"],
+      });
+      setRoleChangingMemberId(null);
+      showErrorModal({
+        type: "success",
+        headline: `${ROLE_LABELS[variables.role]}로 권한이 변경되었습니다.`,
+        hideCancel: true,
+      });
+    },
+    onError: (error: any) => {
+      setRoleChangingMemberId(null);
+
+      const errorCode = error?.data?.code;
+
+      if (errorCode === "FORBIDDEN") {
+        showErrorModal({
+          type: "error",
+          headline: "권한 변경 권한이 없습니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+
+      if (errorCode === "MEMBER_NOT_FOUND") {
+        showErrorModal({
+          type: "error",
+          headline: "대상 멤버를 찾을 수 없습니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+
+      showErrorModal({
+        type: "error",
+        headline: "권한 변경에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    },
+  });
+
   const handleDelete = (id: number) => {
     const member = members.find((m: MemberListItem) => m.id === id);
     if (member) {
@@ -367,6 +498,29 @@ export default function MemberSettings() {
     if (selectedMember) {
       deleteMutation.mutate(selectedMember.id);
     }
+  };
+
+  const handleRoleChange = (member: MemberListItem) => {
+    const nextRole = getRoleChangeTargetRole(member.role);
+    const message = getRoleChangeConfirmMessage(member);
+
+    if (!nextRole || !message) {
+      return;
+    }
+
+    showConfirmModal({
+      title: "권한 변경",
+      message,
+      confirmText: "변경하기",
+      cancelText: "취소",
+      onConfirm: () => {
+        setRoleChangingMemberId(member.id);
+        roleChangeMutation.mutate({
+          memberId: member.id,
+          role: nextRole,
+        });
+      },
+    });
   };
 
   const handlePageChange = (page: number) => {
@@ -410,7 +564,7 @@ export default function MemberSettings() {
         <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-5">
           팀 멤버 관리
         </h1>
-        
+
         {/* 버튼 영역 - 권한에 따라 다른 버튼 표시 */}
         <div className="flex items-center gap-2 md:gap-3">
           {/* 프로젝트 탈퇴 버튼 - leader/member만 표시 */}
@@ -436,13 +590,13 @@ export default function MemberSettings() {
             <div className="flex-1 text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               이메일
             </div>
-            <div className="w-[60px] flex-none text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
+            <div className="w-[88px] flex-none text-[14px] font-medium text-neutral-60 dark:text-neutral-60 text-left">
               역할
             </div>
             <div className="w-8 flex-none"></div>
           </div>
         </div>
-        
+
         {/* Desktop Header */}
         <div className="hidden bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-10 h-10 leading-10 md:flex items-center">
           <div className="flex items-center w-full">
@@ -474,9 +628,12 @@ export default function MemberSettings() {
                 key={member.id}
                 member={member}
                 onDelete={handleDelete}
+                onRoleChange={handleRoleChange}
                 onInfoClick={(id) => setSelectedMemberIdForInfo(id)}
                 canDelete={isAdminOrSubAdmin}
+                canManageRole={canManageRole}
                 currentMemberId={myMember?.id ?? null}
+                isRoleChanging={roleChangingMemberId === member.id}
               />
             ))
           )}

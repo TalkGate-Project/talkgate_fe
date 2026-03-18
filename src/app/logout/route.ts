@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteAuthCookies } from '@/lib/cookies';
 import { logger } from '@/lib/logger';
+import { resolveLogoutRedirect } from '@/lib/postAuthRedirect';
 
 /**
  * 로그아웃 Route Handler
@@ -17,6 +18,11 @@ export async function GET(request: NextRequest) {
   const redirectParam = request.nextUrl.searchParams.get('redirect');
   const host = request.headers.get('host') || 'localhost:3000';
   const protocol = request.nextUrl.protocol || 'https:';
+  const hostWithoutPort = host.split(':')[0];
+  const isLocalhost =
+    hostWithoutPort.includes('localhost') ||
+    hostWithoutPort.includes('127.0.0.1') ||
+    /^\d+\.\d+\.\d+\.\d+$/.test(hostWithoutPort);
   
   // 메인 도메인 계산
   // NEXT_PUBLIC_SITE_URL에서 추출 (host 기반 판단 제거)
@@ -34,22 +40,15 @@ export async function GET(request: NextRequest) {
     }
   }
   
-  // 절대 URL 생성 (NextResponse.redirect는 절대 URL만 허용)
-  let finalUrl: string;
-  if (redirectParam) {
-    // 상대 URL인 경우 절대 URL로 변환
-    if (redirectParam.startsWith('/')) {
-      finalUrl = `${protocol}//${host}${redirectParam}`;
-    } else if (redirectParam.startsWith('http://') || redirectParam.startsWith('https://')) {
-      finalUrl = redirectParam;
-    } else {
-      finalUrl = `${protocol}//${host}/${redirectParam}`;
-    }
-  } else {
-    finalUrl = `${protocol}//${mainDomain}/login?logout=success`;
-  }
+  const currentOrigin = `${protocol}//${host}`;
+  const fallbackHost = isLocalhost ? host : mainDomain;
+  const fallbackUrl = `${protocol}//${fallbackHost}/login?logout=success`;
+  const finalUrl = resolveLogoutRedirect(redirectParam, currentOrigin, fallbackUrl);
 
-  logger.server('[Logout Route] 리다이렉트:', finalUrl);
+  logger.server('[Logout Route] 리다이렉트', {
+    hasRedirectParam: !!redirectParam,
+    destinationHost: new URL(finalUrl).host,
+  });
 
   // 리다이렉트 응답 생성
   const response = NextResponse.redirect(finalUrl);
