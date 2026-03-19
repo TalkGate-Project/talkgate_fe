@@ -9,6 +9,7 @@ import { useChatAttachment } from "@/hooks/useChatAttachment";
 import { useChatUrlSync } from "@/hooks/useChatUrlSync";
 import { useChatLayout } from "@/hooks/useChatLayout";
 import { useChatResizer } from "@/hooks/useChatResizer";
+import { useAiAssistantPanel } from "@/hooks/useAiAssistantPanel";
 import EmojiPicker from "./EmojiPicker";
 import ChatLeftSidebar from "./ChatLeftSidebar";
 import ChatMainView from "./ChatMainView";
@@ -103,6 +104,11 @@ export default function ChatView({ projectId }: Props) {
     swapWidths,
     widthMode,
   } = useChatResizer();
+
+  const aiAssistantPanel = useAiAssistantPanel({
+    projectId,
+    conversationId: activeId,
+  });
 
   // 상태에 따른 필터링된 대화 목록
   const filteredConversations = useMemo(() => {
@@ -270,10 +276,18 @@ export default function ChatView({ projectId }: Props) {
           style={{ width: `${sidebarWidth}px`, flexShrink: 0 }}
         >
           <ChatRightSidebar 
-            projectId={projectId} 
             conversationId={activeId}
             isResizable={isDesktopLayout}
             widthMode={isDesktopLayout ? widthMode : undefined}
+            messages={aiAssistantPanel.messages}
+            loading={aiAssistantPanel.loading}
+            loadingMore={aiAssistantPanel.loadingMore}
+            sending={aiAssistantPanel.sending}
+            error={aiAssistantPanel.error}
+            hasMore={aiAssistantPanel.hasMore}
+            onLoadMore={aiAssistantPanel.loadMore}
+            onSendMessage={aiAssistantPanel.sendMessage}
+            onRetryMessage={aiAssistantPanel.retryMessage}
           />
         </div>
       )}
@@ -281,10 +295,18 @@ export default function ChatView({ projectId }: Props) {
       {/* 1280px 미만(모바일+태블릿): 플로팅 형태의 AI 상담 도우미 */}
       {!isDesktopLayout && (
         <ChatFloatingAiSidebar
-          projectId={projectId}
           conversationId={activeId}
           isOpen={isAiSidebarOpen}
           onClose={() => setIsAiSidebarOpen(false)}
+          messages={aiAssistantPanel.messages}
+          loading={aiAssistantPanel.loading}
+          loadingMore={aiAssistantPanel.loadingMore}
+          sending={aiAssistantPanel.sending}
+          error={aiAssistantPanel.error}
+          hasMore={aiAssistantPanel.hasMore}
+          onLoadMore={aiAssistantPanel.loadMore}
+          onSendMessage={aiAssistantPanel.sendMessage}
+          onRetryMessage={aiAssistantPanel.retryMessage}
         />
       )}
 

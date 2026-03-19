@@ -58,13 +58,17 @@ export const ConversationsService = {
     conversationId: number | string;
     projectId: string;
     prompt: string;
+    signal?: AbortSignal;
+    timeoutMs?: number;
   }) {
-    const { conversationId, projectId, prompt } = params;
+    const { conversationId, projectId, prompt, signal, timeoutMs } = params;
     return apiClient.post<AiAssistantAskResponse>(
       `/v1/conversations/${conversationId}/ai-assistant`,
       { prompt },
       {
         headers: { "x-project-id": projectId },
+        signal,
+        timeoutMs,
       }
     );
   },

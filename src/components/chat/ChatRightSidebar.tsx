@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ConversationsService } from "@/services/conversations";
-import type { AiAssistantMessage } from "@/types/conversations";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Image from "next/image";
-import { showErrorModal } from "@/lib/errorModalEvents";
 import { isImeComposing } from "@/lib/ime";
+import type {
+  AiAssistantErrorKind,
+  AiAssistantUiMessage,
+} from "@/hooks/useAiAssistantPanel";
 
 const TOOLTIP_WIDTH = 320;
 const TOOLTIP_GAP = 8;
@@ -24,21 +25,57 @@ function getBodyZoom(): number {
 }
 
 type Props = {
-  projectId: number;
   conversationId: number | null;
   isResizable?: boolean; // 리사이저 모드일 때 고정 너비 클래스 제거
   widthMode?: "normal" | "swapped"; // 너비 모드: normal = 메인 넓음, swapped = 메인 좁음 (사이드바 넓음)
+  messages: AiAssistantUiMessage[];
+  loading: boolean;
+  loadingMore: boolean;
+  sending: boolean;
+  error: string | null;
+  hasMore: boolean;
+  onLoadMore: () => Promise<void>;
+  onSendMessage: (prompt: string) => Promise<boolean>;
+  onRetryMessage: (localId: string) => Promise<boolean>;
 };
 
-export default function ChatRightSidebar({ projectId, conversationId, isResizable = false, widthMode }: Props) {
-  const [messages, setMessages] = useState<AiAssistantMessage[]>([]);
+function getMessageStatusText(errorKind?: AiAssistantErrorKind): string {
+  switch (errorKind) {
+    case "timeout":
+      return "요청 시간이 초과되어 답변을 받지 못했습니다.";
+    case "canceled":
+      return "전송이 완료되지 않았습니다.";
+    case "network":
+      return "네트워크가 불안정해 답변을 받지 못했습니다.";
+    case "limit":
+      return "요금제 한도에 도달해 전송하지 못했습니다.";
+    default:
+      return "답변을 받지 못했습니다. 잠시 후 다시 시도해주세요.";
+  }
+}
+
+function canRetryMessage(message: AiAssistantUiMessage): boolean {
+  return (
+    (message.status === "failed" || message.status === "canceled") &&
+    message.errorKind !== "limit"
+  );
+}
+
+export default function ChatRightSidebar({
+  conversationId,
+  isResizable = false,
+  widthMode,
+  messages,
+  loading,
+  loadingMore,
+  sending,
+  error,
+  hasMore,
+  onLoadMore,
+  onSendMessage,
+  onRetryMessage,
+}: Props) {
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [nextCursor, setNextCursor] = useState<number | undefined>(undefined);
-  const [hasMore, setHasMore] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +88,10 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
     () => !!conversationId,
     [conversationId]
   );
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageId = lastMessage?.localId;
+  const lastMessageStatus = lastMessage?.status;
+  const lastMessageUpdatedAt = lastMessage?.updatedAt;
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -75,12 +116,11 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
     }
   }, []);
 
-  // pendingPrompt가 변경되면 스크롤을 바닥으로 이동
   useEffect(() => {
-    if (pendingPrompt) {
+    if (lastMessageId) {
       setTimeout(scrollToBottom, 50);
     }
-  }, [pendingPrompt, scrollToBottom]);
+  }, [lastMessageId, lastMessageStatus, lastMessageUpdatedAt, scrollToBottom]);
 
   // 모바일에서 외부 클릭 시 툴팁 닫기
   useEffect(() => {
@@ -171,154 +211,35 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
     };
   }, [showTooltip]);
 
-  // 대화방 변경 시 AI 도우미 대화 목록 조회
-  useEffect(() => {
-    if (!conversationId) {
-      setMessages([]);
-      setNextCursor(undefined);
-      setHasMore(false);
-      setError(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    const run = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await ConversationsService.listAiAssistant({
-          conversationId,
-          projectId: String(projectId),
-          limit: 20,
-        });
-        if (cancelled) return;
-        const payload = res.data as any;
-        const data = payload?.data;
-        const items = (data?.conversations ?? []) as AiAssistantMessage[];
-
-        // items는 보통 최신순(내림차순)으로 옴 -> 렌더링은 오래된순(오름차순)으로 할 것이므로 뒤집음
-        // 백엔드 응답이 [최신, ..., 오래된] 이라고 가정
-        setMessages(items.reverse());
-        setNextCursor(data?.nextCursor);
-        setHasMore(Boolean(data?.hasMore));
-        // 초기 로드 후 스크롤 바닥으로
-        setTimeout(scrollToBottom, 100);
-      } catch (err: any) {
-        if (cancelled) return;
-        const msg =
-          err?.data?.message ||
-          err?.message ||
-          "AI 상담 도우미 대화 내역을 불러오지 못했습니다.";
-        setError(msg);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    void run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [conversationId, projectId, scrollToBottom]);
-
   const loadMore = useCallback(async () => {
-    if (!conversationId || !hasMore || loading) return;
+    if (!hasMore || loading || loadingMore) return;
+
     // 현재 스크롤 위치 저장
     const scrollContainer = messagesScrollRef.current;
     const prevScrollHeight = scrollContainer?.scrollHeight ?? 0;
     const prevScrollTop = scrollContainer?.scrollTop ?? 0;
 
-    try {
-      const res = await ConversationsService.listAiAssistant({
-        conversationId,
-        projectId: String(projectId),
-        limit: 20,
-        cursor: nextCursor,
-      });
-      const payload = res.data as any;
-      const data = payload?.data;
-      const items = (data?.conversations ?? []) as AiAssistantMessage[];
+    await onLoadMore();
 
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map((m) => m.id));
-        // items (최신->오래된) reverse -> (오래된->최신)
-        // 이전 메시지들이므로 앞에 붙임
-        const olderMessages = items
-          .reverse()
-          .filter((it) => !existingIds.has(it.id));
-        return [...olderMessages, ...prev];
-      });
-      setNextCursor(data?.nextCursor);
-      setHasMore(Boolean(data?.hasMore));
-
-      // 스크롤 위치 복원 (새로운 아이템 높이만큼 아래로)
-      requestAnimationFrame(() => {
-        if (scrollContainer) {
-          const newScrollHeight = scrollContainer.scrollHeight;
-          scrollContainer.scrollTop =
-            newScrollHeight - prevScrollHeight + prevScrollTop;
-        }
-      });
-    } catch (err: any) {
-      const msg =
-        err?.data?.message ||
-        err?.message ||
-        "이전 AI 상담 내역을 불러오지 못했습니다.";
-      setError(msg);
-    }
-  }, [conversationId, hasMore, loading, nextCursor, projectId]);
+    // 스크롤 위치 복원 (새로운 아이템 높이만큼 아래로)
+    requestAnimationFrame(() => {
+      if (scrollContainer) {
+        const newScrollHeight = scrollContainer.scrollHeight;
+        scrollContainer.scrollTop =
+          newScrollHeight - prevScrollHeight + prevScrollTop;
+      }
+    });
+  }, [hasMore, loading, loadingMore, onLoadMore]);
 
   const handleSend = useCallback(async () => {
     if (!conversationId || !input.trim() || sending) return;
-    setSending(true);
-    setError(null);
+
     const prompt = input.trim();
-    setPendingPrompt(prompt);
     setInput("");
-    // 스크롤을 먼저 바닥으로 이동 (로딩 말풍선이 보이도록)
+
     setTimeout(scrollToBottom, 50);
-    try {
-      const res = await ConversationsService.askAiAssistant({
-        conversationId,
-        projectId: String(projectId),
-        prompt,
-      });
-      const payload = res.data as any;
-      const data = payload?.data as AiAssistantMessage | undefined;
-      if (data) {
-        // 새 메시지를 뒤에 추가 (오래된 -> 최신)
-        setMessages((prev) => [...prev, data]);
-        setPendingPrompt(null);
-        // 응답 후 스크롤 바닥으로
-        setTimeout(scrollToBottom, 100);
-      }
-    } catch (err: any) {
-      const errorCode = err?.data?.code;
-      const errorStatus = err?.status;
-      
-      // 403 + AI_USAGE_LIMIT_EXCEEDED: 사용량 한도 초과
-      if (errorStatus === 403 && errorCode === "AI_USAGE_LIMIT_EXCEEDED") {
-        showErrorModal({
-          type: "error",
-          headline: "현재 요금제의 사용량 한도에 도달했습니다.",
-          hideCancel: true,
-        });
-        setPendingPrompt(null);
-        return;
-      }
-      
-      const msg =
-        err?.data?.message ||
-        err?.message ||
-        "AI 상담 도우미에게 질문하지 못했습니다.";
-      setError(msg);
-      setPendingPrompt(null);
-    } finally {
-      setSending(false);
-    }
-  }, [conversationId, input, projectId, sending, scrollToBottom]);
+    await onSendMessage(prompt);
+  }, [conversationId, input, onSendMessage, scrollToBottom, sending]);
 
   return (
     <div className={`w-full ${isResizable ? "" : "md:max-w-[286px]"} h-full rounded-[14px] bg-card dark:bg-neutral-0 flex flex-col min-h-0`}>
@@ -457,21 +378,21 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
               </div>
             )}
 
-            {!loading && messages.length > 0 && (
+            {messages.length > 0 && (
               <>
                 {hasMore && (
                   <button
                     type="button"
                     onClick={loadMore}
                     className="cursor-pointer text-[12px] text-primary-80 underline mb-2 disabled:opacity-50 disabled:cursor-not-allowed block mx-auto"
-                    disabled={loading}
+                    disabled={loading || loadingMore}
                   >
-                    이전 AI 상담 내역 더 보기
+                    {loadingMore ? "불러오는 중..." : "이전 AI 상담 내역 더 보기"}
                   </button>
                 )}
                 <div className="space-y-4">
                   {messages.map((m) => (
-                    <div key={m.id} className="space-y-3">
+                    <div key={m.localId} className="space-y-3">
                       {/* 나의 질문 (outgoing) */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] bg-neutral-90 text-neutral-0 rounded-[16px] rounded-br-none px-4 py-3">
@@ -481,56 +402,66 @@ export default function ChatRightSidebar({ projectId, conversationId, isResizabl
                           <div className="mt-2 text-[12px] text-[#B0B0B0]">
                             {formatMessageTime(m.createdAt)}
                           </div>
+                          {m.status !== "sent" && (
+                            <div className="mt-2 flex items-center justify-between gap-3">
+                              <div
+                                className={`text-[12px] ${
+                                  m.status === "sending" || m.status === "retrying"
+                                    ? "text-neutral-40"
+                                    : "text-danger-20"
+                                }`}
+                              >
+                                {m.status === "sending" && "전송 중..."}
+                                {m.status === "retrying" && "다시 전송 중..."}
+                                {(m.status === "failed" || m.status === "canceled") &&
+                                  getMessageStatusText(m.errorKind)}
+                              </div>
+                              {canRetryMessage(m) && !sending && (
+                                <button
+                                  type="button"
+                                  className="cursor-pointer text-[12px] text-neutral-0 underline underline-offset-2"
+                                  onClick={() => void onRetryMessage(m.localId)}
+                                >
+                                  다시 보내기
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      {/* AI 답변 (incoming) */}
-                      <div className="flex justify-start">
-                        <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
-                          <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
-                            {m.response}
-                          </div>
-                          <div className="mt-2 text-[12px] text-[#B0B0B0]">
-                            {formatMessageTime(m.updatedAt || m.createdAt)}
+                      {m.status === "sent" ? (
+                        <div className="flex justify-start">
+                          <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
+                            <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
+                              {m.response}
+                            </div>
+                            <div className="mt-2 text-[12px] text-[#B0B0B0]">
+                              {formatMessageTime(m.updatedAt || m.createdAt)}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ) : m.status === "sending" || m.status === "retrying" ? (
+                        <div className="flex justify-start">
+                          <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                                style={{ animationDelay: "0ms" }}
+                              />
+                              <span
+                                className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                                style={{ animationDelay: "200ms" }}
+                              />
+                              <span
+                                className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
+                                style={{ animationDelay: "400ms" }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   ))}
-                  {/* 전송 중인 질문과 로딩 말풍선 */}
-                  {pendingPrompt && (
-                    <div className="space-y-3">
-                      {/* 나의 질문 (outgoing) */}
-                      <div className="flex justify-end">
-                        <div className="max-w-[85%] bg-neutral-90 text-neutral-0 rounded-[16px] rounded-br-none px-4 py-3">
-                          <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
-                            {pendingPrompt}
-                          </div>
-                          <div className="mt-2 text-[12px] text-[#B0B0B0]">
-                            {formatMessageTime(new Date().toISOString())}
-                          </div>
-                        </div>
-                      </div>
-                      {/* AI 응답 대기 중 로딩 말풍선 */}
-                      <div className="flex justify-start">
-                        <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
-                              style={{ animationDelay: "0ms" }}
-                            />
-                            <span
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
-                              style={{ animationDelay: "200ms" }}
-                            />
-                            <span
-                              className="inline-block w-2 h-2 rounded-full bg-neutral-60 animate-bounce"
-                              style={{ animationDelay: "400ms" }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </>
             )}

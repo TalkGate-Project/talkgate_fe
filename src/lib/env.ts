@@ -124,13 +124,19 @@ const naverClientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID || undefined;
 const instagramClientId = process.env.NEXT_PUBLIC_INSTAGRAM_CLIENT_ID || undefined;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || undefined;
 const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || undefined;
+const apiTimeoutMsRaw = process.env.NEXT_PUBLIC_API_TIMEOUT_MS;
+const apiTimeoutMsParsed = Number(apiTimeoutMsRaw);
+const apiTimeoutMs =
+  apiTimeoutMsRaw && Number.isFinite(apiTimeoutMsParsed)
+    ? apiTimeoutMsParsed
+    : 30000;
 // NEXT_PUBLIC_SITE_URL에서 메인 도메인 추출
 // 환경변수를 참조하지 못한 경우 app-dev.talkgate.im으로 폴백
 const mainDomain = extractMainDomainFromSiteUrl(siteUrl);
 
 export const env: AppEnv = {
   NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
-  NEXT_PUBLIC_API_TIMEOUT_MS: readNumber("NEXT_PUBLIC_API_TIMEOUT_MS", 10000),
+  NEXT_PUBLIC_API_TIMEOUT_MS: apiTimeoutMs,
   // NOTE: Temporary override to force DEV websocket endpoints for all environments.
   // TODO: Revert to env-first resolution:
   //   NEXT_PUBLIC_WS_CHAT_BASE_URL: readOptionalString("NEXT_PUBLIC_WS_CHAT_BASE_URL") ?? getWebSocketUrl(apiBaseUrl, "chat"),
