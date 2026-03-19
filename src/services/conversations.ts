@@ -43,13 +43,15 @@ export const ConversationsService = {
     projectId: string;
     limit?: number;
     cursor?: number;
+    signal?: AbortSignal;
   }) {
-    const { conversationId, projectId, limit = 20, cursor } = params;
+    const { conversationId, projectId, limit = 20, cursor, signal } = params;
     return apiClient.get<AiAssistantListResponse>(
       `/v1/conversations/${conversationId}/ai-assistant`,
       {
         query: { limit, cursor },
         headers: { "x-project-id": projectId },
+        signal,
       }
     );
   },

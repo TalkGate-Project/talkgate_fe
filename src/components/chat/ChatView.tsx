@@ -130,7 +130,11 @@ export default function ChatView({ projectId }: Props) {
     activeId,
     setActiveId,
     filteredConversations,
-    handleModalStateReset
+    {
+      isConversationsLoading: conversationsPage.loading,
+      hasInitializedConversations: conversationsPage.initialized,
+      onModalStateReset: handleModalStateReset,
+    }
   );
 
   useEffect(() => {

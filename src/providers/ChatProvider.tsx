@@ -44,6 +44,7 @@ type ChatContextType = {
     hasMore: boolean;
     cursor: number | undefined;
     loading: boolean;
+    initialized: boolean;
   };
   /** 대화 목록 더 불러오기 */
   loadMoreConversations: () => void;
@@ -103,12 +104,15 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   // 소켓 상태
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
+  const [socketReady, setSocketReady] = useState(false);
   const [socketError, setSocketError] = useState<string | null>(null);
 
   // 대화 목록 상태
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [convCursor, setConvCursor] = useState<number | undefined>(undefined);
   const [convHasMore, setConvHasMore] = useState(false);
+  const [isConversationsLoading, setIsConversationsLoading] = useState(false);
+  const [hasInitializedConversations, setHasInitializedConversations] = useState(false);
   const convLoadingRef = useRef(false);
   const lastConvCursorRequestedRef = useRef<number | undefined>(undefined);
 
@@ -189,6 +193,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     convLoadingRef.current = true;
+    setIsConversationsLoading(true);
     lastConvCursorRequestedRef.current = convCursor;
     
     const requestPayload: any = { limit: 20, cursor: convCursor };
@@ -214,10 +219,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         socketRef.current = null;
       }
       setConnected(false);
+      setSocketReady(false);
       setSocketError(null);
       setConversations([]);
       setConvCursor(undefined);
       setConvHasMore(false);
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(false);
       return;
     }
 
@@ -227,7 +235,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       talkgateSocket.disconnect();
       socketRef.current = null;
       setConnected(false);
+      setSocketReady(false);
       setSocketError(null);
+      setConversations([]);
+      setConvCursor(undefined);
+      setConvHasMore(false);
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(false);
       return;
     }
     
@@ -238,34 +252,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         return;
       }
       socketRef.current = socket;
+      setSocketReady(false);
     } catch (error) {
       console.error("Failed to connect chat socket:", error);
+      setSocketReady(false);
       setSocketError("소켓 연결에 실패했습니다.");
       return;
     }
-
-    // 초기 데이터 요청 함수
-    const requestInitialConversations = () => {
-      // 상태 초기화
-      setConversations([]);
-      setConvCursor(undefined);
-      setConvHasMore(false);
-      convLoadingRef.current = true;
-      lastConvCursorRequestedRef.current = undefined;
-
-      // 최신 filters 참조 (ref 사용)
-      const currentFilters = filtersRef.current;
-      const requestPayload: any = { limit: 20 };
-      if (currentFilters.status !== "all") requestPayload.status = currentFilters.status;
-      // 전체 필터는 platform 필드를 보내지 않음 (undefined면 omit)
-      if (currentFilters.platform !== undefined) requestPayload.platform = currentFilters.platform;
-      // categoryIds가 있으면 포함
-      if (currentFilters.categoryIds && currentFilters.categoryIds.length > 0) {
-        requestPayload.categoryIds = currentFilters.categoryIds;
-      }
-
-      socket.emit("getConversations", requestPayload);
-    };
 
     // 연결 상태 핸들러
     const handleConnect = () => {
@@ -275,17 +268,21 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
     const handleReady = () => {
       setConnected(true);
+      setSocketReady(true);
       setSocketError(null);
-      requestInitialConversations();
     };
 
     const handleConnectError = (err: any) => {
       setConnected(false);
+      setSocketReady(false);
+      setIsConversationsLoading(false);
       setSocketError(err?.message || "소켓 연결에 실패했습니다.");
     };
 
     const handleDisconnect = (reason: any) => {
       setConnected(false);
+      setSocketReady(false);
+      setIsConversationsLoading(false);
       if (reason !== "io client disconnect") {
         setSocketError(`연결이 종료되었습니다: ${String(reason)}`);
       }
@@ -294,6 +291,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     const handleSocketError = (payload: SocketErrorEvent) => {
       const code = payload?.code ? `[${payload.code}] ` : "";
       const message = payload?.message || "알 수 없는 오류";
+      setIsConversationsLoading(false);
       setSocketError(`${code}${message}`);
     };
 
@@ -311,6 +309,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       }
 
       convLoadingRef.current = false;
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(true);
       lastConvCursorRequestedRef.current = undefined;
 
       if (requestedCursor !== undefined) {
@@ -428,7 +428,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     // 이미 연결되어 있으면 즉시 데이터 요청
     if (socket.connected) {
       setConnected(true);
-      requestInitialConversations();
+      setSocketReady(true);
     }
 
     // 이벤트 리스너 등록
@@ -467,13 +467,12 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   // ============================================
   useEffect(() => {
     const socket = socketRef.current;
-    if (!socket || !projectId || !connected) return;
+    if (!socket || !projectId || !connected || !socketReady) return;
 
     // 필터가 변경되면 대화 목록을 다시 요청
-    // 상태 초기화
-    setConversations([]);
     setConvCursor(undefined);
     setConvHasMore(false);
+    setIsConversationsLoading(true);
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = undefined;
 
@@ -487,7 +486,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     }
 
     socket.emit("getConversations", requestPayload);
-  }, [filters.status, filters.platform, filters.categoryIds, projectId, connected]);
+  }, [filters.status, filters.platform, filters.categoryIds, projectId, connected, socketReady]);
 
   // Context 값
   const value: ChatContextType = {
@@ -499,7 +498,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     conversationsPage: {
       hasMore: convHasMore,
       cursor: convCursor,
-      loading: convLoadingRef.current,
+      loading: isConversationsLoading,
+      initialized: hasInitializedConversations,
     },
     loadMoreConversations,
     setConversations,

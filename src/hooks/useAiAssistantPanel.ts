@@ -314,6 +314,7 @@ export function useAiAssistantPanel({
     }
 
     let disposed = false;
+    const controller = new AbortController();
 
     setConversationState(conversationId, (previousState) => ({
       ...previousState,
@@ -328,6 +329,7 @@ export function useAiAssistantPanel({
           conversationId,
           projectId: String(projectId),
           limit: 20,
+          signal: controller.signal,
         });
 
         if (disposed) return;
@@ -344,7 +346,14 @@ export function useAiAssistantPanel({
           hasMore: Boolean(payload.data?.hasMore),
         }));
       } catch (error) {
-        if (disposed) return;
+        if (disposed || controller.signal.aborted) {
+          setConversationState(conversationId, (previousState) => ({
+            ...previousState,
+            loading: false,
+            initialized: false,
+          }));
+          return;
+        }
 
         console.error("Failed to load AI assistant history:", error);
         setConversationState(conversationId, (previousState) => ({
@@ -359,6 +368,7 @@ export function useAiAssistantPanel({
 
     return () => {
       disposed = true;
+      controller.abort();
     };
   }, [
     conversationId,

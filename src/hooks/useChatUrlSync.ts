@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Conversation } from "@/lib/realtime";
 
+type UseChatUrlSyncOptions = {
+  isConversationsLoading: boolean;
+  hasInitializedConversations: boolean;
+  onModalStateReset?: () => void;
+};
+
 /**
  * URL 쿼리 파라미터와 채팅 상태를 동기화하는 훅
  */
@@ -9,7 +15,11 @@ export function useChatUrlSync(
   activeId: number | null,
   setActiveId: (id: number | null) => void,
   filteredConversations: Conversation[],
-  onModalStateReset?: () => void
+  {
+    isConversationsLoading,
+    hasInitializedConversations,
+    onModalStateReset,
+  }: UseChatUrlSyncOptions
 ) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,6 +33,9 @@ export function useChatUrlSync(
   const desiredCustomerIdRef = useRef<number | null>(
     Number.isFinite(paramCustomerId) ? paramCustomerId : null
   );
+  const previousQueryConvIdRef = useRef<number | null>(
+    Number.isFinite(paramConversationId) ? paramConversationId : null
+  );
 
   // 쿼리스트링 변경 감지: conversationId가 제거되면 activeId와 모달 상태 초기화
   // (브라우저 뒤로가기 등으로 쿼리스트링이 변경된 경우 처리)
@@ -30,37 +43,46 @@ export function useChatUrlSync(
     const currentConvId = searchParams.get("conversationId");
     const convIdNumber = currentConvId ? Number(currentConvId) : null;
     const isValidConvId = convIdNumber !== null && Number.isFinite(convIdNumber);
-    
+    const currentCustomerId = searchParams.get("customerId");
+    const customerIdNumber = currentCustomerId ? Number(currentCustomerId) : null;
+    const isValidCustomerId =
+      customerIdNumber !== null && Number.isFinite(customerIdNumber);
+
+    desiredConvIdRef.current = isValidConvId ? convIdNumber : null;
+    desiredCustomerIdRef.current = isValidCustomerId ? customerIdNumber : null;
+
+    const previousQueryConvId = previousQueryConvIdRef.current;
+    previousQueryConvIdRef.current = isValidConvId ? convIdNumber : null;
+
     // 쿼리스트링에 conversationId가 없는데 activeId가 있으면 초기화
-    // (뒤로가기로 상담 목록으로 돌아온 경우)
-    if (!currentConvId && activeId) {
+    // (뒤로가기/명시적 닫기로 실제 URL에서 conversationId가 제거된 경우)
+    if (!currentConvId && activeId && previousQueryConvId !== null) {
       setActiveId(null);
       // 모달 상태도 초기화
       onModalStateReset?.();
       return;
     }
-    
+
+    if (!isValidConvId || activeId !== null || activeId === convIdNumber) {
+      return;
+    }
+
     // 쿼리스트링에 conversationId가 있는데 activeId와 다르면 동기화
     // (URL 직접 입력 또는 딥링크로 접근한 경우)
-    if (isValidConvId && activeId !== convIdNumber) {
-      // filteredConversations에 해당 conversationId가 있는지 확인
-      const exists = filteredConversations.some((c) => c.id === convIdNumber);
-      if (exists) {
-        setActiveId(convIdNumber);
-      } else {
-        // 존재하지 않으면 activeId를 null로 설정 (필터 변경 등으로 목록에서 사라진 경우)
-        setActiveId(null);
-      }
+    if (filteredConversations.some((c) => c.id === convIdNumber)) {
+      desiredConvIdRef.current = null;
+      setActiveId(convIdNumber);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [
+    searchParams,
+    activeId,
+    filteredConversations,
+    onModalStateReset,
+    setActiveId,
+  ]);
 
   // 현재 필터에서 activeId가 유효한지 확인
   useEffect(() => {
-    if (!filteredConversations.length) {
-      setActiveId(null);
-      return;
-    }
     // 데이터가 도착했을 때 딥링크된 conversationId / customerId를 한 번만 반영
     if (!activeId) {
       const wanted = desiredConvIdRef.current;
@@ -69,6 +91,13 @@ export function useChatUrlSync(
         desiredConvIdRef.current = null;
         return;
       }
+
+      if (wanted && hasInitializedConversations && !isConversationsLoading) {
+        desiredConvIdRef.current = null;
+        setActiveId(wanted);
+        return;
+      }
+
       const wantedCustomer = desiredCustomerIdRef.current;
       if (wantedCustomer != null) {
         const hit = (filteredConversations as any[]).find(
@@ -79,41 +108,26 @@ export function useChatUrlSync(
           desiredCustomerIdRef.current = null;
           return;
         }
-      }
-    }
-    const stillVisible = filteredConversations.some((c) => c.id === activeId);
-    if (!stillVisible) {
-      // 선택된 항목이 없으면 유휴 상태 유지; 자동 선택하지 않음
-      setActiveId(null);
-    }
-  }, [filteredConversations, activeId, setActiveId]);
 
-  // 선택과 conversationId 파라미터 동기화 유지
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const currentConvId = params.get("conversationId");
-    
-    if (activeId) {
-      // conversationId가 없을 때 추가하는 경우: push (히스토리 추가)
-      // conversationId가 있을 때 변경하는 경우: replace (같은 페이지 내 전환)
-      params.set("conversationId", String(activeId));
-      if (currentConvId && currentConvId !== String(activeId)) {
-        // 다른 대화로 전환: replace
-        router.replace(`?${params.toString()}`, { scroll: false });
-      } else if (!currentConvId) {
-        // 대화 선택: push (히스토리 추가)
-        router.push(`?${params.toString()}`, { scroll: false });
+        if (hasInitializedConversations && !isConversationsLoading) {
+          desiredCustomerIdRef.current = null;
+        }
       }
-    } else if (params.has("conversationId")) {
-      // conversationId 제거: push (상담 목록으로 돌아가기, 히스토리 추가)
-      params.delete("conversationId");
-      router.push(`?${params.toString()}`, { scroll: false });
+
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId]);
+  }, [
+    filteredConversations,
+    activeId,
+    hasInitializedConversations,
+    isConversationsLoading,
+    setActiveId,
+  ]);
 
   // 모바일에서 채팅방 닫기
   const handleCloseConversationMobile = useCallback(() => {
+    desiredConvIdRef.current = null;
+    desiredCustomerIdRef.current = null;
     setActiveId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("conversationId");

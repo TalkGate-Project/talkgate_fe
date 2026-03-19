@@ -50,6 +50,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   const [activeId, setActiveIdState] = useState<number | null>(null);
   const activeIdRef = useRef<number | null>(null);
+  const conversationCacheRef = useRef<Map<number, Conversation>>(new Map());
 
   // 메시지 관리
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -71,6 +72,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
     showBannerRef.current = showBanner;
   }, [showBanner]);
 
+  useEffect(() => {
+    conversations.forEach((conversation) => {
+      conversationCacheRef.current.set(conversation.id, conversation);
+    });
+  }, [conversations]);
+
   // ============================================
   // 필터 동기화
   // ============================================
@@ -82,7 +89,14 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // 파생 상태
   // ============================================
   const activeConversation = useMemo(
-    () => conversations.find((c) => c.id === activeId) || null,
+    () => {
+      if (!activeId) return null;
+      return (
+        conversations.find((c) => c.id === activeId) ??
+        conversationCacheRef.current.get(activeId) ??
+        null
+      );
+    },
     [conversations, activeId]
   );
 
@@ -102,7 +116,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket || !connected) return;
 
     // 메시지 목록 수신
     const onMessagesList = (payload: MessagesListEvent) => {
@@ -191,7 +205,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       socket.off("messageResult", onMessageResult as any);
       socket.off("newMessage", onNewMessage as any);
     };
-  }, [getSocket, markMessagesRead]);
+  }, [getSocket, markMessagesRead, connected]);
 
   // ============================================
   // 활성 대화 변경 시 메시지 및 대화방 상세 로드
@@ -200,6 +214,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
     if (!activeId) return;
     const socket = getSocket();
     if (!socket) return;
+
+    setMessages([]);
+    setMsgCursor(undefined);
+    setMsgHasMore(false);
 
     // 단일 대화방 조회 (customerId 등 상세 정보 포함)
     socket.emit("getConversationById", { id: activeId });
@@ -216,6 +234,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
   useEffect(() => {
     if (activeId !== null) return;
     setMessages([]);
+    setMsgCursor(undefined);
+    setMsgHasMore(false);
+    setIsMessagesLoading(false);
   }, [activeId]);
 
   // ============================================
@@ -492,7 +513,11 @@ export function useChatController({ projectId, status = "all", platform }: Param
     attachmentUploading,
     sendAttachment,
     isMessagesLoading,
-    conversationsPage: { hasMore: conversationsPage.hasMore },
+    conversationsPage: {
+      hasMore: conversationsPage.hasMore,
+      loading: conversationsPage.loading,
+      initialized: conversationsPage.initialized,
+    },
     messagesPage: { hasMore: msgHasMore },
     loadMoreConversations,
     loadOlderMessages,
