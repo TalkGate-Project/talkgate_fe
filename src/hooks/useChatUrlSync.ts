@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Conversation } from "@/lib/realtime";
 
 type UseChatUrlSyncOptions = {
@@ -21,7 +21,6 @@ export function useChatUrlSync(
     onModalStateReset,
   }: UseChatUrlSyncOptions
 ) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // 쿼리 파라미터를 통한 딥링크 지원
@@ -125,15 +124,16 @@ export function useChatUrlSync(
   ]);
 
   // 모바일에서 채팅방 닫기
+  // window.history.pushState를 사용하여 Next.js 네비게이션 재렌더링 없이 URL 업데이트
   const handleCloseConversationMobile = useCallback(() => {
     desiredConvIdRef.current = null;
     desiredCustomerIdRef.current = null;
     setActiveId(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("conversationId");
-    // push를 사용하여 히스토리에 추가 (뒤로가기 시 상담 목록으로 이동)
-    router.push(`?${params.toString()}`, { scroll: false });
-  }, [setActiveId, searchParams, router]);
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.pushState(null, "", newUrl);
+  }, [setActiveId, searchParams]);
 
   return {
     handleCloseConversationMobile,
