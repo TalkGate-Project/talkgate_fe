@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import Image from "next/image";
 import { isImeComposing } from "@/lib/ime";
 import type {
@@ -432,9 +433,10 @@ export default function ChatRightSidebar({
                       {m.status === "sent" ? (
                         <div className="flex justify-start">
                           <div className="max-w-[85%] bg-neutral-20 text-ink rounded-[16px] rounded-bl-none px-4 py-3">
-                            <div className="text-[13px] leading-[20px] whitespace-pre-wrap break-words">
-                              {m.response}
-                            </div>
+                            <MarkdownRenderer
+                              content={m.response}
+                              className="text-[13px] leading-[20px] break-words"
+                            />
                             <div className="mt-2 text-[12px] text-[#B0B0B0]">
                               {formatMessageTime(m.updatedAt || m.createdAt)}
                             </div>
