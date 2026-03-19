@@ -210,9 +210,9 @@ export default function ChatView({ projectId }: Props) {
 
 
   return (
-    <div className="flex gap-8 h-full relative">
-      {/* 모바일: 리스트가 기본, 채팅방 선택 시 오버레이 */}
-      <div className={`md:block ${activeId ? "hidden md:block" : "block"} w-full md:w-auto h-full`}>
+    <div className="flex gap-8 h-full relative overflow-hidden md:overflow-visible">
+      {/* 모바일: 리스트는 항상 렌더링 (오버레이 뒤에 위치) */}
+      <div className="block w-full md:w-auto h-full">
         <ChatLeftSidebar
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
@@ -231,9 +231,9 @@ export default function ChatView({ projectId }: Props) {
         />
       </div>
 
-      {/* 모바일: 채팅방이 오버레이로 표시 */}
+      {/* 모바일: 채팅방이 오버레이로 표시 (슬라이드 트랜지션) */}
       <div
-        className={`md:block ${activeId ? "block" : "hidden md:block"} absolute md:relative inset-0 md:inset-auto z-50 md:z-auto bg-background md:bg-transparent ${isDesktopLayout ? "" : "md:flex-1 md:min-w-0"}`}
+        className={`block absolute md:relative inset-0 md:inset-auto z-40 md:z-auto bg-background md:bg-transparent transition-transform duration-300 ease-in-out md:transition-none ${activeId ? "translate-x-0" : "translate-x-full md:translate-x-0"} ${isDesktopLayout ? "" : "md:flex-1 md:min-w-0"}`}
         style={
           isDesktopLayout
             ? { width: `${mainWidth}px`, flexShrink: 0 }
