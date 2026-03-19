@@ -44,6 +44,7 @@ type ChatContextType = {
     hasMore: boolean;
     cursor: number | undefined;
     loading: boolean;
+    initialized: boolean;
   };
   /** 대화 목록 더 불러오기 */
   loadMoreConversations: () => void;
@@ -109,6 +110,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [convCursor, setConvCursor] = useState<number | undefined>(undefined);
   const [convHasMore, setConvHasMore] = useState(false);
+  const [isConversationsLoading, setIsConversationsLoading] = useState(false);
+  const [hasInitializedConversations, setHasInitializedConversations] = useState(false);
   const convLoadingRef = useRef(false);
   const lastConvCursorRequestedRef = useRef<number | undefined>(undefined);
 
@@ -189,6 +192,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     convLoadingRef.current = true;
+    setIsConversationsLoading(true);
     lastConvCursorRequestedRef.current = convCursor;
     
     const requestPayload: any = { limit: 20, cursor: convCursor };
@@ -218,6 +222,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       setConversations([]);
       setConvCursor(undefined);
       setConvHasMore(false);
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(false);
       return;
     }
 
@@ -228,6 +234,11 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       socketRef.current = null;
       setConnected(false);
       setSocketError(null);
+      setConversations([]);
+      setConvCursor(undefined);
+      setConvHasMore(false);
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(false);
       return;
     }
     
@@ -246,8 +257,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
     // 초기 데이터 요청 함수
     const requestInitialConversations = () => {
-      // 상태 초기화
-      setConversations([]);
+      setIsConversationsLoading(true);
       setConvCursor(undefined);
       setConvHasMore(false);
       convLoadingRef.current = true;
@@ -281,11 +291,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
     const handleConnectError = (err: any) => {
       setConnected(false);
+      setIsConversationsLoading(false);
       setSocketError(err?.message || "소켓 연결에 실패했습니다.");
     };
 
     const handleDisconnect = (reason: any) => {
       setConnected(false);
+      setIsConversationsLoading(false);
       if (reason !== "io client disconnect") {
         setSocketError(`연결이 종료되었습니다: ${String(reason)}`);
       }
@@ -294,6 +306,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     const handleSocketError = (payload: SocketErrorEvent) => {
       const code = payload?.code ? `[${payload.code}] ` : "";
       const message = payload?.message || "알 수 없는 오류";
+      setIsConversationsLoading(false);
       setSocketError(`${code}${message}`);
     };
 
@@ -311,6 +324,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       }
 
       convLoadingRef.current = false;
+      setIsConversationsLoading(false);
+      setHasInitializedConversations(true);
       lastConvCursorRequestedRef.current = undefined;
 
       if (requestedCursor !== undefined) {
@@ -470,10 +485,9 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     if (!socket || !projectId || !connected) return;
 
     // 필터가 변경되면 대화 목록을 다시 요청
-    // 상태 초기화
-    setConversations([]);
     setConvCursor(undefined);
     setConvHasMore(false);
+    setIsConversationsLoading(true);
     convLoadingRef.current = true;
     lastConvCursorRequestedRef.current = undefined;
 
@@ -499,7 +513,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     conversationsPage: {
       hasMore: convHasMore,
       cursor: convCursor,
-      loading: convLoadingRef.current,
+      loading: isConversationsLoading,
+      initialized: hasInitializedConversations,
     },
     loadMoreConversations,
     setConversations,
