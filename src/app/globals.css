@@ -832,3 +832,34 @@ svg path:focus {
   animation: shake 0.5s ease-in-out;
 }
 
+/* AI Markdown response styles */
+.ai-markdown {
+  word-break: break-word;
+}
+
+.ai-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-markdown ul ul,
+.ai-markdown ol ol,
+.ai-markdown ul ol,
+.ai-markdown ol ul {
+  margin-bottom: 0;
+  margin-top: 2px;
+}
+
+.ai-markdown li > p {
+  margin-bottom: 0;
+}
+
+.ai-markdown pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.ai-markdown table tr:nth-child(even) {
+  background-color: var(--neutral-10);
+}
+
