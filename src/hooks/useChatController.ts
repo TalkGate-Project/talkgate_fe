@@ -201,6 +201,10 @@ export function useChatController({ projectId, status = "all", platform }: Param
     const socket = getSocket();
     if (!socket) return;
 
+    setMessages([]);
+    setMsgCursor(undefined);
+    setMsgHasMore(false);
+
     // 단일 대화방 조회 (customerId 등 상세 정보 포함)
     socket.emit("getConversationById", { id: activeId });
     // 메시지 목록 조회
@@ -216,6 +220,9 @@ export function useChatController({ projectId, status = "all", platform }: Param
   useEffect(() => {
     if (activeId !== null) return;
     setMessages([]);
+    setMsgCursor(undefined);
+    setMsgHasMore(false);
+    setIsMessagesLoading(false);
   }, [activeId]);
 
   // ============================================
@@ -492,7 +499,11 @@ export function useChatController({ projectId, status = "all", platform }: Param
     attachmentUploading,
     sendAttachment,
     isMessagesLoading,
-    conversationsPage: { hasMore: conversationsPage.hasMore },
+    conversationsPage: {
+      hasMore: conversationsPage.hasMore,
+      loading: conversationsPage.loading,
+      initialized: conversationsPage.initialized,
+    },
     messagesPage: { hasMore: msgHasMore },
     loadMoreConversations,
     loadOlderMessages,
