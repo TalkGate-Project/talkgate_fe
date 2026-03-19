@@ -56,27 +56,24 @@ export function useChatUrlSync(
       onModalStateReset?.();
       return;
     }
-    
+
+    if (!isValidConvId || activeId === convIdNumber) {
+      if (activeId === convIdNumber) {
+        desiredConvIdRef.current = null;
+      }
+      return;
+    }
+
     // 쿼리스트링에 conversationId가 있는데 activeId와 다르면 동기화
     // (URL 직접 입력 또는 딥링크로 접근한 경우)
-    if (isValidConvId && activeId !== convIdNumber) {
-      const exists = filteredConversations.some((c) => c.id === convIdNumber);
-      if (exists) {
-        desiredConvIdRef.current = null;
-        setActiveId(convIdNumber);
-        return;
-      }
-
-      if (hasInitializedConversations && !isConversationsLoading) {
-        setActiveId(convIdNumber);
-      }
+    if (filteredConversations.some((c) => c.id === convIdNumber)) {
+      desiredConvIdRef.current = null;
+      setActiveId(convIdNumber);
     }
   }, [
     searchParams,
     activeId,
     filteredConversations,
-    hasInitializedConversations,
-    isConversationsLoading,
     onModalStateReset,
     setActiveId,
   ]);
@@ -93,6 +90,7 @@ export function useChatUrlSync(
       }
 
       if (wanted && hasInitializedConversations && !isConversationsLoading) {
+        desiredConvIdRef.current = null;
         setActiveId(wanted);
         return;
       }
@@ -148,9 +146,6 @@ export function useChatUrlSync(
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     const currentConvId = params.get("conversationId");
-    const isWaitingForRestore =
-      (!hasInitializedConversations || isConversationsLoading) &&
-      (desiredConvIdRef.current !== null || desiredCustomerIdRef.current !== null);
 
     if (activeId) {
       // conversationId가 없을 때 추가하는 경우: push (히스토리 추가)
@@ -163,19 +158,9 @@ export function useChatUrlSync(
         // 대화 선택: push (히스토리 추가)
         router.push(`?${params.toString()}`, { scroll: false });
       }
-    } else if (params.has("conversationId")) {
-      if (isWaitingForRestore) {
-        return;
-      }
-
-      // conversationId 제거: push (상담 목록으로 돌아가기, 히스토리 추가)
-      params.delete("conversationId");
-      router.push(`?${params.toString()}`, { scroll: false });
     }
   }, [
     activeId,
-    hasInitializedConversations,
-    isConversationsLoading,
     router,
     searchParams,
   ]);
