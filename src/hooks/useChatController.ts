@@ -50,6 +50,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   const [activeId, setActiveIdState] = useState<number | null>(null);
   const activeIdRef = useRef<number | null>(null);
+  const conversationCacheRef = useRef<Map<number, Conversation>>(new Map());
 
   // 메시지 관리
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -71,6 +72,12 @@ export function useChatController({ projectId, status = "all", platform }: Param
     showBannerRef.current = showBanner;
   }, [showBanner]);
 
+  useEffect(() => {
+    conversations.forEach((conversation) => {
+      conversationCacheRef.current.set(conversation.id, conversation);
+    });
+  }, [conversations]);
+
   // ============================================
   // 필터 동기화
   // ============================================
@@ -82,7 +89,14 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // 파생 상태
   // ============================================
   const activeConversation = useMemo(
-    () => conversations.find((c) => c.id === activeId) || null,
+    () => {
+      if (!activeId) return null;
+      return (
+        conversations.find((c) => c.id === activeId) ??
+        conversationCacheRef.current.get(activeId) ??
+        null
+      );
+    },
     [conversations, activeId]
   );
 

@@ -33,6 +33,9 @@ export function useChatUrlSync(
   const desiredCustomerIdRef = useRef<number | null>(
     Number.isFinite(paramCustomerId) ? paramCustomerId : null
   );
+  const previousQueryConvIdRef = useRef<number | null>(
+    Number.isFinite(paramConversationId) ? paramConversationId : null
+  );
 
   // 쿼리스트링 변경 감지: conversationId가 제거되면 activeId와 모달 상태 초기화
   // (브라우저 뒤로가기 등으로 쿼리스트링이 변경된 경우 처리)
@@ -48,19 +51,19 @@ export function useChatUrlSync(
     desiredConvIdRef.current = isValidConvId ? convIdNumber : null;
     desiredCustomerIdRef.current = isValidCustomerId ? customerIdNumber : null;
 
+    const previousQueryConvId = previousQueryConvIdRef.current;
+    previousQueryConvIdRef.current = isValidConvId ? convIdNumber : null;
+
     // 쿼리스트링에 conversationId가 없는데 activeId가 있으면 초기화
-    // (뒤로가기로 상담 목록으로 돌아온 경우)
-    if (!currentConvId && activeId) {
+    // (뒤로가기/명시적 닫기로 실제 URL에서 conversationId가 제거된 경우)
+    if (!currentConvId && activeId && previousQueryConvId !== null) {
       setActiveId(null);
       // 모달 상태도 초기화
       onModalStateReset?.();
       return;
     }
 
-    if (!isValidConvId || activeId === convIdNumber) {
-      if (activeId === convIdNumber) {
-        desiredConvIdRef.current = null;
-      }
+    if (!isValidConvId || activeId !== null || activeId === convIdNumber) {
       return;
     }
 
@@ -113,56 +116,12 @@ export function useChatUrlSync(
 
       return;
     }
-
-    const stillVisible = filteredConversations.some((c) => c.id === activeId);
-    if (stillVisible) {
-      if (desiredConvIdRef.current === activeId) {
-        desiredConvIdRef.current = null;
-      }
-      return;
-    }
-
-    const currentConvId = Number(searchParams.get("conversationId") || "");
-    const isDeepLinkedActive =
-      Number.isFinite(currentConvId) && currentConvId === activeId;
-    if (isDeepLinkedActive || !hasInitializedConversations || isConversationsLoading) {
-      return;
-    }
-
-    if (!stillVisible) {
-      // 선택된 항목이 없으면 유휴 상태 유지; 자동 선택하지 않음
-      setActiveId(null);
-    }
   }, [
     filteredConversations,
     activeId,
     hasInitializedConversations,
     isConversationsLoading,
-    searchParams,
     setActiveId,
-  ]);
-
-  // 선택과 conversationId 파라미터 동기화 유지
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const currentConvId = params.get("conversationId");
-
-    if (activeId) {
-      // conversationId가 없을 때 추가하는 경우: push (히스토리 추가)
-      // conversationId가 있을 때 변경하는 경우: replace (같은 페이지 내 전환)
-      params.set("conversationId", String(activeId));
-      if (currentConvId && currentConvId !== String(activeId)) {
-        // 다른 대화로 전환: replace
-        router.replace(`?${params.toString()}`, { scroll: false });
-      } else if (!currentConvId) {
-        // 대화 선택: push (히스토리 추가)
-        router.push(`?${params.toString()}`, { scroll: false });
-      }
-    }
-  }, [
-    activeId,
-    router,
-    searchParams,
   ]);
 
   // 모바일에서 채팅방 닫기
