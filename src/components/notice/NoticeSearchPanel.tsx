@@ -37,7 +37,7 @@ export default function NoticeSearchPanel({
       bodyClassName="px-4 md:px-7 py-4 md:py-[30px] border-t border-neutral-30"
     >
       {/* 검색 및 버튼 영역 */}
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex items-center md:justify-between gap-2 md:gap-3">
         {/* 검색 영역 */}
         <div className="relative flex-1 md:max-w-[294px]">
           <input

@@ -17,6 +17,7 @@ export type RequestOptions = {
   query?: Record<string, string | number | boolean | null | undefined | Array<string | number>>;
   body?: unknown; // will be JSON.stringified if not FormData/Blob/ArrayBuffer
   signal?: AbortSignal;
+  timeoutMs?: number;
   responseType?: "auto" | "json" | "text" | "blob";
   credentials?: RequestCredentials; // per-request override
   suppressAutoLogout?: boolean; // if true, do not auto-redirect on 401/403
@@ -101,7 +102,7 @@ export class ApiClient {
       body = JSON.stringify(options.body);
     }
 
-    const signal = withTimeout(options.signal, this.timeoutMs);
+    const signal = withTimeout(options.signal, options.timeoutMs ?? this.timeoutMs);
 
     try {
       const res = await fetch(url, {
