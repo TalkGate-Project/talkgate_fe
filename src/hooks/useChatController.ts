@@ -116,7 +116,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
   // ============================================
   useEffect(() => {
     const socket = getSocket();
-    if (!socket) return;
+    if (!socket || !connected) return;
 
     // 메시지 목록 수신
     const onMessagesList = (payload: MessagesListEvent) => {
@@ -205,7 +205,7 @@ export function useChatController({ projectId, status = "all", platform }: Param
       socket.off("messageResult", onMessageResult as any);
       socket.off("newMessage", onNewMessage as any);
     };
-  }, [getSocket, markMessagesRead]);
+  }, [getSocket, markMessagesRead, connected]);
 
   // ============================================
   // 활성 대화 변경 시 메시지 및 대화방 상세 로드
