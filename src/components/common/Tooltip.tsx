@@ -16,22 +16,26 @@ type TooltipProps = {
   content: string;
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
+  align?: "center" | "start";
   className?: string;
   delay?: number;
   multiline?: boolean;
   maxWidth?: string;
   disablePortal?: boolean;
+  gap?: number;
 };
 
 export default function Tooltip({
   content,
   children,
   position = "top",
+  align = "center",
   className = "",
   delay = 0.2,
   multiline = false,
   maxWidth = "300px",
   disablePortal = false,
+  gap = 8,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [finalPosition, setFinalPosition] = useState(position);
@@ -90,8 +94,6 @@ export default function Tooltip({
       const windowWidth = window.innerWidth / zoom;
       const windowHeight = window.innerHeight / zoom;
       const padding = 8;
-      const gap = 8; // 툴팁과 요소 사이의 간격
-
       // 툴팁이 실제로 렌더링되어 있는 경우 정확한 크기 사용
       if (tooltipRef.current) {
         const tooltipRect = tooltipRef.current.getBoundingClientRect();
@@ -113,40 +115,64 @@ export default function Tooltip({
         const containerCenterX = containerLeft + containerRect.width / zoom / 2;
         const containerCenterY = containerTop + containerRect.height / zoom / 2;
 
+        const getPositionStyles = (nextPosition: typeof finalPosition) => {
+          if (nextPosition === "top") {
+            return {
+              top: containerTop - tooltipHeight - gap,
+              left: align === "start" ? containerLeft : containerCenterX,
+              transform: align === "start" ? "" : "translateX(-50%)",
+            };
+          }
+
+          if (nextPosition === "bottom") {
+            return {
+              top: containerBottom + gap,
+              left: align === "start" ? containerLeft : containerCenterX,
+              transform: align === "start" ? "" : "translateX(-50%)",
+            };
+          }
+
+          if (nextPosition === "left") {
+            return {
+              top: align === "start" ? containerTop : containerCenterY,
+              left: containerLeft - tooltipWidth - gap,
+              transform: align === "start" ? "" : "translateY(-50%)",
+            };
+          }
+
+          return {
+            top: align === "start" ? containerTop : containerCenterY,
+            left: containerRight + gap,
+            transform: align === "start" ? "" : "translateY(-50%)",
+          };
+        };
+
         // 현재 위치에 따라 계산
         if (finalPosition === "top") {
-          top = containerTop - tooltipHeight - gap;
-          left = containerCenterX;
-          transform = "translateX(-50%)";
-          
+          ({ top, left, transform } = getPositionStyles("top"));
+
           // 화면 밖으로 나가면 위치 조정
           if (top < padding) {
             needsPositionChange = true;
             newPosition = "bottom";
           }
         } else if (finalPosition === "bottom") {
-          top = containerBottom + gap;
-          left = containerCenterX;
-          transform = "translateX(-50%)";
-          
+          ({ top, left, transform } = getPositionStyles("bottom"));
+
           if (top + tooltipHeight > windowHeight - padding) {
             needsPositionChange = true;
             newPosition = "top";
           }
         } else if (finalPosition === "left") {
-          top = containerCenterY;
-          left = containerLeft - tooltipWidth - gap;
-          transform = "translateY(-50%)";
-          
+          ({ top, left, transform } = getPositionStyles("left"));
+
           if (left < padding) {
             needsPositionChange = true;
             newPosition = "right";
           }
         } else if (finalPosition === "right") {
-          top = containerCenterY;
-          left = containerRight + gap;
-          transform = "translateY(-50%)";
-          
+          ({ top, left, transform } = getPositionStyles("right"));
+
           if (left + tooltipWidth > windowWidth - padding) {
             needsPositionChange = true;
             newPosition = "left";
@@ -162,34 +188,25 @@ export default function Tooltip({
 
         // 최종 위치 재계산 (위치 변경 후)
         if (needsPositionChange) {
-          if (newPosition === "top") {
-            top = containerTop - tooltipHeight - gap;
-            left = containerCenterX;
-            transform = "translateX(-50%)";
-          } else if (newPosition === "bottom") {
-            top = containerBottom + gap;
-            left = containerCenterX;
-            transform = "translateX(-50%)";
-          } else if (newPosition === "left") {
-            top = containerCenterY;
-            left = containerLeft - tooltipWidth - gap;
-            transform = "translateY(-50%)";
-          } else if (newPosition === "right") {
-            top = containerCenterY;
-            left = containerRight + gap;
-            transform = "translateY(-50%)";
-          }
+          ({ top, left, transform } = getPositionStyles(newPosition));
         }
 
         // 화면 경계 내로 조정 (transform 적용 전 위치)
-        if (finalPosition === "top" || finalPosition === "bottom" || needsPositionChange) {
-          // 좌우 경계 체크
+        const useHorizontalCenter = transform.includes("translateX");
+        const useVerticalCenter = transform.includes("translateY");
+
+        if (useHorizontalCenter) {
           const halfWidth = tooltipWidth / 2;
           left = Math.max(padding + halfWidth, Math.min(left, windowWidth - padding - halfWidth));
         } else {
-          // 상하 경계 체크
+          left = Math.max(padding, Math.min(left, windowWidth - tooltipWidth - padding));
+        }
+
+        if (useVerticalCenter) {
           const halfHeight = tooltipHeight / 2;
           top = Math.max(padding + halfHeight, Math.min(top, windowHeight - padding - halfHeight));
+        } else {
+          top = Math.max(padding, Math.min(top, windowHeight - tooltipHeight - padding));
         }
 
         lastCheckedPositionRef.current = finalPosition;
@@ -219,12 +236,20 @@ export default function Tooltip({
 
   const inlinePositionClass =
     finalPosition === "top"
-      ? "absolute left-1/2 -translate-x-1/2 bottom-full mb-2"
+      ? align === "start"
+        ? "absolute left-0 bottom-full mb-2"
+        : "absolute left-1/2 -translate-x-1/2 bottom-full mb-2"
       : finalPosition === "bottom"
-        ? "absolute left-1/2 -translate-x-1/2 top-full mt-2"
+        ? align === "start"
+          ? "absolute left-0 top-full mt-2"
+          : "absolute left-1/2 -translate-x-1/2 top-full mt-2"
         : finalPosition === "left"
-          ? "absolute right-full mr-2 top-1/2 -translate-y-1/2"
-          : "absolute left-full ml-2 top-1/2 -translate-y-1/2";
+          ? align === "start"
+            ? "absolute right-full mr-2 top-0"
+            : "absolute right-full mr-2 top-1/2 -translate-y-1/2"
+          : align === "start"
+            ? "absolute left-full ml-2 top-0"
+            : "absolute left-full ml-2 top-1/2 -translate-y-1/2";
 
   const tooltipBoxClass = `px-3 py-2.5 bg-neutral-90 dark:bg-neutral-10 text-white text-[13px] rounded-lg shadow-xl pointer-events-none ${
     multiline ? "whitespace-normal break-words" : "whitespace-nowrap"

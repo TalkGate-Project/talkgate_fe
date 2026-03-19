@@ -399,7 +399,7 @@ export default function CalendarSection() {
                             COLORS[schedule.id % COLORS.length],
                         }}
                       />
-                      <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left self-center shrink-0 font-montserrat">
+                      <span className="inline-flex items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 w-[50px] md:w-[60px] text-left shrink-0 font-montserrat">
                         {formatTimeFromISO(schedule.scheduleTime)}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -409,11 +409,13 @@ export default function CalendarSection() {
                             "일정"}
                           multiline={true}
                           maxWidth="280px"
-                          position="left"
+                          position="top"
+                          align="start"
+                          gap={10}
                           delay={0.3}
                           className="w-full"
                         >
-                          <span className="leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate block w-full">
+                          <span className="inline-flex w-full items-center leading-[1] text-[12px] md:typo-body-2 text-neutral-60 flex-1 min-w-0 truncate">
                             {schedule.description ||
                               schedule.customer?.name ||
                               "일정"}
