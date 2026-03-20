@@ -157,7 +157,3 @@ export default function SalesRanking() {
     </Panel>
   );
 }
-
-// formatting helpers moved to @/utils/format
-
-

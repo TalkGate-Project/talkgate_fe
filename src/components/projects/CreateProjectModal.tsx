@@ -4,8 +4,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
-import pleaseDragImg from "@/assets/images/projects/please_drag.png";
-import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.png";
+import pleaseDragImg from "@/assets/images/projects/please_drag.webp";
+import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Props = {

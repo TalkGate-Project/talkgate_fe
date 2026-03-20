@@ -3,9 +3,9 @@
 import { useEffect, useState, ReactNode } from "react";
 import TalkGateLogoLarge from "@/components/common/icons/TalkGateLogoLarge";
 import TalkGateLogoWordmark from "@/components/common/icons/TalkGateLogoWordmark";
-import loginBgImg from "@/assets/images/auth/login_bg.png";
-import loginCardContents from "@/assets/images/auth/login_card_contents.png";
-import loginCardStrap from "@/assets/images/auth/login_card_strap.png";
+import loginBgImg from "@/assets/images/auth/login_bg.webp";
+import loginCardContents from "@/assets/images/auth/login_card_contents.webp";
+import loginCardStrap from "@/assets/images/auth/login_card_strap.webp";
 
 /**
  * Auth 페이지 공통 배경색 (확대/축소/컴팩트 모드 대응)

@@ -155,7 +155,7 @@ export default function Header() {
               href="/dashboard"
               className="text-white text-[16px] font-semibold tracking-[-0.02em]"
             >
-              <img src="/main_logo.png" alt="Talkgate" className="w-[102px]" />
+              <img src="/main_logo.webp" alt="Talkgate" className="w-[102px]" />
             </Link>
           </div>
 

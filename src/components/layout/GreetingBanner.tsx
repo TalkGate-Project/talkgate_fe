@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMyMember } from "@/hooks/useMyMember";
 import { ProjectsService } from "@/services/projects";
@@ -37,20 +36,6 @@ export default function GreetingBanner({ userName, todayQuote, loading }: Greeti
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const formattedNow = useMemo(() => {
-    return new Intl.DateTimeFormat("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false, 
-    })
-      .format(now)
-      .replace(/\./g, ".") // Ensure consistent format if needed, though ko-KR usually does yyyy. mm. dd.
-  }, [now]);
   
   // Format for "2025.09.19 오후 3:04:26" style as in screenshot
   const formattedDateString = useMemo(() => {

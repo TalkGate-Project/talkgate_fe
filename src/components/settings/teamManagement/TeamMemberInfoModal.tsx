@@ -191,20 +191,6 @@ export default function TeamMemberInfoModal({
     setProfileEditMode(false);
   };
 
-  const handleReset = () => {
-    setLocalNotes(member?.hrNotes ?? []);
-    setNoteInput("");
-    setTab("organization");
-    setProfileEditMode(false);
-    if (member) {
-      setHrFormData({
-        realName: member.hrData?.realName ?? "",
-        birthDate: member.hrData?.birth ? new Date(member.hrData.birth) : null,
-        address: member.hrData?.address ?? "",
-      });
-    }
-  };
-
   const handleCreateTeam = async () => {
     const trimmed = teamNameDraft.trim();
     if (!trimmed || createTeam.isPending) return;

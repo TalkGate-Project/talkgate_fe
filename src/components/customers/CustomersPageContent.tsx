@@ -21,7 +21,6 @@ import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMyMember } from "@/hooks/useMyMember";
-import { MembersTreeService } from "@/services/membersTree";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
 
@@ -101,7 +100,6 @@ function CustomersPageContentInner() {
 
   const {
     selectedIds,
-    setSelectedIds,
     selectionMode,
     allSelectedOnPage,
     toggleSelectAll,

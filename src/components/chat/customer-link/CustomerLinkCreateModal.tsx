@@ -54,7 +54,6 @@ export default function CustomerLinkCreateModal({
   onClose,
   onBack,
   projectId,
-  conversationName,
   onLink,
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
@@ -175,7 +174,7 @@ export default function CustomerLinkCreateModal({
       await onLink(newCustomerId);
       handleReset();
       onClose();
-    } catch (e: any) {
+    } catch (_e: any) {
       showErrorModal({
         title: "오류 발생",
         headline: "고객 등록에 실패했습니다. 잠시 후 다시 시도해주세요.",

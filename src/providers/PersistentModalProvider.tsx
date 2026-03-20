@@ -205,10 +205,10 @@ export default function PersistentModalProvider({
                         height={40}
                         className="object-contain"
                         onError={(e) => {
-                          // favicon.ico 로드 실패 시 notification-icon.png로 폴백
+                          // favicon.ico 로드 실패 시 notification-icon.webp로 폴백
                           const target = e.target as HTMLImageElement;
-                          if (target.src !== "/notification-icon.png") {
-                            target.src = "/notification-icon.png";
+                          if (!target.src.endsWith("/notification-icon.webp")) {
+                            target.src = "/notification-icon.webp";
                           }
                         }}
                       />

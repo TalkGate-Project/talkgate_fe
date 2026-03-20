@@ -16,10 +16,10 @@ import {
   POST_AUTH_REDIRECT_STORAGE_KEY,
 } from "@/lib/postAuthRedirect";
 import Image from "next/image";
-import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.png";
-import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.png";
-import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-assigned-customer.png";
-import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.png";
+import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.webp";
+import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.webp";
+import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-assigned-customer.webp";
+import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.webp";
 
 export default function ProjectsContent() {
   const router = useRouter();

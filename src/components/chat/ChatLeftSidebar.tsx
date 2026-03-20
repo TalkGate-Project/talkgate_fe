@@ -330,7 +330,7 @@ export default function ChatLeftSidebar({
                   const msg = c.lastMessage;
                   if (!msg) return " "; // 공백 문자로 최소 높이 유지
                   
-                  const isIncoming = msg.direction === "incoming";
+                  // const isIncoming = msg.direction === "incoming";
                   
                   if (msg.type === "text") {
                     const content = msg.content?.trim();

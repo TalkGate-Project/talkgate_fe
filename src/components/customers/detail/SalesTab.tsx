@@ -127,7 +127,7 @@ export default function SalesTab({
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return "";
       return format(date, "yyyy. MM. dd a hh : mm", { locale: ko });
-    } catch (e) {
+    } catch (_e) {
       return "";
     }
   };
@@ -137,7 +137,7 @@ export default function SalesTab({
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return "";
       return format(date, "yyyy. MM. dd HH:mm", { locale: ko });
-    } catch (e) {
+    } catch (_e) {
       return "";
     }
   };

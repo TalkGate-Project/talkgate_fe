@@ -324,7 +324,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
                     <div className="flex items-center mb-2">
                       {/* 라이트 모드 로고 */}
                       <Image 
-                        src="/main_logo_dark.png" 
+                        src="/main_logo_dark.webp" 
                         alt="Talkgate" 
                         width={102} 
                         height={24} 
@@ -332,7 +332,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
                       />
                       {/* 다크 모드 로고 */}
                       <Image 
-                        src="/main_logo.png" 
+                        src="/main_logo.webp" 
                         alt="Talkgate" 
                         width={102} 
                         height={24} 

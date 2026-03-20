@@ -451,7 +451,7 @@ export default function ConsultationChannelSettings() {
         return (
           <div className="w-8 h-8">
             <img
-              src="/icons/platform/instagram.png"
+              src="/icons/platform/instagram.webp"
               alt="Instagram"
               className="w-full h-full"
             />
@@ -461,7 +461,7 @@ export default function ConsultationChannelSettings() {
         return (
           <div className="w-8 h-8">
             <img
-              src="/icons/platform/telegram.png"
+              src="/icons/platform/telegram.webp"
               alt="Telegram"
               className="w-full h-full"
             />
@@ -471,7 +471,7 @@ export default function ConsultationChannelSettings() {
         return (
           <div className="w-8 h-8">
             <img
-              src="/icons/platform/line.png"
+              src="/icons/platform/line.webp"
               alt="Line"
               className="w-full h-full"
             />
@@ -481,7 +481,7 @@ export default function ConsultationChannelSettings() {
         return (
           <div className="w-8 h-8">
             <img
-              src="/icons/platform/kakao.png"
+              src="/icons/platform/kakao.webp"
               alt="KakaoTalk"
               className="w-full h-full"
             />

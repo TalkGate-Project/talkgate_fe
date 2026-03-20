@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
+import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { LANDING_URLS } from "@/lib/constants";
 import { SubscriptionService } from "@/services/subscription";
