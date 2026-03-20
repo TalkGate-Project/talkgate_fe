@@ -24,7 +24,14 @@ const eslintConfig = [
     rules: {
       // 개발 단계에서 타입 관련 규칙 완화
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       
       // React 관련 규칙 완화
       "react/no-unescaped-entities": "off",

@@ -2,7 +2,6 @@ import { apiClient } from "@/lib/apiClient";
 import { setSelectedProjectId } from "@/lib/project";
 import type {
   LoginInput,
-  LoginOutput,
   SocialLoginInput,
   SignupInput,
   SignupOutput,
@@ -21,7 +20,6 @@ import type {
   TwoFactorDisableSendCodeResponse,
   TwoFactorDisableInput,
   TwoFactorLoginInput,
-  TwoFactorLoginOutput,
 } from "@/types/auth";
 
 /**
@@ -93,36 +91,6 @@ export type SocialLoginResult = {
   isNewUser?: boolean; // 신규 가입 사용자 여부
   response: any;
 };
-
-/**
- * 소셜 로그인 공통 처리 함수
- */
-function handleSocialLoginResponse(res: any, _provider: string): SocialLoginResult {
-  const extracted = extractLoginData(res.data);
-
-  // 2FA가 필요한 경우
-  if (extracted.requiresTwoFactor && extracted.twoFactorToken) {
-    return {
-      success: true,
-      requiresTwoFactor: true,
-      twoFactorToken: extracted.twoFactorToken,
-      response: res,
-    };
-  }
-
-  // 일반 로그인 성공
-  // 토큰은 서버에서 httpOnly 쿠키로 설정되므로 클라이언트에서 저장 불필요
-
-  if (extracted.projectId != null) {
-    setSelectedProjectId(extracted.projectId);
-  }
-
-  return {
-    success: true,
-    requiresTwoFactor: false,
-    response: res,
-  };
-}
 
 export const AuthService = {
   // Social login

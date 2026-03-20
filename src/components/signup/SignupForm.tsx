@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { AccountStep } from "@/components/signup/AccountStep";
 import { VerifyStep } from "@/components/signup/VerifyStep";
@@ -13,7 +12,6 @@ import { DoneStep } from "@/components/signup/DoneStep";
 import type { SignupStep } from "@/components/signup/steps";
 import type { SignupTokens } from "@/types/signup";
 import { getPendingInviteInfo } from "@/lib/invite";
-import { setTokens } from "@/lib/token";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { getPendingSignupState, savePendingSignupState, clearPendingSignupState } from "@/lib/signup";
 import { SignupService } from "@/services/signup";
@@ -21,10 +19,8 @@ import { SignupService } from "@/services/signup";
 export function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
   const [step, setStep] = useState<SignupStep>("account");
   const [accountEmail, setAccountEmail] = useState("");
-  const [accountPassword, setAccountPassword] = useState("");
   // 이메일 인증 성공 시 받은 토큰 (쿠키에 저장하지 않고 state로 관리)
   const [signupTokens, setSignupTokens] = useState<SignupTokens | null>(null);
   
@@ -42,7 +38,7 @@ export function SignupForm() {
   const inviteEmail = pendingInvite?.email || undefined;
   
   // 랜딩 페이지 등에서 리디렉션 URL을 받아옴
-  const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
+  // const redirectUrl = searchParams.get("redirectUrl") || searchParams.get("returnUrl");
   
   // 초대 플로우 여부 (초대 토큰이 있으면 이메일 인증 스킵)
   const isInviteFlow = !!invitationToken;
@@ -124,7 +120,7 @@ export function SignupForm() {
             },
           });
         })
-        .catch((error) => {
+        .catch((_error) => {
           // 에러 발생 시에도 복구 진행 (사용자 경험 우선)
           modalShownRef.current = true;
           setAccountEmail(pendingState.email);
@@ -142,15 +138,6 @@ export function SignupForm() {
     }
   }, [isInviteFlow, searchParams, router]);
 
-  // 토큰 저장 및 캐시 무효화 헬퍼
-  const saveTokensAndInvalidateCache = async (tokens: SignupTokens) => {
-    setTokens({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    });
-    await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
-  };
-
   const handleAccountSuccess = async (params: {
     email: string;
     password: string;
@@ -158,7 +145,6 @@ export function SignupForm() {
     agreeMarketing: boolean;
   }) => {
     setAccountEmail(params.email);
-    setAccountPassword(params.password);
     
     // 마케팅 동의 알림 모달 표시
     const currentDate = format(new Date(), "yyyy년 MM월 dd일", { locale: ko });

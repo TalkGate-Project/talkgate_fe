@@ -482,7 +482,7 @@ export default function CustomerDetailModalDesktop({
                   actions.saveForm().then(() => {
                     markListRefreshPending();
                     handleClose();
-                  }).catch((e: any) => {
+                  }).catch((_e: any) => {
                     showErrorModal({
                       title: "오류 발생",
                       headline: "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
