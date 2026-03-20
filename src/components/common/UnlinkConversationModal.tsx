@@ -38,12 +38,12 @@ export default function UnlinkConversationModal({
 
   const platformIcon =
     conversation.platform === "instagram"
-      ? "/icons/platform/instagram.png"
+      ? "/icons/platform/instagram.webp"
       : conversation.platform === "telegram"
-      ? "/icons/platform/telegram.png"
+      ? "/icons/platform/telegram.webp"
       : conversation.platform === "line"
-      ? "/icons/platform/line.png"
-      : "/icons/platform/kakao.png";
+      ? "/icons/platform/line.webp"
+      : "/icons/platform/kakao.webp";
 
   return (
     <BaseModal

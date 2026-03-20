@@ -86,12 +86,12 @@ export default function ChatFilterModal({
 
   const items: { key: Messenger; label: string; icon?: string }[] = [
     { key: "all", label: "전체" },
-    { key: "telegram", label: "텔레그램", icon: "/telegram.png" },
-    { key: "instagram", label: "인스타그램", icon: "/instagram.png" },
-    { key: "line", label: "네이버앱", icon: "/naver_line.png" },
+    { key: "telegram", label: "텔레그램", icon: "/telegram.webp" },
+    { key: "instagram", label: "인스타그램", icon: "/instagram.webp" },
+    { key: "line", label: "네이버앱", icon: "/naver_line.webp" },
     // { key: "kakao", label: "카카오톡", icon: "/kakao_icon.png" },
     // { key: "facebook", label: "페이스북", icon: "/facebook.png" },
-    // { key: "x", label: "트위터(X)", icon: "/x_twitter.png" },
+    // { key: "x", label: "트위터(X)", icon: "/x_twitter.webp" },
   ];
 
 
@@ -162,8 +162,8 @@ export default function ChatFilterModal({
                     >
                       {it.key === "x" ? (
                         <>
-                          <img src="/x_twitter.png" alt="" className="w-5 h-5 dark:hidden" />
-                          <img src="/x_twitter_dark.png" alt="" className="w-5 h-5 hidden dark:block" />
+                          <img src="/x_twitter.webp" alt="" className="w-5 h-5 dark:hidden" />
+                          <img src="/x_twitter_dark.webp" alt="" className="w-5 h-5 hidden dark:block" />
                         </>
                       ) : (
                         <img src={it.icon!} alt="" className="w-5 h-5" />
