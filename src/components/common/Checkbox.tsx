@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import checkedImg from "@/assets/images/common/checked.png";
-import uncheckedImg from "@/assets/images/common/unchecked.png";
+import checkedImg from "@/assets/images/common/checked.webp";
+import uncheckedImg from "@/assets/images/common/unchecked.webp";
 
 type Props = {
   checked: boolean;

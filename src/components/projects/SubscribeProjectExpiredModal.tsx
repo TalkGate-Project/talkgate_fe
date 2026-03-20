@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { MemberRole } from "@/types/members";
 import { useMyMember } from "@/hooks/useMyMember";
 import { LANDING_URLS } from "@/lib/constants";
-import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.png";
+import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.webp";
 
 type Project = {
   id: number;

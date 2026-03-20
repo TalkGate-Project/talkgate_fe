@@ -4,10 +4,10 @@
 
 /**
  * 알림 아이콘 경로
- * 브라우저 Notification API는 .ico 파일을 지원하지 않을 수 있으므로 PNG 형식 사용
- * favicon.ico를 기반으로 한 PNG 파일을 public/notification-icon.png에 배치해야 합니다.
+ * 브라우저 Notification API는 .ico 파일을 지원하지 않을 수 있으므로 래스터 이미지(WebP 등) 사용
+ * favicon.ico를 기반으로 한 WebP(또는 PNG) 파일을 public/notification-icon.webp에 배치합니다.
  */
-const NOTIFICATION_ICON_PATH = "/notification-icon.png";
+const NOTIFICATION_ICON_PATH = "/notification-icon.webp";
 
 /**
  * 브라우저 알림 권한 요청

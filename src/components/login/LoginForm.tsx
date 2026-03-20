@@ -390,7 +390,7 @@ export function LoginForm() {
             initiateSocialLogin("kakao", redirectUrl || undefined);
           }}
         >
-          <img src="/kakao.png" alt="" />
+          <img src="/kakao.webp" alt="" />
         </button>
         <button
           aria-label="naver"
@@ -404,7 +404,7 @@ export function LoginForm() {
             initiateSocialLogin("naver", redirectUrl || undefined);
           }}
         >
-          <img src="/naver.png" alt="" />
+          <img src="/naver.webp" alt="" />
         </button>
         <button
           aria-label="google"
@@ -417,7 +417,7 @@ export function LoginForm() {
             initiateSocialLogin("google", redirectUrl || undefined);
           }}
         >
-          <img src="/google.png" alt="" />
+          <img src="/google.webp" alt="" />
         </button>
       </div>
 

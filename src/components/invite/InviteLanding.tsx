@@ -10,7 +10,7 @@ import {
   type PendingInviteInfo,
 } from "@/lib/invite";
 import { performLogout } from "@/lib/logout";
-import loginBgImg from "@/assets/images/auth/login_bg.png";
+import loginBgImg from "@/assets/images/auth/login_bg.webp";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { EnvelopeAnimation } from "./EnvelopeAnimation";
 import { WrongAccountModal } from "./WrongAccountModal";

@@ -4,12 +4,12 @@ type Props = {
 
 export default function PlatformIcon({ platform }: Props) {
   const iconMap: Record<string, string> = {
-    telegram: "/icons/platform/telegram.png",
-    instagram: "/icons/platform/instagram.png",
-    line: "/icons/platform/line.png",
-    kakao: "/icons/platform/kakao.png",
-    facebook: "/icons/platform/facebook.png",
-    x: "/icons/platform/x.png",
+    telegram: "/icons/platform/telegram.webp",
+    instagram: "/icons/platform/instagram.webp",
+    line: "/icons/platform/line.webp",
+    kakao: "/icons/platform/kakao.webp",
+    facebook: "/icons/platform/facebook.webp",
+    x: "/icons/platform/x.webp",
   };
 
   const iconPath = platform ? iconMap[platform] : null;

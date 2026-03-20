@@ -11,6 +11,8 @@
     "build:no-turbo": "next build",
     "start": "next start",
     "lint": "eslint",
+    "convert:webp:auth-dashboard": "node scripts/convert-png-to-webp.mjs",
+    "convert:webp:tier1-3": "node scripts/convert-png-to-webp-tier1-3.mjs",
     "type-check": "tsc --noEmit",
     "clean": "if exist .next rmdir /s /q .next && if exist node_modules\\.cache rmdir /s /q node_modules\\.cache || true"
   },
@@ -40,6 +42,7 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.9",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

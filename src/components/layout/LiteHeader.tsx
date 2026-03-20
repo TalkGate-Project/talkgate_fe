@@ -98,7 +98,7 @@ export default function LiteHeader() {
       <div className="mx-auto w-full md:max-w-[1410px] h-full px-4 md:px-6 lg:px-0 flex items-center justify-between md:justify-start">
         {/* 좌측: 로그인으로 이동하는 브랜드 로고 */}
         <div className="flex items-center h-full">
-          <Image src="/main_logo.png" alt="Talkgate" width={102} height={24} />
+          <Image src="/main_logo.webp" alt="Talkgate" width={102} height={24} />
         </div>
 
         {/* 프로젝트 선택 전에는 세부 메뉴를 노출하지 않음 */}

@@ -87,7 +87,7 @@ export default function ConversationCard({
               {conversation!.platform === "instagram" && (
                 <span className="w-4 h-4 inline-block">
                   <img
-                    src="/icons/platform/instagram.png"
+                    src="/icons/platform/instagram.webp"
                     alt="Instagram"
                     className="w-full h-full object-contain"
                   />
@@ -96,7 +96,7 @@ export default function ConversationCard({
               {conversation!.platform === "telegram" && (
                 <span className="w-4 h-4 inline-block">
                   <img
-                    src="/icons/platform/telegram.png"
+                    src="/icons/platform/telegram.webp"
                     alt="Telegram"
                     className="w-full h-full object-contain"
                   />
@@ -105,7 +105,7 @@ export default function ConversationCard({
               {conversation!.platform === "line" && (
                 <span className="w-4 h-4 inline-block">
                   <img
-                    src="/icons/platform/line.png"
+                    src="/icons/platform/line.webp"
                     alt="Line"
                     className="w-full h-full object-contain"
                   />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import loginBgImg from "@/assets/images/auth/login_bg.png";
+import loginBgImg from "@/assets/images/auth/login_bg.webp";
 import Link from "next/link";
 
 const AUTH_BODY_BG = "#494949";
