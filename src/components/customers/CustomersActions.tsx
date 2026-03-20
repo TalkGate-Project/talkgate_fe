@@ -30,6 +30,8 @@ export type CustomersActionsProps = {
   showAssignButton?: boolean;
   /** admin/subAdmin일 때만 삭제 버튼 표시 */
   showDeleteButton?: boolean;
+  /** admin/subAdmin일 때만 엑셀 다운로드 버튼 표시 */
+  showExcelDownloadButton?: boolean;
 };
 
 function LocalIconTooltip({
@@ -105,6 +107,7 @@ export default function CustomersActions({
   showPartnerAssignButton = false,
   showAssignButton = true,
   showDeleteButton = true,
+  showExcelDownloadButton = true,
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
@@ -490,28 +493,30 @@ export default function CustomersActions({
               </svg>
             </button>
           </LocalIconTooltip>
-          <LocalIconTooltip label="엑셀 다운로드">
-            <button
-              type="button"
-              onClick={() => {
-                showConfirmModal({
-                  type: "info",
-                  title: "",
-                  headline: "현재 고객목록을 엑셀로 변환할까요?",
-                  message: "다운로드는 한 번에 최대 5,000건까지만 가능해요.",
-                  confirmText: "확인",
-                  cancelText: "취소",
-                  onConfirm: handleExcelDownload,
-                });
-              }}
-              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
-              aria-label="엑셀 다운로드"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 12L12 16M12 16L8 12M12 16L12 4" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </LocalIconTooltip>
+          {showExcelDownloadButton && (
+            <LocalIconTooltip label="엑셀 다운로드">
+              <button
+                type="button"
+                onClick={() => {
+                  showConfirmModal({
+                    type: "info",
+                    title: "",
+                    headline: "현재 고객목록을 엑셀로 변환할까요?",
+                    message: "다운로드는 한 번에 최대 5,000건까지만 가능해요.",
+                    confirmText: "확인",
+                    cancelText: "취소",
+                    onConfirm: handleExcelDownload,
+                  });
+                }}
+                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+                aria-label="엑셀 다운로드"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 12L12 16M12 16L8 12M12 16L12 4" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </LocalIconTooltip>
+          )}
           <div className="relative h-6" ref={desktopLimitPopoverRef}>
             <LocalIconTooltip label="목록 개수">
               <button
