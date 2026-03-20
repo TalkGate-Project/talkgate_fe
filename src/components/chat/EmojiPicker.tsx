@@ -582,8 +582,6 @@ export default function EmojiPicker({
   onToggleMode,
   triggerRef,
 }: EmojiPickerProps) {
-  const [selectedCategory, setSelectedCategory] =
-    useState<keyof typeof emojiCategories>("smileys");
   const [recent, setRecent] = useState<string[]>(() => {
     try {
       const raw =
@@ -670,7 +668,7 @@ export default function EmojiPicker({
     onClose();
   };
 
-  const currentEmojis = emojiCategories[selectedCategory];
+  const currentEmojis = emojiCategories.smileys;
 
   // Compact mode UI (pill with up to 5 recent + expand arrow)
   if (mode === "compact") {

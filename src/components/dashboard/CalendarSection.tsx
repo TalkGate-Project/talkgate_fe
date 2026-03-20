@@ -46,9 +46,6 @@ export default function CalendarSection() {
     useState<WeeklyScheduleItem | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-  const ym = `${current.getFullYear()}.${String(
-    current.getMonth() + 1
-  ).padStart(2, "0")}`;
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',

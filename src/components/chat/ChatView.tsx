@@ -61,7 +61,6 @@ export default function ChatView({ projectId }: Props) {
     closeConversation,
     notify,
     conversationsPage,
-    messagesPage,
     loadMoreConversations,
     loadOlderMessages,
     attachmentUploading,

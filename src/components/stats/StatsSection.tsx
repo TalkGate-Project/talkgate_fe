@@ -1,4 +1,5 @@
 "use client";
+
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -16,11 +17,9 @@ import {
   CartesianGrid,
   LabelList,
 } from "recharts";
-
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerPaymentWeeklyResponse } from "@/types/statistics";
-import { formatMonthDay } from "@/utils/datetime";
 import { formatCurrencyKR } from "@/utils/format";
 
 const WEEKS = 6;
@@ -488,16 +487,4 @@ export default function StatsSection() {
       </div>
     </Panel>
   );
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${month}.${day}`;
-}
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("ko-KR");
 }

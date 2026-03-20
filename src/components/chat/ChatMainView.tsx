@@ -175,7 +175,7 @@ export default function ChatMainView({
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-    } catch (e) {
+    } catch (_e) {
       // CORS 등으로 blob 다운로드가 불가능할 때는 새 탭으로 여는 것으로 폴백
       window.open(url, "_blank", "noopener,noreferrer");
     }
