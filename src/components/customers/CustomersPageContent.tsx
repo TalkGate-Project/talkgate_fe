@@ -369,6 +369,7 @@ function CustomersPageContentInner() {
             showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
             showAssignButton={canAssignCustomer}
             showDeleteButton={isAdminOrSubAdmin}
+            showExcelDownloadButton={isAdminOrSubAdmin}
           />
         }
         headerClassName="px-6 md:px-7 py-4 md:py-6"
