@@ -363,7 +363,7 @@ function CustomersPageContentInner() {
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
-            onShareSuccess={refetch}
+            onShareSuccess={() => { refetch(); clearSelection(); }}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
             showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
