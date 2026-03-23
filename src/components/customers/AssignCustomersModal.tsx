@@ -7,7 +7,7 @@ import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
-import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
+import { getIndent } from "@/components/settings/teamManagement/tokens";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export type AssignCustomersModalProps = {
@@ -148,7 +148,7 @@ function HierarchicalTeamList({
       ? nodes.filter((item) => visibleIds.has(item.id))
       : nodes;
 
-    return filteredItems.map((item, index) => {
+    return filteredItems.map((item) => {
       const hasChildren = Boolean(item.children && item.children.length);
       // 자식들 중 표시될 것이 있는지 확인
       const visibleChildren = visibleIds && item.children
@@ -159,33 +159,10 @@ function HierarchicalTeamList({
       const level = item.level ?? 0;
       // 모바일에서 1rem(16px) 들여쓰기, 데스크탑에서 기존 값 사용
       const indent = level * 16; // 모바일: 16px per level
-      const connectorLeft = (level - 1) * 16; // 모바일: 16px per level
       const isSelected = selectedId === Number(item.id);
 
       return (
         <div key={item.id} className="relative mb-2">
-          {level > 0 && (
-            <>
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
-                  style={{
-                    left: `${connectorLeft}px`,
-                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
-                    top: index === 0 ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset : 0,
-                  } as React.CSSProperties}
-                />
-                <div
-                  className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
-                  style={{ 
-                    left: `${connectorLeft}px`,
-                    '--desktop-connector-left': `${getConnectorLeft(level)}px`,
-                    '--desktop-horizontal-width': `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
-                    top: HIERARCHY_LIST_TOKENS.connector.horizontalTop, 
-                    width: '16px' // 모바일: 16px
-                  } as React.CSSProperties}
-                />
-            </>
-          )}
           <div
             className={`h-[52px] flex items-center px-4 md:px-6 gap-3 md:gap-4 border rounded-[12px] cursor-pointer transition-all md:!ml-[var(--desktop-indent)] ${
               item.isLeader ? "bg-primary-10/30 dark:bg-primary-10/20" : "bg-card dark:bg-neutral-10"

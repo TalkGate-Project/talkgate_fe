@@ -10,7 +10,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import AsyncButton from "@/components/common/AsyncButton";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
-import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "@/components/settings/teamManagement/tokens";
+import { getIndent } from "@/components/settings/teamManagement/tokens";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
@@ -234,14 +234,13 @@ export default function ProfileSettings() {
   }
 
   // 렌더링 로직
-  const renderOrgNode = (node: OrganizationTreeNode, level: number = 0, index: number = 0) => {
+  const renderOrgNode = (node: OrganizationTreeNode, level: number = 0) => {
     const hasChildren = node.descendants && node.descendants.length > 0;
     const isExpanded = expandedNodes.has(node.id);
     const isLeader = node.role === "leader";
     
     // 다른 tree 구조와 동일한 토큰 사용
     const indent = level * 16; // 모바일: 16px per level
-    const connectorLeft = (level - 1) * 16; // 모바일: 16px per level
 
     const containerBaseClass = `flex items-center justify-between h-[48px] px-[24px] rounded-[12px] border border-neutral-30 dark:border-neutral-30 md:!ml-[var(--desktop-indent)] ${
       isLeader
@@ -254,31 +253,6 @@ export default function ProfileSettings() {
 
     return (
       <div key={node.id} className="relative mb-2">
-        {level > 0 && (
-          <>
-            <div
-              className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
-              style={{
-                left: `${connectorLeft}px`,
-                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
-                top:
-                  index === 0
-                    ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset
-                    : 0,
-              } as React.CSSProperties}
-            />
-            <div
-              className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
-              style={{
-                left: `${connectorLeft}px`,
-                "--desktop-connector-left": `${getConnectorLeft(level)}px`,
-                "--desktop-horizontal-width": `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
-                top: HIERARCHY_LIST_TOKENS.connector.horizontalTop,
-                width: "16px", // 모바일: 16px
-              } as React.CSSProperties}
-            />
-          </>
-        )}
         <div
           className={containerBaseClass}
           style={{
@@ -388,9 +362,7 @@ export default function ProfileSettings() {
 
         {hasChildren && isExpanded && (
           <div className="mt-2">
-            {node.descendants!.map((child, childIndex) =>
-              renderOrgNode(child, level + 1, childIndex)
-            )}
+            {node.descendants!.map((child) => renderOrgNode(child, level + 1))}
           </div>
         )}
       </div>

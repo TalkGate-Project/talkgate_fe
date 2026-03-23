@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import AsyncButton from "@/components/common/AsyncButton";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { HIERARCHY_LIST_TOKENS, getIndent, getConnectorLeft } from "./tokens";
+import { getIndent } from "./tokens";
 import type { OrgNode } from "./memberInfoUtils";
 
 type Props = {
@@ -101,42 +101,16 @@ export default function OrganizationContent({
     });
   };
 
-  const renderOrgNode = (node: OrgNode, index: number = 0) => {
+  const renderOrgNode = (node: OrgNode) => {
     // role이 "leader"인 경우에만 팀장으로 표시 (팀원은 회색 배경)
     const isNodeLeader = node.role === "leader";
     // 모바일에서 1rem(16px) 들여쓰기, 데스크탑에서 기존 값 사용
     const indent = node.level * 16; // 모바일: 16px per level
-    const connectorLeft = (node.level - 1) * 16; // 모바일: 16px per level
     const hasChildren = node.children && node.children.length > 0;
     const isExpanded = expandedNodes.has(node.id);
 
     return (
       <div key={node.id} className="relative mb-2">
-        {node.level > 0 && (
-          <>
-            <div
-              className="absolute left-0 top-0 bottom-0 w-px bg-border md:!left-[var(--desktop-connector-left)]"
-              style={{
-                left: `${connectorLeft}px`,
-                '--desktop-connector-left': `${getConnectorLeft(node.level)}px`,
-                top:
-                  index === 0
-                    ? HIERARCHY_LIST_TOKENS.connector.firstItemTopOffset
-                    : 0,
-              } as React.CSSProperties}
-            />
-            <div
-              className="absolute h-px bg-border md:!left-[var(--desktop-connector-left)] md:!w-[var(--desktop-horizontal-width)]"
-              style={{
-                left: `${connectorLeft}px`,
-                '--desktop-connector-left': `${getConnectorLeft(node.level)}px`,
-                '--desktop-horizontal-width': `${HIERARCHY_LIST_TOKENS.connector.horizontalWidth}px`,
-                top: HIERARCHY_LIST_TOKENS.connector.horizontalTop,
-                width: '16px' // 모바일: 16px
-              } as React.CSSProperties}
-            />
-          </>
-        )}
         <div
           className={`flex items-center gap-3 px-5 py-3 rounded-[12px] md:!ml-[var(--desktop-indent)] ${
             isNodeLeader
@@ -238,9 +212,7 @@ export default function OrganizationContent({
         </div>
         {hasChildren && isExpanded && (
           <div className="mt-2">
-            {node.children.map((child, childIndex) =>
-              renderOrgNode(child, childIndex)
-            )}
+            {node.children.map((child) => renderOrgNode(child))}
           </div>
         )}
       </div>
