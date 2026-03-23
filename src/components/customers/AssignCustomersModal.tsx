@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
-import { useMyMember } from "@/hooks/useMyMember";
-import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
+import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
@@ -58,36 +57,6 @@ function transformMembers(
       isExpanded: true,
     };
   });
-}
-
-/**
- * 특정 멤버를 트리에서 제거하되, 하위 멤버는 상위 레벨로 승격해 보존한다.
- * (self 숨김 요구사항 대응)
- */
-function stripMemberFromTree(
-  nodes: MemberTreeNode[] | undefined,
-  targetMemberId: number | null
-): MemberTreeNode[] {
-  if (!nodes?.length) return [];
-  if (targetMemberId == null) return nodes;
-
-  const result: MemberTreeNode[] = [];
-
-  nodes.forEach((node) => {
-    const filteredDescendants = stripMemberFromTree(node.descendants, targetMemberId);
-
-    if (node.id === targetMemberId) {
-      result.push(...filteredDescendants);
-      return;
-    }
-
-    result.push({
-      ...node,
-      descendants: filteredDescendants,
-    });
-  });
-
-  return result;
 }
 
 // 매칭되는 노드와 그 자손들의 ID를 수집
@@ -288,9 +257,8 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
-  const { member: myMember } = useMyMember(projectId);
 
-  const { data: treeData, isLoading: treeLoading } = useMembersTreeWithoutParent(projectId, {
+  const { data: treeData, isLoading: treeLoading } = useMembersTree(projectId, {
     enabled: open && Boolean(projectId),
   });
   const { data: teamsData } = useTeams(projectId, {
@@ -313,14 +281,9 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     return map;
   }, [teamsData]);
 
-  const visibleTreeData = useMemo(
-    () => stripMemberFromTree(treeData, myMember?.id ?? null),
-    [treeData, myMember?.id]
-  );
-
   const teamMembers = useMemo(
-    () => transformMembers(visibleTreeData, teamNameByLeader),
-    [visibleTreeData, teamNameByLeader]
+    () => transformMembers(treeData, teamNameByLeader),
+    [treeData, teamNameByLeader]
   );
 
   const flattenedMembers = useMemo(() => flattenTeamData(teamMembers), [teamMembers]);
