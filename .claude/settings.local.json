@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/tbrk7/OneDrive/문서/GitHub/talkgate_fe -maxdepth 2 -type f -name package.json -o -name README* -o -name tsconfig* -o -name vite.config* -o -name .env*)",
+      "Bash(wc:*)",
+      "Bash(find \"/c/Users/tbrk7/OneDrive/문서/GitHub/talkgate_fe/src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) ! -path \"*/node_modules/*\" -exec wc -l {} +)"
+    ]
+  }
+}
