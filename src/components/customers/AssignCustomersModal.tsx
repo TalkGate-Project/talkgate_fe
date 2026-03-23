@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
-import { useMembersTree, useTeams } from "@/hooks/useMembersTree";
+import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
@@ -258,7 +258,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
 
-  const { data: treeData, isLoading: treeLoading } = useMembersTree(projectId, {
+  const { data: treeData, isLoading: treeLoading } = useMembersTreeWithoutParent(projectId, {
     enabled: open && Boolean(projectId),
   });
   const { data: teamsData } = useTeams(projectId, {
