@@ -7,6 +7,7 @@ import {
   FORM_TO_API_FIELD_MAP,
   MessengerLocal,
 } from "./types";
+import { formatContactForDisplay } from "@/utils/format";
 
 type UseCustomerFormReturn = {
   form: CustomerFormState;
@@ -43,8 +44,8 @@ export function useCustomerForm(): UseCustomerFormReturn {
 
     const initialFormState: CustomerFormState = {
       name: detail.name ?? "",
-      contact1: detail.contact1 ?? "",
-      contact2: detail.contact2 ?? "",
+      contact1: formatContactForDisplay(detail.contact1 ?? ""),
+      contact2: formatContactForDisplay(detail.contact2 ?? ""),
       contact1Type: detail.contact1Type ?? null,
       contact2Type: detail.contact2Type ?? null,
       birth,
@@ -100,10 +101,11 @@ export function useCustomerForm(): UseCustomerFormReturn {
         const apiField = FORM_TO_API_FIELD_MAP[key];
         if (apiField) {
           if (key === "contact1Type" || key === "contact2Type") {
-            // contact1Type과 contact2Type은 null을 그대로 전송
             (changedFields as any)[apiField] = form[key];
+          } else if (key === "contact1" || key === "contact2") {
+            const digits = (form[key] as string).replace(/\D/g, "");
+            (changedFields as any)[apiField] = digits || undefined;
           } else {
-            // 빈 문자열은 undefined로 변환하여 서버에 전송
             (changedFields as any)[apiField] = form[key] || undefined;
           }
         }

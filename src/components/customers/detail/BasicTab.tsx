@@ -5,6 +5,7 @@ import ConfirmModal from "@/components/common/ConfirmModal";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
+import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 
 // 생년월일 입력 컴포넌트
 function BirthInput({
@@ -92,7 +93,23 @@ export default function BasicTab({
     setNewMessengerAccount("");
   };
 
-  const sanitizeContactInput = (value: string) => value.replace(/\D/g, "").slice(0, 11);
+  const handleContactChange =
+    (field: "contact1" | "contact2") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target;
+      const cursorPos = input.selectionStart ?? 0;
+      const digitsBeforeCursor = input.value.slice(0, cursorPos).replace(/\D/g, "").length;
+
+      const digits = input.value.replace(/\D/g, "").slice(0, 11);
+      const formatted = formatPhoneNumber(digits);
+
+      setForm((prev) => ({ ...prev, [field]: formatted }));
+
+      requestAnimationFrame(() => {
+        const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
+        input.setSelectionRange(newPos, newPos);
+      });
+    };
 
   return (
     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
@@ -143,9 +160,7 @@ export default function BasicTab({
           <div>
             <input
               value={form.contact1}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, contact1: sanitizeContactInput(e.target.value) }))
-              }
+              onChange={handleContactChange("contact1")}
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="연락처를 입력하세요."
@@ -184,9 +199,7 @@ export default function BasicTab({
           <div>
             <input
               value={form.contact2}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, contact2: sanitizeContactInput(e.target.value) }))
-              }
+              onChange={handleContactChange("contact2")}
               inputMode="numeric"
               className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
               placeholder="연락처를 입력하세요."

@@ -239,6 +239,23 @@ export function formatPhoneInput(value: string): string {
 }
 
 /**
+ * 연락처 문자열에서 전화번호를 추출하여 하이픈 포맷으로 반환합니다.
+ * 통신사명 등 접두 텍스트가 포함되어 있어도 끝부분의 전화번호만 추출합니다.
+ * 유효한 한국 전화번호(9~11자리, 0으로 시작)를 인식할 수 없으면 원본을 그대로 반환합니다.
+ * @param value - 연락처 문자열 (예: "LG 알뜰폰 01012345678", "010-1234-5678", "01012345678")
+ * @returns 포맷된 전화번호 또는 원본 문자열
+ */
+export function formatContactForDisplay(value: string): string {
+  if (!value) return "";
+  const trimmed = value.trim();
+  const phoneMatch = trimmed.match(/(0[\d-]{8,14})$/);
+  if (!phoneMatch) return value;
+  const digits = phoneMatch[1].replace(/\D/g, "");
+  if (digits.length < 9 || digits.length > 11) return value;
+  return formatPhoneNumber(digits);
+}
+
+/**
  * 포맷된 전화번호 문자열에서, "커서 앞에 있는 숫자 개수"에 해당하는 커서 위치를 구합니다.
  * 입력 필드에서 백스페이스 등 후 포맷을 다시 적용했을 때 커서를 올바른 자리에 두기 위해 사용합니다.
  * @param formatted - 하이픈이 포함된 전화번호 문자열
