@@ -7,6 +7,7 @@ import {
 import Checkbox from "@/components/common/Checkbox";
 import CustomersHoverPopover from "./CustomersHoverPopover";
 import { formatDateTime } from "@/utils/datetime";
+import { formatContactForDisplay } from "@/utils/format";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getBadgeStyle } from "@/utils/categoryBadge";
@@ -706,7 +707,7 @@ export default function CustomersTable({
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <TruncateWithTooltip
-                            text={c.contact1 || c.contact2 || "-"}
+                            text={formatContactForDisplay(c.contact1 || c.contact2 || "") || "-"}
                             className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                           />
                           {canToggleDuplicate && (
@@ -938,7 +939,7 @@ export default function CustomersTable({
                             </td>
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <TruncateWithTooltip
-                                text={item.contact1 || item.contact2 || "-"}
+                                text={formatContactForDisplay(item.contact1 || item.contact2 || "") || "-"}
                                 className="min-w-0 max-w-[12ch] md:max-w-[17ch]"
                               />
                             </td>
