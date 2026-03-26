@@ -1,12 +1,20 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+  type InputHTMLAttributes,
+} from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import Checkbox from "@/components/common/Checkbox";
+import { sanitizeContactFilterInput } from "@/utils/format";
 
 function getBodyZoom(): number {
     if (typeof document === "undefined") return 1;
@@ -100,7 +108,19 @@ export default function FilterModal({
     const [loadingPartners, setLoadingPartners] = useState(false);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
 
-    useEffect(() => { if (open) setForm(withLatestCategoryDefault(defaults)); }, [open, defaults, withLatestCategoryDefault]);
+    useEffect(() => {
+        if (!open) return;
+        const base = defaults ?? {};
+        const withContact =
+            base.contact1 != null && base.contact1 !== ""
+                ? {
+                    ...base,
+                    contact1:
+                        sanitizeContactFilterInput(base.contact1) || undefined,
+                }
+                : base;
+        setForm(withLatestCategoryDefault(withContact));
+    }, [open, defaults, withLatestCategoryDefault]);
 
     const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
     /** 일반 프로젝트일 때만 어드민/서브어드민에게 고객 배정 여부 노출 (파트너 프로젝트는 노출하지 않음) */
@@ -391,6 +411,9 @@ export default function FilterModal({
                                 value={form.contact1 || ""}
                                 onChange={(v) => setForm((f) => ({ ...f, contact1: v || undefined }))}
                                 freeText
+                                sanitizeInput={sanitizeContactFilterInput}
+                                inputMode="numeric"
+                                autoComplete="tel"
                             />
 
                             {/* 담당팀 / 담당자 */}
@@ -492,14 +515,45 @@ export default function FilterModal({
     );
 }
 
-function LabeledSelect({ label, options, placeholder, value, onChange, freeText }: { label: string; options: Option[]; placeholder: string; value?: string; onChange?: (v: string) => void; freeText?: boolean }) {
+function LabeledSelect({
+    label,
+    options,
+    placeholder,
+    value,
+    onChange,
+    freeText,
+    sanitizeInput,
+    inputMode,
+    autoComplete,
+}: {
+    label: string;
+    options: Option[];
+    placeholder: string;
+    value?: string;
+    onChange?: (v: string) => void;
+    freeText?: boolean;
+    sanitizeInput?: (raw: string) => string;
+    inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
+    autoComplete?: InputHTMLAttributes<HTMLInputElement>["autoComplete"];
+}) {
     return (
         <div>
             <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
             <div className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20">
                 <div className="flex flex-row items-center p-0 gap-[30px] w-full lg:w-[360px] h-[17px]">
                     {freeText ? (
-                        <input value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60" placeholder={placeholder} />
+                        <input
+                            value={value ?? ""}
+                            inputMode={inputMode}
+                            autoComplete={autoComplete}
+                            onChange={(e) => {
+                                if (!onChange) return;
+                                const raw = e.target.value;
+                                onChange(sanitizeInput ? sanitizeInput(raw) : raw);
+                            }}
+                            className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60"
+                            placeholder={placeholder}
+                        />
                     ) : (
                         <select value={value ?? ""} onChange={(e) => onChange && onChange(e.target.value)} className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 appearance-none pr-6 cursor-pointer">
                             <option value="" className="bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80">{placeholder}</option>

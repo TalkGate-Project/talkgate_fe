@@ -188,6 +188,14 @@ const MOBILE_PREFIXES = ["010", "070"];
 const LEGACY_10_PREFIXES = ["011", "016", "017", "018", "019"];
 
 /**
+ * 고객 목록 필터·검색용: 연락처 문자열에서 숫자(0–9)만 남깁니다.
+ * 자리수 상한 없음(부분 검색·URL 공유 유지).
+ */
+export function sanitizeContactFilterInput(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+/**
  * 전화번호를 하이픈이 포함된 형식으로 포맷합니다.
  * 대한민국 번호 체계(02, 지역번호, 010/070)에 맞춰 접두사·자리수별로 하이픈을 넣습니다.
  * 인식 불가 번호는 하이픈 없이 숫자만 반환합니다.
