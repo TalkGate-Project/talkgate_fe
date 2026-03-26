@@ -6,6 +6,7 @@ import {
   getApplicationDateRangeThisMonth,
   getApplicationDateRangeLastMonth,
 } from "@/utils/datetime";
+import { sanitizeContactFilterInput } from "@/utils/format";
 
 type CustomersFilterBarProps = {
   filters: CustomerFilters;
@@ -60,7 +61,7 @@ export default function CustomersFilterBar({
 }: CustomersFilterBarProps) {
   const [searchInput, setSearchInput] = useState(filters.name ?? "");
   const [contactSearchInput, setContactSearchInput] = useState(
-    filters.contact1 ?? ""
+    sanitizeContactFilterInput(filters.contact1 ?? "")
   );
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function CustomersFilterBar({
   }, [filters.name]);
 
   useEffect(() => {
-    setContactSearchInput(filters.contact1 ?? "");
+    setContactSearchInput(sanitizeContactFilterInput(filters.contact1 ?? ""));
   }, [filters.contact1]);
 
   const handleSearch = () => {
@@ -214,8 +215,12 @@ export default function CustomersFilterBar({
             id="customers-contact-search"
             className="w-full h-[36px] px-3 pr-10 rounded-[8px] border border-neutral-30 bg-neutral-0 text-[14px] outline-none placeholder:text-neutral-60 text-neutral-90"
             placeholder="연락처로 검색..."
+            inputMode="numeric"
+            autoComplete="tel"
             value={contactSearchInput}
-            onChange={(e) => setContactSearchInput(e.target.value)}
+            onChange={(e) =>
+              setContactSearchInput(sanitizeContactFilterInput(e.target.value))
+            }
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
