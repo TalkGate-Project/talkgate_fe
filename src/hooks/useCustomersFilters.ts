@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CustomersListQuery } from "@/types/customers";
+import { sanitizeContactFilterInput } from "@/utils/format";
 
 export type CustomerFilters = {
   name?: string;
@@ -60,7 +61,13 @@ export function useCustomersFilters(projectId: string | null) {
       return undefined;
     }
     obj.name = g("name");
-    obj.contact1 = g("contact1");
+    {
+      const rawContact1 = searchParams.get("contact1");
+      obj.contact1 =
+        rawContact1 != null && rawContact1 !== ""
+          ? sanitizeContactFilterInput(rawContact1) || undefined
+          : undefined;
+    }
     obj.contact2 = g("contact2");
     obj.noteContent = g("noteContent");
     obj.assignType = g("assignType");

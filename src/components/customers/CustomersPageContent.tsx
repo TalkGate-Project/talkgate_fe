@@ -23,6 +23,7 @@ import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
+import { sanitizeContactFilterInput } from "@/utils/format";
 
 function CustomersPageContentInner() {
   const router = useRouter();
@@ -227,7 +228,7 @@ function CustomersPageContentInner() {
     const params = new URLSearchParams();
     params.set("page", "1");
     params.set("limit", String(limit));
-    params.set("contact1", contact);
+    params.set("contact1", sanitizeContactFilterInput(contact));
     window.location.assign(`/customers?${params.toString()}`);
   };
 
