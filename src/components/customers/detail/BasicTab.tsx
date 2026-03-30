@@ -72,16 +72,34 @@ export default function BasicTab({
     };
 
   const birthDate = useMemo(() => {
-    if (!form.birth || !/^\d{4}-\d{2}-\d{2}$/.test(form.birth)) {
+    if (!form.birth) {
       return null;
     }
 
-    const parsedDate = parse(form.birth, "yyyy-MM-dd", new Date());
-    if (!isValid(parsedDate)) {
+    const parseBirthDate = (rawBirth: string) => {
+      if (/^\d{8}$/.test(rawBirth)) {
+        const compactParsed = parse(rawBirth, "yyyyMMdd", new Date());
+        if (isValid(compactParsed) && format(compactParsed, "yyyyMMdd") === rawBirth) {
+          return compactParsed;
+        }
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(rawBirth)) {
+        const dashedParsed = parse(rawBirth, "yyyy-MM-dd", new Date());
+        if (isValid(dashedParsed) && format(dashedParsed, "yyyy-MM-dd") === rawBirth) {
+          return dashedParsed;
+        }
+      }
+
+      return null;
+    };
+
+    const parsedDate = parseBirthDate(form.birth);
+    if (!parsedDate) {
       return null;
     }
 
-    return format(parsedDate, "yyyy-MM-dd") === form.birth ? parsedDate : null;
+    return parsedDate;
   }, [form.birth]);
 
   return (
@@ -192,10 +210,10 @@ export default function BasicTab({
             onChange={(date) =>
               setForm((prev) => ({
                 ...prev,
-                birth: date ? format(date, "yyyy-MM-dd") : "",
+                birth: date ? format(date, "yyyyMMdd") : "",
               }))
             }
-            placeholder="YYYY-MM-DD"
+            placeholder=""
             dateFormat="yyyy-MM-dd"
             maxDate={new Date()}
             className="!h-[34px] !rounded-[5px] border-[#E5E7EB] dark:border-[#444444] bg-card text-ink dark:bg-neutral-10 dark:text-ink"
