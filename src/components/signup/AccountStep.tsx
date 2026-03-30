@@ -12,6 +12,7 @@ import DataCollectionModal from "@/components/signup/DataCollectionModal";
 import MarketingConsentModal from "@/components/signup/MarketingConsentModal";
 import { savePendingSignupState } from "@/lib/signup";
 import { LANDING_URLS } from "@/lib/constants";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 type AccountStepProps = {
   onSuccess: (params: { email: string; password: string; tokens?: SignupTokens; agreeMarketing: boolean }) => void;
@@ -136,7 +137,12 @@ export function AccountStep({ onSuccess, invitationToken, inviteEmail }: Account
           }
         } catch (err) {
           console.error("[AccountStep] 회원가입 실패:", err);
-          setInvalid(true);
+          showErrorModal({
+            title: "오류 발생",
+            headline: "처리에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            confirmText: "확인",
+            hideCancel: true,
+          });
         } finally {
           setIsSubmitting(false);
         }

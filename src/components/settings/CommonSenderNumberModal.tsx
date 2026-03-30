@@ -165,25 +165,10 @@ export default function CommonSenderNumberModal({
     } catch (error: any) {
       console.error("발신번호 등록 실패:", error);
       
-      // 서버에서 반환한 에러 메시지 추출
-      let errorMessage = "발신번호 등록에 실패했습니다.";
-      const rejectionReason = error?.data?.rejectionReason || error?.data?.data?.rejectionReason;
-      
-      if (rejectionReason) {
-        // 반려 사유가 있는 경우 QA 요구사항 형식으로 표시
-        errorMessage = `발신 번호 등록이 반려되었습니다.\n\n사유: ${rejectionReason}\n\n확인 후 다시 등록을 신청해 주세요.`;
-      } else if (error?.data?.message) {
-        errorMessage = error.data.message;
-      } else if (error?.data?.error) {
-        errorMessage = error.data.error;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
       showErrorModal({
         type: "error",
         headline: "발신번호 등록에 실패했습니다",
-        description: errorMessage,
+        description: "잠시 후 다시 시도해주세요.",
         hideCancel: true,
       });
     } finally {
