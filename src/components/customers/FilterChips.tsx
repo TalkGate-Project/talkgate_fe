@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
+import { ApiKeysService } from "@/services/apiKeys";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
 
@@ -50,9 +51,11 @@ export default function FilterChips({
 }: FilterChipsProps) {
   const { categories } = useCustomerNoteCategories();
   const [partnerNameMap, setPartnerNameMap] = useState<Map<number, string>>(new Map());
+  const [apiKeyNameMap, setApiKeyNameMap] = useState<Map<number, string>>(new Map());
 
   // project-partners는 파트너 필터 칩 라벨이 필요할 때만, 데이터제공자 프로젝트의 admin/subAdmin인 경우에만 호출
   const needPartnerName = typeof filters.projectPartnerId === "number";
+  const needApiKeyName = typeof filters.apiKeyId === "number";
   useEffect(() => {
     if (!shouldFetchPartners || !needPartnerName) return;
     const projectId = getSelectedProjectId();
@@ -75,6 +78,29 @@ export default function FilterChips({
       cancelled = true;
     };
   }, [shouldFetchPartners, needPartnerName]);
+
+  useEffect(() => {
+    if (!needApiKeyName) return;
+    const projectId = getSelectedProjectId();
+    if (!projectId) return;
+    let cancelled = false;
+    ApiKeysService.list({ page: 1, limit: 100 }, { "x-project-id": projectId })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data?.data?.apiKeys ?? [];
+        const map = new Map<number, string>();
+        list.forEach((apiKey) => {
+          map.set(apiKey.id, apiKey.name);
+        });
+        setApiKeyNameMap(map);
+      })
+      .catch(() => {
+        if (!cancelled) setApiKeyNameMap(new Map());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needApiKeyName]);
 
   // 카테고리 ID로 이름 찾기
   const getCategoryName = (id: number | null): string => {
@@ -132,6 +158,12 @@ export default function FilterChips({
         <Chip
           label={filters.assignType === "assigned" ? "배정됨" : "배정대기"}
           onRemove={() => onRemove("assignType")}
+        />
+      )}
+      {typeof filters.apiKeyId === "number" && (
+        <Chip
+          label={apiKeyNameMap.get(filters.apiKeyId) ?? `API Key ${filters.apiKeyId}`}
+          onRemove={() => onRemove("apiKeyId")}
         />
       )}
       {typeof filters.projectPartnerId === "number" && (

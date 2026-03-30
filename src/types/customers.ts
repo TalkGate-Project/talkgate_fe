@@ -91,6 +91,7 @@ export type CustomersListQuery = {
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
   filterByLatestCategory?: boolean;
+  apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number; // -1: 할당 대기 중
   memberId?: number;
@@ -269,6 +270,7 @@ export type DeleteCustomersFilterConditions = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | string;
+  apiKeyId?: number;
   teamId?: number;
   memberId?: number;
   applicationRoute?: string;
@@ -297,6 +299,7 @@ export type AssignCustomersFilterConditions = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
+  apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
   memberId?: number;
@@ -355,6 +358,7 @@ export type CopyToPartnerFilterConditions = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | string;
+  apiKeyId?: number;
   teamId?: number;
   memberId?: number;
   applicationRoute?: string;

@@ -38,6 +38,7 @@ function buildFilterConditions(
   if (typeof f.contact2 === "string") conditions.contact2 = f.contact2;
   if (typeof f.noteContent === "string") conditions.noteContent = f.noteContent;
   if (f.assignType != null) conditions.assignType = String(f.assignType);
+  if (typeof f.apiKeyId === "number") conditions.apiKeyId = f.apiKeyId;
   if (typeof f.teamId === "number") conditions.teamId = f.teamId;
   if (typeof f.memberId === "number") conditions.memberId = f.memberId;
   if (typeof f.applicationRoute === "string")
