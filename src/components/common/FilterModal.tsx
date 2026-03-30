@@ -13,6 +13,7 @@ import DatePicker from "@/components/common/DatePicker";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
+import { ApiKeysService } from "@/services/apiKeys";
 import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 
@@ -26,6 +27,7 @@ function getBodyZoom(): number {
 export type FilterValues = {
     name?: string;
     contact1?: string;
+    apiKeyId?: number;
     teamId?: number;
     memberId?: number;
     applicationRoute?: string;
@@ -76,6 +78,10 @@ type ProjectPartnerOption = {
     name: string;
     logoUrl?: string | null;
 };
+type ApiKeyOption = {
+    id: number;
+    name: string;
+};
 
 export default function FilterModal({
     open,
@@ -91,7 +97,7 @@ export default function FilterModal({
     routeOptions = [],
     mediaOptions = [],
     siteOptions = [],
-    categoryOptions = [],
+    categoryOptions: _categoryOptions = [],
 }: FilterModalProps) {
     const withLatestCategoryDefault = useCallback(
         (values?: FilterValues): FilterValues => ({
@@ -106,7 +112,11 @@ export default function FilterModal({
     const [partnerSearch, setPartnerSearch] = useState("");
     const [partnerOptions, setPartnerOptions] = useState<ProjectPartnerOption[]>([]);
     const [loadingPartners, setLoadingPartners] = useState(false);
+    const [apiKeyOpen, setApiKeyOpen] = useState(false);
+    const [apiKeyOptions, setApiKeyOptions] = useState<ApiKeyOption[]>([]);
+    const [loadingApiKeys, setLoadingApiKeys] = useState(false);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
+    const apiKeyWrapRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (!open) return;
@@ -125,10 +135,15 @@ export default function FilterModal({
     const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
     /** 일반 프로젝트일 때만 어드민/서브어드민에게 고객 배정 여부 노출 (파트너 프로젝트는 노출하지 않음) */
     const shouldShowAssignFilter = !isDataProvider && isAdminOrSubAdmin;
+    const shouldShowApiKeyFilter = isAdminOrSubAdmin;
 
     const selectedPartner = useMemo(
         () => partnerOptions.find((partner) => partner.id === form.projectPartnerId),
         [partnerOptions, form.projectPartnerId]
+    );
+    const selectedApiKey = useMemo(
+        () => apiKeyOptions.find((apiKey) => apiKey.id === form.apiKeyId),
+        [apiKeyOptions, form.apiKeyId]
     );
     const filteredPartners = useMemo(() => {
         const term = partnerSearch.trim().toLowerCase();
@@ -176,16 +191,51 @@ export default function FilterModal({
     }, [open, shouldShowPartnerFilter, projectId]);
 
     useEffect(() => {
-        if (!open || !partnerOpen) return;
+        if (!open || !shouldShowApiKeyFilter || !projectId) return;
+        let cancelled = false;
+
+        const run = async () => {
+            setLoadingApiKeys(true);
+            try {
+                const response = await ApiKeysService.list(
+                    { page: 1, limit: 100 },
+                    { "x-project-id": projectId }
+                );
+                if (cancelled) return;
+                const apiKeys = response.data?.data?.apiKeys ?? [];
+                setApiKeyOptions(
+                    apiKeys.map((apiKey) => ({
+                        id: apiKey.id,
+                        name: apiKey.name,
+                    }))
+                );
+            } catch {
+                if (!cancelled) setApiKeyOptions([]);
+            } finally {
+                if (!cancelled) setLoadingApiKeys(false);
+            }
+        };
+
+        void run();
+        return () => {
+            cancelled = true;
+        };
+    }, [open, shouldShowApiKeyFilter, projectId]);
+
+    useEffect(() => {
+        if (!open || (!partnerOpen && !apiKeyOpen)) return;
         const onDocClick = (e: MouseEvent) => {
             const target = e.target as Node;
-            if (partnerWrapRef.current && !partnerWrapRef.current.contains(target)) {
+            if (partnerOpen && partnerWrapRef.current && !partnerWrapRef.current.contains(target)) {
                 setPartnerOpen(false);
+            }
+            if (apiKeyOpen && apiKeyWrapRef.current && !apiKeyWrapRef.current.contains(target)) {
+                setApiKeyOpen(false);
             }
         };
         document.addEventListener("mousedown", onDocClick);
         return () => document.removeEventListener("mousedown", onDocClick);
-    }, [open, partnerOpen]);
+    }, [open, partnerOpen, apiKeyOpen]);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -257,7 +307,7 @@ export default function FilterModal({
 
                     {/* Body */}
                     <div className="flex-1 overflow-auto px-4 md:px-7 pt-[18px] space-y-3 pb-7">
-                        {(shouldShowPartnerFilter || shouldShowAssignFilter) && (
+                        {(shouldShowPartnerFilter || shouldShowAssignFilter || shouldShowApiKeyFilter) && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-5">
                                 {shouldShowPartnerFilter && (
                                     <div ref={partnerWrapRef} className="relative">
@@ -389,6 +439,59 @@ export default function FilterModal({
                                                 </label>
                                             ))}
                                         </div>
+                                    </div>
+                                )}
+
+                                {shouldShowApiKeyFilter && (
+                                    <div ref={apiKeyWrapRef} className="relative">
+                                        <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">API 키</label>
+                                        <button
+                                            type="button"
+                                            className="cursor-pointer w-full h-[34px] px-3 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-neutral-20 flex items-center justify-between text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80"
+                                            onClick={() => setApiKeyOpen((prev) => !prev)}
+                                        >
+                                            <span className="truncate">{selectedApiKey?.name ?? "전체"}</span>
+                                            <svg className="shrink-0" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 1.87809e-07 0.647327 2.2346e-07L7.35267 8.0966e-07C7.76048 8.45312e-07 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
+                                            </svg>
+                                        </button>
+                                        {apiKeyOpen && (
+                                            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 bg-white dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                                                <div className="max-h-[220px] overflow-auto">
+                                                    {loadingApiKeys ? (
+                                                        <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                                            전체
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setForm((f) => ({ ...f, apiKeyId: undefined }));
+                                                                    setApiKeyOpen(false);
+                                                                }}
+                                                                className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
+                                                            >
+                                                                전체
+                                                            </button>
+                                                            {apiKeyOptions.map((apiKey) => (
+                                                                <button
+                                                                    key={apiKey.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setForm((f) => ({ ...f, apiKeyId: apiKey.id }));
+                                                                        setApiKeyOpen(false);
+                                                                    }}
+                                                                    className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
+                                                                >
+                                                                    {apiKey.name}
+                                                                </button>
+                                                            ))}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -701,7 +804,7 @@ function CategorySelector({
             {selected.length > 0 && (
                 <div className="w-full lg:w-[384px] mt-2 overflow-x-auto no-scrollbar">
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
-                        {selected.map((id, index) => {
+                        {selected.map((id) => {
                             if (id === null) {
                                 return <Pill key="general" label="일반" onRemove={() => {
                                     setSelected((prev) => prev.filter((x) => x !== null));

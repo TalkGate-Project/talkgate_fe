@@ -255,6 +255,7 @@ function CustomersPageContentInner() {
             contact1: applied.contact1,
             contact2: applied.contact2,
             noteContent: applied.noteContent,
+            apiKeyId: applied.apiKeyId,
             teamId: applied.teamId,
             memberId: applied.memberId,
             applicationRoute: applied.applicationRoute,

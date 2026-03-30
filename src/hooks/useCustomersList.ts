@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CustomersService, CustomersListQuery, CustomersListResponse } from "@/services/customers";
+import { CustomersListQuery, CustomersListResponse } from "@/services/customers";
 import { useFetch } from "@/hooks/useFetch";
 
 export function useCustomersList(params: CustomersListQuery | null) {
@@ -22,6 +22,7 @@ export function useCustomersList(params: CustomersListQuery | null) {
         noteContent: params.noteContent,
         assignType: params.assignType,
         filterByLatestCategory: params.filterByLatestCategory,
+        apiKeyId: params.apiKeyId,
         projectPartnerId: params.projectPartnerId,
         teamId: params.teamId,
         memberId: params.memberId,

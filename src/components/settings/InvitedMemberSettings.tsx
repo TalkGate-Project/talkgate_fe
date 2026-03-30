@@ -334,14 +334,19 @@ export default function InvitedMemberSettings() {
         return;
       }
       
-      // 영어 에러 메시지를 한글로 변환
-      if (errorMessage.includes("Invitation already exists")) {
+      if (
+        errorCode === "INVITATION_ALREADY_EXISTS" ||
+        errorMessage.includes("Invitation already exists")
+      ) {
         showErrorModal({
           type: "error",
           headline: "이미 초대중인 이메일입니다.",
           hideCancel: true,
         });
-      } else if (errorMessage.includes("already a member")) {
+      } else if (
+        errorCode === "ALREADY_PROJECT_MEMBER" ||
+        errorMessage.includes("already a member")
+      ) {
         showErrorModal({
           type: "error",
           headline: "이미 등록된 멤버입니다.",

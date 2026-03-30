@@ -8,6 +8,7 @@ export type CustomerFilters = {
   contact1?: string;
   assignType?: "all" | "assigned" | "unassigned";
   filterByLatestCategory?: boolean;
+  apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
   memberId?: number;
@@ -72,6 +73,7 @@ export function useCustomersFilters(projectId: string | null) {
     obj.noteContent = g("noteContent");
     obj.assignType = g("assignType");
     obj.filterByLatestCategory = gb("filterByLatestCategory") ?? true;
+    obj.apiKeyId = gi("apiKeyId");
     obj.projectPartnerId = gi("projectPartnerId");
     obj.teamId = gi("teamId");
     obj.memberId = gi("memberId");
@@ -114,6 +116,7 @@ export function useCustomersFilters(projectId: string | null) {
         contact1: applied.contact1,
         assignType: applied.assignType,
         filterByLatestCategory: applied.filterByLatestCategory ?? true,
+        apiKeyId: applied.apiKeyId,
         projectPartnerId: applied.projectPartnerId,
         teamId: applied.teamId,
         memberId: applied.memberId,
@@ -148,6 +151,7 @@ export function useCustomersFilters(projectId: string | null) {
             contact1: applied.contact1,
             assignType: applied.assignType,
             filterByLatestCategory: applied.filterByLatestCategory ?? true,
+            apiKeyId: applied.apiKeyId,
             projectPartnerId: applied.projectPartnerId,
             teamId: applied.teamId,
             memberId: applied.memberId,
@@ -198,6 +202,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("contact1", filterValues.contact1);
     setIf("assignType", filterValues.assignType);
     setIf("filterByLatestCategory", filterValues.filterByLatestCategory ?? true);
+    setIf("apiKeyId", filterValues.apiKeyId);
     setIf("projectPartnerId", filterValues.projectPartnerId);
     setIf("teamId", filterValues.teamId);
     setIf("memberId", filterValues.memberId);

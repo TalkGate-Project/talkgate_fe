@@ -68,6 +68,7 @@ function buildDeleteFilterConditions(
   if (typeof f.contact2 === "string") conditions.contact2 = f.contact2;
   if (typeof f.noteContent === "string") conditions.noteContent = f.noteContent;
   if (f.assignType != null) conditions.assignType = String(f.assignType);
+  if (typeof f.apiKeyId === "number") conditions.apiKeyId = f.apiKeyId;
   if (typeof f.teamId === "number") conditions.teamId = f.teamId;
   if (typeof f.memberId === "number") conditions.memberId = f.memberId;
   if (typeof f.applicationRoute === "string") conditions.applicationRoute = f.applicationRoute;
@@ -103,7 +104,7 @@ export default function CustomersActions({
   onSmsOpen,
   onShareSuccess,
   onDeleteSuccess,
-  isDataProvider = false,
+  isDataProvider: _isDataProvider = false,
   showPartnerAssignButton = false,
   showAssignButton = true,
   showDeleteButton = true,
@@ -166,6 +167,8 @@ export default function CustomersActions({
         exportQuery.noteContent = appliedForExport.noteContent;
       if (appliedForExport.assignType)
         exportQuery.assignType = appliedForExport.assignType;
+      if (appliedForExport.apiKeyId)
+        exportQuery.apiKeyId = appliedForExport.apiKeyId;
       if (appliedForExport.teamId) exportQuery.teamId = appliedForExport.teamId;
       if (appliedForExport.memberId)
         exportQuery.memberId = appliedForExport.memberId;

@@ -264,6 +264,7 @@ export function useSmsForm() {
               contact2: appliedFilters.contact2,
               noteContent: appliedFilters.noteContent,
               assignType: appliedFilters.assignType,
+              apiKeyId: appliedFilters.apiKeyId,
               teamId: appliedFilters.teamId,
               memberId: appliedFilters.memberId,
               applicationRoute: appliedFilters.applicationRoute,

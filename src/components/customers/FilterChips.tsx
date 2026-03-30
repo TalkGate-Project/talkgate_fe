@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
+import { ApiKeysService } from "@/services/apiKeys";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
 
@@ -50,9 +51,11 @@ export default function FilterChips({
 }: FilterChipsProps) {
   const { categories } = useCustomerNoteCategories();
   const [partnerNameMap, setPartnerNameMap] = useState<Map<number, string>>(new Map());
+  const [apiKeyNameMap, setApiKeyNameMap] = useState<Map<number, string>>(new Map());
 
   // project-partners는 파트너 필터 칩 라벨이 필요할 때만, 데이터제공자 프로젝트의 admin/subAdmin인 경우에만 호출
   const needPartnerName = typeof filters.projectPartnerId === "number";
+  const needApiKeyName = typeof filters.apiKeyId === "number";
   useEffect(() => {
     if (!shouldFetchPartners || !needPartnerName) return;
     const projectId = getSelectedProjectId();
@@ -75,6 +78,29 @@ export default function FilterChips({
       cancelled = true;
     };
   }, [shouldFetchPartners, needPartnerName]);
+
+  useEffect(() => {
+    if (!needApiKeyName) return;
+    const projectId = getSelectedProjectId();
+    if (!projectId) return;
+    let cancelled = false;
+    ApiKeysService.list({ page: 1, limit: 100 }, { "x-project-id": projectId })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data?.data?.apiKeys ?? [];
+        const map = new Map<number, string>();
+        list.forEach((apiKey) => {
+          map.set(apiKey.id, apiKey.name);
+        });
+        setApiKeyNameMap(map);
+      })
+      .catch(() => {
+        if (!cancelled) setApiKeyNameMap(new Map());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needApiKeyName]);
 
   // 카테고리 ID로 이름 찾기
   const getCategoryName = (id: number | null): string => {
@@ -110,18 +136,18 @@ export default function FilterChips({
         />
       )}
       {filters.teamId && (
-        <Chip label={`팀 ${getTeamName(filters.teamId)}`} onRemove={() => onRemove("teamId")} />
+        <Chip label={`담당팀: ${getTeamName(filters.teamId)}`} onRemove={() => onRemove("teamId")} />
       )}
       {filters.memberId && (
-        <Chip label={`담당자 ${getMemberName(filters.memberId)}`} onRemove={() => onRemove("memberId")} />
+        <Chip label={`담당자: ${getMemberName(filters.memberId)}`} onRemove={() => onRemove("memberId")} />
       )}
       {filters.applicationRoute && (
-        <Chip label={filters.applicationRoute} onRemove={() => onRemove("applicationRoute")} />
+        <Chip label={`신청경로: ${filters.applicationRoute}`} onRemove={() => onRemove("applicationRoute")} />
       )}
       {filters.mediaCompany && (
-        <Chip label={filters.mediaCompany} onRemove={() => onRemove("mediaCompany")} />
+        <Chip label={`매체사: ${filters.mediaCompany}`} onRemove={() => onRemove("mediaCompany")} />
       )}
-      {filters.site && <Chip label={filters.site} onRemove={() => onRemove("site")} />}
+      {filters.site && <Chip label={`사이트: ${filters.site}`} onRemove={() => onRemove("site")} />}
       {filters.noteContent && (
         <Chip 
           label={`상담 내용: ${filters.noteContent.length > 20 ? filters.noteContent.slice(0, 20) + "..." : filters.noteContent}`} 
@@ -130,30 +156,36 @@ export default function FilterChips({
       )}
       {filters.assignType && filters.assignType !== "all" && (
         <Chip
-          label={filters.assignType === "assigned" ? "배정됨" : "배정대기"}
+          label={`고객 배정 여부: ${filters.assignType === "assigned" ? "배정됨" : "배정대기"}`}
           onRemove={() => onRemove("assignType")}
+        />
+      )}
+      {typeof filters.apiKeyId === "number" && (
+        <Chip
+          label={`API 키: ${apiKeyNameMap.get(filters.apiKeyId) ?? String(filters.apiKeyId)}`}
+          onRemove={() => onRemove("apiKeyId")}
         />
       )}
       {typeof filters.projectPartnerId === "number" && (
         <Chip
-          label={partnerNameMap.get(filters.projectPartnerId) ?? `파트너 업체 ${filters.projectPartnerId}`}
+          label={`파트너 업체: ${partnerNameMap.get(filters.projectPartnerId) ?? String(filters.projectPartnerId)}`}
           onRemove={() => onRemove("projectPartnerId")}
         />
       )}
       {Array.isArray(filters.categoryIds) &&
         filters.categoryIds.length > 0 &&
         filters.categoryIds.map((id) => (
-          <Chip key={id} label={getCategoryName(id)} onRemove={() => onRemoveCategory(id)} />
+          <Chip key={id} label={`상담 카테고리: ${getCategoryName(id)}`} onRemove={() => onRemoveCategory(id)} />
         ))}
       {filters.applicationDateFrom && filters.applicationDateTo && (
         <Chip
-          label={`${formatDateForChip(filters.applicationDateFrom)} - ${formatDateForChip(filters.applicationDateTo)}`}
+          label={`신청시간: ${formatDateForChip(filters.applicationDateFrom)} - ${formatDateForChip(filters.applicationDateTo)}`}
           onRemove={() => onRemoveDateRange("application")}
         />
       )}
       {(filters.assignedAtFrom || filters.assignedAtTo) && (
         <Chip
-          label={`${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
+          label={`배정시간: ${formatDateForChip(filters.assignedAtFrom || "")} - ${formatDateForChip(filters.assignedAtTo || "")}`}
           onRemove={() => onRemoveDateRange("assigned")}
         />
       )}
