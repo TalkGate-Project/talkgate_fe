@@ -13,6 +13,7 @@ import DatePicker from "@/components/common/DatePicker";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
+import { ApiKeysService } from "@/services/apiKeys";
 import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 
@@ -26,6 +27,7 @@ function getBodyZoom(): number {
 export type FilterValues = {
     name?: string;
     contact1?: string;
+    apiKeyId?: number;
     teamId?: number;
     memberId?: number;
     applicationRoute?: string;
@@ -76,6 +78,10 @@ type ProjectPartnerOption = {
     name: string;
     logoUrl?: string | null;
 };
+type ApiKeyOption = {
+    id: number;
+    name: string;
+};
 
 export default function FilterModal({
     open,
@@ -106,6 +112,8 @@ export default function FilterModal({
     const [partnerSearch, setPartnerSearch] = useState("");
     const [partnerOptions, setPartnerOptions] = useState<ProjectPartnerOption[]>([]);
     const [loadingPartners, setLoadingPartners] = useState(false);
+    const [apiKeyOptions, setApiKeyOptions] = useState<ApiKeyOption[]>([]);
+    const [loadingApiKeys, setLoadingApiKeys] = useState(false);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -125,6 +133,7 @@ export default function FilterModal({
     const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
     /** 일반 프로젝트일 때만 어드민/서브어드민에게 고객 배정 여부 노출 (파트너 프로젝트는 노출하지 않음) */
     const shouldShowAssignFilter = !isDataProvider && isAdminOrSubAdmin;
+    const shouldShowApiKeyFilter = isAdminOrSubAdmin;
 
     const selectedPartner = useMemo(
         () => partnerOptions.find((partner) => partner.id === form.projectPartnerId),
@@ -174,6 +183,38 @@ export default function FilterModal({
             cancelled = true;
         };
     }, [open, shouldShowPartnerFilter, projectId]);
+
+    useEffect(() => {
+        if (!open || !shouldShowApiKeyFilter || !projectId) return;
+        let cancelled = false;
+
+        const run = async () => {
+            setLoadingApiKeys(true);
+            try {
+                const response = await ApiKeysService.list(
+                    { page: 1, limit: 100 },
+                    { "x-project-id": projectId }
+                );
+                if (cancelled) return;
+                const apiKeys = response.data?.data?.apiKeys ?? [];
+                setApiKeyOptions(
+                    apiKeys.map((apiKey) => ({
+                        id: apiKey.id,
+                        name: apiKey.name,
+                    }))
+                );
+            } catch {
+                if (!cancelled) setApiKeyOptions([]);
+            } finally {
+                if (!cancelled) setLoadingApiKeys(false);
+            }
+        };
+
+        void run();
+        return () => {
+            cancelled = true;
+        };
+    }, [open, shouldShowApiKeyFilter, projectId]);
 
     useEffect(() => {
         if (!open || !partnerOpen) return;
@@ -257,7 +298,7 @@ export default function FilterModal({
 
                     {/* Body */}
                     <div className="flex-1 overflow-auto px-4 md:px-7 pt-[18px] space-y-3 pb-7">
-                        {(shouldShowPartnerFilter || shouldShowAssignFilter) && (
+                        {(shouldShowPartnerFilter || shouldShowAssignFilter || shouldShowApiKeyFilter) && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-5">
                                 {shouldShowPartnerFilter && (
                                     <div ref={partnerWrapRef} className="relative">
@@ -390,6 +431,21 @@ export default function FilterModal({
                                             ))}
                                         </div>
                                     </div>
+                                )}
+
+                                {shouldShowApiKeyFilter && (
+                                    <LabeledSelect
+                                        label="api 키"
+                                        options={apiKeyOptions.map((apiKey) => ({ label: apiKey.name, value: apiKey.id }))}
+                                        placeholder={loadingApiKeys ? "API Key 불러오는 중..." : "전체"}
+                                        value={form.apiKeyId ? String(form.apiKeyId) : ""}
+                                        onChange={(v) =>
+                                            setForm((f) => ({
+                                                ...f,
+                                                apiKeyId: v ? Number(v) : undefined,
+                                            }))
+                                        }
+                                    />
                                 )}
                             </div>
                         )}

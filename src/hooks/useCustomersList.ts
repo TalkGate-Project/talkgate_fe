@@ -22,6 +22,7 @@ export function useCustomersList(params: CustomersListQuery | null) {
         noteContent: params.noteContent,
         assignType: params.assignType,
         filterByLatestCategory: params.filterByLatestCategory,
+        apiKeyId: params.apiKeyId,
         projectPartnerId: params.projectPartnerId,
         teamId: params.teamId,
         memberId: params.memberId,
