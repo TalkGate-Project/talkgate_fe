@@ -97,7 +97,7 @@ export default function FilterModal({
     routeOptions = [],
     mediaOptions = [],
     siteOptions = [],
-    categoryOptions = [],
+    categoryOptions: _categoryOptions = [],
 }: FilterModalProps) {
     const withLatestCategoryDefault = useCallback(
         (values?: FilterValues): FilterValues => ({
@@ -757,7 +757,7 @@ function CategorySelector({
             {selected.length > 0 && (
                 <div className="w-full lg:w-[384px] mt-2 overflow-x-auto no-scrollbar">
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
-                        {selected.map((id, index) => {
+                        {selected.map((id) => {
                             if (id === null) {
                                 return <Pill key="general" label="일반" onRemove={() => {
                                     setSelected((prev) => prev.filter((x) => x !== null));

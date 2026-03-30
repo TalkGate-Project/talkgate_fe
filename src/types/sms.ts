@@ -23,6 +23,7 @@ export type SendSmsFilters = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
+  apiKeyId?: number;
   teamId?: number;
   memberId?: number;
   applicationRoute?: string;
