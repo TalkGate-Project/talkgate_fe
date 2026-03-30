@@ -213,7 +213,7 @@ export default function BasicTab({
                 birth: date ? format(date, "yyyyMMdd") : "",
               }))
             }
-            placeholder="생년월일을 입력해주세요"
+            placeholder="생년월일을 입력하세요"
             dateFormat="yyyy-MM-dd"
             maxDate={new Date()}
             className="!h-[34px] !rounded-[5px] border-[#E5E7EB] dark:border-[#444444] bg-card text-ink dark:bg-neutral-10 dark:text-ink"
