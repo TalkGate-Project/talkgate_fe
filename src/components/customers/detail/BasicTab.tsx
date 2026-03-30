@@ -1,53 +1,13 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
+import DatePicker from "@/components/common/DatePicker";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
-
-// 생년월일 입력 컴포넌트
-function BirthInput({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  // YYYY-MM-DD 형식으로 포맷팅
-  const formatDate = (input: string) => {
-    // 숫자만 추출
-    const numbers = input.replace(/[^0-9]/g, "");
-    // YYYY-MM-DD 형식으로 변환
-    if (numbers.length <= 4) {
-      return numbers;
-    } else if (numbers.length <= 6) {
-      return `${numbers.slice(0, 4)}-${numbers.slice(4)}`;
-    } else {
-      return `${numbers.slice(0, 4)}-${numbers.slice(4, 6)}-${numbers.slice(6, 8)}`;
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    // 숫자와 하이픈만 허용
-    const cleaned = inputValue.replace(/[^0-9-]/g, "");
-    const formatted = formatDate(cleaned);
-    onChange(formatted);
-  };
-
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={handleChange}
-      maxLength={10}
-      className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-      placeholder="생년월일 8자리를 입력하세요."
-    />
-  );
-}
+import { format, isValid, parse } from "date-fns";
 
 type Props = {
   form: CustomerFormState;
@@ -110,6 +70,19 @@ export default function BasicTab({
         input.setSelectionRange(newPos, newPos);
       });
     };
+
+  const birthDate = useMemo(() => {
+    if (!form.birth || !/^\d{4}-\d{2}-\d{2}$/.test(form.birth)) {
+      return null;
+    }
+
+    const parsedDate = parse(form.birth, "yyyy-MM-dd", new Date());
+    if (!isValid(parsedDate)) {
+      return null;
+    }
+
+    return format(parsedDate, "yyyy-MM-dd") === form.birth ? parsedDate : null;
+  }, [form.birth]);
 
   return (
     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
@@ -214,11 +187,18 @@ export default function BasicTab({
           <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">생년월일</span>
         </div>
         <div>
-          <BirthInput
-            value={form.birth}
-            onChange={(value) =>
-              setForm((prev) => ({ ...prev, birth: value }))
+          <DatePicker
+            value={birthDate}
+            onChange={(date) =>
+              setForm((prev) => ({
+                ...prev,
+                birth: date ? format(date, "yyyy-MM-dd") : "",
+              }))
             }
+            placeholder="YYYY-MM-DD"
+            dateFormat="yyyy-MM-dd"
+            maxDate={new Date()}
+            className="!h-[34px] !rounded-[5px] border-[#E5E7EB] dark:border-[#444444] bg-card text-ink dark:bg-neutral-10 dark:text-ink"
           />
         </div>
       </div>
