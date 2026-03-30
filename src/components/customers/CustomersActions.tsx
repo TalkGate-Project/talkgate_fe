@@ -104,7 +104,7 @@ export default function CustomersActions({
   onSmsOpen,
   onShareSuccess,
   onDeleteSuccess,
-  isDataProvider = false,
+  isDataProvider: _isDataProvider = false,
   showPartnerAssignButton = false,
   showAssignButton = true,
   showDeleteButton = true,
