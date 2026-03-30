@@ -382,7 +382,7 @@ export default function CustomerCreateModal({
                           }}
                           inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                          placeholder="'-'를 제외한 숫자만 입력해 주세요."
+                          placeholder="연락처를 입력하세요"
                         />
                       </div>
                     </div>
@@ -435,7 +435,7 @@ export default function CustomerCreateModal({
                           onChange={(e) => setContact2(sanitizeContactInput(e.target.value))}
                           inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                          placeholder="'-'를 제외한 숫자만 입력해 주세요."
+                          placeholder="연락처를 입력하세요"
                         />
                       </div>
                     </div>
@@ -450,7 +450,7 @@ export default function CustomerCreateModal({
                   <DatePicker
                     value={birthDate}
                     onChange={setBirthDate}
-                    placeholder="YYYY-MM-DD"
+                    placeholder="생년월일을 입력하세요"
                     dateFormat="yyyy-MM-dd"
                     className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
                   />
@@ -467,7 +467,7 @@ export default function CustomerCreateModal({
                       value={ageRange}
                       onChange={(e) => setAgeRange(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="연령"
+                      placeholder="연령을 입력하세요"
                     />
                   </div>
                 </div>
@@ -483,7 +483,7 @@ export default function CustomerCreateModal({
                       value={job}
                       onChange={(e) => setJob(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="직업"
+                      placeholder="직업을 입력하세요"
                     />
                   </div>
                 </div>
@@ -603,6 +603,7 @@ export default function CustomerCreateModal({
                       value={applicationRoute}
                       onChange={(e) => setApplicationRoute(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                      placeholder="신청 경로를 입력하세요"
                     />
                   </div>
                 </div>
@@ -618,6 +619,7 @@ export default function CustomerCreateModal({
                       value={site}
                       onChange={(e) => setSite(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                      placeholder="사이트를 입력하세요"
                     />
                   </div>
                 </div>
@@ -633,6 +635,7 @@ export default function CustomerCreateModal({
                       value={mediaCompany}
                       onChange={(e) => setMediaCompany(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                      placeholder="매체사를 입력하세요"
                     />
                   </div>
                 </div>
@@ -648,6 +651,7 @@ export default function CustomerCreateModal({
                       value={keyword}
                       onChange={(e) => setKeyword(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                      placeholder="키워드를 입력하세요"
                     />
                   </div>
                 </div>
@@ -663,6 +667,7 @@ export default function CustomerCreateModal({
                       value={ipAddress}
                       onChange={(e) => setIpAddress(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
+                      placeholder="IP 주소를 입력하세요"
                     />
                   </div>
                 </div>
