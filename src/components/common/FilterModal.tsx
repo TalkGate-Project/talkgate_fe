@@ -112,9 +112,11 @@ export default function FilterModal({
     const [partnerSearch, setPartnerSearch] = useState("");
     const [partnerOptions, setPartnerOptions] = useState<ProjectPartnerOption[]>([]);
     const [loadingPartners, setLoadingPartners] = useState(false);
+    const [apiKeyOpen, setApiKeyOpen] = useState(false);
     const [apiKeyOptions, setApiKeyOptions] = useState<ApiKeyOption[]>([]);
     const [loadingApiKeys, setLoadingApiKeys] = useState(false);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
+    const apiKeyWrapRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (!open) return;
@@ -138,6 +140,10 @@ export default function FilterModal({
     const selectedPartner = useMemo(
         () => partnerOptions.find((partner) => partner.id === form.projectPartnerId),
         [partnerOptions, form.projectPartnerId]
+    );
+    const selectedApiKey = useMemo(
+        () => apiKeyOptions.find((apiKey) => apiKey.id === form.apiKeyId),
+        [apiKeyOptions, form.apiKeyId]
     );
     const filteredPartners = useMemo(() => {
         const term = partnerSearch.trim().toLowerCase();
@@ -217,16 +223,19 @@ export default function FilterModal({
     }, [open, shouldShowApiKeyFilter, projectId]);
 
     useEffect(() => {
-        if (!open || !partnerOpen) return;
+        if (!open || (!partnerOpen && !apiKeyOpen)) return;
         const onDocClick = (e: MouseEvent) => {
             const target = e.target as Node;
-            if (partnerWrapRef.current && !partnerWrapRef.current.contains(target)) {
+            if (partnerOpen && partnerWrapRef.current && !partnerWrapRef.current.contains(target)) {
                 setPartnerOpen(false);
+            }
+            if (apiKeyOpen && apiKeyWrapRef.current && !apiKeyWrapRef.current.contains(target)) {
+                setApiKeyOpen(false);
             }
         };
         document.addEventListener("mousedown", onDocClick);
         return () => document.removeEventListener("mousedown", onDocClick);
-    }, [open, partnerOpen]);
+    }, [open, partnerOpen, apiKeyOpen]);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -434,18 +443,56 @@ export default function FilterModal({
                                 )}
 
                                 {shouldShowApiKeyFilter && (
-                                    <LabeledSelect
-                                        label="api 키"
-                                        options={apiKeyOptions.map((apiKey) => ({ label: apiKey.name, value: apiKey.id }))}
-                                        placeholder={loadingApiKeys ? "API Key 불러오는 중..." : "전체"}
-                                        value={form.apiKeyId ? String(form.apiKeyId) : ""}
-                                        onChange={(v) =>
-                                            setForm((f) => ({
-                                                ...f,
-                                                apiKeyId: v ? Number(v) : undefined,
-                                            }))
-                                        }
-                                    />
+                                    <div ref={apiKeyWrapRef} className="relative">
+                                        <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">API 키</label>
+                                        <button
+                                            type="button"
+                                            className="cursor-pointer w-full h-[34px] px-3 border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] bg-white dark:bg-neutral-20 flex items-center justify-between text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80"
+                                            onClick={() => setApiKeyOpen((prev) => !prev)}
+                                        >
+                                            <span className="truncate">{selectedApiKey?.name ?? "전체"}</span>
+                                            <svg className="shrink-0" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 1.87809e-07 0.647327 2.2346e-07L7.35267 8.0966e-07C7.76048 8.45312e-07 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
+                                            </svg>
+                                        </button>
+                                        {apiKeyOpen && (
+                                            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 bg-white dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                                                <div className="max-h-[220px] overflow-auto">
+                                                    {loadingApiKeys ? (
+                                                        <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                                            전체
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setForm((f) => ({ ...f, apiKeyId: undefined }));
+                                                                    setApiKeyOpen(false);
+                                                                }}
+                                                                className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
+                                                            >
+                                                                전체
+                                                            </button>
+                                                            {apiKeyOptions.map((apiKey) => (
+                                                                <button
+                                                                    key={apiKey.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setForm((f) => ({ ...f, apiKeyId: apiKey.id }));
+                                                                        setApiKeyOpen(false);
+                                                                    }}
+                                                                    className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
+                                                                >
+                                                                    {apiKey.name}
+                                                                </button>
+                                                            ))}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         )}
