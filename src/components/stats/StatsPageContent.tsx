@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import AssignMemberTable from "@/components/stats/AssignMemberTable";
 import AssignBarChart from "@/components/stats/AssignBarChart";
+import PaymentDetailTable from "@/components/stats/PaymentDetailTable";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
 import PaymentBarChart from "@/components/stats/PaymentBarChart";
 import StatusBarChart from "@/components/stats/StatusBarChart";
@@ -16,7 +17,6 @@ import MyRankingCard from "@/components/stats/MyRankingCard";
 import MonthSelector from "@/components/common/MonthSelector";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
-import { useStatsAssignment } from "@/hooks/useStatsAssignment";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 
@@ -40,8 +40,13 @@ function StatsPageContentInner() {
   const [assignMode, setAssignMode] = useState<"team" | "member">(
     (search.get("assign") as any) === "member" ? "member" : "team"
   );
-  const [paymentMode, setPaymentMode] = useState<"team" | "member">(
-    (search.get("pay") as any) === "member" ? "member" : "team"
+  const [paymentMode, setPaymentMode] = useState<"team" | "member" | "detail">(
+    (() => {
+      const paymentQuery = search.get("pay");
+      if (paymentQuery === "member") return "member";
+      if (paymentQuery === "detail") return "detail";
+      return "team";
+    })()
   );
   const [rankingMode, setRankingMode] = useState<"team" | "member">(
     (search.get("rank") as any) === "member" ? "member" : "team"
@@ -114,7 +119,7 @@ function StatsPageContentInner() {
     setAssignMode(mode);
   };
 
-  const setPaymentModeQS = (mode: "team" | "member") => {
+  const setPaymentModeQS = (mode: "team" | "member" | "detail") => {
     updateSearch((params) => {
       if (mode === "team") params.delete("pay");
       else params.set("pay", mode);
@@ -180,7 +185,6 @@ function StatsPageContentInner() {
 
   // Data hooks
   const registration = useStatsRegistration(projectId, applyPage, applyDateRange);
-  const assignment = useStatsAssignment(projectId);
 
   const chartData =
     applyMode === "daily"
@@ -354,7 +358,7 @@ function StatsPageContentInner() {
               <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
                 매출통계
               </h2>
-              <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
+              <div className="w-full md:max-w-[372px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-3 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
                     paymentMode === "team"
@@ -375,13 +379,25 @@ function StatsPageContentInner() {
                 >
                   팀원별
                 </button>
+                <button
+                  className={`min-h-[31px] rounded-[6px] text-[14px] ${
+                    paymentMode === "detail"
+                      ? "bg-card font-semibold text-foreground"
+                      : "text-neutral-60"
+                  } cursor-pointer`}
+                  onClick={() => setPaymentModeQS("detail")}
+                >
+                  건별
+                </button>
               </div>
             </div>
             <div className="mt-3" />
             {paymentMode === "team" ? (
               <PaymentBarChart />
-            ) : (
+            ) : paymentMode === "member" ? (
               <PaymentMemberTable />
+            ) : (
+              <PaymentDetailTable />
             )}
           </section>
         )}
