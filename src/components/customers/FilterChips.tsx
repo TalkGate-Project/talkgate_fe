@@ -19,7 +19,7 @@ type FilterChipsProps = {
 };
 
 const CHIP_CLASS_NAME =
-  "inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-[#E2E2E2] bg-white";
+  "inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-[#E2E2E2] dark:border-neutral-30 bg-white dark:bg-neutral-10";
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
@@ -152,9 +152,18 @@ export default function FilterChips({
         <button
           type="button"
           onClick={onResetAll}
-          className={`${CHIP_CLASS_NAME} cursor-pointer text-[14px] font-medium text-black opacity-80 transition-colors hover:bg-neutral-10`}
+          aria-label="필터 전체 초기화"
+          className={`${CHIP_CLASS_NAME} cursor-pointer w-[32px] !px-0 text-black dark:text-neutral-80 transition-colors hover:bg-neutral-10 dark:hover:bg-neutral-20`}
         >
-          전체 초기화
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M4 4V9H4.58152M19.9381 11C19.446 7.05369 16.0796 4 12 4C8.64262 4 5.76829 6.06817 4.58152 9M4.58152 9H9M20 20V15H19.4185M19.4185 15C18.2317 17.9318 15.3574 20 12 20C7.92038 20 4.55399 16.9463 4.06189 13M19.4185 15H15"
+              stroke="#B0B0B0"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       )}
       {filters.name && (
