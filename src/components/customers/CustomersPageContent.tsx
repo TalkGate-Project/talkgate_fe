@@ -342,6 +342,7 @@ function CustomersPageContentInner() {
           onRemove={removeFilterAndApply}
           onRemoveCategory={removeCategoryFilterAndApply}
           onRemoveDateRange={removeDateRangeFilterAndApply}
+          onResetAll={handleFilterReset}
           teamOptions={teamOptions}
           memberOptions={memberOptions}
           shouldFetchPartners={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
