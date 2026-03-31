@@ -372,6 +372,7 @@ function CustomersPageContentInner() {
             showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
             showAssignButton={canAssignCustomer}
             showDeleteButton={isAdminOrSubAdmin}
+            showExcelUploadButton={isAdminOrSubAdmin}
             showExcelDownloadButton={isAdminOrSubAdmin}
           />
         }

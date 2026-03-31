@@ -30,6 +30,8 @@ export type CustomersActionsProps = {
   showAssignButton?: boolean;
   /** admin/subAdmin일 때만 삭제 버튼 표시 */
   showDeleteButton?: boolean;
+  /** admin/subAdmin일 때만 엑셀 업로드 버튼 표시 */
+  showExcelUploadButton?: boolean;
   /** admin/subAdmin일 때만 엑셀 다운로드 버튼 표시 */
   showExcelDownloadButton?: boolean;
 };
@@ -108,6 +110,7 @@ export default function CustomersActions({
   showPartnerAssignButton = false,
   showAssignButton = true,
   showDeleteButton = true,
+  showExcelUploadButton = true,
   showExcelDownloadButton = true,
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -484,18 +487,20 @@ export default function CustomersActions({
               </button>
             </LocalIconTooltip>
           )}
-          <LocalIconTooltip label="엑셀 업로드">
-            <button
-              type="button"
-              onClick={() => setExcelUploadModalOpen(true)}
-              className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
-              aria-label="엑셀 업로드"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 8L12 4M12 4L8 8M12 4L12 16" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </LocalIconTooltip>
+          {showExcelUploadButton && (
+            <LocalIconTooltip label="엑셀 업로드">
+              <button
+                type="button"
+                onClick={() => setExcelUploadModalOpen(true)}
+                className="cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors text-neutral-50 dark:text-neutral-50"
+                aria-label="엑셀 업로드"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 8L12 4M12 4L8 8M12 4L12 16" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </LocalIconTooltip>
+          )}
           {showExcelDownloadButton && (
             <LocalIconTooltip label="엑셀 다운로드">
               <button
