@@ -8,6 +8,8 @@ import DateRangePicker from "@/components/common/DateRangePicker";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Pagination from "@/components/common/Pagination";
 import SortIcon from "@/components/common/SortIcon";
+import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import type {
@@ -92,6 +94,8 @@ export default function PaymentDetailTable() {
     useState<CustomerPaymentDetailsSortField>(initialSortField);
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">(initialSortOrder);
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -316,8 +320,20 @@ export default function PaymentDetailTable() {
                   gridTemplateColumns: TABLE_GRID_TEMPLATE,
                 }}
               >
-                <div className="truncate pr-4">{row.customerName}</div>
-                <div className="truncate pr-4">{row.memberName}</div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCustomerId(row.customerId)}
+                  className="truncate pr-4 text-left cursor-pointer hover:underline"
+                >
+                  {row.customerName}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMemberId(row.memberId)}
+                  className="truncate pr-4 text-left cursor-pointer hover:underline"
+                >
+                  {row.memberName}
+                </button>
                 <div className="truncate pr-4">
                   {`${formatPaymentMethod(row.paymentMethod)} ${formatCurrency(row.amount)}`}
                 </div>
@@ -337,6 +353,19 @@ export default function PaymentDetailTable() {
           disabled={detailQuery.isLoading}
         />
       </div>
+      <CustomerDetailModal
+        open={selectedCustomerId !== null}
+        onClose={() => setSelectedCustomerId(null)}
+        customerId={selectedCustomerId}
+      />
+      {selectedMemberId !== null && (
+        <TeamMemberInfoModal
+          open={selectedMemberId !== null}
+          memberId={selectedMemberId}
+          onClose={() => setSelectedMemberId(null)}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 }
