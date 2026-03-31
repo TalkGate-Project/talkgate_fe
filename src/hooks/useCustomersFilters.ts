@@ -3,6 +3,31 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CustomersListQuery } from "@/types/customers";
 import { sanitizeContactFilterInput } from "@/utils/format";
 
+const CUSTOMER_FILTER_STORAGE_KEY_PREFIX = "tg_customers_last_filters";
+const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
+  "name",
+  "contact1",
+  "assignType",
+  "filterByLatestCategory",
+  "apiKeyId",
+  "projectPartnerId",
+  "teamId",
+  "memberId",
+  "applicationRoute",
+  "mediaCompany",
+  "site",
+  "categoryIds",
+  "noteContent",
+  "applicationDateFrom",
+  "applicationDateTo",
+  "assignedAtFrom",
+  "assignedAtTo",
+  "keyword",
+  "ipAddress",
+  "notablePoints",
+  "summaryInfo",
+];
+
 export type CustomerFilters = {
   name?: string;
   contact1?: string;
@@ -29,12 +54,103 @@ export type CustomerFilters = {
 export type CustomerSortType = "applicationDate" | "assignedMember";
 export type CustomerSortOrder = "ASC" | "DESC";
 
+function isBrowser(): boolean {
+  return typeof window !== "undefined";
+}
+
+function getCustomerFilterStorageKey(projectId: string): string {
+  return `${CUSTOMER_FILTER_STORAGE_KEY_PREFIX}:${projectId}`;
+}
+
+function extractPersistableFilters(source: Partial<CustomerFilters>): CustomerFilters {
+  const persistedFilters: CustomerFilters = {};
+
+  PERSISTABLE_FILTER_KEYS.forEach((key) => {
+    const value = source[key];
+
+    if (Array.isArray(value)) {
+      if (value.length > 0) {
+        persistedFilters[key] = value as never;
+      }
+      return;
+    }
+
+    if (typeof value === "string") {
+      if (value.trim() !== "") {
+        persistedFilters[key] = value as never;
+      }
+      return;
+    }
+
+    if (typeof value === "number") {
+      if (Number.isFinite(value)) {
+        persistedFilters[key] = value as never;
+      }
+      return;
+    }
+
+    if (key === "filterByLatestCategory" && value === false) {
+      persistedFilters[key] = false as never;
+    }
+  });
+
+  return persistedFilters;
+}
+
+function hasPersistableFilters(filters: CustomerFilters): boolean {
+  return Object.keys(filters).length > 0;
+}
+
+function readPersistedFilters(projectId: string): CustomerFilters | null {
+  if (!isBrowser()) return null;
+
+  try {
+    const raw = window.localStorage.getItem(getCustomerFilterStorageKey(projectId));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
+
+    const persistedFilters = extractPersistableFilters(parsed as Partial<CustomerFilters>);
+    return hasPersistableFilters(persistedFilters) ? persistedFilters : null;
+  } catch (error) {
+    console.error("Failed to read persisted customer filters:", error);
+    return null;
+  }
+}
+
+function writePersistedFilters(projectId: string, filters: CustomerFilters) {
+  if (!isBrowser()) return;
+
+  try {
+    window.localStorage.setItem(
+      getCustomerFilterStorageKey(projectId),
+      JSON.stringify(filters)
+    );
+  } catch (error) {
+    console.error("Failed to persist customer filters:", error);
+  }
+}
+
+function clearPersistedFilters(projectId: string) {
+  if (!isBrowser()) return;
+
+  try {
+    window.localStorage.removeItem(getCustomerFilterStorageKey(projectId));
+  } catch (error) {
+    console.error("Failed to clear persisted customer filters:", error);
+  }
+}
+
 export function useCustomersFilters(projectId: string | null) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<CustomerFilters>({});
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
+  const [isRestoreReady, setIsRestoreReady] = useState<boolean>(false);
 
   // Applied filters are read from the URL; local filters are draft values edited in inputs/modals
   const applied = useMemo(() => {
@@ -104,6 +220,36 @@ export function useCustomersFilters(projectId: string | null) {
     return obj;
   }, [searchParams]);
 
+  useEffect(() => {
+    setIsRestoreReady(false);
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId || !searchParams) return;
+
+    const currentQueryString = searchParams.toString();
+    if (currentQueryString) {
+      setIsRestoreReady(true);
+      return;
+    }
+
+    const persistedFilters = readPersistedFilters(projectId);
+    if (!persistedFilters) {
+      setIsRestoreReady(true);
+      return;
+    }
+
+    const restoredParams = buildFilterParams(persistedFilters);
+    const restoredQueryString = restoredParams.toString();
+
+    if (!restoredQueryString) {
+      setIsRestoreReady(true);
+      return;
+    }
+
+    router.replace(`/customers?${restoredQueryString}`, { scroll: false });
+  }, [projectId, router, searchParams, limit]);
+
   // Sync local UI states with applied URL on mount/URL change
   useEffect(() => {
     // Keep page/limit in sync with URL only
@@ -140,9 +286,22 @@ export function useCustomersFilters(projectId: string | null) {
     });
   }, [applied]);
 
+  useEffect(() => {
+    if (!projectId || !isRestoreReady) return;
+
+    const persistedFilters = extractPersistableFilters(applied);
+
+    if (!hasPersistableFilters(persistedFilters)) {
+      clearPersistedFilters(projectId);
+      return;
+    }
+
+    writePersistedFilters(projectId, persistedFilters);
+  }, [applied, isRestoreReady, projectId]);
+
   const query: CustomersListQuery | null = useMemo(
     () =>
-      projectId
+      projectId && isRestoreReady
         ? {
             projectId,
             page: applied.page || 1,
@@ -180,7 +339,7 @@ export function useCustomersFilters(projectId: string | null) {
             sortOrder: applied.sortOrder,
           }
         : null,
-    [projectId, applied]
+    [projectId, isRestoreReady, applied]
   );
 
   // Keep URL in sync for pagination/limit so data fetching follows
