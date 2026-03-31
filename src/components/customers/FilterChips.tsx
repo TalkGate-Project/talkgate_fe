@@ -11,15 +11,19 @@ type FilterChipsProps = {
   onRemove: (key: keyof CustomerFilters) => void;
   onRemoveCategory: (id: number | null) => void;
   onRemoveDateRange: (type: "application" | "assigned") => void;
+  onResetAll: () => void;
   teamOptions?: { label: string; value: number }[];
   memberOptions?: { label: string; value: number }[];
   /** 파트너 칩 라벨을 위해 project-partners API 호출 여부. true일 때만 필요 시 호출 (데이터제공자 + admin/subAdmin). */
   shouldFetchPartners?: boolean;
 };
 
+const CHIP_CLASS_NAME =
+  "inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-[#E2E2E2] bg-white";
+
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <div className="inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-[#E2E2E2] bg-white">
+    <div className={CHIP_CLASS_NAME}>
       <span className="text-[14px] font-medium text-black opacity-80">{label}</span>
       <button
         aria-label="remove"
@@ -45,6 +49,7 @@ export default function FilterChips({
   onRemove,
   onRemoveCategory,
   onRemoveDateRange,
+  onResetAll,
   teamOptions = [],
   memberOptions = [],
   shouldFetchPartners = false,
@@ -121,8 +126,37 @@ export default function FilterChips({
     return member?.label || `담당자 ${id}`;
   };
 
+  const hasAnyChips =
+    Boolean(filters.name) ||
+    Boolean(filters.contact1) ||
+    Boolean(filters.teamId) ||
+    Boolean(filters.memberId) ||
+    Boolean(filters.applicationRoute) ||
+    Boolean(filters.mediaCompany) ||
+    Boolean(filters.site) ||
+    Boolean(filters.noteContent) ||
+    Boolean(filters.assignType && filters.assignType !== "all") ||
+    typeof filters.apiKeyId === "number" ||
+    typeof filters.projectPartnerId === "number" ||
+    Boolean(Array.isArray(filters.categoryIds) && filters.categoryIds.length > 0) ||
+    Boolean(filters.applicationDateFrom && filters.applicationDateTo) ||
+    Boolean(filters.assignedAtFrom || filters.assignedAtTo) ||
+    Boolean(filters.keyword) ||
+    Boolean(filters.ipAddress) ||
+    Boolean(filters.notablePoints) ||
+    Boolean(filters.summaryInfo);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {hasAnyChips && (
+        <button
+          type="button"
+          onClick={onResetAll}
+          className={`${CHIP_CLASS_NAME} cursor-pointer text-[14px] font-medium text-black opacity-80 transition-colors hover:bg-neutral-10`}
+        >
+          전체 초기화
+        </button>
+      )}
       {filters.name && (
         <Chip
           label={`이름: ${filters.name.length > 20 ? filters.name.slice(0, 20) + "..." : filters.name}`}
