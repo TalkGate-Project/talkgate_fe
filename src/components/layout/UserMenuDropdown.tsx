@@ -6,7 +6,9 @@ import { useState } from "react";
 import { performLogout } from "@/lib/logout";
 import type { MeUser } from "@/hooks/useMe";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { DOCUMENTATION_URL } from "@/lib/constants";
+import type { MemberRole } from "@/types/members";
 
 type Props = {
   user: MeUser | null | undefined;
@@ -16,10 +18,18 @@ type Props = {
   onToggleTheme?: () => void;
 };
 
+const ROLE_LABELS: Record<MemberRole, string> = {
+  admin: "관리자",
+  subAdmin: "부관리자",
+  leader: "팀장",
+  member: "팀원",
+};
+
 export default function UserMenuDropdown({ user, variant = "full", onClose, isDarkMode, onToggleTheme }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { member } = useMyMember();
+  const { project } = useCurrentProjectDetail();
   const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [isProjectSelectHovered, setIsProjectSelectHovered] = useState(false);
   const [isPaymentHovered, setIsPaymentHovered] = useState(false);
@@ -28,6 +38,12 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
   
   // 직원 정보의 이름을 우선 사용, 없으면 user.name 사용
   const displayName = member?.name || user?.name || "김직원";
+  const roleLabel = member?.role ? ROLE_LABELS[member.role] : null;
+  const shouldShowTeamName = member?.role !== "admin" && member?.role !== "subAdmin";
+  const isAdminBadge = member?.role === "admin" || member?.role === "subAdmin";
+  const teamName = member?.teamInfo?.name || user?.teamName || "-";
+  const projectName = project?.name || "프로젝트를 선택해 주세요";
+  const projectInitial = projectName.charAt(0);
 
   const handleProjectSelect = () => {
     onClose();
@@ -79,23 +95,54 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
           <div className="flex-1 min-w-0 flex flex-col gap-[8px]">
             {variant === "full" ? (
               <>
-                {/* 첫째 줄: 멤버이름 | 팀명 */}
-                <div className="flex items-center gap-2">
-                  <div className="text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
+                {/* 첫째 줄: 이름 | 역할 | 팀명 */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="truncate text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
                     {displayName}
                   </div>
-                  <div className="w-px h-4 bg-neutral-60"></div>
-                  <div className="text-[14px] font-medium leading-[20px] text-neutral-60">
-                    {user?.teamName || "-"}
-                  </div>
+                  {roleLabel && (
+                    <span
+                      className={`inline-flex h-[22px] flex-shrink-0 items-center justify-center rounded-[30px] px-3 text-[12px] font-medium leading-[14px] opacity-80 ${
+                        isAdminBadge ? "bg-[#D6FAE8] text-[#00B55B]" : "bg-[#E2E2E2] text-[#595959]"
+                      }`}
+                    >
+                      {roleLabel}
+                    </span>
+                  )}
+                  {shouldShowTeamName && (
+                    <>
+                      <div className="h-4 w-px flex-shrink-0 bg-neutral-60"></div>
+                      <div className="truncate text-[14px] font-medium leading-[20px] text-neutral-60">
+                        {teamName}
+                      </div>
+                    </>
+                  )}
                 </div>
                 {/* 둘째 줄: 이메일 */}
                 <div className="text-[14px] font-medium leading-[20px] text-foreground">
                   {user?.email || "user@kakao.com"}
                 </div>
-                {/* 셋째 줄: UID */}
-                <div className="text-[14px] font-medium leading-[20px] text-neutral-60">
-                  UID : {user?.id || "12345"}
+                {/* 셋째 줄: 프로젝트 정보 */}
+                <div className="flex items-center gap-2 min-w-0">
+                  {project?.logoUrl ? (
+                    <div className="h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
+                      <img
+                        src={project.logoUrl}
+                        alt={projectName}
+                        width={20}
+                        height={20}
+                        className="h-full w-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-20 text-[11px] font-semibold leading-none text-neutral-70">
+                      {projectInitial}
+                    </div>
+                  )}
+                  <div className="truncate text-[14px] font-medium leading-[20px] text-neutral-60">
+                    {projectName}
+                  </div>
                 </div>
               </>
             ) : (
@@ -104,9 +151,27 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
                 <div className="text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
                   {user?.email || "user@kakao.com"}
                 </div>
-                {/* 둘째 줄: UID */}
-                <div className="text-[14px] font-medium leading-[20px] text-neutral-60">
-                  UID : {user?.id || "12345"}
+                {/* 둘째 줄: 프로젝트 정보 */}
+                <div className="flex items-center gap-2 min-w-0">
+                  {project?.logoUrl ? (
+                    <div className="h-5 w-5 overflow-hidden rounded-full flex-shrink-0">
+                      <img
+                        src={project.logoUrl}
+                        alt={projectName}
+                        width={20}
+                        height={20}
+                        className="h-full w-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-20 text-[11px] font-semibold leading-none text-neutral-70">
+                      {projectInitial}
+                    </div>
+                  )}
+                  <div className="truncate text-[14px] font-medium leading-[20px] text-neutral-60">
+                    {projectName}
+                  </div>
                 </div>
               </>
             )}
