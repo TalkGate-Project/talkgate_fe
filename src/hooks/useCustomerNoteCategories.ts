@@ -1,7 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
+import {
+  CustomerNoteCategoriesService,
+  normalizeCustomerNoteCategories,
+} from "@/services/customerNoteCategories";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useSelectedProjectId } from "./useSelectedProjectId";
 import { useAuthSession } from "./useAuthSession";
@@ -11,7 +14,7 @@ export const customerNoteCategoriesQueryKey = ["customer-note-categories"] as co
 
 function normalizeCategories(responseBody: unknown): CustomerNoteCategory[] {
   const data = (responseBody as any)?.data ?? (responseBody as any);
-  return Array.isArray(data) ? data : [];
+  return normalizeCustomerNoteCategories(data);
 }
 
 export function useCustomerNoteCategories() {

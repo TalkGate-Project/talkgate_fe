@@ -145,6 +145,6 @@ export type MessengerLocal = {
 export type NoteCategory = {
   id: number;
   name: string;
-  color?: string;
+  colorCode?: string;
 };
 

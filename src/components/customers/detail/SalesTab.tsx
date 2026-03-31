@@ -237,7 +237,6 @@ export default function SalesTab({
             매출 내역
           </div>
         </div>
-        {/* 모바일: label + input 구역별 배치 */}
         <div className="md:hidden space-y-4 mb-4">
           <label className="block">
             <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
@@ -270,6 +269,22 @@ export default function SalesTab({
           </label>
           <label className="block">
             <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+              결제수단
+            </span>
+            <SelectField
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="h-[34px] rounded-[5px] text-[14px] font-medium"
+            >
+              {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </SelectField>
+          </label>
+          <label className="block">
+            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
               금액
             </span>
             <input
@@ -281,24 +296,18 @@ export default function SalesTab({
               className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
           </label>
-          <div className="grid grid-cols-[140px_minmax(0,1fr)_auto] gap-2">
-            <SelectField
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="h-[34px] rounded-[5px] text-[14px] font-medium"
-            >
-              {PAYMENT_METHOD_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </SelectField>
+          <label className="block">
+            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+              설명
+            </span>
             <input
               value={paymentDesc}
               onChange={(e) => setPaymentDesc(e.target.value)}
               placeholder="설명을 입력하세요."
-              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
+          </label>
+          <div className="flex justify-end">
             <button
               className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
               onClick={handleAddPayment}
@@ -307,48 +316,40 @@ export default function SalesTab({
             </button>
           </div>
         </div>
-        {/* 웹: 기존 그리드 유지 */}
-        <div className="hidden md:block">
-          <div className="subdescription text-[14px] text-neutral-60 dark:text-neutral-60 font-medium leading-[1] mb-2 grid grid-cols-2 gap-6">
-            <span>날짜</span>
-            <span>금액</span>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="grid grid-cols-[180px_minmax(0,1fr)] gap-2">
-              <div className="relative h-[34px]">
-                <DatePicker
-                  value={paymentDate}
-                  onChange={setPaymentDate}
-                  className="h-[34px] pr-9 font-medium"
-                />
-                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <input
-                value={paymentAmount}
-                onChange={(e) =>
-                  setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
-                }
-                placeholder="금액을 입력하세요."
-                className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+        <div className="hidden md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-end">
+          <label className="block">
+            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+              날짜
+            </span>
+            <div className="relative h-[34px]">
+              <DatePicker
+                value={paymentDate}
+                onChange={setPaymentDate}
+                className="h-[34px] pr-9 font-medium"
               />
+              <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
-          <div className="grid grid-cols-[140px_minmax(0,1fr)_auto] gap-2">
+          </label>
+          <label className="block">
+            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+              결제수단
+            </span>
             <SelectField
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
@@ -360,41 +361,62 @@ export default function SalesTab({
                 </option>
               ))}
             </SelectField>
+          </label>
+          <label className="block">
+            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+              금액
+            </span>
+            <input
+              value={paymentAmount}
+              onChange={(e) =>
+                setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
+              }
+              placeholder="금액을 입력하세요."
+              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+            />
+          </label>
+          <label className="block">
+            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+              설명
+            </span>
             <input
               value={paymentDesc}
               onChange={(e) => setPaymentDesc(e.target.value)}
               placeholder="설명을 입력하세요."
-              className="h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
             />
-            <button
-              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
-              onClick={handleAddPayment}
-            >
-              추가
-            </button>
-          </div>
-          </div>
+          </label>
+          <button
+            className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
+            onClick={handleAddPayment}
+          >
+            추가
+          </button>
         </div>
 
         <div className="mt-3 space-y-2 max-h-[200px] overflow-auto pr-1">
           {paymentHistories?.map((ph) => (
             <div
               key={ph.id}
-              className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 flex items-center gap-3 text-[14px]"
+              className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 text-[14px] flex items-center gap-3 md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-center"
             >
-              <span className="w-[166px] text-neutral-60 dark:text-neutral-60">
+              <span className="w-[166px] md:w-auto text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
                 {formatDetailDate(ph.paymentDate)}
               </span>
-              <span className="flex-1 text-[#16A34A] dark:text-[#22C55E] font-semibold">
+              <div className="min-w-0 md:-ml-2">
+                <span className="inline-flex max-w-full items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] dark:bg-[#D6FAE8] text-[#22C55E] dark:text-[#10B981] text-[12px] whitespace-nowrap">
+                  {getPaymentMethodLabel(ph.paymentMethod)}
+                </span>
+              </div>
+              <span className="flex-1 md:flex-none text-[#16A34A] dark:text-[#22C55E] font-semibold whitespace-nowrap">
                 {ph.amount?.toLocaleString()}원
               </span>
-              <span className="flex-shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] dark:bg-[#D6FAE8] text-[#22C55E] dark:text-[#10B981] text-[12px]">
-                {getPaymentMethodLabel(ph.paymentMethod)}
+              <span className="flex-1 md:flex-none min-w-0 truncate text-ink dark:text-neutral-80">
+                {ph.description || "결제"}
               </span>
-              <span className="flex-1 text-ink dark:text-neutral-80">{ph.description || "결제"}</span>
 
               <button
-                className="cursor-pointer ml-2 w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
+                className="cursor-pointer ml-2 md:ml-0 md:justify-self-end w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
                 onClick={() => {
                   showConfirmModal({
                     title: "확인",

@@ -796,12 +796,14 @@ export default function CustomersTable({
                               const categoryName = category?.name || "일반";
                               const badgeStyle = getBadgeStyle(
                                 categoryName,
-                                categoryId || 0
+                                categoryId || 0,
+                                category?.colorCode
                               );
 
                               return (
                                 <span
-                                  className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                  className="inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium"
+                                  style={badgeStyle}
                                 >
                                   <TruncateWithTooltip
                                     text={categoryName}
@@ -991,12 +993,14 @@ export default function CustomersTable({
                                     const categoryName = category?.name || "일반";
                                     const badgeStyle = getBadgeStyle(
                                       categoryName,
-                                      categoryId || 0
+                                      categoryId || 0,
+                                      category?.colorCode
                                     );
 
                                     return (
                                       <span
-                                        className={`inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium ${badgeStyle.bg} ${badgeStyle.text}`}
+                                        className="inline-flex items-center h-[22px] max-w-full rounded-[30px] px-3 text-[12px] leading-[14px] font-medium"
+                                        style={badgeStyle}
                                       >
                                         <TruncateWithTooltip
                                           text={categoryName}
