@@ -1,6 +1,6 @@
 // Statistics domain types
 
-import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
+import type { ApiSuccessResponse } from "./common";
 
 export type SortOrder = "ASC" | "DESC";
 
@@ -135,6 +135,35 @@ export type CustomerPaymentWeeklyResponse = ApiSuccessResponse<{
   data: CustomerPaymentWeeklyRecord[] | null; // null when no data
   totalCount: number;
 }>;
+
+export type CustomerPaymentDetailsSortField =
+  | "memberName"
+  | "amount"
+  | "paymentDate";
+
+export type CustomerPaymentDetailsQuery = PaginationQuery & {
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  sortField: CustomerPaymentDetailsSortField;
+  sortOrder: SortOrder;
+  projectId: string;
+};
+
+export type CustomerPaymentDetailRecord = {
+  id: number;
+  customerId: number;
+  memberId: number;
+  customerName: string;
+  memberName: string;
+  paymentMethod: string;
+  amount: number;
+  description: string | null;
+  paymentDate: string;
+};
+
+export type CustomerPaymentDetailsResponse = ApiSuccessResponse<
+  PagedPayload<CustomerPaymentDetailRecord>
+>;
 
 // -------------------- Customer Registration --------------------
 

@@ -10,6 +10,8 @@ import {
   CustomerPaymentByMemberResponse,
   CustomerPaymentByTeamQuery,
   CustomerPaymentByTeamResponse,
+  CustomerPaymentDetailsQuery,
+  CustomerPaymentDetailsResponse,
   CustomerPaymentWeeklyQuery,
   CustomerPaymentWeeklyResponse,
   CustomerRegistrationQuery,
@@ -76,6 +78,14 @@ export const StatisticsService = {
     });
   },
 
+  customerPaymentDetails(query: CustomerPaymentDetailsQuery) {
+    const { projectId, ...qs } = query;
+    return apiClient.get<CustomerPaymentDetailsResponse>(`/v1/statistics/customer-payment/details`, {
+      query: qs,
+      headers: { "x-project-id": projectId },
+    });
+  },
+
   customerRegistration(query: CustomerRegistrationQuery) {
     const { projectId, ...qs } = query;
     return apiClient.get<CustomerRegistrationResponse>(`/v1/statistics/customer-registration`, {
@@ -131,6 +141,8 @@ export type {
   CustomerPaymentByMemberQuery,
   CustomerPaymentByMemberResponse,
   CustomerPaymentByTeamResponse,
+  CustomerPaymentDetailsQuery,
+  CustomerPaymentDetailsResponse,
   CustomerPaymentWeeklyResponse,
   CustomerRegistrationQuery,
   CustomerRegistrationResponse,
