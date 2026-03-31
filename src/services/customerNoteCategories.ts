@@ -7,6 +7,24 @@ import type {
 // Re-export types for convenience
 export type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 
+export function normalizeCustomerNoteCategory(input: unknown): CustomerNoteCategory | null {
+  if (!input || typeof input !== "object") return null;
+
+  const category = input as CustomerNoteCategory & { color?: string | null };
+  return {
+    ...category,
+    colorCode: category.colorCode ?? category.color ?? undefined,
+  };
+}
+
+export function normalizeCustomerNoteCategories(input: unknown): CustomerNoteCategory[] {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .map((category) => normalizeCustomerNoteCategory(category))
+    .filter((category): category is CustomerNoteCategory => !!category);
+}
+
 export const CustomerNoteCategoriesService = {
   list(headers?: Record<string, string>) {
     return apiClient.get<CustomerNoteCategoriesListResponse>("/v1/customer-note-categories", headers ? { headers } : undefined);

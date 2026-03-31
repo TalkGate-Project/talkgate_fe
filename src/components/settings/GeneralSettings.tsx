@@ -66,10 +66,12 @@ export default function GeneralSettings() {
   const {
     newStatusName,
     setNewStatusName,
+    newStatusColor,
+    setNewStatusColor,
     handleAddStatus,
     handleModifyStatus,
     handleDeleteStatus,
-  } = useStatusManagement(projectId, statuses, setStatuses);
+  } = useStatusManagement(projectId, setStatuses);
 
   // 프로젝트 이름 변경
   const handleUpdateProjectName = useCallback(async () => {
@@ -272,6 +274,8 @@ export default function GeneralSettings() {
       <StatusManagementSection
         newStatusName={newStatusName}
         setNewStatusName={setNewStatusName}
+        newStatusColor={newStatusColor}
+        setNewStatusColor={setNewStatusColor}
         statuses={statuses}
         onAddStatus={handleAddStatus}
         onModifyStatus={handleModifyStatus}
