@@ -37,6 +37,26 @@ function initialFromName(name: string): string {
   return trimmed.charAt(0);
 }
 
+function AssignmentCountIcon() {
+  return (
+    <svg
+      className="size-6 shrink-0 block"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10M20 14H10M10 14L13 11M10 14L13 17"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function transformMembers(
   nodes: MemberTreeNode[] | undefined,
   teamNameByLeader: Map<number, string>,
@@ -213,18 +233,27 @@ function HierarchicalTeamList({
             >
               {item.avatar}
             </div>
-            <div className="flex-1 min-w-0 text-left">
-              <div className="truncate text-[16px] font-semibold text-foreground">{item.name}</div>
+            <div className="flex-1 min-w-0 flex items-center gap-1.5 md:gap-2 text-left">
+              <div className="min-w-0 truncate text-[16px] font-semibold text-foreground">{item.name}</div>
+              {item.department && item.department !== "팀원" && (
+                <div className="min-w-0 max-w-[96px] md:max-w-none flex-shrink-0 px-3 bg-secondary-10 rounded-[30px] max-h-[22px] flex items-center justify-center">
+                  <span className="block truncate whitespace-nowrap text-[12px] font-medium text-secondary-40 leading-[22px]">
+                    {item.department}
+                  </span>
+                </div>
+              )}
             </div>
-            {item.department && item.department !== "팀원" && (
-              <div className="px-3 bg-secondary-10 rounded-[30px] max-h-[22px] flex items-center justify-center">
-                <span className="text-[12px] font-medium text-secondary-40 leading-[22px]">
-                  {item.department}
-                </span>
-              </div>
-            )}
-            <div className="ml-auto flex-shrink-0 text-[14px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
-              오늘 배정받은 수 : {item.todayAssignmentCount ?? 0}건
+            <div className="flex flex-shrink-0 items-center text-[14px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+              <span className="hidden leading-none md:inline">
+                오늘 배정받은 수 : {item.todayAssignmentCount ?? 0}건
+              </span>
+              <span
+                className="flex h-6 items-center gap-1.5 md:hidden"
+                aria-label={`오늘 배정받은 수 ${item.todayAssignmentCount ?? 0}건`}
+              >
+                <AssignmentCountIcon />
+                <span className="leading-none tabular-nums">{item.todayAssignmentCount ?? 0}건</span>
+              </span>
             </div>
           </div>
           {hasVisibleChildren && isExpanded && item.children && (
@@ -406,7 +435,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
       onClose={() => !loading && onClose()}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
-      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:h-auto md:min-h-[500px] md:max-h-[90vh] lg:w-[848px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 p-4 md:p-6 flex flex-col"
+      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:h-auto md:min-h-[500px] md:max-h-[90vh] lg:w-[848px] rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10 p-4 md:p-6 flex flex-col"
       ariaLabel="고객 배정"
       fullScreenOnMobile={true}
     >
