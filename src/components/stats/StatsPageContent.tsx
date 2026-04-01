@@ -19,6 +19,7 @@ import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
+import { getCurrentRankingMonthStart } from "@/utils/datetime";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 
@@ -62,20 +63,8 @@ function StatsPageContentInner() {
         return new Date(year, month - 1, 1);
       }
     }
-    // 기본값: 조회하는 날이 1일이면 이전 달, 2일 이상이면 이번 달
-    const now = new Date();
-    const today = now.getDate();
-    if (today === 1) {
-      // 1일인 경우: 이전 달
-      const prevMonth = new Date(now);
-      prevMonth.setMonth(prevMonth.getMonth() - 1);
-      return new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
-    } else {
-      // 2일 이상인 경우: 이번 달 (yesterday 기준, 데이터 집계는 전날까지만 되어 있음)
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
-    }
+
+    return getCurrentRankingMonthStart();
   });
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
@@ -201,8 +190,8 @@ function StatsPageContentInner() {
         <Panel
           className="rounded-none md:rounded-[14px] md:mb-9"
           title={
-            <div className="flex w-full flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div className="flex items-end gap-4">
+            <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
+              <div className="flex min-w-0 items-end gap-4">
                 <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
                   통계
                 </h1>
@@ -215,7 +204,7 @@ function StatsPageContentInner() {
                 projectName={project?.name}
                 projectLogoUrl={project?.logoUrl}
                 loading={isProjectLoading}
-                className="max-w-full md:max-w-[240px] md:justify-end"
+                className="max-w-[60%] justify-end md:max-w-[240px]"
               />
             </div>
           }
@@ -437,7 +426,7 @@ function StatsPageContentInner() {
                   전체랭킹
                 </h2>
                 <p className="hidden md:block mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
-                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매일 집계하여 갱신됩니다.
+                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매시간 집계하여 갱신됩니다.
                 </p>
               </div>
               <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">

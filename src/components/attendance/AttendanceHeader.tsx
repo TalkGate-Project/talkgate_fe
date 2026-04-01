@@ -22,8 +22,8 @@ export default function AttendanceHeader({
     <Panel
       className="rounded-none md:rounded-[14px] md:mb-9"
       title={
-        <div className="flex w-full flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-end gap-4">
+        <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
+          <div className="flex min-w-0 items-end gap-4">
             <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
               근태
             </h1>
@@ -36,7 +36,7 @@ export default function AttendanceHeader({
             projectName={project?.name}
             projectLogoUrl={project?.logoUrl}
             loading={isProjectLoading}
-            className="max-w-full md:max-w-[240px] md:justify-end"
+            className="max-w-[60%] justify-end md:max-w-[240px]"
           />
         </div>
       }

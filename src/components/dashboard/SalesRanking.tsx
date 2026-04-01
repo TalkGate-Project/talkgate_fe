@@ -12,6 +12,7 @@ import { useSalesRankingData, type RankingMode, type RankingRow } from "@/hooks/
 import RankingSkeleton from "@/components/dashboard/RankingSkeleton";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { getCurrentRankingMonthStart } from "@/utils/datetime";
 
 export default function SalesRanking() {
   const router = useRouter();
@@ -31,12 +32,9 @@ export default function SalesRanking() {
     setSelectedMemberId(null);
   }, []);
 
-  // 현재 월 계산 (now - 1day 기준, 데이터 집계는 전날까지만 되어 있음)
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const currentYear = yesterday.getFullYear();
-  const currentMonth = yesterday.getMonth() + 1;
+  const currentRankingMonth = getCurrentRankingMonthStart();
+  const currentYear = currentRankingMonth.getFullYear();
+  const currentMonth = currentRankingMonth.getMonth() + 1;
 
   const teamQuery = useQuery<RankingTeamResponse>({
     queryKey: ["dashboard", "ranking", "team", projectId, currentYear, currentMonth],
