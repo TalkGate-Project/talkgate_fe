@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import Panel from "@/components/common/Panel";
 import { useCustomersList } from "@/hooks/useCustomersList";
-import { CustomerListItem } from "@/types/customers";
+import type { AssignCustomersFilterConditions, CustomerListItem } from "@/types/customers";
 import FilterModal from "@/components/common/FilterModal";
 import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
@@ -24,6 +24,74 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import type { MemberTreeNode } from "@/types/membersTree";
 import { sanitizeContactFilterInput } from "@/utils/format";
+
+function buildAssignmentFilterConditions(
+  appliedFilters: Record<string, unknown>
+): AssignCustomersFilterConditions {
+  const categoryIds = Array.isArray(appliedFilters.categoryIds)
+    ? appliedFilters.categoryIds.filter((id): id is number => typeof id === "number")
+    : undefined;
+
+  return {
+    name: typeof appliedFilters.name === "string" ? appliedFilters.name : undefined,
+    contact1:
+      typeof appliedFilters.contact1 === "string" ? appliedFilters.contact1 : undefined,
+    contact2:
+      typeof appliedFilters.contact2 === "string" ? appliedFilters.contact2 : undefined,
+    noteContent:
+      typeof appliedFilters.noteContent === "string" ? appliedFilters.noteContent : undefined,
+    assignType:
+      appliedFilters.assignType === "all" ||
+      appliedFilters.assignType === "assigned" ||
+      appliedFilters.assignType === "unassigned"
+        ? appliedFilters.assignType
+        : undefined,
+    filterByLatestCategory:
+      typeof appliedFilters.filterByLatestCategory === "boolean"
+        ? appliedFilters.filterByLatestCategory
+        : undefined,
+    apiKeyId: typeof appliedFilters.apiKeyId === "number" ? appliedFilters.apiKeyId : undefined,
+    teamId: typeof appliedFilters.teamId === "number" ? appliedFilters.teamId : undefined,
+    memberId: typeof appliedFilters.memberId === "number" ? appliedFilters.memberId : undefined,
+    applicationRoute:
+      typeof appliedFilters.applicationRoute === "string"
+        ? appliedFilters.applicationRoute
+        : undefined,
+    mediaCompany:
+      typeof appliedFilters.mediaCompany === "string" ? appliedFilters.mediaCompany : undefined,
+    site: typeof appliedFilters.site === "string" ? appliedFilters.site : undefined,
+    categoryIds: categoryIds && categoryIds.length > 0 ? categoryIds : undefined,
+    applicationDateFrom:
+      typeof appliedFilters.applicationDateFrom === "string"
+        ? appliedFilters.applicationDateFrom
+        : undefined,
+    applicationDateTo:
+      typeof appliedFilters.applicationDateTo === "string"
+        ? appliedFilters.applicationDateTo
+        : undefined,
+    assignedAtFrom:
+      typeof appliedFilters.assignedAtFrom === "string"
+        ? appliedFilters.assignedAtFrom
+        : undefined,
+    assignedAtTo:
+      typeof appliedFilters.assignedAtTo === "string"
+        ? appliedFilters.assignedAtTo
+        : undefined,
+    projectPartnerId:
+      typeof appliedFilters.projectPartnerId === "number"
+        ? appliedFilters.projectPartnerId
+        : undefined,
+    ipAddress:
+      typeof appliedFilters.ipAddress === "string" ? appliedFilters.ipAddress : undefined,
+    keyword: typeof appliedFilters.keyword === "string" ? appliedFilters.keyword : undefined,
+    summary:
+      typeof appliedFilters.summaryInfo === "string" ? appliedFilters.summaryInfo : undefined,
+    specialNotes:
+      typeof appliedFilters.notablePoints === "string"
+        ? appliedFilters.notablePoints
+        : undefined,
+  };
+}
 
 function CustomersPageContentInner() {
   const router = useRouter();
@@ -245,30 +313,10 @@ function CustomersPageContentInner() {
       // - 그 외의 경우(체크박스로 개별 선택한 경우)는 ids 사용
       if (effectiveMode === "all") {
         // 전체 목록 선택: 필터 기준으로 배정
-        // categoryIds에서 null을 number[]로 변환 (null은 제외)
-        const categoryIds = applied.categoryIds?.filter((id: number | null): id is number => id !== null);
         await CustomersService.assign({
           assignmentType: "filter",
           memberId: targetId as any,
-          filterConditions: {
-            name: applied.name,
-            contact1: applied.contact1,
-            contact2: applied.contact2,
-            noteContent: applied.noteContent,
-            apiKeyId: applied.apiKeyId,
-            teamId: applied.teamId,
-            memberId: applied.memberId,
-            applicationRoute: applied.applicationRoute,
-            mediaCompany: applied.mediaCompany,
-            site: applied.site,
-            categoryIds: categoryIds && categoryIds.length > 0 ? categoryIds : undefined,
-            assignType: applied.assignType,
-            projectPartnerId: applied.projectPartnerId,
-            applicationDateFrom: applied.applicationDateFrom,
-            applicationDateTo: applied.applicationDateTo,
-            assignedAtFrom: applied.assignedAtFrom,
-            assignedAtTo: applied.assignedAtTo,
-          } as any,
+          filterConditions: buildAssignmentFilterConditions(applied),
           expectedCount: total,
           projectId: projectId!,
         });
@@ -291,6 +339,33 @@ function CustomersPageContentInner() {
     } catch (e) {
       throw e;
     }
+  };
+
+  const handleUnassign = async () => {
+    const effectiveIds = assignFromDetailId != null ? [assignFromDetailId] : selectedIds;
+    const effectiveMode = assignFromDetailId != null ? null : selectionMode;
+
+    if (effectiveMode === "all") {
+      await CustomersService.unassign({
+        assignmentType: "filter",
+        filterConditions: buildAssignmentFilterConditions(applied),
+        expectedCount: total,
+        projectId: projectId!,
+      });
+    } else if (effectiveIds.length > 0) {
+      await CustomersService.unassign({
+        assignmentType: "ids",
+        customerIds: effectiveIds,
+        projectId: projectId!,
+      });
+    }
+
+    clearSelection();
+    setAssignFromDetailId(null);
+    setAssignOpen(false);
+    setPage(1);
+    pushPage(1);
+    await refetch();
   };
 
   const handleAssignModalClose = useCallback(() => {
@@ -433,6 +508,7 @@ function CustomersPageContentInner() {
         selectionMode={assignFromDetailId != null ? null : selectionMode}
         totalCount={assignFromDetailId != null ? 1 : total}
         onAssign={handleAssign}
+        onUnassign={handleUnassign}
         projectId={projectId!}
       />
 
