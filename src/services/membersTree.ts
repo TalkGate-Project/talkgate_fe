@@ -26,6 +26,18 @@ export const MembersTreeService = {
     return res.data.data.rootMembers ?? [];
   },
 
+  async fetchRootWithoutParentWithAssignmentCount(
+    projectId: string | number
+  ): Promise<MemberTreeNode[]> {
+    const res = await apiClient.get<MemberTreeResponse>(
+      "/v1/members-tree/tree/without-parent/with-assignment-count",
+      {
+        headers: { "x-project-id": String(projectId) },
+      }
+    );
+    return res.data.data.rootMembers ?? [];
+  },
+
   async fetchSubtree(memberId: number | string, projectId: string | number): Promise<MemberTreeNode> {
     const res = await apiClient.get<MemberSubtreeResponse>(`/v1/members-tree/${memberId}/subtree`, {
       headers: { "x-project-id": String(projectId) },

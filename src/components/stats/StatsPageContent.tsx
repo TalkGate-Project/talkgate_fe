@@ -15,8 +15,11 @@ import TeamRankingList from "@/components/stats/TeamRankingList";
 import TeamMemberRankingList from "@/components/stats/TeamMemberRankingList";
 import MyRankingCard from "@/components/stats/MyRankingCard";
 import MonthSelector from "@/components/common/MonthSelector";
+import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
+import { getCurrentRankingMonthStart } from "@/utils/datetime";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 
@@ -32,6 +35,7 @@ function StatsPageContentInner() {
   const router = useRouter();
   const search = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
+  const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
 
   // State from query params
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">(
@@ -59,20 +63,8 @@ function StatsPageContentInner() {
         return new Date(year, month - 1, 1);
       }
     }
-    // 기본값: 조회하는 날이 1일이면 이전 달, 2일 이상이면 이번 달
-    const now = new Date();
-    const today = now.getDate();
-    if (today === 1) {
-      // 1일인 경우: 이전 달
-      const prevMonth = new Date(now);
-      prevMonth.setMonth(prevMonth.getMonth() - 1);
-      return new Date(prevMonth.getFullYear(), prevMonth.getMonth(), 1);
-    } else {
-      // 2일 이상인 경우: 이번 달 (yesterday 기준, 데이터 집계는 전날까지만 되어 있음)
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return new Date(yesterday.getFullYear(), yesterday.getMonth(), 1);
-    }
+
+    return getCurrentRankingMonthStart();
   });
   const [applyPage, setApplyPage] = useState(() => {
     const initial = Number.parseInt(search.get("applyPage") ?? "1", 10);
@@ -198,14 +190,22 @@ function StatsPageContentInner() {
         <Panel
           className="rounded-none md:rounded-[14px] md:mb-9"
           title={
-            <div className="flex items-end gap-4">
-              <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
-                통계
-              </h1>
-              <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-              <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
-                고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요
-              </p>
+            <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
+              <div className="flex min-w-0 items-end gap-4">
+                <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
+                  통계
+                </h1>
+                <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
+                <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
+                  고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요
+                </p>
+              </div>
+              <CurrentProjectBadge
+                projectName={project?.name}
+                projectLogoUrl={project?.logoUrl}
+                loading={isProjectLoading}
+                className="max-w-[60%] justify-end md:max-w-[240px]"
+              />
             </div>
           }
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
@@ -426,7 +426,7 @@ function StatsPageContentInner() {
                   전체랭킹
                 </h2>
                 <p className="hidden md:block mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
-                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매일 집계하여 갱신됩니다.
+                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매시간 집계하여 갱신됩니다.
                 </p>
               </div>
               <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">

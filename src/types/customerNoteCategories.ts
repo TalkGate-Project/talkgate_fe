@@ -4,7 +4,7 @@ export type CustomerNoteCategory = {
   id: number;
   projectId: number;
   name: string;
-  color?: string; // e.g., hex for pills
+  colorCode?: string;
   active?: boolean;
   createdAt: string;
   updatedAt: string;

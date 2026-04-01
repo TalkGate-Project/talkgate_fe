@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { ProjectsService } from "@/services/projects";
-import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
+import {
+  CustomerNoteCategoriesService,
+  normalizeCustomerNoteCategories,
+} from "@/services/customerNoteCategories";
 import { setUseAttendanceMenu } from "@/lib/project";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 
@@ -65,7 +68,7 @@ export function useGeneralSettings(projectId: string | null) {
           "x-project-id": projectId,
         });
         if (categoriesResponse.data?.data) {
-          setStatuses(categoriesResponse.data.data);
+          setStatuses(normalizeCustomerNoteCategories(categoriesResponse.data.data));
         }
       } catch (error) {
         console.error("Failed to fetch settings data:", error);

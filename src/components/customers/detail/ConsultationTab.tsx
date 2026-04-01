@@ -8,7 +8,7 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 type Props = {
   customerName: string;
   notes: CustomerDetail["notes"];
-  categories: { id: number; name: string; color?: string }[];
+  categories: { id: number; name: string; colorCode?: string }[];
   onAddNote: (categoryId: number | null, note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
 };
@@ -89,7 +89,7 @@ export default function ConsultationTab({
         {notes?.map((n) => {
           const category = n.categoryId !== null ? categories.find((c) => c.id === n.categoryId) : null;
           const categoryName = n.categoryId === null ? "일반" : (category?.name || "알 수 없음");
-          const badgeStyle = getBadgeStyle(categoryName, n.categoryId ?? 0);
+          const badgeStyle = getBadgeStyle(categoryName, n.categoryId ?? 0, category?.colorCode);
 
           return (
             <div
@@ -103,7 +103,8 @@ export default function ConsultationTab({
                     title={categoryName}
                   >
                     <div
-                      className={`inline-flex items-center justify-center w-full max-w-full px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium overflow-hidden ${badgeStyle.bg} ${badgeStyle.text}`}
+                      className="inline-flex items-center justify-center w-full max-w-full px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium overflow-hidden"
+                      style={badgeStyle}
                     >
                       <span className="block truncate">{categoryName}</span>
                     </div>

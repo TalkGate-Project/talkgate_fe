@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Checkbox from "@/components/common/Checkbox";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
@@ -83,6 +84,12 @@ export default function ChatFilterModal({
   }, [categoryOpen]);
 
   if (!open) return null;
+
+  const getCategoryStyle = (
+    id: number | null,
+    name?: string,
+    colorCode?: string | null
+  ): CSSProperties => getBadgeStyle(name ?? "일반", id ?? 0, colorCode);
 
   const items: { key: Messenger; label: string; icon?: string }[] = [
     { key: "all", label: "전체" },
@@ -205,12 +212,13 @@ export default function ChatFilterModal({
 
               {categoryIds.length > 0 && (
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  {categoryIds.map((id, index) => {
+                  {categoryIds.map((id) => {
                     if (id === null) {
                       return (
                         <span
                           key="general"
-                          className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
+                          className="inline-flex items-center h-[22px] rounded-full px-3 text-[12px] opacity-80"
+                          style={getCategoryStyle(null)}
                         >
                           일반
                           <button
@@ -233,7 +241,6 @@ export default function ChatFilterModal({
                                 strokeWidth="1.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                className="stroke-primary-80"
                               />
                             </svg>
                           </button>
@@ -245,7 +252,8 @@ export default function ChatFilterModal({
                     return (
                       <span
                         key={id}
-                        className="inline-flex items-center h-[22px] rounded-full px-3 bg-primary-10 text-primary-80 text-[12px] opacity-80"
+                        className="inline-flex items-center h-[22px] rounded-full px-3 text-[12px] opacity-80"
+                        style={getCategoryStyle(category.id, category.name, category.colorCode)}
                       >
                         {category.name}
                         <button
@@ -268,7 +276,6 @@ export default function ChatFilterModal({
                               strokeWidth="1.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              className="stroke-primary-80"
                             />
                           </svg>
                         </button>
@@ -309,7 +316,10 @@ export default function ChatFilterModal({
                       }
                       ariaLabel="일반"
                     />
-                    <span className="text-[14px] text-neutral-90">
+                    <span
+                      className="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-medium opacity-80"
+                      style={getCategoryStyle(null)}
+                    >
                       일반
                     </span>
                   </label>
@@ -335,7 +345,10 @@ export default function ChatFilterModal({
                           }
                           ariaLabel={category.name}
                         />
-                        <span className="text-[14px] text-neutral-90">
+                        <span
+                          className="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-medium opacity-80"
+                          style={getCategoryStyle(category.id, category.name, category.colorCode)}
+                        >
                           {category.name}
                         </span>
                       </label>

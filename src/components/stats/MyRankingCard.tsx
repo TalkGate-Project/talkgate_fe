@@ -8,6 +8,8 @@ import RankingBronzeIcon from "@/components/common/icons/RankingBronzeIcon";
 import { formatCurrencyKRMobile, formatAmountChangeKRWithUnit } from "@/utils/format";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { isCurrentRankingMonth } from "@/utils/datetime";
+import { getCurrentMonthRankingChange } from "@/utils/ranking";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -25,16 +27,8 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProjectId] = useSelectedProjectId();
 
-  // 현재 선택된 월이 이번달인지 확인 (now - 1day 기준)
   const isCurrentMonth = useMemo(() => {
-    if (!month) return false;
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return (
-      month.getFullYear() === yesterday.getFullYear() &&
-      month.getMonth() === yesterday.getMonth()
-    );
+    return isCurrentRankingMonth(month);
   }, [month]);
 
   const query = useQuery<RankingMyResponse | RankingMyTeamResponse>({
@@ -70,28 +64,20 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
     ? (payload.leaderMemberId ?? null)
     : (payload.memberId ?? null);
   
-  // 이번달일 경우 yesterdayRank, yesterdayTotalAmount 사용, 그 외에는 previousRank, previousTotalAmount 사용
-  const yesterdayRank: number | null = payload.yesterdayRank ?? null;
-  const yesterdayTotalAmount: number | null = payload.yesterdayTotalAmount ?? null;
-  const previousAmount: number = isCurrentMonth && yesterdayTotalAmount !== null 
-    ? yesterdayTotalAmount 
-    : (payload.previousTotalAmount ?? 0);
-  
-  // 순위 변화 계산 (이번달일 경우만)
-  const rankChange = isCurrentMonth && yesterdayRank !== null 
-    ? yesterdayRank - rank 
-    : null;
-  
-  // 매출액 변화 계산
-  const diff = amount - previousAmount;
-  
-  // 이번달일 경우 순위 변화와 매출액 변화 표시
-  const showRankChange = isCurrentMonth && rankChange !== null;
-  const showAmountChange = isCurrentMonth && yesterdayTotalAmount !== null;
-  
-  const rankChangeLabel = rankChange !== null && rankChange !== 0
-    ? `${rankChange > 0 ? "▲" : "▼"} ${Math.abs(rankChange)}위`
-    : null;
+  const rankingChange = getCurrentMonthRankingChange({
+    rank,
+    totalAmount: amount,
+    previousRank: payload.previousRank,
+    rankChange: payload.rankChange,
+    previousTotalAmount: payload.previousTotalAmount,
+    yesterdayRank: payload.yesterdayRank,
+    yesterdayTotalAmount: payload.yesterdayTotalAmount,
+  });
+
+  const diff = rankingChange.amountDiff ?? 0;
+  const rankChange = rankingChange.rankChange;
+  const showRankChange = isCurrentMonth && rankingChange.showRankChange;
+  const showAmountChange = isCurrentMonth && rankingChange.showAmountChange;
   
   const badgeLabelWeb = showAmountChange 
     ? formatAmountChangeKRWithUnit(diff)
@@ -163,7 +149,7 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
               <div 
                 className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[12px] md:text-[14px] font-bold bg-neutral-20 dark:bg-neutral-30 text-neutral-90 dark:text-neutral-80"
               >
-                {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
+                {Math.abs(rankChange)}&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
               </div>
             )}
             {/* 모바일: 우하단 - 변화량 */}

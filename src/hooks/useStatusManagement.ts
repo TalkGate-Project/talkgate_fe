@@ -1,35 +1,49 @@
 import { useState, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CustomerNoteCategoriesService } from "@/services/customerNoteCategories";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
+import { customerNoteCategoriesQueryKey } from "@/hooks/useCustomerNoteCategories";
+import {
+  DEFAULT_STATUS_COLOR,
+  normalizeHexColor,
+} from "@/utils/statusColors";
 
 /**
  * 처리상태 관리 로직을 담당하는 훅
  */
 export function useStatusManagement(
   projectId: string | null,
-  statuses: CustomerNoteCategory[],
   setStatuses: Dispatch<SetStateAction<CustomerNoteCategory[]>>
 ) {
   const [newStatusName, setNewStatusName] = useState("");
+  const [newStatusColor, setNewStatusColor] = useState(DEFAULT_STATUS_COLOR);
+  const queryClient = useQueryClient();
 
   // 처리상태 추가
   const handleAddStatus = useCallback(async () => {
-    if (!newStatusName.trim() || !projectId) return;
+    if (!newStatusName.trim() || !projectId) return false;
     
     const trimmedName = newStatusName.trim();
+    const trimmedColor = normalizeHexColor(newStatusColor) ?? DEFAULT_STATUS_COLOR;
     setNewStatusName("");
+    setNewStatusColor(DEFAULT_STATUS_COLOR);
     
     try {
       const response = await CustomerNoteCategoriesService.create(
-        { name: trimmedName },
+        { name: trimmedName, colorCode: trimmedColor },
         { "x-project-id": projectId }
       );
       
       if (response.data?.data) {
         setStatuses((prev) => [...prev, response.data.data]);
       }
+
+      await queryClient.invalidateQueries({
+        queryKey: [...customerNoteCategoriesQueryKey, projectId],
+      });
+      return true;
     } catch (error: any) {
       console.error("Failed to create status:", error);
       showErrorModal({
@@ -40,20 +54,31 @@ export function useStatusManagement(
       });
       // 실패 시 입력값 복원
       setNewStatusName(trimmedName);
+      setNewStatusColor(trimmedColor);
+      return false;
     }
-  }, [newStatusName, projectId, setStatuses]);
+  }, [newStatusColor, newStatusName, projectId, queryClient, setStatuses]);
 
   // 처리상태 수정
-  const handleModifyStatus = useCallback(async (id: number, currentName: string) => {
-    if (!projectId) return;
-    
-    const newName = prompt("새로운 상태 이름을 입력하세요:", currentName);
-    if (!newName || !newName.trim() || newName === currentName) return;
+  const handleModifyStatus = useCallback(async (
+    id: number,
+    {
+      name,
+      colorCode,
+    }: {
+      name: string;
+      colorCode?: string | null;
+    }
+  ) => {
+    if (!projectId) return false;
+    const trimmedName = name.trim();
+    const trimmedColor = normalizeHexColor(colorCode) ?? DEFAULT_STATUS_COLOR;
+    if (!trimmedName) return false;
     
     try {
       const response = await CustomerNoteCategoriesService.update(
         String(id),
-        { name: newName.trim() },
+        { name: trimmedName, colorCode: trimmedColor },
         { "x-project-id": projectId }
       );
       
@@ -62,6 +87,11 @@ export function useStatusManagement(
           status.id === id ? response.data.data : status
         ));
       }
+
+      await queryClient.invalidateQueries({
+        queryKey: [...customerNoteCategoriesQueryKey, projectId],
+      });
+      return true;
     } catch (error: any) {
       console.error("Failed to update status:", error);
       showErrorModal({
@@ -70,8 +100,9 @@ export function useStatusManagement(
         hideCancel: true,
         confirmText: "확인",
       });
+      return false;
     }
-  }, [projectId, setStatuses]);
+  }, [projectId, queryClient, setStatuses]);
 
   // 처리상태 삭제
   const handleDeleteStatus = useCallback(async (id: number) => {
@@ -87,6 +118,9 @@ export function useStatusManagement(
             { "x-project-id": projectId }
           );
           setStatuses((prev) => prev.filter(status => status.id !== id));
+          await queryClient.invalidateQueries({
+            queryKey: [...customerNoteCategoriesQueryKey, projectId],
+          });
         } catch (error: any) {
           console.error("Failed to delete status:", error);
           showErrorModal({
@@ -98,11 +132,13 @@ export function useStatusManagement(
         }
       },
     });
-  }, [projectId, setStatuses]);
+  }, [projectId, queryClient, setStatuses]);
 
   return {
     newStatusName,
     setNewStatusName,
+    newStatusColor,
+    setNewStatusColor,
     handleAddStatus,
     handleModifyStatus,
     handleDeleteStatus,

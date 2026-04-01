@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import Panel from "@/components/common/Panel";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 
 interface NoticeSearchPanelProps {
   searchTerm: string;
@@ -21,17 +23,26 @@ export default function NoticeSearchPanel({
   onImportantFilterChange,
 }: NoticeSearchPanelProps) {
   const router = useRouter();
+  const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
 
   return (
     <Panel
       className="rounded-none md:rounded-[14px]"
       title={
-        <div className="flex items-end gap-4">
-          <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">공지사항</h1>
-          <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-          <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
-            공지사항과 중요한 안내사항을 확인하세요
-          </p>
+        <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
+          <div className="flex min-w-0 items-end gap-4">
+            <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">공지사항</h1>
+            <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
+            <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
+              공지사항과 중요한 안내사항을 확인하세요
+            </p>
+          </div>
+          <CurrentProjectBadge
+            projectName={project?.name}
+            projectLogoUrl={project?.logoUrl}
+            loading={isProjectLoading}
+            className="max-w-[60%] justify-end md:max-w-[240px]"
+          />
         </div>
       }
       bodyClassName="px-4 md:px-7 py-4 md:py-[30px] border-t border-neutral-30"
