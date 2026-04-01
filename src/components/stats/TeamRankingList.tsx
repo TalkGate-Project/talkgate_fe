@@ -162,7 +162,7 @@ export default function TeamRankingList({ projectId, month }: TeamRankingListPro
                     <div 
                       className="flex items-center justify-end px-3 py-1 h-[25px] rounded-[30px] text-[12px] md:text-[14px] font-bold bg-neutral-20 dark:bg-neutral-30 text-neutral-90 dark:text-neutral-80"
                     >
-                      {Math.abs(rankChange)}위&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
+                      {Math.abs(rankChange)}&nbsp;<span style={{ color: rankChange > 0 ? '#D83232' : '#4D82F3' }}>{rankChange > 0 ? '▲' : '▼'}</span>
                     </div>
                   )}
                   {/* 모바일: 우하단 - 변화량 */}

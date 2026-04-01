@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CSSProperties,
   useEffect,
   useRef,
   useState,
@@ -16,6 +17,7 @@ import { ProjectPartnersService } from "@/services/projectPartners";
 import { ApiKeysService } from "@/services/apiKeys";
 import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 function getBodyZoom(): number {
     if (typeof document === "undefined") return 1;
@@ -677,13 +679,24 @@ function LabeledSelect({
     );
 }
 
-function Pill({ label, onRemove }: { label: string; onRemove: () => void }) {
+function Pill({
+    label,
+    onRemove,
+    style,
+}: {
+    label: string;
+    onRemove: () => void;
+    style?: CSSProperties;
+}) {
     return (
-        <div className="flex items-center gap-2 px-2.5 h-[22px] rounded-full bg-[#D6FAE8] dark:bg-[#D6FAE8]/90 shrink-0 whitespace-nowrap">
-            <span className="text-[12px] leading-[14px] font-medium text-[#00B55B] dark:text-[#004824] opacity-80">{label}</span>
+        <div
+            className="flex items-center gap-2 px-2.5 h-[22px] rounded-full shrink-0 whitespace-nowrap"
+            style={style ?? { backgroundColor: "#D6FAE8", color: "#00B55B" }}
+        >
+            <span className="text-[12px] leading-[14px] font-medium opacity-80">{label}</span>
             <button aria-label="remove" onClick={onRemove} className="w-3 h-3 grid place-items-center">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#00B55B] dark:text-[#004824]" />
+                    <path d="M3 9L9 3M3 3L9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </button>
         </div>
@@ -752,6 +765,9 @@ function CategorySelector({
         ? `${selectedCount + (hasGeneral ? 1 : 0)}개 선택됨`
         : "전체";
 
+    const getCategoryPreviewStyle = (id: number | null, name?: string, colorCode?: string | null) =>
+        getBadgeStyle(name ?? "일반", id ?? 0, colorCode);
+
     return (
         <div ref={wrapRef} className="relative">
             <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 카테고리</label>
@@ -806,13 +822,13 @@ function CategorySelector({
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
                         {selected.map((id) => {
                             if (id === null) {
-                                return <Pill key="general" label="일반" onRemove={() => {
+                                return <Pill key="general" label="일반" style={getCategoryPreviewStyle(null)} onRemove={() => {
                                     setSelected((prev) => prev.filter((x) => x !== null));
                                 }} />;
                             }
                             const c = options.find((o) => o.id === id);
                             if (!c) return null;
-                            return <Pill key={id} label={c.name} onRemove={() => {
+                            return <Pill key={id} label={c.name} style={getCategoryPreviewStyle(c.id, c.name, c.colorCode)} onRemove={() => {
                                 setSelected((prev) => prev.filter((x) => x !== id));
                             }} />;
                         })}
@@ -847,10 +863,16 @@ function CategorySelector({
                             }}
                             ariaLabel="일반"
                         />
-                        <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">일반</span>
+                        <span
+                            className="inline-flex items-center justify-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium opacity-80"
+                            style={getCategoryPreviewStyle(null)}
+                        >
+                            일반
+                        </span>
                     </label>
                     {(options || []).map((c) => {
                         const checked = selected.includes(c.id);
+                        const optionStyle = getCategoryPreviewStyle(c.id, c.name, c.colorCode);
                         return (
                             <label
                                 key={c.id}
@@ -862,7 +884,12 @@ function CategorySelector({
                                 <Checkbox checked={checked} onChange={(next) => {
                                     setSelected((prev) => (next ? [...prev, c.id] : prev.filter((x) => x !== c.id)));
                                 }} ariaLabel={c.name} />
-                                <span className="text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80">{c.name}</span>
+                                <span
+                                    className="inline-flex items-center justify-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium opacity-80"
+                                    style={optionStyle}
+                                >
+                                    {c.name}
+                                </span>
                             </label>
                         );
                     })}

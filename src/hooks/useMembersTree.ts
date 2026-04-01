@@ -6,6 +6,13 @@ import { MemberTreeNode } from "@/types/membersTree";
 
 const treeQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "tree", projectId];
 const treeWithoutParentQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "tree", "without-parent", projectId];
+const treeWithoutParentWithAssignmentCountQueryKey = (projectId: string | number | null | undefined) => [
+  "members-tree",
+  "tree",
+  "without-parent",
+  "with-assignment-count",
+  projectId,
+];
 const teamsQueryKey = (projectId: string | number | null | undefined) => ["members-tree", "teams", projectId];
 
 export function useMembersTree(
@@ -29,6 +36,21 @@ export function useMembersTreeWithoutParent(
   return useQuery<MemberTreeNode[]>({
     queryKey: treeWithoutParentQueryKey(projectId ?? null),
     queryFn: () => MembersTreeService.fetchRootWithoutParent(projectId as string | number),
+    enabled:
+      options?.enabled !== undefined
+        ? options.enabled
+        : Boolean(projectId),
+  });
+}
+
+export function useMembersTreeWithoutParentWithAssignmentCount(
+  projectId?: string | number | null,
+  options?: { enabled?: boolean }
+) {
+  return useQuery<MemberTreeNode[]>({
+    queryKey: treeWithoutParentWithAssignmentCountQueryKey(projectId ?? null),
+    queryFn: () =>
+      MembersTreeService.fetchRootWithoutParentWithAssignmentCount(projectId as string | number),
     enabled:
       options?.enabled !== undefined
         ? options.enabled

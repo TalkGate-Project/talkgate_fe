@@ -299,6 +299,7 @@ export type AssignCustomersFilterConditions = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
+  filterByLatestCategory?: boolean;
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
@@ -311,6 +312,10 @@ export type AssignCustomersFilterConditions = {
   applicationDateTo?: string;
   assignedAtFrom?: string;
   assignedAtTo?: string;
+  ipAddress?: string;
+  keyword?: string;
+  summary?: string;
+  specialNotes?: string;
 };
 
 export type AssignCustomersInput = {
@@ -334,7 +339,7 @@ export type AssignCustomersResponse = {
 
 // Unassign customers
 export type UnassignCustomersInput = {
-  assignmentType: "ids" | "filters";
+  assignmentType: "ids" | "filter";
   customerIds?: number[];
   filterConditions?: AssignCustomersFilterConditions;
   expectedCount?: number;
@@ -399,9 +404,6 @@ export type CopyToPartnerResponse = {
     results: CopyToPartnerResultItem[];
   };
 };
-
-// Common error envelope (thrown by ApiClient on non-2xx)
-import type { ApiErrorResponse } from "./common";
 
 // Messenger add/remove
 export type AddCustomerMessengerInput = {

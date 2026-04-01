@@ -68,6 +68,7 @@ export type CustomerNoteStatusRecord = {
   id: number;
   categoryId: number | null;
   categoryName: string | null;
+  colorCode?: string | null;
   totalCount: number;
   percentage: number;
 };

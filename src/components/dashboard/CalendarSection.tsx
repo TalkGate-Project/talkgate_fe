@@ -145,14 +145,14 @@ export default function CalendarSection() {
     <Panel
       title={<span className="text-[14px] md:typo-title-4 font-semibold">달력 & 일정</span>}
       action={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={goPrev}
-            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center shrink-0"
           >
             <CalendarPrevIcon />
           </button>
-          <div className="w-[90px] md:w-[120px]">
+          <div className="w-[90px] md:w-[120px] shrink-0">
             <MonthPicker
               value={current}
               onChange={(date) => date && setCurrent(date)}
@@ -162,7 +162,7 @@ export default function CalendarSection() {
           </div>
           <button
             onClick={goNext}
-            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center shrink-0"
           >
             <CalendarNextIcon />
           </button>

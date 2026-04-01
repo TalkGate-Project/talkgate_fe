@@ -5,6 +5,7 @@ export interface MemberTreeNode {
   email?: string;
   teamName?: string;
   profileImageUrl: string | null;
+  todayAssignmentCount?: number;
   descendants: MemberTreeNode[];
 }
 

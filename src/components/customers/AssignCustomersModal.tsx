@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
-import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
+import {
+  useMembersTreeWithoutParentWithAssignmentCount,
+  useTeams,
+} from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
 import { getIndent } from "@/components/settings/teamManagement/tokens";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 export type AssignCustomersModalProps = {
   open: boolean;
@@ -17,6 +21,7 @@ export type AssignCustomersModalProps = {
   selectionMode?: "page" | "all" | null;
   totalCount?: number;
   onAssign: (targetMemberId: number) => Promise<void>;
+  onUnassign?: () => Promise<void>;
   projectId: string;
 };
 
@@ -50,6 +55,7 @@ function transformMembers(
       avatar: initialFromName(node.name),
       role: department,
       department,
+      todayAssignmentCount: node.todayAssignmentCount ?? 0,
       isLeader,
       level,
       parentId,
@@ -149,7 +155,6 @@ function HierarchicalTeamList({
       : nodes;
 
     return filteredItems.map((item) => {
-      const hasChildren = Boolean(item.children && item.children.length);
       // 자식들 중 표시될 것이 있는지 확인
       const visibleChildren = visibleIds && item.children
         ? item.children.filter((child) => visibleIds.has(child.id))
@@ -207,8 +212,8 @@ function HierarchicalTeamList({
             >
               {item.avatar}
             </div>
-            <div className="text-left text-[16px] font-semibold text-foreground">
-              {item.name}
+            <div className="flex-1 min-w-0 text-left">
+              <div className="truncate text-[16px] font-semibold text-foreground">{item.name}</div>
             </div>
             {item.department && item.department !== "팀원" && (
               <div className="px-3 bg-secondary-10 rounded-[30px] max-h-[22px] flex items-center justify-center">
@@ -217,6 +222,9 @@ function HierarchicalTeamList({
                 </span>
               </div>
             )}
+            <div className="ml-auto flex-shrink-0 text-[14px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+              오늘 배정받은 수 : {item.todayAssignmentCount ?? 0}건
+            </div>
           </div>
           {hasVisibleChildren && isExpanded && item.children && (
             <div className="mt-2">{renderItems(item.children)}</div>
@@ -230,14 +238,26 @@ function HierarchicalTeamList({
 }
 
 export default function AssignCustomersModal(props: AssignCustomersModalProps) {
-  const { open, onClose, selectedCustomerIds, selectionMode, totalCount, onAssign, projectId } = props;
+  const {
+    open,
+    onClose,
+    selectedCustomerIds,
+    selectionMode,
+    totalCount,
+    onAssign,
+    onUnassign,
+    projectId,
+  } = props;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
+  const unassignCount = selectionMode === "all" ? totalCount ?? 0 : selectedCustomerIds.length;
+  const showUnassignButton = Boolean(onUnassign);
 
-  const { data: treeData, isLoading: treeLoading } = useMembersTreeWithoutParent(projectId, {
-    enabled: open && Boolean(projectId),
-  });
+  const { data: treeData, isLoading: treeLoading } =
+    useMembersTreeWithoutParentWithAssignmentCount(projectId, {
+      enabled: open && Boolean(projectId),
+    });
   const { data: teamsData } = useTeams(projectId, {
     enabled: open && Boolean(projectId),
   });
@@ -524,17 +544,49 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
 
       <hr className="mt-4 md:mt-6 border-neutral-30 dark:border-neutral-30 flex-shrink-0" />
 
-      <div className="mt-4 flex items-center justify-between gap-2 flex-shrink-0">
-        <div className="text-[13px] text-neutral-70 dark:text-neutral-60 hidden md:block">
-          {/* {targetId ? (
-            <>
-              배정 대상 ID: <b>{targetId}</b>
-            </>
+      <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between flex-shrink-0">
+        <div className="order-2 md:order-1 flex items-center">
+          {showUnassignButton ? (
+            <button
+              type="button"
+              className="cursor-pointer inline-flex items-center justify-center w-[75px] h-[34px] px-[12px] py-[6px] gap-[10px] rounded-[5px] border border-[#E2E2E2] bg-neutral-0 text-[14px] leading-[17px] font-semibold tracking-[-0.02em] text-neutral-90 dark:bg-neutral-10 dark:border-neutral-30 dark:text-neutral-80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || unassignCount === 0}
+              onClick={() => {
+                if (!onUnassign || unassignCount === 0) return;
+                showConfirmModal({
+                  title: "고객 배정 해제",
+                  headline: `선택한 ${unassignCount}명의 고객 배정을 해제하시겠습니까?`,
+                  message: "배정이 해제된 고객은 미배정 상태로 변경됩니다.",
+                  type: "warning",
+                  confirmText: "배정해제",
+                  cancelText: "취소",
+                  onConfirm: async () => {
+                    setLoading(true);
+                    try {
+                      await onUnassign();
+                      onClose();
+                    } catch {
+                      showErrorModal({
+                        title: "오류 발생",
+                        headline: "배정 해제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+                        confirmText: "확인",
+                        cancelText: null,
+                        hideCancel: true,
+                      });
+                    } finally {
+                      setLoading(false);
+                    }
+                  },
+                });
+              }}
+            >
+              배정해제
+            </button>
           ) : (
-            <>배정 대상을 선택하세요</>
-          )} */}
+            <div className="hidden md:block text-[13px] text-neutral-70 dark:text-neutral-60" />
+          )}
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="order-1 md:order-2 flex gap-2 w-full md:w-auto">
           <button
             className="cursor-pointer flex-1 md:flex-none h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] text-neutral-90 dark:text-neutral-80 bg-neutral-0 dark:bg-neutral-10"
             onClick={onClose}
@@ -551,7 +603,7 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
               try {
                 await onAssign(targetId);
                 onClose();
-              } catch (e: any) {
+              } catch {
                 showErrorModal({
                   title: "오류 발생",
                   headline: "배정에 실패했습니다. 잠시 후 다시 시도해주세요.",

@@ -141,7 +141,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 	}
 
 	return (
-		<div ref={rootRef} className="relative w-full">
+		<div ref={rootRef} className="relative w-full min-w-0">
 			<input
 				ref={inputRef}
 				readOnly
@@ -150,7 +150,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, dateFormat) : ""}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${className}`}
+				className={`w-full min-w-0 appearance-none outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${className}`}
 			/>
 
 			{open && panelPos && createPortal(

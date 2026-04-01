@@ -1,5 +1,9 @@
+"use client";
+
 import Panel from "@/components/common/Panel";
+import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import DatePicker from "@/components/common/DatePicker";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 
 interface AttendanceHeaderProps {
   selectedDate: string;
@@ -12,18 +16,28 @@ export default function AttendanceHeader({
   onNavigateDate,
   onDateChange,
 }: AttendanceHeaderProps) {
+  const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
+
   return (
     <Panel
       className="rounded-none md:rounded-[14px] md:mb-9"
       title={
-        <div className="flex items-end gap-4">
-          <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
-            근태
-          </h1>
-          <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-          <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
-            직원들의 출퇴근 현황을 확인하고 관리하세요
-          </p>
+        <div className="flex w-full flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex items-end gap-4">
+            <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
+              근태
+            </h1>
+            <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
+            <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
+              직원들의 출퇴근 현황을 확인하고 관리하세요
+            </p>
+          </div>
+          <CurrentProjectBadge
+            projectName={project?.name}
+            projectLogoUrl={project?.logoUrl}
+            loading={isProjectLoading}
+            className="max-w-full md:max-w-[240px] md:justify-end"
+          />
         </div>
       }
       bodyClassName="px-6 md:px-7 pb-4 md:py-7.5 border-t-0 md:border-t border-b md:border-b-0 border-neutral-30"

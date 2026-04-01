@@ -27,6 +27,40 @@ type PaletteState =
     }
   | null;
 
+type ColorSelectTriggerProps = {
+  color: string;
+  ariaLabel: string;
+  onClick: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+  disabled?: boolean;
+};
+
+function ColorSelectTrigger({
+  color,
+  ariaLabel,
+  onClick,
+  disabled = false,
+}: ColorSelectTriggerProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="cursor-pointer flex h-[34px] w-[64px] shrink-0 items-center justify-center rounded-[5px] border border-neutral-30 bg-card px-3 text-foreground transition-colors hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-60"
+      aria-label={ariaLabel}
+    >
+      <span className="flex w-full items-center justify-between">
+        <span
+          className="h-[18px] w-[18px] rounded-full"
+          style={{ backgroundColor: getStatusColorTone(color).textColor }}
+        />
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M5.86134 7.21755C5.46305 7.76992 4.64029 7.76992 4.242 7.21755L0.670153 2.26841C0.193737 1.60704 0.665896 0.683197 1.48043 0.683197L8.6229 0.683198C9.43744 0.683198 9.9096 1.60704 9.43319 2.26841L5.86134 7.21755Z" fill="currentColor" />
+        </svg>
+      </span>
+    </button>
+  );
+}
+
 /**
  * 처리상태 관리 섹션 컴포넌트
  */
@@ -44,7 +78,6 @@ export default function StatusManagementSection({
   const [editingStatusName, setEditingStatusName] = useState("");
   const [editingStatusColor, setEditingStatusColor] = useState(newStatusColor);
   const [paletteState, setPaletteState] = useState<PaletteState>(null);
-  const [savingColorStatusId, setSavingColorStatusId] = useState<number | null>(null);
 
   const selectedPaletteColor = useMemo(() => {
     if (!paletteState) return null;
@@ -57,13 +90,8 @@ export default function StatusManagementSection({
       return editingStatusColor;
     }
 
-    if (paletteState.key.startsWith("row-")) {
-      const targetId = Number(paletteState.key.replace("row-", ""));
-      return statuses.find((status) => status.id === targetId)?.colorCode ?? null;
-    }
-
     return null;
-  }, [editingStatusColor, newStatusColor, paletteState, statuses]);
+  }, [editingStatusColor, newStatusColor, paletteState]);
 
   const openPalette = (
     key: string,
@@ -128,26 +156,6 @@ export default function StatusManagementSection({
       closePalette();
       return;
     }
-
-    if (!paletteState.key.startsWith("row-")) return;
-
-    const targetId = Number(paletteState.key.replace("row-", ""));
-    const status = statuses.find((item) => item.id === targetId);
-    if (!status || status.colorCode === color) {
-      closePalette();
-      return;
-    }
-
-    setSavingColorStatusId(targetId);
-    const isUpdated = await onModifyStatus(targetId, {
-      name: status.name,
-      colorCode: color,
-    });
-    setSavingColorStatusId(null);
-
-    if (isUpdated) {
-      closePalette();
-    }
   };
 
   return (
@@ -158,23 +166,11 @@ export default function StatusManagementSection({
       <div className="border-t border-neutral-30 mb-3"></div>
       
       <div className="flex gap-3 mb-5">
-        <button
-          type="button"
+        <ColorSelectTrigger
+          color={newStatusColor}
+          ariaLabel="새 처리상태 색상 선택"
           onClick={(event) => openPalette("new", event)}
-          className="cursor-pointer flex h-[34px] w-[58px] items-center justify-between rounded-[5px] border border-neutral-30 bg-card px-3"
-          aria-label="새 처리상태 색상 선택"
-        >
-          <span
-            className="h-[18px] w-[18px] rounded-full"
-            style={{ backgroundColor: getStatusColorTone(newStatusColor).backgroundColor }}
-          />
-          <svg width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M4.25896 5.4382C4.05939 5.71473 3.64764 5.71473 3.44807 5.4382L0.0954003 0.792604C-0.143249 0.461921 0.0930391 1.87809e-07 0.500843 2.2346e-07L7.20619 8.0966e-07C7.61399 8.45312e-07 7.85028 0.461922 7.61163 0.792604L4.25896 5.4382Z"
-              fill="currentColor"
-            />
-          </svg>
-        </button>
+        />
         <input
           type="text"
           value={newStatusName}
@@ -200,47 +196,40 @@ export default function StatusManagementSection({
           return (
             <div key={status.id} className="flex items-center justify-between gap-4 py-2 px-4 md:px-6 bg-neutral-10 rounded-[5px] min-h-[50px]">
               <div className="flex min-w-0 flex-1 items-center gap-3">
-                <button
-                  type="button"
-                  disabled={savingColorStatusId === status.id}
-                  onClick={(event) =>
-                    isEditing
-                      ? openPalette(`edit-${status.id}`, event)
-                      : openPalette(`row-${status.id}`, event)
-                  }
-                  className="cursor-pointer flex h-6 w-6 shrink-0 items-center justify-center rounded-full disabled:cursor-not-allowed disabled:opacity-60"
-                  aria-label={`${status.name} 색상 선택`}
-                >
-                  <span
-                    className="h-[14px] w-[14px] rounded-full"
-                    style={{
-                      backgroundColor: isEditing
-                        ? getStatusColorTone(editingStatusColor).backgroundColor
-                        : tone.backgroundColor,
-                    }}
-                  />
-                </button>
-
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editingStatusName}
-                    onChange={(event) => setEditingStatusName(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        void handleSaveEdit();
-                      }
+                  <>
+                    <ColorSelectTrigger
+                      color={editingStatusColor}
+                      ariaLabel={`${status.name} 색상 선택`}
+                      onClick={(event) => openPalette(`edit-${status.id}`, event)}
+                    />
+                    <input
+                      type="text"
+                      value={editingStatusName}
+                      onChange={(event) => setEditingStatusName(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          void handleSaveEdit();
+                        }
 
-                      if (event.key === "Escape") {
-                        resetEditing();
-                      }
-                    }}
-                    className="w-full h-[34px] rounded-[5px] border border-neutral-30 bg-card px-3 text-[14px] text-foreground focus:outline-none focus:border-foreground tracking-[-0.02em]"
-                  />
+                        if (event.key === "Escape") {
+                          resetEditing();
+                        }
+                      }}
+                      className="w-full h-[34px] rounded-[5px] border border-neutral-30 bg-card px-3 text-[14px] text-foreground focus:outline-none focus:border-foreground tracking-[-0.02em]"
+                    />
+                  </>
                 ) : (
-                  <span className="truncate text-[16px] font-semibold text-foreground leading-[19px]">
-                    {status.name}
-                  </span>
+                  <>
+                    <span
+                      className="h-[18px] w-[18px] shrink-0 rounded-full"
+                      style={{ backgroundColor: tone.textColor }}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate text-[16px] font-semibold text-foreground leading-[19px]">
+                      {status.name}
+                    </span>
+                  </>
                 )}
               </div>
 
