@@ -17,11 +17,11 @@ export default function CurrentProjectBadge({
   const fallbackInitial = safeProjectName.charAt(0).toUpperCase() || "-";
 
   return (
-    <div className={`flex items-center gap-3 min-w-0 ${className}`.trim()}>
+    <div className={`flex min-w-0 max-w-full items-center gap-3 overflow-hidden ${className}`.trim()}>
       {loading ? (
         <>
           <div className="w-7 h-7 rounded-full bg-neutral-20 animate-pulse flex-shrink-0" />
-          <div className="h-4 w-24 rounded bg-neutral-20 animate-pulse" />
+          <div className="h-4 w-24 max-w-full flex-1 rounded bg-neutral-20 animate-pulse" />
         </>
       ) : projectLogoUrl ? (
         <>
@@ -32,14 +32,14 @@ export default function CurrentProjectBadge({
             height={28}
             className="w-7 h-7 rounded-full object-cover flex-shrink-0"
           />
-          <p className="min-w-0 truncate text-[14px] text-neutral-60">{safeProjectName}</p>
+          <p className="min-w-0 flex-1 truncate text-[14px] text-neutral-60">{safeProjectName}</p>
         </>
       ) : (
         <>
           <div className="w-7 h-7 rounded-full bg-neutral-20 dark:bg-neutral-20 flex-shrink-0 grid place-items-center">
             <span className="text-[12px] font-semibold text-neutral-70">{fallbackInitial}</span>
           </div>
-          <p className="min-w-0 truncate text-[14px] text-neutral-60">{safeProjectName}</p>
+          <p className="min-w-0 flex-1 truncate text-[14px] text-neutral-60">{safeProjectName}</p>
         </>
       )}
     </div>

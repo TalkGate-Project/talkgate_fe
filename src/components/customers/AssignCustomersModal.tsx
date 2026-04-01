@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
 import {
@@ -253,10 +253,11 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
+  const wasOpenRef = useRef(false);
   const unassignCount = selectionMode === "all" ? totalCount ?? 0 : selectedCustomerIds.length;
   const showUnassignButton = Boolean(onUnassign) && canUnassign;
 
-  const { data: treeData, isLoading: treeLoading } =
+  const { data: treeData, isLoading: treeLoading, refetch: refetchTreeData } =
     useMembersTreeWithoutParentWithAssignmentCount(projectId, {
       enabled: open && Boolean(projectId),
     });
@@ -387,6 +388,14 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
       setExpandedForSearch(new Set());
     }
   }, [open]);
+
+  useEffect(() => {
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = open;
+
+    if (!open || wasOpen || !projectId || treeData === undefined) return;
+    void refetchTreeData();
+  }, [open, projectId, treeData, refetchTreeData]);
 
   if (!open) return null;
 

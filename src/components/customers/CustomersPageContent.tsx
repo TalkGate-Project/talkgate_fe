@@ -399,8 +399,8 @@ function CustomersPageContentInner() {
       <Panel
         className="rounded-none md:rounded-[14px] mb-0 md:mb-9"
         title={
-          <div className="flex w-full flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="flex items-end gap-3">
+          <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
+            <div className="flex min-w-0 items-end gap-3">
               <h1 className="text-[20px] md:text-[24px] leading-[20px] font-bold text-neutral-90 px-1.5 md:px-0">고객목록</h1>
               <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-40" />
               <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">고객 데이터를 확인하고 관리하세요</p>
@@ -409,7 +409,7 @@ function CustomersPageContentInner() {
               projectName={project?.name}
               projectLogoUrl={project?.logoUrl}
               loading={isProjectLoading}
-              className="max-w-full md:max-w-[240px] md:justify-end"
+              className="max-w-[60%] justify-end md:max-w-[240px]"
             />
           </div>
         }
