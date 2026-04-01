@@ -22,6 +22,7 @@ export type AssignCustomersModalProps = {
   totalCount?: number;
   onAssign: (targetMemberId: number) => Promise<void>;
   onUnassign?: () => Promise<void>;
+  canUnassign?: boolean;
   projectId: string;
 };
 
@@ -246,13 +247,14 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
     totalCount,
     onAssign,
     onUnassign,
+    canUnassign = false,
     projectId,
   } = props;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetId, setTargetId] = useState<number | null>(null);
   const unassignCount = selectionMode === "all" ? totalCount ?? 0 : selectedCustomerIds.length;
-  const showUnassignButton = Boolean(onUnassign);
+  const showUnassignButton = Boolean(onUnassign) && canUnassign;
 
   const { data: treeData, isLoading: treeLoading } =
     useMembersTreeWithoutParentWithAssignmentCount(projectId, {

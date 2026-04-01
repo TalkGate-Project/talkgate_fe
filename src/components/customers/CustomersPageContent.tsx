@@ -518,6 +518,7 @@ function CustomersPageContentInner() {
         totalCount={assignFromDetailId != null ? 1 : total}
         onAssign={handleAssign}
         onUnassign={handleUnassign}
+        canUnassign={isAdminOrSubAdmin}
         projectId={projectId!}
       />
 
