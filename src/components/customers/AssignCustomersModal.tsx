@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/common/BaseModal";
-import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
+import {
+  useMembersTreeWithoutParentWithAssignmentCount,
+  useTeams,
+} from "@/hooks/useMembersTree";
 import { MemberTreeNode } from "@/types/membersTree";
 import { TeamMember } from "@/types/teams";
 import { flattenTeamData } from "@/hooks/useTeamTree";
@@ -52,6 +55,7 @@ function transformMembers(
       avatar: initialFromName(node.name),
       role: department,
       department,
+      todayAssignmentCount: node.todayAssignmentCount ?? 0,
       isLeader,
       level,
       parentId,
@@ -208,8 +212,8 @@ function HierarchicalTeamList({
             >
               {item.avatar}
             </div>
-            <div className="text-left text-[16px] font-semibold text-foreground">
-              {item.name}
+            <div className="flex-1 min-w-0 text-left">
+              <div className="truncate text-[16px] font-semibold text-foreground">{item.name}</div>
             </div>
             {item.department && item.department !== "팀원" && (
               <div className="px-3 bg-secondary-10 rounded-[30px] max-h-[22px] flex items-center justify-center">
@@ -218,6 +222,9 @@ function HierarchicalTeamList({
                 </span>
               </div>
             )}
+            <div className="ml-auto flex-shrink-0 text-[14px] text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+              오늘 배정받은 수 : {item.todayAssignmentCount ?? 0}건
+            </div>
           </div>
           {hasVisibleChildren && isExpanded && item.children && (
             <div className="mt-2">{renderItems(item.children)}</div>
@@ -247,9 +254,10 @@ export default function AssignCustomersModal(props: AssignCustomersModalProps) {
   const unassignCount = selectionMode === "all" ? totalCount ?? 0 : selectedCustomerIds.length;
   const showUnassignButton = Boolean(onUnassign);
 
-  const { data: treeData, isLoading: treeLoading } = useMembersTreeWithoutParent(projectId, {
-    enabled: open && Boolean(projectId),
-  });
+  const { data: treeData, isLoading: treeLoading } =
+    useMembersTreeWithoutParentWithAssignmentCount(projectId, {
+      enabled: open && Boolean(projectId),
+    });
   const { data: teamsData } = useTeams(projectId, {
     enabled: open && Boolean(projectId),
   });

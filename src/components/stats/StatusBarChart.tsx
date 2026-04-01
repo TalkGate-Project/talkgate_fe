@@ -4,26 +4,16 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList, Cell } from "recharts";
 
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
-import type { CustomerNoteStatusRecord, CustomerNoteStatusResponse } from "@/types/statistics";
+import type { CustomerNoteStatusResponse } from "@/types/statistics";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-
-const COLORS = [
-  "#D83232",
-  "#EFB008",
-  "#CFF39C",
-  "#93EAC0",
-  "#84E0FF",
-  "#BBA6DF",
-  "#B4B0FB",
-  "#97B4FC",
-  "#9DCDE3",
-  "#558BE8",
-];
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 export default function StatusBarChart() {
   const [projectId, projectReady] = useSelectedProjectId();
+  const { categories } = useCustomerNoteCategories();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
@@ -51,18 +41,27 @@ export default function StatusBarChart() {
 
   const chartData = useMemo(() => {
     const records = data?.data.data === null ? [] : (data?.data.data ?? []);
-    return records.map((item, index) => {
+    return records.map((item) => {
       const value = item.totalCount ?? 0;
       const percent = item.percentage ?? 0;
+      const linkedCategory =
+        item.categoryId === null
+          ? null
+          : categories.find((category) => category.id === item.categoryId);
+      const badgeStyle = getBadgeStyle(
+        item.categoryName ?? "일반",
+        item.categoryId ?? 0,
+        item.colorCode ?? linkedCategory?.colorCode
+      );
+
       return {
         label: item.categoryName ?? "일반",
         value,
         percent,
-        color: COLORS[index % COLORS.length],
-        originalIndex: index, // 원본 인덱스 저장
+        color: badgeStyle.backgroundColor,
       };
     });
-  }, [data]);
+  }, [categories, data]);
 
   // 모바일에서 데이터를 5개씩 청크로 나누기
   const chartChunks = useMemo(() => {
@@ -81,11 +80,6 @@ export default function StatusBarChart() {
     const maxValue = Math.max(...data.map(d => d.value), 0);
     return [0, Math.ceil(maxValue * 1.14)];
   }, []);
-
-  const yDomain = useMemo(() => {
-    return getYDomain(chartData);
-  }, [chartData, getYDomain]);
-
 
   if (waitingForProject) {
     return (
@@ -196,10 +190,8 @@ export default function StatusBarChart() {
             />
             <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={42}>
               {data.map((entry: any, index) => {
-                // 원본 인덱스를 사용하여 색상 매핑
-                const colorIndex = entry.originalIndex ?? index;
                 return (
-                  <Cell key={`${entry.label}-${index}`} fill={COLORS[colorIndex % COLORS.length]} />
+                  <Cell key={`${entry.label}-${index}`} fill={entry.color} />
                 );
               })}
               <LabelList dataKey="value" position="top" style={{ fill: "var(--neutral-60)", fontSize: 12 }} />

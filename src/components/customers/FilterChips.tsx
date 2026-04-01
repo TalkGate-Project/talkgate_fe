@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { CustomerFilters } from "@/hooks/useCustomersFilters";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { ApiKeysService } from "@/services/apiKeys";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
+import { getBadgeStyle } from "@/utils/categoryBadge";
 
 type FilterChipsProps = {
   filters: CustomerFilters;
@@ -34,6 +35,40 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
           <path
             d="M4 12L12 4M4 4L12 12"
             stroke="#808080"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function CategoryChip({
+  label,
+  style,
+  onRemove,
+}: {
+  label: string;
+  style: CSSProperties;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      className="inline-flex items-center justify-center gap-1 px-3 h-[32px] rounded-[30px] border border-transparent"
+      style={style}
+    >
+      <span className="text-[14px] font-medium opacity-80">{label}</span>
+      <button
+        aria-label="remove"
+        onClick={onRemove}
+        className="cursor-pointer w-4 h-4 grid place-items-center"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M4 12L12 4M4 4L12 12"
+            stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -112,6 +147,16 @@ export default function FilterChips({
     if (id === null) return "일반";
     const category = categories.find((c) => c.id === id);
     return category?.name || `카테고리 ${id}`;
+  };
+
+  const getCategoryChipStyle = (id: number | null): CSSProperties => {
+    if (id === null) {
+      return getBadgeStyle("일반", 0);
+    }
+
+    const category = categories.find((item) => item.id === id);
+    const categoryName = category?.name || `카테고리 ${id}`;
+    return getBadgeStyle(categoryName, id, category?.colorCode);
   };
 
   // 팀 ID로 이름 찾기
@@ -218,7 +263,12 @@ export default function FilterChips({
       {Array.isArray(filters.categoryIds) &&
         filters.categoryIds.length > 0 &&
         filters.categoryIds.map((id) => (
-          <Chip key={id} label={`상담 카테고리: ${getCategoryName(id)}`} onRemove={() => onRemoveCategory(id)} />
+          <CategoryChip
+            key={id === null ? "general" : id}
+            label={`상담 카테고리: ${getCategoryName(id)}`}
+            style={getCategoryChipStyle(id)}
+            onRemove={() => onRemoveCategory(id)}
+          />
         ))}
       {filters.applicationDateFrom && filters.applicationDateTo && (
         <Chip

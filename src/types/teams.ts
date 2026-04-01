@@ -9,6 +9,7 @@ export interface TeamMember {
   avatar: string;
   role: string;
   department: string;
+  todayAssignmentCount?: number;
   isLeader: boolean;
   level: number;
   parentId?: string;
