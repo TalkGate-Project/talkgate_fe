@@ -180,3 +180,23 @@ export function getApplicationDateRangeLastMonth(): { from: string; to: string }
   return { from: toYYYYMMDD(from), to: toYYYYMMDD(to) };
 }
 
+/**
+ * 랭킹 화면의 "이번 달" 기준 월 시작일을 반환합니다.
+ * 월초(1일)에도 이전 달이 아닌 현재 달을 기준으로 사용합니다.
+ */
+export function getCurrentRankingMonthStart(now = new Date()): Date {
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+/**
+ * 선택한 월이 랭킹 화면의 "이번 달" 기준과 같은지 확인합니다.
+ */
+export function isCurrentRankingMonth(month?: Date | null, now = new Date()): boolean {
+  if (!month) return false;
+
+  return (
+    month.getFullYear() === now.getFullYear() &&
+    month.getMonth() === now.getMonth()
+  );
+}
+

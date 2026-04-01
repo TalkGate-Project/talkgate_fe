@@ -8,6 +8,8 @@ import Pagination from "@/components/common/Pagination";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { formatCurrencyKRMobile, formatAmountChangeKRWithUnit } from "@/utils/format";
+import { isCurrentRankingMonth } from "@/utils/datetime";
+import { getCurrentMonthRankingChange } from "@/utils/ranking";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
@@ -48,16 +50,8 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProjectId] = useSelectedProjectId();
 
-  // 현재 선택된 월이 이번달인지 확인 (now - 1day 기준)
   const isCurrentMonth = useMemo(() => {
-    if (!month) return false;
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return (
-      month.getFullYear() === yesterday.getFullYear() &&
-      month.getMonth() === yesterday.getMonth()
-    );
+    return isCurrentRankingMonth(month);
   }, [month]);
 
   useEffect(() => {
@@ -97,22 +91,20 @@ export default function TeamMemberRankingList({ projectId, month }: TeamMemberRa
       <div className="bg-neutral-10 rounded-[12px] px-3 py-3 md:px-7 md:py-5">
         <div className="space-y-2 md:space-y-3">
           {rows.map((row) => {
-            // 이번달일 경우 yesterdayTotalAmount 사용, 그 외에는 previousTotalAmount 사용
-            const previousAmount = isCurrentMonth && row.yesterdayTotalAmount !== null
-              ? row.yesterdayTotalAmount
-              : (row.previousTotalAmount ?? 0);
-            const diff = row.totalAmount - previousAmount;
-            
-            // 이번달일 경우만 변화량 표시
-            const showChange = isCurrentMonth && row.yesterdayTotalAmount !== null;
-            
-            // 순위 변화 계산 (이번달일 경우만)
-            const rankChange = isCurrentMonth && row.yesterdayRank !== null 
-              ? row.yesterdayRank - row.rank 
-              : null;
-            
-            // 이번달일 경우 순위 변화와 매출액 변화 표시
-            const showRankChange = isCurrentMonth && rankChange !== null;
+            const rankingChange = getCurrentMonthRankingChange({
+              rank: row.rank,
+              totalAmount: row.totalAmount,
+              previousRank: row.previousRank,
+              rankChange: row.rankChange,
+              previousTotalAmount: row.previousTotalAmount,
+              yesterdayRank: row.yesterdayRank,
+              yesterdayTotalAmount: row.yesterdayTotalAmount,
+            });
+
+            const diff = rankingChange.amountDiff ?? 0;
+            const rankChange = rankingChange.rankChange;
+            const showChange = isCurrentMonth && rankingChange.showAmountChange;
+            const showRankChange = isCurrentMonth && rankingChange.showRankChange;
             
             const badgeLabelWeb = showChange
               ? formatAmountChangeKRWithUnit(diff)
