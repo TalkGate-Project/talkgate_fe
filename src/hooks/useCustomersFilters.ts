@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CustomersListQuery } from "@/types/customers";
 import { sanitizeContactFilterInput } from "@/utils/format";
@@ -7,6 +7,7 @@ const CUSTOMER_FILTER_STORAGE_KEY_PREFIX = "tg_customers_last_filters";
 const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "name",
   "contact1",
+  "contact2",
   "assignType",
   "filterByLatestCategory",
   "apiKeyId",
@@ -31,6 +32,7 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
 export type CustomerFilters = {
   name?: string;
   contact1?: string;
+  contact2?: string;
   assignType?: "all" | "assigned" | "unassigned";
   filterByLatestCategory?: boolean;
   apiKeyId?: number;
@@ -220,6 +222,46 @@ export function useCustomersFilters(projectId: string | null) {
     return obj;
   }, [searchParams]);
 
+  const buildFilterParams = useCallback((filterValues: CustomerFilters): URLSearchParams => {
+    const params = new URLSearchParams();
+    function setIf(key: string, val?: any) {
+      if (val !== undefined && val !== null && val !== "") params.set(key, String(val));
+    }
+    setIf("page", 1);
+    setIf("limit", limit);
+    setIf("name", filterValues.name);
+    setIf("contact1", filterValues.contact1);
+    setIf("contact2", filterValues.contact2);
+    setIf("assignType", filterValues.assignType);
+    setIf("filterByLatestCategory", filterValues.filterByLatestCategory ?? true);
+    setIf("apiKeyId", filterValues.apiKeyId);
+    setIf("projectPartnerId", filterValues.projectPartnerId);
+    setIf("teamId", filterValues.teamId);
+    setIf("memberId", filterValues.memberId);
+    setIf("applicationRoute", filterValues.applicationRoute);
+    setIf("mediaCompany", filterValues.mediaCompany);
+    setIf("site", filterValues.site);
+    if (filterValues.categoryIds && filterValues.categoryIds.length) {
+      filterValues.categoryIds.forEach((id) => {
+        // null은 문자열 "null"로 변환하여 "일반" 카테고리를 나타냄
+        params.append("categoryIds", id === null ? "null" : String(id));
+      });
+    }
+    setIf("noteContent", filterValues.noteContent);
+    // 신청시간: 둘 다 있을 때만 URL/쿼리에 포함
+    if (filterValues.applicationDateFrom && filterValues.applicationDateTo) {
+      setIf("applicationDateFrom", filterValues.applicationDateFrom);
+      setIf("applicationDateTo", filterValues.applicationDateTo);
+    }
+    setIf("assignedAtFrom", filterValues.assignedAtFrom);
+    setIf("assignedAtTo", filterValues.assignedAtTo);
+    setIf("keyword", filterValues.keyword);
+    setIf("ipAddress", filterValues.ipAddress);
+    setIf("notablePoints", filterValues.notablePoints);
+    setIf("summaryInfo", filterValues.summaryInfo);
+    return params;
+  }, [limit]);
+
   useEffect(() => {
     setIsRestoreReady(false);
   }, [projectId]);
@@ -248,7 +290,7 @@ export function useCustomersFilters(projectId: string | null) {
     }
 
     router.replace(`/customers?${restoredQueryString}`, { scroll: false });
-  }, [projectId, router, searchParams, limit]);
+  }, [buildFilterParams, projectId, router, searchParams]);
 
   // Sync local UI states with applied URL on mount/URL change
   useEffect(() => {
@@ -260,6 +302,7 @@ export function useCustomersFilters(projectId: string | null) {
       const next = {
         name: applied.name,
         contact1: applied.contact1,
+        contact2: applied.contact2,
         assignType: applied.assignType,
         filterByLatestCategory: applied.filterByLatestCategory ?? true,
         apiKeyId: applied.apiKeyId,
@@ -308,6 +351,7 @@ export function useCustomersFilters(projectId: string | null) {
             limit: applied.limit || 10,
             name: applied.name,
             contact1: applied.contact1,
+            contact2: applied.contact2,
             assignType: applied.assignType,
             filterByLatestCategory: applied.filterByLatestCategory ?? true,
             apiKeyId: applied.apiKeyId,
@@ -333,8 +377,8 @@ export function useCustomersFilters(projectId: string | null) {
             assignedAtTo: applied.assignedAtTo,
             keyword: applied.keyword,
             ipAddress: applied.ipAddress,
-            notablePoints: applied.notablePoints,
-            summaryInfo: applied.summaryInfo,
+            specialNotes: applied.notablePoints,
+            summary: applied.summaryInfo,
             sortType: applied.sortType,
             sortOrder: applied.sortOrder,
           }
@@ -348,45 +392,6 @@ export function useCustomersFilters(projectId: string | null) {
     params.set("page", String(nextPage));
     params.set("limit", String(nextLimit ?? limit));
     router.push(`/customers?${params.toString()}`, { scroll: false });
-  }
-
-  function buildFilterParams(filterValues: CustomerFilters): URLSearchParams {
-    const params = new URLSearchParams();
-    function setIf(key: string, val?: any) {
-      if (val !== undefined && val !== null && val !== "") params.set(key, String(val));
-    }
-    setIf("page", 1);
-    setIf("limit", limit);
-    setIf("name", filterValues.name);
-    setIf("contact1", filterValues.contact1);
-    setIf("assignType", filterValues.assignType);
-    setIf("filterByLatestCategory", filterValues.filterByLatestCategory ?? true);
-    setIf("apiKeyId", filterValues.apiKeyId);
-    setIf("projectPartnerId", filterValues.projectPartnerId);
-    setIf("teamId", filterValues.teamId);
-    setIf("memberId", filterValues.memberId);
-    setIf("applicationRoute", filterValues.applicationRoute);
-    setIf("mediaCompany", filterValues.mediaCompany);
-    setIf("site", filterValues.site);
-    if (filterValues.categoryIds && filterValues.categoryIds.length) {
-      filterValues.categoryIds.forEach((id) => {
-        // null은 문자열 "null"로 변환하여 "일반" 카테고리를 나타냄
-        params.append("categoryIds", id === null ? "null" : String(id));
-      });
-    }
-    setIf("noteContent", filterValues.noteContent);
-    // 신청시간: 둘 다 있을 때만 URL/쿼리에 포함
-    if (filterValues.applicationDateFrom && filterValues.applicationDateTo) {
-      setIf("applicationDateFrom", filterValues.applicationDateFrom);
-      setIf("applicationDateTo", filterValues.applicationDateTo);
-    }
-    setIf("assignedAtFrom", filterValues.assignedAtFrom);
-    setIf("assignedAtTo", filterValues.assignedAtTo);
-    setIf("keyword", filterValues.keyword);
-    setIf("ipAddress", filterValues.ipAddress);
-    setIf("notablePoints", filterValues.notablePoints);
-    setIf("summaryInfo", filterValues.summaryInfo);
-    return params;
   }
 
   function applyFilters(filterValues?: CustomerFilters) {

@@ -105,8 +105,8 @@ export type CustomersListQuery = {
   assignedAtTo?: string;        // YYYY-MM-DD
   keyword?: string;
   ipAddress?: string;
-  notablePoints?: string;
-  summaryInfo?: string;
+  specialNotes?: string;
+  summary?: string;
   sortType?: "applicationDate" | "assignedMember";
   sortOrder?: "ASC" | "DESC";
   page: number;                 // required
