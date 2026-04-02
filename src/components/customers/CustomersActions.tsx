@@ -385,7 +385,7 @@ export default function CustomersActions({
                   role="menu"
                   className="absolute right-0 top-full mt-2 w-[105px] rounded-[8px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-[0px_8px_16px_rgba(0,0,0,0.45)] z-50 overflow-hidden"
                 >
-                  {[10, 50, 100].map((option) => {
+                  {[10, 20, 30, 50, 100].map((option) => {
                     const isSelected = limit === option;
                     return (
                       <button
@@ -545,7 +545,7 @@ export default function CustomersActions({
                 role="menu"
                 className="absolute right-0 top-full mt-2 w-[105px] rounded-[8px] bg-white dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-[0px_8px_16px_rgba(0,0,0,0.45)] z-50 overflow-hidden"
               >
-                {[10, 50, 100].map((option) => {
+                {[10, 20, 30, 50, 100].map((option) => {
                   const isSelected = limit === option;
                   return (
                     <button
