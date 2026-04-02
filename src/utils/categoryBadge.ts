@@ -1,7 +1,6 @@
 import {
   DEFAULT_STATUS_COLOR,
   getStatusColorTone,
-  STATUS_COLOR_PALETTE,
 } from "@/utils/statusColors";
 
 export type BadgeStyle = {
@@ -12,11 +11,11 @@ export type BadgeStyle = {
 function getFallbackBackgroundColor(name: string, id: number): string {
   const normalizedName = name.trim();
   const fallbackPalette = [
-    STATUS_COLOR_PALETTE[6].backgroundColor,
-    STATUS_COLOR_PALETTE[4].backgroundColor,
-    STATUS_COLOR_PALETTE[7].backgroundColor,
-    STATUS_COLOR_PALETTE[2].backgroundColor,
-    STATUS_COLOR_PALETTE[0].backgroundColor,
+    "#FFEBEB",
+    "#FFF5D5",
+    "#E2E2E2",
+    "#D3E1FE",
+    "#D6FAE8",
   ];
 
   if (
@@ -71,7 +70,7 @@ function getFallbackBackgroundColor(name: string, id: number): string {
   }
 
   if (!id) {
-    return STATUS_COLOR_PALETTE[7].backgroundColor;
+    return "#E2E2E2";
   }
 
   return fallbackPalette[id % fallbackPalette.length];
