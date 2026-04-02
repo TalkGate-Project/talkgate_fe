@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { STATUS_COLOR_PALETTE, normalizeHexColor } from "@/utils/statusColors";
+import {
+  STATUS_COLOR_PALETTE,
+  normalizeHexColor,
+} from "@/utils/statusColors";
 
 const PALETTE_COLUMN_COUNT = 4;
 const PALETTE_PANEL_WIDTH = 140;
@@ -151,7 +154,7 @@ export default function ColorPalettePopover({
             >
               <span
                 className={`block h-[18px] w-[18px] rounded-full ${isSelected ? "ring-2 ring-neutral-90 ring-offset-2 ring-offset-card" : ""}`}
-                style={{ backgroundColor: option.textColor }}
+                style={{ backgroundColor: option.paletteDotColor }}
               />
             </button>
           );

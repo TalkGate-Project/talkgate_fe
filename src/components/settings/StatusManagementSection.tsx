@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import ColorPalettePopover from "@/components/common/ColorPalettePopover";
-import { getStatusColorTone } from "@/utils/statusColors";
+import { getStatusPaletteDotColor } from "@/utils/statusColors";
 
 type Props = {
   newStatusName: string;
@@ -51,7 +51,7 @@ function ColorSelectTrigger({
       <span className="flex w-full items-center justify-between">
         <span
           className="h-[18px] w-[18px] rounded-full"
-          style={{ backgroundColor: getStatusColorTone(color).textColor }}
+          style={{ backgroundColor: getStatusPaletteDotColor(color) }}
         />
         <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M5.86134 7.21755C5.46305 7.76992 4.64029 7.76992 4.242 7.21755L0.670153 2.26841C0.193737 1.60704 0.665896 0.683197 1.48043 0.683197L8.6229 0.683198C9.43744 0.683198 9.9096 1.60704 9.43319 2.26841L5.86134 7.21755Z" fill="currentColor" />
@@ -191,7 +191,6 @@ export default function StatusManagementSection({
       <div className="space-y-3">
         {statuses.map((status) => {
           const isEditing = editingStatusId === status.id;
-          const tone = getStatusColorTone(status.colorCode);
 
           return (
             <div key={status.id} className="flex items-center justify-between gap-4 py-2 px-4 md:px-6 bg-neutral-10 rounded-[5px] min-h-[50px]">
@@ -223,7 +222,7 @@ export default function StatusManagementSection({
                   <>
                     <span
                       className="h-[18px] w-[18px] shrink-0 rounded-full"
-                      style={{ backgroundColor: tone.textColor }}
+                      style={{ backgroundColor: getStatusPaletteDotColor(status.colorCode) }}
                       aria-hidden="true"
                     />
                     <span className="truncate text-[16px] font-semibold text-foreground leading-[19px]">
