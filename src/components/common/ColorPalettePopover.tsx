@@ -4,6 +4,22 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { STATUS_COLOR_PALETTE, normalizeHexColor } from "@/utils/statusColors";
 
+const PALETTE_COLUMN_COUNT = 4;
+const PALETTE_PANEL_WIDTH = 140;
+const PALETTE_PANEL_PADDING = 16;
+const PALETTE_SWATCH_BUTTON_SIZE = 20;
+const PALETTE_SWATCH_ROW_GAP = 12;
+
+function getEstimatedPanelHeight(): number {
+  const rowCount = Math.ceil(STATUS_COLOR_PALETTE.length / PALETTE_COLUMN_COUNT);
+
+  return (
+    PALETTE_PANEL_PADDING * 2 +
+    rowCount * PALETTE_SWATCH_BUTTON_SIZE +
+    Math.max(0, rowCount - 1) * PALETTE_SWATCH_ROW_GAP
+  );
+}
+
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
 
@@ -73,8 +89,8 @@ export default function ColorPalettePopover({
 
     function updatePosition() {
       const anchorRect = currentAnchorElement.getBoundingClientRect();
-      const panelHeight = panelRef.current?.offsetHeight ?? 158;
-      const panelWidth = 140;
+      const panelHeight = panelRef.current?.offsetHeight ?? getEstimatedPanelHeight();
+      const panelWidth = PALETTE_PANEL_WIDTH;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       const zoom = getBodyZoom();
@@ -135,7 +151,7 @@ export default function ColorPalettePopover({
             >
               <span
                 className={`block h-[18px] w-[18px] rounded-full ${isSelected ? "ring-2 ring-neutral-90 ring-offset-2 ring-offset-card" : ""}`}
-                style={{ backgroundColor: option.backgroundColor }}
+                style={{ backgroundColor: option.textColor }}
               />
             </button>
           );

@@ -14,32 +14,15 @@ export function useCustomersList(params: CustomersListQuery | null) {
       if (typeof id === "number") return id;
       return id; // 이미 문자열인 경우 (문자열 "null" 포함)
     });
+    const { projectId, ...query } = params;
+
     return {
+      // Forward the typed list query wholesale so newly added filters are not dropped here.
       query: {
-        name: params.name,
-        contact1: params.contact1,
-        contact2: params.contact2,
-        noteContent: params.noteContent,
-        assignType: params.assignType,
-        filterByLatestCategory: params.filterByLatestCategory,
-        apiKeyId: params.apiKeyId,
-        projectPartnerId: params.projectPartnerId,
-        teamId: params.teamId,
-        memberId: params.memberId,
-        applicationRoute: params.applicationRoute,
-        mediaCompany: params.mediaCompany,
-        site: params.site,
+        ...query,
         categoryIds: categoryIds,
-        applicationDateFrom: params.applicationDateFrom,
-        applicationDateTo: params.applicationDateTo,
-        assignedAtFrom: params.assignedAtFrom,
-        assignedAtTo: params.assignedAtTo,
-        sortType: params.sortType,
-        sortOrder: params.sortOrder,
-        page: params.page,
-        limit: params.limit,
       },
-      headers: { "x-project-id": params.projectId },
+      headers: { "x-project-id": projectId },
     } as const;
   }, [params]);
 
