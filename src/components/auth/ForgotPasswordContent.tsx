@@ -15,8 +15,6 @@ export default function ForgotPasswordContent() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -25,6 +23,7 @@ export default function ForgotPasswordContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResendingCode, setIsResendingCode] = useState(false);
 
   const passwordValid = useMemo(() => password.length >= 8, [password]);
   const passwordHasUpper = useMemo(() => /[A-Z]/.test(password), [password]);
@@ -53,7 +52,7 @@ export default function ForgotPasswordContent() {
 
       {step === "email" && (
         <form
-          className="mt-8 w-full space-y-3"
+          className="w-full space-y-3"
           onSubmit={async (e) => {
             e.preventDefault();
             if (isSubmitting) return;
@@ -87,7 +86,7 @@ export default function ForgotPasswordContent() {
             }
           }}
         >
-          <div className="text-[#BFBFBF] text-[12px] mb-1">비밀번호를 찾고자 하는 이메일을 입력해주세요.</div>
+          <div className="text-[#BFBFBF] text-[14px] text-center mb-7">비밀번호를 찾고자 하는 이메일을 입력해주세요.</div>
           <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>이메일</label>
           <input
             name="email"
@@ -113,7 +112,7 @@ export default function ForgotPasswordContent() {
 
       {step === "verify" && (
         <form
-          className="mt-8 w-full space-y-3"
+          className="w-full space-y-3"
           onSubmit={async (e) => {
             e.preventDefault();
             if (isSubmitting) return;
@@ -149,31 +148,56 @@ export default function ForgotPasswordContent() {
             }
           }}
         >
-          <div className="text-[#BFBFBF] text-[12px] mb-1">등록된 핸드폰 번호로 인증번호를 요청하세요.</div>
-          <label className="block text-[#CECECE] text-[12px] mb-1">이름</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="이름을 입력하세요"
-            className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
-          />
-          <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">핸드폰 번호</label>
-          <div className="flex gap-2">
+          <div className="text-[#BFBFBF] text-[14px] text-center mb-7">이메일로 전송된 6자리 인증코드를 입력하세요.</div>
+          <label className={`block text-[12px] mb-1 ${invalid ? "text-[#FF5A5A]" : "text-[#CECECE]"}`}>인증번호</label>
+          <div className="flex flex-row items-center gap-[10px]">
             <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="핸드폰 번호를 입력하세요"
-              className="flex-1 h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
+              name="verification-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder={invalid ? "인증번호를 다시 입력하세요" : "인증번호를 입력하세요"}
+              className={`min-w-0 flex-1 h-[34px] rounded-[5px] border bg-transparent px-3 text-[14px] text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
+              autoComplete="one-time-code"
             />
-            <button type="button" className="px-3 rounded-[5px] bg-[#2F2F2F] text-[#D0D0D0] text-[13px]">번호전송</button>
+            <button
+              type="button"
+              disabled={isSubmitting || isResendingCode || !email.trim()}
+              className="box-border flex h-[34px] w-[72px] shrink-0 flex-none items-center justify-center gap-[10px] rounded-[5px] bg-[#252525] px-3 text-center text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#D0D0D0] disabled:pointer-events-none disabled:opacity-50"
+              onClick={async () => {
+                if (isResendingCode || isSubmitting) return;
+                setIsResendingCode(true);
+                try {
+                  await ForgotPasswordService.requestResetEmail({ email });
+                  showErrorModal({
+                    type: "success",
+                    title: "이메일 전송 완료",
+                    headline: "인증 코드가 전송되었습니다",
+                    description: "입력하신 이메일로 인증 코드를 재전송했습니다. 이메일을 확인해주세요.",
+                    hideCancel: true,
+                  });
+                } catch (error: any) {
+                  console.error("Password reset code resend failed:", error);
+                  const errCode = error?.data?.code ?? error?.response?.data?.code;
+                  const isSocialUser = errCode === "SOCIAL_USER_CANNOT_USE_PASSWORD";
+                  showErrorModal({
+                    type: "error",
+                    title: isSocialUser ? "알림" : "이메일 전송 실패",
+                    headline: isSocialUser ? "소셜 계정으로 가입된 이메일입니다." : "인증 코드 재전송에 실패했습니다",
+                    description: isSocialUser ? undefined : "잠시 후 다시 시도해주세요.",
+                    hideCancel: true,
+                  });
+                } finally {
+                  setIsResendingCode(false);
+                }
+              }}
+            >
+              {isResendingCode ? (
+                <span className="text-[12px] leading-[17px]">전송중</span>
+              ) : (
+                "재전송"
+              )}
+            </button>
           </div>
-          <label className="block text-[#CECECE] text-[12px] mt-3 mb-1">인증번호</label>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="인증번호를 입력하세요"
-            className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white"
-          />
           <AsyncButton
             type="submit"
             variant="auth"
@@ -303,9 +327,9 @@ export default function ForgotPasswordContent() {
       )}
 
       {step !== "done" && (
-        <div className="mt-6 text-[13px] text-[#BFBFBF]">
+        <div className="mt-6 text-[13px] text-[#BFBFBF] text-center">
           비밀번호를 찾으셨나요?{' '}
-          <button type="button" className="underline underline-offset-2 hover:text-white" onClick={() => router.push("/login")}>
+          <button type="button" className="underline underline-offset-2 text-[#4D82F3] cursor-pointer" onClick={() => router.push("/login")}>
             로그인 화면으로
           </button>
         </div>
