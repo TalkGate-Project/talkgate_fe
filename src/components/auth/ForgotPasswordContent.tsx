@@ -64,7 +64,7 @@ export default function ForgotPasswordContent() {
                 type: "success",
                 title: "이메일 전송 완료",
                 headline: "인증 코드가 전송되었습니다",
-                description: "입력하신 이메일로 인증 코드를 전송했습니다. 이메일을 확인해주세요.",
+                description: "입력하신 이메일로 인증 코드를 전송했습니다.\n이메일을 확인해주세요.",
                 hideCancel: true,
               });
               setStep("verify");
@@ -93,7 +93,7 @@ export default function ForgotPasswordContent() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={invalid ? "이메일을 다시 입력하세요" : "이메일을 입력하세요"}
-            className={`w-full h-[40px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
+            className={`w-full h-[40px] text-[14px] rounded-[5px] border bg-transparent px-3 text-white ${invalid ? "border-[#FF5A5A] placeholder-[#FF5A5A]" : "border-[#555555]"}`}
             autoComplete="email"
           />
           <AsyncButton
@@ -162,7 +162,7 @@ export default function ForgotPasswordContent() {
             <button
               type="button"
               disabled={isSubmitting || isResendingCode || !email.trim()}
-              className="box-border flex h-[34px] w-[72px] shrink-0 flex-none items-center justify-center gap-[10px] rounded-[5px] bg-[#252525] px-3 text-center text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#D0D0D0] disabled:pointer-events-none disabled:opacity-50"
+              className="box-border cursor-pointer flex h-[34px] w-[72px] shrink-0 flex-none items-center justify-center gap-[10px] rounded-[5px] bg-[#252525] px-3 text-center text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-[#D0D0D0] disabled:pointer-events-none disabled:opacity-50"
               onClick={async () => {
                 if (isResendingCode || isSubmitting) return;
                 setIsResendingCode(true);
@@ -172,7 +172,7 @@ export default function ForgotPasswordContent() {
                     type: "success",
                     title: "이메일 전송 완료",
                     headline: "인증 코드가 전송되었습니다",
-                    description: "입력하신 이메일로 인증 코드를 재전송했습니다. 이메일을 확인해주세요.",
+                    description: "입력하신 이메일로 인증 코드를 재전송했습니다.\n이메일을 확인해주세요.",
                     hideCancel: true,
                   });
                 } catch (error: any) {
