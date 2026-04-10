@@ -199,7 +199,7 @@ export default function CustomersTable({
 
   const handleMouseEnter = (
     e: React.MouseEvent,
-    customer: CustomerListItem
+    customer: CustomerListItem | CustomerDuplicateItem
   ) => {
     // 모바일에서는 호버 미리보기 비활성화
     if (typeof window !== "undefined" && window.innerWidth < 768) {
@@ -915,6 +915,8 @@ export default function CustomersTable({
                           <tr
                             key={`${c.id}-duplicate-${item.id}`}
                             className={`cursor-pointer bg-[#F8F8F8] dark:bg-neutral-20 ${
+                              hoveredId === item.id ? "md:bg-neutral-10 dark:md:bg-neutral-10 " : ""
+                            }${
                               itemIndex === duplicateItems.length - 1 && duplicateCount <= 5
                                 ? "border-b border-[#E2E2E2] dark:border-[#44444455]"
                                 : itemIndex < duplicateItems.length - 1
@@ -922,6 +924,30 @@ export default function CustomersTable({
                                 : ""
                             }`}
                             onClick={() => onCustomerClick(item.id)}
+                            onMouseEnter={(e) => {
+                              if (
+                                typeof window !== "undefined" &&
+                                window.innerWidth >= 768
+                              ) {
+                                handleMouseEnter(e, item);
+                              }
+                            }}
+                            onMouseMove={(e) => {
+                              if (
+                                typeof window !== "undefined" &&
+                                window.innerWidth >= 768
+                              ) {
+                                handleMouseMove(e);
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              if (
+                                typeof window !== "undefined" &&
+                                window.innerWidth >= 768
+                              ) {
+                                handleMouseLeave();
+                              }
+                            }}
                           >
                             {/* 체크박스/순번 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
