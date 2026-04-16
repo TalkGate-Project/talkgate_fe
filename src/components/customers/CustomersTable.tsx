@@ -15,7 +15,6 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
-import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -781,7 +780,7 @@ export default function CustomersTable({
                             {(() => {
                               const categoryId = c.categoryId ?? null;
                               if (categoryId === null) {
-                                return <span className="opacity-80">{NO_CATEGORY_LABEL}</span>;
+                                return <span className="opacity-80">-</span>;
                               }
                               const category = categories.find(
                                 (cat) => cat.id === categoryId
@@ -995,7 +994,7 @@ export default function CustomersTable({
                                   {(() => {
                                     const categoryId = item.categoryId ?? null;
                                     if (categoryId === null)
-                                      return <span className="opacity-80">{NO_CATEGORY_LABEL}</span>;
+                                      return <span className="opacity-80">-</span>;
                                     const category = categories.find(
                                       (cat) => cat.id === categoryId
                                     );
