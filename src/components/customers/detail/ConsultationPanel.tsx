@@ -5,7 +5,9 @@ import { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 import CategoryHistoryModal from "./CategoryHistoryModal";
+import CategoryDropdownPortal from "./CategoryDropdownPortal";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 type Props = {
   customerName: string;
@@ -16,6 +18,7 @@ type Props = {
   notes: CustomerDetail["notes"];
   categories: { id: number; name: string; colorCode?: string }[];
   onChangeCategory: (categoryId: number | null) => Promise<void>;
+  onOpenCategoryHistory?: () => Promise<void> | void;
   onAddNote: (note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
   customerId: number;
@@ -32,6 +35,7 @@ export default function ConsultationPanel({
   notes,
   categories,
   onChangeCategory,
+  onOpenCategoryHistory,
   onAddNote,
   onRemoveNote,
   customerId,
@@ -47,6 +51,7 @@ export default function ConsultationPanel({
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const categoryButtonRef = useRef<HTMLButtonElement>(null);
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
 
@@ -58,7 +63,11 @@ export default function ConsultationPanel({
     if (!isCategoryDropdownOpen) return;
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (!categoryDropdownRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !categoryDropdownRef.current?.contains(target) &&
+        !categoryButtonRef.current?.contains(target)
+      ) {
         setIsCategoryDropdownOpen(false);
       }
     };
@@ -147,7 +156,7 @@ export default function ConsultationPanel({
         : null,
     [categories, selectedCategoryId]
   );
-  const currentCategoryName = currentCategory?.name ?? "일반";
+  const currentCategoryName = currentCategory?.name ?? NO_CATEGORY_LABEL;
   const currentCategoryStyle = getBadgeStyle(
     currentCategoryName,
     currentCategory?.id ?? 0,
@@ -155,7 +164,7 @@ export default function ConsultationPanel({
   );
   const categoryOptions = useMemo(
     () => [
-      { id: null as number | null, name: "일반", colorCode: undefined },
+      { id: null as number | null, name: NO_CATEGORY_LABEL, colorCode: undefined },
       ...categories.map((category) => ({
         id: category.id,
         name: category.name,
@@ -164,6 +173,10 @@ export default function ConsultationPanel({
     ],
     [categories]
   );
+  const handleOpenHistoryModal = () => {
+    setIsHistoryModalOpen(true);
+    void onOpenCategoryHistory?.();
+  };
 
   return (
     <div
@@ -260,8 +273,9 @@ export default function ConsultationPanel({
             카테고리
           </div>
           <div className="mt-3 flex items-center gap-6">
-            <div className="relative" ref={categoryDropdownRef}>
+            <div>
               <button
+                ref={categoryButtonRef}
                 type="button"
                 className="inline-flex max-w-full items-center gap-2 rounded-[30px] px-4 py-2 text-[14px] font-semibold disabled:opacity-60"
                 style={currentCategoryStyle}
@@ -283,56 +297,12 @@ export default function ConsultationPanel({
                   />
                 </svg>
               </button>
-
-              {isCategoryDropdownOpen && (
-                <div className="absolute left-0 top-full z-20 mt-3 w-[280px] rounded-[12px] border border-[#E2E2E2] bg-card p-4 shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:border-neutral-30 dark:bg-neutral-10">
-                  <div className="space-y-1">
-                    {categoryOptions.map((categoryOption) => {
-                      const badgeStyle = getBadgeStyle(
-                        categoryOption.name,
-                        categoryOption.id ?? 0,
-                        categoryOption.colorCode
-                      );
-                      const isSelected =
-                        (categoryOption.id ?? null) === currentCategoryId;
-
-                      return (
-                        <button
-                          key={categoryOption.id ?? "general"}
-                          type="button"
-                          className="flex w-full items-center gap-3 rounded-[8px] px-3 py-3 text-left hover:bg-neutral-10 dark:hover:bg-neutral-20 disabled:opacity-60"
-                          onClick={() =>
-                            void handleSelectCategory(categoryOption.id ?? null)
-                          }
-                          disabled={isChangingCategory}
-                        >
-                          <span
-                            className="h-3 w-3 shrink-0 rounded-full"
-                            style={{
-                              backgroundColor:
-                                typeof badgeStyle.color === "string"
-                                  ? badgeStyle.color
-                                  : undefined,
-                            }}
-                          />
-                          <span className="flex-1 text-[14px] font-medium text-foreground">
-                            {categoryOption.name}
-                          </span>
-                          {isSelected && (
-                            <span className="text-[12px] text-neutral-60">선택됨</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             <button
               type="button"
               className="grid h-6 w-6 shrink-0 place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
-              onClick={() => setIsHistoryModalOpen(true)}
+              onClick={handleOpenHistoryModal}
               aria-label="카테고리 기록 보기"
             >
               <svg
@@ -455,6 +425,15 @@ export default function ConsultationPanel({
           loading={unlinking}
         />
       )}
+      <CategoryDropdownPortal
+        open={isCategoryDropdownOpen}
+        anchorRef={categoryButtonRef}
+        dropdownRef={categoryDropdownRef}
+        options={categoryOptions}
+        selectedCategoryId={selectedCategoryId === "" ? null : selectedCategoryId}
+        onSelect={(categoryId) => void handleSelectCategory(categoryId)}
+        disabled={isChangingCategory}
+      />
       <CategoryHistoryModal
         open={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}

@@ -397,6 +397,7 @@ export default function CustomerDetailModalMobile({
                 categoryHistory={categoryHistory}
                 categoryHistoryLoading={categoryHistoryLoading}
                 onChangeCategory={handleChangeCategory}
+                onOpenCategoryHistory={actions.refetchCategoryHistory}
                 onAddNote={handleAddNote}
                 onRemoveNote={handleRemoveNote}
               />

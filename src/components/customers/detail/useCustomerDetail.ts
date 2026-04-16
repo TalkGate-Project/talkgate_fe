@@ -153,16 +153,14 @@ export function useCustomerDetail(
   useEffect(() => {
     if (open && customerId) {
       fetchDetailRef.current();
-      void fetchCategoryHistory();
     }
-  }, [open, customerId, fetchCategoryHistory]);
+  }, [open, customerId]);
 
   const changeCategory = useCallback(
     async (categoryId: number | null) => {
       await actions.changeCategory(categoryId);
-      await fetchCategoryHistory();
     },
-    [actions, fetchCategoryHistory]
+    [actions]
   );
 
   // =========================================================================

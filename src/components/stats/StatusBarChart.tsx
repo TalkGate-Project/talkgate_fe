@@ -10,6 +10,7 @@ import { StatisticsService } from "@/services/statistics";
 import type { CustomerNoteStatusResponse } from "@/types/statistics";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 export default function StatusBarChart() {
   const [projectId, projectReady] = useSelectedProjectId();
@@ -49,13 +50,13 @@ export default function StatusBarChart() {
           ? null
           : categories.find((category) => category.id === item.categoryId);
       const badgeStyle = getBadgeStyle(
-        item.categoryName ?? "일반",
+        item.categoryName ?? NO_CATEGORY_LABEL,
         item.categoryId ?? 0,
         item.colorCode ?? linkedCategory?.colorCode
       );
 
       return {
-        label: item.categoryName ?? "일반",
+        label: item.categoryName ?? NO_CATEGORY_LABEL,
         value,
         percent,
         color: badgeStyle.backgroundColor,

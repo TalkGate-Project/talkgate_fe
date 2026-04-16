@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Checkbox from "@/components/common/Checkbox";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 function getBodyZoom(): number {
   if (typeof document === "undefined") return 1;
@@ -89,7 +90,7 @@ export default function ChatFilterModal({
     id: number | null,
     name?: string,
     colorCode?: string | null
-  ): CSSProperties => getBadgeStyle(name ?? "일반", id ?? 0, colorCode);
+  ): CSSProperties => getBadgeStyle(name ?? NO_CATEGORY_LABEL, id ?? 0, colorCode);
 
   const items: { key: Messenger; label: string; icon?: string }[] = [
     { key: "all", label: "전체" },
@@ -220,7 +221,7 @@ export default function ChatFilterModal({
                           className="inline-flex items-center h-[22px] rounded-full px-3 text-[12px] opacity-80"
                           style={getCategoryStyle(null)}
                         >
-                          일반
+                          {NO_CATEGORY_LABEL}
                           <button
                             className="ml-2 w-3 h-3 grid place-items-center"
                             aria-label="remove"
@@ -314,13 +315,13 @@ export default function ChatFilterModal({
                           }
                         })
                       }
-                      ariaLabel="일반"
+                      ariaLabel={NO_CATEGORY_LABEL}
                     />
                     <span
                       className="inline-flex items-center rounded-full px-3 py-1 text-[12px] font-medium opacity-80"
                       style={getCategoryStyle(null)}
                     >
-                      일반
+                      {NO_CATEGORY_LABEL}
                     </span>
                   </label>
                   {categoryOptions.map((category) => {

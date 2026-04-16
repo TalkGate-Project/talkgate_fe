@@ -411,6 +411,7 @@ export default function CustomerDetailModalDesktop({
               notes={detail.notes}
               categories={categories}
               onChangeCategory={handleChangeCategory}
+              onOpenCategoryHistory={actions.refetchCategoryHistory}
               onAddNote={handleAddNote}
               onRemoveNote={handleRemoveNote}
               onUnlinkConversation={handleUnlinkConversation}

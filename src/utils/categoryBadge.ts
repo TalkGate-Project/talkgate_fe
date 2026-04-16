@@ -43,6 +43,7 @@ function getFallbackBackgroundColor(name: string, id: number): string {
     normalizedName.includes("AS") ||
     normalizedName.includes("보통") ||
     normalizedName.includes("일반") ||
+    normalizedName.includes("없음") ||
     normalizedName.includes("기타")
   ) {
     return fallbackPalette[2];

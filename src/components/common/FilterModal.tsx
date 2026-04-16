@@ -19,6 +19,7 @@ import { CustomersService } from "@/services/customers";
 import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 function getBodyZoom(): number {
     if (typeof document === "undefined") return 1;
@@ -86,6 +87,12 @@ type ApiKeyOption = {
 
 type CustomerFilterOptionKey = "applicationRoutes" | "mediaCompanies" | "sites";
 
+const INITIAL_CUSTOMER_FILTER_LOADING_STATE: Record<CustomerFilterOptionKey, boolean> = {
+    applicationRoutes: false,
+    mediaCompanies: false,
+    sites: false,
+};
+
 export default function FilterModal({
     open,
     onClose,
@@ -114,7 +121,8 @@ export default function FilterModal({
     const [applicationRouteOptions, setApplicationRouteOptions] = useState<Option[]>([]);
     const [mediaCompanyOptions, setMediaCompanyOptions] = useState<Option[]>([]);
     const [siteFilterOptions, setSiteFilterOptions] = useState<Option[]>([]);
-    const [loadingCustomerFilterOptions, setLoadingCustomerFilterOptions] = useState(false);
+    const [loadingCustomerFilterOptions, setLoadingCustomerFilterOptions] = useState<Record<CustomerFilterOptionKey, boolean>>(INITIAL_CUSTOMER_FILTER_LOADING_STATE);
+    const [loadedCustomerFilterOptions, setLoadedCustomerFilterOptions] = useState<Record<CustomerFilterOptionKey, boolean>>(INITIAL_CUSTOMER_FILTER_LOADING_STATE);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
     const apiKeyWrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -235,42 +243,50 @@ export default function FilterModal({
     }, [open, shouldShowApiKeyFilter, projectId]);
 
     useEffect(() => {
-        if (!open || !projectId) return;
-        let cancelled = false;
+        setApplicationRouteOptions([]);
+        setMediaCompanyOptions([]);
+        setSiteFilterOptions([]);
+        setLoadingCustomerFilterOptions(INITIAL_CUSTOMER_FILTER_LOADING_STATE);
+        setLoadedCustomerFilterOptions(INITIAL_CUSTOMER_FILTER_LOADING_STATE);
+    }, [projectId]);
 
-        const run = async () => {
-            setLoadingCustomerFilterOptions(true);
-            const [routesResult, mediaCompaniesResult, sitesResult] = await Promise.allSettled([
-                CustomersService.listApplicationRoutes(projectId),
-                CustomersService.listMediaCompanies(projectId),
-                CustomersService.listSites(projectId),
-            ]);
+    const fetchCustomerFilterOptions = useCallback(async (key: CustomerFilterOptionKey) => {
+        if (!projectId || loadingCustomerFilterOptions[key] || loadedCustomerFilterOptions[key]) {
+            return;
+        }
 
-            if (cancelled) return;
+        setLoadingCustomerFilterOptions((prev) => ({ ...prev, [key]: true }));
 
-            setApplicationRouteOptions(
-                routesResult.status === "fulfilled"
-                    ? normalizeCustomerFilterOptions(routesResult.value.data?.data, "applicationRoutes")
-                    : []
-            );
-            setMediaCompanyOptions(
-                mediaCompaniesResult.status === "fulfilled"
-                    ? normalizeCustomerFilterOptions(mediaCompaniesResult.value.data?.data, "mediaCompanies")
-                    : []
-            );
-            setSiteFilterOptions(
-                sitesResult.status === "fulfilled"
-                    ? normalizeCustomerFilterOptions(sitesResult.value.data?.data, "sites")
-                    : []
-            );
-            setLoadingCustomerFilterOptions(false);
-        };
+        try {
+            const response =
+                key === "applicationRoutes"
+                    ? await CustomersService.listApplicationRoutes(projectId)
+                    : key === "mediaCompanies"
+                        ? await CustomersService.listMediaCompanies(projectId)
+                        : await CustomersService.listSites(projectId);
+            const normalizedOptions = normalizeCustomerFilterOptions(response.data?.data, key);
 
-        void run();
-        return () => {
-            cancelled = true;
-        };
-    }, [open, projectId]);
+            if (key === "applicationRoutes") {
+                setApplicationRouteOptions(normalizedOptions);
+            } else if (key === "mediaCompanies") {
+                setMediaCompanyOptions(normalizedOptions);
+            } else {
+                setSiteFilterOptions(normalizedOptions);
+            }
+
+            setLoadedCustomerFilterOptions((prev) => ({ ...prev, [key]: true }));
+        } catch {
+            if (key === "applicationRoutes") {
+                setApplicationRouteOptions([]);
+            } else if (key === "mediaCompanies") {
+                setMediaCompanyOptions([]);
+            } else {
+                setSiteFilterOptions([]);
+            }
+        } finally {
+            setLoadingCustomerFilterOptions((prev) => ({ ...prev, [key]: false }));
+        }
+    }, [loadedCustomerFilterOptions, loadingCustomerFilterOptions, projectId]);
 
     useEffect(() => {
         if (!open || (!partnerOpen && !apiKeyOpen)) return;
@@ -580,7 +596,12 @@ export default function FilterModal({
                                 placeholder="직접 입력 또는 선택"
                                 value={form.applicationRoute || ""}
                                 onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))}
-                                loading={loadingCustomerFilterOptions}
+                                onOpenChange={(nextOpen) => {
+                                    if (nextOpen) {
+                                        void fetchCustomerFilterOptions("applicationRoutes");
+                                    }
+                                }}
+                                loading={loadingCustomerFilterOptions.applicationRoutes}
                                 emptyText="신청경로가 없습니다."
                             />
                             <SearchableLabeledCombobox
@@ -589,7 +610,12 @@ export default function FilterModal({
                                 placeholder="직접 입력 또는 선택"
                                 value={form.mediaCompany || ""}
                                 onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))}
-                                loading={loadingCustomerFilterOptions}
+                                onOpenChange={(nextOpen) => {
+                                    if (nextOpen) {
+                                        void fetchCustomerFilterOptions("mediaCompanies");
+                                    }
+                                }}
+                                loading={loadingCustomerFilterOptions.mediaCompanies}
                                 emptyText="매체사가 없습니다."
                             />
 
@@ -600,7 +626,12 @@ export default function FilterModal({
                                 placeholder="직접 입력 또는 선택"
                                 value={form.site || ""}
                                 onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))}
-                                loading={loadingCustomerFilterOptions}
+                                onOpenChange={(nextOpen) => {
+                                    if (nextOpen) {
+                                        void fetchCustomerFilterOptions("sites");
+                                    }
+                                }}
+                                loading={loadingCustomerFilterOptions.sites}
                                 emptyText="사이트가 없습니다."
                             />
                             <LabeledSelect
@@ -755,6 +786,7 @@ function SearchableLabeledCombobox({
     placeholder,
     value,
     onChange,
+    onOpenChange,
     loading = false,
     emptyText,
 }: {
@@ -763,24 +795,35 @@ function SearchableLabeledCombobox({
     placeholder: string;
     value?: string;
     onChange?: (v: string) => void;
+    onOpenChange?: (open: boolean) => void;
     loading?: boolean;
     emptyText: string;
 }) {
     const [open, setOpen] = useState(false);
     const wrapRef = useRef<HTMLDivElement | null>(null);
 
+    const updateOpen = useCallback((nextOpen: boolean) => {
+        setOpen((prevOpen) => {
+            if (prevOpen === nextOpen) {
+                return prevOpen;
+            }
+            onOpenChange?.(nextOpen);
+            return nextOpen;
+        });
+    }, [onOpenChange]);
+
     useEffect(() => {
         if (!open) return;
         const onDocClick = (event: MouseEvent) => {
             const target = event.target as Node;
             if (wrapRef.current && !wrapRef.current.contains(target)) {
-                setOpen(false);
+                updateOpen(false);
             }
         };
 
         document.addEventListener("mousedown", onDocClick);
         return () => document.removeEventListener("mousedown", onDocClick);
-    }, [open]);
+    }, [open, updateOpen]);
 
     const filteredOptions = useMemo(() => {
         const term = value?.trim().toLowerCase() ?? "";
@@ -793,15 +836,15 @@ function SearchableLabeledCombobox({
             <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
             <div
                 className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20"
-                onClick={() => setOpen(true)}
+                onClick={() => updateOpen(true)}
             >
                 <div className="flex flex-row items-center p-0 gap-[30px] w-full lg:w-[360px] h-[17px]">
                     <input
                         value={value ?? ""}
-                        onFocus={() => setOpen(true)}
+                        onFocus={() => updateOpen(true)}
                         onChange={(event) => {
                             onChange?.(event.target.value);
-                            setOpen(true);
+                            updateOpen(true);
                         }}
                         className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60"
                         placeholder={placeholder}
@@ -825,7 +868,7 @@ function SearchableLabeledCombobox({
                                     type="button"
                                     onClick={() => {
                                         onChange?.(String(option.value));
-                                        setOpen(false);
+                                        updateOpen(false);
                                     }}
                                     className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
                                 >
@@ -972,7 +1015,7 @@ function CategorySelector({
         : "전체";
 
     const getCategoryPreviewStyle = (id: number | null, name?: string, colorCode?: string | null) =>
-        getBadgeStyle(name ?? "일반", id ?? 0, colorCode);
+        getBadgeStyle(name ?? NO_CATEGORY_LABEL, id ?? 0, colorCode);
 
     return (
         <div ref={wrapRef} className="relative">
@@ -1011,7 +1054,7 @@ function CategorySelector({
                     <div className={`flex items-center gap-2 w-max ${open ? "relative z-20" : ""}`}>
                         {selected.map((id) => {
                             if (id === null) {
-                                return <Pill key="general" label="일반" style={getCategoryPreviewStyle(null)} onRemove={() => {
+                                return <Pill key="general" label={NO_CATEGORY_LABEL} style={getCategoryPreviewStyle(null)} onRemove={() => {
                                     setSelected((prev) => prev.filter((x) => x !== null));
                                 }} />;
                             }
@@ -1050,13 +1093,13 @@ function CategorySelector({
                                     }
                                 });
                             }}
-                            ariaLabel="일반"
+                            ariaLabel={NO_CATEGORY_LABEL}
                         />
                         <span
                             className="inline-flex items-center justify-center h-[22px] rounded-[30px] px-3 text-[12px] leading-[14px] font-medium opacity-80"
                             style={getCategoryPreviewStyle(null)}
                         >
-                            일반
+                            {NO_CATEGORY_LABEL}
                         </span>
                     </label>
                     {(options || []).map((c) => {
