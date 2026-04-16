@@ -63,6 +63,8 @@ export default function CustomerDetailModalDesktop({
   const {
     loading,
     detail,
+    categoryHistory,
+    categoryHistoryLoading,
     categories,
     messengersLocal,
     form,
@@ -117,8 +119,13 @@ export default function CustomerDetailModalDesktop({
     markListRefreshPending();
   }, [actions, markListRefreshPending]);
 
-  const handleAddNote = useCallback(async (categoryId: number | null, note: string) => {
-    await actions.addNote(categoryId, note);
+  const handleChangeCategory = useCallback(async (categoryId: number | null) => {
+    await actions.changeCategory(categoryId);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddNote = useCallback(async (note: string) => {
+    await actions.addNote(note);
     markListRefreshPending();
   }, [actions, markListRefreshPending]);
 
@@ -398,8 +405,13 @@ export default function CustomerDetailModalDesktop({
               customerId={detail.id}
               customerName={detail.name || ""}
               conversation={detail.conversation}
+              currentCategoryId={detail.categoryId ?? null}
+              categoryHistory={categoryHistory}
+              categoryHistoryLoading={categoryHistoryLoading}
               notes={detail.notes}
               categories={categories}
+              onChangeCategory={handleChangeCategory}
+              onOpenCategoryHistory={actions.refetchCategoryHistory}
               onAddNote={handleAddNote}
               onRemoveNote={handleRemoveNote}
               onUnlinkConversation={handleUnlinkConversation}

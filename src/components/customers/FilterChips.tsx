@@ -6,6 +6,7 @@ import { ApiKeysService } from "@/services/apiKeys";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 type FilterChipsProps = {
   filters: CustomerFilters;
@@ -25,7 +26,7 @@ const CHIP_CLASS_NAME =
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <div className={CHIP_CLASS_NAME}>
-      <span className="text-[14px] font-medium text-black opacity-80">{label}</span>
+      <span className="text-[14px] font-medium text-black dark:text-neutral-80 opacity-80">{label}</span>
       <button
         aria-label="remove"
         onClick={onRemove}
@@ -144,14 +145,14 @@ export default function FilterChips({
 
   // 카테고리 ID로 이름 찾기
   const getCategoryName = (id: number | null): string => {
-    if (id === null) return "일반";
+    if (id === null) return NO_CATEGORY_LABEL;
     const category = categories.find((c) => c.id === id);
     return category?.name || `카테고리 ${id}`;
   };
 
   const getCategoryChipStyle = (id: number | null): CSSProperties => {
     if (id === null) {
-      return getBadgeStyle("일반", 0);
+      return getBadgeStyle(NO_CATEGORY_LABEL, 0);
     }
 
     const category = categories.find((item) => item.id === id);
@@ -265,7 +266,7 @@ export default function FilterChips({
         filters.categoryIds.map((id) => (
           <CategoryChip
             key={id === null ? "general" : id}
-            label={`상담 카테고리: ${getCategoryName(id)}`}
+            label={`카테고리: ${getCategoryName(id)}`}
             style={getCategoryChipStyle(id)}
             onRemove={() => onRemoveCategory(id)}
           />

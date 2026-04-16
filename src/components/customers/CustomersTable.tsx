@@ -778,25 +778,17 @@ export default function CustomersTable({
                         <>
                           <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
                             {(() => {
-                              const notes = Array.isArray(c.recentNotes)
-                                ? c.recentNotes
-                                : [];
-                              if (notes.length === 0)
+                              const categoryId = c.categoryId ?? null;
+                              if (categoryId === null) {
                                 return <span className="opacity-80">-</span>;
-                              const sortedNotes = [...notes].sort(
-                                (a, b) =>
-                                  new Date(b.createdAt).getTime() -
-                                  new Date(a.createdAt).getTime()
-                              );
-                              const lastNote = sortedNotes[0];
-                              const categoryId = lastNote.categoryId;
+                              }
                               const category = categories.find(
                                 (cat) => cat.id === categoryId
                               );
-                              const categoryName = category?.name || "일반";
+                              const categoryName = category?.name || "알 수 없음";
                               const badgeStyle = getBadgeStyle(
                                 categoryName,
-                                categoryId || 0,
+                                categoryId,
                                 category?.colorCode
                               );
 
@@ -1000,26 +992,16 @@ export default function CustomersTable({
                               <>
                                 <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 text-center whitespace-nowrap overflow-hidden">
                                   {(() => {
-                                    const notes = Array.isArray(item.recentNotes)
-                                      ? item.recentNotes
-                                      : [];
-                                    if (notes.length === 0)
+                                    const categoryId = item.categoryId ?? null;
+                                    if (categoryId === null)
                                       return <span className="opacity-80">-</span>;
-
-                                    const sortedNotes = [...notes].sort(
-                                      (a, b) =>
-                                        new Date(b.createdAt).getTime() -
-                                        new Date(a.createdAt).getTime()
-                                    );
-                                    const lastNote = sortedNotes[0];
-                                    const categoryId = lastNote.categoryId;
                                     const category = categories.find(
                                       (cat) => cat.id === categoryId
                                     );
-                                    const categoryName = category?.name || "일반";
+                                    const categoryName = category?.name || "알 수 없음";
                                     const badgeStyle = getBadgeStyle(
                                       categoryName,
-                                      categoryId || 0,
+                                      categoryId,
                                       category?.colorCode
                                     );
 
@@ -1107,7 +1089,6 @@ export default function CustomersTable({
         <CustomersHoverPopover
           name={hoverInfo.name}
           notes={hoverInfo.notes}
-          categories={categories}
           top={hoverInfo.top}
           left={hoverInfo.left}
           onMouseEnter={handlePopoverMouseEnter}

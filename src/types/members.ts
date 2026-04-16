@@ -119,6 +119,12 @@ export interface MemberListItem {
   updatedAt: string;
 }
 
+export type MemberListQuery = Record<string, string | number | boolean | null | undefined> & {
+  page: number;
+  limit: number;
+  name?: string;
+};
+
 // 멤버 목록 응답
 export interface MemberListResponse {
   result: boolean;

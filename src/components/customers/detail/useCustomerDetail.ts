@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { CustomersService } from "@/services/customers";
+import {
+  CustomersService,
+  normalizeCustomerCategoryHistory,
+} from "@/services/customers";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
-import type { CustomerDetail } from "@/types/customers";
+import type { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { useCustomerForm } from "./useCustomerForm";
 import type { CustomerValidation } from "./types";
 import { useCustomerActions } from "./useCustomerActions";
@@ -23,6 +26,8 @@ export function useCustomerDetail(
   const onFetchErrorClose = options?.onFetchErrorClose;
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
+  const [categoryHistory, setCategoryHistory] = useState<CustomerCategoryHistoryItem[]>([]);
+  const [categoryHistoryLoading, setCategoryHistoryLoading] = useState(false);
   const { categories } = useCustomerNoteCategories();
   const detailRef = useRef<CustomerDetail | null>(null);
 
@@ -75,6 +80,28 @@ export function useCustomerDetail(
   // =========================================================================
   // Data Fetching
   // =========================================================================
+
+  const fetchCategoryHistory = useCallback(async () => {
+    if (!customerId) {
+      setCategoryHistory([]);
+      return;
+    }
+
+    setCategoryHistoryLoading(true);
+    try {
+      const response = await CustomersService.categoryHistory(
+        String(customerId),
+        (window as any)?.tgSelectedProjectId || ""
+      );
+      setCategoryHistory(
+        normalizeCustomerCategoryHistory(response.data?.data)
+      );
+    } catch {
+      setCategoryHistory([]);
+    } finally {
+      setCategoryHistoryLoading(false);
+    }
+  }, [customerId]);
 
   const fetchDetail = useCallback(async () => {
     if (!customerId) return;
@@ -129,6 +156,13 @@ export function useCustomerDetail(
     }
   }, [open, customerId]);
 
+  const changeCategory = useCallback(
+    async (categoryId: number | null) => {
+      await actions.changeCategory(categoryId);
+    },
+    [actions]
+  );
+
   // =========================================================================
   // Reset Form (wrapper)
   // =========================================================================
@@ -144,6 +178,8 @@ export function useCustomerDetail(
   return {
     loading,
     detail,
+    categoryHistory,
+    categoryHistoryLoading,
     categories,
     messengersLocal,
     form,
@@ -154,7 +190,9 @@ export function useCustomerDetail(
     actions: {
       resetForm,
       refetch: fetchDetail,
+      refetchCategoryHistory: fetchCategoryHistory,
       ...actions,
+      changeCategory,
     },
   };
 }

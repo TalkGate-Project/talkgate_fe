@@ -1,3 +1,5 @@
+import type { ApiSuccess } from "@/types/common";
+
 // Customers domain types
 
 export enum ContactType {
@@ -22,7 +24,6 @@ export type RecentNote = {
   id: number;
   memberId?: number | null;
   memberName?: string | null;
-  categoryId: number | null;
   note: string;
   createdAt: string;
 };
@@ -49,6 +50,7 @@ export type CustomerListItem = {
   applicationDate: string;
   assignedAt?: string | null;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
+  categoryId?: number | null;
   createdAt: string;
   recentNotes: RecentNote[];
   duplicateCount?: number;
@@ -90,7 +92,6 @@ export type CustomersListQuery = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
-  filterByLatestCategory?: boolean;
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number; // -1: 할당 대기 중
@@ -113,6 +114,16 @@ export type CustomersListQuery = {
   limit: number;                // required
   projectId: string;            // header: x-project-id
 };
+
+export type CustomerFilterOptionListData = {
+  list?: string[];
+  items?: string[];
+  mediaCompanies?: string[];
+  sites?: string[];
+  applicationRoutes?: string[];
+} | string[];
+
+export type CustomerFilterOptionListResponse = ApiSuccess<CustomerFilterOptionListData>;
 
 export type CreateCustomerMessengerInfo = {
   messenger: string; // e.g., "line"
@@ -206,6 +217,7 @@ export type CustomerDetail = {
   applicationDate: string;
   assignedAt?: string | null;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
+  categoryId?: number | null;
   specialNotes?: string;
   summary?: string;
   assetStatus?: string;
@@ -299,7 +311,6 @@ export type AssignCustomersFilterConditions = {
   contact2?: string;
   noteContent?: string;
   assignType?: "all" | "assigned" | "unassigned";
-  filterByLatestCategory?: boolean;
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
@@ -423,7 +434,6 @@ export type BasicSuccessResponse = { result: true; data?: unknown };
 // Notes add/remove
 export type AddCustomerNoteInput = {
   customerId: number;
-  categoryId: number | null;
   note: string;
   projectId: string; // header
 };
@@ -436,6 +446,25 @@ export type AddCustomerNoteResponse = {
 export type RemoveCustomerNoteInput = {
   noteId: number;
   projectId: string; // header
+};
+
+export type UpdateCustomerCategoryInput = {
+  categoryId: number | null;
+  projectId: string; // header
+};
+
+export type CustomerCategoryHistoryItem = {
+  id: string;
+  categoryId: number | null;
+  categoryName: string;
+  colorCode?: string | null;
+  memberName: string | null;
+  createdAt: string;
+};
+
+export type CustomerCategoryHistoryResponse = {
+  result: true;
+  data: CustomerCategoryHistoryItem[];
 };
 
 // Payment histories add/remove

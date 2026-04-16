@@ -9,7 +9,6 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "contact1",
   "contact2",
   "assignType",
-  "filterByLatestCategory",
   "apiKeyId",
   "projectPartnerId",
   "teamId",
@@ -34,7 +33,6 @@ export type CustomerFilters = {
   contact1?: string;
   contact2?: string;
   assignType?: "all" | "assigned" | "unassigned";
-  filterByLatestCategory?: boolean;
   apiKeyId?: number;
   projectPartnerId?: number;
   teamId?: number;
@@ -91,9 +89,6 @@ function extractPersistableFilters(source: Partial<CustomerFilters>): CustomerFi
       return;
     }
 
-    if (key === "filterByLatestCategory" && value === false) {
-      persistedFilters[key] = false as never;
-    }
   });
 
   return persistedFilters;
@@ -173,12 +168,6 @@ export function useCustomersFilters(projectId: string | null) {
         return isNaN(num) ? null : num;
       }) : undefined;
     }
-    function gb(key: string) {
-      const v = g(key);
-      if (v === "true") return true;
-      if (v === "false") return false;
-      return undefined;
-    }
     obj.name = g("name");
     {
       const rawContact1 = searchParams.get("contact1");
@@ -190,7 +179,6 @@ export function useCustomersFilters(projectId: string | null) {
     obj.contact2 = g("contact2");
     obj.noteContent = g("noteContent");
     obj.assignType = g("assignType");
-    obj.filterByLatestCategory = gb("filterByLatestCategory") ?? true;
     obj.apiKeyId = gi("apiKeyId");
     obj.projectPartnerId = gi("projectPartnerId");
     obj.teamId = gi("teamId");
@@ -233,7 +221,6 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("contact1", filterValues.contact1);
     setIf("contact2", filterValues.contact2);
     setIf("assignType", filterValues.assignType);
-    setIf("filterByLatestCategory", filterValues.filterByLatestCategory ?? true);
     setIf("apiKeyId", filterValues.apiKeyId);
     setIf("projectPartnerId", filterValues.projectPartnerId);
     setIf("teamId", filterValues.teamId);
@@ -304,7 +291,6 @@ export function useCustomersFilters(projectId: string | null) {
         contact1: applied.contact1,
         contact2: applied.contact2,
         assignType: applied.assignType,
-        filterByLatestCategory: applied.filterByLatestCategory ?? true,
         apiKeyId: applied.apiKeyId,
         projectPartnerId: applied.projectPartnerId,
         teamId: applied.teamId,
@@ -353,7 +339,6 @@ export function useCustomersFilters(projectId: string | null) {
             contact1: applied.contact1,
             contact2: applied.contact2,
             assignType: applied.assignType,
-            filterByLatestCategory: applied.filterByLatestCategory ?? true,
             apiKeyId: applied.apiKeyId,
             projectPartnerId: applied.projectPartnerId,
             teamId: applied.teamId,
@@ -389,6 +374,7 @@ export function useCustomersFilters(projectId: string | null) {
   // Keep URL in sync for pagination/limit so data fetching follows
   function pushPage(nextPage: number, nextLimit?: number) {
     const params = new URLSearchParams(searchParams?.toString());
+    params.delete("filterByLatestCategory");
     params.set("page", String(nextPage));
     params.set("limit", String(nextLimit ?? limit));
     router.push(`/customers?${params.toString()}`, { scroll: false });
@@ -407,6 +393,7 @@ export function useCustomersFilters(projectId: string | null) {
     const currentType = applied.sortType as CustomerSortType | undefined;
     const currentOrder = applied.sortOrder as CustomerSortOrder | undefined;
     const params = new URLSearchParams(searchParams?.toString());
+    params.delete("filterByLatestCategory");
 
     if (currentType !== column) {
       params.set("sortType", column);
