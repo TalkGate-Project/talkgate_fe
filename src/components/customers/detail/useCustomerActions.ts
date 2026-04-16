@@ -34,7 +34,8 @@ type CustomerActions = {
   removePayment: (id: number) => Promise<void>;
   addSchedule: (dateIso: string, desc: string, colorCode: string) => Promise<void>;
   removeSchedule: (id: number) => Promise<void>;
-  addNote: (categoryId: number | null, note: string) => Promise<void>;
+  changeCategory: (categoryId: number | null) => Promise<void>;
+  addNote: (note: string) => Promise<void>;
   removeNote: (id: number) => Promise<void>;
   unlinkConversation: () => Promise<void>;
 };
@@ -262,15 +263,35 @@ export function useCustomerActions({
   // Note Actions
   // =========================================================================
 
+  const changeCategory = useCallback(
+    async (categoryId: number | null) => {
+      if (!detail) return;
+
+      await CustomersService.changeCategory(String(detail.id), {
+        categoryId,
+        projectId: getProjectId(),
+      });
+
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              categoryId,
+            }
+          : prev
+      );
+    },
+    [detail, setDetail]
+  );
+
   const addNote = useCallback(
-    async (categoryId: number | null, note: string) => {
+    async (note: string) => {
       if (!detail || isAddingNoteRef.current) return;
 
       isAddingNoteRef.current = true;
       try {
         const res = await CustomersService.addNote({
           customerId: detail.id,
-          categoryId,
           note,
           projectId: getProjectId(),
         });
@@ -375,6 +396,7 @@ export function useCustomerActions({
     removePayment,
     addSchedule,
     removeSchedule,
+    changeCategory,
     addNote,
     removeNote,
     unlinkConversation,

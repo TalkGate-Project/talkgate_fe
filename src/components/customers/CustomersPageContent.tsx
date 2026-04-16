@@ -47,10 +47,6 @@ function buildAssignmentFilterConditions(
       appliedFilters.assignType === "unassigned"
         ? appliedFilters.assignType
         : undefined,
-    filterByLatestCategory:
-      typeof appliedFilters.filterByLatestCategory === "boolean"
-        ? appliedFilters.filterByLatestCategory
-        : undefined,
     apiKeyId: typeof appliedFilters.apiKeyId === "number" ? appliedFilters.apiKeyId : undefined,
     teamId: typeof appliedFilters.teamId === "number" ? appliedFilters.teamId : undefined,
     memberId: typeof appliedFilters.memberId === "number" ? appliedFilters.memberId : undefined,

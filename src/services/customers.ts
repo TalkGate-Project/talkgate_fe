@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/apiClient";
 import {
   CustomersListQuery,
   CustomersListResponse,
+  CustomerFilterOptionListResponse,
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
@@ -27,8 +28,91 @@ import {
   UnassignCustomersResponse,
   ConfirmCustomerResponse,
   ConfirmAllCustomersResponse,
+  UpdateCustomerCategoryInput,
+  CustomerCategoryHistoryItem,
 } from "@/types/customers";
 import type { RecentlyAssignedCustomersResponse } from "@/types/dashboard";
+
+function toNullableNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function toStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+export function normalizeCustomerCategoryHistoryItem(
+  input: unknown,
+  fallbackIndex: number
+): CustomerCategoryHistoryItem | null {
+  if (!input || typeof input !== "object") return null;
+
+  const item = input as Record<string, unknown>;
+  const categoryObject =
+    item.category && typeof item.category === "object"
+      ? (item.category as Record<string, unknown>)
+      : null;
+  const memberObject =
+    item.member && typeof item.member === "object"
+      ? (item.member as Record<string, unknown>)
+      : null;
+
+  const createdAt =
+    toStringOrNull(item.createdAt) ??
+    toStringOrNull(item.changedAt) ??
+    toStringOrNull(item.updatedAt);
+
+  if (!createdAt) return null;
+
+  const categoryId =
+    toNullableNumber(item.categoryId) ??
+    toNullableNumber(categoryObject?.id ?? null);
+  const categoryName =
+    toStringOrNull(item.categoryName) ??
+    toStringOrNull(categoryObject?.name ?? null) ??
+    "일반";
+  const colorCode =
+    toStringOrNull(item.colorCode) ??
+    toStringOrNull(categoryObject?.colorCode ?? null) ??
+    toStringOrNull(categoryObject?.color ?? null);
+  const memberName =
+    toStringOrNull(item.memberName) ??
+    toStringOrNull(item.changedByMemberName) ??
+    toStringOrNull(memberObject?.name ?? null);
+  const idSource =
+    toStringOrNull(item.id) ??
+    (typeof item.id === "number" ? String(item.id) : null) ??
+    `${createdAt}-${categoryId ?? "general"}-${fallbackIndex}`;
+
+  return {
+    id: idSource,
+    categoryId,
+    categoryName,
+    colorCode,
+    memberName,
+    createdAt,
+  };
+}
+
+export function normalizeCustomerCategoryHistory(
+  input: unknown
+): CustomerCategoryHistoryItem[] {
+  const rawList = Array.isArray(input)
+    ? input
+    : input &&
+        typeof input === "object" &&
+        Array.isArray((input as Record<string, unknown>).list)
+      ? ((input as Record<string, unknown>).list as unknown[])
+      : input &&
+          typeof input === "object" &&
+          Array.isArray((input as Record<string, unknown>).histories)
+        ? ((input as Record<string, unknown>).histories as unknown[])
+        : [];
+
+  return rawList
+    .map((item, index) => normalizeCustomerCategoryHistoryItem(item, index))
+    .filter((item): item is CustomerCategoryHistoryItem => item !== null);
+}
 
 export const CustomersService = {
   // 고객 목록 조회 (권한별 필터 자동 적용)
@@ -36,6 +120,21 @@ export const CustomersService = {
     const { projectId, ...qs } = query;
     return apiClient.get<CustomersListResponse>(`/v1/customers`, {
       query: qs as any,
+      headers: { "x-project-id": projectId },
+    });
+  },
+  listMediaCompanies(projectId: string) {
+    return apiClient.get<CustomerFilterOptionListResponse>(`/v1/customers/media-companies`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  listSites(projectId: string) {
+    return apiClient.get<CustomerFilterOptionListResponse>(`/v1/customers/sites`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  listApplicationRoutes(projectId: string) {
+    return apiClient.get<CustomerFilterOptionListResponse>(`/v1/customers/application-routes`, {
       headers: { "x-project-id": projectId },
     });
   },
@@ -100,6 +199,17 @@ export const CustomersService = {
   addNote(input: AddCustomerNoteInput) {
     const { projectId, ...body } = input;
     return apiClient.post<AddCustomerNoteResponse>(`/v1/customers/notes`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  changeCategory(customerId: string, input: UpdateCustomerCategoryInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<BasicSuccessResponse>(`/v1/customers/${customerId}/category`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+  categoryHistory(customerId: string, projectId: string) {
+    return apiClient.get<BasicSuccessResponse>(`/v1/customers/${customerId}/category-history`, {
       headers: { "x-project-id": projectId },
     });
   },
@@ -172,6 +282,7 @@ export const CustomersService = {
 export type {
   CustomersListQuery,
   CustomersListResponse,
+  CustomerFilterOptionListResponse,
   CreateCustomerInput,
   CreateCustomerResponse,
   CustomerDetailResponse,
@@ -200,4 +311,6 @@ export type {
   UnassignCustomersResponse,
   ConfirmCustomerResponse,
   ConfirmAllCustomersResponse,
+  UpdateCustomerCategoryInput,
+  CustomerCategoryHistoryItem,
 } from "@/types/customers";

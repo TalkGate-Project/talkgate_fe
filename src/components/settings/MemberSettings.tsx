@@ -295,6 +295,8 @@ export default function MemberSettings() {
   const queryClient = useQueryClient();
   const [projectId, setProjectId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchName, setSearchName] = useState("");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -333,11 +335,12 @@ export default function MemberSettings() {
 
   // 멤버 목록 조회
   const { data: membersData, isLoading } = useQuery({
-    queryKey: ["members", "list", projectId, currentPage],
+    queryKey: ["members", "list", projectId, currentPage, searchName],
     queryFn: async () => {
       const response = await MembersService.list({
         page: currentPage,
         limit: 10,
+        ...(searchName ? { name: searchName } : {}),
       });
       return response.data;
     },
@@ -491,10 +494,6 @@ export default function MemberSettings() {
     }
   };
 
-  const handleInviteMember = () => {
-    setIsInviteModalOpen(true);
-  };
-
   const handleInviteConfirm = (email: string, role: "subAdmin" | "member") => {
     inviteMutation.mutate({ email, role });
   };
@@ -532,6 +531,11 @@ export default function MemberSettings() {
     setCurrentPage(page);
     // 페이지 변경 시 스크롤을 맨 위로 (부드럽게)
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSearchSubmit = () => {
+    setSearchName(searchInput.trim());
+    setCurrentPage(1);
   };
 
   if (!projectId) {
@@ -588,6 +592,40 @@ export default function MemberSettings() {
       <div className="w-full h-[1px] bg-neutral-30 opacity-70 mb-4 md:mb-6 px-4 md:px-7"></div>
 
       <div className="px-4 md:px-7">
+        <div className="relative w-full md:w-[260px] mb-4 md:mb-6">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearchSubmit();
+              }
+            }}
+            placeholder="이름으로 검색..."
+            className="w-full h-10 rounded-[5px] border border-neutral-30 bg-neutral-10 dark:bg-neutral-20 px-3 pr-10 text-[14px] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-primary-50"
+          />
+          <button
+            type="button"
+            onClick={handleSearchSubmit}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-[5px] hover:bg-neutral-20 dark:hover:bg-neutral-30 transition-colors cursor-pointer"
+            aria-label="멤버 이름 검색"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="7" stroke="#B0B0B0" strokeWidth="2" />
+              <path d="M20 20L16.65 16.65" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
         {/* Table Header - 모바일: 3개 열, 데스크탑: 5개 열 */}
         {/* Mobile Header */}
         <div className="md:hidden bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-4 h-[40px] flex items-center">
@@ -625,7 +663,7 @@ export default function MemberSettings() {
         <div className="space-y-0">
           {members.length === 0 ? (
             <div className="py-8 text-center text-neutral-60 text-[14px]">
-              멤버가 없습니다.
+              {searchName ? "검색 결과가 없습니다." : "멤버가 없습니다."}
             </div>
           ) : (
             members.map((member: MemberListItem) => (

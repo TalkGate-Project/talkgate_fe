@@ -1,11 +1,11 @@
 import { apiClient } from "@/lib/apiClient";
 import type { MemberTreeResponse } from "@/types/membersTree";
 import type { 
-  MyMember, 
   MyMemberResponse, 
   MemberDetailResponse,
   UpdateProfilePayload, 
   UpdateProfileResponse,
+  MemberListQuery,
   MemberListResponse,
   InviteMemberPayload,
   InviteMemberResponse,
@@ -22,7 +22,7 @@ export type Member = {
 };
 
 export const MembersService = {
-  list(query?: Record<string, string | number | boolean>) {
+  list(query: MemberListQuery) {
     return apiClient.get<MemberListResponse>(`/v1/members`, { query });
   },
   remove(memberId: number) {

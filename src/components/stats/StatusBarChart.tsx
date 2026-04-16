@@ -108,7 +108,7 @@ export default function StatusBarChart() {
   if (isError && !isFetching) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
-        처리 상태 통계를 불러오는 중 문제가 발생했습니다.
+        카테고리 통계를 불러오는 중 문제가 발생했습니다.
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function StatusBarChart() {
   if (data?.data.data === null || !chartData.length) {
     return (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
-        {data?.data.data === null ? "처리 상태 통계 데이터가 없습니다." : "표시할 처리 상태 통계가 없습니다."}
+        {data?.data.data === null ? "카테고리 통계 데이터가 없습니다." : "표시할 카테고리 통계가 없습니다."}
       </div>
     );
   }

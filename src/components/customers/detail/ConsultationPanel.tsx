@@ -1,30 +1,37 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
-import { CustomerDetail } from "@/types/customers";
+import { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
+import CategoryHistoryModal from "./CategoryHistoryModal";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 
 type Props = {
   customerName: string;
   conversation: CustomerDetail["conversation"];
+  currentCategoryId: number | null;
+  categoryHistory: CustomerCategoryHistoryItem[];
+  categoryHistoryLoading?: boolean;
   notes: CustomerDetail["notes"];
   categories: { id: number; name: string; colorCode?: string }[];
-  onAddNote: (categoryId: number | null, note: string) => Promise<void>;
+  onChangeCategory: (categoryId: number | null) => Promise<void>;
+  onAddNote: (note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
   customerId: number;
   onUnlinkConversation?: () => void;
-  /** 왼쪽 패널 높이에 맞춰 오른쪽 패널 높이 제한 */
   maxHeight?: number | null;
 };
 
 export default function ConsultationPanel({
   customerName,
   conversation,
+  currentCategoryId,
+  categoryHistory,
+  categoryHistoryLoading = false,
   notes,
   categories,
+  onChangeCategory,
   onAddNote,
   onRemoveNote,
   customerId,
@@ -32,14 +39,34 @@ export default function ConsultationPanel({
   maxHeight,
 }: Props) {
   const router = useRouter();
-  const [noteCategoryId, setNoteCategoryId] = useState<number | "">("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [noteInput, setNoteInput] = useState("");
+  const [isChangingCategory, setIsChangingCategory] = useState(false);
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
 
-  // Scroll to bottom when notes change
+  useEffect(() => {
+    setSelectedCategoryId(currentCategoryId ?? "");
+  }, [currentCategoryId]);
+
+  useEffect(() => {
+    if (!isCategoryDropdownOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!categoryDropdownRef.current?.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isCategoryDropdownOpen]);
+
   useLayoutEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -48,13 +75,29 @@ export default function ConsultationPanel({
 
   const handleAddNote = async () => {
     if (!noteInput.trim() || isAddingNote) return;
-    const catId = typeof noteCategoryId === "number" ? noteCategoryId : null;
+
     setIsAddingNote(true);
     try {
-      await onAddNote(catId, noteInput.trim());
+      await onAddNote(noteInput.trim());
       setNoteInput("");
     } finally {
       setIsAddingNote(false);
+    }
+  };
+
+  const handleSelectCategory = async (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId ?? "");
+    if (categoryId === currentCategoryId || isChangingCategory) {
+      setIsCategoryDropdownOpen(false);
+      return;
+    }
+
+    setIsChangingCategory(true);
+    try {
+      await onChangeCategory(categoryId);
+      setIsCategoryDropdownOpen(false);
+    } finally {
+      setIsChangingCategory(false);
     }
   };
 
@@ -63,10 +106,10 @@ export default function ConsultationPanel({
     ? conversation!.platform === "instagram"
       ? "인스타그램"
       : conversation!.platform === "telegram"
-      ? "텔레그램"
-      : conversation!.platform === "line"
-      ? "라인"
-      : "카카오톡"
+        ? "텔레그램"
+        : conversation!.platform === "line"
+          ? "라인"
+          : "카카오톡"
     : "연결된 채팅방이 없습니다";
 
   const handleNavigateToChat = () => {
@@ -78,15 +121,15 @@ export default function ConsultationPanel({
     router.push(`/consult?${params.toString()}`);
   };
 
-  const handleOpenUnlinkModal = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+  const handleOpenUnlinkModal = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (!onUnlinkConversation || unlinking) return;
     setUnlinkModalOpen(true);
   };
 
   const handleConfirmUnlink = async () => {
     if (!onUnlinkConversation || unlinking) return;
-    
+
     setUnlinking(true);
     try {
       await onUnlinkConversation();
@@ -96,17 +139,39 @@ export default function ConsultationPanel({
     }
   };
 
-  // 오른쪽 패널 스타일: 왼쪽 높이를 기준으로 제한
   const panelStyle = maxHeight ? { maxHeight: `${maxHeight}px` } : undefined;
+  const currentCategory = useMemo(
+    () =>
+      typeof selectedCategoryId === "number"
+        ? categories.find((category) => category.id === selectedCategoryId) ?? null
+        : null,
+    [categories, selectedCategoryId]
+  );
+  const currentCategoryName = currentCategory?.name ?? "일반";
+  const currentCategoryStyle = getBadgeStyle(
+    currentCategoryName,
+    currentCategory?.id ?? 0,
+    currentCategory?.colorCode
+  );
+  const categoryOptions = useMemo(
+    () => [
+      { id: null as number | null, name: "일반", colorCode: undefined },
+      ...categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        colorCode: category.colorCode,
+      })),
+    ],
+    [categories]
+  );
 
   return (
     <div
       className="col-span-12 md:col-span-1 md:w-[330px] md:min-w-[330px] md:max-w-[330px] lg:w-[384px] lg:min-w-[384px] lg:max-w-[384px] flex flex-col overflow-hidden"
       style={panelStyle}
     >
-      {/* Conversation Card - 연결된 채팅방이 있을 때만 표시 */}
       {hasConversation && (
-        <div 
+        <div
           className="mb-[30px] border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] bg-[#F8F8F8] dark:bg-neutral-10 px-6 py-3 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F0F0F0] dark:hover:bg-neutral-20 transition-colors flex-shrink-0"
           onClick={handleNavigateToChat}
         >
@@ -160,7 +225,6 @@ export default function ConsultationPanel({
               </div>
             </div>
           </div>
-          {/* 연동 끊기 버튼 */}
           {onUnlinkConversation && (
             <button
               type="button"
@@ -190,134 +254,192 @@ export default function ConsultationPanel({
         </div>
       )}
 
-      {/* Consultation Notes */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0">
-          상담 내용 기록
-        </div>
-        <div className="border-b border-[#E2E2E2] dark:border-neutral-30 mb-2 flex-shrink-0" />
-        <p className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium mb-2 flex-shrink-0">상담 카테고리</p>
-        
-        <div className="flex gap-2 mb-3 flex-shrink-0">
-          <SelectField
-            value={noteCategoryId as any}
-            onChange={(e) =>
-              setNoteCategoryId(e.target.value ? Number(e.target.value) : "")
-            }
-            className="min-w-[106px] h-[34px] rounded-[5px] text-body-3"
-          >
-            <option value="">일반</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </SelectField>
-          <input
-            value={noteInput}
-            onChange={(e) => setNoteInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.repeat && !isAddingNote) {
-                e.preventDefault();
-                void handleAddNote();
-              }
-            }}
-            placeholder="상담 내용을 입력하세요."
-            className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
-          />
-          <button
-            className="cursor-pointer w-[48px] min-w-[48px] shrink-0 h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => void handleAddNote()}
-            disabled={isAddingNote || !noteInput.trim()}
-          >
-            추가
-          </button>
-        </div>
-
-        <div
-          ref={scrollRef}
-          className="flex-1 min-h-0 space-y-3 overflow-auto border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] p-5 bg-card dark:bg-neutral-10"
-        >
-          {notes?.map((n) => {
-            const category = n.categoryId !== null ? categories.find((c) => c.id === n.categoryId) : null;
-            const categoryName = n.categoryId === null ? "일반" : (category?.name || "알 수 없음");
-            const badgeStyle = getBadgeStyle(categoryName, n.categoryId ?? 0, category?.colorCode);
-
-            return (
-              <div
-                key={n.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
+      <div className="flex-1 min-h-0 flex flex-col gap-4 overflow-hidden">
+        <section className="rounded-[5px] bg-card dark:bg-neutral-10 p-5 flex-shrink-0">
+          <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
+            카테고리
+          </div>
+          <div className="mt-3 flex items-center gap-6">
+            <div className="relative" ref={categoryDropdownRef}>
+              <button
+                type="button"
+                className="inline-flex max-w-full items-center gap-2 rounded-[30px] px-4 py-2 text-[14px] font-semibold disabled:opacity-60"
+                style={currentCategoryStyle}
+                onClick={() => setIsCategoryDropdownOpen((prev) => !prev)}
+                disabled={isChangingCategory}
               >
-                <div className="flex items-center justify-between gap-2 text-[12px]">
-                  <div className="flex items-center gap-x-2 min-w-0">
-                    <div
-                      className="max-w-[110px] min-w-0 shrink-0"
-                      title={categoryName}
-                    >
-                      <div
-                        className="inline-flex items-center justify-center w-full max-w-full px-3 py-1 rounded-[30px] text-[12px] leading-[14px] font-medium overflow-hidden"
-                        style={badgeStyle}
-                      >
-                        <span className="block truncate">{categoryName}</span>
-                      </div>
-                    </div>
-                    {/* 노트를 작성한 담당자 이름이 우선, 없으면 빈 문자열 */}
-                    <span className="text-[12px] text-neutral-80 dark:text-neutral-70">
-                      {n.memberName || ""}
-                    </span>
-                  </div>
-                  <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
-                    <span className="text-right">
-                      {formatDetailDate(n.createdAt)}
-                    </span>
-                    <button
-                      className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
-                      onClick={() => {
-                        // Validation: id가 유효한 정수인지 확인
-                        if (
-                          typeof n.id !== "number" ||
-                          !Number.isInteger(n.id) ||
-                          n.id <= 0 ||
-                          !Number.isFinite(n.id)
-                        ) {
-                          console.error("Invalid note id:", n.id);
-                          return;
-                        }
-                        showConfirmModal({
-                          title: "확인",
-                          message: "상담 내용을 삭제하시겠습니까?",
-                          confirmText: "삭제",
-                          cancelText: "취소",
-                          onConfirm: () => onRemoveNote(n.id),
-                        });
-                      }}
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M3 9L9 3M3 3L9 9"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                <span className="truncate">{currentCategoryName}</span>
+                <svg
+                  width="10"
+                  height="8"
+                  viewBox="0 0 10 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`${isCategoryDropdownOpen ? "rotate-180" : ""} transition-transform`}
+                >
+                  <path
+                    d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+
+              {isCategoryDropdownOpen && (
+                <div className="absolute left-0 top-full z-20 mt-3 w-[280px] rounded-[12px] border border-[#E2E2E2] bg-card p-4 shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:border-neutral-30 dark:bg-neutral-10">
+                  <div className="space-y-1">
+                    {categoryOptions.map((categoryOption) => {
+                      const badgeStyle = getBadgeStyle(
+                        categoryOption.name,
+                        categoryOption.id ?? 0,
+                        categoryOption.colorCode
+                      );
+                      const isSelected =
+                        (categoryOption.id ?? null) === currentCategoryId;
+
+                      return (
+                        <button
+                          key={categoryOption.id ?? "general"}
+                          type="button"
+                          className="flex w-full items-center gap-3 rounded-[8px] px-3 py-3 text-left hover:bg-neutral-10 dark:hover:bg-neutral-20 disabled:opacity-60"
+                          onClick={() =>
+                            void handleSelectCategory(categoryOption.id ?? null)
+                          }
+                          disabled={isChangingCategory}
+                        >
+                          <span
+                            className="h-3 w-3 shrink-0 rounded-full"
+                            style={{
+                              backgroundColor:
+                                typeof badgeStyle.color === "string"
+                                  ? badgeStyle.color
+                                  : undefined,
+                            }}
+                          />
+                          <span className="flex-1 text-[14px] font-medium text-foreground">
+                            {categoryOption.name}
+                          </span>
+                          {isSelected && (
+                            <span className="text-[12px] text-neutral-60">선택됨</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="mt-2 text-[14px] text-neutral-70 dark:text-neutral-70">{n.note}</div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="grid h-6 w-6 shrink-0 place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
+              onClick={() => setIsHistoryModalOpen(true)}
+              aria-label="카테고리 기록 보기"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section className="flex-1 min-h-0 flex flex-col overflow-hidden border border-[#E2E2E2] dark:border-neutral-30 rounded-[5px] bg-card dark:bg-neutral-10 p-5">
+          <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3 flex-shrink-0">
+            상담 메모
+          </div>
+
+          <div className="flex gap-2 mb-3 flex-shrink-0">
+            <input
+              value={noteInput}
+              onChange={(event) => setNoteInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.repeat && !isAddingNote) {
+                  event.preventDefault();
+                  void handleAddNote();
+                }
+              }}
+              placeholder="상담 내용을 입력하세요."
+              className="flex-1 h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
+            />
+            <button
+              className="cursor-pointer w-[48px] min-w-[48px] shrink-0 h-[34px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => void handleAddNote()}
+              disabled={isAddingNote || !noteInput.trim()}
+            >
+              추가
+            </button>
+          </div>
+
+          <div ref={scrollRef} className="flex-1 min-h-0 space-y-3 overflow-auto">
+            {notes?.length ? (
+              notes.map((noteItem) => (
+                <div
+                  key={noteItem.id}
+                  className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
+                >
+                  <div className="flex items-center justify-between gap-2 text-[12px]">
+                    <span className="min-w-0 truncate text-neutral-80 dark:text-neutral-70">
+                      {noteItem.memberName || ""}
+                    </span>
+                    <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
+                      <span className="text-right">
+                        {formatDetailDate(noteItem.createdAt)}
+                      </span>
+                      <button
+                        className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
+                        onClick={() => {
+                          showConfirmModal({
+                            title: "확인",
+                            message: "상담 내용을 삭제하시겠습니까?",
+                            confirmText: "삭제",
+                            cancelText: "취소",
+                            onConfirm: () => onRemoveNote(noteItem.id),
+                          });
+                        }}
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 9L9 3M3 3L9 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-[14px] text-neutral-70 dark:text-neutral-70">
+                    {noteItem.note}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[12px] bg-neutral-10 dark:bg-neutral-25 px-4 py-4 text-[14px] text-neutral-60">
+                아직 기록된 상담 메모가 없습니다.
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        </section>
       </div>
 
-      {/* 연동 끊기 확인 모달 */}
       {conversation && (
         <UnlinkConversationModal
           open={unlinkModalOpen}
@@ -333,6 +455,13 @@ export default function ConsultationPanel({
           loading={unlinking}
         />
       )}
+      <CategoryHistoryModal
+        open={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        customerName={customerName}
+        history={categoryHistory}
+        loading={categoryHistoryLoading}
+      />
     </div>
   );
 }

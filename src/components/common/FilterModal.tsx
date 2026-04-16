@@ -15,6 +15,7 @@ import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { ApiKeysService } from "@/services/apiKeys";
+import { CustomersService } from "@/services/customers";
 import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 import { getBadgeStyle } from "@/utils/categoryBadge";
@@ -51,8 +52,6 @@ export type FilterValues = {
     notablePoints?: string;
     /** 요약정보 */
     summaryInfo?: string;
-    /** 마지막 상담 카테고리 기준으로만 검색 */
-    filterByLatestCategory?: boolean;
 };
 
 type Option = { label: string; value: string | number };
@@ -85,6 +84,8 @@ type ApiKeyOption = {
     name: string;
 };
 
+type CustomerFilterOptionKey = "applicationRoutes" | "mediaCompanies" | "sites";
+
 export default function FilterModal({
     open,
     onClose,
@@ -101,14 +102,7 @@ export default function FilterModal({
     siteOptions = [],
     categoryOptions: _categoryOptions = [],
 }: FilterModalProps) {
-    const withLatestCategoryDefault = useCallback(
-        (values?: FilterValues): FilterValues => ({
-            ...(values || {}),
-            filterByLatestCategory: values?.filterByLatestCategory ?? true,
-        }),
-        []
-    );
-    const [form, setForm] = useState<FilterValues>(withLatestCategoryDefault(defaults));
+    const [form, setForm] = useState<FilterValues>(defaults ?? {});
     const [isMobile, setIsMobile] = useState(false);
     const [partnerOpen, setPartnerOpen] = useState(false);
     const [partnerSearch, setPartnerSearch] = useState("");
@@ -117,6 +111,10 @@ export default function FilterModal({
     const [apiKeyOpen, setApiKeyOpen] = useState(false);
     const [apiKeyOptions, setApiKeyOptions] = useState<ApiKeyOption[]>([]);
     const [loadingApiKeys, setLoadingApiKeys] = useState(false);
+    const [applicationRouteOptions, setApplicationRouteOptions] = useState<Option[]>([]);
+    const [mediaCompanyOptions, setMediaCompanyOptions] = useState<Option[]>([]);
+    const [siteFilterOptions, setSiteFilterOptions] = useState<Option[]>([]);
+    const [loadingCustomerFilterOptions, setLoadingCustomerFilterOptions] = useState(false);
     const partnerWrapRef = useRef<HTMLDivElement | null>(null);
     const apiKeyWrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -131,8 +129,8 @@ export default function FilterModal({
                         sanitizeContactFilterInput(base.contact1) || undefined,
                 }
                 : base;
-        setForm(withLatestCategoryDefault(withContact));
-    }, [open, defaults, withLatestCategoryDefault]);
+        setForm(withContact);
+    }, [open, defaults]);
 
     const shouldShowPartnerFilter = isDataProvider && isAdminOrSubAdmin;
     /** 일반 프로젝트일 때만 어드민/서브어드민에게 고객 배정 여부 노출 (파트너 프로젝트는 노출하지 않음) */
@@ -152,6 +150,18 @@ export default function FilterModal({
         if (!term) return partnerOptions;
         return partnerOptions.filter((partner) => partner.name.toLowerCase().includes(term));
     }, [partnerOptions, partnerSearch]);
+    const mergedRouteOptions = useMemo(
+        () => mergeOptions(routeOptions, applicationRouteOptions),
+        [routeOptions, applicationRouteOptions]
+    );
+    const mergedMediaOptions = useMemo(
+        () => mergeOptions(mediaOptions, mediaCompanyOptions),
+        [mediaOptions, mediaCompanyOptions]
+    );
+    const mergedSiteOptions = useMemo(
+        () => mergeOptions(siteOptions, siteFilterOptions),
+        [siteOptions, siteFilterOptions]
+    );
 
     useEffect(() => {
         if (!open || !shouldShowPartnerFilter || !projectId) return;
@@ -223,6 +233,44 @@ export default function FilterModal({
             cancelled = true;
         };
     }, [open, shouldShowApiKeyFilter, projectId]);
+
+    useEffect(() => {
+        if (!open || !projectId) return;
+        let cancelled = false;
+
+        const run = async () => {
+            setLoadingCustomerFilterOptions(true);
+            const [routesResult, mediaCompaniesResult, sitesResult] = await Promise.allSettled([
+                CustomersService.listApplicationRoutes(projectId),
+                CustomersService.listMediaCompanies(projectId),
+                CustomersService.listSites(projectId),
+            ]);
+
+            if (cancelled) return;
+
+            setApplicationRouteOptions(
+                routesResult.status === "fulfilled"
+                    ? normalizeCustomerFilterOptions(routesResult.value.data?.data, "applicationRoutes")
+                    : []
+            );
+            setMediaCompanyOptions(
+                mediaCompaniesResult.status === "fulfilled"
+                    ? normalizeCustomerFilterOptions(mediaCompaniesResult.value.data?.data, "mediaCompanies")
+                    : []
+            );
+            setSiteFilterOptions(
+                sitesResult.status === "fulfilled"
+                    ? normalizeCustomerFilterOptions(sitesResult.value.data?.data, "sites")
+                    : []
+            );
+            setLoadingCustomerFilterOptions(false);
+        };
+
+        void run();
+        return () => {
+            cancelled = true;
+        };
+    }, [open, projectId]);
 
     useEffect(() => {
         if (!open || (!partnerOpen && !apiKeyOpen)) return;
@@ -526,11 +574,35 @@ export default function FilterModal({
                             <LabeledSelect label="담당자" options={memberOptions} placeholder="전체" value={form.memberId ? String(form.memberId) : ""} onChange={(v) => setForm((f) => ({ ...f, memberId: v ? Number(v) : undefined }))} />
 
                             {/* 신청경로 / 매체사 */}
-                            <LabeledSelect label="신청경로" options={routeOptions} placeholder="" value={form.applicationRoute || ""} onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))} freeText />
-                            <LabeledSelect label="매체사" options={mediaOptions} placeholder="" value={form.mediaCompany || ""} onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))} freeText />
+                            <SearchableLabeledCombobox
+                                label="신청경로"
+                                options={mergedRouteOptions}
+                                placeholder="직접 입력 또는 선택"
+                                value={form.applicationRoute || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, applicationRoute: v || undefined }))}
+                                loading={loadingCustomerFilterOptions}
+                                emptyText="신청경로가 없습니다."
+                            />
+                            <SearchableLabeledCombobox
+                                label="매체사"
+                                options={mergedMediaOptions}
+                                placeholder="직접 입력 또는 선택"
+                                value={form.mediaCompany || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, mediaCompany: v || undefined }))}
+                                loading={loadingCustomerFilterOptions}
+                                emptyText="매체사가 없습니다."
+                            />
 
                             {/* 사이트 / 특이사항 */}
-                            <LabeledSelect label="사이트" options={siteOptions} placeholder="" value={form.site || ""} onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))} freeText />
+                            <SearchableLabeledCombobox
+                                label="사이트"
+                                options={mergedSiteOptions}
+                                placeholder="직접 입력 또는 선택"
+                                value={form.site || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, site: v || undefined }))}
+                                loading={loadingCustomerFilterOptions}
+                                emptyText="사이트가 없습니다."
+                            />
                             <LabeledSelect
                                 label="특이사항"
                                 options={[]}
@@ -558,12 +630,10 @@ export default function FilterModal({
                                 freeText
                             />
 
-                            {/* 상담 카테고리 / 요약정보 */}
+                            {/* 카테고리 / 요약정보 */}
                             <CategorySelector
                                 defaultIds={form.categoryIds}
                                 onChangeIds={handleCategoryIds}
-                                filterByLatestCategory={form.filterByLatestCategory ?? true}
-                                onChangeFilterByLatestCategory={(next) => setForm((f) => ({ ...f, filterByLatestCategory: next }))}
                             />
                             <LabeledSelect
                                 label="요약정보"
@@ -611,7 +681,7 @@ export default function FilterModal({
                     {/* Footer */}
                     <div className="border-t border-[#E2E2E2] dark:border-[#444444] shrink-0" />
                     <div className="px-4 md:px-7 py-3 flex items-center justify-end gap-3 shrink-0">
-                        <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => { const resetValues = withLatestCategoryDefault({}); setForm(resetValues); if (onReset) onReset(); else onApply(resetValues, { categories: [] }); }}>초기화</button>
+                        <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => { const resetValues = {}; setForm(resetValues); if (onReset) onReset(); else onApply(resetValues, { categories: [] }); }}>초기화</button>
                         <button className="cursor-pointer w-[72px] md:w-[72px] h-[40px] md:h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>확인</button>
                     </div>
                 </div>
@@ -679,6 +749,146 @@ function LabeledSelect({
     );
 }
 
+function SearchableLabeledCombobox({
+    label,
+    options,
+    placeholder,
+    value,
+    onChange,
+    loading = false,
+    emptyText,
+}: {
+    label: string;
+    options: Option[];
+    placeholder: string;
+    value?: string;
+    onChange?: (v: string) => void;
+    loading?: boolean;
+    emptyText: string;
+}) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const onDocClick = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (wrapRef.current && !wrapRef.current.contains(target)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", onDocClick);
+        return () => document.removeEventListener("mousedown", onDocClick);
+    }, [open]);
+
+    const filteredOptions = useMemo(() => {
+        const term = value?.trim().toLowerCase() ?? "";
+        if (!term) return options;
+        return options.filter((option) => option.label.toLowerCase().includes(term));
+    }, [options, value]);
+
+    return (
+        <div ref={wrapRef} className="relative">
+            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">{label}</label>
+            <div
+                className="relative flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-[#E2E2E2] dark:border-[#444444] rounded-[5px] h-[34px] bg-white dark:bg-neutral-20"
+                onClick={() => setOpen(true)}
+            >
+                <div className="flex flex-row items-center p-0 gap-[30px] w-full lg:w-[360px] h-[17px]">
+                    <input
+                        value={value ?? ""}
+                        onFocus={() => setOpen(true)}
+                        onChange={(event) => {
+                            onChange?.(event.target.value);
+                            setOpen(true);
+                        }}
+                        className="w-full h-[17px] outline-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60"
+                        placeholder={placeholder}
+                    />
+                </div>
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="8" height="6" viewBox="0 0 8 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 1.87809e-07 0.647327 2.2346e-07L7.35267 8.0966e-07C7.76048 8.45312e-07 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
+                </svg>
+            </div>
+            {open && (
+                <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 bg-white dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]">
+                    <div className="max-h-[220px] overflow-auto">
+                        {loading ? (
+                            <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                불러오는 중...
+                            </div>
+                        ) : filteredOptions.length > 0 ? (
+                            filteredOptions.map((option) => (
+                                <button
+                                    key={`${label}-${String(option.value)}`}
+                                    type="button"
+                                    onClick={() => {
+                                        onChange?.(String(option.value));
+                                        setOpen(false);
+                                    }}
+                                    className="cursor-pointer w-full h-[48px] px-4 flex items-center text-left hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] text-[#000] dark:text-neutral-80"
+                                >
+                                    {option.label}
+                                </button>
+                            ))
+                        ) : (
+                            <div className="h-[48px] px-4 flex items-center text-[14px] text-[#808080] dark:text-neutral-60">
+                                {emptyText}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function normalizeCustomerFilterOptions(
+    payload: unknown,
+    key: CustomerFilterOptionKey
+): Option[] {
+    const values = Array.isArray(payload)
+        ? payload
+        : typeof payload === "object" && payload !== null
+            ? [
+                ...(Array.isArray((payload as { list?: unknown[] }).list) ? (payload as { list: unknown[] }).list : []),
+                ...(Array.isArray((payload as { items?: unknown[] }).items) ? (payload as { items: unknown[] }).items : []),
+                ...(Array.isArray((payload as Record<CustomerFilterOptionKey, unknown[]>)[key])
+                    ? (payload as Record<CustomerFilterOptionKey, unknown[]>)[key]
+                    : []),
+            ]
+            : [];
+
+    return Array.from(
+        new Set(
+            values
+                .filter((value): value is string => typeof value === "string")
+                .map((value) => value.trim())
+                .filter(Boolean)
+        )
+    ).map((value) => ({ label: value, value }));
+}
+
+function mergeOptions(primary: Option[], secondary: Option[]): Option[] {
+    const merged = new Map<string, Option>();
+
+    [...primary, ...secondary].forEach((option) => {
+        const normalizedValue = String(option.value).trim();
+        const normalizedLabel = option.label.trim();
+        if (!normalizedValue || !normalizedLabel) return;
+        const key = `${normalizedLabel}::${normalizedValue}`;
+        if (!merged.has(key)) {
+            merged.set(key, {
+                label: normalizedLabel,
+                value: normalizedValue,
+            });
+        }
+    });
+
+    return Array.from(merged.values());
+}
+
 function Pill({
     label,
     onRemove,
@@ -712,13 +922,9 @@ function arraysEqual(a: (number | null)[], b: (number | null)[]) {
 function CategorySelector({
     defaultIds,
     onChangeIds,
-    filterByLatestCategory = true,
-    onChangeFilterByLatestCategory,
 }: {
     defaultIds?: (number | null)[];
     onChangeIds?: (ids: (number | null)[]) => void;
-    filterByLatestCategory?: boolean;
-    onChangeFilterByLatestCategory?: (next: boolean) => void;
 }) {
     const { categories: options } = useCustomerNoteCategories();
     const [selected, setSelected] = useState<(number | null)[]>(defaultIds || []);
@@ -770,7 +976,7 @@ function CategorySelector({
 
     return (
         <div ref={wrapRef} className="relative">
-            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">상담 카테고리</label>
+            <label className="block text-[14px] text-[#808080] dark:text-neutral-60 mb-2">카테고리</label>
             {/* Combobox trigger */}
             <button
                 ref={triggerRef}
@@ -798,23 +1004,6 @@ function CategorySelector({
                     <path d="M4.40544 5.4382C4.20587 5.71473 3.79413 5.71473 3.59456 5.4382L0.241885 0.792604C0.00323535 0.461921 0.239523 0 0.647327 0L7.35267 0C7.76048 0 7.99676 0.461922 7.75812 0.792604L4.40544 5.4382Z" fill="currentColor" className="text-[#000] dark:text-neutral-70" />
                 </svg>
             </button>
-
-            <div className="mt-2 flex items-center gap-3">
-                <Checkbox
-                    checked={filterByLatestCategory}
-                    onChange={(next) => onChangeFilterByLatestCategory && onChangeFilterByLatestCategory(next)}
-                    ariaLabel="마지막 상담 카테고리만 검색"
-                />
-                <label
-                    className="cursor-pointer text-[14px] leading-[17px] tracking-[-0.02em] text-[#000] dark:text-neutral-60"
-                    onClick={() =>
-                        onChangeFilterByLatestCategory &&
-                        onChangeFilterByLatestCategory(!filterByLatestCategory)
-                    }
-                >
-                    마지막 상담 카테고리만 검색
-                </label>
-            </div>
 
             {/* Selected pills - ensure dropdown overlays them when open */}
             {selected.length > 0 && (
