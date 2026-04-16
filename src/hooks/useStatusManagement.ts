@@ -11,7 +11,7 @@ import {
 } from "@/utils/statusColors";
 
 /**
- * 처리상태 관리 로직을 담당하는 훅
+ * 카테고리 관리 로직을 담당하는 훅
  */
 export function useStatusManagement(
   projectId: string | null,
@@ -21,7 +21,7 @@ export function useStatusManagement(
   const [newStatusColor, setNewStatusColor] = useState(DEFAULT_STATUS_COLOR);
   const queryClient = useQueryClient();
 
-  // 처리상태 추가
+  // 카테고리 추가
   const handleAddStatus = useCallback(async () => {
     if (!newStatusName.trim() || !projectId) return false;
     
@@ -59,7 +59,7 @@ export function useStatusManagement(
     }
   }, [newStatusColor, newStatusName, projectId, queryClient, setStatuses]);
 
-  // 처리상태 수정
+  // 카테고리 수정
   const handleModifyStatus = useCallback(async (
     id: number,
     {
@@ -95,8 +95,8 @@ export function useStatusManagement(
     } catch (error: any) {
       console.error("Failed to update status:", error);
       showErrorModal({
-        headline: "처리상태 수정 실패",
-        description: "처리상태 수정에 실패했습니다.",
+        headline: "카테고리 수정 실패",
+        description: "카테고리 수정에 실패했습니다.",
         hideCancel: true,
         confirmText: "확인",
       });
@@ -104,12 +104,12 @@ export function useStatusManagement(
     }
   }, [projectId, queryClient, setStatuses]);
 
-  // 처리상태 삭제
+  // 카테고리 삭제
   const handleDeleteStatus = useCallback(async (id: number) => {
     if (!projectId) return;
     
     showErrorModal({
-      headline: "처리상태 삭제",
+      headline: "카테고리 삭제",
       description: "정말 삭제하시겠습니까?",
       onConfirm: async () => {
         try {
@@ -124,8 +124,8 @@ export function useStatusManagement(
         } catch (error: any) {
           console.error("Failed to delete status:", error);
           showErrorModal({
-            headline: "처리상태 삭제 실패",
-            description: "처리상태 삭제에 실패했습니다.",
+            headline: "카테고리 삭제 실패",
+            description: "카테고리 삭제에 실패했습니다.",
             hideCancel: true,
             confirmText: "확인",
           });

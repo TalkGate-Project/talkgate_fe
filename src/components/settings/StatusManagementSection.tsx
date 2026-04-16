@@ -62,7 +62,7 @@ function ColorSelectTrigger({
 }
 
 /**
- * 처리상태 관리 섹션 컴포넌트
+ * 카테고리 관리 섹션 컴포넌트
  */
 export default function StatusManagementSection({
   newStatusName,
@@ -160,15 +160,15 @@ export default function StatusManagementSection({
 
   return (
     <div className="md:bg-card md:rounded-[14px] md:shadow-sm px-6 md:px-7 md:py-[30px] mt-5 md:mt-0">
-      <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">처리상태 관리</h3>
-      <p className="hidden md:block text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 상담에서 사용될 처리상태를 관리합니다.</p>
+      <h3 className="text-[16px] font-semibold text-foreground mb-2 tracking-[0.2px] leading-[1]">카테고리 관리</h3>
+      <p className="hidden md:block text-[14px] text-neutral-60 mb-3 font-medium tracking-[0.2px]">고객 카테고리로 사용될 항목을 관리합니다.</p>
       
       <div className="border-t border-neutral-30 mb-3"></div>
       
       <div className="flex gap-3 mb-5">
         <ColorSelectTrigger
           color={newStatusColor}
-          ariaLabel="새 처리상태 색상 선택"
+          ariaLabel="새 카테고리 색상 선택"
           onClick={(event) => openPalette("new", event)}
         />
         <input
@@ -177,7 +177,7 @@ export default function StatusManagementSection({
           onChange={(e) => setNewStatusName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && void onAddStatus()}
           className="w-full px-3 h-[34px] border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground tracking-[-0.02em]"
-          placeholder="새 상태 이름을 입력하세요"
+          placeholder="새 카테고리 이름을 입력하세요"
         />
         <button 
           onClick={() => void onAddStatus()}

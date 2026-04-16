@@ -25,7 +25,7 @@ const CHIP_CLASS_NAME =
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <div className={CHIP_CLASS_NAME}>
-      <span className="text-[14px] font-medium text-black opacity-80">{label}</span>
+      <span className="text-[14px] font-medium text-black dark:text-neutral-80 opacity-80">{label}</span>
       <button
         aria-label="remove"
         onClick={onRemove}
@@ -265,7 +265,7 @@ export default function FilterChips({
         filters.categoryIds.map((id) => (
           <CategoryChip
             key={id === null ? "general" : id}
-            label={`상담 카테고리: ${getCategoryName(id)}`}
+            label={`카테고리: ${getCategoryName(id)}`}
             style={getCategoryChipStyle(id)}
             onRemove={() => onRemoveCategory(id)}
           />

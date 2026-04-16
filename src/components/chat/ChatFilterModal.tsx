@@ -180,9 +180,9 @@ export default function ChatFilterModal({
               </div>
             </div>
 
-            {/* 상담 카테고리 멀티 선택 */}
+            {/* 카테고리 멀티 선택 */}
             <div className="relative">
-              <div className="text-[14px] text-medium text-neutral-60 mb-2">상담 카테고리</div>
+              <div className="text-[14px] text-medium text-neutral-60 mb-2">카테고리</div>
               <button
                 ref={buttonRef}
                 type="button"

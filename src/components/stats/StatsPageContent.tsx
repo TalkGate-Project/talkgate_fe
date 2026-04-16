@@ -27,7 +27,7 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "apply", label: "신청통계" },
   { key: "assign", label: "배정통계" },
   { key: "payment", label: "매출통계" },
-  { key: "status", label: "처리상태" },
+  { key: "status", label: "카테고리" },
   { key: "ranking", label: "전체랭킹" },
 ];
 
@@ -197,7 +197,7 @@ function StatsPageContentInner() {
                 </h1>
                 <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
                 <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
-                  고객 신청, 배정, 처리상태, 결제, 랭킹 통계를 한눈에 확인하세요
+                  고객 신청, 배정, 카테고리, 결제, 랭킹 통계를 한눈에 확인하세요
                 </p>
               </div>
               <CurrentProjectBadge
@@ -402,11 +402,11 @@ function StatsPageContentInner() {
           </section>
         )}
 
-        {/* Status Tab: 처리상태 */}
+        {/* Status Tab: 카테고리 */}
         {active === "status" && (
           <section className="surface md:rounded-[14px] px-6 md:px-7 md:py-[30px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
-              처리상태통계
+              카테고리 통계
             </h2>
             <div className="md:mt-4 md:mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
               상태별 분포

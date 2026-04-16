@@ -48,6 +48,8 @@ export default function CustomerDetailModalMobile({
   const {
     loading,
     detail,
+    categoryHistory,
+    categoryHistoryLoading,
     categories,
     messengersLocal,
     form,
@@ -102,8 +104,13 @@ export default function CustomerDetailModalMobile({
     markListRefreshPending();
   }, [actions, markListRefreshPending]);
 
-  const handleAddNote = useCallback(async (categoryId: number | null, note: string) => {
-    await actions.addNote(categoryId, note);
+  const handleChangeCategory = useCallback(async (categoryId: number | null) => {
+    await actions.changeCategory(categoryId);
+    markListRefreshPending();
+  }, [actions, markListRefreshPending]);
+
+  const handleAddNote = useCallback(async (note: string) => {
+    await actions.addNote(note);
     markListRefreshPending();
   }, [actions, markListRefreshPending]);
 
@@ -386,6 +393,10 @@ export default function CustomerDetailModalMobile({
                 customerName={detail.name || ""}
                 notes={detail.notes}
                 categories={categories}
+                currentCategoryId={detail.categoryId ?? null}
+                categoryHistory={categoryHistory}
+                categoryHistoryLoading={categoryHistoryLoading}
+                onChangeCategory={handleChangeCategory}
                 onAddNote={handleAddNote}
                 onRemoveNote={handleRemoveNote}
               />
