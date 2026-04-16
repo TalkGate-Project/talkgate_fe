@@ -6,6 +6,7 @@ import { ApiKeysService } from "@/services/apiKeys";
 import { getSelectedProjectId } from "@/lib/project";
 import { formatDateForChip } from "@/utils/datetime";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 type FilterChipsProps = {
   filters: CustomerFilters;
@@ -144,14 +145,14 @@ export default function FilterChips({
 
   // 카테고리 ID로 이름 찾기
   const getCategoryName = (id: number | null): string => {
-    if (id === null) return "일반";
+    if (id === null) return NO_CATEGORY_LABEL;
     const category = categories.find((c) => c.id === id);
     return category?.name || `카테고리 ${id}`;
   };
 
   const getCategoryChipStyle = (id: number | null): CSSProperties => {
     if (id === null) {
-      return getBadgeStyle("일반", 0);
+      return getBadgeStyle(NO_CATEGORY_LABEL, 0);
     }
 
     const category = categories.find((item) => item.id === id);

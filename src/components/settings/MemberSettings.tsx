@@ -9,6 +9,7 @@ import { hasAdminAccess } from "@/utils/permissions";
 import { MembersService } from "@/services/members";
 import type { MemberListItem, MemberRole } from "@/types/members";
 import Pagination from "@/components/common/Pagination";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import InviteMemberModal from "@/components/common/InviteMemberModal";
 import DeleteMemberModal from "@/components/common/DeleteMemberModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -546,14 +547,6 @@ export default function MemberSettings() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="bg-card rounded-[14px] p-6">
-        <p className="text-neutral-60">멤버 목록을 불러오는 중...</p>
-      </div>
-    );
-  }
-
   // 프로젝트 탈퇴 핸들러
   const handleLeaveProject = () => {
     setIsLeaveModalOpen(true);
@@ -660,8 +653,12 @@ export default function MemberSettings() {
         </div>
 
         {/* Member List */}
-        <div className="space-y-0">
-          {members.length === 0 ? (
+        <div className="space-y-0 min-h-[240px]">
+          {isLoading ? (
+            <div className="flex min-h-[240px] items-center justify-center rounded-[8px] border border-neutral-30/70 bg-neutral-0 dark:bg-black">
+              <LoadingSpinner size="md" variant="primary" aria-label="멤버 목록 로딩 중" />
+            </div>
+          ) : members.length === 0 ? (
             <div className="py-8 text-center text-neutral-60 text-[14px]">
               {searchName ? "검색 결과가 없습니다." : "멤버가 없습니다."}
             </div>

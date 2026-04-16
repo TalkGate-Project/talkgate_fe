@@ -32,6 +32,7 @@ import {
   CustomerCategoryHistoryItem,
 } from "@/types/customers";
 import type { RecentlyAssignedCustomersResponse } from "@/types/dashboard";
+import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
 function toNullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -51,6 +52,10 @@ export function normalizeCustomerCategoryHistoryItem(
   const categoryObject =
     item.category && typeof item.category === "object"
       ? (item.category as Record<string, unknown>)
+      : item.customerCategory && typeof item.customerCategory === "object"
+        ? (item.customerCategory as Record<string, unknown>)
+        : item.customerNoteCategory && typeof item.customerNoteCategory === "object"
+          ? (item.customerNoteCategory as Record<string, unknown>)
       : null;
   const memberObject =
     item.member && typeof item.member === "object"
@@ -66,11 +71,17 @@ export function normalizeCustomerCategoryHistoryItem(
 
   const categoryId =
     toNullableNumber(item.categoryId) ??
+    toNullableNumber(item.newCategoryId) ??
+    toNullableNumber(item.customerCategoryId) ??
     toNullableNumber(categoryObject?.id ?? null);
   const categoryName =
     toStringOrNull(item.categoryName) ??
+    toStringOrNull(item.newCategoryName) ??
+    toStringOrNull(item.customerCategoryName) ??
+    toStringOrNull(item.customerNoteCategoryName) ??
+    toStringOrNull(item.category) ??
     toStringOrNull(categoryObject?.name ?? null) ??
-    "일반";
+    NO_CATEGORY_LABEL;
   const colorCode =
     toStringOrNull(item.colorCode) ??
     toStringOrNull(categoryObject?.colorCode ?? null) ??
