@@ -1,7 +1,9 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatDetailDate } from "./utils";
 import { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { useMyMember } from "@/hooks/useMyMember";
 import CategoryHistoryModal from "./CategoryHistoryModal";
 import CategoryDropdownPortal from "./CategoryDropdownPortal";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -32,6 +34,8 @@ export default function ConsultationTab({
   onAddNote,
   onRemoveNote,
 }: Props) {
+  const router = useRouter();
+  const { isAdminOrSubAdmin } = useMyMember();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [noteInput, setNoteInput] = useState("");
   const [isChangingCategory, setIsChangingCategory] = useState(false);
@@ -124,6 +128,11 @@ export default function ConsultationTab({
   const handleOpenHistoryModal = () => {
     setIsHistoryModalOpen(true);
     void onOpenCategoryHistory?.();
+  };
+
+  const handleNavigateToCategorySettings = () => {
+    setIsCategoryDropdownOpen(false);
+    router.push("/settings?tab=general");
   };
 
   return (
@@ -285,6 +294,8 @@ export default function ConsultationTab({
         selectedCategoryId={selectedCategoryId === "" ? null : selectedCategoryId}
         onSelect={(categoryId) => void handleSelectCategory(categoryId)}
         disabled={isChangingCategory}
+        showManageButton={isAdminOrSubAdmin}
+        onManageButtonClick={handleNavigateToCategorySettings}
       />
       <CategoryHistoryModal
         open={isHistoryModalOpen}

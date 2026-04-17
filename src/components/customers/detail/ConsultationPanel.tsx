@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { formatDetailDate } from "./utils";
 import { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { useMyMember } from "@/hooks/useMyMember";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 import CategoryHistoryModal from "./CategoryHistoryModal";
 import CategoryDropdownPortal from "./CategoryDropdownPortal";
@@ -43,6 +44,7 @@ export default function ConsultationPanel({
   maxHeight,
 }: Props) {
   const router = useRouter();
+  const { isAdminOrSubAdmin } = useMyMember();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "">("");
   const [noteInput, setNoteInput] = useState("");
   const [isChangingCategory, setIsChangingCategory] = useState(false);
@@ -128,6 +130,11 @@ export default function ConsultationPanel({
     params.set("platform", conversation.platform);
     params.set("customerId", String(customerId));
     router.push(`/consult?${params.toString()}`);
+  };
+
+  const handleNavigateToCategorySettings = () => {
+    setIsCategoryDropdownOpen(false);
+    router.push("/settings?tab=general");
   };
 
   const handleOpenUnlinkModal = (event: React.MouseEvent) => {
@@ -433,6 +440,8 @@ export default function ConsultationPanel({
         selectedCategoryId={selectedCategoryId === "" ? null : selectedCategoryId}
         onSelect={(categoryId) => void handleSelectCategory(categoryId)}
         disabled={isChangingCategory}
+        showManageButton={isAdminOrSubAdmin}
+        onManageButtonClick={handleNavigateToCategorySettings}
       />
       <CategoryHistoryModal
         open={isHistoryModalOpen}
