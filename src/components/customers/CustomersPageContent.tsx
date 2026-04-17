@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useMemo, useCallback } from "react";
 import Panel from "@/components/common/Panel";
 import { useCustomersList } from "@/hooks/useCustomersList";
+import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import type { AssignCustomersFilterConditions, CustomerListItem } from "@/types/customers";
 import FilterModal from "@/components/common/FilterModal";
 import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
@@ -123,6 +124,7 @@ function CustomersPageContentInner() {
   } = useCustomersFilters(projectId);
 
   const { data, loading, error, refetch } = useCustomersList(query as any);
+  const { categories: noteCategories } = useCustomerNoteCategories();
 
   useEffect(() => {
     // refetch happens automatically through deps, this ensures consistency when projectId changes
@@ -163,6 +165,60 @@ function CustomersPageContentInner() {
       error,
     });
   }, [error, query]);
+
+  useEffect(() => {
+    // 카테고리 간헐 누락 이슈 진단용 로그 (백엔드 payload 누락 vs 프런트 카테고리 캐시 스테일 분리)
+    if (process.env.NODE_ENV === "production") return;
+    const customersForDiag = data?.data.customers;
+    if (!customersForDiag || !query) return;
+
+    const total = customersForDiag.length;
+    if (total === 0) return;
+
+    const categoryDict = new Set(noteCategories.map((cat) => cat.id));
+    const nullIds: number[] = [];
+    const unknownIds: Array<{ id: number; categoryId: number }> = [];
+
+    for (const c of customersForDiag) {
+      if (c.categoryId == null) {
+        nullIds.push(c.id);
+      } else if (!categoryDict.has(c.categoryId)) {
+        unknownIds.push({ id: c.id, categoryId: c.categoryId });
+      }
+    }
+
+    const nullCount = nullIds.length;
+    const unknownCount = unknownIds.length;
+    if (nullCount === 0 && unknownCount === 0) return;
+
+    const payload = {
+      requestedPage: query.page,
+      responsePage: data?.data.page,
+      limit: query.limit,
+      total,
+      nullCount,
+      unknownCount,
+      appliedQuery: {
+        categoryIds: query.categoryIds,
+        assignType: query.assignType,
+        teamId: query.teamId,
+        memberId: query.memberId,
+        applicationDateFrom: query.applicationDateFrom,
+        applicationDateTo: query.applicationDateTo,
+      },
+      categoriesLoaded: noteCategories.length > 0,
+      sampleNullIds: nullIds.slice(0, 5),
+      sampleUnknownIds: unknownIds.slice(0, 5),
+    };
+
+    if (nullCount === total) {
+      console.warn("[customers] category ALL MISSING – likely backend", payload);
+    } else if (unknownCount > 0) {
+      console.warn("[customers] category dictionary stale", payload);
+    } else if (nullCount > 0) {
+      console.info("[customers] category presence", payload);
+    }
+  }, [data, query, noteCategories]);
 
   const {
     selectedIds,
