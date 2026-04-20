@@ -22,12 +22,14 @@ type DatePickerProps = {
     dateFormat?: string;
 	/** 패널과 인풋 사이 세로 간격(px). 기본 8 */
 	panelOffsetY?: number;
+	/** 검증 실패 상태일 때 인풋 테두리를 빨간색으로 표시 */
+	invalid?: boolean;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8 } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false } = props;
 
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"month" | "year">("month");
@@ -202,7 +204,7 @@ export default function DatePicker(props: DatePickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, dateFormat, { locale: ko }) : ""}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${className}`}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
 			/>
 
 			{open && panelPos && createPortal(

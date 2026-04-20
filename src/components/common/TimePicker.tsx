@@ -21,6 +21,8 @@ type TimePickerProps = {
   restrictAdHours?: boolean;
   /** 패널과 인풋 사이 세로 간격(px). 기본 8 */
   panelOffsetY?: number;
+  /** 검증 실패 상태일 때 인풋 테두리를 빨간색으로 표시 */
+  invalid?: boolean;
 };
 
 type Period = "오전" | "오후";
@@ -78,6 +80,7 @@ export default function TimePicker(props: TimePickerProps) {
     minuteStep = 10,
     restrictAdHours = false,
     panelOffsetY = 8,
+    invalid = false,
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -235,7 +238,7 @@ export default function TimePicker(props: TimePickerProps) {
         onFocus={openPicker}
         value={label}
         placeholder={placeholder}
-        className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-border bg-card text-foreground placeholder:text-neutral-60 px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+        className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-border bg-card text-foreground placeholder:text-neutral-60 px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
       />
 
       {open &&

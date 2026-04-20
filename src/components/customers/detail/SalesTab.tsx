@@ -74,6 +74,7 @@ export default function SalesTab({
     PAYMENT_METHOD_OPTIONS[0]?.value ?? "creditCard"
   );
   const [paymentDesc, setPaymentDesc] = useState("");
+  const [paymentSubmitAttempted, setPaymentSubmitAttempted] = useState(false);
 
   // Schedule Inputs
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null);
@@ -81,13 +82,32 @@ export default function SalesTab({
   const [scheduleTime, setScheduleTime] = useState<string | null>(null);
   const [scheduleDesc, setScheduleDesc] = useState("");
   const [scheduleColor, setScheduleColor] = useState<string>("#00E272");
+  const [scheduleSubmitAttempted, setScheduleSubmitAttempted] = useState(false);
+
+  const paymentDateError =
+    paymentSubmitAttempted && !paymentDate ? "날짜를 선택해 주세요." : "";
+  const paymentAmountError =
+    paymentSubmitAttempted && !paymentAmount ? "금액을 입력해 주세요." : "";
+
+  const scheduleDateError =
+    scheduleSubmitAttempted && !scheduleDate ? "날짜를 선택해 주세요." : "";
+  const scheduleTimeError =
+    scheduleSubmitAttempted && !scheduleTime ? "시간을 선택해 주세요." : "";
+  const scheduleDescError =
+    scheduleSubmitAttempted && !scheduleDesc.trim()
+      ? "일정내용을 입력해 주세요."
+      : "";
 
   const handleAddPayment = () => {
-    if (!paymentDate || !paymentAmount) return;
+    if (!paymentDate || !paymentAmount) {
+      setPaymentSubmitAttempted(true);
+      return;
+    }
     onAddPayment(paymentDate.toISOString(), paymentAmount, paymentMethod, paymentDesc);
     setPaymentDate(null);
     setPaymentAmount("");
     setPaymentDesc("");
+    setPaymentSubmitAttempted(false);
   };
 
   const getPaymentMethodLabel = (method: string) => {
@@ -96,7 +116,10 @@ export default function SalesTab({
   };
 
   const handleAddSchedule = () => {
-    if (!scheduleDate || !scheduleTime || !scheduleDesc.trim() || !scheduleColor) return;
+    if (!scheduleDate || !scheduleTime || !scheduleDesc.trim() || !scheduleColor) {
+      setScheduleSubmitAttempted(true);
+      return;
+    }
 
     const [hhStr, mmStr] = scheduleTime.split(":");
     const hh = Number(hhStr || "0");
@@ -120,6 +143,7 @@ export default function SalesTab({
     setScheduleDate(null);
     setScheduleTime(null);
     setScheduleDesc("");
+    setScheduleSubmitAttempted(false);
   };
 
   const formatScheduleTime = (isoString: string) => {
@@ -239,14 +263,16 @@ export default function SalesTab({
         </div>
         <div className="md:hidden space-y-4 mb-4">
           <label className="block">
-            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+            <span className="flex items-center gap-1 text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
               날짜
+              <span className="text-danger-40">*</span>
             </span>
             <div className="relative h-[34px]">
               <DatePicker
                 value={paymentDate}
                 onChange={setPaymentDate}
                 className="h-[34px] w-full pr-9 font-medium"
+                invalid={!!paymentDateError}
               />
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
                 <svg
@@ -266,6 +292,9 @@ export default function SalesTab({
                 </svg>
               </div>
             </div>
+            {paymentDateError && (
+              <p className="mt-1 text-[12px] text-danger-40">{paymentDateError}</p>
+            )}
           </label>
           <label className="block">
             <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
@@ -284,8 +313,9 @@ export default function SalesTab({
             </SelectField>
           </label>
           <label className="block">
-            <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
+            <span className="flex items-center gap-1 text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
               금액
+              <span className="text-danger-40">*</span>
             </span>
             <input
               value={paymentAmount}
@@ -293,8 +323,13 @@ export default function SalesTab({
                 setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="금액을 입력하세요."
-              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className={`h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
+                paymentAmountError ? "!border-danger-40 dark:!border-danger-40" : ""
+              }`}
             />
+            {paymentAmountError && (
+              <p className="mt-1 text-[12px] text-danger-40">{paymentAmountError}</p>
+            )}
           </label>
           <label className="block">
             <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
@@ -316,16 +351,18 @@ export default function SalesTab({
             </button>
           </div>
         </div>
-        <div className="hidden md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-end">
+        <div className="hidden md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-start">
           <label className="block">
-            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+            <span className="flex items-center gap-1 text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               날짜
+              <span className="text-danger-40">*</span>
             </span>
             <div className="relative h-[34px]">
               <DatePicker
                 value={paymentDate}
                 onChange={setPaymentDate}
                 className="h-[34px] pr-9 font-medium"
+                invalid={!!paymentDateError}
               />
               <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-60 dark:text-neutral-60">
                 <svg
@@ -345,6 +382,9 @@ export default function SalesTab({
                 </svg>
               </div>
             </div>
+            {paymentDateError && (
+              <p className="mt-1 text-[12px] text-danger-40">{paymentDateError}</p>
+            )}
           </label>
           <label className="block">
             <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
@@ -363,8 +403,9 @@ export default function SalesTab({
             </SelectField>
           </label>
           <label className="block">
-            <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
+            <span className="flex items-center gap-1 text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               금액
+              <span className="text-danger-40">*</span>
             </span>
             <input
               value={paymentAmount}
@@ -372,8 +413,13 @@ export default function SalesTab({
                 setPaymentAmount(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="금액을 입력하세요."
-              className="h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className={`h-[34px] w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-[14px] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
+                paymentAmountError ? "!border-danger-40 dark:!border-danger-40" : ""
+              }`}
             />
+            {paymentAmountError && (
+              <p className="mt-1 text-[12px] text-danger-40">{paymentAmountError}</p>
+            )}
           </label>
           <label className="block">
             <span className="block text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
@@ -387,7 +433,7 @@ export default function SalesTab({
             />
           </label>
           <button
-            className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
+            className="cursor-pointer w-[48px] h-[34px] mt-[22px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
             onClick={handleAddPayment}
           >
             추가
@@ -446,8 +492,9 @@ export default function SalesTab({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           {/* 날짜 */}
           <div>
-          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
+          <div className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
             날짜
+            <span className="text-danger-40">*</span>
           </div>
             <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-2 h-[34px]">
               <div className="relative h-[34px]">
@@ -455,6 +502,7 @@ export default function SalesTab({
                   value={scheduleDate}
                   onChange={setScheduleDate}
                   className="h-[34px] pr-9"
+                  invalid={!!scheduleDateError}
                 />
                 <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
                   <svg
@@ -479,8 +527,14 @@ export default function SalesTab({
                 onChange={setScheduleTime}
                 minuteStep={10}
                 className="rounded-[5px] border-[#E5E7EB] dark:border-[#444444] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+                invalid={!!scheduleTimeError}
               />
             </div>
+            {(scheduleDateError || scheduleTimeError) && (
+              <p className="mt-1 text-[12px] text-danger-40">
+                {scheduleDateError || scheduleTimeError}
+              </p>
+            )}
           </div>
 
           {/* 컬러 */}
@@ -522,15 +576,18 @@ export default function SalesTab({
 
         {/* 일정내용 */}
         <div>
-          <div className="mb-2 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
+          <div className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
             일정내용
+            <span className="text-danger-40">*</span>
           </div>
           <div className="flex gap-2">
             <input
               value={scheduleDesc}
               onChange={(e) => setScheduleDesc(e.target.value)}
               placeholder="일정내용을 입력하세요."
-              className="w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+              className={`w-full h-[34px] rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] leading-[1] tracking-[0.2px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 ${
+                scheduleDescError ? "!border-danger-40 dark:!border-danger-40" : ""
+              }`}
             />
             <button
               className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
@@ -539,6 +596,9 @@ export default function SalesTab({
               추가
             </button>
           </div>
+          {scheduleDescError && (
+            <p className="mt-1 text-[12px] text-danger-40">{scheduleDescError}</p>
+          )}
         </div>
 
         <div className="mt-3 space-y-2 max-h-[220px] overflow-auto pr-1">
