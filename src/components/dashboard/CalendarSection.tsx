@@ -143,12 +143,12 @@ export default function CalendarSection() {
 
   return (
     <Panel
-      title={<span className="text-[14px] md:typo-title-4 font-semibold">달력 & 일정</span>}
+      title={<span className="text-[14px] md:typo-title-4 font-semibold min-w-0 truncate">달력 & 일정</span>}
       action={
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-[10px] shrink-0">
           <button
             onClick={goPrev}
-            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center shrink-0"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[35px] md:h-[35px] flex items-center justify-center shrink-0"
           >
             <CalendarPrevIcon />
           </button>
@@ -162,7 +162,7 @@ export default function CalendarSection() {
           </div>
           <button
             onClick={goNext}
-            className="cursor-pointer w-[18px] h-[18px] md:w-[36px] md:h-[36px] grid place-items-center shrink-0"
+            className="cursor-pointer w-[18px] h-[18px] md:w-[35px] md:h-[35px] flex items-center justify-center shrink-0"
           >
             <CalendarNextIcon />
           </button>

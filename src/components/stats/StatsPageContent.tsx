@@ -426,7 +426,7 @@ function StatsPageContentInner() {
                   전체랭킹
                 </h2>
                 <p className="hidden md:block mt-3 text-[14px] leading-[20px] font-medium text-neutral-60">
-                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 매시간 집계하여 갱신됩니다.
+                  월단위로 랭킹을 확인할 수 있습니다. 이번달 랭킹은 실시간으로 집계하여 반영됩니다.
                 </p>
               </div>
               <div className="w-full md:max-w-[248px] h-[48px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">

@@ -8,7 +8,10 @@ export function useStatsTeamRanking(projectId: string | null, page = 1, limit = 
   const query = useQuery<RankingTeamResponse>({
     queryKey: ["stats", "ranking", "team", projectId, page, limit, year, monthNum],
     enabled: Boolean(projectId) && Boolean(year) && Boolean(monthNum),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       if (!year || !monthNum) throw new Error("년도와 월을 선택해주세요.");
@@ -35,7 +38,10 @@ export function useStatsMemberRanking(projectId: string | null, page = 1, limit 
   const query = useQuery<RankingMemberResponse>({
     queryKey: ["stats", "ranking", "member", projectId, page, limit, year, monthNum],
     enabled: Boolean(projectId) && Boolean(year) && Boolean(monthNum),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       if (!year || !monthNum) throw new Error("년도와 월을 선택해주세요.");
