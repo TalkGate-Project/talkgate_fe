@@ -34,7 +34,10 @@ export default function MyRankingCard({ projectId, mode, month }: Props) {
   const query = useQuery<RankingMyResponse | RankingMyTeamResponse>({
     queryKey: ["stats", "ranking", "my", mode, projectId, year, monthNum],
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       if (!year || !monthNum) throw new Error("년도와 월을 선택해주세요.");
