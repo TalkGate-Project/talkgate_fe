@@ -39,25 +39,29 @@ export default function SalesRanking() {
   const teamQuery = useQuery<RankingTeamResponse>({
     queryKey: ["dashboard", "ranking", "team", projectId, currentYear, currentMonth],
     enabled: hasProject,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.rankingTeam({ projectId, page: 1, limit: 5, year: currentYear, month: currentMonth });
       return res.data;
     },
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previous) => previous,
   });
 
   const memberQuery = useQuery<RankingMemberResponse>({
     queryKey: ["dashboard", "ranking", "member", projectId, currentYear, currentMonth],
     enabled: Boolean(projectId),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
       const res = await StatisticsService.rankingMember({ projectId, page: 1, limit: 5, year: currentYear, month: currentMonth });
       return res.data;
     },
-    staleTime: 5 * 60 * 1000,
-    placeholderData: (previous) => previous,
   });
 
   const { rows, loading, error } = useSalesRankingData({ mode, teamQuery, memberQuery });
