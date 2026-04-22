@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
-import type { ProjectSummary } from "@/types/projects";
+import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
+import type { Project, ProjectSummary } from "@/types/projects";
 import { ProjectSubscriptionStatus } from "@/types/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
+import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
@@ -34,6 +36,16 @@ export default function ProjectsContent() {
   const [selectingProjectId, setSelectingProjectId] = useState<number | null>(
     null
   );
+  // 개인정보 처리 위탁 계약 동의 모달 상태
+  // next: "none"  - 단순 동의 수집 (프로젝트 생성 직후 등)
+  //        "subscribe" - 동의 후 구독 안내 모달 오픈
+  //        "expired"   - 동의 후 만료 모달 오픈
+  //        "navigate"  - 동의 후 대시보드 진입
+  type ConsentNext = "none" | "subscribe" | "expired" | "navigate";
+  const [consentTarget, setConsentTarget] = useState<{
+    project: ProjectSummary;
+    next: ConsentNext;
+  } | null>(null);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -108,6 +120,104 @@ export default function ProjectsContent() {
       mounted = false;
     };
   }, []);
+
+  // 대시보드 진입 로직을 헬퍼로 분리해 동의 모달 이후에도 재사용할 수 있도록 한다.
+  const navigateToProject = (p: ProjectSummary) => {
+    setSelectingProjectId(p.id);
+
+    const isDev = isDevelopment();
+
+    if (isDev) {
+      setSelectedProjectId(p.id);
+      setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+      window.location.href = "/dashboard";
+      return;
+    }
+
+    if (p.subDomain) {
+      const subdomainUrl = getProjectSubdomainUrl(p.subDomain, "/dashboard");
+      if (subdomainUrl) {
+        setSelectedProjectId(p.id);
+        setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+        window.location.href = subdomainUrl;
+        return;
+      }
+    }
+
+    setSelectedProjectId(p.id);
+    setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+    window.location.href = "/dashboard";
+  };
+
+  // 어드민 & 미동의 시 먼저 동의 모달을 띄우고, 완료되면 next 분기를 이어간다.
+  const handleProjectClick = async (p: ProjectSummary) => {
+    if (selectingProjectId !== null) return;
+
+    const subscriptionStatus = p.subscriptionStatus;
+    const isInactive = subscriptionStatus === ProjectSubscriptionStatus.Inactive;
+    const isNoneOrUnsubscribed =
+      subscriptionStatus === ProjectSubscriptionStatus.None ||
+      !p.hasActiveSubscription;
+
+    // 기본 next: 활성 구독이면 dashboard 이동, 비활성이면 만료 모달, 미구독이면 구독 안내 모달
+    const next: ConsentNext = isInactive
+      ? "expired"
+      : isNoneOrUnsubscribed
+        ? "subscribe"
+        : "navigate";
+
+    // 어드민 역할일 때만 동의 체크
+    if (p.role === "admin") {
+      setSelectingProjectId(p.id);
+      try {
+        const res = await ProjectPrivacyConsentService.get(p.id);
+        const isConsented = Boolean(res.data?.data?.isConsented);
+        if (!isConsented) {
+          // 로딩 상태는 consent 모달 진행 중에도 유지되어야 하므로 남겨둠
+          setSelectingProjectId(null);
+          setConsentTarget({ project: p, next });
+          return;
+        }
+      } catch (error) {
+        // 동의 상태 확인 실패 시 기존 흐름으로 진행 (UI 차단 방지)
+        console.error("Failed to check project privacy consent:", error);
+      } finally {
+        if (next !== "navigate") {
+          setSelectingProjectId(null);
+        }
+      }
+    }
+
+    // 기존 흐름대로 분기
+    if (next === "expired") {
+      setExpiredProject(p);
+      return;
+    }
+    if (next === "subscribe") {
+      setSubscribeProject(p);
+      return;
+    }
+    navigateToProject(p);
+  };
+
+  const handleConsentConfirmed = () => {
+    if (!consentTarget) return;
+    const { project, next } = consentTarget;
+    setConsentTarget(null);
+
+    if (next === "expired") {
+      setExpiredProject(project);
+      return;
+    }
+    if (next === "subscribe") {
+      setSubscribeProject(project);
+      return;
+    }
+    if (next === "navigate") {
+      navigateToProject(project);
+    }
+    // next === "none" 인 경우 별도 동작 없이 목록에 머문다.
+  };
 
   return (
     <main className="min-h-screen bg-background px-6 lg:px-0">
@@ -192,62 +302,8 @@ export default function ProjectsContent() {
                     : "cursor-pointer border-transparent hover:border-primary-60 hover:translate-y-[-20px]"
                 }`}
                 onClick={() => {
-                  // 이미 선택 중인 프로젝트가 있으면 클릭 무시
                   if (isAnySelecting) return;
-
-                  // subscriptionStatus에 따라 다른 모달 표시
-                  const subscriptionStatus = p.subscriptionStatus;
-                  
-                  // inactive 상태: 만료된 구독 모달 표시
-                  if (subscriptionStatus === ProjectSubscriptionStatus.Inactive) {
-                    setExpiredProject(p);
-                    return;
-                  }
-                  
-                  // none 상태: 기존 구독 유도 모달 표시
-                  if (subscriptionStatus === ProjectSubscriptionStatus.None || !p.hasActiveSubscription) {
-                    setSubscribeProject(p);
-                    return;
-                  }
-
-                  // active 상태 또는 구독이 활성화된 경우: 대시보드로 이동
-                  // 선택 상태 설정
-                  setSelectingProjectId(p.id);
-
-                  // 구독이 활성화된 경우 대시보드로 이동
-                  const isDev = isDevelopment();
-
-                  // 개발 환경: 쿠키에 세팅하고 /dashboard로 이동
-                  if (isDev) {
-                    setSelectedProjectId(p.id);
-                    setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                    // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
-                    window.location.href = "/dashboard";
-                    return;
-                  }
-
-                  // 배포 환경: 서브도메인이 있으면 서브도메인으로 이동, 없으면 쿠키 세팅 후 /dashboard로 이동
-                  if (p.subDomain) {
-                    const subdomainUrl = getProjectSubdomainUrl(
-                      p.subDomain,
-                      "/dashboard"
-                    );
-                    if (subdomainUrl) {
-                      // 서브도메인으로 이동하기 전에 현재 프로젝트 컨텍스트(프로젝트 ID/근태 메뉴 사용 여부)를 쿠키로 기록
-                      // - localStorage는 origin(도메인)이 달라지면 공유되지 않으므로 쿠키 기반 공유가 필요
-                      setSelectedProjectId(p.id);
-                      setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                      // 서브도메인으로 리다이렉트
-                      window.location.href = subdomainUrl;
-                      return;
-                    }
-                  }
-
-                  // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
-                  setSelectedProjectId(p.id);
-                  setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                  // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
-                  window.location.href = "/dashboard";
+                  void handleProjectClick(p);
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -426,13 +482,31 @@ export default function ProjectsContent() {
       {showCreate && (
         <CreateProjectModal
           onClose={() => setShowCreate(false)}
-          onCreated={async () => {
+          onCreated={async (created?: Project) => {
             // refresh list after creation
             const res = await ProjectsService.list();
             const payload: any = (res as any)?.data;
             const list = Array.isArray(payload) ? payload : payload?.data;
-            setProjects(Array.isArray(list) ? list : []);
+            const nextProjects: ProjectSummary[] = Array.isArray(list) ? list : [];
+            setProjects(nextProjects);
             setShowCreate(false);
+
+            // 프로젝트 생성 직후: 생성자는 해당 프로젝트의 어드민이므로 동의 모달을 띄운다.
+            if (!created?.id) return;
+            try {
+              const consentRes = await ProjectPrivacyConsentService.get(created.id);
+              const isConsented = Boolean(consentRes.data?.data?.isConsented);
+              if (isConsented) return;
+              const summary =
+                nextProjects.find((item) => item.id === created.id) ??
+                ({
+                  ...created,
+                  role: "admin",
+                } as ProjectSummary);
+              setConsentTarget({ project: summary, next: "none" });
+            } catch (error) {
+              console.error("Failed to check consent for created project:", error);
+            }
           }}
         />
       )}
@@ -471,6 +545,15 @@ export default function ProjectsContent() {
           }}
           userRole={expiredProject.role}
           onClose={() => setExpiredProject(null)}
+        />
+      )}
+
+      {/* 개인정보 처리 위탁 계약 동의 모달 (임의 종료 불가) */}
+      {consentTarget && (
+        <ProjectPrivacyConsentModal
+          projectId={consentTarget.project.id}
+          projectName={consentTarget.project.name}
+          onConfirmed={handleConsentConfirmed}
         />
       )}
     </main>

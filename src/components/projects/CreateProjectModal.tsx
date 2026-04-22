@@ -7,10 +7,11 @@ import { ProjectsService } from "@/services/projects";
 import pleaseDragImg from "@/assets/images/projects/please_drag.webp";
 import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import type { Project } from "@/types/projects";
 
 type Props = {
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (created?: Project) => void;
 };
 
 // 서브도메인 형식 검증 패턴 (영문 소문자, 숫자, 하이픈만 허용)
@@ -201,13 +202,14 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
       // 건너뛰기 옵션이 true면 서브도메인을 전송하지 않음
       const subDomainValue = options?.skipSubdomain ? undefined : (subdomain || undefined);
 
-      await ProjectsService.create({
+      const createRes = await ProjectsService.create({
         name: projectName.trim(),
         subDomain: subDomainValue,
         logoUrl,
         useAttendanceMenu: false,
       });
-      await onCreated();
+      const createdProject = createRes.data?.data as Project | undefined;
+      await onCreated(createdProject);
     } catch (e) {
       console.error("Project creation failed:", e);
       showErrorModal({
