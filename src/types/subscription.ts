@@ -112,6 +112,7 @@ export type SubscriptionState = "active" | "expired" | "none";
 type SubscriptionAdminProjectBase = {
   projectId: number;
   projectName: string;
+  projectLogoUrl?: string | null;
   currentMemberCount: number;
   currentAiUsage: number;
   currentSmsUsage: number;
