@@ -141,32 +141,30 @@ export default function ConsultationTab({
         <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
           카테고리
         </div>
-        <div className="mt-3 flex items-center gap-6">
-          <div>
-            <button
-              ref={categoryButtonRef}
-              type="button"
-              className="inline-flex max-w-full items-center gap-2 rounded-[30px] px-4 py-2 text-[14px] font-semibold disabled:opacity-60"
-              style={currentCategoryStyle}
-              onClick={() => setIsCategoryDropdownOpen((prev) => !prev)}
-              disabled={isChangingCategory}
+        <div className="mt-3 h-[58px] w-full rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 px-4 flex items-center justify-between gap-3">
+          <button
+            ref={categoryButtonRef}
+            type="button"
+            className="inline-flex max-w-full items-center gap-2 rounded-[30px] px-3 py-2 text-[12px] font-medium disabled:opacity-60"
+            style={currentCategoryStyle}
+            onClick={() => setIsCategoryDropdownOpen((prev) => !prev)}
+            disabled={isChangingCategory}
+          >
+            <span className="truncate">{currentCategoryName}</span>
+            <svg
+              width="10"
+              height="8"
+              viewBox="0 0 10 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className={`${isCategoryDropdownOpen ? "rotate-180" : ""} transition-transform`}
             >
-              <span className="truncate">{currentCategoryName}</span>
-              <svg
-                width="10"
-                height="8"
-                viewBox="0 0 10 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className={`${isCategoryDropdownOpen ? "rotate-180" : ""} transition-transform`}
-              >
-                <path
-                  d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z"
-                    fill="currentColor"
-                />
-              </svg>
-            </button>
-          </div>
+              <path
+                d="M5.5068 7.25009C5.22417 7.61647 4.67583 7.61647 4.3932 7.25009L0.430435 2.13452C0.00873756 1.58913 0.396109 0.800097 1.03724 0.800097L8.86276 0.800098C9.50389 0.800098 9.89126 1.58913 9.46957 2.13452L5.5068 7.25009Z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
 
           <button
             type="button"

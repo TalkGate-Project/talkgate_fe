@@ -762,8 +762,8 @@ body {
   background-color: #B0B0B0;
 }
 
-/* Hide scrollbar buttons (arrows) */
-*::-webkit-scrollbar-button {
+/* Hide scrollbar buttons (arrows) only for privacy consent modal */
+.privacy-consent-scroll::-webkit-scrollbar-button {
   display: none;
   width: 0;
   height: 0;
