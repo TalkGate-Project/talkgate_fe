@@ -107,12 +107,18 @@ export type SubscriptionPaymentReceiptResponse = ApiSuccess<{
 }>;
 
 // GET /v1/subscriptions/admin/projects - Admin 프로젝트 구독 정보 조회 응답
-export type SubscriptionAdminProject = {
+export type SubscriptionState = "active" | "expired" | "none";
+
+type SubscriptionAdminProjectBase = {
   projectId: number;
   projectName: string;
   currentMemberCount: number;
   currentAiUsage: number;
   currentSmsUsage: number;
+};
+
+export type SubscriptionAdminProjectActive = SubscriptionAdminProjectBase & {
+  subscriptionState: "active";
   subscriptionName: string;
   subscriptionStartDate: string;
   subscriptionEndDate: string;
@@ -121,6 +127,14 @@ export type SubscriptionAdminProject = {
   maxAiUsage: number;
   maxSmsUsage: number;
 };
+
+export type SubscriptionAdminProjectInactive = SubscriptionAdminProjectBase & {
+  subscriptionState: "expired" | "none";
+};
+
+export type SubscriptionAdminProject =
+  | SubscriptionAdminProjectActive
+  | SubscriptionAdminProjectInactive;
 
 export type SubscriptionAdminProjectsResponse = ApiSuccess<{
   projects: SubscriptionAdminProject[];

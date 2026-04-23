@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
 import {
   SubscriptionService,
   type SubscriptionAdminProject,
+  type SubscriptionState,
   type BillingCycle,
 } from "@/services/subscription";
 import ProjectBillingDetail from "./ProjectBillingDetail";
@@ -16,6 +16,7 @@ import ChangePaymentMethodModal, {
   type PaymentMethodData,
 } from "./ChangePaymentMethodModal";
 import { formatDateCompact } from "@/utils/datetime";
+import { LANDING_URLS } from "@/lib/constants";
 
 function formatCount(value: number): string {
   return new Intl.NumberFormat("ko-KR").format(value);
@@ -27,6 +28,7 @@ interface ProjectWithSubscription {
   id: number;
   name: string;
   logoUrl?: string | null;
+  state: SubscriptionState;
   subscription?: {
     plan: {
       name: string;
@@ -36,7 +38,7 @@ interface ProjectWithSubscription {
     billingCycle: BillingCycle;
     isActive: boolean;
   };
-  usage?: {
+  usage: {
     memberCount: number;
     aiUsage: number;
     smsUsage: number;
@@ -49,29 +51,50 @@ interface ProjectWithSubscription {
 function mapAdminProjectToViewModel(
   project: SubscriptionAdminProject
 ): ProjectWithSubscription {
-  const hasSubscription = Boolean(project.subscriptionName);
-  return {
-    id: project.projectId,
-    name: project.projectName,
-    subscription: hasSubscription
-      ? {
+  if (project.subscriptionState === "active") {
+    return {
+      id: project.projectId,
+      name: project.projectName,
+      state: project.subscriptionState,
+      subscription: {
         plan: { name: project.subscriptionName },
         startDate: project.subscriptionStartDate,
         endDate: project.subscriptionEndDate,
         billingCycle: project.billingCycle,
         isActive: true,
-      }
-      : undefined,
+      },
+      usage: {
+        memberCount: project.currentMemberCount,
+        aiUsage: project.currentAiUsage,
+        smsUsage: project.currentSmsUsage,
+        memberLimit: project.maxMembers,
+        aiLimit: project.maxAiUsage,
+        smsLimit: project.maxSmsUsage,
+      },
+    };
+  }
+
+  return {
+    id: project.projectId,
+    name: project.projectName,
+    state: project.subscriptionState,
+    subscription: undefined,
     usage: {
       memberCount: project.currentMemberCount,
       aiUsage: project.currentAiUsage,
       smsUsage: project.currentSmsUsage,
-      memberLimit: project.maxMembers,
-      aiLimit: project.maxAiUsage,
-      smsLimit: project.maxSmsUsage,
+      memberLimit: 0,
+      aiLimit: 0,
+      smsLimit: 0,
     },
   };
 }
+
+const STATE_ORDER: Record<SubscriptionState, number> = {
+  active: 0,
+  expired: 1,
+  none: 2,
+};
 
 export default function BillingTab() {
   const queryClient = useQueryClient();
@@ -160,9 +183,13 @@ export default function BillingTab() {
     });
   };
 
-  const projectsWithSubscription: ProjectWithSubscription[] = (
-    adminProjects || []
-  ).map(mapAdminProjectToViewModel);
+  const projectsWithSubscription: ProjectWithSubscription[] = [
+    ...(adminProjects ?? []),
+  ]
+    .sort(
+      (a, b) => STATE_ORDER[a.subscriptionState] - STATE_ORDER[b.subscriptionState]
+    )
+    .map(mapAdminProjectToViewModel);
 
   if (viewMode === "detail" && selectedProject) {
     return (
@@ -481,13 +508,23 @@ function ProjectCard({
     }
   };
 
+  const isActive = project.state === "active";
+
+  const handleSubscribeClick = () => {
+    const encodedProjectName = encodeURIComponent(project.name);
+    const url = `${LANDING_URLS.PRICING}?step=checkout&projectId=${project.id}&projectName=${encodedProjectName}`;
+    window.open(url, "_blank");
+  };
+
   return (
-    <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20">
+    <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
       {/* 카드 헤더 */}
       <div className="flex items-center gap-3 mb-4 md:mb-6">
         {/* 프로젝트 썸네일 */}
         {project.logoUrl ? (
-          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+          <div
+            className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
+          >
             <img
               src={project.logoUrl}
               alt={project.name}
@@ -497,11 +534,15 @@ function ProjectCard({
             />
           </div>
         ) : (
-          getProjectIcon()
+          <div className={isActive ? "" : "opacity-60"}>
+            {getProjectIcon()}
+          </div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[14px] md:text-[16px] font-bold text-foreground truncate">
+            <h3
+              className={`text-[14px] md:text-[16px] font-bold truncate ${isActive ? "text-foreground" : "text-neutral-50"}`}
+            >
               {project.name}
             </h3>
             {subscription?.plan && (
@@ -509,6 +550,16 @@ function ProjectCard({
                 className={`px-2 py-0.5 ${planTagColor} text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0`}
               >
                 {subscription.plan.name}
+              </span>
+            )}
+            {project.state === "expired" && (
+              <span className="px-3 py-1 bg-[#D83232] text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+                만료
+              </span>
+            )}
+            {project.state === "none" && (
+              <span className="px-3 py-1 bg-neutral-60 text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+                구독 전
               </span>
             )}
           </div>
@@ -527,8 +578,19 @@ function ProjectCard({
         </div>
       </div>
 
+      {/* 비활성 상태 안내 문구 */}
+      {!isActive && (
+        <div className="flex-1 flex items-center justify-center px-4 py-6">
+          <p className="text-[12px] md:text-[14px] text-center text-neutral-60">
+            {project.state === "expired"
+              ? "구독이 만료되었습니다. 다시 구독하시기 바랍니다."
+              : "프로젝트 구독 전 입니다. 구독을 완료해주세요."}
+          </p>
+        </div>
+      )}
+
       {/* 사용량 정보 */}
-      {subscription && usage && (
+      {isActive && subscription && usage && (
         <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
           {/* 멤버 수 */}
           <div>
@@ -608,14 +670,23 @@ function ProjectCard({
         </div>
       )}
 
-      {/* 더보기 버튼 */}
-      <div className="flex items-center justify-end">
-        <button
-          onClick={onMoreClick}
-          className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
-        >
-          더보기
-        </button>
+      {/* 하단 버튼 */}
+      <div className="flex items-center justify-end mt-auto">
+        {isActive ? (
+          <button
+            onClick={onMoreClick}
+            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
+          >
+            더보기
+          </button>
+        ) : (
+          <button
+            onClick={handleSubscribeClick}
+            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
+          >
+            구독하기
+          </button>
+        )}
       </div>
     </div>
   );
