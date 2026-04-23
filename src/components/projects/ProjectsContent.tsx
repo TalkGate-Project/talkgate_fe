@@ -604,7 +604,7 @@ export default function ProjectsContent() {
           onClose={() => setSubscribeProject(null)}
           onSubscribe={async (projectId) => {
             // TODO: 구독 API 호출 로직 구현
-            void projectId; // 추후 구현 시 사용
+            void projectId;
           }}
           onCouponApplied={async () => {
             const res = await ProjectsService.list();
