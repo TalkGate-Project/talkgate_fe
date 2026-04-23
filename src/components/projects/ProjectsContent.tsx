@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
+import { MembersService } from "@/services/members";
 import type { Project, ProjectSummary } from "@/types/projects";
 import { ProjectSubscriptionStatus } from "@/types/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
@@ -149,7 +150,20 @@ export default function ProjectsContent() {
     window.location.href = "/dashboard";
   };
 
-  // 어드민 & 미동의 시 먼저 동의 모달을 띄우고, 완료되면 next 분기를 이어간다.
+  // `p.role` 이 목록 응답에 없을 수 있으므로, 필요 시 members/my 로 fallback 하여 admin 여부 확인
+  const resolveIsProjectAdmin = async (p: ProjectSummary): Promise<boolean> => {
+    if (p.role) return p.role === "admin";
+    try {
+      const res = await MembersService.my({ "x-project-id": String(p.id) });
+      return res.data?.data?.role === "admin";
+    } catch (error) {
+      console.error("Failed to resolve project role:", error);
+      return false;
+    }
+  };
+
+  // 클릭 시 동의 체크 -> 구독/진입 분기 순서로 단계별 API 호출을 수행한다.
+  // 구독 안내 모달을 띄우기 전에도 반드시 동의 모달이 먼저 진행되도록 한다.
   const handleProjectClick = async (p: ProjectSummary) => {
     if (selectingProjectId !== null) return;
 
@@ -166,38 +180,43 @@ export default function ProjectsContent() {
         ? "subscribe"
         : "navigate";
 
-    // 어드민 역할일 때만 동의 체크
-    if (p.role === "admin") {
-      setSelectingProjectId(p.id);
-      try {
-        const res = await ProjectPrivacyConsentService.get(p.id);
-        const isConsented = Boolean(res.data?.data?.isConsented);
-        if (!isConsented) {
-          // 로딩 상태는 consent 모달 진행 중에도 유지되어야 하므로 남겨둠
-          setSelectingProjectId(null);
-          setConsentTarget({ project: p, next });
-          return;
-        }
-      } catch (error) {
-        // 동의 상태 확인 실패 시 기존 흐름으로 진행 (UI 차단 방지)
-        console.error("Failed to check project privacy consent:", error);
-      } finally {
-        if (next !== "navigate") {
-          setSelectingProjectId(null);
+    setSelectingProjectId(p.id);
+    try {
+      // 1단계: admin 여부 판별
+      const isProjectAdmin = await resolveIsProjectAdmin(p);
+
+      // 2단계: admin 이면 동의 여부 확인 (구독 안내 모달을 띄우기 전에 먼저 진행)
+      if (isProjectAdmin) {
+        try {
+          const res = await ProjectPrivacyConsentService.get(p.id);
+          const isConsented = Boolean(res.data?.data?.isConsented);
+          if (!isConsented) {
+            setSelectingProjectId(null);
+            setConsentTarget({ project: p, next });
+            return;
+          }
+        } catch (error) {
+          // 동의 상태 확인 실패 시 기존 흐름으로 진행 (UI 차단 방지)
+          console.error("Failed to check project privacy consent:", error);
         }
       }
-    }
 
-    // 기존 흐름대로 분기
-    if (next === "expired") {
-      setExpiredProject(p);
-      return;
+      // 3단계: 기존 분기 (만료 모달 / 구독 안내 모달 / 대시보드 진입)
+      if (next === "expired") {
+        setExpiredProject(p);
+        return;
+      }
+      if (next === "subscribe") {
+        setSubscribeProject(p);
+        return;
+      }
+      navigateToProject(p);
+    } finally {
+      // 대시보드로 window.location.href 전환 중이면 스피너 유지, 그 외에는 해제
+      if (next !== "navigate") {
+        setSelectingProjectId(null);
+      }
     }
-    if (next === "subscribe") {
-      setSubscribeProject(p);
-      return;
-    }
-    navigateToProject(p);
   };
 
   const handleConsentConfirmed = () => {

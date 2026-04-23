@@ -59,9 +59,9 @@ export default function ProjectPrivacyConsentModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      {/* 배경 오버레이: 클릭해도 닫히지 않음 */}
+      {/* 배경 오버레이: 클릭해도 닫히지 않음 (다크모드에서는 blur 미사용) */}
       <div
-        className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
         aria-hidden
       />
 
@@ -69,8 +69,7 @@ export default function ProjectPrivacyConsentModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-privacy-consent-title"
-        className="relative w-full max-w-[848px] max-h-[calc(100dvh-32px)] md:h-[472px] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] flex flex-col overflow-hidden"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
+        className="relative w-full max-w-[848px] max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
       >
         {/* 헤더 */}
         <div className="px-4 md:px-7 pt-5 md:pt-6">
@@ -80,11 +79,6 @@ export default function ProjectPrivacyConsentModal({
           >
             개인정보 처리 위탁 계약 동의
           </h2>
-          {projectName ? (
-            <p className="mt-1 text-[12px] text-neutral-60 truncate">
-              {projectName}
-            </p>
-          ) : null}
         </div>
 
         {/* 서브카피 */}
@@ -95,19 +89,19 @@ export default function ProjectPrivacyConsentModal({
         </div>
 
         {/* 본문 영역 (모바일에서는 가변 높이, 데스크톱에서는 고정 높이) */}
-        <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[17px]">
-          {/* 약관 본문 박스 */}
-          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3 md:h-[193px] flex-1 md:flex-none min-h-0 overflow-y-auto">
-            <div className="text-[14px] font-medium leading-[24px] text-foreground">
+        <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[30px]">
+          {/* 약관 본문 박스: container padding 12/8 (상하 12px, 좌우 8px) - 스크롤바 여유 공간용 */}
+          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0 overflow-y-auto">
+            <div className="px-4 text-[14px] font-medium leading-[24px] text-foreground">
               {PROJECT_PRIVACY_TERMS_TITLE}
             </div>
-            <div className="mt-2 text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-pre-line">
+            <div className="mt-2 px-4 text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-pre-line">
               {PROJECT_PRIVACY_TERMS_BODY}
             </div>
           </div>
 
           {/* 동의 체크 박스 */}
-          <label className="mt-4 md:mt-4 flex items-center gap-4 cursor-pointer select-none rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3 md:h-[48px]">
+          <label className="mt-4 md:mt-5 flex items-center gap-4 cursor-pointer select-none rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3 md:h-[48px]">
             <input
               type="checkbox"
               checked={agreed}
@@ -138,13 +132,13 @@ export default function ProjectPrivacyConsentModal({
             </span>
             <span className="text-[14px] font-medium leading-[24px] text-foreground">
               개인정보 처리 위탁 계약에 동의합니다.{" "}
-              <span className="text-danger-40">(필수)</span>
+              <span className="text-primary-80">(필수)</span>
             </span>
           </label>
         </div>
 
         {/* 하단 버튼 영역 */}
-        <div className="mt-4 md:mt-[18px] border-t border-neutral-30 px-4 md:px-7 pt-3 pb-3 md:pb-3 flex justify-end">
+        <div className="mt-4 md:mt-[30px] border-t border-neutral-30 px-4 md:px-7 pt-3 pb-3 md:pb-3 flex justify-end">
           <button
             type="button"
             onClick={handleConfirm}
