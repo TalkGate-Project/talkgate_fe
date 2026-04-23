@@ -29,6 +29,7 @@ export type ProjectSummary = Project & {
   memberCount?: number;
   assignedCustomerCount?: number;
   todayScheduleCount?: number;
+  myRole?: MemberRole;
   role?: MemberRole;
   hasActiveSubscription?: boolean;
   subscriptionStatus?: ProjectSubscriptionStatus;

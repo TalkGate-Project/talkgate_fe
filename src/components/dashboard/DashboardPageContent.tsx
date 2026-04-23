@@ -11,12 +11,14 @@ import CalendarSection from "@/components/dashboard/CalendarSection";
 import NoticeSection from "@/components/notice/NoticeSection";
 import StatsSection from "@/components/stats/StatsSection";
 import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
+import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import type { SummaryResponse } from "@/types/statistics";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
 import { useMyMember } from "@/hooks/useMyMember";
+import { useProjectPrivacyConsentStatus } from "@/hooks/useProjectPrivacyConsent";
 import { hasAdminAccess } from "@/utils/permissions";
 import RecentCustomersIcon from "@/components/common/icons/RecentCustomersIcon";
 import TotalCustomersIcon from "@/components/common/icons/TotalCustomersIcon";
@@ -77,6 +79,18 @@ function DashboardContentInner() {
 
   // Admin/SubAdmin 권한 확인
   const isAdminOrSubAdmin = hasAdminAccess(member?.role);
+  const isProjectAdmin = member?.role === "admin";
+
+  // 개인정보 처리 위탁 계약 동의: 어드민이면서 아직 미동의 시 모달 강제 노출
+  const {
+    isConsented,
+    loading: consentLoading,
+    refetch: refetchConsent,
+  } = useProjectPrivacyConsentStatus(projectId, {
+    enabled: hasProject && isProjectAdmin,
+  });
+  const showPrivacyConsentModal =
+    hasProject && isProjectAdmin && !consentLoading && isConsented === false;
 
   // 대시보드 첫 진입 시 사용자 정보 refetch
   useEffect(() => {
@@ -231,6 +245,16 @@ function DashboardContentInner() {
           requests={partnerRequests}
           projectId={projectId}
           onActionComplete={handlePartnerRequestActionComplete}
+        />
+      )}
+
+      {/* 개인정보 처리 위탁 계약 동의 모달 (임의 종료 불가) */}
+      {projectId && showPrivacyConsentModal && (
+        <ProjectPrivacyConsentModal
+          projectId={projectId}
+          onConfirmed={() => {
+            void refetchConsent();
+          }}
         />
       )}
     </main>

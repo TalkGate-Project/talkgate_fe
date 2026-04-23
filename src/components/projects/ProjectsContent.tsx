@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
-import type { ProjectSummary } from "@/types/projects";
+import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
+import type { Project, ProjectSummary } from "@/types/projects";
 import { ProjectSubscriptionStatus } from "@/types/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
+import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
+import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import {
@@ -22,7 +26,6 @@ import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-
 import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.webp";
 
 export default function ProjectsContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -34,6 +37,18 @@ export default function ProjectsContent() {
   const [selectingProjectId, setSelectingProjectId] = useState<number | null>(
     null
   );
+  // 개인정보 처리 위탁 계약 동의 모달 상태
+  // next: "none"  - 단순 동의 수집 (프로젝트 생성 직후 등)
+  //        "subscribe" - 동의 후 구독 안내 모달 오픈
+  //        "expired"   - 동의 후 만료 모달 오픈
+  //        "navigate"  - 동의 후 대시보드 진입
+  type ConsentNext = "none" | "subscribe" | "expired" | "navigate";
+  const [consentTarget, setConsentTarget] = useState<{
+    project: ProjectSummary;
+    next: ConsentNext;
+  } | null>(null);
+  // 프로젝트 삭제 대상 (우상단 휴지통 아이콘 클릭 시 설정)
+  const [deleteTarget, setDeleteTarget] = useState<ProjectSummary | null>(null);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -109,6 +124,146 @@ export default function ProjectsContent() {
     };
   }, []);
 
+  // 대시보드 진입 로직을 헬퍼로 분리해 동의 모달 이후에도 재사용할 수 있도록 한다.
+  const navigateToProject = (p: ProjectSummary) => {
+    setSelectingProjectId(p.id);
+
+    const isDev = isDevelopment();
+
+    if (isDev) {
+      setSelectedProjectId(p.id);
+      setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+      window.location.href = "/dashboard";
+      return;
+    }
+
+    if (p.subDomain) {
+      const subdomainUrl = getProjectSubdomainUrl(p.subDomain, "/dashboard");
+      if (subdomainUrl) {
+        setSelectedProjectId(p.id);
+        setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+        window.location.href = subdomainUrl;
+        return;
+      }
+    }
+
+    setSelectedProjectId(p.id);
+    setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+    window.location.href = "/dashboard";
+  };
+
+  const resolveIsProjectAdmin = (p: ProjectSummary): boolean => {
+    const projectRole = p.myRole ?? p.role;
+    return projectRole === "admin";
+  };
+
+  // 클릭 시 동의 체크 -> 구독/진입 분기 순서로 단계별 API 호출을 수행한다.
+  // 구독 안내 모달을 띄우기 전에도 반드시 동의 모달이 먼저 진행되도록 한다.
+  const handleProjectClick = async (p: ProjectSummary) => {
+    if (selectingProjectId !== null) return;
+
+    const subscriptionStatus = p.subscriptionStatus;
+    const isInactive = subscriptionStatus === ProjectSubscriptionStatus.Inactive;
+    const isNoneOrUnsubscribed =
+      subscriptionStatus === ProjectSubscriptionStatus.None ||
+      !p.hasActiveSubscription;
+
+    // 기본 next: 활성 구독이면 dashboard 이동, 비활성이면 만료 모달, 미구독이면 구독 안내 모달
+    const next: ConsentNext = isInactive
+      ? "expired"
+      : isNoneOrUnsubscribed
+        ? "subscribe"
+        : "navigate";
+
+    setSelectingProjectId(p.id);
+    try {
+      // 1단계: admin 여부 판별
+      const isProjectAdmin = resolveIsProjectAdmin(p);
+
+      // 2단계: admin 이면 동의 여부 확인 (구독 안내 모달을 띄우기 전에 먼저 진행)
+      if (isProjectAdmin) {
+        try {
+          const res = await ProjectPrivacyConsentService.get(p.id);
+          const isConsented = Boolean(res.data?.data?.isConsented);
+          if (!isConsented) {
+            setSelectingProjectId(null);
+            setConsentTarget({ project: p, next });
+            return;
+          }
+        } catch (error) {
+          // 동의 상태 확인 실패 시 기존 흐름으로 진행 (UI 차단 방지)
+          console.error("Failed to check project privacy consent:", error);
+        }
+      }
+
+      // 3단계: 기존 분기 (만료 모달 / 구독 안내 모달 / 대시보드 진입)
+      if (next === "expired") {
+        setExpiredProject(p);
+        return;
+      }
+      if (next === "subscribe") {
+        setSubscribeProject(p);
+        return;
+      }
+      navigateToProject(p);
+    } finally {
+      // 대시보드로 window.location.href 전환 중이면 스피너 유지, 그 외에는 해제
+      if (next !== "navigate") {
+        setSelectingProjectId(null);
+      }
+    }
+  };
+
+  const handleConsentConfirmed = () => {
+    if (!consentTarget) return;
+    const { project, next } = consentTarget;
+    setConsentTarget(null);
+
+    if (next === "expired") {
+      setExpiredProject(project);
+      return;
+    }
+    if (next === "subscribe") {
+      setSubscribeProject(project);
+      return;
+    }
+    if (next === "navigate") {
+      navigateToProject(project);
+    }
+    // next === "none" 인 경우 별도 동작 없이 목록에 머문다.
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    // 방어적 권한 체크: admin이 아니면 API 호출을 하지 않는다.
+    if (!resolveIsProjectAdmin(target)) {
+      setDeleteTarget(null);
+      return;
+    }
+    try {
+      await ProjectsService.remove({ "x-project-id": String(target.id) });
+      setProjects((prev) => prev.filter((x) => x.id !== target.id));
+      setDeleteTarget(null);
+      showErrorModal({
+        type: "success",
+        headline: "프로젝트가 삭제되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      setDeleteTarget(null);
+      showErrorModal({
+        type: "error",
+        headline: "프로젝트 삭제 실패",
+        description: "프로젝트 삭제에 실패했습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background px-6 lg:px-0">
       <div className="max-w-[1422px] mx-auto pt-6 md:pt-[90px] pb-24 ">
@@ -180,6 +335,7 @@ export default function ProjectsContent() {
           {projects.map((p) => {
             const isSelecting = selectingProjectId === p.id;
             const isAnySelecting = selectingProjectId !== null;
+            const canDeleteProject = resolveIsProjectAdmin(p);
 
             return (
               <div
@@ -192,62 +348,8 @@ export default function ProjectsContent() {
                     : "cursor-pointer border-transparent hover:border-primary-60 hover:translate-y-[-20px]"
                 }`}
                 onClick={() => {
-                  // 이미 선택 중인 프로젝트가 있으면 클릭 무시
                   if (isAnySelecting) return;
-
-                  // subscriptionStatus에 따라 다른 모달 표시
-                  const subscriptionStatus = p.subscriptionStatus;
-                  
-                  // inactive 상태: 만료된 구독 모달 표시
-                  if (subscriptionStatus === ProjectSubscriptionStatus.Inactive) {
-                    setExpiredProject(p);
-                    return;
-                  }
-                  
-                  // none 상태: 기존 구독 유도 모달 표시
-                  if (subscriptionStatus === ProjectSubscriptionStatus.None || !p.hasActiveSubscription) {
-                    setSubscribeProject(p);
-                    return;
-                  }
-
-                  // active 상태 또는 구독이 활성화된 경우: 대시보드로 이동
-                  // 선택 상태 설정
-                  setSelectingProjectId(p.id);
-
-                  // 구독이 활성화된 경우 대시보드로 이동
-                  const isDev = isDevelopment();
-
-                  // 개발 환경: 쿠키에 세팅하고 /dashboard로 이동
-                  if (isDev) {
-                    setSelectedProjectId(p.id);
-                    setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                    // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
-                    window.location.href = "/dashboard";
-                    return;
-                  }
-
-                  // 배포 환경: 서브도메인이 있으면 서브도메인으로 이동, 없으면 쿠키 세팅 후 /dashboard로 이동
-                  if (p.subDomain) {
-                    const subdomainUrl = getProjectSubdomainUrl(
-                      p.subDomain,
-                      "/dashboard"
-                    );
-                    if (subdomainUrl) {
-                      // 서브도메인으로 이동하기 전에 현재 프로젝트 컨텍스트(프로젝트 ID/근태 메뉴 사용 여부)를 쿠키로 기록
-                      // - localStorage는 origin(도메인)이 달라지면 공유되지 않으므로 쿠키 기반 공유가 필요
-                      setSelectedProjectId(p.id);
-                      setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                      // 서브도메인으로 리다이렉트
-                      window.location.href = subdomainUrl;
-                      return;
-                    }
-                  }
-
-                  // 서브도메인이 없는 경우: 쿠키 세팅 후 /dashboard로 이동
-                  setSelectedProjectId(p.id);
-                  setUseAttendanceMenu(p.useAttendanceMenu ?? false);
-                  // router.push 대신 window.location.href 사용 (쿠키 전파 보장)
-                  window.location.href = "/dashboard";
+                  void handleProjectClick(p);
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -280,8 +382,42 @@ export default function ProjectsContent() {
                       />
                     </div>
                   </div>
-                  {/* 로딩 스피너 */}
-                  {isSelecting && <LoadingSpinner size="sm" />}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* 로딩 스피너 */}
+                    {isSelecting && <LoadingSpinner size="sm" />}
+                    {/* 프로젝트 삭제 버튼 (admin 전용) */}
+                    {canDeleteProject && (
+                      <button
+                        type="button"
+                        aria-label="프로젝트 삭제"
+                        disabled={isAnySelecting}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isAnySelecting) return;
+                          // 방어적 권한 체크: admin이 아니면 삭제 모달 자체를 띄우지 않는다.
+                          if (!resolveIsProjectAdmin(p)) return;
+                          setDeleteTarget(p);
+                        }}
+                        className="p-1 rounded text-neutral-50 hover:bg-neutral-20 hover:text-danger-40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:gap-6 mt-5">
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
@@ -426,13 +562,32 @@ export default function ProjectsContent() {
       {showCreate && (
         <CreateProjectModal
           onClose={() => setShowCreate(false)}
-          onCreated={async () => {
+          onCreated={async (created?: Project) => {
             // refresh list after creation
             const res = await ProjectsService.list();
             const payload: any = (res as any)?.data;
             const list = Array.isArray(payload) ? payload : payload?.data;
-            setProjects(Array.isArray(list) ? list : []);
+            const nextProjects: ProjectSummary[] = Array.isArray(list) ? list : [];
+            setProjects(nextProjects);
             setShowCreate(false);
+
+            // 프로젝트 생성 직후: 생성자는 해당 프로젝트의 어드민이므로 동의 모달을 띄운다.
+            if (!created?.id) return;
+            try {
+              const consentRes = await ProjectPrivacyConsentService.get(created.id);
+              const isConsented = Boolean(consentRes.data?.data?.isConsented);
+              if (isConsented) return;
+              const summary =
+                nextProjects.find((item) => item.id === created.id) ??
+                ({
+                  ...created,
+                  myRole: "admin",
+                  role: "admin",
+                } as ProjectSummary);
+              setConsentTarget({ project: summary, next: "none" });
+            } catch (error) {
+              console.error("Failed to check consent for created project:", error);
+            }
           }}
         />
       )}
@@ -449,7 +604,7 @@ export default function ProjectsContent() {
           onClose={() => setSubscribeProject(null)}
           onSubscribe={async (projectId) => {
             // TODO: 구독 API 호출 로직 구현
-            void projectId; // 추후 구현 시 사용
+            void projectId;
           }}
           onCouponApplied={async () => {
             const res = await ProjectsService.list();
@@ -469,10 +624,27 @@ export default function ProjectsContent() {
             logoUrl: expiredProject.logoUrl,
             memberCount: expiredProject.memberCount,
           }}
-          userRole={expiredProject.role}
+          userRole={expiredProject.myRole ?? expiredProject.role}
           onClose={() => setExpiredProject(null)}
         />
       )}
+
+      {/* 개인정보 처리 위탁 계약 동의 모달 (임의 종료 불가) */}
+      {consentTarget && (
+        <ProjectPrivacyConsentModal
+          projectId={consentTarget.project.id}
+          projectName={consentTarget.project.name}
+          onConfirmed={handleConsentConfirmed}
+        />
+      )}
+
+      {/* 프로젝트 삭제 확인 모달 */}
+      <ServiceDeleteModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => void handleDeleteProject()}
+        serviceName={deleteTarget?.name ?? "-"}
+      />
     </main>
   );
 }

@@ -11,6 +11,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { usePersistentModal } from "@/providers/PersistentModalProvider";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
+import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
 import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubscriptionModal";
 import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
@@ -37,6 +38,7 @@ export default function TestPage() {
   const [isReactivating, setIsReactivating] = useState(false);
   const [showPartnerRequestModal, setShowPartnerRequestModal] = useState(false);
   const [showSubscribeProjectModal, setShowSubscribeProjectModal] = useState(false);
+  const [showPrivacyConsentModal, setShowPrivacyConsentModal] = useState(false);
 
   // 테스트용 파트너 요청 더미 데이터
   const dummyPartnerRequests: ProjectPartnerRequest[] = [
@@ -1167,6 +1169,57 @@ export default function TestPage() {
           </div>
         </section>
 
+        {/* ProjectPrivacyConsentModal 테스트 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">개인정보 처리 위탁 계약 동의 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/projects/ProjectPrivacyConsentModal</code>
+            </p>
+            <p className="text-sm text-neutral-70 dark:text-neutral-50 mt-1">
+              <span className="font-semibold">실제 사용 위치:</span>
+            </p>
+            <ul className="text-sm text-neutral-70 dark:text-neutral-50 mt-1 ml-4 list-disc">
+              <li><code className="bg-white dark:bg-neutral-20 px-1 rounded">ProjectsContent.tsx</code> - 프로젝트 진입 시 개인정보 처리 위탁 계약 미동의 상태이면 표시</li>
+            </ul>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 약관에 동의하고 확인 버튼을 누르면 <code className="bg-white dark:bg-neutral-20 px-1 rounded">POST /v1/projects/:projectId/privacy-consents</code> API가 호출됩니다. ESC 키와 배경 클릭으로 닫을 수 없습니다.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 테스트</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setShowPrivacyConsentModal(true)}
+                    className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+                  >
+                    개인정보 처리 위탁 계약 동의 모달 열기
+                  </button>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-neutral-30">
+                <h3 className="text-lg font-semibold text-neutral-90 mb-3">모달 동작 설명</h3>
+                <div className="space-y-2 text-sm text-neutral-70 dark:text-neutral-50">
+                  <div className="p-3 bg-neutral-10 dark:bg-neutral-20 rounded">
+                    <p className="font-semibold mb-1">개인정보 처리 위탁 계약 동의 모달:</p>
+                    <ul className="ml-4 list-disc space-y-1">
+                      <li>제목: "개인정보 처리 위탁 계약 동의"</li>
+                      <li>약관 본문 스크롤 가능 영역 표시</li>
+                      <li>"개인정보 처리 위탁 계약에 동의합니다. (필수)" 체크박스</li>
+                      <li>체크박스 미선택 시 "확인" 버튼 비활성화</li>
+                      <li>ESC 키 차단 + 배경 클릭 차단 (임의 종료 불가)</li>
+                      <li>body 스크롤 락</li>
+                      <li>확인 클릭 시 API 호출 → 성공 시 <code className="bg-white dark:bg-neutral-20 px-1 rounded">onConfirmed</code> 콜백 실행</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SubscribeProjectExpiredModal 테스트 */}
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
@@ -1314,6 +1367,18 @@ export default function TestPage() {
           console.log("파트너 요청 처리 완료");
         }}
       />
+
+      {/* ProjectPrivacyConsentModal */}
+      {showPrivacyConsentModal && (
+        <ProjectPrivacyConsentModal
+          projectId="test-project-id"
+          projectName="테스트 프로젝트"
+          onConfirmed={() => {
+            console.log("개인정보 처리 위탁 계약 동의 완료");
+            setShowPrivacyConsentModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }
