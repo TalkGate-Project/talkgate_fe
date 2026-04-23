@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
 import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
-import { MembersService } from "@/services/members";
 import type { Project, ProjectSummary } from "@/types/projects";
 import { ProjectSubscriptionStatus } from "@/types/projects";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
@@ -25,7 +24,6 @@ import projectNotAssignedCustomerImg from "@/assets/images/projects/project-not-
 import projectNotReservedItemImg from "@/assets/images/projects/project-not-reserved-item.webp";
 
 export default function ProjectsContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -150,16 +148,9 @@ export default function ProjectsContent() {
     window.location.href = "/dashboard";
   };
 
-  // `p.role` 이 목록 응답에 없을 수 있으므로, 필요 시 members/my 로 fallback 하여 admin 여부 확인
-  const resolveIsProjectAdmin = async (p: ProjectSummary): Promise<boolean> => {
-    if (p.role) return p.role === "admin";
-    try {
-      const res = await MembersService.my({ "x-project-id": String(p.id) });
-      return res.data?.data?.role === "admin";
-    } catch (error) {
-      console.error("Failed to resolve project role:", error);
-      return false;
-    }
+  const resolveIsProjectAdmin = (p: ProjectSummary): boolean => {
+    const projectRole = p.myRole ?? p.role;
+    return projectRole === "admin";
   };
 
   // 클릭 시 동의 체크 -> 구독/진입 분기 순서로 단계별 API 호출을 수행한다.
@@ -183,7 +174,7 @@ export default function ProjectsContent() {
     setSelectingProjectId(p.id);
     try {
       // 1단계: admin 여부 판별
-      const isProjectAdmin = await resolveIsProjectAdmin(p);
+      const isProjectAdmin = resolveIsProjectAdmin(p);
 
       // 2단계: admin 이면 동의 여부 확인 (구독 안내 모달을 띄우기 전에 먼저 진행)
       if (isProjectAdmin) {
@@ -520,6 +511,7 @@ export default function ProjectsContent() {
                 nextProjects.find((item) => item.id === created.id) ??
                 ({
                   ...created,
+                  myRole: "admin",
                   role: "admin",
                 } as ProjectSummary);
               setConsentTarget({ project: summary, next: "none" });
@@ -562,7 +554,7 @@ export default function ProjectsContent() {
             logoUrl: expiredProject.logoUrl,
             memberCount: expiredProject.memberCount,
           }}
-          userRole={expiredProject.role}
+          userRole={expiredProject.myRole ?? expiredProject.role}
           onClose={() => setExpiredProject(null)}
         />
       )}

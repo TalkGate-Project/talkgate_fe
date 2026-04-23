@@ -191,97 +191,99 @@ export default function ConsultationTab({
         </div>
       </section>
 
-      <section className="rounded-[12px] border border-[#E2E2E2] dark:border-neutral-30 bg-card dark:bg-neutral-10 p-4">
-        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90 mb-3">
-          상담 메모
+      <section>
+        <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
+          상담 내용 기록
         </div>
 
-        <div className="flex gap-2 mb-3 flex-shrink-0">
-          <input
-            value={noteInput}
-            onChange={(event) => setNoteInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.repeat && !isAddingNote) {
-                event.preventDefault();
-                void handleAddNote();
-              }
-            }}
-            placeholder="상담 내용을 입력하세요."
-            className="flex-1 h-[38px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
-          />
-          <button
-            className="cursor-pointer w-[56px] min-w-[56px] shrink-0 h-[38px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => void handleAddNote()}
-            disabled={isAddingNote || !noteInput.trim()}
-          >
-            추가
-          </button>
-        </div>
+        <div className="mt-3 rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 bg-card dark:bg-neutral-10 p-4">
+          <div className="flex gap-2 mb-3 flex-shrink-0">
+            <input
+              value={noteInput}
+              onChange={(event) => setNoteInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.repeat && !isAddingNote) {
+                  event.preventDefault();
+                  void handleAddNote();
+                }
+              }}
+              placeholder="상담 내용을 입력하세요."
+              className="flex-1 h-[38px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 text-body-3 bg-card dark:bg-neutral-10 text-foreground dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60"
+            />
+            <button
+              className="cursor-pointer w-[56px] min-w-[56px] shrink-0 h-[38px] text-body-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-neutral-0 dark:text-neutral-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => void handleAddNote()}
+              disabled={isAddingNote || !noteInput.trim()}
+            >
+              추가
+            </button>
+          </div>
 
-        <div ref={scrollRef} className="space-y-3 min-h-0">
-          {notes?.length ? (
-            notes.map((noteItem) => (
-              <div
-                key={noteItem.id}
-                className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
-              >
-                <div className="flex items-center justify-between gap-2 text-[12px]">
-                  <span className="min-w-0 truncate text-neutral-80 dark:text-neutral-70">
-                    {noteItem.memberName || ""}
-                  </span>
-                  <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
-                    <span className="text-right">
-                      {formatDetailDate(noteItem.createdAt)}
+          <div ref={scrollRef} className="space-y-3 min-h-0">
+            {notes?.length ? (
+              notes.map((noteItem) => (
+                <div
+                  key={noteItem.id}
+                  className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 relative"
+                >
+                  <div className="flex items-center justify-between gap-2 text-[12px]">
+                    <span className="min-w-0 truncate text-neutral-80 dark:text-neutral-70">
+                      {noteItem.memberName || ""}
                     </span>
-                    <button
-                      className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
-                      onClick={() => {
-                        if (
-                          typeof noteItem.id !== "number" ||
-                          !Number.isInteger(noteItem.id) ||
-                          noteItem.id <= 0 ||
-                          !Number.isFinite(noteItem.id)
-                        ) {
-                          console.error("Invalid note id:", noteItem.id);
-                          return;
-                        }
-                        showConfirmModal({
-                          title: "확인",
-                          message: "상담 내용을 삭제하시겠습니까?",
-                          confirmText: "삭제",
-                          cancelText: "취소",
-                          onConfirm: () => onRemoveNote(noteItem.id),
-                        });
-                      }}
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
+                      <span className="text-right">
+                        {formatDetailDate(noteItem.createdAt)}
+                      </span>
+                      <button
+                        className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
+                        onClick={() => {
+                          if (
+                            typeof noteItem.id !== "number" ||
+                            !Number.isInteger(noteItem.id) ||
+                            noteItem.id <= 0 ||
+                            !Number.isFinite(noteItem.id)
+                          ) {
+                            console.error("Invalid note id:", noteItem.id);
+                            return;
+                          }
+                          showConfirmModal({
+                            title: "확인",
+                            message: "상담 내용을 삭제하시겠습니까?",
+                            confirmText: "삭제",
+                            cancelText: "취소",
+                            onConfirm: () => onRemoveNote(noteItem.id),
+                          });
+                        }}
                       >
-                        <path
-                          d="M3 9L9 3M3 3L9 9"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </button>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 9L9 3M3 3L9 9"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-[14px] text-neutral-70 dark:text-neutral-70">
+                    {noteItem.note}
                   </div>
                 </div>
-                <div className="mt-2 text-[14px] text-neutral-70 dark:text-neutral-70">
-                  {noteItem.note}
-                </div>
+              ))
+            ) : (
+              <div className="rounded-[12px] bg-neutral-10 dark:bg-neutral-25 px-4 py-4 text-[14px] text-neutral-60">
+                아직 기록된 상담 메모가 없습니다.
               </div>
-            ))
-          ) : (
-            <div className="rounded-[12px] bg-neutral-10 dark:bg-neutral-25 px-4 py-4 text-[14px] text-neutral-60">
-              아직 기록된 상담 메모가 없습니다.
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
       <CategoryDropdownPortal
