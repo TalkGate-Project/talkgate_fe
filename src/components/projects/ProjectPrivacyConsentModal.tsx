@@ -17,7 +17,7 @@ type Props = {
 
 export default function ProjectPrivacyConsentModal({
   projectId,
-  projectName,
+  projectName: _projectName,
   onConfirmed,
 }: Props) {
   const [agreed, setAgreed] = useState(false);
@@ -91,12 +91,14 @@ export default function ProjectPrivacyConsentModal({
         {/* 본문 영역 (모바일에서는 가변 높이, 데스크톱에서는 고정 높이) */}
         <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[30px]">
           {/* 약관 본문 박스: container padding 12/8 (상하 12px, 좌우 8px) - 스크롤바 여유 공간용 */}
-          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0 overflow-y-auto">
-            <div className="px-4 text-[14px] font-medium leading-[24px] text-foreground">
-              {PROJECT_PRIVACY_TERMS_TITLE}
-            </div>
-            <div className="mt-2 px-4 text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-pre-line">
-              {PROJECT_PRIVACY_TERMS_BODY}
+          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0">
+            <div className="privacy-consent-scroll h-full min-h-0 overflow-y-auto pr-2">
+              <div className="px-4 text-[14px] font-medium leading-[24px] text-foreground">
+                {PROJECT_PRIVACY_TERMS_TITLE}
+              </div>
+              <div className="mt-2 px-4 text-[14px] font-medium leading-[17px] text-neutral-60 whitespace-pre-line">
+                {PROJECT_PRIVACY_TERMS_BODY}
+              </div>
             </div>
           </div>
 
@@ -108,27 +110,45 @@ export default function ProjectPrivacyConsentModal({
               onChange={(event) => setAgreed(event.target.checked)}
               className="sr-only peer"
             />
-            <span
-              aria-hidden
-              className={`w-6 h-6 rounded-[5px] grid place-items-center flex-shrink-0 transition-colors ${
-                agreed ? "bg-primary-60" : "bg-neutral-30"
-              }`}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M3 7L6 10L11 4"
-                  stroke="#FFFFFF"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            <span aria-hidden className="w-6 h-6 flex-shrink-0">
+              {agreed ? (
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect width="24" height="24" rx="5" fill="#00E272" />
+                  <path
+                    d="M5 13L9 17L19 7"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    x="1"
+                    y="1"
+                    width="22"
+                    height="22"
+                    rx="5"
+                    fill="#FFFFFF"
+                    className="dark:fill-neutral-20"
+                    stroke="#D0D0D0"
+                    strokeWidth="2"
+                  />
+                </svg>
+              )}
             </span>
             <span className="text-[14px] font-medium leading-[24px] text-foreground">
               개인정보 처리 위탁 계약에 동의합니다.{" "}
