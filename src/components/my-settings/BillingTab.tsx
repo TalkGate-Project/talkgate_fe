@@ -55,7 +55,6 @@ function mapAdminProjectToViewModel(
     return {
       id: project.projectId,
       name: project.projectName,
-      logoUrl: project.projectLogoUrl,
       state: project.subscriptionState,
       subscription: {
         plan: { name: project.subscriptionName },
@@ -78,7 +77,6 @@ function mapAdminProjectToViewModel(
   return {
     id: project.projectId,
     name: project.projectName,
-    logoUrl: project.projectLogoUrl,
     state: project.subscriptionState,
     subscription: undefined,
     usage: {
@@ -219,8 +217,8 @@ export default function BillingTab() {
 
         <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-9">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}
-          <div className="bg-card rounded-[14px] mb-6 md:mb-9 px-6 py-5 border border-neutral-20">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[30px]">
+          <div className="bg-card rounded-[14px] mb-6 md:mb-9 p-4 md:p-6 border border-neutral-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
               {/* 프로젝트 관리 */}
               <div className="flex items-center gap-4">
                 <div className="w-[60px] h-[60px] flex items-center justify-center flex-shrink-0">
@@ -251,7 +249,7 @@ export default function BillingTab() {
                   <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-1">
                     프로젝트 관리
                   </h2>
-                  <p className="text-[12px] md:text-[14px] text-neutral-90">
+                  <p className="text-[12px] md:text-[14px] text-neutral-60">
                     총 {projectsWithSubscription.length}개 프로젝트 진행중
                   </p>
                 </div>
@@ -328,13 +326,13 @@ export default function BillingTab() {
           </div>
 
           {/* 프로젝트 카드 그리드 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[30px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
             {isLoading ? (
               // 로딩 스켈레톤
               Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-card rounded-[14px] px-6 py-5 border border-neutral-20 animate-pulse"
+                  className="bg-card rounded-[14px] p-6 border border-neutral-20 animate-pulse"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-full bg-neutral-20" />
@@ -488,6 +486,28 @@ function ProjectCard({
   const smsPercentage =
     smsLimit > 0 ? Math.min(100, (smsUsage / smsLimit) * 100) : 0;
 
+  // 프로젝트 아이콘 (임시)
+  const getProjectIcon = () => {
+    if (project.id % 3 === 0) {
+      // 스마트 거래 관리
+      return (
+        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-green-400" />
+        </div>
+      );
+    } else if (project.id % 3 === 1) {
+      // 거래소 텔레마케팅 관리
+      return (
+        <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
+          <span className="text-white text-[16px] font-bold">X</span>
+        </div>
+      );
+    } else {
+      // 프로젝트 컨설팅 관리
+      return null;
+    }
+  };
+
   const isActive = project.state === "active";
 
   const handleSubscribeClick = () => {
@@ -497,27 +517,31 @@ function ProjectCard({
   };
 
   return (
-    <div className="bg-card rounded-[14px] px-6 py-5 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
+    <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
       {/* 카드 헤더 */}
       <div className="flex items-center gap-3 mb-4 md:mb-6">
-        {/* 프로젝트 썸네일: 값이 있을 때만 렌더링 */}
+        {/* 프로젝트 썸네일 */}
         {project.logoUrl ? (
           <div
-            className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
+            className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
           >
             <img
               src={project.logoUrl}
               alt={project.name}
-              width={28}
-              height={28}
+              width={40}
+              height={40}
               className="w-full h-full object-cover"
             />
           </div>
-        ) : null}
+        ) : (
+          <div className={isActive ? "" : "opacity-60"}>
+            {getProjectIcon()}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3
-              className={`text-[14px] md:text-[18px] font-bold truncate ${isActive ? "text-foreground" : "text-neutral-50"}`}
+              className={`text-[14px] md:text-[16px] font-bold truncate ${isActive ? "text-foreground" : "text-neutral-50"}`}
             >
               {project.name}
             </h3>
@@ -529,18 +553,18 @@ function ProjectCard({
               </span>
             )}
             {project.state === "expired" && (
-              <span className="inline-flex items-center justify-center h-[22px] px-3 bg-[#D83232] text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+              <span className="px-3 py-1 bg-[#D83232] text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
                 만료
               </span>
             )}
             {project.state === "none" && (
-              <span className="inline-flex items-center justify-center h-[22px] px-3 bg-neutral-60 text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+              <span className="px-3 py-1 bg-neutral-60 text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
                 구독 전
               </span>
             )}
           </div>
           {subscription && (
-            <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1 md:mt-3">
+            <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1">
               {formatDateCompact(subscription.startDate)} ~{" "}
               {formatDateCompact(subscription.endDate)} (
               {subscription.billingCycle === "monthly"
@@ -651,14 +675,14 @@ function ProjectCard({
         {isActive ? (
           <button
             onClick={onMoreClick}
-            className="cursor-pointer flex items-center justify-center gap-[10px] w-[60px] h-[34px] border border-neutral-30 rounded-[5px] bg-card text-foreground text-[14px] font-semibold tracking-[-0.02em] hover:bg-neutral-10 transition-colors"
+            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
           >
             더보기
           </button>
         ) : (
           <button
             onClick={handleSubscribeClick}
-            className="cursor-pointer inline-flex items-center justify-center h-[34px] px-3 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[5px] hover:bg-neutral-80 transition-colors"
+            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
           >
             구독하기
           </button>
