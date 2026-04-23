@@ -35,7 +35,7 @@ export default function CategoryHistoryModal({
           </div>
           <button
             type="button"
-            className="grid h-6 w-6 place-items-center rounded-full text-neutral-60 hover:bg-neutral-10"
+            className="grid h-6 w-6 cursor-pointer place-items-center rounded-full text-neutral-60 hover:bg-neutral-10"
             onClick={onClose}
             aria-label="닫기"
           >
@@ -57,7 +57,11 @@ export default function CategoryHistoryModal({
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div
+          className="touch-pan-y space-y-3 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch] pr-1 max-h-[min(400px,calc(100dvh-168px))] sm:max-h-[min(440px,calc(100dvh-168px))]"
+          role="region"
+          aria-label="카테고리 변경 기록 목록"
+        >
           {loading ? (
             <div className="rounded-[14px] bg-neutral-10 px-5 py-6 text-[14px] text-neutral-60">
               불러오는 중...

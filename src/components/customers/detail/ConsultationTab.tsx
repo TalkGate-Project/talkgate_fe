@@ -137,7 +137,7 @@ export default function ConsultationTab({
 
   return (
     <div className="mt-3 flex flex-col gap-4">
-      <section className="rounded-[12px] bg-card dark:bg-neutral-10 p-4">
+      <section className="rounded-[12px] bg-card dark:bg-neutral-10">
         <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
           카테고리
         </div>
@@ -168,7 +168,7 @@ export default function ConsultationTab({
 
           <button
             type="button"
-            className="grid h-6 w-6 shrink-0 place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
+            className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
             onClick={handleOpenHistoryModal}
             aria-label="카테고리 기록 보기"
           >

@@ -306,7 +306,7 @@ export default function ConsultationPanel({
 
             <button
               type="button"
-              className="grid h-6 w-6 shrink-0 place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
+              className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center text-neutral-50 transition-colors hover:text-neutral-70"
               onClick={handleOpenHistoryModal}
               aria-label="카테고리 기록 보기"
             >

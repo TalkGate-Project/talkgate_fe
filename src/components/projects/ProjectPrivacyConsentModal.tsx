@@ -69,7 +69,7 @@ export default function ProjectPrivacyConsentModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-privacy-consent-title"
-        className="relative w-full max-w-[848px] max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
+        className="relative w-full max-w-[848px] h-[70dvh] md:h-auto md:max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
       >
         {/* 헤더 */}
         <div className="px-4 md:px-7 pt-5 md:pt-6">
@@ -91,8 +91,8 @@ export default function ProjectPrivacyConsentModal({
         {/* 본문 영역 (모바일에서는 가변 높이, 데스크톱에서는 고정 높이) */}
         <div className="flex-1 min-h-0 flex flex-col px-4 md:px-7 mt-4 md:mt-[30px]">
           {/* 약관 본문 박스: container padding 12/8 (상하 12px, 좌우 8px) - 스크롤바 여유 공간용 */}
-          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 py-3 px-2 md:h-[193px] flex-1 md:flex-none min-h-0">
-            <div className="privacy-consent-scroll h-full min-h-0 overflow-y-auto pr-2">
+          <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 py-3 px-2 md:h-[193px] md:min-h-[193px] flex-1 md:flex-none min-h-0 overflow-hidden flex flex-col">
+            <div className="privacy-consent-scroll flex-1 min-h-0 overflow-y-auto pr-2">
               <div className="px-4 text-[14px] font-medium leading-[24px] text-foreground">
                 {PROJECT_PRIVACY_TERMS_TITLE}
               </div>
