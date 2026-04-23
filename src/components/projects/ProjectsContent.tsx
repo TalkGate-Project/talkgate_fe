@@ -10,7 +10,9 @@ import CreateProjectModal from "@/components/projects/CreateProjectModal";
 import SubscribeProjectModal from "@/components/projects/SubscribeProjectModal";
 import SubscribeProjectExpiredModal from "@/components/projects/SubscribeProjectExpiredModal";
 import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
+import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import {
@@ -45,6 +47,8 @@ export default function ProjectsContent() {
     project: ProjectSummary;
     next: ConsentNext;
   } | null>(null);
+  // 프로젝트 삭제 대상 (우상단 휴지통 아이콘 클릭 시 설정)
+  const [deleteTarget, setDeleteTarget] = useState<ProjectSummary | null>(null);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
@@ -229,6 +233,37 @@ export default function ProjectsContent() {
     // next === "none" 인 경우 별도 동작 없이 목록에 머문다.
   };
 
+  const handleDeleteProject = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    // 방어적 권한 체크: admin이 아니면 API 호출을 하지 않는다.
+    if (!resolveIsProjectAdmin(target)) {
+      setDeleteTarget(null);
+      return;
+    }
+    try {
+      await ProjectsService.remove({ "x-project-id": String(target.id) });
+      setProjects((prev) => prev.filter((x) => x.id !== target.id));
+      setDeleteTarget(null);
+      showErrorModal({
+        type: "success",
+        headline: "프로젝트가 삭제되었습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      setDeleteTarget(null);
+      showErrorModal({
+        type: "error",
+        headline: "프로젝트 삭제 실패",
+        description: "프로젝트 삭제에 실패했습니다.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background px-6 lg:px-0">
       <div className="max-w-[1422px] mx-auto pt-6 md:pt-[90px] pb-24 ">
@@ -300,6 +335,7 @@ export default function ProjectsContent() {
           {projects.map((p) => {
             const isSelecting = selectingProjectId === p.id;
             const isAnySelecting = selectingProjectId !== null;
+            const canDeleteProject = resolveIsProjectAdmin(p);
 
             return (
               <div
@@ -346,8 +382,42 @@ export default function ProjectsContent() {
                       />
                     </div>
                   </div>
-                  {/* 로딩 스피너 */}
-                  {isSelecting && <LoadingSpinner size="sm" />}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* 로딩 스피너 */}
+                    {isSelecting && <LoadingSpinner size="sm" />}
+                    {/* 프로젝트 삭제 버튼 (admin 전용) */}
+                    {canDeleteProject && (
+                      <button
+                        type="button"
+                        aria-label="프로젝트 삭제"
+                        disabled={isAnySelecting}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isAnySelecting) return;
+                          // 방어적 권한 체크: admin이 아니면 삭제 모달 자체를 띄우지 않는다.
+                          if (!resolveIsProjectAdmin(p)) return;
+                          setDeleteTarget(p);
+                        }}
+                        className="p-1 rounded text-neutral-50 hover:bg-neutral-20 hover:text-danger-40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:gap-6 mt-5">
                   <div className="rounded-[14px] bg-card shadow-[6px_6px_54px_rgba(0,0,0,0.05)] p-5 hidden md:flex items-center justify-between">
@@ -567,6 +637,14 @@ export default function ProjectsContent() {
           onConfirmed={handleConsentConfirmed}
         />
       )}
+
+      {/* 프로젝트 삭제 확인 모달 */}
+      <ServiceDeleteModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => void handleDeleteProject()}
+        serviceName={deleteTarget?.name ?? "-"}
+      />
     </main>
   );
 }
