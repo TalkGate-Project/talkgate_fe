@@ -15,6 +15,8 @@ import { showErrorModal, hideErrorModal } from "@/providers/ErrorFeedbackModalPr
 import ChangePaymentMethodModal, {
   type PaymentMethodData,
 } from "./ChangePaymentMethodModal";
+import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyConsentModal";
+import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
 import { formatDateCompact } from "@/utils/datetime";
 import { LANDING_URLS } from "@/lib/constants";
 
@@ -103,6 +105,33 @@ export default function BillingTab() {
     useState<ProjectWithSubscription | null>(null);
   const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
   const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
+  // 개인정보 처리 위탁 계약 동의 모달 상태 (구독하기 클릭 시 동의 여부 확인용)
+  const [consentTarget, setConsentTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const openSubscribeCheckout = (project: { id: number; name: string }) => {
+    const encodedProjectName = encodeURIComponent(project.name);
+    const url = `${LANDING_URLS.PRICING}?step=checkout&projectId=${project.id}&projectName=${encodedProjectName}`;
+    window.open(url, "_blank");
+  };
+
+  // "구독하기" 클릭 시 개인정보 처리 위탁 동의 여부를 확인하고 모달 또는 체크아웃을 진행한다.
+  const handleSubscribe = async (project: { id: number; name: string }) => {
+    try {
+      const res = await ProjectPrivacyConsentService.get(project.id);
+      const isConsented = Boolean(res.data?.data?.isConsented);
+      if (!isConsented) {
+        setConsentTarget({ id: project.id, name: project.name });
+        return;
+      }
+    } catch (error) {
+      // 동의 상태 확인 실패 시 UI 차단을 피하기 위해 기존 흐름으로 진행
+      console.error("Failed to check project privacy consent:", error);
+    }
+    openSubscribeCheckout(project);
+  };
 
   // 어드민 프로젝트 구독 정보 목록 가져오기
   const {
@@ -372,6 +401,9 @@ export default function BillingTab() {
                     setSelectedProject(project);
                     setViewMode("detail");
                   }}
+                  onSubscribe={() =>
+                    void handleSubscribe({ id: project.id, name: project.name })
+                  }
                 />
               ))
             )}
@@ -450,6 +482,19 @@ export default function BillingTab() {
             : undefined
         }
       />
+
+      {/* 개인정보 처리 위탁 계약 동의 모달 (구독하기 클릭 시 미동의 상태에서만 표시) */}
+      {consentTarget && (
+        <ProjectPrivacyConsentModal
+          projectId={consentTarget.id}
+          projectName={consentTarget.name}
+          onConfirmed={() => {
+            const target = consentTarget;
+            setConsentTarget(null);
+            openSubscribeCheckout(target);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -458,9 +503,11 @@ export default function BillingTab() {
 function ProjectCard({
   project,
   onMoreClick,
+  onSubscribe,
 }: {
   project: ProjectWithSubscription;
   onMoreClick: () => void;
+  onSubscribe: () => void;
 }) {
   const subscription = project.subscription;
   const usage = project.usage;
@@ -509,12 +556,6 @@ function ProjectCard({
   };
 
   const isActive = project.state === "active";
-
-  const handleSubscribeClick = () => {
-    const encodedProjectName = encodeURIComponent(project.name);
-    const url = `${LANDING_URLS.PRICING}?step=checkout&projectId=${project.id}&projectName=${encodedProjectName}`;
-    window.open(url, "_blank");
-  };
 
   return (
     <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
@@ -681,7 +722,7 @@ function ProjectCard({
           </button>
         ) : (
           <button
-            onClick={handleSubscribeClick}
+            onClick={onSubscribe}
             className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
           >
             구독하기
