@@ -108,7 +108,7 @@ export type CustomersListQuery = {
   ipAddress?: string;
   specialNotes?: string;
   summary?: string;
-  sortType?: "applicationDate" | "assignedMember";
+  sortType?: "applicationDate" | "assignedMember" | "lastNoteDate";
   sortOrder?: "ASC" | "DESC";
   page: number;                 // required
   limit: number;                // required
