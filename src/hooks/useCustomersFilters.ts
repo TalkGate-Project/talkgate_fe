@@ -348,7 +348,7 @@ export function useCustomersFilters(projectId: string | null) {
             applicationRoute: applied.applicationRoute,
             mediaCompany: applied.mediaCompany,
             site: applied.site,
-            // null을 문자열 "null"로 변환하여 API에 전송 (일반 카테고리)
+            // null을 문자열 "null"로 변환하여 API에 전송
             categoryIds: applied.categoryIds?.map((id: number | null) => id === null ? "null" : id),
             noteContent: applied.noteContent,
             // 신청시간: 둘 다 있을 때만 API 쿼리에 포함
