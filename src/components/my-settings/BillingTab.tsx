@@ -57,6 +57,7 @@ function mapAdminProjectToViewModel(
     return {
       id: project.projectId,
       name: project.projectName,
+      logoUrl: project.projectLogoUrl ?? null,
       state: project.subscriptionState,
       subscription: {
         plan: { name: project.subscriptionName },
@@ -79,6 +80,7 @@ function mapAdminProjectToViewModel(
   return {
     id: project.projectId,
     name: project.projectName,
+    logoUrl: project.projectLogoUrl ?? null,
     state: project.subscriptionState,
     subscription: undefined,
     usage: {
@@ -234,7 +236,7 @@ export default function BillingTab() {
   }
 
   return (
-    <div className="bg-card rounded-none md:rounded-[14px] min-h-screen md:min-h-0 pb-[140px] md:pb-0">
+    <div className="bg-card rounded-none md:rounded-[12px] min-h-screen md:min-h-0 pb-[140px] md:pb-0">
       <div className="space-y-5 md:space-y-6">
         {/* 페이지 제목 */}
         <div className="px-6 md:px-7 pt-5 md:pt-7">
@@ -246,7 +248,7 @@ export default function BillingTab() {
 
         <div className="px-6 md:px-7 pb-5 md:pb-7 space-y-4 md:space-y-9">
           {/* 프로젝트 관리 및 결제 수단 섹션 */}
-          <div className="bg-card rounded-[14px] mb-6 md:mb-9 p-4 md:p-6 border border-neutral-20">
+          <div className="bg-card rounded-[12px] mb-6 md:mb-[30px] md:pl-[54px] p-4 md:p-6 border border-neutral-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
               {/* 프로젝트 관리 */}
               <div className="flex items-center gap-4">
@@ -278,7 +280,7 @@ export default function BillingTab() {
                   <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-1">
                     프로젝트 관리
                   </h2>
-                  <p className="text-[12px] md:text-[14px] text-neutral-60">
+                  <p className="text-[12px] md:text-[14px] text-neutral-90">
                     총 {projectsWithSubscription.length}개 프로젝트 진행중
                   </p>
                 </div>
@@ -313,7 +315,7 @@ export default function BillingTab() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center">
+                  <div className="flex items-center md:mb-1">
                     <h2 className="text-[14px] md:text-[16px] font-semibold text-foreground mr-3">
                       결제 수단
                     </h2>
@@ -355,16 +357,16 @@ export default function BillingTab() {
           </div>
 
           {/* 프로젝트 카드 그리드 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-9">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-[30px]">
             {isLoading ? (
               // 로딩 스켈레톤
               Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-card rounded-[14px] p-6 border border-neutral-20 animate-pulse"
+                  className="bg-card rounded-[12px] p-6 border border-neutral-20 animate-pulse"
                 >
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-neutral-20" />
+                    <div className="w-7 h-7 rounded-full bg-neutral-20" />
                     <div className="h-5 w-40 bg-neutral-20 rounded" />
                   </div>
                   <div className="space-y-4">
@@ -533,56 +535,35 @@ function ProjectCard({
   const smsPercentage =
     smsLimit > 0 ? Math.min(100, (smsUsage / smsLimit) * 100) : 0;
 
-  // 프로젝트 아이콘 (임시)
-  const getProjectIcon = () => {
-    if (project.id % 3 === 0) {
-      // 스마트 거래 관리
-      return (
-        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-          <div className="w-4 h-4 rounded-full bg-green-400" />
-        </div>
-      );
-    } else if (project.id % 3 === 1) {
-      // 거래소 텔레마케팅 관리
-      return (
-        <div className="w-10 h-10 rounded-full bg-[#252525] flex items-center justify-center">
-          <span className="text-white text-[16px] font-bold">X</span>
-        </div>
-      );
-    } else {
-      // 프로젝트 컨설팅 관리
-      return null;
-    }
-  };
-
   const isActive = project.state === "active";
 
   return (
-    <div className="bg-card rounded-[14px] p-4 md:p-6 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
+    <div className="bg-card rounded-[12px] p-4 md:px-6 md:py-5 border border-neutral-20 flex flex-col min-h-[260px] md:min-h-[314px]">
       {/* 카드 헤더 */}
-      <div className="flex items-center gap-3 mb-4 md:mb-6">
+      <div className="flex items-center gap-3 mb-4">
         {/* 프로젝트 썸네일 */}
         {project.logoUrl ? (
           <div
-            className={`w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
+            className={`w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
           >
             <img
               src={project.logoUrl}
               alt={project.name}
-              width={40}
-              height={40}
+              width={28}
+              height={28}
               className="w-full h-full object-cover"
             />
           </div>
         ) : (
-          <div className={isActive ? "" : "opacity-60"}>
-            {getProjectIcon()}
-          </div>
+          <div
+            className={`w-7 h-7 rounded-full bg-neutral-20 flex-shrink-0 ${isActive ? "" : "opacity-60"}`}
+          />
         )}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <h3
-              className={`text-[14px] md:text-[16px] font-bold truncate ${isActive ? "text-foreground" : "text-neutral-50"}`}
+              title={project.name}
+              className={`text-[14px] md:text-[18px] font-bold truncate min-w-0 ${isActive ? "text-foreground" : "text-neutral-50"}`}
             >
               {project.name}
             </h3>
@@ -594,18 +575,22 @@ function ProjectCard({
               </span>
             )}
             {project.state === "expired" && (
-              <span className="px-3 py-1 bg-[#D83232] text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+              <span className="px-3 h-[22px] leading-[22px] bg-[#D83232] text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
                 만료
               </span>
             )}
             {project.state === "none" && (
-              <span className="px-3 py-1 bg-neutral-60 text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
+              <span className="px-3 h-[22px] leading-[22px] bg-neutral-60 text-white/80 text-[11px] md:text-[12px] font-medium rounded-full flex-shrink-0">
                 구독 전
               </span>
             )}
           </div>
-          {subscription && (
-            <p className="text-[11px] md:text-[12px] text-neutral-60 mt-1">
+          
+        </div>
+        
+      </div>
+      {subscription && (
+            <p className="text-[11px] md:text-[14px] text-neutral-60 mb-5">
               {formatDateCompact(subscription.startDate)} ~{" "}
               {formatDateCompact(subscription.endDate)} (
               {subscription.billingCycle === "monthly"
@@ -616,8 +601,6 @@ function ProjectCard({
               결제)
             </p>
           )}
-        </div>
-      </div>
 
       {/* 비활성 상태 안내 문구 */}
       {!isActive && (
@@ -632,11 +615,11 @@ function ProjectCard({
 
       {/* 사용량 정보 */}
       {isActive && subscription && usage && (
-        <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
+        <div className="space-y-3 md:space-y-4 mb-4 md:mb-6 px-2">
           {/* 멤버 수 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[12px] md:text-[14px] text-neutral-60">멤버 수</span>
+              <span className="text-[12px] md:text-[14px] text-neutral-100">멤버 수</span>
               <span className="text-[12px] md:text-[14px] text-foreground">
                 <span className="font-bold">{formatCount(memberUsage)}</span>
                 <span className="text-neutral-60">
@@ -660,7 +643,7 @@ function ProjectCard({
           {/* AI 상담 도우미 토큰 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[12px] md:text-[14px] text-neutral-60">
+              <span className="text-[12px] md:text-[14px] text-neutral-100">
                 AI 상담 도우미 토큰
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
@@ -686,7 +669,7 @@ function ProjectCard({
           {/* 문자 전송 횟수 */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[12px] md:text-[14px] text-neutral-60">
+              <span className="text-[12px] md:text-[14px] text-neutral-100">
                 문자 전송 횟수
               </span>
               <span className="text-[12px] md:text-[14px] text-foreground">
@@ -716,14 +699,14 @@ function ProjectCard({
         {isActive ? (
           <button
             onClick={onMoreClick}
-            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
+            className="cursor-pointer h-[34px] px-3 bg-neutral-0 text-neutral-100 border border-neutral-30 text-[12px] md:text-[14px] font-semibold tracking-[-0.02em] rounded-[5px] hover:bg-neutral-10 transition-colors"
           >
             더보기
           </button>
         ) : (
           <button
             onClick={onSubscribe}
-            className="cursor-pointer px-3 md:px-4 py-1.5 md:py-2 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[8px] hover:bg-neutral-80 transition-colors"
+            className="cursor-pointer h-[34px] px-3 bg-neutral-90 text-white dark:text-neutral-0 text-[12px] md:text-[14px] font-medium rounded-[5px] hover:bg-neutral-80 transition-colors"
           >
             구독하기
           </button>
