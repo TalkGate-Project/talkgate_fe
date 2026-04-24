@@ -90,14 +90,12 @@ export default function PaymentMemberTable() {
   const [endDate, setEndDate] = useState<string>(initialRange.endDate);
 
   const initialTeam = (searchParams.get("payTeam") as string | null) ?? "all";
-  const initialSort = (searchParams.get("paySort") as "asc" | "desc" | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("payPage") ?? "1", 10);
   const initialSortType = (searchParams.get("paySortType") as SortType | null) ?? null;
   const initialSortOrder = (searchParams.get("paySortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
   const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -116,10 +114,9 @@ export default function PaymentMemberTable() {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("paySort");
     if (teamFilter && teamFilter !== "all") params.set("payTeam", teamFilter);
     else params.delete("payTeam");
-    if (sortOrder !== "desc") params.set("paySort", sortOrder);
-    else params.delete("paySort");
     if (page > 1) params.set("payPage", String(page));
     else params.delete("payPage");
     if (sortType) params.set("paySortType", sortType);
@@ -128,7 +125,7 @@ export default function PaymentMemberTable() {
     else params.delete("paySortOrder");
     router.replace(`?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamFilter, sortOrder, page, sortType, sortOrderState]);
+  }, [teamFilter, page, sortType, sortOrderState]);
 
   const teamQuery = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate, endDate }],
@@ -141,7 +138,7 @@ export default function PaymentMemberTable() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const sortParam = sortOrderState ?? (sortOrder === "desc" ? "DESC" : "ASC");
+  const sortParam = sortOrderState ?? "DESC";
   const teamIdParam = teamFilter !== "all" && /^\d+$/.test(teamFilter) ? Number(teamFilter) : undefined;
 
   const memberQuery = useQuery<CustomerPaymentByMemberResponse>({
@@ -330,8 +327,9 @@ export default function PaymentMemberTable() {
         )}
         {!showSkeleton && !showError && rows.map((row, index) => {
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+          const rowKey = `${row.memberId}-${row.teamId ?? "unassigned"}-${row.teamName ?? "none"}-${index}`;
           return (
-            <div key={`${row.memberId}-${row.memberName}`} className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+            <div key={rowKey} className="h-[56px] grid items-center pl-5 md:px-[30px] md:grid-cols-4" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
               <button
                 onClick={() => handleMemberClick(row.memberId)}
                 className="text-[14px] text-foreground opacity-80 text-left cursor-pointer hover:underline"
