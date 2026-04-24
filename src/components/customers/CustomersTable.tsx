@@ -37,9 +37,9 @@ type CustomersTableProps = {
   isDataProvider?: boolean;
   /** 데이터 제공자 여부가 확정되었는지 (헤더 안정화용) */
   isDataProviderReady?: boolean;
-  sortType?: "applicationDate" | "assignedMember";
+  sortType?: "applicationDate" | "assignedMember" | "lastNoteDate";
   sortOrder?: "ASC" | "DESC";
-  onToggleSort?: (column: "applicationDate" | "assignedMember") => void;
+  onToggleSort?: (column: "applicationDate" | "assignedMember" | "lastNoteDate") => void;
 };
 
 function TruncateWithTooltip({
@@ -556,57 +556,59 @@ export default function CustomersTable({
                   }`}
                   onClick={!isDataProvider && h === "전체확인" ? handleConfirmAll : undefined}
                 >
-                  {!isDataProvider && (h === "담당자" || h === "신청시간") ? (
-                    <div className="inline-flex items-center gap-1">
-                      <span>{h}</span>
-                      <button
-                        type="button"
-                        className="cursor-pointer inline-flex items-center justify-center w-4 h-4 text-neutral-60 hover:text-neutral-90"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleSort?.(
-                            h === "담당자" ? "assignedMember" : "applicationDate"
-                          );
-                        }}
-                        aria-label={`${h} 정렬 토글`}
-                      >
-                        <svg
-                          width="10"
-                          height="12"
-                          viewBox="0 0 10 12"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M5 1L8 4H2L5 1Z"
-                            fill={
-                              sortType ===
-                                (h === "담당자"
-                                  ? "assignedMember"
-                                  : "applicationDate") &&
-                              sortOrder === "ASC"
-                                ? "#111111"
-                                : "#B0B0B0"
-                            }
-                          />
-                          <path
-                            d="M5 11L2 8H8L5 11Z"
-                            fill={
-                              sortType ===
-                                (h === "담당자"
-                                  ? "assignedMember"
-                                  : "applicationDate") &&
-                              sortOrder === "DESC"
-                                ? "#111111"
-                                : "#B0B0B0"
-                            }
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ) : (
-                    h
-                  )}
+                  {(() => {
+                    const sortKeyByHeader: Record<
+                      string,
+                      "applicationDate" | "assignedMember" | "lastNoteDate"
+                    > = {
+                      "담당자": "assignedMember",
+                      "신청시간": "applicationDate",
+                      "카테고리": "lastNoteDate",
+                    };
+                    const currentKey = sortKeyByHeader[h];
+                    if (!isDataProvider && currentKey) {
+                      return (
+                        <div className="inline-flex items-center justify-center gap-1">
+                          <span>{h}</span>
+                          <button
+                            type="button"
+                            className="cursor-pointer inline-flex items-center justify-center w-4 h-4 text-neutral-60 hover:text-neutral-90"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleSort?.(currentKey);
+                            }}
+                            aria-label={`${h} 정렬 토글`}
+                          >
+                            <svg
+                              width="10"
+                              height="12"
+                              viewBox="0 0 10 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5 1L8 4H2L5 1Z"
+                                fill={
+                                  sortType === currentKey && sortOrder === "ASC"
+                                    ? "#111111"
+                                    : "#B0B0B0"
+                                }
+                              />
+                              <path
+                                d="M5 11L2 8H8L5 11Z"
+                                fill={
+                                  sortType === currentKey && sortOrder === "DESC"
+                                    ? "#111111"
+                                    : "#B0B0B0"
+                                }
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    }
+                    return h;
+                  })()}
                 </th>
               ))}
             </tr>
