@@ -51,7 +51,7 @@ export type CustomerFilters = {
   notablePoints?: string;
   summaryInfo?: string;
 };
-export type CustomerSortType = "applicationDate" | "assignedMember";
+export type CustomerSortType = "applicationDate" | "assignedMember" | "lastNoteDate";
 export type CustomerSortOrder = "ASC" | "DESC";
 
 function isBrowser(): boolean {
@@ -198,7 +198,9 @@ export function useCustomersFilters(projectId: string | null) {
     const rawSortType = g("sortType");
     const rawSortOrder = g("sortOrder");
     obj.sortType =
-      rawSortType === "applicationDate" || rawSortType === "assignedMember"
+      rawSortType === "applicationDate" ||
+      rawSortType === "assignedMember" ||
+      rawSortType === "lastNoteDate"
         ? rawSortType
         : undefined;
     obj.sortOrder =
