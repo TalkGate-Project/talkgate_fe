@@ -19,6 +19,8 @@ import TeamChatWindowProvider from "@/providers/TeamChatWindowProvider";
 import UiScaleToggle from "@/components/layout/UiScaleToggle";
 import GlobalStaffChatModal from "@/components/layout/GlobalStaffChatModal";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
+import { env } from "@/lib/env";
+import GoogleAnalytics from "@/components/common/GoogleAnalytics";
 
 /* Load primary body and mono fonts. Pretendard is referenced via CSS stack. */
 const inter = Inter({
@@ -74,6 +76,8 @@ export default async function RootLayout({
   const headersList = await headers();
   const uiZoomMode = headersList.get("x-ui-zoom") || "normal";
   const initialZoom = uiZoomMode === "normal" ? 1 : 0.8;
+  const requestHost = (headersList.get("host") || "").split(":")[0];
+  const isAppDomain = requestHost.startsWith("app");
 
   return (
     <html lang="ko" data-theme="light">
@@ -89,6 +93,10 @@ export default async function RootLayout({
         className={`${inter.variable} ${robotoMono.variable} ${montserrat.variable} antialiased`}
         style={{ zoom: initialZoom } as any}
       >
+        <GoogleAnalytics
+          measurementId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          enabled={isAppDomain}
+        />
         <ErrorFeedbackModalProvider>
           <ConfirmModalProvider>
             <PersistentModalProvider>
