@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMe } from "@/hooks/useMe";
+import { performLogout } from "@/lib/logout";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DeleteAccountModal from "./DeleteAccountModal";
 import TwoFactorSetupModal from "./TwoFactorSetupModal";
@@ -9,6 +11,7 @@ import TwoFactorDisableModal from "./TwoFactorDisableModal";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 
 export default function SecurityTab() {
+  const queryClient = useQueryClient();
   const { user, refetch } = useMe();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -233,22 +236,33 @@ export default function SecurityTab() {
 
   const handleDeleteAccount = async () => {
     try {
-      // TODO: Implement account deletion logic
-      showErrorModal({
-        title: "알림",
-        headline: "계정이 삭제되었습니다.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
-    } catch (e: any) {
-      showErrorModal({
-        title: "오류 발생",
-        headline: "계정 삭제에 실패했습니다.",
-        confirmText: "확인",
-        cancelText: null,
-        hideCancel: true,
-      });
+      const { AuthService } = await import("@/services/auth");
+      await AuthService.withdraw();
+      performLogout({ queryClient });
+    } catch (e: unknown) {
+      console.error("Account withdraw failed:", e);
+      const err = e as { data?: { code?: string } };
+      const code = err?.data?.code;
+      if (code === "CANNOT_WITHDRAW_WITH_SUBORDINATES") {
+        showErrorModal({
+          title: "알림",
+          headline: "지금은 계정을 삭제할 수 없습니다.",
+          description:
+            "조직에서 관리 중인 하위 멤버나 팀이 있어 탈퇴가 제한될 수 있습니다. 정리 후 다시 시도하거나 관리자에게 문의해주세요.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+      } else {
+        showErrorModal({
+          title: "오류 발생",
+          headline: "계정 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
+        });
+      }
+      throw e;
     }
   };
 
