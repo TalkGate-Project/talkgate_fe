@@ -32,7 +32,12 @@ export default function ConfirmModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onCancel} />
+      <div
+        className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]"
+        onClick={() => {
+          if (!loading) onCancel();
+        }}
+      />
       <div
         className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
         role="dialog"
@@ -43,7 +48,10 @@ export default function ConfirmModal({
             <h2 className="text-[20px] font-semibold text-ink dark:text-neutral-90">{title}</h2>
             <button
               type="button"
-              onClick={onCancel}
+              onClick={() => {
+                if (!loading) onCancel();
+              }}
+              disabled={loading}
               aria-label="close modal"
               className="cursor-pointer h-6 w-6"
             >
