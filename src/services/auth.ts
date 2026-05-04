@@ -287,6 +287,9 @@ export const AuthService = {
   twoFactorDisable(input: TwoFactorDisableInput) {
     return apiClient.post<BasicMessageResponse>("/v1/auth/two-factor/disable", input);
   },
+  withdraw() {
+    return apiClient.delete<void>("/v1/auth/withdraw");
+  },
   twoFactorLogin(input: TwoFactorLoginInput) {
     // 서버 API 라우트를 사용하여 쿠키가 서버에서 설정되도록 함
     return fetch("/api/auth/two-factor/login", {

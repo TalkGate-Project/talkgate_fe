@@ -6,7 +6,7 @@ import BaseModal from "@/components/common/BaseModal";
 interface DeleteAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export default function DeleteAccountModal({
@@ -16,6 +16,7 @@ export default function DeleteAccountModal({
 }: DeleteAccountModalProps) {
   const [inputValue, setInputValue] = useState("");
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const confirmText = "계정 삭제";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,17 +25,23 @@ export default function DeleteAccountModal({
     setIsConfirmed(value === confirmText);
   };
 
-  const handleConfirm = () => {
-    if (isConfirmed) {
-      onConfirm();
-      handleClose();
-    }
-  };
-
   const handleClose = () => {
+    if (isSubmitting) return;
     setInputValue("");
     setIsConfirmed(false);
     onClose();
+  };
+
+  const handleConfirm = async () => {
+    if (!isConfirmed || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onConfirm();
+      setIsSubmitting(false);
+      handleClose();
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -49,8 +56,10 @@ export default function DeleteAccountModal({
       <div className="relative">
         {/* Close Button */}
         <button
+          type="button"
           onClick={handleClose}
-          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center z-10"
+          disabled={isSubmitting}
+          className="cursor-pointer absolute top-6 right-6 w-6 h-6 flex items-center justify-center z-10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
             width="24"
@@ -130,8 +139,9 @@ export default function DeleteAccountModal({
               type="text"
               value={inputValue}
               onChange={handleInputChange}
+              disabled={isSubmitting}
               placeholder={confirmText}
-              className="w-full px-3 h-[34px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-medium text-foreground dark:text-neutral-80 focus:outline-none focus:border-danger-40 dark:focus:border-danger-40"
+              className="w-full px-3 h-[34px] bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-medium text-foreground dark:text-neutral-80 focus:outline-none focus:border-danger-40 dark:focus:border-danger-40 disabled:opacity-60"
             />
           </div>
         </div>
@@ -142,21 +152,24 @@ export default function DeleteAccountModal({
         {/* Action Buttons */}
         <div className="flex gap-3 px-4 md:px-7 py-3 md:justify-end">
           <button
+            type="button"
             onClick={handleClose}
-            className="cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 flex-1 md:flex-none"
+            disabled={isSubmitting}
+            className="cursor-pointer px-3 py-1.5 bg-card dark:bg-neutral-10 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] font-semibold text-ink dark:text-neutral-80 hover:bg-neutral-10 dark:hover:bg-neutral-20 flex-1 md:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             취소
           </button>
           <button
-            onClick={handleConfirm}
-            disabled={!isConfirmed}
+            type="button"
+            onClick={() => void handleConfirm()}
+            disabled={!isConfirmed || isSubmitting}
             className={`cursor-pointer px-3 py-1.5 rounded-[5px] text-[14px] font-semibold transition-colors flex-1 md:flex-none ${
-              isConfirmed
-                ? "bg-danger-40 dark:bg-danger-40 text-white hover:bg-danger-60 dark:hover:bg-danger-60 cursor-pointer"
+              isConfirmed && !isSubmitting
+                ? "bg-danger-40 dark:bg-danger-40 text-white hover:bg-danger-60 dark:hover:bg-danger-60"
                 : "bg-neutral-50 dark:bg-neutral-50 text-neutral-60 dark:text-neutral-60 cursor-not-allowed"
             }`}
           >
-            계정 삭제
+            {isSubmitting ? "처리 중..." : "계정 삭제"}
           </button>
         </div>
       </div>
