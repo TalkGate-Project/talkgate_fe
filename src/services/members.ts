@@ -28,6 +28,10 @@ export const MembersService = {
   remove(memberId: number) {
     return apiClient.delete<void>(`/v1/members/${memberId}`);
   },
+  /** 현재 프로젝트(x-project-id)에서 본인 멤버십만 제거 (관리자 제외) */
+  leaveSelf() {
+    return apiClient.delete<void>("/v1/members/me");
+  },
   my(headers?: Record<string, string>) {
     return apiClient.get<MyMemberResponse>(`/v1/members/my`, headers ? { headers } : undefined);
   },

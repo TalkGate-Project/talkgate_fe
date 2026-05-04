@@ -205,7 +205,7 @@ export default function ErrorFeedbackModalProvider({
     <ErrorModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-5 md:p-0">
+        <div className="fixed inset-0 z-[280] flex items-center justify-center p-5 md:p-0">
           <div
             className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
             onClick={handleOverlayClick}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSelectedProjectId } from "@/lib/project";
+import { getSelectedProjectId, clearSelectedProjectId } from "@/lib/project";
 import { useMyMember } from "@/hooks/useMyMember";
 import { hasAdminAccess } from "@/utils/permissions";
 import { MembersService } from "@/services/members";
@@ -434,6 +434,63 @@ export default function MemberSettings() {
     },
   });
 
+  const leaveProjectMutation = useMutation({
+    mutationFn: () => MembersService.leaveSelf(),
+    onSuccess: () => {
+      setIsLeaveModalOpen(false);
+      queryClient.removeQueries({ queryKey: ["members"] });
+      queryClient.removeQueries({ queryKey: ["members-tree"] });
+      clearSelectedProjectId();
+      window.location.href = "/projects";
+    },
+    onError: (error: unknown) => {
+      console.error("Leave project failed:", error);
+      setIsLeaveModalOpen(false);
+      const err = error as { data?: { code?: string }; status?: number };
+      const code = err?.data?.code;
+      const status = err?.status;
+
+      if (code === "MISSING_PROJECT_ID") {
+        showErrorModal({
+          type: "error",
+          headline: "프로젝트 정보를 확인할 수 없습니다.",
+          description: "프로젝트를 선택한 뒤 다시 시도해주세요.",
+          hideCancel: true,
+        });
+        return;
+      }
+      if (code === "NOT_PROJECT_MEMBER") {
+        showErrorModal({
+          type: "error",
+          headline: "이미 이 프로젝트의 멤버가 아닙니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+      if (code === "CANNOT_DELETE_ADMIN") {
+        showErrorModal({
+          type: "error",
+          headline: "관리자 권한으로는 프로젝트를 나갈 수 없습니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+      if (status === 404 || code === "PROJECT_NOT_FOUND") {
+        showErrorModal({
+          type: "error",
+          headline: "프로젝트를 찾을 수 없습니다.",
+          hideCancel: true,
+        });
+        return;
+      }
+      showErrorModal({
+        type: "error",
+        headline: "프로젝트 탈퇴에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+      });
+    },
+  });
+
   const roleChangeMutation = useMutation({
     mutationFn: ({
       memberId,
@@ -553,10 +610,7 @@ export default function MemberSettings() {
   };
 
   const handleLeaveConfirm = () => {
-    // TODO: 프로젝트 탈퇴 API 연동
-    // - 현재 프로젝트에서 내 멤버십(leader/member) 해제
-    // - 성공 시 프로젝트 목록 또는 대시보드 등으로 리다이렉트 처리
-    setIsLeaveModalOpen(false);
+    leaveProjectMutation.mutate();
   };
 
   return (
@@ -707,8 +761,12 @@ export default function MemberSettings() {
       {/* Leave Project Modal */}
       <ConfirmModal
         open={isLeaveModalOpen}
-        onCancel={() => setIsLeaveModalOpen(false)}
+        onCancel={() => {
+          if (leaveProjectMutation.isPending) return;
+          setIsLeaveModalOpen(false);
+        }}
         onConfirm={handleLeaveConfirm}
+        loading={leaveProjectMutation.isPending}
         title="프로젝트 탈퇴"
         headline="정말로 프로젝트를 탈퇴하시겠습니까?"
         description={
