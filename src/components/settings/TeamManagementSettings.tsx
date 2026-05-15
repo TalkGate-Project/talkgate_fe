@@ -85,7 +85,7 @@ export default function TeamManagementSettings() {
   } = useTeamDragAndDrop(teamMembers, canDrag, handleMove);
 
   const { inputValue, setInputValue, searchTerm, executeSearch, matchingIds, expandedForSearch } =
-    useTeamSearch(teamMembers);
+    useTeamSearch(assignedMembers);
 
   const allDepartments = useMemo(() => {
     if (!teamsData) return [];
@@ -93,7 +93,7 @@ export default function TeamManagementSettings() {
   }, [teamsData]);
 
   const { selectedDepartment, filteredByDepartment, handleDepartmentClick } = useDepartmentFilter(
-    teamMembers,
+    assignedMembers,
     allDepartments
   );
 
@@ -139,6 +139,31 @@ export default function TeamManagementSettings() {
     return <TeamManagementError />;
   }
 
+  const unassignedMembersArea = unassignedMembers.length > 0 && (
+    <>
+      <div className="hidden md:flex flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
+        <div className="flex-1 overflow-y-auto max-h-[520px]">
+          <UnassignedMembersList
+            data={unassignedMembers}
+            dragHandlers={dragHandlers}
+            dragState={dragState}
+            onMemberClick={handleMemberClick}
+          />
+        </div>
+      </div>
+
+      <UnassignedMembersDrawer
+        isOpen={isUnassignedDrawerOpen}
+        onOpen={() => setIsUnassignedDrawerOpen(true)}
+        onClose={() => setIsUnassignedDrawerOpen(false)}
+        members={unassignedMembers}
+        dragHandlers={dragHandlers}
+        dragState={dragState}
+        onMemberClick={handleMemberClick}
+      />
+    </>
+  );
+
   return (
     <div className="w-full h-full bg-card rounded-[14px] rounded-t-none md:rounded-t-[14px] pb-7 overflow-hidden flex flex-col">
       <TeamManagementHeader viewMode={viewMode} onChange={setViewMode} zoom={zoom} onZoomChange={setZoom} />
@@ -158,17 +183,20 @@ export default function TeamManagementSettings() {
 
       {/* 스크롤 가능한 리스트 영역 */}
       {viewMode === "list" ? (
-        <div className="flex-1 px-4 md:px-7 overflow-y-auto min-h-0 max-h-[538px]">
-          <TeamListView
-            data={filteredByDepartment}
-            dragHandlers={dragHandlers}
-            dragState={dragState}
-            tags={[]}
-            onMemberClick={handleMemberClick}
-            searchTerm={searchTerm}
-            matchingIds={matchingIds}
-            expandedForSearch={expandedForSearch}
-          />
+        <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative min-h-0">
+          <div className="flex-1 min-w-0 overflow-y-auto max-h-[538px]">
+            <TeamListView
+              data={filteredByDepartment}
+              dragHandlers={dragHandlers}
+              dragState={dragState}
+              tags={[]}
+              onMemberClick={handleMemberClick}
+              searchTerm={searchTerm}
+              matchingIds={matchingIds}
+              expandedForSearch={expandedForSearch}
+            />
+          </div>
+          {unassignedMembersArea}
         </div>
       ) : (
         <div className="flex-1 mx-4 md:mx-7 overflow-hidden flex gap-4 border-b border-[#E2E2E2] dark:!border-[#444444] relative md:min-h-[600px]">
@@ -186,31 +214,8 @@ export default function TeamManagementSettings() {
             />
           </div>
 
-          {/* 미배정 멤버 리스트 영역 - 데스크탑 */}
-          {unassignedMembers.length > 0 && (
-            <>
-              <div className="hidden md:flex flex-shrink-0 w-[190px] bg-neutral-10/50 overflow-hidden flex-col border-[#E2E2E2] dark:!border-[#44444455] border-l">
-                <div className="flex-1 overflow-y-auto max-h-[520px]">
-                  <UnassignedMembersList
-                    data={unassignedMembers}
-                    dragHandlers={dragHandlers}
-                    dragState={dragState}
-                    onMemberClick={handleMemberClick}
-                  />
-                </div>
-              </div>
-
-              <UnassignedMembersDrawer
-                isOpen={isUnassignedDrawerOpen}
-                onOpen={() => setIsUnassignedDrawerOpen(true)}
-                onClose={() => setIsUnassignedDrawerOpen(false)}
-                members={unassignedMembers}
-                dragHandlers={dragHandlers}
-                dragState={dragState}
-                onMemberClick={handleMemberClick}
-              />
-            </>
-          )}
+          {/* 미배정 멤버 리스트 영역 */}
+          {unassignedMembersArea}
         </div>
       )}
 
