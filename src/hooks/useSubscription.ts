@@ -9,7 +9,9 @@ import {
   MOCK_SUBSCRIPTION,
   MOCK_PAYMENTS,
   MOCK_SUBSCRIPTION_PLANS,
+  MOCK_DISCOUNT_COUPON_INFO,
 } from "@/mocks/billingMockData";
+import type { DiscountCouponInfo } from "@/types/subscription";
 
 /**
  * 프로젝트 구독 정보 조회 hook
@@ -91,6 +93,60 @@ export function useSubscriptionPlans() {
 
   return {
     plans: query.data ?? [],
+    loading: query.isLoading,
+    error: (query.error as unknown) ?? null,
+    refetch: query.refetch,
+  } as const;
+}
+
+/**
+ * 활성 구독의 할인쿠폰 가격 정보 조회 hook
+ */
+export function useSubscriptionDiscountCouponInfo(subscription: Subscription | null) {
+  const projectId = getSelectedProjectId();
+  const { isDemoMode } = useDemoMode();
+  const discountCoupon = subscription?.discountCoupon;
+
+  const query = useQuery<DiscountCouponInfo | null>({
+    queryKey: [
+      "subscription",
+      "discount-coupon-info",
+      projectId,
+      discountCoupon?.code,
+      subscription?.plan?.id,
+      subscription?.billingCycle,
+      isDemoMode,
+    ],
+    queryFn: async () => {
+      if (!subscription?.plan?.id || !discountCoupon?.code) return null;
+
+      if (isDemoMode) {
+        return MOCK_DISCOUNT_COUPON_INFO;
+      }
+
+      try {
+        const res = await SubscriptionService.getDiscountCouponInfo(
+          {
+            code: discountCoupon.code,
+            planId: subscription.plan.id,
+            billingCycle: subscription.billingCycle,
+          },
+          projectId ? { "x-project-id": projectId } : undefined
+        );
+        return res.data.data;
+      } catch (error) {
+        console.error("Failed to fetch discount coupon info:", error);
+        return null;
+      }
+    },
+    enabled:
+      Boolean(subscription?.plan?.id) &&
+      Boolean(discountCoupon?.code) &&
+      (isDemoMode || Boolean(projectId)),
+  });
+
+  return {
+    discountCouponInfo: query.data ?? null,
     loading: query.isLoading,
     error: (query.error as unknown) ?? null,
     refetch: query.refetch,

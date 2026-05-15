@@ -27,6 +27,17 @@ export type SubscriptionStatus = "active" | "cancelled" | "expired" | "pending";
 // 결제 상태
 export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
 
+// 할인쿠폰
+export type DiscountCouponType = "percentage" | "fixed" | "fixed_amount";
+
+export type DiscountCoupon = {
+  code: string;
+  discountType: DiscountCouponType;
+  discountValue: number;
+  durationMonths: number;
+  remainingCount: number;
+};
+
 // 구독 정보
 export type Subscription = {
   id: number;
@@ -43,12 +54,16 @@ export type Subscription = {
   cancelledAt: string | null;
   terminatedAt: string | null;
   isActive: boolean;
+  discountCoupon?: DiscountCoupon | null;
 };
 
 // 결제 정보
 export type Payment = {
   id: number;
   subscriptionId: number;
+  baseAmount?: number;
+  discountAmount?: number;
+  taxAmount?: number;
   amount: number;
   status: PaymentStatus;
   method: string;
@@ -63,9 +78,11 @@ export type Payment = {
 
 // POST /v1/subscriptions - 구독 시작
 export type CreateSubscriptionInput = {
+  projectId?: number;
   planId: number;
   billingCycle: BillingCycle;
-  billingInfoId: number;
+  billingInfoId?: number;
+  discountCouponCode?: string;
 };
 
 // === API Response Types ===
@@ -174,6 +191,37 @@ export type ChargeResponse = {
   result: true;
   data: Payment;
 };
+
+// POST /v1/subscriptions/discount-coupon/info - 할인 쿠폰 정보 조회
+export type DiscountCouponInfoInput = {
+  code: string;
+  planId: number;
+  billingCycle: BillingCycle;
+};
+
+export type DiscountCouponPricing = {
+  originalPrice: number;
+  discountAmount: number;
+  discountedPrice: number;
+  taxAmount: number;
+  finalPrice: number;
+};
+
+export type DiscountCouponInfo = {
+  code: string;
+  name: string;
+  description: string;
+  discountType: DiscountCouponType;
+  discountValue: number;
+  durationMonths: number;
+  startDate: string;
+  endDate: string;
+  pricing: DiscountCouponPricing;
+  canUse: boolean;
+  unavailableReason: string | null;
+};
+
+export type DiscountCouponInfoResponse = ApiSuccess<DiscountCouponInfo>;
 
 // DELETE /v1/subscriptions, POST /v1/subscriptions/reactivate - 구독 취소/재활성화 응답
 export type SubscriptionActionResponse = {

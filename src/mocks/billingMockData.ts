@@ -1,5 +1,10 @@
 import type { BillingInfo } from "@/types/billing";
-import type { Subscription, Payment, SubscriptionPlan } from "@/types/subscription";
+import type {
+  DiscountCouponInfo,
+  Subscription,
+  Payment,
+  SubscriptionPlan,
+} from "@/types/subscription";
 
 // 결제 수단 더미 데이터
 export const MOCK_BILLING_INFOS: BillingInfo[] = [
@@ -70,6 +75,33 @@ export const MOCK_SUBSCRIPTION: Subscription = {
   cancelledAt: null,
   terminatedAt: null,
   isActive: true,
+  discountCoupon: {
+    code: "percent10",
+    discountType: "percentage",
+    discountValue: 10,
+    durationMonths: 3,
+    remainingCount: 2,
+  },
+};
+
+export const MOCK_DISCOUNT_COUPON_INFO: DiscountCouponInfo = {
+  code: "percent10",
+  name: "10% 할인 쿠폰",
+  description: "3개월 동안 10% 할인",
+  discountType: "percentage",
+  discountValue: 10,
+  durationMonths: 3,
+  startDate: "2025-11-01T00:00:00Z",
+  endDate: "2026-02-01T00:00:00Z",
+  pricing: {
+    originalPrice: 218900,
+    discountAmount: 19900,
+    discountedPrice: 179100,
+    taxAmount: 17910,
+    finalPrice: 197010,
+  },
+  canUse: true,
+  unavailableReason: null,
 };
 
 // 매출 내역 더미 데이터
