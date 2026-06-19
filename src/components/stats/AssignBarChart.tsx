@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, Cell } from "recharts";
 
@@ -8,15 +9,24 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
 import { MembersService } from "@/services/members";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
+import StatsFilterModal, { type StatsFilterValues } from "@/components/stats/StatsFilterModal";
+import { readStatsFilter, writeStatsFilter } from "@/components/stats/statsFilterParams";
 import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
+const FILTER_PREFIX = "at";
 
 // 팀별 색상 (피그마 디자인): 번갈아가며 반복 적용
 const BAR_COLORS = ["#ADF6D2", "#FFDE81", "#FC9595", "#7EA5F8"];
 
-export default function AssignBarChart() {
+export type AssignBarChartHandle = {
+  openFilter: () => void;
+};
+
+const AssignBarChart = forwardRef<AssignBarChartHandle>(function AssignBarChart(_, ref) {
+  const router = useRouter();
+  const search = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
@@ -25,6 +35,32 @@ export default function AssignBarChart() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingLeader, setIsLoadingLeader] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filter, setFilter] = useState<StatsFilterValues>(() => readStatsFilter(search, FILTER_PREFIX));
+
+  useImperativeHandle(ref, () => ({
+    openFilter: () => setFilterOpen(true),
+  }));
+
+  useEffect(() => {
+    const fromUrl = readStatsFilter(search, FILTER_PREFIX);
+    setFilter((prev) => {
+      const prevStr = JSON.stringify(prev);
+      const nextStr = JSON.stringify(fromUrl);
+      return prevStr === nextStr ? prev : fromUrl;
+    });
+  }, [search]);
+
+  // by-team API는 teamId를 받지 않으므로 담당팀 값은 쿼리에서 제외한다.
+  const { teamId: _ignoredTeamId, memberId: _ignoredMemberId, ...teamFilterQuery } = filter;
+
+  const handleApplyFilter = (values: StatsFilterValues) => {
+    setFilter(values);
+    const params = new URLSearchParams(search.toString());
+    writeStatsFilter(params, FILTER_PREFIX, values);
+    router.replace(`?${params.toString()}`);
+    setFilterOpen(false);
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -36,11 +72,11 @@ export default function AssignBarChart() {
   }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerAssignmentByTeamResponse>({
-    queryKey: ["stats", "assignment", "team-chart", projectId],
+    queryKey: ["stats", "assignment", "team-chart", projectId, teamFilterQuery],
     enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.customerAssignmentByTeam({ projectId });
+      const res = await StatisticsService.customerAssignmentByTeam({ projectId, ...teamFilterQuery });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -95,123 +131,134 @@ export default function AssignBarChart() {
   // 웹에서 데이터가 많을 때 스크롤 필요 여부 판단 (데이터가 7개 이상이면 스크롤)
   const needsScroll = chartData.length > 7;
 
+  let content: React.ReactNode;
+
   if (waitingForProject) {
-    return (
+    content = (
       <div className="flex h-[300px] items-center justify-center">
         <LoadingSpinner size="xl" />
       </div>
     );
-  }
-
-  if (missingProject) {
-    return (
+  } else if (missingProject) {
+    content = (
       <div className="flex h-[300px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         프로젝트를 먼저 선택해주세요.
       </div>
     );
-  }
-
-  if (isLoading && !data) {
-    return (
+  } else if (isLoading && !data) {
+    content = (
       <div className="flex h-[300px] items-center justify-center">
         <LoadingSpinner size="xl" />
       </div>
     );
-  }
-
-  if (isError && !isFetching) {
-    return (
+  } else if (isError && !isFetching) {
+    content = (
       <div className="flex h-[300px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 text-[14px] text-danger-40">
         배정 통계를 불러오는 중 문제가 발생했습니다.
       </div>
     );
-  }
-
-  if (data?.data.data === null || chartData.length === 0) {
-    return (
+  } else if (data?.data.data === null || chartData.length === 0) {
+    content = (
       <div className="flex h-[300px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-neutral-10 text-[14px] text-neutral-60">
         표시할 데이터가 없습니다.
       </div>
+    );
+  } else {
+    content = (
+      <>
+        <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
+        <div className={`h-[310px] mt-[94px] ${needsScroll ? 'overflow-x-auto overflow-y-hidden scrollbar-hide' : ''}`}>
+          <div className="h-full" style={needsScroll ? { minWidth: `${minChartWidth}px` } : { width: '100%' }}>
+            <ResponsiveContainer width={needsScroll ? minChartWidth : "100%"} height="100%">
+            <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 20, bottom: 30, left: isMobile ? 0 : 20 }} barCategoryGap="20%">
+            <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
+            <XAxis
+              dataKey="name"
+              axisLine={false}
+              tickLine={false}
+              tickMargin={30}
+              tick={(props: any) => {
+                const { x, y, payload, index } = props;
+                const teamName = payload.value;
+                const teamId = chartData[index]?.teamId ?? null;
+                return (
+                  <g transform={`translate(${x},${y})`} focusable="false" style={{ outline: 'none' }}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={16}
+                      textAnchor="middle"
+                      fill="var(--foreground)"
+                      fontSize={12}
+                      fontFamily="var(--font-montserrat)"
+                      fontWeight={500}
+                      focusable="false"
+                      style={{ cursor: teamId ? "pointer" : "default", outline: 'none' }}
+                      onClick={() => handleBarClick(teamId)}
+                    >
+                      {teamName}
+                    </text>
+                  </g>
+                );
+              }}
+            />
+            <YAxis hide domain={yDomain} />
+            <Bar 
+              dataKey="value" 
+              radius={[8, 8, 0, 0]} 
+              barSize={42}
+              onClick={(data: any) => {
+                if (data && data.teamId) {
+                  handleBarClick(data.teamId);
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+              <LabelList
+                dataKey="value"
+                position="top"
+                offset={10}
+                formatter={(value: unknown) => {
+                  const numValue = typeof value === 'number' ? value : Number(value);
+                  return `${NUMBER_FORMATTER.format(numValue)}건`;
+                }}
+                style={{ fill: "var(--neutral-60)", fontSize: 12, fontWeight: 500 }}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+          </div>
+        </div>
+        {selectedMemberId !== null && (
+          <TeamMemberInfoModal
+            open={isModalOpen}
+            memberId={selectedMemberId}
+            onClose={handleCloseModal}
+            projectId={projectId}
+          />
+        )}
+      </>
     );
   }
 
   return (
     <>
-      <h3 className="mt-5 mb-2 text-[16px] font-semibold text-foreground">팀별 배정 현황</h3>
-      <div className={`h-[310px] mt-[94px] ${needsScroll ? 'overflow-x-auto overflow-y-hidden scrollbar-hide' : ''}`}>
-        <div className="h-full" style={needsScroll ? { minWidth: `${minChartWidth}px` } : { width: '100%' }}>
-          <ResponsiveContainer width={needsScroll ? minChartWidth : "100%"} height="100%">
-          <BarChart data={chartData} margin={{ top: 30, right: isMobile ? 0 : 20, bottom: 30, left: isMobile ? 0 : 20 }} barCategoryGap="20%">
-          <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tickMargin={30}
-            tick={(props: any) => {
-              const { x, y, payload, index } = props;
-              const teamName = payload.value;
-              const teamId = chartData[index]?.teamId ?? null;
-              return (
-                <g transform={`translate(${x},${y})`} focusable="false" style={{ outline: 'none' }}>
-                  <text
-                    x={0}
-                    y={0}
-                    dy={16}
-                    textAnchor="middle"
-                    fill="var(--foreground)"
-                    fontSize={12}
-                    fontFamily="var(--font-montserrat)"
-                    fontWeight={500}
-                    focusable="false"
-                    style={{ cursor: teamId ? "pointer" : "default", outline: 'none' }}
-                    onClick={() => handleBarClick(teamId)}
-                  >
-                    {teamName}
-                  </text>
-                </g>
-              );
-            }}
-          />
-          <YAxis hide domain={yDomain} />
-          <Bar 
-            dataKey="value" 
-            radius={[8, 8, 0, 0]} 
-            barSize={42}
-            onClick={(data: any) => {
-              if (data && data.teamId) {
-                handleBarClick(data.teamId);
-              }
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-            <LabelList
-              dataKey="value"
-              position="top"
-              offset={10}
-              formatter={(value: unknown) => {
-                const numValue = typeof value === 'number' ? value : Number(value);
-                return `${NUMBER_FORMATTER.format(numValue)}건`;
-              }}
-              style={{ fill: "var(--neutral-60)", fontSize: 12, fontWeight: 500 }}
-            />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-        </div>
-      </div>
-      {selectedMemberId !== null && (
-        <TeamMemberInfoModal
-          open={isModalOpen}
-          memberId={selectedMemberId}
-          onClose={handleCloseModal}
-          projectId={projectId}
-        />
-      )}
+      {content}
+      <StatsFilterModal
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        defaults={filter}
+        projectId={projectId}
+        showTeam
+        teamDisabled
+      />
     </>
   );
-}
+});
+
+export default AssignBarChart;
 

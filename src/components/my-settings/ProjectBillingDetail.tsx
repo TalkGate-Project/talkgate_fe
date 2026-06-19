@@ -6,6 +6,7 @@ import {
   useSubscription,
   usePaymentHistory,
   useSubscriptionPlans,
+  useSubscriptionDiscountCouponInfo,
 } from "@/hooks/useSubscription";
 import { setSelectedProjectId, getSelectedProjectId } from "@/lib/project";
 import SubscriptionPlanSelectModal from "./SubscriptionPlanSelectModal";
@@ -55,6 +56,10 @@ export default function ProjectBillingDetail({
     refetch: refetchPayments,
   } = usePaymentHistory();
   const { plans, loading: plansLoading } = useSubscriptionPlans();
+  const {
+    discountCouponInfo,
+    loading: discountCouponLoading,
+  } = useSubscriptionDiscountCouponInfo(subscription);
 
   // 비즈니스 로직 훅
   const {
@@ -92,8 +97,10 @@ export default function ProjectBillingDetail({
       <PaymentInfoSection
         subscription={subscription}
         activeBillingInfo={activeBillingInfo}
+        discountCouponInfo={discountCouponInfo}
         subscriptionLoading={subscriptionLoading}
         billingLoading={billingLoading}
+        discountCouponLoading={discountCouponLoading}
       />
 
       <PaymentHistorySection

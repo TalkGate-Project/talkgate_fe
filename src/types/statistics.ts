@@ -21,9 +21,20 @@ export type PagedPayload<T> = {
   limit: number;
 };
 
+// 통계 공통 필터 (신청경로/매체사/사이트/신청시간/배정시간). 날짜는 YYYY-MM-DD(한국시간 기준).
+export type StatsCommonFilter = {
+  applicationRoute?: string;
+  mediaCompany?: string;
+  site?: string;
+  applicationDateStart?: string;
+  applicationDateEnd?: string;
+  assignedAtStart?: string;
+  assignedAtEnd?: string;
+};
+
 // -------------------- Customer Assignment --------------------
 
-export type CustomerAssignmentByMemberQuery = PaginationQuery & {
+export type CustomerAssignmentByMemberQuery = PaginationQuery & StatsCommonFilter & {
   sortOrder: SortOrder;
   sortType?: SortType;
   teamId?: number;
@@ -43,7 +54,7 @@ export type CustomerAssignmentByMemberResponse = ApiSuccessResponse<
   PagedPayload<CustomerAssignmentMemberRecord>
 >;
 
-export type CustomerAssignmentByTeamQuery = {
+export type CustomerAssignmentByTeamQuery = StatsCommonFilter & {
   projectId: string;
 };
 
@@ -60,8 +71,10 @@ export type CustomerAssignmentByTeamResponse = ApiSuccessResponse<{
 
 // -------------------- Customer Note Status --------------------
 
-export type CustomerNoteStatusQuery = {
+export type CustomerNoteStatusQuery = StatsCommonFilter & {
   projectId: string;
+  teamId?: number;
+  memberId?: number;
 };
 
 export type CustomerNoteStatusRecord = {
