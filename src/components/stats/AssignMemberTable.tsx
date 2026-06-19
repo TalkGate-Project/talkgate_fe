@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
-import MemberStatsFilterModal, { type MemberFilterState } from "@/components/common/MemberStatsFilterModal";
+import StatsFilterModal, { type StatsFilterValues } from "@/components/stats/StatsFilterModal";
+import { readStatsFilter, writeStatsFilter } from "@/components/stats/statsFilterParams";
+import type { Option } from "@/components/common/filterFields";
 import Pagination from "@/components/common/Pagination";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
@@ -14,10 +16,11 @@ import SortIcon from "@/components/common/SortIcon";
 import type {
   CustomerAssignmentByMemberResponse,
   CustomerAssignmentMemberRecord,
-  CustomerAssignmentTeamRecord,
   CustomerAssignmentByTeamResponse,
 } from "@/types/statistics";
 import { SortType } from "@/types/statistics";
+
+const FILTER_PREFIX = "am";
 
 const PAGE_SIZE = 10;
 const NUMBER_FORMATTER = new Intl.NumberFormat("ko-KR");
@@ -34,32 +37,11 @@ function formatCount(value: number) {
   return `${NUMBER_FORMATTER.format(value)}건`;
 }
 
-function LocalIconTooltip({
-  label,
-  children,
-  position = "top",
-}: {
-  label: string;
-  children: React.ReactNode;
-  position?: "top" | "bottom";
-}) {
-  return (
-    <span className="relative inline-flex group">
-      {children}
-      <span
-        className={`pointer-events-none hidden md:block absolute left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity ${
-          position === "bottom" ? "top-full mt-2" : "-top-9"
-        }`}
-      >
-        <span className="rounded-[8px] bg-card border border-border px-3 py-2 text-[12px] text-foreground shadow-lg whitespace-nowrap">
-          {label}
-        </span>
-      </span>
-    </span>
-  );
-}
+export type AssignMemberTableHandle = {
+  openFilter: () => void;
+};
 
-export default function AssignMemberTable() {
+const AssignMemberTable = forwardRef<AssignMemberTableHandle>(function AssignMemberTable(_, ref) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
@@ -67,20 +49,39 @@ export default function AssignMemberTable() {
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
 
-  const initialTeam = (searchParams.get("assignTeam") as string | null) ?? "all";
   const initialSort = (searchParams.get("assignSort") as "asc" | "desc" | null) ?? "desc";
   const initialPage = Number.parseInt(searchParams.get("assignPage") ?? "1", 10);
   const initialSortType = (searchParams.get("assignSortType") as SortType | null) ?? null;
   const initialSortOrder = (searchParams.get("assignSortOrder") as "ASC" | "DESC" | null) ?? (initialSortType ? "DESC" : null);
 
   const [open, setOpen] = useState(false);
-  const [teamFilter, setTeamFilter] = useState<MemberFilterState["team"]>(initialTeam);
+  const [filter, setFilter] = useState<StatsFilterValues>(() => readStatsFilter(searchParams, FILTER_PREFIX));
+  const isSyncingFromUrl = useRef(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(initialSort === "asc" ? "asc" : "desc");
   const [page, setPage] = useState(Number.isFinite(initialPage) && initialPage > 0 ? initialPage : 1);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortType, setSortType] = useState<SortType | null>(initialSortType);
   const [sortOrderState, setSortOrderState] = useState<"ASC" | "DESC" | null>(initialSortOrder);
+
+  useImperativeHandle(ref, () => ({
+    openFilter: () => setOpen(true),
+  }));
+
+  useEffect(() => {
+    const fromUrl = readStatsFilter(searchParams, FILTER_PREFIX);
+    setFilter((prev) => {
+      const prevStr = JSON.stringify(prev);
+      const nextStr = JSON.stringify(fromUrl);
+      if (prevStr === nextStr) return prev;
+      isSyncingFromUrl.current = true;
+      return fromUrl;
+    });
+
+    const parsedPage = Number.parseInt(searchParams.get("assignPage") ?? "1", 10);
+    const nextPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    setPage((prev) => (prev === nextPage ? prev : nextPage));
+  }, [searchParams]);
 
   const handleMemberClick = (memberId: number) => {
     setSelectedMemberId(memberId);
@@ -93,9 +94,12 @@ export default function AssignMemberTable() {
   };
 
   useEffect(() => {
+    if (isSyncingFromUrl.current) {
+      isSyncingFromUrl.current = false;
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
-    if (teamFilter && teamFilter !== "all") params.set("assignTeam", teamFilter);
-    else params.delete("assignTeam");
+    writeStatsFilter(params, FILTER_PREFIX, filter);
     if (sortOrder !== "desc") params.set("assignSort", sortOrder);
     else params.delete("assignSort");
     if (page > 1) params.set("assignPage", String(page));
@@ -106,7 +110,7 @@ export default function AssignMemberTable() {
     else params.delete("assignSortOrder");
     router.replace(`?${params.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamFilter, sortOrder, page, sortType, sortOrderState]);
+  }, [filter, sortOrder, page, sortType, sortOrderState]);
 
   const teamOverviewQuery = useQuery<CustomerAssignmentByTeamResponse>({
     queryKey: ["stats", "assignment", "team-overview", projectId],
@@ -120,7 +124,8 @@ export default function AssignMemberTable() {
   });
 
   const sortParam = sortOrderState ?? (sortOrder === "desc" ? "DESC" : "ASC");
-  const teamIdParam = teamFilter !== "all" && /^\d+$/.test(teamFilter) ? Number(teamFilter) : undefined;
+  // by-member API는 memberId를 받지 않으므로 제외하고 teamId + 공통 필터만 전달한다.
+  const { memberId: _ignoredMemberId, ...memberFilterQuery } = filter;
 
   const memberQuery = useQuery<CustomerAssignmentByMemberResponse>({
     queryKey: [
@@ -128,7 +133,7 @@ export default function AssignMemberTable() {
       "assignment",
       "member",
       projectId,
-      { page, sort: sortParam, sortType, team: teamIdParam ?? "all" },
+      { page, sort: sortParam, sortType, filter: memberFilterQuery },
     ],
     enabled: hasProject,
     placeholderData: (previous) => previous,
@@ -139,24 +144,22 @@ export default function AssignMemberTable() {
         page,
         limit: PAGE_SIZE,
         sortOrder: sortParam,
-        ...(typeof teamIdParam === "number" ? { teamId: teamIdParam } : {}),
+        ...memberFilterQuery,
       });
       return res.data;
     },
   });
 
-  const teamOptions = useMemo(() => {
-    const base = [{ label: "전체", value: "all" }];
-    const seen = new Set<string>();
+  const teamOptions = useMemo<Option[]>(() => {
+    const options: Option[] = [];
+    const seen = new Set<number>();
     const records = teamOverviewQuery.data?.data.data === null ? [] : (teamOverviewQuery.data?.data.data ?? []);
     records.forEach((item) => {
-      if (item.teamId === null) return;
-      const value = String(item.teamId);
-      if (seen.has(value)) return;
-      seen.add(value);
-      base.push({ label: item.teamName ?? `팀 ${item.teamId}`, value });
+      if (item.teamId === null || seen.has(item.teamId)) return;
+      seen.add(item.teamId);
+      options.push({ label: item.teamName ?? `팀 ${item.teamId}`, value: item.teamId });
     });
-    return base;
+    return options;
   }, [teamOverviewQuery.data]);
 
   const memberPayload = memberQuery.data?.data;
@@ -169,25 +172,8 @@ export default function AssignMemberTable() {
   const showEmpty = !showSkeleton && !showError && (memberPayload?.data === null || rows.length === 0);
 
   const Header = (
-    <div className="mb-5 flex items-center gap-3">
+    <div className="mb-5">
       <div className="text-[16px] font-semibold text-foreground">팀원별 배정 현황</div>
-      <LocalIconTooltip label="필터 설정" position="bottom">
-        <button
-          aria-label="filter"
-          className="cursor-pointer w-[26px] h-[26px] grid place-items-center font-medium rounded-[6px] border border-border text-neutral-60"
-          onClick={() => setOpen(true)}
-        >
-          <svg width="18" height="18" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M7 8C7 7.45 7.45 7 8 7H18C18.55 7 19 7.45 19 8V9.25C19 9.52 18.89 9.77 18.71 9.96L14.63 14.04C14.44 14.23 14.33 14.48 14.33 14.75V16.33L11.67 19V14.75C11.67 14.48 11.56 14.23 11.37 14.04L7.29 9.96C7.11 9.77 7 9.52 7 9.25V8Z"
-              stroke="var(--neutral-40)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></path>
-          </svg>
-        </button>
-      </LocalIconTooltip>
     </div>
   );
 
@@ -292,16 +278,17 @@ export default function AssignMemberTable() {
           disabled={memberQuery.isLoading}
         />
       </div>
-      <MemberStatsFilterModal
+      <StatsFilterModal
         open={open}
-        title="필터설정"
         onClose={() => setOpen(false)}
-        onApply={(f) => {
-          setTeamFilter(f.team);
+        onApply={(values) => {
+          setFilter(values);
           setPage(1);
           setOpen(false);
         }}
-        defaults={{ team: teamFilter }}
+        defaults={filter}
+        projectId={projectId}
+        showTeam
         teamOptions={teamOptions}
       />
       {selectedMemberId !== null && (
@@ -314,6 +301,8 @@ export default function AssignMemberTable() {
       )}
     </div>
   );
-}
+});
+
+export default AssignMemberTable;
 
 

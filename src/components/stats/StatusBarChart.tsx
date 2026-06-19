@@ -1,24 +1,96 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList, Cell } from "recharts";
 
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
+import type { MemberTreeNode } from "@/types/membersTree";
 import { StatisticsService } from "@/services/statistics";
 import type { CustomerNoteStatusResponse } from "@/types/statistics";
+import StatsFilterModal, { type StatsFilterValues } from "@/components/stats/StatsFilterModal";
+import { readStatsFilter, writeStatsFilter } from "@/components/stats/statsFilterParams";
+import type { Option } from "@/components/common/filterFields";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
-export default function StatusBarChart() {
+const FILTER_PREFIX = "st";
+
+function findNodeById(nodes: MemberTreeNode[], id: number): MemberTreeNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNodeById(node.descendants ?? [], id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function flattenMembers(node: MemberTreeNode): Option[] {
+  const result: Option[] = [{ label: node.name, value: node.id }];
+  (node.descendants ?? []).forEach((child) => {
+    result.push(...flattenMembers(child));
+  });
+  return result;
+}
+
+export type StatusBarChartHandle = {
+  openFilter: () => void;
+};
+
+const StatusBarChart = forwardRef<StatusBarChartHandle>(function StatusBarChart(_, ref) {
+  const router = useRouter();
+  const search = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
   const { categories } = useCustomerNoteCategories();
+  const { data: teamsData } = useTeams(projectId);
+  const { data: treeData } = useMembersTreeWithoutParent(projectId);
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
   const [isMobile, setIsMobile] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filter, setFilter] = useState<StatsFilterValues>(() => readStatsFilter(search, FILTER_PREFIX));
+
+  useImperativeHandle(ref, () => ({
+    openFilter: () => setFilterOpen(true),
+  }));
+
+  useEffect(() => {
+    const fromUrl = readStatsFilter(search, FILTER_PREFIX);
+    setFilter((prev) => {
+      const prevStr = JSON.stringify(prev);
+      const nextStr = JSON.stringify(fromUrl);
+      return prevStr === nextStr ? prev : fromUrl;
+    });
+  }, [search]);
+
+  const teamOptions = useMemo<Option[]>(
+    () => (teamsData ?? []).map((team) => ({ label: team.name, value: team.id })),
+    [teamsData]
+  );
+
+  const getMemberOptions = useCallback(
+    (teamId: number | null): Option[] => {
+      if (!teamId || !teamsData || !treeData) return [];
+      const team = teamsData.find((t) => t.id === teamId);
+      if (!team) return [];
+      const leaderNode = findNodeById(treeData, team.leaderMemberId);
+      return leaderNode ? flattenMembers(leaderNode) : [];
+    },
+    [teamsData, treeData]
+  );
+
+  const handleApplyFilter = (values: StatsFilterValues) => {
+    setFilter(values);
+    const params = new URLSearchParams(search.toString());
+    writeStatsFilter(params, FILTER_PREFIX, values);
+    router.replace(`?${params.toString()}`);
+    setFilterOpen(false);
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,11 +102,11 @@ export default function StatusBarChart() {
   }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerNoteStatusResponse>({
-    queryKey: ["stats", "note-status", projectId],
+    queryKey: ["stats", "note-status", projectId, filter],
     enabled: hasProject,
     queryFn: async () => {
       if (!projectId) throw new Error("프로젝트를 선택해주세요.");
-      const res = await StatisticsService.customerNoteStatus({ projectId });
+      const res = await StatisticsService.customerNoteStatus({ projectId, ...filter });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -82,40 +154,34 @@ export default function StatusBarChart() {
     return [0, Math.ceil(maxValue * 1.14)];
   }, []);
 
+  let statusContent: React.ReactNode = null;
+
   if (waitingForProject) {
-    return (
+    statusContent = (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6">
         <LoadingSpinner size="2xl" />
       </div>
     );
-  }
-
-  if (missingProject) {
-    return (
+  } else if (missingProject) {
+    statusContent = (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
         프로젝트를 먼저 선택해주세요.
       </div>
     );
-  }
-
-  if (isLoading && !data) {
-    return (
+  } else if (isLoading && !data) {
+    statusContent = (
       <div className="flex h-[320px] items-center justify-center">
         <LoadingSpinner size="2xl" />
       </div>
     );
-  }
-
-  if (isError && !isFetching) {
-    return (
+  } else if (isError && !isFetching) {
+    statusContent = (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
         카테고리 통계를 불러오는 중 문제가 발생했습니다.
       </div>
     );
-  }
-
-  if (data?.data.data === null || !chartData.length) {
-    return (
+  } else if (data?.data.data === null || !chartData.length) {
+    statusContent = (
       <div className="flex h-[320px] items-center justify-center rounded-[12px] border border-dashed border-neutral-30 bg-card px-6 text-[14px] text-neutral-60">
         {data?.data.data === null ? "카테고리 통계 데이터가 없습니다." : "표시할 카테고리 통계가 없습니다."}
       </div>
@@ -204,13 +270,30 @@ export default function StatusBarChart() {
   };
 
   return (
-    <div className="w-full">
-      {isMobile && chartChunks.length > 1 ? (
-        chartChunks.map((chunk, index) => renderChart(chunk, index))
-      ) : (
-        renderChart(chartData)
+    <>
+      {statusContent ?? (
+        <div className="w-full">
+          {isMobile && chartChunks.length > 1 ? (
+            chartChunks.map((chunk, index) => renderChart(chunk, index))
+          ) : (
+            renderChart(chartData)
+          )}
+        </div>
       )}
-    </div>
+      <StatsFilterModal
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApply={handleApplyFilter}
+        defaults={filter}
+        projectId={projectId}
+        showTeam
+        showMember
+        teamOptions={teamOptions}
+        getMemberOptions={getMemberOptions}
+      />
+    </>
   );
-}
+});
+
+export default StatusBarChart;
 

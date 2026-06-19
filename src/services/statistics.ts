@@ -27,29 +27,40 @@ import {
   SummaryResponse,
 } from "@/types/statistics";
 
+// undefined/null/빈 문자열 쿼리 파라미터를 제거해 불필요한 필터 전송을 방지한다.
+function cleanQuery<T extends Record<string, unknown>>(query: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(query).filter(([, value]) => value !== undefined && value !== null && value !== "")
+  ) as Partial<T>;
+}
+
 export const StatisticsService = {
   customerAssignmentByMember(query: CustomerAssignmentByMemberQuery) {
     const { projectId, ...qs } = query;
     return apiClient.get<CustomerAssignmentByMemberResponse>(
       `/v1/statistics/customer-assignment/by-member`,
       {
-        query: qs,
+        query: cleanQuery(qs),
         headers: { "x-project-id": projectId },
       }
     );
   },
 
-  customerAssignmentByTeam({ projectId }: CustomerAssignmentByTeamQuery) {
+  customerAssignmentByTeam(query: CustomerAssignmentByTeamQuery) {
+    const { projectId, ...qs } = query;
     return apiClient.get<CustomerAssignmentByTeamResponse>(
       `/v1/statistics/customer-assignment/by-team`,
       {
+        query: cleanQuery(qs),
         headers: { "x-project-id": projectId },
       }
     );
   },
 
-  customerNoteStatus({ projectId }: CustomerNoteStatusQuery) {
+  customerNoteStatus(query: CustomerNoteStatusQuery) {
+    const { projectId, ...qs } = query;
     return apiClient.get<CustomerNoteStatusResponse>(`/v1/statistics/customer-note-status`, {
+      query: cleanQuery(qs),
       headers: { "x-project-id": projectId },
     });
   },
