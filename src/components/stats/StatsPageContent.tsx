@@ -1,14 +1,14 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Panel from "@/components/common/Panel";
-import AssignMemberTable from "@/components/stats/AssignMemberTable";
-import AssignBarChart from "@/components/stats/AssignBarChart";
+import AssignMemberTable, { type AssignMemberTableHandle } from "@/components/stats/AssignMemberTable";
+import AssignBarChart, { type AssignBarChartHandle } from "@/components/stats/AssignBarChart";
 import PaymentDetailTable from "@/components/stats/PaymentDetailTable";
 import PaymentMemberTable from "@/components/stats/PaymentMemberTable";
 import PaymentBarChart from "@/components/stats/PaymentBarChart";
-import StatusBarChart from "@/components/stats/StatusBarChart";
+import StatusBarChart, { type StatusBarChartHandle } from "@/components/stats/StatusBarChart";
 import RegistrationChart from "@/components/stats/RegistrationChart";
 import RegistrationDetailTable from "@/components/stats/RegistrationDetailTable";
 import TeamRankingList from "@/components/stats/TeamRankingList";
@@ -19,7 +19,14 @@ import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
+import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import { getCurrentRankingMonthStart } from "@/utils/datetime";
+import StatsChartFilterButton from "@/components/stats/StatsChartFilterButton";
+import StatsFilterChips from "@/components/stats/StatsFilterChips";
+import type { StatsFilterValues } from "@/components/stats/StatsFilterModal";
+import { readStatsFilter, writeStatsFilter } from "@/components/stats/statsFilterParams";
+import type { Option } from "@/components/common/filterFields";
+import type { MemberTreeNode } from "@/types/membersTree";
 
 type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
 
@@ -30,6 +37,29 @@ const TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "status", label: "카테고리" },
   { key: "ranking", label: "전체랭킹" },
 ];
+
+function findNodeById(nodes: MemberTreeNode[], id: number): MemberTreeNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNodeById(node.descendants ?? [], id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function flattenMembers(node: MemberTreeNode): Option[] {
+  const result: Option[] = [{ label: node.name, value: node.id }];
+  (node.descendants ?? []).forEach((child) => {
+    result.push(...flattenMembers(child));
+  });
+  return result;
+}
+
+function getStatsFilterPrefix(active: TabKey, assignMode: "team" | "member"): string | null {
+  if (active === "assign") return assignMode === "member" ? "am" : "at";
+  if (active === "status") return "st";
+  return null;
+}
 
 function StatsPageContentInner() {
   const router = useRouter();
@@ -72,12 +102,93 @@ function StatsPageContentInner() {
   });
   const [applyStartDate, setApplyStartDate] = useState<Date | null>(null);
   const [applyEndDate, setApplyEndDate] = useState<Date | null>(null);
+  const assignMemberTableRef = useRef<AssignMemberTableHandle>(null);
+  const assignBarChartRef = useRef<AssignBarChartHandle>(null);
+  const statusChartRef = useRef<StatusBarChartHandle>(null);
+  const { data: teamsData } = useTeams(projectId);
+  const { data: treeData } = useMembersTreeWithoutParent(projectId);
+
+  const handleAssignFilterClick = () => {
+    if (assignMode === "member") {
+      assignMemberTableRef.current?.openFilter();
+      return;
+    }
+    assignBarChartRef.current?.openFilter();
+  };
+
+  const handleStatusFilterClick = () => {
+    statusChartRef.current?.openFilter();
+  };
 
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
     return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ??
       "apply") as TabKey;
   }, [search]);
+
+  const statsFilterPrefix = getStatsFilterPrefix(active, assignMode);
+  const appliedStatsFilter = useMemo(
+    () => (statsFilterPrefix ? readStatsFilter(search, statsFilterPrefix) : {}),
+    [search, statsFilterPrefix]
+  );
+
+  const teamOptions = useMemo<Option[]>(
+    () => (teamsData ?? []).map((team) => ({ label: team.name, value: team.id })),
+    [teamsData]
+  );
+
+  const memberOptions = useMemo<Option[]>(() => {
+    if (!appliedStatsFilter.teamId || !teamsData || !treeData) return [];
+    const team = teamsData.find((item) => item.id === appliedStatsFilter.teamId);
+    if (!team) return [];
+    const leaderNode = findNodeById(treeData, team.leaderMemberId);
+    return leaderNode ? flattenMembers(leaderNode) : [];
+  }, [appliedStatsFilter.teamId, teamsData, treeData]);
+
+  const updateStatsFilter = useCallback(
+    (nextFilter: StatsFilterValues) => {
+      if (!statsFilterPrefix) return;
+      const params = new URLSearchParams(search.toString());
+      writeStatsFilter(params, statsFilterPrefix, nextFilter);
+      if (active === "assign" && assignMode === "member") {
+        params.delete("assignPage");
+      }
+      router.replace(`?${params.toString()}`);
+    },
+    [active, assignMode, router, search, statsFilterPrefix]
+  );
+
+  const removeStatsFilter = useCallback(
+    (key: keyof StatsFilterValues) => {
+      const nextFilter = { ...appliedStatsFilter, [key]: undefined };
+      if (key === "teamId") nextFilter.memberId = undefined;
+      updateStatsFilter(nextFilter);
+    },
+    [appliedStatsFilter, updateStatsFilter]
+  );
+
+  const removeStatsDateRange = useCallback(
+    (type: "application" | "assigned") => {
+      const nextFilter =
+        type === "application"
+          ? {
+              ...appliedStatsFilter,
+              applicationDateStart: undefined,
+              applicationDateEnd: undefined,
+            }
+          : {
+              ...appliedStatsFilter,
+              assignedAtStart: undefined,
+              assignedAtEnd: undefined,
+            };
+      updateStatsFilter(nextFilter);
+    },
+    [appliedStatsFilter, updateStatsFilter]
+  );
+
+  const resetStatsFilters = useCallback(() => {
+    updateStatsFilter({});
+  }, [updateStatsFilter]);
 
   // Query param helpers
   const updateSearch = (updater: (params: URLSearchParams) => void) => {
@@ -317,9 +428,20 @@ function StatsPageContentInner() {
         {active === "assign" && (
           <section className="surface md:rounded-[14px] px-6 md:px-7 pt-[17px] pb-[55px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
             <div className="flex items-center justify-between h-[48px]">
-              <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
-                배정통계
-              </h2>
+              <div className="flex flex-1 min-w-0 items-center gap-3">
+                <h2 className="hidden md:block shrink-0 text-[18px] font-semibold text-neutral-90">
+                  배정통계
+                </h2>
+                <StatsChartFilterButton onClick={handleAssignFilterClick} />
+                <StatsFilterChips
+                  filters={appliedStatsFilter}
+                  onRemove={removeStatsFilter}
+                  onRemoveDateRange={removeStatsDateRange}
+                  onResetAll={resetStatsFilters}
+                  teamOptions={teamOptions}
+                  showTeam={assignMode === "member"}
+                />
+              </div>
               <div className="w-full md:max-w-[248px] bg-neutral-20 rounded-[8px] grid grid-cols-2 px-3 py-2 gap-3">
                 <button
                   className={`min-h-[31px] rounded-[6px] text-[14px] ${
@@ -344,9 +466,9 @@ function StatsPageContentInner() {
               </div>
             </div>
             {assignMode === "team" ? (
-              <AssignBarChart />
+              <AssignBarChart ref={assignBarChartRef} />
             ) : (
-              <AssignMemberTable />
+              <AssignMemberTable ref={assignMemberTableRef} />
             )}
           </section>
         )}
@@ -405,14 +527,27 @@ function StatsPageContentInner() {
         {/* Status Tab: 카테고리 */}
         {active === "status" && (
           <section className="surface md:rounded-[14px] px-6 md:px-7 md:py-[30px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-            <h2 className="hidden md:block text-[18px] font-semibold text-neutral-90">
-              카테고리 통계
-            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="hidden md:block shrink-0 text-[18px] font-semibold text-neutral-90">
+                카테고리 통계
+              </h2>
+              <StatsChartFilterButton onClick={handleStatusFilterClick} />
+              <StatsFilterChips
+                filters={appliedStatsFilter}
+                onRemove={removeStatsFilter}
+                onRemoveDateRange={removeStatsDateRange}
+                onResetAll={resetStatsFilters}
+                teamOptions={teamOptions}
+                memberOptions={memberOptions}
+                showTeam
+                showMember
+              />
+            </div>
             <div className="md:mt-4 md:mt-[30px] text-[16px] text-neutral-90 font-semibold tracking-[0.02em]">
               상태별 분포
             </div>
             <div className="mt-6 md:mt-[96px]">
-              <StatusBarChart />
+              <StatusBarChart ref={statusChartRef} />
             </div>
           </section>
         )}
