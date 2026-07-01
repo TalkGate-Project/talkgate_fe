@@ -134,21 +134,24 @@ export default function NotificationProvider({ children }: { children: React.Rea
     isAllowNewNotificationRef.current = user?.isAllowNewNotification !== false;
   }, [user?.isAllowNewNotification]);
 
+  // 로그인된 사용자에게만 알림 권한을 요청 (비로그인 상태의 /login 등에서 차단당하면 영구 차단되어 복구 불가)
   useEffect(() => {
-    if (!permissionRequestedRef.current && typeof window !== "undefined" && "Notification" in window) {
-      const timer = setTimeout(() => {
-        requestNotificationPermission().catch((error) => {
-          console.error("Failed to request notification permission:", error);
-        });
-        permissionRequestedRef.current = true;
-      }, 1000);
+    if (!user) return;
+    if (permissionRequestedRef.current || typeof window === "undefined" || !("Notification" in window)) return;
 
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    const timer = setTimeout(() => {
+      requestNotificationPermission().catch((error) => {
+        console.error("Failed to request notification permission:", error);
+      });
+      permissionRequestedRef.current = true;
+    }, 1000);
 
-  // 자동 권한 요청이 차단된 경우, 첫 사용자 클릭 시 한 번 더 요청
+    return () => clearTimeout(timer);
+  }, [user]);
+
+  // 자동 권한 요청이 차단된 경우, 로그인된 사용자의 첫 클릭 시 한 번 더 요청
   useEffect(() => {
+    if (!user) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "default") return;
 
@@ -159,7 +162,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
     document.addEventListener("pointerdown", handleFirstInteraction);
     return () => document.removeEventListener("pointerdown", handleFirstInteraction);
-  }, []);
+  }, [user]);
 
   const dispatchNewNotificationEvent = useCallback((notification: Notification) => {
     if (typeof window === "undefined") return;
