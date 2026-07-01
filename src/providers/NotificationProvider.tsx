@@ -7,7 +7,10 @@ import { setSelectedProjectId } from "@/lib/project";
 import { getProjectSubdomainUrl } from "@/lib/subdomain";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
-import type { NewNotificationEvent } from "@/types/notifications";
+import { NotificationsService } from "@/services/notifications";
+import type { NewNotificationEvent, Notification } from "@/types/notifications";
+
+const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
 // Browser notification permission status
 export type NotificationPermission = "default" | "granted" | "denied";
@@ -35,8 +38,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
-// Show browser notification
-function showBrowserNotification(notification: NewNotificationEvent["notification"]): void {
+function showBrowserNotification(notification: Notification): void {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return;
   }
@@ -49,17 +51,15 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
     const browserNotification = new Notification(notification.title, {
       body: notification.content,
       icon: "/notification-icon.webp",
-      tag: `notification-${notification.id}`, // Prevent duplicate notifications
+      tag: `notification-${notification.id}`,
       requireInteraction: false,
       silent: false,
     });
 
-    // Close notification after 5 seconds
     setTimeout(() => {
       browserNotification.close();
     }, 5000);
 
-    // Handle click on notification - 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     browserNotification.onclick = () => {
       window.focus();
       browserNotification.close();
@@ -67,8 +67,7 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
       if (notification.projectId) {
         setSelectedProjectId(String(notification.projectId));
       }
-      
-      // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
+
       if (notification.type === "notice" && notification.referenceId) {
         const path = `/notice/${notification.referenceId}`;
         const targetSubdomain = notification.project?.subDomain?.trim();
@@ -92,7 +91,6 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
       } else if (notification.type === "system") {
         window.location.href = "/my-settings?tab=billing";
       } else {
-        // 기본적으로 알림 페이지로 이동
         window.location.href = "/notifications";
       }
     };
@@ -109,11 +107,17 @@ export default function NotificationProvider({ children }: { children: React.Rea
   const [projectId, ready] = useSelectedProjectId();
   const { user } = useMe();
   const permissionRequestedRef = useRef(false);
+  const knownNotificationIdsRef = useRef<Set<number>>(new Set());
+  const seedCompleteRef = useRef(false);
+  const isAllowNewNotificationRef = useRef(true);
 
-  // Request notification permission once when component mounts
+  useEffect(() => {
+    // 사용자 정보 로딩 중(undefined)에는 허용으로 간주, 명시적으로 false일 때만 차단
+    isAllowNewNotificationRef.current = user?.isAllowNewNotification !== false;
+  }, [user?.isAllowNewNotification]);
+
   useEffect(() => {
     if (!permissionRequestedRef.current && typeof window !== "undefined" && "Notification" in window) {
-      // Request permission after a short delay to avoid blocking initial render
       const timer = setTimeout(() => {
         requestNotificationPermission().catch((error) => {
           console.error("Failed to request notification permission:", error);
@@ -125,50 +129,118 @@ export default function NotificationProvider({ children }: { children: React.Rea
     }
   }, []);
 
-  // Handle new notification event
-  const handleNewNotification = useCallback((event: NewNotificationEvent) => {
-    // 알림 설정 확인 (새로운 소식 알림이 켜져 있는지)
-    const isNewsNotificationEnabled = Boolean(user?.isAllowNewNotification);
-    
-    if (!isNewsNotificationEnabled) {
-      // 알림 설정이 꺼져 있으면 브라우저 알림을 표시하지 않음
-      // 하지만 이벤트는 여전히 발행하여 UI 업데이트는 진행
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("tg:new-notification", {
-            detail: event,
-          })
-        );
+  const dispatchNewNotificationEvent = useCallback((notification: Notification) => {
+    if (typeof window === "undefined") return;
+
+    window.dispatchEvent(
+      new CustomEvent("tg:new-notification", {
+        detail: {
+          notification,
+          timestamp: notification.createdAt,
+        } satisfies NewNotificationEvent,
+      })
+    );
+  }, []);
+
+  const processIncomingNotification = useCallback(
+    (notification: Notification, options: { showBrowser: boolean }) => {
+      if (knownNotificationIdsRef.current.has(notification.id)) {
+        return;
       }
+
+      knownNotificationIdsRef.current.add(notification.id);
+
+      if (!seedCompleteRef.current) {
+        return;
+      }
+
+      dispatchNewNotificationEvent(notification);
+
+      if (options.showBrowser && isAllowNewNotificationRef.current) {
+        showBrowserNotification(notification);
+      }
+    },
+    [dispatchNewNotificationEvent]
+  );
+
+  const handleNewNotification = useCallback(
+    (event: NewNotificationEvent) => {
+      processIncomingNotification(event.notification, { showBrowser: true });
+    },
+    [processIncomingNotification]
+  );
+
+  // WebSocket 누락 대비: 기존 알림 시드 + 주기적 폴링 (예약 알림 등 서버 크론 발송 케이스)
+  useEffect(() => {
+    if (!ready) return;
+
+    const numericProjectId = projectId ? Number.parseInt(projectId, 10) : null;
+    if (!numericProjectId || Number.isNaN(numericProjectId)) {
       return;
     }
 
-    // Show browser notification
-    showBrowserNotification(event.notification);
+    let cancelled = false;
+    knownNotificationIdsRef.current = new Set();
+    seedCompleteRef.current = false;
 
-    // You can also dispatch a custom event or update React Query cache here
-    // For example, invalidate notification queries to refetch
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("tg:new-notification", {
-          detail: event,
-        })
-      );
-    }
-  }, [user?.isAllowNewNotification]);
+    const pollNotifications = async () => {
+      if (cancelled) return;
 
-  // Connect to notification WebSocket when project is ready
+      try {
+        const response = await NotificationsService.list({ limit: 10 });
+        if (cancelled) return;
+
+        const isInitialSeed = !seedCompleteRef.current;
+
+        for (const notification of response.notifications) {
+          if (isInitialSeed) {
+            knownNotificationIdsRef.current.add(notification.id);
+            continue;
+          }
+
+          processIncomingNotification(notification, { showBrowser: true });
+        }
+
+        seedCompleteRef.current = true;
+      } catch (error) {
+        console.error("Failed to poll notifications:", error);
+        seedCompleteRef.current = true;
+      }
+    };
+
+    void pollNotifications();
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void pollNotifications();
+      }
+    }, NOTIFICATION_POLL_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void pollNotifications();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [ready, projectId, processIncomingNotification]);
+
   useEffect(() => {
     if (!ready) return;
 
     const numericProjectId = projectId ? Number.parseInt(projectId, 10) : null;
 
     if (!numericProjectId || Number.isNaN(numericProjectId)) {
-      // Disconnect if no valid project ID
       notificationSocket.disconnect();
       return;
     }
-    
+
     const accessToken = getAccessToken();
     if (!accessToken) {
       notificationSocket.disconnect();
@@ -181,15 +253,12 @@ export default function NotificationProvider({ children }: { children: React.Rea
         return;
       }
 
-      // Listen for Ready event
       socket.on("ready", () => {
         // Socket ready
       });
 
-      // Listen for new notifications
       notificationSocket.onNewNotification(handleNewNotification);
 
-      // Handle connection errors
       socket.on("connect_error", (error) => {
         console.error("Notification socket connection error:", error);
       });
@@ -207,7 +276,6 @@ export default function NotificationProvider({ children }: { children: React.Rea
     }
   }, [ready, projectId, handleNewNotification]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       notificationSocket.disconnect();
@@ -216,4 +284,3 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
   return <>{children}</>;
 }
-
