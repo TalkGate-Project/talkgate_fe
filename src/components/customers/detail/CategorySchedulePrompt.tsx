@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 const CATEGORY_SCHEDULE_PRESETS = [
@@ -70,6 +70,22 @@ export default function CategorySchedulePrompt({
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [position, setPosition] = useState<AnchorPosition | null>(null);
+  const promptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (submitting) return;
+      const target = event.target as Node;
+      if (promptRef.current && !promptRef.current.contains(target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, onClose, submitting]);
 
   useEffect(() => {
     if (!open) return;
@@ -247,7 +263,10 @@ export default function CategorySchedulePrompt({
   if (placement === "bottom") {
     return createPortal(
       <div className="fixed inset-x-0 bottom-0 z-[210] pointer-events-none">
-        <div className="pointer-events-auto rounded-t-[12px] bg-card dark:bg-neutral-10 shadow-[0px_-3px_12px_4px_rgba(9,30,66,0.1)] pb-[env(safe-area-inset-bottom)]">
+        <div
+          ref={promptRef}
+          className="pointer-events-auto rounded-t-[12px] bg-card dark:bg-neutral-10 shadow-[0px_-3px_12px_4px_rgba(9,30,66,0.1)] pb-[env(safe-area-inset-bottom)]"
+        >
           {card}
         </div>
       </div>,
@@ -257,6 +276,7 @@ export default function CategorySchedulePrompt({
 
   return createPortal(
     <div
+      ref={promptRef}
       className="fixed z-[210] rounded-[5px] bg-card dark:bg-neutral-10 shadow-[-3px_5px_12px_4px_rgba(9,30,66,0.1)] overflow-hidden transition-opacity"
       style={{
         top: position!.top,
