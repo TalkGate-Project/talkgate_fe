@@ -28,10 +28,24 @@ function getBodyZoom(): number {
   return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
 }
 
+/** 앵커의 가장 가까운 스크롤 가능한 조상 요소를 찾는다. */
+function getScrollParent(node: HTMLElement | null): HTMLElement | null {
+  let current = node?.parentElement ?? null;
+  while (current) {
+    const style = window.getComputedStyle(current);
+    if (/(auto|scroll|overlay)/.test(style.overflowY)) {
+      return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
+}
+
 type AnchorPosition = {
   top: number;
   left: number;
   openAbove: boolean;
+  visible: boolean;
 };
 
 type Props = {
@@ -70,6 +84,8 @@ export default function CategorySchedulePrompt({
       return;
     }
 
+    const scrollParent = getScrollParent(anchorRef.current);
+
     const updatePosition = () => {
       const anchor = anchorRef.current;
       if (!anchor) return;
@@ -84,6 +100,17 @@ export default function CategorySchedulePrompt({
       const verticalOffset = 8;
       const horizontalPadding = 16;
 
+      // 앵커가 스크롤 컨테이너(모달 본문)의 보이는 영역을 벗어나면 프롬프트를 숨겨
+      // 화면 밖으로 "탈출"하지 않도록 한다. 컨테이너가 없으면 뷰포트 기준으로 판단.
+      const anchorCenter = rect.top + rect.height / 2;
+      let visible = true;
+      if (scrollParent) {
+        const bounds = scrollParent.getBoundingClientRect();
+        visible = anchorCenter >= bounds.top && anchorCenter <= bounds.bottom;
+      } else {
+        visible = rect.bottom >= 0 && rect.top <= window.innerHeight;
+      }
+
       const spaceBelow = viewportHeight - anchorBottom - horizontalPadding;
       const openAbove = spaceBelow < ESTIMATED_HEIGHT && anchorTop - horizontalPadding > spaceBelow;
       const maxLeft = Math.max(horizontalPadding, viewportWidth - PROMPT_WIDTH - horizontalPadding);
@@ -93,6 +120,7 @@ export default function CategorySchedulePrompt({
         top: openAbove ? anchorTop - verticalOffset : anchorBottom + verticalOffset,
         left,
         openAbove,
+        visible,
       });
     };
 
@@ -172,10 +200,10 @@ export default function CategorySchedulePrompt({
             <button
               key={preset.label}
               type="button"
-              className={`cursor-pointer flex-shrink-0 h-[34px] px-3 rounded-[5px] text-[14px] font-medium leading-[17px] tracking-[-0.02em] whitespace-nowrap transition-colors ${
+              className={`cursor-pointer flex-shrink-0 h-[34px] px-3 rounded-[5px] text-[14px] leading-[17px] tracking-[-0.02em] whitespace-nowrap transition-colors ${
                 isSelected
-                  ? "bg-[#EDEDED] border border-[#D0D0D0] text-black dark:bg-neutral-30 dark:border-neutral-40 dark:text-neutral-90"
-                  : "bg-card border border-[#E2E2E2] text-black dark:bg-neutral-10 dark:border-neutral-30 dark:text-neutral-80"
+                  ? "bg-primary-10/40 border border-primary-60 font-semibold text-foreground"
+                  : "bg-card border border-[#E2E2E2] font-medium text-black dark:bg-neutral-10 dark:border-neutral-30 dark:text-neutral-80"
               }`}
               onClick={() => setSelectedMinutes(preset.minutes)}
               disabled={submitting}
@@ -229,13 +257,16 @@ export default function CategorySchedulePrompt({
 
   return createPortal(
     <div
-      className="fixed z-[210] rounded-[5px] bg-card dark:bg-neutral-10 shadow-[-3px_5px_12px_4px_rgba(9,30,66,0.1)] overflow-hidden"
+      className="fixed z-[210] rounded-[5px] bg-card dark:bg-neutral-10 shadow-[-3px_5px_12px_4px_rgba(9,30,66,0.1)] overflow-hidden transition-opacity"
       style={{
         top: position!.top,
         left: position!.left,
         width: PROMPT_WIDTH,
         maxWidth: "calc(100vw - 32px)",
         transform: position!.openAbove ? "translateY(-100%)" : undefined,
+        visibility: position!.visible ? "visible" : "hidden",
+        opacity: position!.visible ? 1 : 0,
+        pointerEvents: position!.visible ? "auto" : "none",
       }}
     >
       {card}
