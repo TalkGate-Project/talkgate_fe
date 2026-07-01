@@ -79,6 +79,11 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
         const targetSubdomain = notification.project?.subDomain?.trim();
         const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
         window.location.href = subdomainUrl || path;
+      } else if (notification.type === "customer_schedule" && notification.referenceId) {
+        const path = `/customers?openCustomerId=${notification.referenceId}`;
+        const targetSubdomain = notification.project?.subDomain?.trim();
+        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
+        window.location.href = subdomainUrl || path;
       } else if (notification.type === "customer_assignment") {
         const path = "/customers";
         const targetSubdomain = notification.project?.subDomain?.trim();

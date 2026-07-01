@@ -17,6 +17,7 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
       return "notice";
     case "customer_assignment":
     case "customer_registration":
+    case "customer_schedule":
       return "customer";
     case "system":
       return "system";
@@ -68,7 +69,7 @@ function NotificationsPageContentInner() {
       // 향후 API에 카테고리별 카운트 엔드포인트가 추가되면 서버 사이드 카운트로 변경 필요
       const allCount = uiNotifications.length;
       const noticeCount = uiNotifications.filter((n) => n.type === "notice").length;
-      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration").length;
+      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration" || n.type === "customer_schedule").length;
       const systemCount = uiNotifications.filter((n) => n.type === "system").length;
       // TODO: security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
       const securityCount = 0;
@@ -167,6 +168,12 @@ function NotificationsPageContentInner() {
         notification,
         `/customers?openCustomerId=${notification.referenceId}`
       );
+    } else if (notification.type === "customer_schedule" && notification.referenceId) {
+      // 고객 스케쥴 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
       navigateByNotificationProject(notification, "/customers");
@@ -182,6 +189,7 @@ function NotificationsPageContentInner() {
         return <NoticeMegaphoneIcon />;
       case "customer_assignment":
       case "customer_registration":
+      case "customer_schedule":
         return <NoticeUsersIcon />;
       case "system":
         return <NoticeCogIcon />;
