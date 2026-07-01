@@ -8,6 +8,7 @@ import { CustomerDetail, CustomerTendency } from "@/types/customers";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { showErrorModal } from "@/lib/errorModalEvents";
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: "creditCard", label: "신용카드" },
@@ -28,6 +29,16 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "coupon", label: "쿠폰" },
   { value: "cash", label: "현금" },
   { value: "cryptocurrency", label: "가상자산" },
+] as const;
+
+const SCHEDULE_TIME_PRESETS = [
+  { label: "10분 후", minutes: 10 },
+  { label: "30분 후", minutes: 30 },
+  { label: "1시간 후", minutes: 60 },
+  { label: "2시간 후", minutes: 120 },
+  { label: "3시간 후", minutes: 180 },
+  { label: "6시간 후", minutes: 360 },
+  { label: "24시간 후", minutes: 24 * 60 },
 ] as const;
 
 const CUSTOMER_TENDENCY_OPTIONS: { value: CustomerTendency; label: string }[] = [
@@ -52,7 +63,11 @@ type Props = {
     desc: string
   ) => void;
   onRemovePayment: (id: number) => void;
-  onAddSchedule: (dateIso: string, desc: string, colorCode: string) => void;
+  onAddSchedule: (
+    dateIso: string,
+    desc: string,
+    colorCode: string
+  ) => Promise<void>;
   onRemoveSchedule: (id: number) => void;
 };
 
@@ -83,6 +98,7 @@ export default function SalesTab({
   const [scheduleDesc, setScheduleDesc] = useState("");
   const [scheduleColor, setScheduleColor] = useState<string>("#00E272");
   const [scheduleSubmitAttempted, setScheduleSubmitAttempted] = useState(false);
+  const [isAddingSchedule, setIsAddingSchedule] = useState(false);
 
   const paymentDateError =
     paymentSubmitAttempted && !paymentDate ? "날짜를 선택해 주세요." : "";
@@ -115,11 +131,26 @@ export default function SalesTab({
     return found ? found.label : method;
   };
 
-  const handleAddSchedule = () => {
+  const applyScheduleTimePreset = (minutesToAdd: number) => {
+    const target = new Date();
+    target.setMinutes(target.getMinutes() + minutesToAdd);
+
+    setScheduleDate(
+      new Date(target.getFullYear(), target.getMonth(), target.getDate())
+    );
+    setScheduleTime(
+      `${String(target.getHours()).padStart(2, "0")}:${String(target.getMinutes()).padStart(2, "0")}`
+    );
+    setScheduleSubmitAttempted(false);
+  };
+
+  const handleAddSchedule = async () => {
     if (!scheduleDate || !scheduleTime || !scheduleDesc.trim() || !scheduleColor) {
       setScheduleSubmitAttempted(true);
       return;
     }
+
+    if (isAddingSchedule) return;
 
     const [hhStr, mmStr] = scheduleTime.split(":");
     const hh = Number(hhStr || "0");
@@ -135,15 +166,24 @@ export default function SalesTab({
       0
     ).toISOString();
 
-    onAddSchedule(
-      dateIso,
-      scheduleDesc,
-      scheduleColor
-    );
-    setScheduleDate(null);
-    setScheduleTime(null);
-    setScheduleDesc("");
-    setScheduleSubmitAttempted(false);
+    setIsAddingSchedule(true);
+    try {
+      await onAddSchedule(dateIso, scheduleDesc, scheduleColor);
+      setScheduleDate(null);
+      setScheduleTime(null);
+      setScheduleDesc("");
+      setScheduleSubmitAttempted(false);
+    } catch (error) {
+      console.error("Failed to add schedule:", error);
+      showErrorModal({
+        headline: "일정 등록에 실패했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    } finally {
+      setIsAddingSchedule(false);
+    }
   };
 
   const formatScheduleTime = (isoString: string) => {
@@ -574,6 +614,19 @@ export default function SalesTab({
           </div>
         </div>
 
+        <div className="mb-4 flex items-center gap-3 overflow-x-auto">
+          {SCHEDULE_TIME_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              className="cursor-pointer flex-shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 whitespace-nowrap"
+              onClick={() => applyScheduleTimePreset(preset.minutes)}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
         {/* 일정내용 */}
         <div>
           <div className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
@@ -590,8 +643,11 @@ export default function SalesTab({
               }`}
             />
             <button
-              className="cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold"
-              onClick={handleAddSchedule}
+              className={`cursor-pointer w-[48px] h-[34px] rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold ${
+                isAddingSchedule ? "cursor-not-allowed opacity-50" : ""
+              }`}
+              onClick={() => void handleAddSchedule()}
+              disabled={isAddingSchedule}
             >
               추가
             </button>

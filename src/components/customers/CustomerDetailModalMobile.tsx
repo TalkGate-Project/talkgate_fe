@@ -109,6 +109,24 @@ export default function CustomerDetailModalMobile({
     markListRefreshPending();
   }, [actions, markListRefreshPending]);
 
+  const handleCategoryScheduleReserve = useCallback(
+    async (scheduleTimeIso: string, description: string) => {
+      try {
+        await handleAddSchedule(scheduleTimeIso, description, "#00E272");
+      } catch (error) {
+        console.error("Failed to add schedule from category prompt:", error);
+        showErrorModalEvent({
+          headline: "일정 등록에 실패했습니다.",
+          description: "잠시 후 다시 시도해주세요.",
+          hideCancel: true,
+          confirmText: "확인",
+        });
+        throw error;
+      }
+    },
+    [handleAddSchedule]
+  );
+
   const handleAddNote = useCallback(async (note: string) => {
     await actions.addNote(note);
     markListRefreshPending();
@@ -400,6 +418,7 @@ export default function CustomerDetailModalMobile({
                 onOpenCategoryHistory={actions.refetchCategoryHistory}
                 onAddNote={handleAddNote}
                 onRemoveNote={handleRemoveNote}
+                onReserveSchedule={handleCategoryScheduleReserve}
               />
             )}
           </>
