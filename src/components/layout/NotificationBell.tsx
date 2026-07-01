@@ -228,6 +228,12 @@ export default function NotificationBell() {
         notification,
         `/customers?openCustomerId=${notification.referenceId}`
       );
+    } else if (notification.type === "customer_schedule" && notification.referenceId) {
+      // 고객 스케쥴 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
       navigateByNotificationProject(notification, "/customers");
