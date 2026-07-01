@@ -12,10 +12,8 @@ import type { NewNotificationEvent, Notification } from "@/types/notifications";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
-// Browser notification permission status
 export type NotificationPermission = "default" | "granted" | "denied";
 
-// Request browser notification permission
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return "denied";
@@ -38,12 +36,36 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   }
 }
 
+function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const event = payload as Partial<NewNotificationEvent> & Partial<Notification>;
+
+  if (
+    event.notification &&
+    typeof event.notification === "object" &&
+    typeof event.notification.id === "number"
+  ) {
+    return event.notification;
+  }
+
+  if (typeof event.id === "number" && typeof event.type === "string") {
+    return event as Notification;
+  }
+
+  return null;
+}
+
 function showBrowserNotification(notification: Notification): void {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return;
   }
 
   if (Notification.permission !== "granted") {
+    console.error(
+      "Browser notification skipped: Notification.permission is",
+      Notification.permission
+    );
     return;
   }
 
@@ -99,20 +121,16 @@ function showBrowserNotification(notification: Notification): void {
   }
 }
 
-/**
- * Global Notification Provider Component
- * Manages WebSocket connection for notifications and displays browser notifications
- */
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [projectId, ready] = useSelectedProjectId();
   const { user } = useMe();
   const permissionRequestedRef = useRef(false);
   const knownNotificationIdsRef = useRef<Set<number>>(new Set());
   const seedCompleteRef = useRef(false);
+  const pendingDuringSeedRef = useRef<Notification[]>([]);
   const isAllowNewNotificationRef = useRef(true);
 
   useEffect(() => {
-    // 사용자 정보 로딩 중(undefined)에는 허용으로 간주, 명시적으로 false일 때만 차단
     isAllowNewNotificationRef.current = user?.isAllowNewNotification !== false;
   }, [user?.isAllowNewNotification]);
 
@@ -129,6 +147,20 @@ export default function NotificationProvider({ children }: { children: React.Rea
     }
   }, []);
 
+  // 자동 권한 요청이 차단된 경우, 첫 사용자 클릭 시 한 번 더 요청
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "default") return;
+
+    const handleFirstInteraction = () => {
+      void requestNotificationPermission();
+      document.removeEventListener("pointerdown", handleFirstInteraction);
+    };
+
+    document.addEventListener("pointerdown", handleFirstInteraction);
+    return () => document.removeEventListener("pointerdown", handleFirstInteraction);
+  }, []);
+
   const dispatchNewNotificationEvent = useCallback((notification: Notification) => {
     if (typeof window === "undefined") return;
 
@@ -142,35 +174,52 @@ export default function NotificationProvider({ children }: { children: React.Rea
     );
   }, []);
 
-  const processIncomingNotification = useCallback(
-    (notification: Notification, options: { showBrowser: boolean }) => {
-      if (knownNotificationIdsRef.current.has(notification.id)) {
-        return;
-      }
+  const deliverNotification = useCallback(
+    (notification: Notification, showBrowser: boolean) => {
+      if (!notification?.id) return;
+      if (knownNotificationIdsRef.current.has(notification.id)) return;
 
       knownNotificationIdsRef.current.add(notification.id);
-
-      if (!seedCompleteRef.current) {
-        return;
-      }
-
       dispatchNewNotificationEvent(notification);
 
-      if (options.showBrowser && isAllowNewNotificationRef.current) {
+      if (showBrowser && isAllowNewNotificationRef.current) {
         showBrowserNotification(notification);
       }
     },
     [dispatchNewNotificationEvent]
   );
 
-  const handleNewNotification = useCallback(
-    (event: NewNotificationEvent) => {
-      processIncomingNotification(event.notification, { showBrowser: true });
+  const flushPendingNotifications = useCallback(() => {
+    const pending = pendingDuringSeedRef.current.splice(0);
+    for (const notification of pending) {
+      deliverNotification(notification, true);
+    }
+  }, [deliverNotification]);
+
+  const handleIncomingNotification = useCallback(
+    (notification: Notification | null | undefined, showBrowser: boolean) => {
+      if (!notification?.id) return;
+
+      if (!seedCompleteRef.current) {
+        if (!pendingDuringSeedRef.current.some((item) => item.id === notification.id)) {
+          pendingDuringSeedRef.current.push(notification);
+        }
+        return;
+      }
+
+      deliverNotification(notification, showBrowser);
     },
-    [processIncomingNotification]
+    [deliverNotification]
   );
 
-  // WebSocket 누락 대비: 기존 알림 시드 + 주기적 폴링 (예약 알림 등 서버 크론 발송 케이스)
+  const handleNewNotification = useCallback(
+    (payload: NewNotificationEvent) => {
+      const notification = parseNotificationFromSocketPayload(payload);
+      handleIncomingNotification(notification, true);
+    },
+    [handleIncomingNotification]
+  );
+
   useEffect(() => {
     if (!ready) return;
 
@@ -181,6 +230,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
     let cancelled = false;
     knownNotificationIdsRef.current = new Set();
+    pendingDuringSeedRef.current = [];
     seedCompleteRef.current = false;
 
     const pollNotifications = async () => {
@@ -198,13 +248,19 @@ export default function NotificationProvider({ children }: { children: React.Rea
             continue;
           }
 
-          processIncomingNotification(notification, { showBrowser: true });
+          handleIncomingNotification(notification, true);
         }
 
-        seedCompleteRef.current = true;
+        if (isInitialSeed) {
+          seedCompleteRef.current = true;
+          flushPendingNotifications();
+        }
       } catch (error) {
         console.error("Failed to poll notifications:", error);
-        seedCompleteRef.current = true;
+        if (!seedCompleteRef.current) {
+          seedCompleteRef.current = true;
+          flushPendingNotifications();
+        }
       }
     };
 
@@ -229,7 +285,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [ready, projectId, processIncomingNotification]);
+  }, [ready, projectId, handleIncomingNotification, flushPendingNotifications]);
 
   useEffect(() => {
     if (!ready) return;
