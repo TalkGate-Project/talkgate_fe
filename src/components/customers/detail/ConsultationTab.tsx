@@ -6,6 +6,7 @@ import { getBadgeStyle } from "@/utils/categoryBadge";
 import { useMyMember } from "@/hooks/useMyMember";
 import CategoryHistoryModal from "./CategoryHistoryModal";
 import CategoryDropdownPortal from "./CategoryDropdownPortal";
+import CategorySchedulePrompt from "./CategorySchedulePrompt";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
@@ -20,6 +21,7 @@ type Props = {
   onOpenCategoryHistory?: () => Promise<void> | void;
   onAddNote: (note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
+  onReserveSchedule?: (scheduleTimeIso: string, description: string) => Promise<void>;
 };
 
 export default function ConsultationTab({
@@ -33,6 +35,7 @@ export default function ConsultationTab({
   onOpenCategoryHistory,
   onAddNote,
   onRemoveNote,
+  onReserveSchedule,
 }: Props) {
   const router = useRouter();
   const { isAdminOrSubAdmin } = useMyMember();
@@ -42,6 +45,7 @@ export default function ConsultationTab({
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isSchedulePromptOpen, setIsSchedulePromptOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
@@ -84,6 +88,9 @@ export default function ConsultationTab({
     try {
       await onChangeCategory(categoryId);
       setIsCategoryDropdownOpen(false);
+      if (onReserveSchedule) {
+        setIsSchedulePromptOpen(true);
+      }
     } finally {
       setIsChangingCategory(false);
     }
@@ -304,6 +311,15 @@ export default function ConsultationTab({
         history={categoryHistory}
         loading={categoryHistoryLoading}
       />
+      {onReserveSchedule && (
+        <CategorySchedulePrompt
+          open={isSchedulePromptOpen}
+          onClose={() => setIsSchedulePromptOpen(false)}
+          onReserve={onReserveSchedule}
+          customerName={customerName}
+          placement="bottom"
+        />
+      )}
     </div>
   );
 }

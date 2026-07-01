@@ -7,6 +7,7 @@ import { useMyMember } from "@/hooks/useMyMember";
 import UnlinkConversationModal from "@/components/common/UnlinkConversationModal";
 import CategoryHistoryModal from "./CategoryHistoryModal";
 import CategoryDropdownPortal from "./CategoryDropdownPortal";
+import CategorySchedulePrompt from "./CategorySchedulePrompt";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
 
@@ -22,6 +23,7 @@ type Props = {
   onOpenCategoryHistory?: () => Promise<void> | void;
   onAddNote: (note: string) => Promise<void>;
   onRemoveNote: (id: number) => void;
+  onReserveSchedule?: (scheduleTimeIso: string, description: string) => Promise<void>;
   customerId: number;
   onUnlinkConversation?: () => void;
   maxHeight?: number | null;
@@ -39,6 +41,7 @@ export default function ConsultationPanel({
   onOpenCategoryHistory,
   onAddNote,
   onRemoveNote,
+  onReserveSchedule,
   customerId,
   onUnlinkConversation,
   maxHeight,
@@ -51,9 +54,11 @@ export default function ConsultationPanel({
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isSchedulePromptOpen, setIsSchedulePromptOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const categoryButtonRef = useRef<HTMLButtonElement>(null);
+  const categoryAnchorRef = useRef<HTMLDivElement>(null);
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
 
@@ -107,6 +112,9 @@ export default function ConsultationPanel({
     try {
       await onChangeCategory(categoryId);
       setIsCategoryDropdownOpen(false);
+      if (onReserveSchedule) {
+        setIsSchedulePromptOpen(true);
+      }
     } finally {
       setIsChangingCategory(false);
     }
@@ -279,7 +287,10 @@ export default function ConsultationPanel({
           <div className="text-[16px] font-semibold text-neutral-90 dark:text-neutral-90">
             카테고리
           </div>
-          <div className="mt-3 h-[58px] w-full rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 px-4 flex items-center justify-between gap-3">
+          <div
+            ref={categoryAnchorRef}
+            className="mt-3 h-[58px] w-full rounded-[5px] border border-[#E2E2E2] dark:border-neutral-30 px-4 flex items-center justify-between gap-3"
+          >
             <button
               ref={categoryButtonRef}
               type="button"
@@ -450,6 +461,16 @@ export default function ConsultationPanel({
         history={categoryHistory}
         loading={categoryHistoryLoading}
       />
+      {onReserveSchedule && (
+        <CategorySchedulePrompt
+          open={isSchedulePromptOpen}
+          onClose={() => setIsSchedulePromptOpen(false)}
+          onReserve={onReserveSchedule}
+          customerName={customerName}
+          placement="anchor"
+          anchorRef={categoryAnchorRef}
+        />
+      )}
     </div>
   );
 }
