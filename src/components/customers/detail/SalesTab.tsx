@@ -99,6 +99,7 @@ export default function SalesTab({
   const [scheduleColor, setScheduleColor] = useState<string>("#00E272");
   const [scheduleSubmitAttempted, setScheduleSubmitAttempted] = useState(false);
   const [isAddingSchedule, setIsAddingSchedule] = useState(false);
+  const [activeScheduleMinutes, setActiveScheduleMinutes] = useState<number | null>(null);
 
   const paymentDateError =
     paymentSubmitAttempted && !paymentDate ? "날짜를 선택해 주세요." : "";
@@ -141,6 +142,7 @@ export default function SalesTab({
     setScheduleTime(
       `${String(target.getHours()).padStart(2, "0")}:${String(target.getMinutes()).padStart(2, "0")}`
     );
+    setActiveScheduleMinutes(minutesToAdd);
     setScheduleSubmitAttempted(false);
   };
 
@@ -172,6 +174,7 @@ export default function SalesTab({
       setScheduleDate(null);
       setScheduleTime(null);
       setScheduleDesc("");
+      setActiveScheduleMinutes(null);
       setScheduleSubmitAttempted(false);
     } catch (error) {
       console.error("Failed to add schedule:", error);
@@ -540,7 +543,10 @@ export default function SalesTab({
               <div className="relative h-[34px]">
                 <DatePicker
                   value={scheduleDate}
-                  onChange={setScheduleDate}
+                  onChange={(d) => {
+                    setScheduleDate(d);
+                    setActiveScheduleMinutes(null);
+                  }}
                   className="h-[34px] pr-9"
                   invalid={!!scheduleDateError}
                 />
@@ -564,7 +570,10 @@ export default function SalesTab({
               </div>
               <TimePicker
                 value={scheduleTime}
-                onChange={setScheduleTime}
+                onChange={(t) => {
+                  setScheduleTime(t);
+                  setActiveScheduleMinutes(null);
+                }}
                 minuteStep={10}
                 className="rounded-[5px] border-[#E5E7EB] dark:border-[#444444] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
                 invalid={!!scheduleTimeError}
@@ -615,16 +624,23 @@ export default function SalesTab({
         </div>
 
         <div className="mb-4 flex items-center gap-3 overflow-x-auto">
-          {SCHEDULE_TIME_PRESETS.map((preset) => (
-            <button
-              key={preset.label}
-              type="button"
-              className="cursor-pointer flex-shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10 whitespace-nowrap"
-              onClick={() => applyScheduleTimePreset(preset.minutes)}
-            >
-              {preset.label}
-            </button>
-          ))}
+          {SCHEDULE_TIME_PRESETS.map((preset) => {
+            const isActive = activeScheduleMinutes === preset.minutes;
+            return (
+              <button
+                key={preset.label}
+                type="button"
+                className={`cursor-pointer flex-shrink-0 h-[34px] px-3 rounded-[5px] text-[14px] leading-[17px] tracking-[-0.02em] whitespace-nowrap transition-colors ${
+                  isActive
+                    ? "bg-primary-10/40 border border-primary-60 font-semibold text-foreground"
+                    : "border border-[#E2E2E2] dark:border-[#444444] font-medium text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+                }`}
+                onClick={() => applyScheduleTimePreset(preset.minutes)}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* 일정내용 */}
