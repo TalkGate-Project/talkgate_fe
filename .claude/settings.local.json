@@ -17,7 +17,12 @@
       "WebFetch(domain:developer.chrome.com)",
       "WebFetch(domain:blog.google)",
       "Bash(ls *.md)",
-      "Bash(find . -maxdepth 2 -iname \"*.md\" -not -path \"*/node_modules/*\" -not -path \"*/.git/*\")"
+      "Bash(find . -maxdepth 2 -iname \"*.md\" -not -path \"*/node_modules/*\" -not -path \"*/.git/*\")",
+      "WebFetch(domain:blogs.windows.com)",
+      "Bash(npm run *)",
+      "Bash(git status *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
