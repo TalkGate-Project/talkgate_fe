@@ -16,6 +16,7 @@ import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
 import { showChatNotification } from "@/utils/notification";
+import { showToastNotification } from "@/lib/toastNotificationEvents";
 import { getAccessToken } from "@/lib/token";
 import type {
   ConversationsListEvent,
@@ -371,6 +372,13 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
              "새 메시지");
           
           showChatNotification(conversationName, messageContent);
+          showToastNotification({
+            title: conversationName,
+            description: messageContent,
+            onClick: () => {
+              window.location.href = "/consult";
+            },
+          });
         }
 
         if (conversation) {

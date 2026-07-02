@@ -9,6 +9,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
 import { NotificationsService } from "@/services/notifications";
 import type { NewNotificationEvent, Notification } from "@/types/notifications";
+import { showToastNotification } from "@/lib/toastNotificationEvents";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
@@ -30,6 +31,36 @@ function parseNotificationFromSocketPayload(payload: unknown): Notification | nu
   }
 
   return null;
+}
+
+function resolveNotificationUrl(notification: Notification): string {
+  const targetSubdomain = notification.project?.subDomain?.trim();
+  const withSubdomain = (path: string) =>
+    (targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "") || path;
+
+  if (notification.type === "notice" && notification.referenceId) {
+    return withSubdomain(`/notice/${notification.referenceId}`);
+  }
+  if (notification.type === "customer_registration" && notification.referenceId) {
+    return withSubdomain(`/customers?openCustomerId=${notification.referenceId}`);
+  }
+  if (notification.type === "customer_schedule" && notification.referenceId) {
+    return withSubdomain(`/customers?openCustomerId=${notification.referenceId}`);
+  }
+  if (notification.type === "customer_assignment") {
+    return withSubdomain("/customers");
+  }
+  if (notification.type === "system") {
+    return "/my-settings?tab=billing";
+  }
+  return "/notifications";
+}
+
+function navigateToNotificationTarget(notification: Notification): void {
+  if (notification.projectId) {
+    setSelectedProjectId(String(notification.projectId));
+  }
+  window.location.href = resolveNotificationUrl(notification);
 }
 
 function showBrowserNotification(notification: Notification): void {
@@ -61,36 +92,7 @@ function showBrowserNotification(notification: Notification): void {
     browserNotification.onclick = () => {
       window.focus();
       browserNotification.close();
-
-      if (notification.projectId) {
-        setSelectedProjectId(String(notification.projectId));
-      }
-
-      if (notification.type === "notice" && notification.referenceId) {
-        const path = `/notice/${notification.referenceId}`;
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "customer_registration" && notification.referenceId) {
-        const path = `/customers?openCustomerId=${notification.referenceId}`;
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "customer_schedule" && notification.referenceId) {
-        const path = `/customers?openCustomerId=${notification.referenceId}`;
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "customer_assignment") {
-        const path = "/customers";
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "system") {
-        window.location.href = "/my-settings?tab=billing";
-      } else {
-        window.location.href = "/notifications";
-      }
+      navigateToNotificationTarget(notification);
     };
   } catch (error) {
     console.error("Failed to show browser notification:", error);
@@ -132,6 +134,11 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
       if (showBrowser && isAllowNewNotificationRef.current) {
         showBrowserNotification(notification);
+        showToastNotification({
+          title: notification.title,
+          description: notification.content,
+          onClick: () => navigateToNotificationTarget(notification),
+        });
       }
     },
     [dispatchNewNotificationEvent]

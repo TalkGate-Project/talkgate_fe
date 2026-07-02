@@ -15,7 +15,7 @@ import { useChatContextSafe } from "@/providers/ChatProvider";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
 import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import MobileDrawer from "./MobileDrawer";
-import { requestNotificationPermission } from "@/utils/notification";
+import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
 const BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
@@ -174,7 +174,7 @@ export default function Header() {
                   prefetch={true}
                   // 상담(채팅) 화면으로 이동하는 클릭은 실제 사용자 제스처이므로
                   // 여기서 알림 권한을 요청해야 Edge 등에서 조용히 무시되는 문제를 피할 수 있음
-                  onClick={isConsult ? () => void requestNotificationPermission() : undefined}
+                  onClick={isConsult ? () => requestNotificationPermissionWithGuide() : undefined}
                   className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
                     isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
                   }`}
@@ -199,7 +199,7 @@ export default function Header() {
               <button
                 className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
                 onClick={() => {
-                  void requestNotificationPermission();
+                  requestNotificationPermissionWithGuide();
                   toggleStaffChatModal();
                 }}
                 aria-label="직원채팅"

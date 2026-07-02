@@ -11,6 +11,7 @@ import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import ErrorFeedbackModalProvider from "@/providers/ErrorFeedbackModalProvider";
 import ConfirmModalProvider from "@/providers/ConfirmModalProvider";
 import PersistentModalProvider from "@/providers/PersistentModalProvider";
+import ToastNotificationProvider from "@/providers/ToastNotificationProvider";
 import NotificationProvider from "@/providers/NotificationProvider";
 import CustomerModalProvider from "@/providers/CustomerModalProvider";
 import ChatProvider from "@/providers/ChatProvider";
@@ -100,30 +101,32 @@ export default async function RootLayout({
         <ErrorFeedbackModalProvider>
           <ConfirmModalProvider>
             <PersistentModalProvider>
-              <ReactQueryProvider>
-                <DemoModeProvider>
-                  <CustomerModalProvider>
-                    <NotificationProvider>
-                      <ChatProvider>
-                        <TeamChatProvider>
-                          <TeamChatWindowProvider>
-                            <ConditionalHeader />
-                            <GlobalStaffChatModal />
-                            <AuthSessionWatcher />
-                            <TermsGuard />
-                            {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
-                            <Suspense fallback={null}>
-                              <UiScaleToggle initialZoom={uiZoomMode as "normal" | "compact"} />
-                            </Suspense>
-                            {/* No fixed padding; header component inserts spacer only when visible */}
-                            <div>{children}</div>
-                          </TeamChatWindowProvider>
-                        </TeamChatProvider>
-                      </ChatProvider>
-                    </NotificationProvider>
-                  </CustomerModalProvider>
-                </DemoModeProvider>
-              </ReactQueryProvider>
+              <ToastNotificationProvider>
+                <ReactQueryProvider>
+                  <DemoModeProvider>
+                    <CustomerModalProvider>
+                      <NotificationProvider>
+                        <ChatProvider>
+                          <TeamChatProvider>
+                            <TeamChatWindowProvider>
+                              <ConditionalHeader />
+                              <GlobalStaffChatModal />
+                              <AuthSessionWatcher />
+                              <TermsGuard />
+                              {/* 화면 크기 체험용 토글 (기존 / 컴팩트) */}
+                              <Suspense fallback={null}>
+                                <UiScaleToggle initialZoom={uiZoomMode as "normal" | "compact"} />
+                              </Suspense>
+                              {/* No fixed padding; header component inserts spacer only when visible */}
+                              <div>{children}</div>
+                            </TeamChatWindowProvider>
+                          </TeamChatProvider>
+                        </ChatProvider>
+                      </NotificationProvider>
+                    </CustomerModalProvider>
+                  </DemoModeProvider>
+                </ReactQueryProvider>
+              </ToastNotificationProvider>
             </PersistentModalProvider>
           </ConfirmModalProvider>
         </ErrorFeedbackModalProvider>

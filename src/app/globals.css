@@ -838,6 +838,22 @@ svg path:focus {
   animation: shake 0.5s ease-in-out;
 }
 
+/* Slide-up animation for site-wide toast notification */
+@keyframes toast-slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-toast-slide-up {
+  animation: toast-slide-up 0.25s ease-out;
+}
+
 /* AI Markdown response styles */
 .ai-markdown {
   word-break: break-word;
