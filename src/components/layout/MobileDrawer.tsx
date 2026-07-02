@@ -11,7 +11,7 @@ import { useMyMember } from "@/hooks/useMyMember";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
 import { isAdmin } from "@/utils/permissions";
-import { requestNotificationPermission } from "@/utils/notification";
+import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
 // 아이콘 컴포넌트들
 import {
@@ -413,7 +413,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
                           // 상담(채팅) 화면으로 이동하는 클릭은 실제 사용자 제스처이므로
                           // 여기서 알림 권한을 요청해야 Edge 등에서 조용히 무시되는 문제를 피할 수 있음
                           if (item.href === "/consult") {
-                            void requestNotificationPermission();
+                            requestNotificationPermissionWithGuide();
                           }
                           onClose();
                         }}

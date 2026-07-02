@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { NotificationsService, type Notification as TGNotification } from "@/services/notifications";
 import type { NewNotificationEvent } from "@/types/notifications";
 import { setSelectedProjectId } from "@/lib/project";
-import { requestNotificationPermission } from "@/utils/notification";
+import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 import { getCurrentSubdomain, getMainDomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 
 // 공지 페이지와 동일한 규칙의 상대 시간 포맷터
@@ -161,7 +161,7 @@ export default function NotificationBell() {
       // 종 아이콘을 눌러 알림을 확인하려는 시점(실제 사용자 제스처)에 권한을 요청해야
       // 브라우저(특히 Edge)가 제스처 없는 요청을 조용히 무시/차단하는 문제를 피할 수 있음
       if (next) {
-        void requestNotificationPermission();
+        requestNotificationPermissionWithGuide();
       }
       return next;
     });

@@ -46,6 +46,7 @@
 - **검증**: 서브도메인을 `test1.app.myservice.im` → `test3.app.myservice.im`(신규, 방문 이력 없음)으로 바꿔도 동일 증상 → 데이터가 없는 신규 오리진에서도 즉시 quiet UI가 뜸
 - **검증 2**: 우리 서비스와 완전 무관한 `rebemon.xyz`, 심지어 대형 사이트인 `news.kbs.co.kr`에서도 콘솔로 직접 호출 시 동일하게 quiet UI 재현
 - **결론**: 우리 사이트가 "나쁜 평판으로 블랙리스트에 오른" 게 아님. 오히려 **"검증된 좋은 평판이 없는 절대다수의 사이트가 기본적으로 quiet 취급을 받는" 구조**에 가까움 (아래 가설 C 참고)
+- **⚠️ 2026-07-02 정정**: 위 검증 2는 콘솔에서 직접 호출한 것이라 애초에 진짜 user activation(제스처)이 전혀 없는 호출이었음. Chromium 정책상 제스처 없는 호출은 사이트 평판과 무관하게 quiet UI로 처리될 수 있으므로, 이 테스트는 "제스처가 있어도 안 되는가"를 검증한 게 아니라 "제스처 없이는 (당연히) 안 된다"만 보여준 것에 가까움. 가설 C의 근거로 쓰기엔 부적절했음 — 8절 참고.
 
 ### 가설 B: 이 PC/계정에 엔터프라이즈 정책 또는 브라우저 설정이 걸려있다
 
@@ -88,9 +89,9 @@
 
 **가설**: 헤더의 "상담"/"직원채팅"/"종모양" 클릭 시 알림 권한 요청이 다른 기능 로직과 함께 실행되기 때문에 차단되는 것 아닐까? → 순수하게 권한 요청만 하는 버튼을 만들어서 검증해보자는 제안.
 
-**사전 판단**: 가능성 낮음. `requestNotificationPermission()`(`src/utils/notification.ts`)은 원래도 다른 로직과 섞이지 않은 순수 함수이고, 2절에서 이미 제스처 기반 순수 호출로도 효과가 없었음을 확인함. 또한 3절 가설 A 검증에서 완전히 무관한 다른 사이트(rebemon.xyz, news.kbs.co.kr)에 콘솔로 아무 것도 섞이지 않은 순수 `Notification.requestPermission()`을 호출해도 동일하게 quiet UI가 떴으므로, "번들링이 원인"이라는 설명과는 이미 상충하는 증거가 있음. 가설 C(승인 이력 없는 사이트에 대한 Chromium 기본 quiet UI 정책)가 여전히 유력.
+**최초 사전 판단(정정됨)**: 처음엔 "가능성 낮음"으로 판단했었음 — 3절 가설 A 검증(rebemon.xyz, news.kbs.co.kr에 콘솔로 직접 호출)이 번들링 가설과 상충하는 증거라고 봤기 때문. **그러나 이 판단은 틀렸음**: 콘솔에서 직접 `Notification.requestPermission()`을 호출하는 건 애초에 진짜 user activation(사용자 제스처)이 전혀 없는 호출이라, 사이트 평판과 무관하게 quiet UI로 처리됐을 수 있음. 즉 그 테스트는 "제스처가 있어도 안 되는가"가 아니라 "제스처가 없으면 (당연히) 안 된다"만 보여준 것이라 가설 C의 근거로 쓰기엔 부적절했음.
 
-**그래도 진행한 이유**: 기존 무관 사이트 테스트는 모두 "우리 오리진이 아닌 곳"에서 진행됐음. 우리 오리진에서 완전히 격리된 호출을 테스트해본 적은 없었으므로, 확인 차원 + 5절에 있던 "보조 UI" 작업의 일부로 겸사겸사 구현.
+**정정 후 판단**: 다만 2절에서 이미 진짜 클릭 기반(제스처 있음)으로 헤더의 상담/직원채팅/종모양 버튼에서 테스트했었고 그때도 quiet UI가 그대로였다는 기록은 유효한 증거임. 코드 확인 결과 이 핸들러들(`Header.tsx`, `LiteHeader.tsx`, `NotificationBell.tsx`, `MobileDrawer.tsx`)은 대부분 `requestNotificationPermission()` 호출을 클릭 핸들러의 **첫 동작으로 동기적으로** 실행하고 있어(예: 직원채팅 버튼은 `void requestNotificationPermission()` 직후 `toggleStaffChatModal()`), activation이 다른 로직에 의해 소모되기 전에 브라우저 API 호출이 나가는 구조로 보임. 그럼에도 이번에 만든 테스트 버튼은 그마저도 완전히 단일 동작(요청 이외 아무 것도 안 함)이라 지금까지 중 가장 깨끗한 테스트이므로, 여전히 진행할 가치가 있음.
 
 **구현**: `/my-settings?tab=notification` 페이지(`src/components/my-settings/NotificationTab.tsx`) 최하단에 `BrowserPermissionTestSection` 추가.
 - 현재 `Notification.permission` 상태를 표시 (`granted`/`denied`/`default`/미지원)
@@ -101,6 +102,37 @@
 - 그래도 quiet UI만 뜬다 → 번들링 가설 기각 확정, 가설 C에 무게 실림 (예상되는 결과)
 - 네이티브 팝업이 뜬다 → 번들링 가설이 맞았다는 뜻이므로, 헤더 클릭 핸들러들에서 권한 요청과 다른 로직(네비게이션 등)의 실행 순서/타이밍을 분리하는 방향으로 재작업 필요
 
+**결과 (2026-07-02)**: 배포 후 실제로 테스트 버튼을 클릭해봤으나 **동일하게 quiet UI만 뜸**. 이번엔 순수 클릭(진짜 user activation) + 다른 로직 전혀 없는 단일 동작이었으므로, "번들링/activation 소모"가 원인이라는 가설은 **사실상 기각**. 가설 C(승인 이력 없는 절대다수 사이트에 대한 Chromium 기본 quiet UI 정책)에 무게가 실림.
+
+**다음 할 일 갱신**: 5절의 "가설 C 확정을 위해 Gmail 등에서 콘솔 테스트" 항목은 방법론이 틀렸음(콘솔 = 제스처 없음, 위 정정 참고). 가설 C를 제대로 검증하려면 Gmail처럼 승인 이력이 확실한 사이트에서 **실제 알림 관련 버튼을 진짜로 클릭**해서 네이티브 팝업이 뜨는지 비교해야 함. 다만 이미 우리 사이트에서 순수 제스처 테스트로 가설 C가 상당히 강하게 뒷받침된 상태라, 남은 선택지는 사실상 5절의 "보조 UI(quiet UI 상태 안내)" 구현 쪽으로 넘어가는 것이 합리적.
+
+---
+
+## 8-1. 2026-07-02 추가: binance.com 대조군 분석 (가설 C 재확인)
+
+**관찰**: `https://www.binance.com/en/my/settings/preference`에서 "Auto Price Alert"의 "Notification On" 토글을 켜면, 약간의 지연 후 실제 브라우저 네이티브 팝업("www.binance.com이(가) 하려고 합니다: 알림 표시")이 뜸. **같은 브라우저/같은 프로필**에서 우리 사이트는 quiet UI, binance.com은 네이티브 팝업이 뜨는 차이를 확인.
+
+**분석**: Chrome 공식 자료 기준 quiet UI 자동 적용 기준은 두 가지
+1. 사이트별 승인율(opt-in rate) — 승인율 매우 낮은 사이트는 자동으로 quiet UI에 편입, 개선되면 해제됨
+2. 사용자(프로필) 단위 — 여러 사이트에서 자주 거부하는 사용자는 프로필 전체에 quiet UI 자동 적용
+
+같은 프로필에서 binance.com은 loud, 우리 사이트는 quiet라는 결과는 **2번(프로필 전체 적용) 가설을 배제**시킴 — 프로필 전체 quiet였다면 binance.com도 quiet였어야 함. 따라서 원인은 **1번, 사이트별 크라우드소싱 승인율(reputation)**로 좁혀짐. binance.com은 전 세계 최상위 트래픽의 금융 사이트라 승인율 데이터가 매우 높을 것으로 추정되고, 우리 사이트는 이 지표에서 아직 데이터가 부족/낮은 상태로 추정됨. **가설 C를 뒷받침하는 가장 강력한 실증 사례.**
+
+"조금 늦게 뜬다"는 지연은 binance.com이 `requestPermission()`을 페이지 진입 시점이 아니라 "Auto Price Alert > Notification On" 토글을 켜는 시점(기능과 1:1로 묶어서)에만 호출하기 때문으로 추정됨. 승인율을 높게 유지하는 데는 도움이 되는 방식이지만, quiet UI를 코드로 우회하는 트릭은 아님 — 여전히 승인율 데이터가 좋아야 loud 팝업이 유지되는 구조.
+
+**결론**: JS로 사이트 reputation을 조작/우회하는 방법은 없음(4절 확정 사실과 동일). 유일한 레버는 실사용자가 quiet UI 아이콘을 클릭해 "허용"을 누르는 빈도를 늘려 승인율 자체를 시간을 두고 개선하는 것뿐 → 5절의 "보조 UI(quiet UI 상태 안내)" 구현이 사실상 유일하게 남은 실질적 다음 단계.
+
+**추가 검증 완료(2026-07-02)**: 실제로 완전히 새로운 Microsoft 계정 + 완전히 새로운 Edge 프로필로, binance.com에 처음 회원가입해서 방문 이력이 전혀 없는 상태로 테스트를 진행함. **결과: 그 상태에서도 네이티브 loud 팝업이 정상적으로 뜸.**
+
+이로써 "이 사용자/계정이 binance.com에 개인적으로 승인 이력이 있어서"라는 가능성까지 완전히 배제됨. 정리하면:
+- 프로필 전체가 quiet 처리된 것 아님 (binance는 여전히 loud)
+- 이 사용자의 binance.com 개인 방문/승인 이력 때문도 아님 (완전 신규 계정·신규 프로필·첫 방문)
+- 남는 설명은 하나뿐: **binance.com 사이트 자체의 크라우드소싱 승인율(reputation)이 이미 충분히 높아서 quiet UI 대상에서 제외되고 있다**
+
+→ **가설 C 확정.** 더 이상 이 방향으로 추가 조사할 필요 없음. 다음 단계는 5절의 보조 안내 UI 구현.
+
+**정리(2026-07-02)**: 검증 목적을 다 했으므로 `NotificationTab.tsx`의 `BrowserPermissionTestSection` 테스트 버튼은 제거함. 현재 코드베이스에는 없음(필요 시 8절 설명 참고해서 재구현 가능).
+
 ---
 
 ## 6. 참고 자료
@@ -109,8 +141,10 @@
 - [Google Chrome Help: Use notifications to get alerts](https://support.google.com/chrome/answer/3220216)
 - [research.google: "Shhh...be quiet!" Reducing the Unwanted Interruptions of Notification Permission Prompts on Chrome (USENIX Security 2021)](https://research.google/pubs/shhhbe-quiet-reducing-the-unwanted-interruptions-of-notification-permission-prompts-on-chrome/)
 - [Chrome for Developers: Adding notification permission data to the Chrome User Experience Report](https://developer.chrome.com/blog/notification-permission-data-in-crux)
-- [Chromium Blog: Reducing notification overload for a quieter browsing experience in Chrome (2025.10)](https://blog.google/chromium/automatic-notification-permission/)
+- [Chromium Blog: Reducing notification overload for a quieter browsing experience in Chrome (2025.10)](https://blog.google/chromium/automatic-notification-permission/) — 단, 이 글은 **이미 승인된 알림 권한의 자동 회수(revoke)** 기능에 대한 것으로, 요청 시점의 quiet UI와는 별개 메커니즘이니 혼동 주의
 - [Google Chrome Enterprise Help: Manage Chrome policies with Windows registry](https://support.google.com/chrome/a/answer/9131254)
+- [PushPushGo: Quieter Notifications UI in Google Chrome](https://pushpushgo.com/en/blog/quieter-notifications-ui-in-google-chrome) — 사이트별 승인율 기반 자동 편입/해제, 42일 연속 정상 행동 시 해제 기준 언급
+- [MDN: Notification.requestPermission()](https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static) — InPrivate/시크릿 모드에서 항상 `denied` 즉시 반환됨을 명시
 
 ---
 
