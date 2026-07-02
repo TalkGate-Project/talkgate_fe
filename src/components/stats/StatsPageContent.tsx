@@ -303,11 +303,11 @@ function StatsPageContentInner() {
           title={
             <div className="flex w-full min-w-0 items-center justify-between gap-3 md:items-start">
               <div className="flex min-w-0 items-end gap-4">
-                <h1 className="text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
+                <h1 className="translate-y-[3px] text-[18px] md:text-[24px] md:leading-[20px] font-bold text-neutral-90">
                   통계
                 </h1>
                 <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-                <p className="hidden md:block text-[18px] leading-[20px] font-medium text-neutral-60">
+                <p className="hidden md:block translate-y-[3px] text-[18px] leading-[20px] font-medium text-neutral-60">
                   고객 신청, 배정, 카테고리, 결제, 랭킹 통계를 한눈에 확인하세요
                 </p>
               </div>
