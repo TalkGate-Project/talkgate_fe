@@ -15,7 +15,7 @@ import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
-import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
+import { showChatNotification } from "@/utils/notification";
 import { getAccessToken } from "@/lib/token";
 import type {
   ConversationsListEvent,
@@ -132,16 +132,6 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
   // 현재 활성 대화방 ID (읽음 처리용)
   const activeConversationIdRef = useRef<number | null>(null);
-
-  // 알림 권한 요청 (로그인된 사용자에 한해 한 번만; 비로그인 상태에서 요청하면 차단 시 영구 복구 불가)
-  useEffect(() => {
-    if (!user) return;
-    if (typeof window !== "undefined" && "Notification" in window) {
-      requestNotificationPermission().catch((err) => {
-        console.warn("Failed to request notification permission:", err);
-      });
-    }
-  }, [user]);
 
   // 총 안 읽은 메시지 수 계산
   const totalUnreadCount = useMemo(() => {

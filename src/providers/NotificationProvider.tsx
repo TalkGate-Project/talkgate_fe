@@ -12,30 +12,6 @@ import type { NewNotificationEvent, Notification } from "@/types/notifications";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
-export type NotificationPermission = "default" | "granted" | "denied";
-
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return "denied";
-  }
-
-  if (Notification.permission === "granted") {
-    return "granted";
-  }
-
-  if (Notification.permission === "denied") {
-    return "denied";
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    return permission as NotificationPermission;
-  } catch (error) {
-    console.error("Failed to request notification permission:", error);
-    return "denied";
-  }
-}
-
 function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
   if (!payload || typeof payload !== "object") return null;
 
@@ -124,7 +100,6 @@ function showBrowserNotification(notification: Notification): void {
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [projectId, ready] = useSelectedProjectId();
   const { user } = useMe();
-  const permissionRequestedRef = useRef(false);
   const knownNotificationIdsRef = useRef<Set<number>>(new Set());
   const seedCompleteRef = useRef(false);
   const pendingDuringSeedRef = useRef<Notification[]>([]);
@@ -133,36 +108,6 @@ export default function NotificationProvider({ children }: { children: React.Rea
   useEffect(() => {
     isAllowNewNotificationRef.current = user?.isAllowNewNotification !== false;
   }, [user?.isAllowNewNotification]);
-
-  // 로그인된 사용자에게만 알림 권한을 요청 (비로그인 상태의 /login 등에서 차단당하면 영구 차단되어 복구 불가)
-  useEffect(() => {
-    if (!user) return;
-    if (permissionRequestedRef.current || typeof window === "undefined" || !("Notification" in window)) return;
-
-    const timer = setTimeout(() => {
-      requestNotificationPermission().catch((error) => {
-        console.error("Failed to request notification permission:", error);
-      });
-      permissionRequestedRef.current = true;
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [user]);
-
-  // 자동 권한 요청이 차단된 경우, 로그인된 사용자의 첫 클릭 시 한 번 더 요청
-  useEffect(() => {
-    if (!user) return;
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission !== "default") return;
-
-    const handleFirstInteraction = () => {
-      void requestNotificationPermission();
-      document.removeEventListener("pointerdown", handleFirstInteraction);
-    };
-
-    document.addEventListener("pointerdown", handleFirstInteraction);
-    return () => document.removeEventListener("pointerdown", handleFirstInteraction);
-  }, [user]);
 
   const dispatchNewNotificationEvent = useCallback((notification: Notification) => {
     if (typeof window === "undefined") return;

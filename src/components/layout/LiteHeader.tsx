@@ -11,6 +11,7 @@ import UserMenuDropdown from "./UserMenuDropdown";
 import NotificationBell from "./NotificationBell";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
 import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
+import { requestNotificationPermission } from "@/utils/notification";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 const LITE_NAV_ITEMS: { label: string; href: string }[] = [
@@ -106,11 +107,15 @@ export default function LiteHeader() {
           <nav className="ml-8 hidden md:flex lg:hidden items-center gap-[26px] h-[17px]">
             {LITE_NAV_ITEMS.map(({ label, href }) => {
               const isActive = pathname === href;
+              const isConsult = href === "/consult";
               return (
                 <Link
                   key={href}
                   href={href}
                   prefetch={true}
+                  // 상담(채팅) 화면으로 이동하는 클릭은 실제 사용자 제스처이므로
+                  // 여기서 알림 권한을 요청해야 Edge 등에서 조용히 무시되는 문제를 피할 수 있음
+                  onClick={isConsult ? () => void requestNotificationPermission() : undefined}
                   className={`relative text-white text-[14px] leading-[17px] font-medium tracking-[-0.02em] ${
                     isActive ? "opacity-100" : "opacity-80 hover:opacity-100"
                   }`}
@@ -128,7 +133,10 @@ export default function LiteHeader() {
           {canShowStaffChatButton && (
             <button
               className="cursor-pointer relative w-6 h-6 text-white hover:opacity-80 transition-opacity flex items-center justify-center"
-              onClick={toggleStaffChatModal}
+              onClick={() => {
+                void requestNotificationPermission();
+                toggleStaffChatModal();
+              }}
               aria-label="직원채팅"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
