@@ -302,10 +302,10 @@ export default function NotificationBell() {
 
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
+        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
           <div className="h-full flex flex-col">
             {/* 헤더 */}
-            <div className="h-10 px-5 border-b border-border flex items-center justify-between gap-2">
+            <div className="px-5 pt-[20px] pb-[20px] border-b border-border flex items-center justify-between gap-2">
               <span className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
                 새로운 소식
               </span>

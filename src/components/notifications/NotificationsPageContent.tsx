@@ -243,9 +243,9 @@ function NotificationsPageContentInner() {
             <div className="px-4 md:px-7 py-4 md:py-7">
               <div className="flex items-center justify-between gap-2 md:gap-4">
                 <div className="flex items-center gap-2 md:gap-4">
-                  <h1 className="text-[18px] md:text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
+                  <h1 className="translate-y-[3px] text-[18px] md:text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
                   <div className="hidden md:block w-px h-4 bg-neutral-60" />
-                  <p className="hidden md:block text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
+                  <p className="hidden md:block translate-y-[3px] text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
                 </div>
                 <button
                   onClick={handleMarkAllAsRead}
