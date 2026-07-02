@@ -16,6 +16,7 @@ import { getAccessToken } from "@/lib/token";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
 import { showOrganizationChatNotification } from "@/utils/notification";
+import { showToastNotification } from "@/lib/toastNotificationEvents";
 import type {
   TeamRoom,
   TeamMessage,
@@ -493,6 +494,13 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
               ? msg.fileName || "파일"
               : "새 메시지");
         showOrganizationChatNotification(roomName, messageContent);
+        showToastNotification({
+          title: roomName,
+          description: messageContent,
+          onClick: () => {
+            window.dispatchEvent(new CustomEvent("tg:open-staff-chat"));
+          },
+        });
       }
 
       if (rid === activeId) {
