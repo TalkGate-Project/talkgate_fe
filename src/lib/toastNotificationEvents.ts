@@ -1,7 +1,11 @@
 export type ToastNotificationPayload = {
   id: string;
-  title: string;
-  description?: string;
+  /** 프로젝트 이름 (제목) */
+  projectName: string;
+  /** 알림 종류 (부제목, 예: 고객/채팅/시스템) */
+  category: string;
+  /** 한 줄로 표시되는 내용. 여러 항목을 이어붙일 때는 " | "로 구분 */
+  content: string;
   onClick?: () => void;
 };
 

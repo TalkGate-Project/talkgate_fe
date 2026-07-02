@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMe } from "@/hooks/useMe";
 import { showChatNotification } from "@/utils/notification";
 import { showToastNotification } from "@/lib/toastNotificationEvents";
@@ -96,11 +97,18 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
   const pathname = usePathname();
   const { user } = useMe();
+  const { project } = useCurrentProjectDetail();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
     return Number.isNaN(parsed) ? null : parsed;
   }, [selectedProjectId, ready]);
+
+  // 토스트 알림용 프로젝트 이름 (ref로 참조해 소켓 재연결 트리거에서 제외)
+  const projectNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    projectNameRef.current = project?.name || null;
+  }, [project?.name]);
 
   // 소켓 상태
   const socketRef = useRef<Socket | null>(null);
@@ -373,8 +381,9 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
           
           showChatNotification(conversationName, messageContent);
           showToastNotification({
-            title: conversationName,
-            description: messageContent,
+            projectName: projectNameRef.current || "프로젝트",
+            category: "채팅",
+            content: `${conversationName} | ${messageContent}`,
             onClick: () => {
               window.location.href = "/consult";
             },

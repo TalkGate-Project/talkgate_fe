@@ -13,6 +13,14 @@ import { showToastNotification } from "@/lib/toastNotificationEvents";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
+const NOTIFICATION_TYPE_LABEL: Record<Notification["type"], string> = {
+  notice: "공지",
+  customer_registration: "고객",
+  customer_schedule: "일정",
+  customer_assignment: "담당배정",
+  system: "시스템",
+};
+
 function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
   if (!payload || typeof payload !== "object") return null;
 
@@ -135,8 +143,9 @@ export default function NotificationProvider({ children }: { children: React.Rea
       if (showBrowser && isAllowNewNotificationRef.current) {
         showBrowserNotification(notification);
         showToastNotification({
-          title: notification.title,
-          description: notification.content,
+          projectName: notification.project?.name || "프로젝트",
+          category: NOTIFICATION_TYPE_LABEL[notification.type] || "알림",
+          content: `${notification.title} | ${notification.content}`,
           onClick: () => navigateToNotificationTarget(notification),
         });
       }
