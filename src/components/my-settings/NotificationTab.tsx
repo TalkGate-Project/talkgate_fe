@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMe, type MeUser } from "@/hooks/useMe";
 import { AuthService } from "@/services/auth";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import { requestNotificationPermission } from "@/utils/notification";
 
 type NotificationKey = "consultationChat" | "news" | "organizationChat";
 
@@ -49,6 +50,77 @@ function Toggle({ enabled, disabled = false, onChange }: ToggleProps) {
         }`}
       />
     </button>
+  );
+}
+
+type BrowserPermissionStatus = NotificationPermission | "unsupported";
+
+const PERMISSION_STATUS_LABEL: Record<BrowserPermissionStatus, string> = {
+  granted: "허용됨",
+  denied: "차단됨",
+  default: "미설정",
+  unsupported: "브라우저 미지원",
+};
+
+function BrowserPermissionTestSection() {
+  const [status, setStatus] = useState<BrowserPermissionStatus>("unsupported");
+  const [isRequesting, setIsRequesting] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+
+    setStatus(Notification.permission);
+
+    if (!("permissions" in navigator)) return;
+
+    let permissionStatus: PermissionStatus | null = null;
+
+    navigator.permissions
+      .query({ name: "notifications" as PermissionName })
+      .then((result) => {
+        permissionStatus = result;
+        setStatus(Notification.permission);
+        result.onchange = () => setStatus(Notification.permission);
+      })
+      .catch(() => {});
+
+    return () => {
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, []);
+
+  const handleTestClick = async () => {
+    if (isRequesting) return;
+    setIsRequesting(true);
+    try {
+      const result = await requestNotificationPermission();
+      setStatus(result);
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  return (
+    <div className="px-6 md:px-7 py-6 md:py-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0 pr-4">
+          <div className="text-[16px] leading-[1] font-semibold text-foreground mb-1">
+            브라우저 알림 권한 테스트
+          </div>
+          <div className="text-[14px] leading-[1] font-medium text-neutral-60">
+            현재 상태: {PERMISSION_STATUS_LABEL[status]} · 다른 기능과 무관하게 권한 요청만 단독으로 실행합니다.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => void handleTestClick()}
+          disabled={isRequesting || status === "unsupported"}
+          className="cursor-pointer px-3 py-1.5 bg-neutral-90 text-white text-[12px] md:text-[14px] font-semibold dark:text-neutral-0 rounded-[5px] hover:opacity-90 transition-colors whitespace-nowrap flex-shrink-0 h-[34px] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isRequesting ? "요청 중..." : "권한 요청 테스트"}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -190,7 +262,10 @@ export default function NotificationTab() {
         </div>
 
         {/* Divider */}
-        <div className="md:hidden w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-0 md:my-4"></div>
+        <div className="w-full border-b border-[#e9e9e9] dark:!border-[#44444455] my-0 md:my-4"></div>
+
+        {/* 브라우저 알림 권한 테스트 (Edge quiet UI 이슈 조사용) */}
+        <BrowserPermissionTestSection />
       </div>
     </div>
   );
