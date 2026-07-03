@@ -384,6 +384,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
             projectName: projectNameRef.current || "프로젝트",
             category: "채팅",
             content: `${conversationName} | ${messageContent}`,
+            icon: "customer",
             onClick: () => {
               window.location.href = "/consult";
             },

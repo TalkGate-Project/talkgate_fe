@@ -506,6 +506,7 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
           projectName: projectNameRef.current || "프로젝트",
           category: "직원채팅",
           content: `${roomName} | ${messageContent}`,
+          icon: "teamChat",
           onClick: () => {
             window.dispatchEvent(new CustomEvent("tg:open-staff-chat"));
           },

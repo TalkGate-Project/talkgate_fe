@@ -1,3 +1,6 @@
+/** 토스트 왼쪽에 표시할 아이콘 종류. 렌더링 매핑은 ToastNotificationProvider가 담당 */
+export type ToastNotificationIcon = "teamChat" | "notice" | "customer" | "system";
+
 export type ToastNotificationPayload = {
   id: string;
   /** 프로젝트 이름 (제목) */
@@ -6,6 +9,7 @@ export type ToastNotificationPayload = {
   category: string;
   /** 한 줄로 표시되는 내용. 여러 항목을 이어붙일 때는 " | "로 구분 */
   content: string;
+  icon?: ToastNotificationIcon;
   onClick?: () => void;
 };
 
