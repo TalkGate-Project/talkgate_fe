@@ -9,7 +9,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
 import { NotificationsService } from "@/services/notifications";
 import type { NewNotificationEvent, Notification } from "@/types/notifications";
-import { showToastNotification } from "@/lib/toastNotificationEvents";
+import { showToastNotification, type ToastNotificationIcon } from "@/lib/toastNotificationEvents";
 
 const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
@@ -19,6 +19,14 @@ const NOTIFICATION_TYPE_LABEL: Record<Notification["type"], string> = {
   customer_schedule: "일정",
   customer_assignment: "담당배정",
   system: "시스템",
+};
+
+const NOTIFICATION_TYPE_ICON: Record<Notification["type"], ToastNotificationIcon> = {
+  notice: "notice",
+  customer_registration: "customer",
+  customer_schedule: "customer",
+  customer_assignment: "customer",
+  system: "system",
 };
 
 function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
@@ -146,6 +154,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
           projectName: notification.project?.name || "프로젝트",
           category: NOTIFICATION_TYPE_LABEL[notification.type] || "알림",
           content: `${notification.title} | ${notification.content}`,
+          icon: NOTIFICATION_TYPE_ICON[notification.type],
           onClick: () => navigateToNotificationTarget(notification),
         });
       }
