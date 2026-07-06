@@ -35,6 +35,7 @@ const COLOR_PALETTE = [
 ];
 
 const SCHEDULE_PRESETS = [
+  { label: "10분 후", minutes: 10 },
   { label: "30분 후", minutes: 30 },
   { label: "1시간 후", minutes: 60 },
   { label: "2시간 후", minutes: 120 },
