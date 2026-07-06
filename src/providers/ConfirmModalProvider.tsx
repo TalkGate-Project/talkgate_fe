@@ -155,7 +155,7 @@ export default function ConfirmModalProvider({
             onClick={handleCancel}
           />
           <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
-            <div className="px-8 pt-7 pb-6">
+            <div className="px-7 pt-6 pb-[30px]">
               <div
                 className={`flex items-start ${
                   state.title ? "justify-between" : "justify-end"
@@ -168,11 +168,12 @@ export default function ConfirmModalProvider({
                 ) : null}
                 <button
                   type="button"
-                  className="cursor-pointer h-8 w-8"
+                  className="cursor-pointer h-6 w-6"
                   onClick={handleCancel}
                   aria-label="close confirm modal"
                 >
                   <svg
+                    className="translate-[3px_1px]"
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
@@ -181,7 +182,7 @@ export default function ConfirmModalProvider({
                   >
                     <path
                       d="M6 18L18 6M6 6L18 18"
-                      stroke="#959595"
+                      stroke="#B0B0B0"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -262,7 +263,7 @@ export default function ConfirmModalProvider({
               </div>
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
-            <div className="flex justify-end gap-3 px-8 py-4">
+            <div className="flex justify-end gap-3 px-7 py-4">
               {state.cancelText ? (
                 <button
                   type="button"
