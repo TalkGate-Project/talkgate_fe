@@ -191,6 +191,9 @@ export default function BulkScheduleCreateModal({
           type: "success",
           title: "일정 추가",
           headline: "일정이 추가되었습니다.",
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
         });
       } else if (successCount === 0) {
         showErrorModal({
@@ -208,6 +211,9 @@ export default function BulkScheduleCreateModal({
           title: "일정 추가",
           headline: "일정이 일부 추가되었습니다.",
           description: `${successCount}건 성공, ${failedCount}건 실패했습니다.`,
+          confirmText: "확인",
+          cancelText: null,
+          hideCancel: true,
         });
       }
     } catch (e: any) {
