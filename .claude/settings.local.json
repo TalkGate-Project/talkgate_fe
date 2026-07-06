@@ -5,7 +5,24 @@
       "Bash(wc:*)",
       "Bash(find \"/c/Users/tbrk7/OneDrive/문서/GitHub/talkgate_fe/src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) ! -path \"*/node_modules/*\" -exec wc -l {} +)",
       "Bash(npx tsc *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "WebSearch",
+      "WebFetch(domain:support.google.com)",
+      "WebFetch(domain:blog.chromium.org)",
+      "WebFetch(domain:web.archive.org)",
+      "WebFetch(domain:www.usenix.org)",
+      "WebFetch(domain:research.google)",
+      "WebFetch(domain:pureinfotech.com)",
+      "WebFetch(domain:winaero.com)",
+      "WebFetch(domain:developer.chrome.com)",
+      "WebFetch(domain:blog.google)",
+      "Bash(ls *.md)",
+      "Bash(find . -maxdepth 2 -iname \"*.md\" -not -path \"*/node_modules/*\" -not -path \"*/.git/*\")",
+      "WebFetch(domain:blogs.windows.com)",
+      "Bash(npm run *)",
+      "Bash(git status *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

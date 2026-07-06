@@ -14,8 +14,10 @@ import { usePathname } from "next/navigation";
 import type { Socket } from "socket.io-client";
 import { talkgateSocket, Conversation } from "@/lib/realtime";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMe } from "@/hooks/useMe";
-import { showChatNotification, requestNotificationPermission } from "@/utils/notification";
+import { showChatNotification } from "@/utils/notification";
+import { showToastNotification } from "@/lib/toastNotificationEvents";
 import { getAccessToken } from "@/lib/token";
 import type {
   ConversationsListEvent,
@@ -95,11 +97,18 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
   const pathname = usePathname();
   const { user } = useMe();
+  const { project } = useCurrentProjectDetail();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
     return Number.isNaN(parsed) ? null : parsed;
   }, [selectedProjectId, ready]);
+
+  // 토스트 알림용 프로젝트 이름 (ref로 참조해 소켓 재연결 트리거에서 제외)
+  const projectNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    projectNameRef.current = project?.name || null;
+  }, [project?.name]);
 
   // 소켓 상태
   const socketRef = useRef<Socket | null>(null);
@@ -132,15 +141,6 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
 
   // 현재 활성 대화방 ID (읽음 처리용)
   const activeConversationIdRef = useRef<number | null>(null);
-
-  // 알림 권한 요청 (초기 마운트 시 한 번만)
-  useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      requestNotificationPermission().catch((err) => {
-        console.warn("Failed to request notification permission:", err);
-      });
-    }
-  }, []);
 
   // 총 안 읽은 메시지 수 계산
   const totalUnreadCount = useMemo(() => {
@@ -380,6 +380,15 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
              "새 메시지");
           
           showChatNotification(conversationName, messageContent);
+          showToastNotification({
+            projectName: projectNameRef.current || "프로젝트",
+            category: "채팅",
+            content: `${conversationName} | ${messageContent}`,
+            icon: "customer",
+            onClick: () => {
+              window.location.href = "/consult";
+            },
+          });
         }
 
         if (conversation) {

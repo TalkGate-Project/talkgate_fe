@@ -14,8 +14,10 @@ import type { Socket } from "socket.io-client";
 import { teamChatSocket } from "@/lib/teamChatSocket";
 import { getAccessToken } from "@/lib/token";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMe } from "@/hooks/useMe";
 import { showOrganizationChatNotification } from "@/utils/notification";
+import { showToastNotification } from "@/lib/toastNotificationEvents";
 import type {
   TeamRoom,
   TeamMessage,
@@ -88,11 +90,18 @@ export function useTeamChatContextSafe() {
 export default function TeamChatProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, ready] = useSelectedProjectId();
   const { user } = useMe();
+  const { project } = useCurrentProjectDetail();
   const projectId = useMemo(() => {
     if (!ready || !selectedProjectId) return null;
     const parsed = Number.parseInt(selectedProjectId, 10);
     return Number.isNaN(parsed) ? null : parsed;
   }, [selectedProjectId, ready]);
+
+  // 토스트 알림용 프로젝트 이름 (ref로 참조해 소켓 재연결 트리거에서 제외)
+  const projectNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    projectNameRef.current = project?.name || null;
+  }, [project?.name]);
 
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
@@ -493,6 +502,15 @@ export default function TeamChatProvider({ children }: { children: ReactNode }) 
               ? msg.fileName || "파일"
               : "새 메시지");
         showOrganizationChatNotification(roomName, messageContent);
+        showToastNotification({
+          projectName: projectNameRef.current || "프로젝트",
+          category: "직원채팅",
+          content: `${roomName} | ${messageContent}`,
+          icon: "teamChat",
+          onClick: () => {
+            window.dispatchEvent(new CustomEvent("tg:open-staff-chat"));
+          },
+        });
       }
 
       if (rid === activeId) {

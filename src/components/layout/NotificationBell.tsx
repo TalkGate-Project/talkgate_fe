@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { NotificationsService, type Notification as TGNotification } from "@/services/notifications";
 import type { NewNotificationEvent } from "@/types/notifications";
 import { setSelectedProjectId } from "@/lib/project";
+import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 import { getCurrentSubdomain, getMainDomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 
 // 공지 페이지와 동일한 규칙의 상대 시간 포맷터
@@ -62,6 +63,7 @@ export default function NotificationBell() {
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   // 백그라운드 리프레시 상태 (기존 데이터를 유지하면서 새 데이터 로드 중)
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMarkingAllAsRead, setIsMarkingAllAsRead] = useState(false);
   // 데이터가 한 번이라도 로드되었는지 여부
   const hasFetchedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -154,7 +156,15 @@ export default function NotificationBell() {
   }, []);
 
   const handleToggle = () => {
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      // 종 아이콘을 눌러 알림을 확인하려는 시점(실제 사용자 제스처)에 권한을 요청해야
+      // 브라우저(특히 Edge)가 제스처 없는 요청을 조용히 무시/차단하는 문제를 피할 수 있음
+      if (next) {
+        requestNotificationPermissionWithGuide();
+      }
+      return next;
+    });
   };
 
   const handleClickViewAll = () => {
@@ -166,6 +176,27 @@ export default function NotificationBell() {
 
     const notificationsUrl = `${window.location.protocol}//${getMainDomain()}/notifications`;
     window.location.href = notificationsUrl;
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (isMarkingAllAsRead || unreadCount === 0) return;
+
+    setIsMarkingAllAsRead(true);
+    try {
+      await NotificationsService.markAllAsRead();
+      setUnreadCount(0);
+      setNotifications((prev) =>
+        prev.map((notification) => ({
+          ...notification,
+          isRead: true,
+          readAt: notification.readAt ?? new Date().toISOString(),
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    } finally {
+      setIsMarkingAllAsRead(false);
+    }
   };
 
   const navigateByNotificationProject = useCallback((notification: TGNotification, path: string) => {
@@ -228,6 +259,12 @@ export default function NotificationBell() {
         notification,
         `/customers?openCustomerId=${notification.referenceId}`
       );
+    } else if (notification.type === "customer_schedule" && notification.referenceId) {
+      // 고객 스케쥴 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
       navigateByNotificationProject(notification, "/customers");
@@ -274,18 +311,34 @@ export default function NotificationBell() {
 
       {/* 드롭다운 플로팅 */}
       {isOpen && (
-        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] pt-5 z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
+        <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-[360px] h-[416px] bg-card rounded-[10px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] z-50 lg:absolute lg:left-auto lg:right-[-16px] lg:top-[50px] lg:translate-x-0 lg:translate-y-0 lg:w-[360px]">
           <div className="h-full flex flex-col">
             {/* 헤더 */}
-            <div className="h-10 px-5 border-b border-border flex items-start justify-between">
+            <div className="px-5 pt-[20px] pb-[20px] border-b border-border flex items-center justify-between gap-2">
               <span className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
                 새로운 소식
               </span>
-              {isRefreshing && (
-                <span className="text-[12px] text-neutral-60 animate-pulse">
-                  업데이트 중...
-                </span>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {isRefreshing && (
+                  <span className="text-[12px] text-neutral-60 animate-pulse whitespace-nowrap">
+                    업데이트 중...
+                  </span>
+                )}
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleMarkAllAsRead()}
+                    disabled={isMarkingAllAsRead}
+                    className={`h-[28px] px-2.5 rounded-[5px] bg-card border border-neutral-30 text-foreground text-[12px] font-semibold whitespace-nowrap ${
+                      isMarkingAllAsRead
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:bg-muted"
+                    }`}
+                  >
+                    {isMarkingAllAsRead ? "처리 중..." : "모두 읽음 처리"}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* 목록 */}

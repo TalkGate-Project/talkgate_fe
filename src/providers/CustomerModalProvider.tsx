@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import CustomerDetailModal from "@/components/customers/CustomerDetailModal";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 
 type CustomerModalContextValue = {
   openCustomerModal: (customerId: number) => void;
@@ -23,6 +25,8 @@ export default function CustomerModalProvider({ children }: { children: React.Re
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const [projectId] = useSelectedProjectId();
   const [isOpen, setIsOpen] = useState(false);
   const [customerId, setCustomerId] = useState<number | null>(null);
 
@@ -35,6 +39,13 @@ export default function CustomerModalProvider({ children }: { children: React.Re
     setIsOpen(false);
     setCustomerId(null);
   }, []);
+
+  const handleCustomerUpdated = useCallback(() => {
+    if (!projectId) return;
+    queryClient.invalidateQueries({
+      queryKey: ["dashboard", "schedule", projectId],
+    });
+  }, [projectId, queryClient]);
 
   // 커스텀 이벤트 리스닝 (브라우저 알림 클릭 등에서 사용)
   useEffect(() => {
@@ -74,7 +85,12 @@ export default function CustomerModalProvider({ children }: { children: React.Re
   return (
     <CustomerModalContext.Provider value={{ openCustomerModal, closeCustomerModal }}>
       {children}
-      <CustomerDetailModal open={isOpen} onClose={closeCustomerModal} customerId={customerId} />
+      <CustomerDetailModal
+        open={isOpen}
+        onClose={closeCustomerModal}
+        customerId={customerId}
+        onCustomerUpdated={handleCustomerUpdated}
+      />
     </CustomerModalContext.Provider>
   );
 }

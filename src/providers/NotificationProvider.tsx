@@ -7,41 +7,88 @@ import { setSelectedProjectId } from "@/lib/project";
 import { getProjectSubdomainUrl } from "@/lib/subdomain";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMe } from "@/hooks/useMe";
-import type { NewNotificationEvent } from "@/types/notifications";
+import { NotificationsService } from "@/services/notifications";
+import type { NewNotificationEvent, Notification } from "@/types/notifications";
+import { showToastNotification, type ToastNotificationIcon } from "@/lib/toastNotificationEvents";
 
-// Browser notification permission status
-export type NotificationPermission = "default" | "granted" | "denied";
+const NOTIFICATION_POLL_INTERVAL_MS = 15_000;
 
-// Request browser notification permission
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (typeof window === "undefined" || !("Notification" in window)) {
-    return "denied";
+const NOTIFICATION_TYPE_LABEL: Record<Notification["type"], string> = {
+  notice: "공지",
+  customer_registration: "고객",
+  customer_schedule: "일정",
+  customer_assignment: "담당배정",
+  system: "시스템",
+};
+
+const NOTIFICATION_TYPE_ICON: Record<Notification["type"], ToastNotificationIcon> = {
+  notice: "notice",
+  customer_registration: "customer",
+  customer_schedule: "customer",
+  customer_assignment: "customer",
+  system: "system",
+};
+
+function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const event = payload as Partial<NewNotificationEvent> & Partial<Notification>;
+
+  if (
+    event.notification &&
+    typeof event.notification === "object" &&
+    typeof event.notification.id === "number"
+  ) {
+    return event.notification;
   }
 
-  if (Notification.permission === "granted") {
-    return "granted";
+  if (typeof event.id === "number" && typeof event.type === "string") {
+    return event as Notification;
   }
 
-  if (Notification.permission === "denied") {
-    return "denied";
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    return permission as NotificationPermission;
-  } catch (error) {
-    console.error("Failed to request notification permission:", error);
-    return "denied";
-  }
+  return null;
 }
 
-// Show browser notification
-function showBrowserNotification(notification: NewNotificationEvent["notification"]): void {
+function resolveNotificationUrl(notification: Notification): string {
+  const targetSubdomain = notification.project?.subDomain?.trim();
+  const withSubdomain = (path: string) =>
+    (targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "") || path;
+
+  if (notification.type === "notice" && notification.referenceId) {
+    return withSubdomain(`/notice/${notification.referenceId}`);
+  }
+  if (notification.type === "customer_registration" && notification.referenceId) {
+    return withSubdomain(`/customers?openCustomerId=${notification.referenceId}`);
+  }
+  if (notification.type === "customer_schedule" && notification.referenceId) {
+    return withSubdomain(`/customers?openCustomerId=${notification.referenceId}`);
+  }
+  if (notification.type === "customer_assignment") {
+    return withSubdomain("/customers");
+  }
+  if (notification.type === "system") {
+    return "/my-settings?tab=billing";
+  }
+  return "/notifications";
+}
+
+function navigateToNotificationTarget(notification: Notification): void {
+  if (notification.projectId) {
+    setSelectedProjectId(String(notification.projectId));
+  }
+  window.location.href = resolveNotificationUrl(notification);
+}
+
+function showBrowserNotification(notification: Notification): void {
   if (typeof window === "undefined" || !("Notification" in window)) {
     return;
   }
 
   if (Notification.permission !== "granted") {
+    console.error(
+      "Browser notification skipped: Notification.permission is",
+      Notification.permission
+    );
     return;
   }
 
@@ -49,121 +96,180 @@ function showBrowserNotification(notification: NewNotificationEvent["notificatio
     const browserNotification = new Notification(notification.title, {
       body: notification.content,
       icon: "/notification-icon.webp",
-      tag: `notification-${notification.id}`, // Prevent duplicate notifications
+      tag: `notification-${notification.id}`,
       requireInteraction: false,
       silent: false,
     });
 
-    // Close notification after 5 seconds
     setTimeout(() => {
       browserNotification.close();
     }, 5000);
 
-    // Handle click on notification - 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
     browserNotification.onclick = () => {
       window.focus();
       browserNotification.close();
-
-      if (notification.projectId) {
-        setSelectedProjectId(String(notification.projectId));
-      }
-      
-      // 알림 타입에 따라 적절한 페이지로 이동 또는 모달 띄우기
-      if (notification.type === "notice" && notification.referenceId) {
-        const path = `/notice/${notification.referenceId}`;
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "customer_registration" && notification.referenceId) {
-        const path = `/customers?openCustomerId=${notification.referenceId}`;
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "customer_assignment") {
-        const path = "/customers";
-        const targetSubdomain = notification.project?.subDomain?.trim();
-        const subdomainUrl = targetSubdomain ? getProjectSubdomainUrl(targetSubdomain, path) : "";
-        window.location.href = subdomainUrl || path;
-      } else if (notification.type === "system") {
-        window.location.href = "/my-settings?tab=billing";
-      } else {
-        // 기본적으로 알림 페이지로 이동
-        window.location.href = "/notifications";
-      }
+      navigateToNotificationTarget(notification);
     };
   } catch (error) {
     console.error("Failed to show browser notification:", error);
   }
 }
 
-/**
- * Global Notification Provider Component
- * Manages WebSocket connection for notifications and displays browser notifications
- */
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [projectId, ready] = useSelectedProjectId();
   const { user } = useMe();
-  const permissionRequestedRef = useRef(false);
+  const knownNotificationIdsRef = useRef<Set<number>>(new Set());
+  const seedCompleteRef = useRef(false);
+  const pendingDuringSeedRef = useRef<Notification[]>([]);
+  const isAllowNewNotificationRef = useRef(true);
 
-  // Request notification permission once when component mounts
   useEffect(() => {
-    if (!permissionRequestedRef.current && typeof window !== "undefined" && "Notification" in window) {
-      // Request permission after a short delay to avoid blocking initial render
-      const timer = setTimeout(() => {
-        requestNotificationPermission().catch((error) => {
-          console.error("Failed to request notification permission:", error);
-        });
-        permissionRequestedRef.current = true;
-      }, 1000);
+    isAllowNewNotificationRef.current = user?.isAllowNewNotification !== false;
+  }, [user?.isAllowNewNotification]);
 
-      return () => clearTimeout(timer);
-    }
+  const dispatchNewNotificationEvent = useCallback((notification: Notification) => {
+    if (typeof window === "undefined") return;
+
+    window.dispatchEvent(
+      new CustomEvent("tg:new-notification", {
+        detail: {
+          notification,
+          timestamp: notification.createdAt,
+        } satisfies NewNotificationEvent,
+      })
+    );
   }, []);
 
-  // Handle new notification event
-  const handleNewNotification = useCallback((event: NewNotificationEvent) => {
-    // 알림 설정 확인 (새로운 소식 알림이 켜져 있는지)
-    const isNewsNotificationEnabled = Boolean(user?.isAllowNewNotification);
-    
-    if (!isNewsNotificationEnabled) {
-      // 알림 설정이 꺼져 있으면 브라우저 알림을 표시하지 않음
-      // 하지만 이벤트는 여전히 발행하여 UI 업데이트는 진행
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("tg:new-notification", {
-            detail: event,
-          })
-        );
+  const deliverNotification = useCallback(
+    (notification: Notification, showBrowser: boolean) => {
+      if (!notification?.id) return;
+      if (knownNotificationIdsRef.current.has(notification.id)) return;
+
+      knownNotificationIdsRef.current.add(notification.id);
+      dispatchNewNotificationEvent(notification);
+
+      if (showBrowser && isAllowNewNotificationRef.current) {
+        showBrowserNotification(notification);
+        showToastNotification({
+          projectName: notification.project?.name || "프로젝트",
+          category: NOTIFICATION_TYPE_LABEL[notification.type] || "알림",
+          content: `${notification.title} | ${notification.content}`,
+          icon: NOTIFICATION_TYPE_ICON[notification.type],
+          onClick: () => navigateToNotificationTarget(notification),
+        });
       }
+    },
+    [dispatchNewNotificationEvent]
+  );
+
+  const flushPendingNotifications = useCallback(() => {
+    const pending = pendingDuringSeedRef.current.splice(0);
+    for (const notification of pending) {
+      deliverNotification(notification, true);
+    }
+  }, [deliverNotification]);
+
+  const handleIncomingNotification = useCallback(
+    (notification: Notification | null | undefined, showBrowser: boolean) => {
+      if (!notification?.id) return;
+
+      if (!seedCompleteRef.current) {
+        if (!pendingDuringSeedRef.current.some((item) => item.id === notification.id)) {
+          pendingDuringSeedRef.current.push(notification);
+        }
+        return;
+      }
+
+      deliverNotification(notification, showBrowser);
+    },
+    [deliverNotification]
+  );
+
+  const handleNewNotification = useCallback(
+    (payload: NewNotificationEvent) => {
+      const notification = parseNotificationFromSocketPayload(payload);
+      handleIncomingNotification(notification, true);
+    },
+    [handleIncomingNotification]
+  );
+
+  useEffect(() => {
+    if (!ready) return;
+
+    const numericProjectId = projectId ? Number.parseInt(projectId, 10) : null;
+    if (!numericProjectId || Number.isNaN(numericProjectId)) {
       return;
     }
 
-    // Show browser notification
-    showBrowserNotification(event.notification);
+    let cancelled = false;
+    knownNotificationIdsRef.current = new Set();
+    pendingDuringSeedRef.current = [];
+    seedCompleteRef.current = false;
 
-    // You can also dispatch a custom event or update React Query cache here
-    // For example, invalidate notification queries to refetch
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("tg:new-notification", {
-          detail: event,
-        })
-      );
-    }
-  }, [user?.isAllowNewNotification]);
+    const pollNotifications = async () => {
+      if (cancelled) return;
 
-  // Connect to notification WebSocket when project is ready
+      try {
+        const response = await NotificationsService.list({ limit: 10 });
+        if (cancelled) return;
+
+        const isInitialSeed = !seedCompleteRef.current;
+
+        for (const notification of response.notifications) {
+          if (isInitialSeed) {
+            knownNotificationIdsRef.current.add(notification.id);
+            continue;
+          }
+
+          handleIncomingNotification(notification, true);
+        }
+
+        if (isInitialSeed) {
+          seedCompleteRef.current = true;
+          flushPendingNotifications();
+        }
+      } catch (error) {
+        console.error("Failed to poll notifications:", error);
+        if (!seedCompleteRef.current) {
+          seedCompleteRef.current = true;
+          flushPendingNotifications();
+        }
+      }
+    };
+
+    void pollNotifications();
+
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void pollNotifications();
+      }
+    }, NOTIFICATION_POLL_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void pollNotifications();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [ready, projectId, handleIncomingNotification, flushPendingNotifications]);
+
   useEffect(() => {
     if (!ready) return;
 
     const numericProjectId = projectId ? Number.parseInt(projectId, 10) : null;
 
     if (!numericProjectId || Number.isNaN(numericProjectId)) {
-      // Disconnect if no valid project ID
       notificationSocket.disconnect();
       return;
     }
-    
+
     const accessToken = getAccessToken();
     if (!accessToken) {
       notificationSocket.disconnect();
@@ -176,15 +282,12 @@ export default function NotificationProvider({ children }: { children: React.Rea
         return;
       }
 
-      // Listen for Ready event
       socket.on("ready", () => {
         // Socket ready
       });
 
-      // Listen for new notifications
       notificationSocket.onNewNotification(handleNewNotification);
 
-      // Handle connection errors
       socket.on("connect_error", (error) => {
         console.error("Notification socket connection error:", error);
       });
@@ -202,7 +305,6 @@ export default function NotificationProvider({ children }: { children: React.Rea
     }
   }, [ready, projectId, handleNewNotification]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       notificationSocket.disconnect();
@@ -211,4 +313,3 @@ export default function NotificationProvider({ children }: { children: React.Rea
 
   return <>{children}</>;
 }
-

@@ -17,6 +17,7 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
       return "notice";
     case "customer_assignment":
     case "customer_registration":
+    case "customer_schedule":
       return "customer";
     case "system":
       return "system";
@@ -68,7 +69,7 @@ function NotificationsPageContentInner() {
       // 향후 API에 카테고리별 카운트 엔드포인트가 추가되면 서버 사이드 카운트로 변경 필요
       const allCount = uiNotifications.length;
       const noticeCount = uiNotifications.filter((n) => n.type === "notice").length;
-      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration").length;
+      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration" || n.type === "customer_schedule").length;
       const systemCount = uiNotifications.filter((n) => n.type === "system").length;
       // TODO: security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
       const securityCount = 0;
@@ -167,6 +168,12 @@ function NotificationsPageContentInner() {
         notification,
         `/customers?openCustomerId=${notification.referenceId}`
       );
+    } else if (notification.type === "customer_schedule" && notification.referenceId) {
+      // 고객 스케쥴 알림: 고객 목록으로 이동 후 상세 모달 오픈
+      navigateByNotificationProject(
+        notification,
+        `/customers?openCustomerId=${notification.referenceId}`
+      );
     } else if (notification.type === "customer_assignment") {
       // 고객 할당 알림: 고객 목록 페이지로 이동
       navigateByNotificationProject(notification, "/customers");
@@ -182,6 +189,7 @@ function NotificationsPageContentInner() {
         return <NoticeMegaphoneIcon />;
       case "customer_assignment":
       case "customer_registration":
+      case "customer_schedule":
         return <NoticeUsersIcon />;
       case "system":
         return <NoticeCogIcon />;
@@ -235,9 +243,9 @@ function NotificationsPageContentInner() {
             <div className="px-4 md:px-7 py-4 md:py-7">
               <div className="flex items-center justify-between gap-2 md:gap-4">
                 <div className="flex items-center gap-2 md:gap-4">
-                  <h1 className="text-[18px] md:text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
+                  <h1 className="translate-y-[3px] text-[18px] md:text-[24px] leading-[20px] font-bold tracking-[-0.02em] text-foreground">새로운 소식</h1>
                   <div className="hidden md:block w-px h-4 bg-neutral-60" />
-                  <p className="hidden md:block text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
+                  <p className="hidden md:block translate-y-[3px] text-[18px] leading-[20px] font-medium tracking-[-0.02em] text-neutral-60">새로운 소식을 확인하세요</p>
                 </div>
                 <button
                   onClick={handleMarkAllAsRead}

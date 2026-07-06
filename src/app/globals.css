@@ -577,6 +577,12 @@ body {
 [data-theme="dark"] .bg-primary-10\/30 {
   background-color: rgb(var(--color-green-100-rgb) / 0.1);
 }
+.dark .bg-primary-10\/40 {
+  background-color: rgb(var(--color-green-100-rgb) / 0.12);
+}
+[data-theme="dark"] .bg-primary-10\/40 {
+  background-color: rgb(var(--color-green-100-rgb) / 0.12);
+}
 
 @utility border-primary-10 { border-color: var(--primary-10); }
 @utility border-primary-20 { border-color: var(--primary-20); }
@@ -830,6 +836,22 @@ svg path:focus {
 
 @utility animate-shake {
   animation: shake 0.5s ease-in-out;
+}
+
+/* Slide-up animation for site-wide toast notification */
+@keyframes toast-slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-toast-slide-up {
+  animation: toast-slide-up 0.25s ease-out;
 }
 
 /* AI Markdown response styles */
