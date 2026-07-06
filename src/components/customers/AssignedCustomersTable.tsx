@@ -109,6 +109,9 @@ export default function AssignedCustomersTable() {
     queryClient.invalidateQueries({
       queryKey: ["dashboard", "recently-assigned", projectId],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["dashboard", "schedule", projectId],
+    });
   }, [projectId, queryClient]);
 
   return (

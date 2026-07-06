@@ -491,6 +491,12 @@ export default function CalendarSection() {
         open={selectedCustomerId !== null}
         onClose={() => setSelectedCustomerId(null)}
         customerId={selectedCustomerId}
+        onCustomerUpdated={() => {
+          if (!projectId) return;
+          queryClient.invalidateQueries({
+            queryKey: ["dashboard", "schedule", projectId],
+          });
+        }}
       />
     </Panel>
   );
