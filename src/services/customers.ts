@@ -23,6 +23,8 @@ import {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkCreateSchedulesInput,
+  BulkCreateSchedulesResponse,
   BulkDeleteCustomersInput,
   UnassignCustomersInput,
   UnassignCustomersResponse,
@@ -255,6 +257,15 @@ export const CustomersService = {
       headers: { "x-project-id": input.projectId },
     });
   },
+  // 일정 일괄 등록 (고객 ID 목록 또는 필터 조건으로 대상 지정)
+  bulkCreateSchedules(input: BulkCreateSchedulesInput) {
+    const { projectId, colorCode, ...rest } = input;
+    // colorCode에 # 접두사 보장
+    const normalizedColorCode = colorCode?.startsWith("#") ? colorCode : `#${colorCode}`;
+    return apiClient.post<BulkCreateSchedulesResponse>(`/v1/customers/schedules/bulk`, { ...rest, colorCode: normalizedColorCode }, {
+      headers: { "x-project-id": projectId },
+    });
+  },
   // 고객 할당 해제 (Admin)
   unassign(input: UnassignCustomersInput) {
     const { projectId, ...body } = input;
@@ -316,6 +327,9 @@ export type {
   RemoveCustomerPaymentHistoryInput,
   AddCustomerScheduleInput,
   RemoveCustomerScheduleInput,
+  BulkCreateSchedulesInput,
+  BulkCreateSchedulesResponse,
+  BulkCreateSchedulesFilterConditions,
   BulkDeleteCustomersInput,
   DeleteCustomersFilterConditions,
   UnassignCustomersInput,

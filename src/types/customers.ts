@@ -497,6 +497,56 @@ export type RemoveCustomerScheduleInput = {
   projectId: string; // header
 };
 
+// Bulk create schedules (여러 고객에게 동일한 일정 일괄 등록)
+export type BulkCreateSchedulesFilterConditions = {
+  name?: string;
+  contact1?: string;
+  contact2?: string;
+  noteContent?: string;
+  assignType?: "all" | string;
+  teamId?: number;
+  memberId?: number;
+  applicationRoute?: string;
+  mediaCompany?: string;
+  site?: string;
+  categoryIds?: (number | string)[];
+  applicationDateFrom?: string;
+  applicationDateTo?: string;
+  assignedAtFrom?: string;
+  assignedAtTo?: string;
+  projectPartnerId?: number;
+  apiKeyId?: number;
+  ipAddress?: string;
+  keyword?: string;
+  summary?: string;
+  specialNotes?: string;
+};
+
+export type BulkCreateSchedulesInput = {
+  assignmentType: "ids" | "filter";
+  /** assignmentType === "ids"일 때 필수 */
+  customerIds?: number[];
+  /** assignmentType === "filter"일 때 사용 */
+  filterConditions?: BulkCreateSchedulesFilterConditions;
+  /** assignmentType === "filter"일 때 예상 건수 (선택) */
+  expectedCount?: number;
+  scheduleTime: string; // ISO
+  description: string;
+  /** 6자리 HEX (예: "#00E272"), '#' 포함 */
+  colorCode: string;
+  projectId: string; // header
+};
+
+export type BulkCreateSchedulesResponse = {
+  result: true;
+  data: {
+    successCount: number;
+    failedCount: number;
+    totalCount: number;
+    failedCustomerIds: number[];
+  };
+};
+
 // Confirm customer
 export type ConfirmCustomerResponse = {
   result: true;

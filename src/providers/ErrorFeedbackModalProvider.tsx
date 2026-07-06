@@ -211,17 +211,15 @@ export default function ErrorFeedbackModalProvider({
             onClick={handleOverlayClick}
           />
           <div
-            className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${
-              state.persistent && shakeActive ? "animate-shake" : ""
-            }`}
+            className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${state.persistent && shakeActive ? "animate-shake" : ""
+              }`}
             onClick={(e) => e.stopPropagation()}
             onAnimationEnd={() => setShakeActive(false)}
           >
-            <div className="px-4 md:px-8 pt-7 pb-6">
+            <div className="px-7 pt-6 pb-[30px]">
               <div
-                className={`flex items-start ${
-                  state.title ? "justify-between" : "justify-end"
-                }`}
+                className={`flex items-start ${state.title ? "justify-between" : "justify-end"
+                  }`}
               >
                 {state.title ? (
                   <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
@@ -231,24 +229,12 @@ export default function ErrorFeedbackModalProvider({
                 {!state.hideCloseButton && (
                   <button
                     type="button"
-                    className="cursor-pointer h-8 w-8"
+                    className="cursor-pointer h-6 w-6"
                     onClick={handleCloseButtonClick}
                     aria-label="close error modal"
                   >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M6 18L18 6M6 6L18 18"
-                        stroke="#959595"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                    <svg className="translate-[3px_1px]" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 18L18 6M6 6L18 18" stroke="#B0B0B0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                   </button>
                 )}
@@ -325,13 +311,12 @@ export default function ErrorFeedbackModalProvider({
               </div>
               {state.headline && (
                 <p
-                  className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${
-                    state.type === "error"
+                  className={`mt-6 text-center text-[18px] font-semibold leading-[21px] ${state.type === "error"
                       ? "text-danger-40"
                       : state.type === "info"
-                      ? "text-secondary-80 dark:text-secondary-20"
-                      : "text-neutral-90 dark:text-neutral-80"
-                  }`}
+                        ? "text-secondary-80 dark:text-secondary-20"
+                        : "text-neutral-90 dark:text-neutral-80"
+                    }`}
                 >
                   {state.headline}
                 </p>
@@ -343,7 +328,7 @@ export default function ErrorFeedbackModalProvider({
               )}
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
-            <div className="flex justify-end gap-3 px-4 md:px-8 py-4">
+            <div className="flex justify-end gap-3 px-7 py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"
@@ -355,13 +340,12 @@ export default function ErrorFeedbackModalProvider({
               ) : null}
               <button
                 type="button"
-                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
-                  state.type === "error"
+                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${state.type === "error"
                     ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                     : state.type === "success"
-                    ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
-                    : "bg-secondary-80 dark:bg-secondary-20 text-white"
-                }`}
+                      ? "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
+                      : "bg-secondary-80 dark:bg-secondary-20 text-white"
+                  }`}
                 onClick={handleConfirm}
                 disabled={confirming}
               >

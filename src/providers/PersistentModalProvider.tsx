@@ -163,18 +163,19 @@ export default function PersistentModalProvider({
               shake ? "animate-shake" : ""
             }`}
           >
-            <div className="px-4 md:px-8 pt-7 pb-10">
+            <div className="px-7 pt-6 pb-10">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
                   {state.title}
                 </h2>
                 <button
                   type="button"
-                  className="cursor-pointer h-8 w-8 flex items-center justify-center"
+                  className="cursor-pointer h-6 w-6 flex items-center justify-center"
                   onClick={hide}
                   aria-label="모달 닫기"
                 >
                   <svg
+                    className="translate-[3px_1px]"
                     width="24"
                     height="24"
                     viewBox="0 0 24 24"
@@ -276,7 +277,7 @@ export default function PersistentModalProvider({
               )}
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
-            <div className="flex justify-end gap-3 px-4 md:px-8 py-4">
+            <div className="flex justify-end gap-3 px-7 py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"

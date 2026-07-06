@@ -693,7 +693,7 @@ export default function CustomersTable({
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-center text-neutral-70 whitespace-nowrap">
                         {rowNumber > 0 ? rowNumber : "-"}
                       </td>
-                      <td className="table-cell px-2 md:px-6 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
                           <span className="block min-w-0 flex-1 truncate leading-[17px]">
                             {c.name || "-"}
@@ -946,7 +946,7 @@ export default function CustomersTable({
                             {/* 체크박스/순번 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                             <td className="px-2 md:px-4 h-[44px]" />
-                            <td className="table-cell px-2 md:px-6 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
                               <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
                                 <span className="block min-w-0 flex-1 truncate leading-[17px]">
                                   {item.name || "-"}
