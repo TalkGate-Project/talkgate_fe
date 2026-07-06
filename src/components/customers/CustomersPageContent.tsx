@@ -19,6 +19,7 @@ import FilterChips from "@/components/customers/FilterChips";
 import CustomersTable from "@/components/customers/CustomersTable";
 import CustomersPagination from "@/components/customers/CustomersPagination";
 import CustomersActions from "@/components/customers/CustomersActions";
+import BulkScheduleCreateModal from "@/components/customers/BulkScheduleCreateModal";
 import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useMyMember } from "@/hooks/useMyMember";
@@ -184,6 +185,7 @@ function CustomersPageContentInner() {
   const [assignFromDetailId, setAssignFromDetailId] = useState<number | null>(null);
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isSmsOpen, setSmsOpen] = useState(false);
+  const [isBulkScheduleOpen, setBulkScheduleOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
 
   const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
@@ -446,6 +448,7 @@ function CustomersPageContentInner() {
             onAssignOpen={() => setAssignOpen(true)}
             onCreateOpen={() => setCreateOpen(true)}
             onSmsOpen={() => setSmsOpen(true)}
+            onBulkScheduleOpen={() => setBulkScheduleOpen(true)}
             onShareSuccess={() => { refetch(); clearSelection(); }}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
@@ -545,6 +548,21 @@ function CustomersPageContentInner() {
           clearSelection();
           refetch();
         }}
+      />
+
+      <BulkScheduleCreateModal
+        open={isBulkScheduleOpen}
+        onClose={() => setBulkScheduleOpen(false)}
+        onSuccess={() => {
+          clearSelection();
+          refetch();
+        }}
+        projectId={projectId!}
+        selectedIds={selectedIds}
+        selectionMode={selectionMode}
+        appliedFilters={applied}
+        total={total}
+        selectedCount={selectionMode === "all" ? total : selectedIds.length}
       />
       </div>
     </main>
