@@ -20,6 +20,7 @@ export type CustomersActionsProps = {
   onAssignOpen: () => void;
   onCreateOpen: () => void;
   onSmsOpen: () => void;
+  onBulkScheduleOpen: () => void;
   onShareSuccess?: () => void;
   onDeleteSuccess?: () => void;
   /** 데이터 제공자 프로젝트일 때만 파트너배정 버튼 노출 조건에 포함 (기본 false) */
@@ -104,6 +105,7 @@ export default function CustomersActions({
   onAssignOpen,
   onCreateOpen,
   onSmsOpen,
+  onBulkScheduleOpen,
   onShareSuccess,
   onDeleteSuccess,
   isDataProvider: _isDataProvider = false,
@@ -348,6 +350,17 @@ export default function CustomersActions({
                 <path d="M5.83333 6.66665H14.1667M5.83333 9.99998H9.16667M10 16.6666L6.66667 13.3333H4.16667C3.24619 13.3333 2.5 12.5871 2.5 11.6666V4.99998C2.5 4.07951 3.24619 3.33331 4.16667 3.33331H15.8333C16.7538 3.33331 17.5 4.07951 17.5 4.99998V11.6666C17.5 12.5871 16.7538 13.3333 15.8333 13.3333H13.3333L10 16.6666Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
+            <button
+              type="button"
+              className={iconOnlyButtonClass}
+              onClick={onBulkScheduleOpen}
+              disabled={selectedIds.length === 0 && selectionMode !== "all"}
+              aria-label="일정추가"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
           <div className="flex items-center gap-4 flex-shrink-0">
             {showDeleteButton && (
@@ -465,6 +478,17 @@ export default function CustomersActions({
               <path d="M5.83333 6.66665H14.1667M5.83333 9.99998H9.16667M10 16.6666L6.66667 13.3333H4.16667C3.24619 13.3333 2.5 12.5871 2.5 11.6666V4.99998C2.5 4.07951 3.24619 3.33331 4.16667 3.33331H15.8333C16.7538 3.33331 17.5 4.07951 17.5 4.99998V11.6666C17.5 12.5871 16.7538 13.3333 15.8333 13.3333H13.3333L10 16.6666Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span>문자전송</span>
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
+            onClick={onBulkScheduleOpen}
+            disabled={selectedIds.length === 0 && selectionMode !== "all"}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+              <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>일정추가</span>
           </button>
           <div className="text-[14px] text-neutral-50">
             총 {total.toLocaleString()}건 ({selectedCount}개 선택)
