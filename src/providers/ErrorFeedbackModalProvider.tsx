@@ -217,7 +217,7 @@ export default function ErrorFeedbackModalProvider({
             onClick={(e) => e.stopPropagation()}
             onAnimationEnd={() => setShakeActive(false)}
           >
-            <div className="px-4 md:px-8 pt-7 pb-6">
+            <div className="px-7 pt-6 pb-6">
               <div
                 className={`flex items-start ${
                   state.title ? "justify-between" : "justify-end"
@@ -343,7 +343,7 @@ export default function ErrorFeedbackModalProvider({
               )}
             </div>
             <div className="h-px w-full bg-neutral-30 dark:bg-neutral-30" />
-            <div className="flex justify-end gap-3 px-4 md:px-8 py-4">
+            <div className="flex justify-end gap-3 px-7 py-4">
               {!state.hideCancel && state.cancelText ? (
                 <button
                   type="button"
