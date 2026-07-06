@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import TableSkeletonRow from "@/components/common/TableSkeletonRow";
 import ChartSkeleton from "@/components/common/ChartSkeleton";
 import ScheduleSkeleton from "@/components/dashboard/ScheduleSkeleton";
@@ -17,6 +17,25 @@ import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
+
+// 각 섹션의 id/제목. id는 URL 해시(/test#id)와 목차 링크에서 그대로 사용된다.
+const SECTIONS = [
+  { id: "버튼로딩상태", label: "버튼 로딩 상태" },
+  { id: "테이블행스켈레톤", label: "테이블 행 스켈레톤" },
+  { id: "차트스켈레톤", label: "차트 스켈레톤" },
+  { id: "스케줄스켈레톤", label: "스케줄 스켈레톤" },
+  { id: "랭킹스켈레톤", label: "랭킹 스켈레톤" },
+  { id: "스피너크기별테스트", label: "스피너 크기별 테스트" },
+  { id: "스피너색상별테스트", label: "스피너 색상별 테스트" },
+  { id: "인라인로딩상태", label: "인라인 로딩 상태" },
+  { id: "모달테스트", label: "모달 테스트" },
+  { id: "PersistentModal테스트", label: "Persistent Modal 테스트" },
+  { id: "구독활성화모달테스트", label: "구독 활성화 모달 테스트" },
+  { id: "파트너요청모달테스트", label: "파트너 요청 모달 테스트" },
+  { id: "구독유도모달테스트", label: "구독 유도 모달 테스트" },
+  { id: "개인정보처리위탁계약동의모달테스트", label: "개인정보 처리 위탁 계약 동의 모달 테스트" },
+  { id: "구독만료모달테스트", label: "구독 만료 모달 테스트" },
+] as const;
 
 export default function TestPage() {
   const persistentModal = usePersistentModal();
@@ -39,6 +58,17 @@ export default function TestPage() {
   const [showPartnerRequestModal, setShowPartnerRequestModal] = useState(false);
   const [showSubscribeProjectModal, setShowSubscribeProjectModal] = useState(false);
   const [showPrivacyConsentModal, setShowPrivacyConsentModal] = useState(false);
+
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const scrollToSection = (id: string, behavior: ScrollBehavior = "smooth") => {
+    const el = sectionRefs.current[id];
+    if (!el) return;
+    el.scrollIntoView({ behavior, block: "start" });
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
 
   // 테스트용 파트너 요청 더미 데이터
   const dummyPartnerRequests: ProjectPartnerRequest[] = [
@@ -67,6 +97,14 @@ export default function TestPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // /test#섹션id 로 직접 진입했을 때 해당 섹션으로 스크롤
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    const hash = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!hash) return;
+    requestAnimationFrame(() => scrollToSection(hash, "auto"));
+  }, [mounted]);
 
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
@@ -148,8 +186,32 @@ export default function TestPage() {
           </button>
         </div>
 
+        {/* 목차: 클릭하면 해당 섹션으로 스무스 스크롤 + URL 해시 갱신 (예: /test#모달테스트 로 공유 가능) */}
+        <nav className="mb-8 p-4 bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60">
+          <h2 className="text-sm font-semibold text-neutral-60 dark:text-neutral-50 mb-3">목차</h2>
+          <div className="flex flex-wrap gap-2">
+            {SECTIONS.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(section.id);
+                }}
+                className="px-3 py-1.5 text-sm bg-neutral-10 dark:bg-neutral-20 text-neutral-70 dark:text-neutral-60 rounded-full hover:bg-neutral-20 dark:hover:bg-neutral-30 transition-colors"
+              >
+                {section.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+
         {/* 버튼 로딩 상태 테스트 */}
-        <section className="mb-12">
+        <section
+          id="버튼로딩상태"
+          ref={(el) => { sectionRefs.current["버튼로딩상태"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">버튼 로딩 상태</h2>
           <div className="flex flex-wrap gap-4">
             <button
@@ -200,7 +262,11 @@ export default function TestPage() {
         </section>
 
         {/* 테이블 행 스켈레톤 테스트 */}
-        <section className="mb-12">
+        <section
+          id="테이블행스켈레톤"
+          ref={(el) => { sectionRefs.current["테이블행스켈레톤"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-neutral-90">테이블 행 스켈레톤 (TableSkeletonRow)</h2>
             <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
@@ -360,7 +426,11 @@ export default function TestPage() {
         </section>
 
         {/* 차트 스켈레톤 테스트 */}
-        <section className="mb-12">
+        <section
+          id="차트스켈레톤"
+          ref={(el) => { sectionRefs.current["차트스켈레톤"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-neutral-90">차트 스켈레톤</h2>
             <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
@@ -404,7 +474,11 @@ export default function TestPage() {
         </section>
 
         {/* 스케줄 스켈레톤 테스트 */}
-        <section className="mb-12">
+        <section
+          id="스케줄스켈레톤"
+          ref={(el) => { sectionRefs.current["스케줄스켈레톤"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-neutral-90">스케줄 스켈레톤</h2>
             <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
@@ -444,7 +518,11 @@ export default function TestPage() {
         </section>
 
         {/* 랭킹 스켈레톤 테스트 */}
-        <section className="mb-12">
+        <section
+          id="랭킹스켈레톤"
+          ref={(el) => { sectionRefs.current["랭킹스켈레톤"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-neutral-90">랭킹 스켈레톤</h2>
             <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
@@ -484,7 +562,11 @@ export default function TestPage() {
         </section>
 
         {/* 다양한 스피너 크기 테스트 */}
-        <section className="mb-12">
+        <section
+          id="스피너크기별테스트"
+          ref={(el) => { sectionRefs.current["스피너크기별테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">스피너 크기별 테스트</h2>
           <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="flex items-center gap-8 flex-wrap">
@@ -517,7 +599,11 @@ export default function TestPage() {
         </section>
 
         {/* 스피너 색상별 테스트 */}
-        <section className="mb-12">
+        <section
+          id="스피너색상별테스트"
+          ref={(el) => { sectionRefs.current["스피너색상별테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 dark:text-neutral-80 mb-4">스피너 색상별 테스트</h2>
           <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -653,9 +739,13 @@ export default function TestPage() {
         </section>
 
         {/* 인라인 로딩 상태 테스트 */}
-        <section className="mb-12">
+        <section
+          id="인라인로딩상태"
+          ref={(el) => { sectionRefs.current["인라인로딩상태"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">인라인 로딩 상태</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6 space-y-4">
             <div className="flex items-center gap-3">
               <LoadingSpinner size="sm" />
               <span className="text-neutral-90">데이터를 불러오는 중입니다...</span>
@@ -672,9 +762,13 @@ export default function TestPage() {
         </section>
 
         {/* 모달 테스트 */}
-        <section className="mb-12">
+        <section
+          id="모달테스트"
+          ref={(el) => { sectionRefs.current["모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">모달 테스트</h2>
-          <div className="bg-white rounded-lg border border-neutral-60 p-6">
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="space-y-4">
               {/* Confirm Modal 테스트 */}
               <div>
@@ -894,7 +988,11 @@ export default function TestPage() {
         </section>
 
         {/* Persistent Modal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="PersistentModal테스트"
+          ref={(el) => { sectionRefs.current["PersistentModal테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">Persistent Modal 테스트</h2>
           <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
             <div className="space-y-4">
@@ -1029,7 +1127,11 @@ export default function TestPage() {
         </section>
 
         {/* ReactivateSubscriptionModal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="구독활성화모달테스트"
+          ref={(el) => { sectionRefs.current["구독활성화모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 활성화 모달 테스트</h2>
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-neutral-70 dark:text-neutral-50">
@@ -1087,7 +1189,11 @@ export default function TestPage() {
         </section>
 
         {/* PartnerRequestModal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="파트너요청모달테스트"
+          ref={(el) => { sectionRefs.current["파트너요청모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">파트너 요청 모달 테스트</h2>
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-neutral-70 dark:text-neutral-50">
@@ -1136,7 +1242,11 @@ export default function TestPage() {
         </section>
 
         {/* SubscribeProjectModal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="구독유도모달테스트"
+          ref={(el) => { sectionRefs.current["구독유도모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 유도 모달 테스트</h2>
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-neutral-70 dark:text-neutral-50">
@@ -1170,7 +1280,11 @@ export default function TestPage() {
         </section>
 
         {/* ProjectPrivacyConsentModal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="개인정보처리위탁계약동의모달테스트"
+          ref={(el) => { sectionRefs.current["개인정보처리위탁계약동의모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">개인정보 처리 위탁 계약 동의 모달 테스트</h2>
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-neutral-70 dark:text-neutral-50">
@@ -1221,7 +1335,11 @@ export default function TestPage() {
         </section>
 
         {/* SubscribeProjectExpiredModal 테스트 */}
-        <section className="mb-12">
+        <section
+          id="구독만료모달테스트"
+          ref={(el) => { sectionRefs.current["구독만료모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
           <h2 className="text-2xl font-semibold text-neutral-90 mb-4">구독 만료 모달 테스트</h2>
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-neutral-70 dark:text-neutral-50">
