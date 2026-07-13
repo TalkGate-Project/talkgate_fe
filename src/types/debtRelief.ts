@@ -23,18 +23,25 @@ export type CustomerGender = "male" | "female";
 export type DiagnosisListItem = {
   id: string;
   customerName: string;
-  // 실 API(GET /v1/analysis) 목록 응답에는 없는 필드 — 상세 조회 전까지는 알 수 없어 optional.
+  // 목록 API에 있으면 채움. 숫자 나이(age) 또는 연령대 라벨(ageGroupLabel: "40대") 중 하나.
   age?: number;
+  ageGroupLabel?: string;
   gender?: CustomerGender;
   occupation?: string; // 표시용: 자영업, 프리랜서 등
   region: string; // 표시용: 서울, 경기·인천 등
   totalDebtManwon: number; // 총 채무 (만원)
   monthlyAvailableIncomeManwon: number; // 월 가용 소득 (만원, 음수 가능)
-  recommendedProcedure: RecommendedProcedure;
+  // 실 API 목록 응답엔 trackingProcedure만 내려오고, 아직 절차 추적을 시작하지 않은
+  // 건은 그마저도 null이라 알 수 없는 경우가 있다 — optional로 정직하게 표현.
+  recommendedProcedure?: RecommendedProcedure;
   successProbability: number; // 0~100
   progressStep: number; // 절차 안내 진행 단계 (1-based). 아직 추적 시작 전이면 1
   isShared: boolean; // 공유 링크 생성 여부
   consultedAt: string; // ISO 날짜 (YYYY-MM-DD)
+  // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버)
+  assigneeName?: string;
+  assigneeProfileImageUrl?: string;
+  assigneeProjectName?: string;
 };
 
 // 목록 테이블 "진행단계" 셀용. 상세 API의 procedureGuides가 목록에는 없어
@@ -57,28 +64,40 @@ export const PROCEDURE_PROGRESS_STEP_TITLES: Record<RecommendedProcedure, readon
 };
 
 export function getProgressStepMeta(
-  procedure: RecommendedProcedure,
+  procedure: RecommendedProcedure | undefined,
   step: number
 ): { current: number; total: number; title: string } {
-  const titles = PROCEDURE_PROGRESS_STEP_TITLES[procedure];
+  // 분석이 아직 완료되지 않았거나(추천 절차 미확정) 백엔드가 알 수 없는 값을 내려주면
+  // procedure가 없을 수 있다 — 목록 전체가 죽지 않도록 방어적으로 처리.
+  const titles = procedure ? PROCEDURE_PROGRESS_STEP_TITLES[procedure] : undefined;
+  if (!titles || titles.length === 0) {
+    return { current: 1, total: 1, title: "확인 중" };
+  }
   const total = titles.length;
   const current = Math.min(Math.max(1, step), total);
   return { current, total, title: titles[current - 1] ?? `${current}단계` };
 }
 
 // ── 대시보드 요약 ────────────────────────────────────────────
+// GET /v1/analysis/summary 응답을 허브 UI용으로 매핑한 형태.
+export type DiagnosisProgressStepItem = {
+  step: number;
+  title?: string;
+  count: number;
+};
+
 export type DiagnosisHubSummary = {
   totalAnalysisCount: number;
   thisMonthCount: number;
   averageSuccessProbability: number; // 0~100
   procedureDistribution: Record<RecommendedProcedure, number>;
-  progressStepDistribution: { step: number; count: number }[]; // step 오름차순 정렬
+  // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시)
+  progressStepsByProcedure: Record<RecommendedProcedure, DiagnosisProgressStepItem[]>;
 };
 
 // ── 목록 조회 파라미터 / 응답 ────────────────────────────────
-// 지금은 mock을 클라이언트에서 필터링하지만, 서버 페이지네이션으로 교체할 수 있도록
-// 서버 쿼리 형태를 그대로 반영한다.
-export type DiagnosisSortField = "totalDebt" | "successProbability" | "consultedAt";
+// GET /v1/analysis의 sortType은 현재 consultationDate만 지원한다.
+export type DiagnosisSortField = "consultedAt";
 export type SortDirection = "asc" | "desc";
 
 export type DiagnosisListQuery = {

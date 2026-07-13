@@ -24,6 +24,7 @@ import type {
   RecommendedProcedure,
   SendGuidanceSmsInput,
   SendGuidanceSmsResult,
+  SortDirection,
   VehicleRange,
 } from "@/types/debtRelief";
 import {
@@ -50,6 +51,8 @@ import type {
   AnalysisProcedureType,
   AnalysisRealEstateBreakdown,
   AnalysisScores,
+  AnalysisSortOrder,
+  AnalysisSortType,
   AnalysisVehicleValueRange,
   CreateAnalysisInput,
 } from "@/types/analysis";
@@ -66,10 +69,8 @@ import type {
 // 대화 내역을 담지 않음). 고객 매칭 UI(Phase 2, CustomerMatchModal)도 완료.
 // 문자 실제 발송(sendGuidanceSms, Phase 3)은 아직 mock/미연동이다.
 //
-// 대시보드 요약 카드(getHubSummary)는 백엔드에 전용 집계 API가 아직 없어(요청은 해둔 상태)
-// GET /v1/analysis 목록을 큰 limit으로 가져와 프론트에서 직접 집계하는 임시방편을 쓴다.
-// 정확도를 우선한 의도적 선택 — 집계 API가 생기면 함수 본문만 교체할 것. mock 더미 데이터
-// (debtReliefMockData.ts)는 더 이상 쓰이지 않아 삭제했다.
+// 목록 정렬은 GET /v1/analysis의 sortType/sortOrder로 서버에 위임한다
+// (현재 sortType은 consultationDate만 지원).
 //
 // 2026-07-10 갱신: 실 API가 realEstateType(단일 카테고리)에서 realEstateBreakdown(항목별
 // 시가, debtBreakdown과 동일 패턴)으로 바뀌어 폼/타입/매핑을 맞췄다. 이제 POST /v1/analysis가
@@ -88,17 +89,6 @@ function withMockLatency<T>(value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), MOCK_LATENCY_MS));
 }
 
-function sortValue(item: DiagnosisListItem, field: DiagnosisSortField): number | string {
-  switch (field) {
-    case "totalDebt":
-      return item.totalDebtManwon;
-    case "successProbability":
-      return item.successProbability;
-    case "consultedAt":
-      return item.consultedAt;
-  }
-}
-
 // mock 도메인(individual_rehab)과 실 API(individual_rehabilitation)의 절차 코드값이 다르다.
 const PROCEDURE_TO_ANALYSIS: Record<RecommendedProcedure, AnalysisProcedureType> = {
   individual_rehab: "individual_rehabilitation",
@@ -110,6 +100,16 @@ const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedur
   individual_rehabilitation: "individual_rehab",
   debt_adjustment: "debt_adjustment",
   bankruptcy: "bankruptcy",
+};
+
+// 허브 정렬 필드 → GET /v1/analysis sortType. 지원되지 않는 필드는 매핑에서 제외한다.
+const SORT_FIELD_TO_ANALYSIS: Record<DiagnosisSortField, AnalysisSortType> = {
+  consultedAt: "consultationDate",
+};
+
+const SORT_DIRECTION_TO_ANALYSIS: Record<SortDirection, AnalysisSortOrder> = {
+  asc: "ASC",
+  desc: "DESC",
 };
 
 const DEPENDENTS_TO_ANALYSIS: Record<DependentCount, number> = {
@@ -246,15 +246,32 @@ function toCreateAnalysisInput(projectId: string, form: DiagnosisFormState): Cre
   return { projectId, ...toAnalysisFormInput(form) };
 }
 
+function resolveAgeGroupLabel(ageGroup?: string | null): string | undefined {
+  if (!ageGroup) return undefined;
+  const matched = AGE_GROUP_OPTIONS.find((option) => option.value === ageGroup);
+  return matched?.label ?? ageGroup;
+}
+
 function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
+  // ⚠️ Swagger 스펙엔 recommendation이 있었지만 실 목록 API(GET /v1/analysis) 응답엔
+  // 내려오지 않고 trackingProcedure만 있다. trackingProcedure도 아직 절차 추적을
+  // 시작하지 않은 건은 null일 수 있어, 그 경우엔 절차를 알 수 없는 상태로 둔다
+  // (하위 UI가 "확인 중"으로 방어적으로 표시).
+  const procedureCode = item.trackingProcedure ?? item.recommendation;
+  const assigneeName = item.sourceAssignedMemberName ?? item.sourceMemberName ?? undefined;
+  const assigneeProfileImageUrl =
+    item.sourceAssignedMemberProfileImageUrl ?? item.sourceMemberProfileImageUrl ?? undefined;
+
   return {
     id: String(item.id),
     customerName: item.customerName,
-    // age/gender/occupation은 목록 API 응답에 없음 — 상세 조회 전까지 알 수 없다.
+    age: typeof item.age === "number" ? item.age : undefined,
+    ageGroupLabel: resolveAgeGroupLabel(item.ageGroup),
+    gender: item.gender ?? undefined,
     region: item.region,
     totalDebtManwon: item.totalDebt,
     monthlyAvailableIncomeManwon: item.disposableIncome,
-    recommendedProcedure: PROCEDURE_FROM_ANALYSIS[item.recommendation],
+    recommendedProcedure: procedureCode ? PROCEDURE_FROM_ANALYSIS[procedureCode] : undefined,
     // "성공 가능성"에 대응하는 필드가 명세에 없어 추천 절차 적합도 점수(score)로 임시 대체.
     // 의미가 다를 수 있어 실제 화면에서 재확인 필요.
     successProbability: item.score ?? 0,
@@ -262,6 +279,9 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     progressStep: item.currentProcedureStep ?? 1,
     isShared: item.isShared,
     consultedAt: item.createdAt.slice(0, 10),
+    assigneeName: assigneeName || undefined,
+    assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
+    assigneeProjectName: item.sourceProjectName ?? undefined,
   };
 }
 
@@ -428,53 +448,48 @@ const EMPTY_PROCEDURE_GUIDE: ProcedureGuide = {
 };
 
 export const DebtReliefService = {
-  // 대시보드 요약 카드 데이터
-  // ⚠️ 임시 프론트 집계. 백엔드에 총 건수/이번 달 건수/평균 성공가능성/절차·진행단계 분포를
-  // 한 번에 주는 집계 API가 아직 없어(요청은 해둔 상태) GET /v1/analysis를 큰 limit으로
-  // 한 번에 불러와 클라이언트에서 직접 계산한다. 분석 건수가 많아지면 비효율적이므로
-  // 백엔드 집계 엔드포인트가 추가되면 이 함수 본문만 그걸로 교체하면 된다(시그니처 동일).
+  // 대시보드 요약 카드 데이터 — GET /v1/analysis/summary를 허브 UI 형태로 매핑한다.
   async getHubSummary(projectId: string): Promise<DiagnosisHubSummary> {
-    const response = await AnalysisService.list({ projectId, page: 1, limit: 1000 });
-    const { items, total } = response.data.data;
-
-    const now = new Date();
-    const thisMonthCount = items.filter((item) => {
-      const createdAt = new Date(item.createdAt);
-      return createdAt.getFullYear() === now.getFullYear() && createdAt.getMonth() === now.getMonth();
-    }).length;
+    const response = await AnalysisService.summary(projectId);
+    const data = response.data.data;
 
     const procedureDistribution: Record<RecommendedProcedure, number> = {
       individual_rehab: 0,
       debt_adjustment: 0,
       bankruptcy: 0,
     };
-    const progressStepCounts = new Map<number, number>();
-    let probabilitySum = 0;
+    for (const item of data.procedureDistribution ?? []) {
+      const key = PROCEDURE_FROM_ANALYSIS[item.procedure];
+      if (key) procedureDistribution[key] = item.count;
+    }
 
-    items.forEach((item) => {
-      procedureDistribution[PROCEDURE_FROM_ANALYSIS[item.recommendation]] += 1;
-      const progressStep = item.currentProcedureStep ?? 1;
-      progressStepCounts.set(progressStep, (progressStepCounts.get(progressStep) ?? 0) + 1);
-      probabilitySum += item.score ?? 0;
-    });
-
-    const progressStepDistribution = Array.from(progressStepCounts.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([step, count]) => ({ step, count }));
+    const progressStepsByProcedure: Record<RecommendedProcedure, { step: number; title?: string; count: number }[]> = {
+      individual_rehab: [],
+      debt_adjustment: [],
+      bankruptcy: [],
+    };
+    for (const procedure of data.stepProgressByProcedure ?? []) {
+      const key = PROCEDURE_FROM_ANALYSIS[procedure.procedure];
+      if (!key) continue;
+      progressStepsByProcedure[key] = (procedure.steps ?? [])
+        .map((step) => ({
+          step: step.stepId,
+          title: step.title,
+          count: step.count,
+        }))
+        .sort((a, b) => a.step - b.step);
+    }
 
     return {
-      totalAnalysisCount: total,
-      thisMonthCount,
-      averageSuccessProbability: items.length ? Math.round(probabilitySum / items.length) : 0,
+      totalAnalysisCount: data.totalCount,
+      thisMonthCount: data.monthlyCount,
+      averageSuccessProbability: Math.round(data.averageSuccessProbability ?? 0),
       procedureDistribution,
-      progressStepDistribution,
+      progressStepsByProcedure,
     };
   },
 
-  // 진단 목록 (탭 필터 + 검색 + 페이지네이션은 서버, 정렬은 클라이언트)
-  // ⚠️ GET /v1/analysis는 sort 파라미터를 지원하지 않아 정렬은 "현재 페이지 안에서만"
-  // 적용된다(전체 데이터셋 정렬 아님). 전체 정렬이 필요하면 백엔드에 sort 파라미터
-  // 추가를 요청해야 한다.
+  // 진단 목록 (필터·검색·페이지네이션·정렬은 GET /v1/analysis 쿼리로 서버에 위임)
   async listDiagnoses(query: DiagnosisListQuery): Promise<DiagnosisListResult> {
     const { projectId, page, limit, procedure, keyword = "", sortField, sortDirection = "desc" } = query;
 
@@ -484,23 +499,18 @@ export const DebtReliefService = {
       limit,
       procedure: procedure ? PROCEDURE_TO_ANALYSIS[procedure] : undefined,
       search: keyword.trim() || undefined,
+      sortType: sortField ? SORT_FIELD_TO_ANALYSIS[sortField] : undefined,
+      sortOrder: sortField ? SORT_DIRECTION_TO_ANALYSIS[sortDirection] : undefined,
     });
 
     const { items, total, page: responsePage, limit: responseLimit } = response.data.data;
-    let mappedItems = items.map(toDiagnosisListItem);
 
-    if (sortField) {
-      const direction = sortDirection === "asc" ? 1 : -1;
-      mappedItems = [...mappedItems].sort((a, b) => {
-        const left = sortValue(a, sortField);
-        const right = sortValue(b, sortField);
-        if (left < right) return -1 * direction;
-        if (left > right) return 1 * direction;
-        return 0;
-      });
-    }
-
-    return { items: mappedItems, totalCount: total, page: responsePage, limit: responseLimit };
+    return {
+      items: items.map(toDiagnosisListItem),
+      totalCount: total,
+      page: responsePage,
+      limit: responseLimit,
+    };
   },
 
   // 진단 생성(AI 분석 요청). 호출 전 UI에서 getMissingRequiredFieldLabels로 필수값을 검증해야 한다.

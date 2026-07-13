@@ -24,6 +24,7 @@ import type {
   DeliverAnalysisResponse,
   AnalysisDeliveriesResponse,
   RevokeAnalysisDeliveryResponse,
+  AnalysisSummaryResponse,
   AnalysisProceduresResponse,
 } from "@/types/analysis";
 
@@ -200,6 +201,13 @@ export const AnalysisService = {
         headers: { "x-project-id": projectId },
       }
     );
+  },
+
+  // 분석 요약 통계 조회 (총 건수, 이번 달 건수, 평균 성공 가능성, 절차·단계 분포)
+  summary(projectId: string) {
+    return apiClient.get<AnalysisSummaryResponse>(`/v1/analysis/summary`, {
+      headers: { "x-project-id": projectId },
+    });
   },
 
   // 절차 마스터 데이터 조회

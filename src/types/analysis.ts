@@ -255,14 +255,27 @@ export type AnalysisListItem = {
   region: string;
   totalDebt: number;
   disposableIncome: number;
-  recommendation: AnalysisProcedureType;
+  // Swagger 스펙엔 필수로 있었지만 실제 목록 API 응답엔 내려오지 않는다 — trackingProcedure를
+  // 대신 사용해야 한다 (services/debtRelief.ts의 toDiagnosisListItem 참고).
+  recommendation?: AnalysisProcedureType;
   trackingProcedure: AnalysisProcedureType | null;
   score: number | null; // Swagger 예시가 {}로 표기되어 있어 실제 응답으로 재확인 필요
   currentProcedureStep: number | null;
   isShared: boolean;
   sourceProjectName: string | null;
+  sourceMemberName?: string | null;
+  sourceMemberProfileImageUrl?: string | null;
+  sourceAssignedMemberName?: string | null;
+  sourceAssignedMemberProfileImageUrl?: string | null;
   createdAt: string;
+  // 고객정보 셀 하단(나이·성별) 표시용. 백엔드가 내려주는 경우만 채운다.
+  gender?: AnalysisGender | null;
+  ageGroup?: string | null; // "40대" 라벨 또는 "40s" 코드
+  age?: number | null;
 };
+
+export type AnalysisSortType = "consultationDate";
+export type AnalysisSortOrder = "ASC" | "DESC";
 
 export type AnalysisListQuery = {
   projectId: string;
@@ -271,6 +284,8 @@ export type AnalysisListQuery = {
   search?: string;
   page?: number;
   limit?: number;
+  sortType?: AnalysisSortType;
+  sortOrder?: AnalysisSortOrder;
 };
 
 export type AnalysisListResponse = ApiSuccess<{
@@ -367,6 +382,37 @@ export type DeliverAnalysisResponse = ApiSuccess<AnalysisDelivery>;
 export type AnalysisDeliveriesResponse = ApiSuccess<AnalysisDelivery[]>;
 
 export type RevokeAnalysisDeliveryResponse = ApiSuccess<Record<string, never>>;
+
+// ============================================
+// 분석 요약 통계 (GET /v1/analysis/summary)
+// ============================================
+
+export type AnalysisProcedureDistributionItem = {
+  procedure: AnalysisProcedureType;
+  count: number;
+};
+
+export type AnalysisStepProgressItem = {
+  stepId: number;
+  title: string;
+  count: number;
+};
+
+export type AnalysisStepProgressByProcedure = {
+  procedure: AnalysisProcedureType;
+  label: string;
+  steps: AnalysisStepProgressItem[];
+};
+
+export type AnalysisSummary = {
+  totalCount: number;
+  monthlyCount: number;
+  averageSuccessProbability: number;
+  procedureDistribution: AnalysisProcedureDistributionItem[];
+  stepProgressByProcedure: AnalysisStepProgressByProcedure[];
+};
+
+export type AnalysisSummaryResponse = ApiSuccess<AnalysisSummary>;
 
 // ============================================
 // 절차 마스터 데이터
