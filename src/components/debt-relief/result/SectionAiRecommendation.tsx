@@ -8,7 +8,8 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
 
   return (
     // 구분선만 카드 풀폭. 피그마: divider→라벨 46px / 좌측 68px(=32+36) / 도넛 우측 90px
-    <div className="mt-[22px] -mx-5 md:-mx-8 border-t border-neutral-30 pt-6 md:pt-[46px] px-5 md:pl-8 md:pr-[90px]">
+    // 모바일: 구분선을 탭 바 바로 아래(간격 없이)에 붙여, 활성 탭의 밑줄과 같은 선상에 겹치도록 한다.
+    <div className="mt-0 md:mt-[22px] -mx-6 md:-mx-8 border-t border-neutral-30 pt-6 md:pt-[46px] px-6 md:pl-8 md:pr-[90px]">
       <div className="flex items-center justify-between gap-4 md:gap-10">
         {/* 피그마 Group 427320624: 좌측만 추가 들여쓰기, 폭 581px */}
         <div className="min-w-0 w-full md:max-w-[581px] md:pl-[36px]">
@@ -35,7 +36,8 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
               </p>
             </div>
 
-            <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide">
+            {/* 모바일: 칩이 잘리거나 스크롤 뒤에 숨지 않도록 줄바꿈. 데스크톱: 한 줄 유지 + 가로 스크롤 */}
+            <div className="flex flex-wrap md:flex-nowrap gap-2 md:overflow-x-auto scrollbar-hide">
               {recommendation.tags.map((tag) => {
                 const label = toRecommendationChipLabel(tag);
                 return (
@@ -54,7 +56,7 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
 
         <div className="shrink-0 self-center">
           <div className="md:hidden">
-            <SuccessDonut value={successProbability} size={112} stroke={7} />
+            <SuccessDonut value={successProbability} size={88} stroke={7} />
           </div>
           <div className="hidden md:block">
             <SuccessDonut value={successProbability} />

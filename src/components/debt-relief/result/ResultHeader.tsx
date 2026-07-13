@@ -1,56 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { DiagnosisDetail } from "@/types/debtRelief";
 import { formatDateTimeDisplay } from "@/components/debt-relief/format";
+import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
+import { useCustomerModal } from "@/providers/CustomerModalProvider";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import CustomerMatchModal from "./CustomerMatchModal";
-
-function LinkIcon({ className }: { className?: string }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
-      <path
-        d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function LinkIconLg() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M10 13a5 5 0 007.07 0l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.07 0l-3 3a5 5 0 007.07 7.07l1.71-1.71"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M10 3.5v9M10 12.5l-3.5-3.5M10 12.5l3.5-3.5M3.5 15.5h13"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+import LinkIcon from "@/components/icons/LinkIcon";
 
 function EditIcon() {
   return (
@@ -80,8 +41,44 @@ function ShareNodesIcon() {
   );
 }
 
+function CustomerInfoIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function UnlinkIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M15 7h2a5 5 0 010 10h-2M9 17H7A5 5 0 017 7h2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const ACTION_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black hover:bg-neutral-10 whitespace-nowrap";
+
+const LINKED_CHIP_BTN =
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[193px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 border border-secondary-60 text-secondary-40 hover:opacity-90 transition-opacity";
+
+const MENU_ITEM =
+  "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors";
 
 type Props = {
   detail: DiagnosisDetail;
@@ -89,11 +86,62 @@ type Props = {
   onCustomerMatchChange: () => void;
 };
 
+function LinkedCustomerMenu({
+  open,
+  onOpenCustomerInfo,
+  onUnlink,
+}: {
+  open: boolean;
+  onOpenCustomerInfo: () => void;
+  onUnlink: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      role="menu"
+      className="absolute right-0 top-full mt-2 z-30 min-w-[140px] rounded-[12px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
+    >
+      <button type="button" role="menuitem" onClick={onOpenCustomerInfo} className={MENU_ITEM}>
+        <CustomerInfoIcon />
+        고객정보
+      </button>
+      <button type="button" role="menuitem" onClick={onUnlink} className={MENU_ITEM}>
+        <UnlinkIcon />
+        연결해제
+      </button>
+    </div>
+  );
+}
+
 export default function ResultHeader({ detail, projectId, onCustomerMatchChange }: Props) {
   const router = useRouter();
+  const { openCustomerModal } = useCustomerModal();
   const [matchModalOpen, setMatchModalOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [linkedMenuOpen, setLinkedMenuOpen] = useState(false);
+  const mobileLinkedMenuRef = useRef<HTMLDivElement>(null);
+  const desktopLinkedMenuRef = useRef<HTMLDivElement>(null);
   const isMatched = detail.customerId != null;
+
+  const phonePreview = detail.phone ? formatContactForDisplay(detail.phone) : "";
+  const linkedLabel =
+    phonePreview.length > 0
+      ? `${detail.customerName} · ${phonePreview}`
+      : detail.customerName;
+
+  useEffect(() => {
+    if (!linkedMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const inMobile = mobileLinkedMenuRef.current?.contains(target);
+      const inDesktop = desktopLinkedMenuRef.current?.contains(target);
+      if (!inMobile && !inDesktop) {
+        setLinkedMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [linkedMenuOpen]);
 
   const handleEdit = () => {
     router.push(`/debt-relief/${detail.id}/edit`);
@@ -101,50 +149,54 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
   const handleGoToList = () => {
     router.push("/debt-relief");
   };
-  const handleSave = () => {
-    // TODO: 저장하기 — 다음 작업
+
+  const handleOpenMatchModal = () => {
+    setMatchModalOpen(true);
   };
 
-  const handleCustomerLinkClick = () => {
-    if (isMatched) {
-      showConfirmModal({
-        headline: "고객 연결을 해제할까요?",
-        message: "연결을 해제하면 문자 발송에 필요한 연락처 정보가 사라집니다.",
-        type: "warning",
-        confirmText: "해제",
-        onConfirm: async () => {
-          if (!projectId) return;
-          try {
-            await AnalysisService.unmatchCustomer(Number(detail.id), projectId);
-            onCustomerMatchChange();
-          } catch (error) {
-            console.error("Failed to unmatch customer:", error);
-            showErrorModal({
-              headline: "연결 해제에 실패했습니다.",
-              description: "잠시 후 다시 시도해주세요.",
-            });
-          }
-        },
-      });
-      return;
-    }
-    setMatchModalOpen(true);
+  const handleOpenCustomerDetail = () => {
+    if (detail.customerId == null) return;
+    setLinkedMenuOpen(false);
+    openCustomerModal(detail.customerId);
+  };
+
+  const handleUnlink = () => {
+    setLinkedMenuOpen(false);
+    showConfirmModal({
+      headline: "고객 연결을 해제할까요?",
+      message: "연결을 해제하면 문자 발송에 필요한 연락처 정보가 사라집니다.",
+      type: "warning",
+      confirmText: "해제",
+      onConfirm: async () => {
+        if (!projectId) return;
+        try {
+          await AnalysisService.unmatchCustomer(Number(detail.id), projectId);
+          onCustomerMatchChange();
+        } catch (error) {
+          console.error("Failed to unmatch customer:", error);
+          showErrorModal({
+            headline: "연결 해제에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+          });
+        }
+      },
+    });
   };
 
   return (
     <>
-      {/* 모바일: Figma — 뒤로+제목/메타 | 수정·공유·저장 아이콘 3개 */}
+      {/* 모바일: 뒤로+제목/메타 | 수정·고객연결·공유 */}
       <div className="flex md:hidden items-start justify-between gap-3">
-        <div className="flex items-start gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
             onClick={handleGoToList}
             aria-label="목록으로"
             className="cursor-pointer w-9 h-9 -ml-1.5 grid place-items-center text-foreground hover:opacity-70 shrink-0"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="block">
               <path
-                d="M15 18L9 12L15 6"
+                d="M15 19L8 12L15 5"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -152,32 +204,13 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               />
             </svg>
           </button>
-          <div className="min-w-0 pt-1.5">
+          <div className="min-w-0">
             <h1 className="text-[18px] font-bold leading-5 text-neutral-90 truncate">
               {detail.recommendation.title}
             </h1>
             <p className="mt-1 text-[13px] font-medium leading-4 text-neutral-60 truncate">
               {detail.customerName} · {detail.ageGroupLabel} · {detail.occupation}
             </p>
-            {isMatched ? (
-              <button
-                type="button"
-                onClick={handleCustomerLinkClick}
-                className="cursor-pointer mt-2 inline-flex items-center gap-1 h-[26px] px-2.5 rounded-full bg-primary-10 text-primary-80 text-[12px] font-medium shrink-0 hover:opacity-80"
-              >
-                <LinkIcon />
-                고객 연결됨
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleCustomerLinkClick}
-                className="cursor-pointer mt-2 inline-flex items-center gap-1 h-[26px] px-2.5 rounded-full border border-neutral-30 text-neutral-60 text-[12px] font-medium shrink-0 hover:bg-neutral-10"
-              >
-                <LinkIcon />
-                고객 연결
-              </button>
-            )}
           </div>
         </div>
 
@@ -190,6 +223,35 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           >
             <EditIcon />
           </button>
+
+          {isMatched ? (
+            <div className="relative" ref={mobileLinkedMenuRef}>
+              <button
+                type="button"
+                onClick={() => setLinkedMenuOpen((prev) => !prev)}
+                aria-label="연결된 고객"
+                aria-expanded={linkedMenuOpen}
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90"
+              >
+                <LinkIcon size={20} />
+              </button>
+              <LinkedCustomerMenu
+                open={linkedMenuOpen}
+                onOpenCustomerInfo={handleOpenCustomerDetail}
+                onUnlink={handleUnlink}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleOpenMatchModal}
+              aria-label="고객 연결"
+              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+            >
+              <LinkIcon size={20} />
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setShareOpen(true)}
@@ -198,18 +260,10 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           >
             <ShareNodesIcon />
           </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            aria-label="저장하기"
-            className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-neutral-90 text-neutral-0 hover:opacity-90"
-          >
-            <DownloadIcon />
-          </button>
         </div>
       </div>
 
-      {/* 데스크톱: 피그마 gap 16px — 뒤로 | 제목 | 구분 | 메타  ……  날짜 | 고객연결 | 정보수정 | 공유하기 | 저장하기 */}
+      {/* 데스크톱: 뒤로 | 제목 | 메타  ……  날짜 | 고객연결 | 정보수정 | 공유하기 */}
       <div className="hidden md:flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
           <button
@@ -241,18 +295,38 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           <span className="text-[14px] font-medium leading-5 text-neutral-50">
             {formatDateTimeDisplay(detail.consultedAt)}
           </span>
-          <button
-            type="button"
-            onClick={handleCustomerLinkClick}
-            aria-label={isMatched ? "고객 연결 해제" : "고객 연결"}
-            className={`cursor-pointer w-[34px] h-[34px] flex items-center justify-center rounded-[5px] hover:opacity-90 ${
-              isMatched
-                ? "bg-primary-10 border border-primary-80 text-primary-80"
-                : "border border-neutral-30 text-black hover:bg-neutral-10"
-            }`}
-          >
-            <LinkIconLg />
-          </button>
+
+          {isMatched ? (
+            <div className="relative" ref={desktopLinkedMenuRef}>
+              <button
+                type="button"
+                onClick={() => setLinkedMenuOpen((prev) => !prev)}
+                className={LINKED_CHIP_BTN}
+                aria-label={`연결된 고객 ${linkedLabel}`}
+                aria-expanded={linkedMenuOpen}
+              >
+                <LinkIcon size={20} className="text-secondary-60 shrink-0" />
+                <span className="text-[14px] font-medium leading-5 truncate max-w-[149px]">
+                  {linkedLabel}
+                </span>
+              </button>
+              <LinkedCustomerMenu
+                open={linkedMenuOpen}
+                onOpenCustomerInfo={handleOpenCustomerDetail}
+                onUnlink={handleUnlink}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleOpenMatchModal}
+              aria-label="고객 연결"
+              className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 text-black hover:bg-neutral-10"
+            >
+              <LinkIcon size={20} />
+            </button>
+          )}
+
           <button type="button" className={ACTION_BTN} onClick={handleEdit}>
             <EditIcon />
             정보수정
@@ -260,14 +334,6 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           <button type="button" className={ACTION_BTN} onClick={() => setShareOpen(true)}>
             <ShareNodesIcon />
             공유하기
-          </button>
-          <button
-            type="button"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 whitespace-nowrap"
-            onClick={handleSave}
-          >
-            <DownloadIcon />
-            저장하기
           </button>
         </div>
       </div>
