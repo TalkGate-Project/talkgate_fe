@@ -1,0 +1,94 @@
+import {
+  AGE_GROUP_OPTIONS,
+  DEPENDENT_OPTIONS,
+  EMPLOYMENT_TYPE_OPTIONS,
+  REGION_OPTIONS,
+  type CustomerGender,
+  type DiagnosisFormState,
+  type PillOption,
+} from "@/types/debtRelief";
+import { FormField, FormSectionTitle, TextInput } from "./FormControls";
+import { PillSelect } from "./PillSelect";
+
+const GENDER_OPTIONS: PillOption<CustomerGender>[] = [
+  { value: "male", label: "남" },
+  { value: "female", label: "여" },
+];
+
+const SPOUSE_INCOME_OPTIONS: PillOption<"none" | "yes">[] = [
+  { value: "none", label: "없음" },
+  { value: "yes", label: "있음" },
+];
+
+type Props = {
+  form: DiagnosisFormState;
+  update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void;
+};
+
+export default function Step1BasicInfo({ form, update }: Props) {
+  return (
+    <div>
+      <FormSectionTitle>고객 정보</FormSectionTitle>
+
+      {/* Figma: 섹션 구분선 → 첫 필드 13px, 필드 간 20px */}
+      <div className="mt-3 flex flex-col gap-5">
+        <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-7">
+          <FormField label="고객명" className="flex-1 min-w-0 md:max-w-[461px]">
+            <TextInput
+              value={form.customerName}
+              onChange={(value) => update("customerName", value)}
+              placeholder="고객명을 입력하세요"
+            />
+          </FormField>
+          <FormField label="성별" className="shrink-0">
+            <PillSelect
+              options={GENDER_OPTIONS}
+              value={form.gender}
+              onChange={(value) => update("gender", value)}
+            />
+          </FormField>
+        </div>
+
+        <FormField label="연령대">
+          <PillSelect
+            options={AGE_GROUP_OPTIONS}
+            value={form.ageGroup}
+            onChange={(value) => update("ageGroup", value)}
+          />
+        </FormField>
+
+        <FormField label="거주 지역">
+          <PillSelect
+            options={REGION_OPTIONS}
+            value={form.region}
+            onChange={(value) => update("region", value)}
+          />
+        </FormField>
+
+        <FormField label="고용 형태">
+          <PillSelect
+            options={EMPLOYMENT_TYPE_OPTIONS}
+            value={form.employmentType}
+            onChange={(value) => update("employmentType", value)}
+          />
+        </FormField>
+
+        <FormField label="부양가족">
+          <PillSelect
+            options={DEPENDENT_OPTIONS}
+            value={form.dependents}
+            onChange={(value) => update("dependents", value)}
+          />
+        </FormField>
+
+        <FormField label="배우자 소득">
+          <PillSelect
+            options={SPOUSE_INCOME_OPTIONS}
+            value={form.spouseIncome === null ? null : form.spouseIncome ? "yes" : "none"}
+            onChange={(value) => update("spouseIncome", value === "yes")}
+          />
+        </FormField>
+      </div>
+    </div>
+  );
+}
