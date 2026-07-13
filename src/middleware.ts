@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { setProjectIdCookie, setAttendanceMenuCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
+import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
 import { logger } from "@/lib/logger";
@@ -311,6 +311,12 @@ export async function middleware(req: NextRequest) {
               setAttendanceMenuCookie(response, req, project.useAttendanceMenu);
             }
           }
+          if (project.type) {
+            const currentProjectType = req.cookies.get("tg_project_type")?.value;
+            if (currentProjectType !== project.type) {
+              setProjectTypeCookie(response, req, project.type);
+            }
+          }
           return response;
         } else {
           // 유효하지 않은 서브도메인 → 프로젝트 선택 페이지로
@@ -413,11 +419,14 @@ export async function middleware(req: NextRequest) {
         const currentAttendance = req.cookies.get("tg_use_attendance_menu")?.value;
         const nextAttendance =
           typeof project.useAttendanceMenu === "boolean" ? String(project.useAttendanceMenu) : null;
+        const currentProjectType = req.cookies.get("tg_project_type")?.value;
+        const nextProjectType = project.type || null;
 
         const shouldSetProjectId = !currentProjectId || currentProjectId !== subdomainProjectId;
         const shouldSetAttendance = nextAttendance !== null && currentAttendance !== nextAttendance;
+        const shouldSetProjectType = nextProjectType !== null && currentProjectType !== nextProjectType;
 
-        if (shouldSetProjectId || shouldSetAttendance) {
+        if (shouldSetProjectId || shouldSetAttendance || shouldSetProjectType) {
           if (shouldSetProjectId) {
             logger.server(`[Middleware] 프로젝트 ID 설정: ${subdomainProjectId}`);
           }
@@ -427,6 +436,9 @@ export async function middleware(req: NextRequest) {
           }
           if (shouldSetAttendance && nextAttendance !== null) {
             setAttendanceMenuCookie(response, req, nextAttendance === "true");
+          }
+          if (shouldSetProjectType && nextProjectType !== null) {
+            setProjectTypeCookie(response, req, nextProjectType);
           }
           return response;
         }
@@ -468,17 +480,23 @@ export async function middleware(req: NextRequest) {
         const currentAttendance = req.cookies.get("tg_use_attendance_menu")?.value;
         const nextAttendance =
           typeof project.useAttendanceMenu === "boolean" ? String(project.useAttendanceMenu) : null;
+        const currentProjectType = req.cookies.get("tg_project_type")?.value;
+        const nextProjectType = project.type || null;
 
         const shouldSetProjectId = !currentProjectId || currentProjectId !== subdomainProjectId;
         const shouldSetAttendance = nextAttendance !== null && currentAttendance !== nextAttendance;
+        const shouldSetProjectType = nextProjectType !== null && currentProjectType !== nextProjectType;
 
-        if (shouldSetProjectId || shouldSetAttendance) {
+        if (shouldSetProjectId || shouldSetAttendance || shouldSetProjectType) {
           const response = NextResponse.next({ request: { headers: requestHeaders } });
           if (shouldSetProjectId) {
             setProjectIdCookie(response, req, subdomainProjectId);
           }
           if (shouldSetAttendance && nextAttendance !== null) {
             setAttendanceMenuCookie(response, req, nextAttendance === "true");
+          }
+          if (shouldSetProjectType && nextProjectType !== null) {
+            setProjectTypeCookie(response, req, nextProjectType);
           }
           return response;
         }

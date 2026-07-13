@@ -4,7 +4,7 @@ import {
   CustomerNoteCategoriesService,
   normalizeCustomerNoteCategories,
 } from "@/services/customerNoteCategories";
-import { setUseAttendanceMenu } from "@/lib/project";
+import { setUseAttendanceMenu, setProjectType } from "@/lib/project";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 
 /**
@@ -61,6 +61,9 @@ export function useGeneralSettings(projectId: string | null) {
           
           // localStorage에도 동기화
           setUseAttendanceMenu(project.useAttendanceMenu);
+          if (project.type) {
+            setProjectType(project.type);
+          }
         }
         
         // 고객 처리상태 조회

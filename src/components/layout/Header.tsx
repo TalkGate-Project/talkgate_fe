@@ -8,6 +8,7 @@ import { clearSelectedProjectId, clearUseAttendanceMenu, getSelectedProjectId } 
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import NotificationBell from "./NotificationBell";
 import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
@@ -46,21 +47,21 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
+  const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
   const chatContext = useChatContextSafe();
   const hasUnread = chatContext?.hasUnread ?? false;
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
   const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
-  // 근태 메뉴 포함 여부에 따라 네비게이션 아이템 구성
-  // 순서: …통계 → 근태(조건부) → 회생·파산 → 공지사항 → 설정
-  // 프로젝트가 근태 메뉴를 사용하는 경우에만 헤더의 근태 메뉴 표시
-  // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
-  // Hydration 에러 방지를 위해 attendanceReady를 체크
+  // 근태·회생·파산 메뉴 포함 여부에 따라 네비게이션 아이템 구성
+  // 순서: …통계 → 근태(조건부) → 회생·파산(조건부) → 공지사항 → 설정
+  // 회생·파산: analysis(영업) / lawyer(변호사) 프로젝트에서만 표시
+  // Hydration 에러 방지를 위해 ready 플래그 체크
   const NAV_ITEMS = [
     ...BASE_NAV_ITEMS,
     ...(attendanceReady && showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
-    DEBT_RELIEF_ITEM,
+    ...(debtReliefReady && showDebtReliefMenu ? [DEBT_RELIEF_ITEM] : []),
     ...COMMON_NAV_ITEMS,
   ];
 

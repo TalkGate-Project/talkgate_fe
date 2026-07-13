@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { getSelectedProjectId } from "@/lib/project";
+import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import UserMenuDropdown from "./UserMenuDropdown";
 import NotificationBell from "./NotificationBell";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
@@ -14,12 +15,14 @@ import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
-const LITE_NAV_ITEMS: { label: string; href: string }[] = [
+const LITE_BASE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
   { label: "통계", href: "/stats" },
-  { label: "회생·파산", href: "/debt-relief" },
+];
+const LITE_DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
+const LITE_COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },
   { label: "설정", href: "/settings" },
 ];
@@ -34,9 +37,16 @@ export default function LiteHeader() {
   const [hasProject, setHasProject] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
+  const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
   const { toggle: toggleStaffChatModal } = useTeamChatWindow();
+
+  const LITE_NAV_ITEMS = [
+    ...LITE_BASE_NAV_ITEMS,
+    ...(debtReliefReady && showDebtReliefMenu ? [LITE_DEBT_RELIEF_ITEM] : []),
+    ...LITE_COMMON_NAV_ITEMS,
+  ];
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {

@@ -7,9 +7,11 @@ import Image from "next/image";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
+import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { ProjectsService } from "@/services/projects";
+import { setProjectType } from "@/lib/project";
 import { isAdmin } from "@/utils/permissions";
 import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
@@ -51,6 +53,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
   const searchParams = useSearchParams();
   const { user } = useMe();
   const [showAttendanceMenu, attendanceReady] = useAttendanceMenu();
+  const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
   const { member, loading: memberLoading } = useMyMember();
   const [mounted, setMounted] = useState(false);
   const [projectId] = useSelectedProjectId();
@@ -76,6 +79,9 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
           const project = projectResponse.data.data;
           setProjectLogoUrl(project.logoUrl || null);
           setProjectName(project.name || "-");
+          if (project.type) {
+            setProjectType(project.type);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch project info:", error);
@@ -207,7 +213,10 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
     ...(attendanceReady && showAttendanceMenu 
       ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }] 
       : []),
-    { label: "회생·파산", href: "/debt-relief", icon: <DebtReliefIcon /> },
+    // 회생·파산: analysis(영업) / lawyer(변호사) 프로젝트에서만 표시
+    ...(debtReliefReady && showDebtReliefMenu
+      ? [{ label: "회생·파산", href: "/debt-relief", icon: <DebtReliefIcon /> }]
+      : []),
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },
     { label: "설정", href: "/settings", icon: <SettingsIcon /> },
   ];
