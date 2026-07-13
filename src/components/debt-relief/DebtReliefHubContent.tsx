@@ -1,0 +1,268 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDebtReliefSummary, useDebtReliefList } from "@/hooks/useDebtReliefHub";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import SummaryCards from "@/components/debt-relief/hub/SummaryCards";
+import DiagnosisFilterTabs from "@/components/debt-relief/hub/DiagnosisFilterTabs";
+import DiagnosisSearchInput from "@/components/debt-relief/hub/DiagnosisSearchInput";
+import DiagnosisListActions from "@/components/debt-relief/hub/DiagnosisListActions";
+import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
+import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
+import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import Pagination from "@/components/common/Pagination";
+import Checkbox from "@/components/common/Checkbox";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import { DebtReliefService } from "@/services/debtRelief";
+
+export default function DebtReliefHubContent() {
+  const router = useRouter();
+  const [projectId] = useSelectedProjectId();
+  const { summary, loading: summaryLoading } = useDebtReliefSummary();
+  const {
+    items,
+    totalCount,
+    loading: listLoading,
+    procedure,
+    selectProcedure,
+    keyword,
+    setKeyword,
+    submitSearch,
+    clearSearch,
+    sortField,
+    sortDirection,
+    toggleSort,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    refetch,
+  } = useDebtReliefList();
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [shareTargetIds, setShareTargetIds] = useState<string[] | null>(null);
+
+  // 목록이 새로 로드될 때(필터·검색·정렬·페이지 변경)마다 선택 상태를 초기화한다.
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [items]);
+
+  const allSelectedOnPage = items.length > 0 && items.every((item) => selectedIds.has(item.id));
+  const hasSelection = selectedIds.size > 0;
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelectedOnPage ? new Set() : new Set(items.map((item) => item.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleShareSelected = () => {
+    if (!hasSelection) return;
+    setShareTargetIds(Array.from(selectedIds));
+  };
+
+  const handleShareRow = (id: string) => {
+    setShareTargetIds([id]);
+  };
+
+  const handleShareSuccess = () => {
+    if (shareTargetIds && shareTargetIds.length > 1) clearSelection();
+  };
+
+  const handleDeleteSelected = () => {
+    if (!projectId || !hasSelection) return;
+
+    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    const deletable = selectedItems.filter((item) => !item.isShared);
+    const skippedSharedCount = selectedItems.length - deletable.length;
+
+    if (deletable.length === 0) {
+      showErrorModal({
+        title: "삭제 불가",
+        headline: "공유받은 진단은 삭제할 수 없습니다.",
+        description: "선택 항목을 확인한 뒤 다시 시도해주세요.",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    const sharedNote =
+      skippedSharedCount > 0
+        ? ` (공유받은 ${skippedSharedCount}건은 제외됩니다)`
+        : "";
+
+    showConfirmModal({
+      title: "진단 삭제",
+      headline: `선택한 ${deletable.length}건의 진단을 삭제하시겠습니까?${sharedNote}`,
+      message: "삭제된 진단은 복구할 수 없습니다.",
+      type: "warning",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          await Promise.all(
+            deletable.map((item) => DebtReliefService.deleteDiagnosis(projectId, item.id))
+          );
+          clearSelection();
+          refetch();
+        } catch (error) {
+          console.error("Failed to delete diagnoses:", error);
+          showErrorModal({
+            title: "삭제 실패",
+            headline: "진단을 삭제하지 못했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        }
+      },
+    });
+  };
+
+  const handleOpenResult = (id: string) => {
+    router.push(`/debt-relief/${id}`);
+  };
+
+  return (
+    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-5">
+      {/* 상단 카드: 제목 + 요약 카드 */}
+      <section className="surface md:rounded-[14px] px-6 md:px-7 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4 flex-wrap min-w-0">
+            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground tracking-[-0.02em] leading-none truncate">
+              회생·파산 진단 목록
+            </h1>
+            {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
+            {summary && (
+              <>
+                <span className="hidden md:block w-px h-4 bg-neutral-60" />
+                <span className="hidden md:inline text-[18px] text-neutral-60 leading-none">
+                  총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
+                </span>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
+            onClick={() => router.push("/debt-relief/new")}
+          >
+            + 새 진단 시작
+          </button>
+        </div>
+
+        <div className="border-t border-neutral-30 mb-6" />
+
+        <SummaryCards summary={summary} loading={summaryLoading} />
+      </section>
+
+      {/* 하단 카드: 탭 + 검색 + 테이블 + 페이지네이션 */}
+      <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+          {/* 모바일은 검색창이 위, 필터 탭이 아래 — 데스크톱은 반대(탭 왼쪽, 검색 오른쪽)라 DOM 순서 대신 order로 토글 */}
+          <div className="order-2 md:order-1">
+            <DiagnosisFilterTabs summary={summary} active={procedure} onChange={selectProcedure} />
+          </div>
+          <div className="order-1 md:order-2 flex items-center justify-end gap-3">
+            <DiagnosisListActions
+              hasSelection={hasSelection}
+              selectedCount={selectedIds.size}
+              limit={limit}
+              onDelete={handleDeleteSelected}
+              onShare={handleShareSelected}
+              onLimitChange={setLimit}
+            />
+            <DiagnosisSearchInput
+              value={keyword}
+              onChange={setKeyword}
+              onSearch={submitSearch}
+              onClear={clearSearch}
+            />
+          </div>
+        </div>
+
+        {hasSelection && (
+          <div className="flex items-center flex-wrap gap-3 md:gap-4 mb-4">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={toggleSelectAll}>
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={allSelectedOnPage}
+                  onChange={toggleSelectAll}
+                  ariaLabel="전체 선택"
+                  size={24}
+                />
+              </div>
+              <span className="text-[14px] font-medium text-foreground whitespace-nowrap">
+                전체 {selectedIds.size}건 선택됨
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="cursor-pointer text-[13px] text-neutral-50 underline hover:text-neutral-70 transition-colors"
+            >
+              선택해제
+            </button>
+          </div>
+        )}
+
+        {/* 데스크톱: 표 (가로 스크롤). 모바일: 카드 리스트 — Figma 모바일 목업 기준 별도 컴포넌트 */}
+        <div className="hidden md:block">
+          <DiagnosisTable
+            items={items}
+            loading={listLoading}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onToggleSort={toggleSort}
+            onOpenResult={handleOpenResult}
+            selectedIds={selectedIds}
+            allSelectedOnPage={allSelectedOnPage}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            onShareRow={handleShareRow}
+          />
+        </div>
+        <div className="md:hidden">
+          <DiagnosisMobileCardList
+            items={items}
+            loading={listLoading}
+            onOpenResult={handleOpenResult}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+          />
+        </div>
+
+        <div className="relative flex items-end justify-center mt-6 min-h-[32px]">
+          <span className="absolute left-0 bottom-0 text-[14px] font-medium leading-5 text-neutral-50">
+            총 {totalCount}건
+          </span>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} disabled={listLoading} />
+        </div>
+      </section>
+
+      {projectId && (
+        <AnalysisShareModal
+          open={shareTargetIds !== null}
+          onClose={() => setShareTargetIds(null)}
+          onSuccess={handleShareSuccess}
+          projectId={projectId}
+          analysisIds={shareTargetIds ?? []}
+        />
+      )}
+    </div>
+  );
+}

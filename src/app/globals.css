@@ -377,7 +377,11 @@
 
 html, body {
   min-width: 306px; /* 레이아웃이 306px 미만으로 줄어들지 않도록 고정 (뷰포트가 더 좁으면 가로 스크롤) */
-  overflow-x: hidden; /* 삼성 인터넷 등 일부 모바일 브라우저에서 가로 스크롤 방지 */
+  /*
+   * 가로 스크롤 방지. `hidden` 대신 `clip`을 사용해야 body가 스크롤 컨테이너가 되지 않는다.
+   * (overflow-x: hidden이면 overflow-y가 auto로 계산되어 position: sticky가 동작하지 않음)
+   */
+  overflow-x: clip;
 }
 
 body {
@@ -852,6 +856,24 @@ svg path:focus {
 
 @utility animate-toast-slide-up {
   animation: toast-slide-up 0.25s ease-out;
+}
+
+/* Debt-relief analysis loading dots */
+@keyframes analysis-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-analysis-dot {
+  animation: analysis-dot 1.2s ease-in-out infinite;
 }
 
 /* AI Markdown response styles */

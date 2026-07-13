@@ -19,6 +19,7 @@ const LITE_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
   { label: "통계", href: "/stats" },
+  { label: "회생·파산", href: "/debt-relief" },
   { label: "공지사항", href: "/notices" },
   { label: "설정", href: "/settings" },
 ];

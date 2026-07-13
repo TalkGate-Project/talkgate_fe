@@ -19,6 +19,7 @@ import {
   ConsultIcon,
   CustomerListIcon,
   StatsIcon,
+  DebtReliefIcon,
   AttendanceIcon,
   NoticeIcon,
   SettingsIcon,
@@ -206,6 +207,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
     ...(attendanceReady && showAttendanceMenu 
       ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }] 
       : []),
+    { label: "회생·파산", href: "/debt-relief", icon: <DebtReliefIcon /> },
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },
     { label: "설정", href: "/settings", icon: <SettingsIcon /> },
   ];
