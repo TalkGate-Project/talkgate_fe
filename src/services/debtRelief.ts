@@ -1,6 +1,7 @@
 import type {
   ConditionItem,
   CreateDiagnosisResult,
+  CreditorCountRange,
   DebtComposition,
   DebtType,
   DependentCount,
@@ -34,7 +35,6 @@ import {
   RECOMMENDED_PROCEDURE_LABEL,
   REGION_OPTIONS,
 } from "@/types/debtRelief";
-import { MOCK_DIAGNOSIS_FORM } from "@/mocks/debtReliefDetailMock";
 import { AnalysisService } from "@/services/analysis";
 import { CustomersService } from "@/services/customers";
 import type {
@@ -42,10 +42,12 @@ import type {
   AnalysisDebtCause,
   AnalysisFinancialAssetRange,
   AnalysisFormInput,
+  AnalysisInputData,
   AnalysisListItem,
   AnalysisMonthlyIncomeRange,
   AnalysisOverduePeriod,
   AnalysisProcedureConditions,
+  AnalysisProcedureConditionsMap,
   AnalysisProcedureGuide,
   AnalysisProcedureStepDetails,
   AnalysisProcedureType,
@@ -57,31 +59,22 @@ import type {
   CreateAnalysisInput,
 } from "@/types/analysis";
 
-// ⚠️ 백엔드 API 미구현 상태의 임시 mock 구현.
-// 실제 API 연동 시 각 함수 본문을 apiClient.get(`/v1/debt-relief/...`) 호출로 교체하고
-// 필터/정렬/페이지네이션은 서버로 위임한다. 함수 시그니처(입출력 타입)는 그대로 유지한다.
+// 남은 mock: sendGuidanceSms(문자 발송, Phase 3). 목록 정렬은 GET /v1/analysis의
+// sortType/sortOrder로 서버에 위임한다(현재 sortType은 consultationDate만 지원). AI 채팅은
+// useDebtReliefAiChat 훅이 AnalysisService.chatHistory/streamChatMessage로 별도 연동한다
+// (DiagnosisDetail 타입에는 대화 내역을 담지 않음).
 //
-// 진행 상황(2026-07-10): 허브 페이지(/debt-relief)의 진단 목록(listDiagnoses), 생성
-// 페이지(/debt-relief/new)의 진단 생성(createDiagnosis), 상세 페이지(/debt-relief/[id])의
-// 읽기 전용 진단결과(getDiagnosisDetail) + 절차 단계 저장(updateProcedureProgress)을
-// 실 API로 연동했다(상세 페이지 Phase 0). AI 채팅도 useDebtReliefAiChat 훅이
-// AnalysisService.chatHistory/streamChatMessage로 직접 연동한다(Phase 1, DiagnosisDetail에는
-// 대화 내역을 담지 않음). 고객 매칭 UI(Phase 2, CustomerMatchModal)도 완료.
-// 문자 실제 발송(sendGuidanceSms, Phase 3)은 아직 mock/미연동이다.
+// getDiagnosisForm/updateDiagnosis(2026-07-14 연동): AnalysisService.detail().inputData를
+// fromAnalysisFormInput으로 역매핑해 폼을 채우고, 제출은 AnalysisService.reanalyze(PATCH
+// /v1/analysis/{id}/input)로 위임한다. toAnalysisFormInput의 *_TO_ANALYSIS 매핑들을 반대
+// 방향(*_FROM_ANALYSIS)으로 뒤집은 것 — ageGroup/region/employmentType은 실 API에 라벨
+// 문자열로 저장되어 optionValueFromLabel로 복원한다. 유일한 예외: 캐피탈/저축은행은 API에
+// capitalLoan 슬롯 하나로만 남아 원본 선택을 알 수 없어서, 애초에 폼에서도 "캐피탈/저축은행"
+// 단일 선택지로 합쳐 근본적으로 해소했다(DebtType 참고).
 //
-// 목록 정렬은 GET /v1/analysis의 sortType/sortOrder로 서버에 위임한다
-// (현재 sortType은 consultationDate만 지원).
-//
-// 2026-07-10 갱신: 실 API가 realEstateType(단일 카테고리)에서 realEstateBreakdown(항목별
-// 시가, debtBreakdown과 동일 패턴)으로 바뀌어 폼/타입/매핑을 맞췄다. 이제 POST /v1/analysis가
-// 정상 동작한다(예전 400/500 에러는 이 필드 스펙이 미확정이던 상태에서 발생한 것이었다).
-//
-// 재분석용 PATCH /v1/analysis/{id}/input(ReanalyzeAnalysisInput)도 새로 생겨서
-// AnalysisService.reanalyze로 만들어뒀지만, DebtReliefService.updateDiagnosis는 아직
-// 이걸 쓰지 않는다 — getDiagnosisForm이 여전히 mock(김민수 샘플)이라, 지금 연결하면
-// [id]/edit 진입 시 실제 값 대신 mock 값이 채워진 채로 "재분석"을 눌러 실제 분석 데이터를
-// 덮어쓸 위험이 있다. getDiagnosisForm을 AnalysisService.detail().inputData 역매핑으로
-// 먼저 연동한 뒤 updateDiagnosis를 reanalyze로 교체할 것(Phase 3).
+// ⚠️ reanalyze는 성공 시 status/trackingProcedure/currentProcedureStep을 초기화하고 AI 채팅
+// 이력을 삭제한다(analysis.ts:69-71 참고). DiagnosisFormContent.tsx의 handleAnalyze는 아직
+// 이걸 사용자에게 안내하는 확인 모달이 없다 — 되돌릴 수 없는 부수효과이니 추가를 검토할 것.
 
 const MOCK_LATENCY_MS = 300;
 
@@ -120,6 +113,14 @@ const DEPENDENTS_TO_ANALYSIS: Record<DependentCount, number> = {
   "4_plus": 4,
 };
 
+const DEPENDENTS_FROM_ANALYSIS: Record<number, DependentCount> = {
+  0: "0",
+  1: "1",
+  2: "2",
+  3: "3",
+  4: "4_plus",
+};
+
 const FINANCIAL_ASSET_TO_ANALYSIS: Record<FinancialAssetRange, AnalysisFinancialAssetRange> = {
   none: "none",
   under_500: "under_500",
@@ -128,10 +129,25 @@ const FINANCIAL_ASSET_TO_ANALYSIS: Record<FinancialAssetRange, AnalysisFinancial
   over_5000: "over_5000",
 };
 
+const FINANCIAL_ASSET_FROM_ANALYSIS: Record<AnalysisFinancialAssetRange, FinancialAssetRange> = {
+  none: "none",
+  under_500: "under_500",
+  "500_to_2000": "500_2000",
+  "2000_to_5000": "2000_5000",
+  over_5000: "over_5000",
+};
+
 const VEHICLE_TO_ANALYSIS: Record<VehicleRange, AnalysisVehicleValueRange> = {
   none: "none",
   under_500: "under_500",
   "500_2000": "500_to_2000",
+  over_2000: "over_2000",
+};
+
+const VEHICLE_FROM_ANALYSIS: Record<AnalysisVehicleValueRange, VehicleRange> = {
+  none: "none",
+  under_500: "under_500",
+  "500_to_2000": "500_2000",
   over_2000: "over_2000",
 };
 
@@ -143,11 +159,27 @@ const OVERDUE_PERIOD_TO_ANALYSIS: Record<OverduePeriod, AnalysisOverduePeriod> =
   over_1y: "over_1_year",
 };
 
+const OVERDUE_PERIOD_FROM_ANALYSIS: Record<AnalysisOverduePeriod, OverduePeriod> = {
+  none: "none",
+  under_3_months: "under_3m",
+  "3_to_6_months": "3_6m",
+  "6_to_12_months": "6_12m",
+  over_1_year: "over_1y",
+};
+
 const MONTHLY_INCOME_TO_ANALYSIS: Record<MonthlyIncomeRange, AnalysisMonthlyIncomeRange> = {
   under_100: "under_100",
   "100_200": "100_to_200",
   "200_300": "200_to_300",
   "300_400": "300_to_400",
+  over_400: "over_400",
+};
+
+const MONTHLY_INCOME_FROM_ANALYSIS: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
+  under_100: "under_100",
+  "100_to_200": "100_200",
+  "200_to_300": "200_300",
+  "300_to_400": "300_400",
   over_400: "over_400",
 };
 
@@ -160,14 +192,29 @@ const DEBT_CAUSE_TO_ANALYSIS: Record<DebtCause, AnalysisDebtCause> = {
   other: "other",
 };
 
-// 캐피탈·저축은행 UI는 분리되지만 실 API capitalLoan 슬롯은 하나다.
+const DEBT_CAUSE_FROM_ANALYSIS: Record<AnalysisDebtCause, DebtCause> = {
+  business_failure: "business_failure",
+  living_expenses: "living_expenses",
+  medical_expenses: "medical",
+  investment_loss: "investment_loss",
+  guarantee_damage: "guarantee_damage",
+  other: "other",
+};
+
 const DEBT_TYPE_TO_BREAKDOWN_KEY: Record<DebtType, keyof AnalysisDebtBreakdown> = {
   bank_loan: "bankLoan",
   card_loan: "cardDebt",
   capital: "capitalLoan",
-  savings_bank: "capitalLoan",
   private_loan: "privateDebt",
   personal_borrowing: "personalBorrowing",
+};
+
+const BREAKDOWN_KEY_TO_DEBT_TYPE: Record<keyof AnalysisDebtBreakdown, DebtType> = {
+  bankLoan: "bank_loan",
+  cardDebt: "card_loan",
+  capitalLoan: "capital",
+  privateDebt: "private_loan",
+  personalBorrowing: "personal_borrowing",
 };
 
 const REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY: Record<RealEstateType, keyof AnalysisRealEstateBreakdown> = {
@@ -176,8 +223,39 @@ const REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY: Record<RealEstateType, keyof AnalysisRe
   rental_income: "rentalValue",
 };
 
+const BREAKDOWN_KEY_TO_REAL_ESTATE_TYPE: Record<keyof AnalysisRealEstateBreakdown, RealEstateType> = {
+  ownedValue: "owned",
+  jeonseDeposit: "jeonse_deposit",
+  rentalValue: "rental_income",
+};
+
+// 채권자 수는 구간 대표값(number)만 API에 남아 정확한 구간을 복원할 수 없을 수 있다
+// (예: 서버가 5~7 사이 값을 돌려주면 어느 구간에도 정확히 맞지 않는다). 자체 생성 분석은
+// 항상 CREDITOR_COUNT_TO_NUMBER의 대표값 중 하나로 보내므로 실질적으로는 발생하지 않지만,
+// 방어적으로 가장 가까운 구간으로 근사한다.
+const CREDITOR_COUNT_RANGES: { range: CreditorCountRange; representative: number }[] = (
+  Object.entries(CREDITOR_COUNT_TO_NUMBER) as [CreditorCountRange, number][]
+).map(([range, representative]) => ({ range, representative }));
+
+function creditorCountFromNumber(value: number): CreditorCountRange {
+  const exact = CREDITOR_COUNT_RANGES.find((entry) => entry.representative === value);
+  if (exact) return exact.range;
+  return CREDITOR_COUNT_RANGES.reduce((closest, entry) =>
+    Math.abs(entry.representative - value) < Math.abs(closest.representative - value) ? entry : closest
+  ).range;
+}
+
 function optionLabel<T extends string>(options: { value: T; label: string }[], value: T): string {
   return options.find((option) => option.value === value)?.label ?? "";
+}
+
+// optionLabel의 역함수. 서버가 우리가 보낸 라벨을 그대로 echo한다는 전제(2026-07-14 기준
+// 확인됨) 하에 라벨 → 코드로 되돌린다. 못 찾으면 null(폼에서 미선택 상태로 취급).
+function optionValueFromLabel<T extends string>(
+  options: { value: T; label: string }[],
+  label: string
+): T | null {
+  return options.find((option) => option.label === label)?.value ?? null;
 }
 
 // 실 API가 요구하는 필수값 중 폼에서 null일 수 있는 항목이 채워졌다는 전제 하에 호출한다.
@@ -186,15 +264,8 @@ function optionLabel<T extends string>(options: { value: T; label: string }[], v
 // 쓰므로 공통 매핑만 여기서 만들고, projectId/customerId 등 나머지는 호출부에서 붙인다.
 function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
   const debtBreakdown: AnalysisDebtBreakdown = {};
-  let capitalCounted = false;
   form.debtTypes.forEach((type) => {
     const key = DEBT_TYPE_TO_BREAKDOWN_KEY[type];
-    if (key === "capitalLoan") {
-      if (capitalCounted) return;
-      debtBreakdown.capitalLoan = form.debtAmounts.capital ?? 0;
-      capitalCounted = true;
-      return;
-    }
     debtBreakdown[key] = (debtBreakdown[key] ?? 0) + (form.debtAmounts[type] ?? 0);
   });
 
@@ -242,8 +313,73 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
   };
 }
 
-function toCreateAnalysisInput(projectId: string, form: DiagnosisFormState): CreateAnalysisInput {
-  return { projectId, ...toAnalysisFormInput(form) };
+function toCreateAnalysisInput(
+  projectId: string,
+  form: DiagnosisFormState,
+  customerId?: number
+): CreateAnalysisInput {
+  return { projectId, customerId, ...toAnalysisFormInput(form) };
+}
+
+// toAnalysisFormInput의 역함수. 편집 진입 시 GET /v1/analysis/{id}의 inputData를 폼 상태로 되돌린다.
+// ageGroup/region/employmentType은 실 API에 라벨 문자열로 저장되어 있어 옵션 라벨 역조회로 복원한다.
+function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
+  const realEstateTypes: RealEstateType[] = [];
+  const realEstateAmounts: Partial<Record<RealEstateType, number>> = {};
+  (Object.keys(input.realEstateBreakdown) as (keyof AnalysisRealEstateBreakdown)[]).forEach((key) => {
+    const amount = input.realEstateBreakdown[key];
+    if (!amount) return;
+    const type = BREAKDOWN_KEY_TO_REAL_ESTATE_TYPE[key];
+    realEstateTypes.push(type);
+    realEstateAmounts[type] = amount;
+  });
+
+  const debtTypes: DebtType[] = [];
+  const debtAmounts: Partial<Record<DebtType, number>> = {};
+  (Object.keys(input.debtBreakdown) as (keyof AnalysisDebtBreakdown)[]).forEach((key) => {
+    const amount = input.debtBreakdown[key];
+    if (!amount) return;
+    const type = BREAKDOWN_KEY_TO_DEBT_TYPE[key];
+    debtTypes.push(type);
+    debtAmounts[type] = amount;
+  });
+
+  return {
+    customerName: input.customerName,
+    gender: input.gender,
+    ageGroup: optionValueFromLabel(AGE_GROUP_OPTIONS, input.ageGroup),
+    region: optionValueFromLabel(REGION_OPTIONS, input.region),
+    employmentType: optionValueFromLabel(EMPLOYMENT_TYPE_OPTIONS, input.employmentType),
+    dependents: DEPENDENTS_FROM_ANALYSIS[input.dependents] ?? null,
+    spouseIncome: input.hasSpouseIncome,
+    realEstateTypes,
+    realEstateAmounts,
+    financialAsset: FINANCIAL_ASSET_FROM_ANALYSIS[input.financialAssetRange] ?? null,
+    vehicle: VEHICLE_FROM_ANALYSIS[input.vehicleValueRange] ?? null,
+    hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? false,
+    debtTypes,
+    debtAmounts,
+    overduePeriod: OVERDUE_PERIOD_FROM_ANALYSIS[input.overduePeriod] ?? null,
+    debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
+    creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
+    hasTaxArrears: input.hasTaxArrears ?? false,
+    monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
+    housingType: input.housingType,
+    expenses: {
+      housing: input.fixedExpenses.housingCost ?? 0,
+      food: input.fixedExpenses.foodCost ?? 0,
+      education: input.fixedExpenses.educationCost ?? 0,
+      transportation: input.fixedExpenses.transportCost ?? 0,
+      other: input.fixedExpenses.otherFixedCost ?? 0,
+    },
+    hasPreviousApplication: input.hasPreviousBankruptcy,
+    previousApplicationDetail: input.previousBankruptcyNote ?? "",
+    hasGuarantor: input.hasGuarantorRelation,
+    guarantorDetail: input.guarantorNote ?? "",
+    hasOngoingLitigation: input.hasActiveLawsuit,
+    litigationDetail: input.lawsuitNote ?? "",
+    counselorMemo: input.additionalNotes ?? "",
+  };
 }
 
 function resolveAgeGroupLabel(ageGroup?: string | null): string | undefined {
@@ -369,6 +505,20 @@ function buildConditionAnalysis(conditions: AnalysisProcedureConditions): Condit
     ...conditions.needsSupplement.map((text) => ({ status: "caution" as const, text })),
     ...conditions.riskFactors.map((text) => ({ status: "risk" as const, text })),
   ];
+}
+
+function buildConditionAnalysisByProcedure(
+  conditions: AnalysisProcedureConditionsMap
+): Record<RecommendedProcedure, ConditionItem[]> {
+  return (Object.keys(PROCEDURE_TO_SCORE_KEY) as AnalysisProcedureType[]).reduce(
+    (acc, procedure) => {
+      acc[PROCEDURE_FROM_ANALYSIS[procedure]] = buildConditionAnalysis(
+        conditions[PROCEDURE_TO_SCORE_KEY[procedure]]
+      );
+      return acc;
+    },
+    {} as Record<RecommendedProcedure, ConditionItem[]>
+  );
 }
 
 function buildProcedureScores(
@@ -514,8 +664,12 @@ export const DebtReliefService = {
   },
 
   // 진단 생성(AI 분석 요청). 호출 전 UI에서 getMissingRequiredFieldLabels로 필수값을 검증해야 한다.
-  async createDiagnosis(projectId: string, form: DiagnosisFormState): Promise<CreateDiagnosisResult> {
-    const response = await AnalysisService.create(toCreateAnalysisInput(projectId, form));
+  async createDiagnosis(
+    projectId: string,
+    form: DiagnosisFormState,
+    customerId?: number
+  ): Promise<CreateDiagnosisResult> {
+    const response = await AnalysisService.create(toCreateAnalysisInput(projectId, form, customerId));
     return { id: String(response.data.data.id) };
   },
 
@@ -531,11 +685,13 @@ export const DebtReliefService = {
     const scoreKey = PROCEDURE_TO_SCORE_KEY[recommendation];
     const successProbability = analysis.analysisResult?.scores[scoreKey] ?? 0;
 
-    // 매칭된 고객이 있을 때만 연락처를 알 수 있다 — 없으면 문자 발송 UI가 비활성화된다.
-    let phone = "";
-    if (analysis.customerId != null) {
+    // 공유(납품) contact를 우선 사용. 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있음.
+    let phone = analysis.contact?.trim() ? analysis.contact : "";
+    if (!phone && analysis.customerId != null && !analysis.isShared) {
       try {
-        const customerRes = await CustomersService.detail(String(analysis.customerId)).withProject(projectId);
+        const customerRes = await CustomersService.detail(String(analysis.customerId)).withProject(
+          projectId
+        );
         phone = customerRes.data?.data?.contact1 ?? "";
       } catch (error) {
         console.error("Failed to load matched customer contact:", error);
@@ -545,6 +701,12 @@ export const DebtReliefService = {
     const guideKey = PROCEDURE_TO_SCORE_KEY[analysis.trackingProcedure ?? recommendation];
     const guide = analysis.procedureGuides?.[guideKey];
     const totalDebt = inputData.totalDebt;
+    const assigneeName =
+      analysis.sourceAssignedMemberName ?? analysis.sourceMemberName ?? undefined;
+    const assigneeProfileImageUrl =
+      analysis.sourceAssignedMemberProfileImageUrl ??
+      analysis.sourceMemberProfileImageUrl ??
+      undefined;
 
     return {
       id: String(analysis.id),
@@ -555,6 +717,10 @@ export const DebtReliefService = {
       phone,
       customerId: analysis.customerId,
       consultedAt: analysis.createdAt,
+      isShared: analysis.isShared,
+      assigneeName: assigneeName || undefined,
+      assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
+      assigneeProjectName: analysis.sourceProjectName ?? undefined,
       recommendedProcedure,
       successProbability,
       recommendation: {
@@ -568,6 +734,9 @@ export const DebtReliefService = {
       conditionAnalysis: analysis.analysisResult
         ? buildConditionAnalysis(analysis.analysisResult.procedureConditions[scoreKey])
         : [],
+      conditionAnalysisByProcedure: analysis.analysisResult
+        ? buildConditionAnalysisByProcedure(analysis.analysisResult.procedureConditions)
+        : { individual_rehab: [], debt_adjustment: [], bankruptcy: [] },
       debtStatus: {
         totalDebtManwon: totalDebt,
         totalAssetManwon:
@@ -598,6 +767,12 @@ export const DebtReliefService = {
       // 실 API에 대응 필드 없음 — AI 생성 추천 질문 기능은 추후 재검토.
       aiSuggestedQuestions: [],
       procedureGuide: guide ? buildProcedureGuide(guide, analysis.currentProcedureStep) : EMPTY_PROCEDURE_GUIDE,
+      procedureStepHistory: (analysis.procedureStepHistory ?? []).map((item) => ({
+        stepId: item.stepId,
+        changedByMemberName: item.changedByMemberName,
+        changedByProjectName: item.changedByProjectName ?? null,
+        changedAt: item.changedAt,
+      })),
     };
   },
 
@@ -615,22 +790,45 @@ export const DebtReliefService = {
   },
 
   // 편집(정보 수정) 진입 시 폼에 채울 원본 입력값 조회.
-  getDiagnosisForm(_projectId: string, _id: string): Promise<DiagnosisFormState> {
-    return withMockLatency(MOCK_DIAGNOSIS_FORM);
+  async getDiagnosisForm(projectId: string, id: string): Promise<DiagnosisFormState> {
+    const response = await AnalysisService.detail(Number(id), projectId);
+    return fromAnalysisFormInput(response.data.data.inputData);
   },
 
-  // 진단 수정(재분석 요청). 실제 API 연동 시 PUT/PATCH로 교체한다.
-  updateDiagnosis(
-    _projectId: string,
+  // 진단 수정(재분석 요청). 성공 시 서버가 status/trackingProcedure/currentProcedureStep을
+  // 초기화하고 AI 채팅 이력을 삭제한다 — 호출 전 UI에서 사용자에게 안내가 되어 있어야 한다
+  // (2026-07-14 기준 DiagnosisFormContent에는 별도 확인 모달이 없어 확인 필요).
+  async updateDiagnosis(
+    projectId: string,
     id: string,
-    _form: DiagnosisFormState
+    form: DiagnosisFormState
   ): Promise<CreateDiagnosisResult> {
-    return withMockLatency({ id });
+    const response = await AnalysisService.reanalyze(Number(id), toCreateAnalysisInput(projectId, form));
+    return { id: String(response.data.data.id) };
   },
 
   // 진단 삭제 (공유받은 분석 건은 백엔드에서 거부될 수 있음)
   async deleteDiagnosis(projectId: string, id: string): Promise<void> {
     await AnalysisService.remove(Number(id), projectId);
+  },
+
+  // 진단 일괄 삭제 (자체 생성 건만). POST /v1/analysis/bulk-delete
+  async bulkDeleteDiagnoses(
+    projectId: string,
+    ids: string[]
+  ): Promise<{ deletedCount: number; failedCount: number; failedAnalysisIds: number[] }> {
+    const response = await AnalysisService.bulkDelete({
+      projectId,
+      deleteType: "ids",
+      analysisIds: ids.map(Number),
+      expectedCount: ids.length,
+    });
+    const data = response.data.data;
+    return {
+      deletedCount: data.deletedCount,
+      failedCount: data.failedCount,
+      failedAnalysisIds: data.failedAnalysisIds ?? [],
+    };
   },
 
   // 결과 상세 - 절차 안내 / 고객 안내 문자 발송. 발송 API 미구현 상태의 mock.

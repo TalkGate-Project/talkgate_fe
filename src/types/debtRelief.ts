@@ -211,35 +211,29 @@ export const VEHICLE_OPTIONS: PillOption<VehicleRange>[] = [
 ];
 
 // ── 3. 채무현황 ──────────────────────────────────────────────
-// 캐피탈·저축은행은 UI에서 분리 선택하지만, 실 API(debtBreakdown.capitalLoan)는
-// 하나의 슬롯이라 금액은 capital 키로 합쳐 보낸다.
+// 실 API(debtBreakdown.capitalLoan)가 캐피탈/저축은행을 슬롯 하나로만 받아, 원본이 어느 쪽이었는지
+// 되돌릴 방법이 없다(2026-07-14 확인). 그래서 폼에서도 애초에 "캐피탈/저축은행"을 단일 선택지로 합쳤다.
 export type DebtType =
   | "bank_loan"
   | "card_loan"
   | "capital"
-  | "savings_bank"
   | "private_loan"
   | "personal_borrowing";
 export const DEBT_TYPE_OPTIONS: PillOption<DebtType>[] = [
   { value: "bank_loan", label: "은행대출" },
   { value: "card_loan", label: "카드론" },
-  { value: "capital", label: "캐피탈" },
-  { value: "savings_bank", label: "저축은행" },
+  { value: "capital", label: "캐피탈 / 저축은행" },
   { value: "private_loan", label: "사채" },
   { value: "personal_borrowing", label: "개인차용" },
 ];
 
-/** 금액 입력 라벨 (캐피탈·저축은행은 공유 필드) */
 export const DEBT_AMOUNT_LABELS: Record<DebtType, string> = {
   bank_loan: "은행 대출",
   card_loan: "카드론",
   capital: "캐피탈 / 저축은행",
-  savings_bank: "캐피탈 / 저축은행",
   private_loan: "사채",
   personal_borrowing: "개인차용",
 };
-
-export const CAPITAL_DEBT_TYPES: DebtType[] = ["capital", "savings_bank"];
 
 export type OverduePeriod = "none" | "under_3m" | "3_6m" | "6_12m" | "over_1y";
 export const OVERDUE_PERIOD_OPTIONS: PillOption<OverduePeriod>[] = [
@@ -489,6 +483,14 @@ export type ProcedureGuide = {
   steps: ProcedureStep[];
 };
 
+/** 절차 단계 변경 이력 (UI 표시용 — 상세 procedureStepHistory에서 매핑) */
+export type ProcedureStepHistoryItem = {
+  stepId: number;
+  changedByMemberName: string;
+  changedByProjectName?: string | null;
+  changedAt: string;
+};
+
 export type DiagnosisDetail = {
   id: string;
   customerName: string;
@@ -500,11 +502,19 @@ export type DiagnosisDetail = {
   phone: string;
   customerId: number | null;
   consultedAt: string; // ISO datetime
+  isShared: boolean;
+  // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
+  assigneeName?: string;
+  assigneeProfileImageUrl?: string;
+  assigneeProjectName?: string;
   recommendedProcedure: RecommendedProcedure;
   successProbability: number;
   recommendation: { title: string; description: string; tags: string[] };
   procedureScores: ProcedureScore[];
+  // 추천 절차 기준 조건 분석 (문자 발송 템플릿 등에서 사용)
   conditionAnalysis: ConditionItem[];
+  // 절차별(개인회생/채무조정/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
+  conditionAnalysisByProcedure: Record<RecommendedProcedure, ConditionItem[]>;
   debtStatus: DebtStatusSummary;
   repaymentPlan: RepaymentPlan;
   counselMents: CounselMent[];
@@ -512,6 +522,8 @@ export type DiagnosisDetail = {
   // 통해 로드/전송한다 — 이 타입에는 대화 내역을 담지 않는다.
   aiSuggestedQuestions: string[];
   procedureGuide: ProcedureGuide;
+  /** 현재 추적 절차의 단계별 변경 이력 (변경 기록이 없는 단계는 제외) */
+  procedureStepHistory: ProcedureStepHistoryItem[];
 };
 
 // ════════════════════════════════════════════════════════════

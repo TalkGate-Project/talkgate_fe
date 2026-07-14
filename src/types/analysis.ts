@@ -234,9 +234,50 @@ export type AnalysisDetail = {
   procedureGuides: AnalysisProcedureGuidesMap | null;
   isShared: boolean; // 공유(납품)받은 분석 건 여부
   sourceProjectName: string | null; // 공유받은 경우 원본(영업) 프로젝트 이름
+  sourceMemberName?: string | null;
+  sourceMemberProfileImageUrl?: string | null;
+  sourceAssignedMemberName?: string | null;
+  sourceAssignedMemberProfileImageUrl?: string | null;
+  /** 공유 시 전달한 연락처 (없으면 null) */
+  contact?: string | null;
+  /** 공유 시 전달한 참고사항 (없으면 null) */
+  referenceNote?: string | null;
+  /** 절차 단계 변경 이력 (상세 응답에 포함된 최근 이력) */
+  procedureStepHistory?: AnalysisProcedureStepHistoryItem[];
   createdAt: string;
   updatedAt: string;
 };
+
+/** 절차 단계 변경 이력 항목 (상세 procedureStepHistory / GET procedure-changes) */
+export type AnalysisProcedureStepHistoryItem = {
+  stepId: number;
+  changedByMemberId: number;
+  changedByMemberName: string;
+  changedByMemberProfileImageUrl?: string | null;
+  changedByProjectId: number;
+  /** 해당 단계로 변경한 프로젝트 이름 */
+  changedByProjectName?: string | null;
+  changedAt: string;
+};
+
+/**
+ * GET /v1/analysis/{id}/procedure-changes
+ * 최신 절차(trackingProcedure/step) 변경 1건 스냅샷.
+ */
+export type AnalysisProcedureChange = {
+  id: number;
+  trackingProcedure: AnalysisProcedureType;
+  currentProcedureStep: number | null;
+  previousTrackingProcedure: AnalysisProcedureType | null;
+  previousCurrentProcedureStep: number | null;
+  changedByMemberId: number;
+  changedByMemberName: string;
+  changedByMemberProfileImageUrl?: string | null;
+  changedByProjectId: number;
+  createdAt: string;
+};
+
+export type AnalysisProcedureChangesResponse = ApiSuccess<AnalysisProcedureChange>;
 
 export type CreateAnalysisResponse = ApiSuccess<AnalysisDetail>;
 export type AnalysisDetailResponse = ApiSuccess<AnalysisDetail>;
@@ -372,7 +413,12 @@ export type AnalysisDelivery = {
 
 export type DeliverAnalysisInput = {
   projectId: string;
+  /** AnalysisPartner.id (파트너십 레코드 id). partnerProjectId가 아님. */
   partnerId: number;
+  /** 공유 시 함께 전달할 연락처 (선택) */
+  contact?: string;
+  /** 공유 시 함께 전달할 참고사항 (선택) */
+  referenceNote?: string;
 };
 
 export type DeliverAnalysisResponse = ApiSuccess<AnalysisDelivery>;
@@ -382,6 +428,67 @@ export type DeliverAnalysisResponse = ApiSuccess<AnalysisDelivery>;
 export type AnalysisDeliveriesResponse = ApiSuccess<AnalysisDelivery[]>;
 
 export type RevokeAnalysisDeliveryResponse = ApiSuccess<Record<string, never>>;
+
+// ============================================
+// 분석 일괄 삭제 / 일괄 공유
+// ============================================
+
+export type AnalysisBulkFilterConditions = {
+  status?: AnalysisStatus;
+  procedure?: AnalysisProcedureType;
+  search?: string;
+};
+
+/** POST /v1/analysis/bulk-delete — 자체 생성 분석 건만 삭제 */
+export type BulkDeleteAnalysisInput = {
+  projectId: string;
+  deleteType: "ids" | "filter";
+  analysisIds?: number[];
+  filterConditions?: AnalysisBulkFilterConditions;
+  expectedCount?: number;
+};
+
+export type BulkDeleteAnalysisResult = {
+  deletedCount: number;
+  failedCount: number;
+  totalCount: number;
+  failedAnalysisIds: number[];
+};
+
+export type BulkDeleteAnalysisResponse = ApiSuccess<BulkDeleteAnalysisResult>;
+
+/**
+ * POST /v1/analysis/bulk-deliver — 분석 건별 공유 정보
+ */
+export type BulkDeliverAnalysisItem = {
+  analysisId: number;
+  contact?: string;
+  referenceNote?: string;
+};
+
+/**
+ * POST /v1/analysis/bulk-deliver
+ * 활성 공유는 분석 건당 변호사 프로젝트 1곳만 허용 (단일 partnerId).
+ */
+export type BulkDeliverAnalysisInput = {
+  projectId: string;
+  selectionType: "ids" | "filter";
+  analysisIds?: number[];
+  filterConditions?: AnalysisBulkFilterConditions;
+  expectedCount?: number;
+  partnerId: number;
+  /** 분석 건별 공유 정보 (연락처, 추가전달사항) — 필수 */
+  deliveryItems: BulkDeliverAnalysisItem[];
+};
+
+export type BulkDeliverAnalysisResult = {
+  successCount: number;
+  failedCount: number;
+  totalCount: number;
+  failedAnalysisIds: number[];
+};
+
+export type BulkDeliverAnalysisResponse = ApiSuccess<BulkDeliverAnalysisResult>;
 
 // ============================================
 // 분석 요약 통계 (GET /v1/analysis/summary)
