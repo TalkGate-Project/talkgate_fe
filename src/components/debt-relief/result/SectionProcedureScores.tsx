@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   CONDITION_STATUS_LABEL,
   PROCEDURE_GRADE_LABEL,
@@ -5,6 +8,7 @@ import {
   type ConditionStatus,
   type DiagnosisDetail,
   type ProcedureScore,
+  type RecommendedProcedure,
 } from "@/types/debtRelief";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
@@ -52,26 +56,33 @@ function ConditionIcon({ status }: { status: ConditionStatus }) {
   );
 }
 
-function ScoreRow({ score }: { score: ProcedureScore }) {
-  const isRecommended = score.recommended;
-
+function ScoreRow({
+  score,
+  isSelected,
+  onSelect,
+}: {
+  score: ProcedureScore;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
   return (
-    <div
-      className={`h-[56px] px-3 md:px-6 rounded-[12px] flex items-center gap-2 md:gap-3 ${
-        isRecommended
-          ? "bg-neutral-0 border border-neutral-80"
-          : "bg-neutral-10"
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={isSelected}
+      className={`h-[56px] px-3 md:px-6 rounded-[12px] flex items-center gap-2 md:gap-3 w-full text-left cursor-pointer transition-colors ${
+        isSelected ? "bg-neutral-0 border border-neutral-80" : "bg-neutral-10"
       }`}
     >
       <div className="w-[88px] md:w-[120px] shrink-0 flex items-center gap-1.5">
         <span
           className={`text-[13px] leading-4 tracking-[-0.02em] text-foreground truncate ${
-            isRecommended ? "font-semibold" : "font-medium"
+            isSelected ? "font-semibold" : "font-medium"
           }`}
         >
           {score.label}
         </span>
-        {isRecommended && (
+        {score.recommended && (
           <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
             추천
           </span>
@@ -80,7 +91,7 @@ function ScoreRow({ score }: { score: ProcedureScore }) {
 
       <div className="flex-1 min-w-0 h-2 rounded-full bg-neutral-30 overflow-hidden">
         <div
-          className={`h-full rounded-l-full ${isRecommended ? "bg-neutral-70" : "bg-neutral-40"}`}
+          className={`h-full rounded-l-full ${isSelected ? "bg-neutral-70" : "bg-neutral-40"}`}
           style={{ width: `${score.score}%` }}
         />
       </div>
@@ -96,16 +107,26 @@ function ScoreRow({ score }: { score: ProcedureScore }) {
 
       <span
         className={`w-6 shrink-0 text-[14px] leading-[17px] tracking-[-0.02em] text-right ${
-          isRecommended ? "font-semibold text-foreground" : "font-medium text-neutral-80"
+          isSelected ? "font-semibold text-foreground" : "font-medium text-neutral-80"
         }`}
       >
         {PROCEDURE_GRADE_LABEL[score.grade]}
       </span>
-    </div>
+    </button>
   );
 }
 
 export default function SectionProcedureScores({ detail }: { detail: DiagnosisDetail }) {
+  const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure>(
+    detail.recommendedProcedure
+  );
+
+  const selectedScore = detail.procedureScores.find(
+    (score) => score.procedure === selectedProcedure
+  );
+  const selectedConditionAnalysis =
+    detail.conditionAnalysisByProcedure[selectedProcedure] ?? detail.conditionAnalysis;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-9">
       {/* 좌: 절차별 성공 가능성 */}
@@ -127,7 +148,12 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
 
         <div className="flex-1 flex flex-col justify-center gap-3 md:gap-5 mt-5 md:mt-8">
           {detail.procedureScores.map((score) => (
-            <ScoreRow key={score.procedure} score={score} />
+            <ScoreRow
+              key={score.procedure}
+              score={score}
+              isSelected={score.procedure === selectedProcedure}
+              onSelect={() => setSelectedProcedure(score.procedure)}
+            />
           ))}
         </div>
       </div>
@@ -136,7 +162,7 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
       <div className="min-w-0 rounded-[12px] border border-neutral-30 overflow-hidden">
         <div className="min-h-[42px] px-4 md:px-5 py-2 md:py-0 bg-neutral-10 flex flex-wrap items-center justify-between gap-2 md:gap-3">
           <h3 className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
-            {detail.recommendation.title} 조건 분석
+            {selectedScore?.label ?? detail.recommendation.title} 조건 분석
           </h3>
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             {(["met", "caution", "risk"] as ConditionStatus[]).map((status) => (
@@ -151,8 +177,8 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
         </div>
 
         <ul>
-          {detail.conditionAnalysis.map((item: ConditionItem, index) => {
-            const isLast = index === detail.conditionAnalysis.length - 1;
+          {selectedConditionAnalysis.map((item: ConditionItem, index) => {
+            const isLast = index === selectedConditionAnalysis.length - 1;
             return (
               <li
                 key={index}
