@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  CAPITAL_DEBT_TYPES,
   createEmptyDiagnosisForm,
   MONTHLY_INCOME_ESTIMATE,
   type DiagnosisDerivedValues,
@@ -20,17 +19,8 @@ export function useDiagnosisForm() {
   );
 
   const derived: DiagnosisDerivedValues = useMemo(() => {
-    // 캐피탈·저축은행은 금액을 capital 키 하나에만 두므로 중복 합산을 피한다.
     let totalDebtManwon = 0;
-    let capitalCounted = false;
     for (const type of form.debtTypes) {
-      if (CAPITAL_DEBT_TYPES.includes(type)) {
-        if (!capitalCounted) {
-          totalDebtManwon += form.debtAmounts.capital ?? 0;
-          capitalCounted = true;
-        }
-        continue;
-      }
       totalDebtManwon += form.debtAmounts[type] ?? 0;
     }
 

@@ -38,6 +38,22 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 수정 모드: 불러온 원본 스냅샷. dirty 비교용. 생성 모드에서는 null.
   const [baselineForm, setBaselineForm] = useState<DiagnosisFormState | null>(null);
 
+  // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
+  // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
+  const customerIdParam = searchParams.get("customerId");
+  const linkedCustomerId =
+    !isEdit && customerIdParam && Number.isFinite(Number(customerIdParam))
+      ? Number(customerIdParam)
+      : undefined;
+  const customerNameParam = searchParams.get("customerName");
+
+  // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
+  useEffect(() => {
+    if (isEdit || !customerNameParam) return;
+    setForm((prev) => (prev.customerName ? prev : { ...prev, customerName: customerNameParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, customerNameParam]);
+
   // 현재 단계는 ?step= 쿼리스트링을 단일 진실 공급원으로 삼는다(1-indexed).
   // 브라우저 뒤로/앞으로 가기로 쿼리가 바뀌면 currentIndex도 함께 갱신된다.
   const stepParam = Number(searchParams.get("step"));
@@ -136,7 +152,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     try {
       const result = isEdit
         ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, form)
-        : await DebtReliefService.createDiagnosis(projectId ?? "", form);
+        : await DebtReliefService.createDiagnosis(projectId ?? "", form, linkedCustomerId);
       router.push(`/debt-relief/${result.id}`);
     } catch (error) {
       console.error("Failed to submit diagnosis:", error);
