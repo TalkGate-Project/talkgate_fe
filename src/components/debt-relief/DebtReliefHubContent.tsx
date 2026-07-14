@@ -117,9 +117,27 @@ export default function DebtReliefHubContent() {
       cancelText: "취소",
       onConfirm: async () => {
         try {
-          await Promise.all(
-            deletable.map((item) => DebtReliefService.deleteDiagnosis(projectId, item.id))
+          const result = await DebtReliefService.bulkDeleteDiagnoses(
+            projectId,
+            deletable.map((item) => item.id)
           );
+          if (result.failedCount > 0) {
+            console.error("Some diagnosis deletions failed:", result.failedAnalysisIds);
+            showErrorModal({
+              title: "삭제 실패",
+              headline:
+                result.deletedCount > 0
+                  ? "일부 진단을 삭제하지 못했습니다."
+                  : "진단을 삭제하지 못했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              hideCancel: true,
+            });
+            if (result.deletedCount > 0) {
+              clearSelection();
+              refetch();
+            }
+            return;
+          }
           clearSelection();
           refetch();
         } catch (error) {
