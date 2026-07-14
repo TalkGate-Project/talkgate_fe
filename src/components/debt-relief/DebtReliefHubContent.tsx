@@ -12,7 +12,6 @@ import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
 import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import Pagination from "@/components/common/Pagination";
-import Checkbox from "@/components/common/Checkbox";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { DebtReliefService } from "@/services/debtRelief";
@@ -222,31 +221,6 @@ export default function DebtReliefHubContent() {
             />
           </div>
         </div>
-
-        {hasSelection && (
-          <div className="flex items-center flex-wrap gap-3 md:gap-4 mb-4">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={toggleSelectAll}>
-              <div onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  checked={allSelectedOnPage}
-                  onChange={toggleSelectAll}
-                  ariaLabel="전체 선택"
-                  size={24}
-                />
-              </div>
-              <span className="text-[14px] font-medium text-foreground whitespace-nowrap">
-                전체 {selectedIds.size}건 선택됨
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={clearSelection}
-              className="cursor-pointer text-[13px] text-neutral-50 underline hover:text-neutral-70 transition-colors"
-            >
-              선택해제
-            </button>
-          </div>
-        )}
 
         {/* 데스크톱: 표 (가로 스크롤). 모바일: 카드 리스트 — Figma 모바일 목업 기준 별도 컴포넌트 */}
         <div className="hidden md:block">

@@ -1,4 +1,5 @@
 import type { ApiSuccess } from "@/types/common";
+import type { SenderNumberType, SmsAdvertisementType } from "@/types/sms";
 
 // Analysis(채무 정리 AI 진단) 도메인 타입
 // Swagger 스펙(POST/GET/PATCH/DELETE /v1/analysis 등) 기준.
@@ -279,6 +280,35 @@ export type AnalysisProcedureChange = {
 
 export type AnalysisProcedureChangesResponse = ApiSuccess<AnalysisProcedureChange>;
 
+/**
+ * POST /v1/analysis/{id}/send-sms
+ * 공유 시 전달받은 연락처(contact)가 있으면 그걸로, 없으면 매칭된 고객 연락처로 발송한다.
+ * 둘 다 없으면 실패(400 BAD_REQUEST).
+ */
+export type AnalysisSendSmsInput = {
+  senderNumberType: SenderNumberType;
+  senderNumberId: number;
+  advertisementType: SmsAdvertisementType;
+  /** 광고성 문자일 경우 필수 */
+  serviceName?: string;
+  /** LMS/MMS에서 사용 */
+  title?: string;
+  content: string;
+  /** ISO 8601, 즉시 발송 시 현재 시간 */
+  scheduledAt: string;
+  imageUrls?: string[];
+};
+
+export type AnalysisSendSmsResult = {
+  smsHistoryId: number;
+  recipientPhoneNumber: string;
+  // Swagger에 enum 미공개, 확인된 값: "contact"(공유 시 전달받은 연락처). 매칭된 고객 연락처로
+  // 발송된 경우의 실제 값은 응답 확인 후 필요시 수정.
+  recipientSource: string;
+};
+
+export type AnalysisSendSmsResponse = ApiSuccess<AnalysisSendSmsResult>;
+
 export type CreateAnalysisResponse = ApiSuccess<AnalysisDetail>;
 export type AnalysisDetailResponse = ApiSuccess<AnalysisDetail>;
 export type UpdateAnalysisResponse = ApiSuccess<AnalysisDetail>;
@@ -372,6 +402,15 @@ export type ConnectableCustomer = {
   name: string;
   contact1: string;
   applicationDate: string;
+  /** 연령대 표시 문자열. API에 있으면 사용, 없으면 "-" */
+  ageRange?: string | null;
+  assignedMemberName?: string | null;
+  assignedTeamName?: string | null;
+  assignedMember?: {
+    id: number;
+    name: string;
+    team?: { id: number; name: string } | null;
+  } | null;
 };
 
 export type ConnectableCustomersQuery = {

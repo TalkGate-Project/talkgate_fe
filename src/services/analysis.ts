@@ -27,6 +27,8 @@ import type {
   AnalysisSummaryResponse,
   AnalysisProceduresResponse,
   AnalysisProcedureChangesResponse,
+  AnalysisSendSmsInput,
+  AnalysisSendSmsResponse,
   BulkDeleteAnalysisInput,
   BulkDeleteAnalysisResponse,
   BulkDeliverAnalysisInput,
@@ -245,6 +247,13 @@ export const AnalysisService = {
   // 절차 마스터 데이터 조회
   procedures(projectId: string) {
     return apiClient.get<AnalysisProceduresResponse>(`/v1/analysis/procedures`, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 분석 건 연락처로 문자 발송 (공유 시 전달받은 연락처 우선, 없으면 매칭된 고객 연락처)
+  sendSms(id: number, projectId: string, input: AnalysisSendSmsInput) {
+    return apiClient.post<AnalysisSendSmsResponse>(`/v1/analysis/${id}/send-sms`, input, {
       headers: { "x-project-id": projectId },
     });
   },

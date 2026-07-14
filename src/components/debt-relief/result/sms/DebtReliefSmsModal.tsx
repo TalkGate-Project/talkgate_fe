@@ -17,7 +17,6 @@ export type DebtReliefSmsModalProps = {
   onClose: () => void;
   diagnosisId: string;
   subtitle: string;
-  fixedBlock: string;
   initialBody: string;
   recipientName: string;
   recipientPhone: string;
@@ -28,7 +27,6 @@ export default function DebtReliefSmsModal({
   onClose,
   diagnosisId,
   subtitle,
-  fixedBlock,
   initialBody,
   recipientName,
   recipientPhone,
@@ -69,7 +67,9 @@ export default function DebtReliefSmsModal({
 
   const [uploadingImages, setUploadingImages] = useState(false);
   const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
-  const prevOpenRef = useRef(open);
+  // 부모에서 `{smsTemplate && <Modal open />}` 로 마운트하면 첫 open이 true라서
+  // prev를 open으로 초기화하면 열림 전환을 놓쳐 템플릿 본문이 세팅되지 않는다.
+  const prevOpenRef = useRef(false);
 
   // 모달이 열릴 때 발신번호/상호명 로드 + 템플릿 본문으로 초기화, 닫힐 때 폼 리셋
   useEffect(() => {
@@ -133,14 +133,12 @@ export default function DebtReliefSmsModal({
         }
       }
 
-      const content = [fixedBlock, body].filter((part) => part.trim().length > 0).join("\n\n");
-
       const result = await handleSend({
         projectId,
         diagnosisId,
         recipientName,
         recipientPhone,
-        content,
+        content: body,
         imageUrls,
       });
 
@@ -283,7 +281,7 @@ export default function DebtReliefSmsModal({
         </div>
 
         {contentType === "advertising" && (
-          <div className="mt-3">
+          <div className="mt-5">
             <label className="block text-[13px] leading-[16px] text-neutral-60 dark:text-neutral-60 mb-2">상호명</label>
             <input
               type="text"
@@ -311,17 +309,12 @@ export default function DebtReliefSmsModal({
       {/* 본문 */}
       <div className="mb-5">
         <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">본문</label>
-        {fixedBlock && (
-          <div className="mb-2 rounded-[5px] bg-neutral-10 dark:bg-neutral-20 px-3 py-2 text-[13px] leading-[19px] text-neutral-60 dark:text-neutral-60 whitespace-pre-wrap">
-            {fixedBlock}
-          </div>
-        )}
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="발송할 메시지를 입력하세요"
-          rows={4}
-          className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[1] tracking-[-0.02em] text-ink dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-card dark:bg-neutral-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60 resize-none"
+          rows={10}
+          className="w-full px-3 py-2 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[1.4] tracking-[-0.02em] text-ink dark:text-neutral-90 placeholder:text-neutral-60 dark:placeholder:text-neutral-60 bg-card dark:bg-neutral-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60 resize-none"
         />
       </div>
 
@@ -470,7 +463,6 @@ export default function DebtReliefSmsModal({
             <DebtReliefPhonePreview
               senderNumber={selectedSender?.phoneNumber ?? "010-0000-0000"}
               title={title}
-              fixedBlock={fixedBlock}
               body={body}
               imageFiles={imageFiles}
               contentType={contentType}
@@ -489,7 +481,6 @@ export default function DebtReliefSmsModal({
             <DebtReliefPhonePreview
               senderNumber={selectedSender?.phoneNumber ?? "010-0000-0000"}
               title={title}
-              fixedBlock={fixedBlock}
               body={body}
               imageFiles={imageFiles}
               contentType={contentType}

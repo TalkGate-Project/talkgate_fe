@@ -7,8 +7,7 @@ import type { ImageFileWithPreview, ContentType } from "@/components/customers/s
 type DebtReliefPhonePreviewProps = {
   senderNumber: string;
   title: string;
-  fixedBlock: string; // 고정 안내문 (읽기 전용, 항상 본문 위에 표시)
-  body: string; // 사용자가 편집하는 본문
+  body: string;
   imageFiles: ImageFileWithPreview[];
   contentType: ContentType;
   businessName: string;
@@ -26,19 +25,15 @@ function buildHeaderLine(contentType: ContentType, title: string, businessName: 
 
 function MessageBubble({
   headerLine,
-  fixedBlock,
   body,
   imageFiles,
   bubbleClassName,
 }: {
   headerLine: string | null;
-  fixedBlock: string;
   body: string;
   imageFiles: ImageFileWithPreview[];
   bubbleClassName: string;
 }) {
-  const combined = [fixedBlock, body].filter((part) => part.trim().length > 0).join("\n\n");
-
   return (
     <>
       <div className={bubbleClassName}>
@@ -49,7 +44,9 @@ function MessageBubble({
         )}
         <div className="text-[13px] leading-[20px] text-neutral-80 dark:text-neutral-70 whitespace-pre-wrap break-words">
           <span className="block mb-1">[Web발신]</span>
-          {combined || (
+          {body.trim() ? (
+            body
+          ) : (
             <span className="text-neutral-50 dark:text-neutral-50">메시지 내용이 여기에 표시됩니다.</span>
           )}
         </div>
@@ -74,7 +71,6 @@ function MessageBubble({
 export default function DebtReliefPhonePreview({
   senderNumber,
   title,
-  fixedBlock,
   body,
   imageFiles,
   contentType,
@@ -162,7 +158,6 @@ export default function DebtReliefPhonePreview({
           <div className="pt-2 pb-4 flex flex-col items-start px-4">
             <MessageBubble
               headerLine={headerLine}
-              fixedBlock={fixedBlock}
               body={body}
               imageFiles={imageFiles}
               bubbleClassName="bg-neutral-20 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[90%]"
@@ -207,7 +202,6 @@ export default function DebtReliefPhonePreview({
           <div className="px-4 pt-2 pb-4 flex flex-col items-start">
             <MessageBubble
               headerLine={headerLine}
-              fixedBlock={fixedBlock}
               body={body}
               imageFiles={imageFiles}
               bubbleClassName="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[85%]"

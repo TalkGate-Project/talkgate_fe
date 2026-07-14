@@ -18,6 +18,7 @@ function SmsButton({ onClick, disabled }: { onClick: () => void; disabled?: bool
       onClick={onClick}
       disabled={disabled}
       aria-label="문자 보내기"
+      title={disabled ? "연락처 정보가 없어 문자 발송이 불가능합니다" : undefined}
       className={`inline-flex items-center justify-center gap-1 h-9 w-9 md:h-[34px] md:w-auto md:px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-60 ${
         disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-10"
       }`}
@@ -255,7 +256,9 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
   const [optimisticHistory, setOptimisticHistory] = useState<
     Record<number, ProcedureStepHistoryItem>
   >({});
-  const canSendSms = Boolean(detail.customerId);
+  // 서버는 공유 시 전달받은 연락처를 우선 쓰고, 없으면 매칭된 고객 연락처를 쓴다 — detail.phone이
+  // 이미 그 결과를 반영하므로 phone 유무로만 판단한다(SectionSmsSend.tsx 참고).
+  const canSendSms = Boolean(detail.phone);
 
   const historyByStepId = useMemo(() => {
     const map = new Map<number, ProcedureStepHistoryItem>();

@@ -12,10 +12,10 @@ import SortIcon from "@/components/common/SortIcon";
 // 카드 외곽은 공통(304×148 비율)이되, 안쪽 콘텐츠 영역 너비·높이는 카드마다 다름 (피그마 Group 치수).
 const CARD_BASE =
   "bg-neutral-10 rounded-[14px] px-4 py-4 md:px-7 md:h-[148px] flex flex-col min-h-0";
-// 1~3번 카드: 상하 패딩 26px (정렬이 맞았던 기존 스펙)
-const CARD_CLASS = `${CARD_BASE} md:py-[26px]`;
+// 1~3번 카드: 상하 패딩 22px
+const CARD_CLASS = `${CARD_BASE} md:py-[22px]`;
 // 진행단계만 하단 패딩 14px — 공통 py를 쓰지 않고 pt/pb를 분리해 다른 카드에 영향 없게 함
-const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[26px] md:pb-3.5`;
+const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
 
 const LABEL_CLASS = "text-[13px] md:text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
 
@@ -212,12 +212,12 @@ export default function SummaryCards({
         </div>
       </div>
 
-      {/* 진행단계 — 절차 셀렉트 + 스크롤 목록 */}
+      {/* 진행단계 — 절차 셀렉트 + 스크롤 목록 (제목·셀렉트 상단 22px 맞춤) */}
       <div className={CARD_PROGRESS_CLASS}>
-        <div className="flex items-center justify-between gap-2 shrink-0">
-          <div className="flex items-center gap-0.5 min-w-0">
+        <div className="flex items-start justify-between gap-2 shrink-0">
+          <div className="flex items-start gap-0.5 min-w-0">
             <p className={LABEL_CLASS}>진행단계</p>
-            <SortIcon state="none" className="-ml-0.5 shrink-0" />
+            <SortIcon state="none" className="-ml-0.5 -mt-0.5 shrink-0" />
           </div>
           <ProgressProcedureSelect value={selectedProcedure} onChange={setSelectedProcedure} />
         </div>

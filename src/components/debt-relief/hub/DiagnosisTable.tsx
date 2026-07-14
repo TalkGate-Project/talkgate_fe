@@ -216,7 +216,7 @@ export default function DiagnosisTable({
                         <p className="text-[14px] font-semibold leading-[17px] text-foreground opacity-80 truncate">
                           {item.customerName}
                         </p>
-                        {item.isShared && <LinkIcon size={14} className="text-primary-80 shrink-0" />}
+                        {item.isShared && <LinkIcon size={16} className="text-[#2563EB] shrink-0" />}
                       </div>
                       {customerMeta ? (
                         <p className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80">

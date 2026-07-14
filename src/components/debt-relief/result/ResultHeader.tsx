@@ -110,7 +110,7 @@ function LinkedCustomerIcon({ className }: { className?: string }) {
 }
 
 const ACTION_BTN =
-  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black hover:bg-neutral-10 whitespace-nowrap";
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black dark:text-foreground hover:bg-neutral-10 whitespace-nowrap";
 
 const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 border border-secondary-60 text-secondary-40 hover:opacity-90 transition-opacity";
@@ -354,7 +354,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               <p className="text-[13px] font-medium leading-4 text-neutral-60 truncate min-w-0">
                 {customerSummaryLabel}
               </p>
-              {showAssigneeProfile ? customerInfoButton : null}
+              {customerInfoButton}
             </div>
           </div>
         </div>
@@ -419,7 +419,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             type="button"
             onClick={handleGoToList}
             aria-label="목록으로"
-            className="cursor-pointer w-6 h-6 flex items-center justify-center text-black hover:opacity-70 shrink-0"
+            className="cursor-pointer w-6 h-6 flex items-center justify-center text-black dark:text-foreground hover:opacity-70 shrink-0"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
@@ -438,7 +438,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           <span className="text-[18px] font-medium leading-5 text-neutral-60 truncate min-w-0">
             {customerSummaryLabel}
           </span>
-          {showAssigneeProfile ? customerInfoButton : null}
+          {customerInfoButton}
         </div>
 
         {showOwnerActions ? (
@@ -468,7 +468,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
                 type="button"
                 onClick={handleOpenMatchModal}
                 aria-label="고객 연결"
-                className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 text-black hover:bg-neutral-10"
+                className="cursor-pointer w-[34px] h-[34px] flex items-center justify-center rounded-[5px] border border-neutral-30 text-black dark:text-foreground hover:bg-neutral-10"
               >
                 <LinkedCustomerIcon />
               </button>
@@ -515,7 +515,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           />
         </>
       )}
-      {showAssigneeProfile && projectId && (
+      {projectId && (
         <DiagnosisCustomerInfoModal
           open={customerInfoOpen}
           onClose={() => setCustomerInfoOpen(false)}
