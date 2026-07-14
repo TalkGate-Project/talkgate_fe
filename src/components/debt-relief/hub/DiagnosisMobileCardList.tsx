@@ -90,7 +90,7 @@ export default function DiagnosisMobileCardList({
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
                   <p className="text-[16px] font-semibold text-foreground truncate">{item.customerName}</p>
-                  {item.isShared && <LinkIcon size={14} className="text-primary-60 shrink-0" />}
+                  {item.isShared && <LinkIcon size={16} className="text-[#2563EB] shrink-0" />}
                 </div>
                 <span className="shrink-0">
                   <ProcedureBadge procedure={item.recommendedProcedure} />

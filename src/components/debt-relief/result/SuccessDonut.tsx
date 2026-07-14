@@ -44,7 +44,7 @@ export default function SuccessDonut({
             cy={center}
             r={radius}
             fill="none"
-            stroke="#F2F3F7"
+            stroke="var(--neutral-30)"
             strokeWidth={stroke}
           />
           <circle

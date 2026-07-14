@@ -876,6 +876,106 @@ svg path:focus {
   animation: analysis-dot 1.2s ease-in-out infinite;
 }
 
+@keyframes analyze-border-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0turn);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+
+@keyframes analyze-sparkle-start-color {
+  0%,
+  100% {
+    stop-color: #00e272;
+  }
+  50% {
+    stop-color: #3f93ff;
+  }
+}
+
+@keyframes analyze-sparkle-end-color {
+  0%,
+  100% {
+    stop-color: #a9ffd4;
+  }
+  50% {
+    stop-color: #9bc8ff;
+  }
+}
+
+.analyze-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #a1ff8b 0%, #3f93ff 96.83%);
+  filter: drop-shadow(2px 2px 5px #d6fae8);
+}
+
+.analyze-button::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    #a1ff8b 0%,
+    #00e272 24%,
+    #3f93ff 68%,
+    #a1ff8b 100%
+  );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 180ms ease;
+  will-change: transform;
+}
+
+.analyze-button::after {
+  position: absolute;
+  z-index: 0;
+  inset: 2px;
+  border-radius: 3px;
+  background: #ffffff;
+  content: "";
+  pointer-events: none;
+}
+
+.analyze-button:not(:disabled):hover::before {
+  opacity: 1;
+  animation: analyze-border-rotate 1.6s linear infinite;
+}
+
+.analyze-button:not(:disabled):hover .analyze-sparkle-start {
+  animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
+}
+
+.analyze-button:not(:disabled):hover .analyze-sparkle-end {
+  animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+}
+
+.analyze-button:focus-visible {
+  outline: 2px solid #3f93ff;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analyze-button:not(:disabled):hover::before {
+    animation: none;
+  }
+
+  .analyze-button:not(:disabled):hover .analyze-sparkle-start,
+  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
+    animation: none;
+  }
+}
+
 /* AI Markdown response styles */
 .ai-markdown {
   word-break: break-word;

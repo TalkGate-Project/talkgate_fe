@@ -400,7 +400,7 @@ function buildSections(
 }
 
 /**
- * 변호사 상세 「고객정보」 모달.
+ * 진단 상세 「고객정보」 모달.
  * GET /v1/analysis/{id} 의 inputData + contact + referenceNote 만 사용합니다.
  * /v1/customers 는 호출하지 않습니다.
  */

@@ -50,6 +50,7 @@ export function useCustomerForm(): UseCustomerFormReturn {
       contact2Type: detail.contact2Type ?? null,
       birth,
       ageRange: detail.ageRange ?? "",
+      gender: detail.gender === "male" || detail.gender === "female" ? detail.gender : "",
       job: detail.job ?? "",
       applicationRoute: detail.applicationRoute ?? "",
       site: detail.site ?? "",

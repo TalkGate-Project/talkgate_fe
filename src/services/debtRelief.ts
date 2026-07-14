@@ -59,7 +59,10 @@ import type {
   CreateAnalysisInput,
 } from "@/types/analysis";
 
-// 남은 mock: sendGuidanceSms(문자 발송, Phase 3). 목록 정렬은 GET /v1/analysis의
+// sendGuidanceSms(문자 발송, 2026-07-14 연동): AnalysisService.sendSms(POST
+// /v1/analysis/{id}/send-sms)로 위임한다. 수신자는 서버가 결정(공유 시 전달받은 contact 우선,
+// 없으면 매칭된 고객 연락처)하므로 recipientName/recipientPhone은 API 호출엔 쓰이지 않고
+// 모달 UI 표시용으로만 남아있다. 목록 정렬은 GET /v1/analysis의
 // sortType/sortOrder로 서버에 위임한다(현재 sortType은 consultationDate만 지원). AI 채팅은
 // useDebtReliefAiChat 훅이 AnalysisService.chatHistory/streamChatMessage로 별도 연동한다
 // (DiagnosisDetail 타입에는 대화 내역을 담지 않음).
@@ -75,12 +78,6 @@ import type {
 // ⚠️ reanalyze는 성공 시 status/trackingProcedure/currentProcedureStep을 초기화하고 AI 채팅
 // 이력을 삭제한다(analysis.ts:69-71 참고). DiagnosisFormContent.tsx의 handleAnalyze는 아직
 // 이걸 사용자에게 안내하는 확인 모달이 없다 — 되돌릴 수 없는 부수효과이니 추가를 검토할 것.
-
-const MOCK_LATENCY_MS = 300;
-
-function withMockLatency<T>(value: T): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(value), MOCK_LATENCY_MS));
-}
 
 // mock 도메인(individual_rehab)과 실 API(individual_rehabilitation)의 절차 코드값이 다르다.
 const PROCEDURE_TO_ANALYSIS: Record<RecommendedProcedure, AnalysisProcedureType> = {
@@ -831,12 +828,21 @@ export const DebtReliefService = {
     };
   },
 
-  // 결과 상세 - 절차 안내 / 고객 안내 문자 발송. 발송 API 미구현 상태의 mock.
-  // 실제 연동 시 SmsService.send처럼 백엔드로 위임하도록 본문만 교체한다.
-  sendGuidanceSms(
-    _projectId: string,
-    _input: SendGuidanceSmsInput
+  // 결과 상세 - 절차 안내 / 고객 안내 문자 발송. diagnosisId 기준으로 서버가 수신자를 결정한다.
+  async sendGuidanceSms(
+    projectId: string,
+    input: SendGuidanceSmsInput
   ): Promise<SendGuidanceSmsResult> {
-    return withMockLatency({ success: true });
+    const response = await AnalysisService.sendSms(Number(input.diagnosisId), projectId, {
+      senderNumberType: input.senderNumberType,
+      senderNumberId: input.senderNumberId,
+      advertisementType: input.advertisementType,
+      serviceName: input.serviceName,
+      title: input.title,
+      content: input.content,
+      scheduledAt: input.scheduledAt,
+      imageUrls: input.imageUrls,
+    });
+    return { success: response.data.result };
   },
 };

@@ -139,6 +139,19 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const handleAnalyze = async () => {
     if (analyzing || !canAnalyze) return;
 
+    if (!Number.isFinite(derived.totalDebtManwon) || derived.totalDebtManwon <= 0) {
+      showErrorModal({
+        type: "info",
+        title: "알림",
+        headline: "채무 현황을 파악해주세요.",
+        description: "분석을 진행하려면 채무 종류와 금액을 입력해주세요.",
+        confirmText: "채무 현황 입력",
+        hideCancel: true,
+        onConfirm: () => goToStep(2),
+      });
+      return;
+    }
+
     const missingFields = getMissingRequiredFieldLabels(form);
     if (missingFields.length > 0) {
       showErrorModal({

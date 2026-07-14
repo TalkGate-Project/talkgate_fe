@@ -74,8 +74,9 @@ const ACTION_BUILDERS: {
 
 export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) {
   const [smsTemplate, setSmsTemplate] = useState<SmsTemplate | null>(null);
-  // 고객 매칭(customerId)이 없으면 실 연락처가 없어 문자를 보낼 수 없다.
-  const canSendSms = Boolean(detail.customerId);
+  // 서버는 공유 시 전달받은 연락처를 우선 쓰고, 없으면 매칭된 고객 연락처를 쓴다(getDiagnosisDetail
+  // 참고). detail.phone이 이미 그 결과를 반영하므로 phone 유무로만 판단하면 된다.
+  const canSendSms = Boolean(detail.phone);
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -94,7 +95,7 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
         </button>
       ))}
       <span className="text-[14px] text-neutral-60">
-        {canSendSms ? `${detail.customerName} ${detail.phone}` : "고객 매칭 후 문자 발송이 가능합니다"}
+        {canSendSms ? `${detail.customerName} ${detail.phone}` : "연락처 정보가 없어 문자 발송이 불가능합니다"}
       </span>
 
       {smsTemplate && (
