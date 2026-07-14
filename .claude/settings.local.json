@@ -57,7 +57,10 @@
       "Bash(python -c \"from PIL import Image; print\\('ok'\\)\")",
       "Bash(python3 -c ' *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Read(//dev/**)",
+      "Bash(grep -rn 'path:\\\\s*[\"`]/v1' src --include='*.tsx')",
+      "Bash(grep -nE '\"/v1|`/v1' src/services/apiKeys.ts src/services/projects.ts)"
     ]
   }
 }
