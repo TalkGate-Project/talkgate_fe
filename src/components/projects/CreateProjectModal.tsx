@@ -438,10 +438,10 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                 />
               </div>
 
-              {/* 프로젝트 메뉴선택 */}
+              {/* 프로젝트 유형 */}
               <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3">
                 <div className="text-[14px] font-medium text-foreground">
-                  프로젝트 메뉴선택 <span className="text-danger-40">*</span>
+                  프로젝트 유형 <span className="text-danger-40">*</span>
                 </div>
                 <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {PROJECT_TYPE_OPTIONS.map((option) => {
