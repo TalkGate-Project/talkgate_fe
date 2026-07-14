@@ -1,5 +1,5 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { toRecommendationChipLabel } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay, toRecommendationChipLabel } from "@/components/debt-relief/format";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 import SuccessDonut from "./SuccessDonut";
 
@@ -13,16 +13,21 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
       <div className="flex items-center justify-between gap-4 md:gap-10">
         {/* 피그마 Group 427320624: 좌측만 추가 들여쓰기, 폭 581px */}
         <div className="min-w-0 w-full md:max-w-[581px] md:pl-[36px]">
-          <div className="flex items-center gap-1 mb-3">
+          <div className="flex items-center mb-3">
             <p className="inline-flex h-6 items-center text-[14px] md:text-[16px] font-medium leading-none tracking-[-0.04em] text-neutral-60">
               AI 분석 추천
             </p>
-            <DisclaimerInfoTooltip label="AI 분석 추천 안내">
-              본 기능은 고객 상담을 돕기 위한{" "}
-              <span className="font-extrabold">사전 분석 참고 도구</span>이며
-              <br />
-              법률 자문 또는 결과 보장을 제공하지 않습니다.
-            </DisclaimerInfoTooltip>
+            <div className="ml-1 shrink-0">
+              <DisclaimerInfoTooltip label="AI 분석 추천 안내">
+                본 기능은 고객 상담을 돕기 위한{" "}
+                <span className="font-extrabold">사전 분석 참고 도구</span>이며
+                <br />
+                법률 자문 또는 결과 보장을 제공하지 않습니다.
+              </DisclaimerInfoTooltip>
+            </div>
+            <span className="ml-4 inline-flex h-6 items-center text-[14px] font-medium leading-none text-neutral-50 whitespace-nowrap">
+              {formatDateTimeDisplay(detail.consultedAt)}
+            </span>
           </div>
 
           {/* 피그마: 제목 | 설명(392px) 同行 → 그 아래 태그 행 */}
