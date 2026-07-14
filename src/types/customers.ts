@@ -1,4 +1,5 @@
 import type { ApiSuccess } from "@/types/common";
+import type { AnalysisProcedureType } from "@/types/analysis";
 
 // Customers domain types
 
@@ -56,6 +57,14 @@ export type CustomerListItem = {
   duplicateCount?: number;
   /** 한 번도 파트너에 배정되지 않은 경우 true (데이터 제공자 프로젝트용) */
   isPartnerUnassigned?: boolean;
+  /** 분석 데이터 연결 여부 (Analysis/Lawyer 프로젝트) */
+  isAnalysisConnected?: boolean;
+  /** 연결된 분석의 현재 진행 절차 (Analysis/Lawyer 프로젝트). 절차 추적 시작 전이면 null */
+  trackingProcedure?: AnalysisProcedureType | null;
+  /** 연결된 분석 진행 절차의 총 단계 수 (Analysis/Lawyer 프로젝트) */
+  totalProcedureSteps?: number | null;
+  /** 연결된 분석의 현재 진행 단계 (Analysis/Lawyer 프로젝트) */
+  currentProcedureStep?: number | null;
 };
 
 export type CustomersListResponse = {
