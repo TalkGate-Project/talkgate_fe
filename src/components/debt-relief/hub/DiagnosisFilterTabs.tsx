@@ -9,9 +9,17 @@ type Props = {
   summary: DiagnosisHubSummary | null;
   active: RecommendedProcedure | undefined;
   onChange: (procedure: RecommendedProcedure | undefined) => void;
+  totalCount: number;
+  selectedCount: number;
 };
 
-export default function DiagnosisFilterTabs({ summary, active, onChange }: Props) {
+export default function DiagnosisFilterTabs({
+  summary,
+  active,
+  onChange,
+  totalCount,
+  selectedCount,
+}: Props) {
   const tabs: { key: RecommendedProcedure | undefined; label: string; count: number | null }[] = [
     { key: undefined, label: "전체", count: null },
     ...RECOMMENDED_PROCEDURE_ORDER.map((key) => ({
@@ -30,21 +38,30 @@ export default function DiagnosisFilterTabs({ summary, active, onChange }: Props
             key={tab.label}
             type="button"
             onClick={() => onChange(tab.key)}
-            className={`cursor-pointer h-[34px] px-4 rounded-full text-[14px] font-medium transition-colors ${
+            className={`cursor-pointer inline-flex items-center justify-center h-[34px] rounded-[30px] text-[14px] font-medium leading-[17px] tracking-[-0.02em] transition-colors ${
               isActive
-                ? "bg-neutral-90 text-neutral-0"
-                : "bg-neutral-10 text-neutral-60 hover:bg-neutral-20"
+                ? "bg-neutral-90 text-neutral-0 px-5 gap-3"
+                : "border border-neutral-30 dark:!border-neutral-50 bg-transparent text-foreground/80 px-4 gap-1 hover:bg-neutral-10"
             }`}
           >
-            {tab.label}
+            <span>{tab.label}</span>
             {tab.count !== null && (
-              <span className={`ml-1.5 ${isActive ? "text-neutral-0/70" : "text-neutral-50"}`}>
+              <span
+                className={`text-[13px] font-medium leading-4 ${
+                  isActive ? "text-neutral-0/70" : "text-neutral-60/80"
+                }`}
+              >
                 {tab.count}
               </span>
             )}
           </button>
         );
       })}
+
+      <span className="text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
+        총 {totalCount}건
+        {selectedCount > 0 ? ` (${selectedCount}개 선택)` : ""}
+      </span>
     </div>
   );
 }

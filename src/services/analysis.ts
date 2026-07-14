@@ -24,7 +24,13 @@ import type {
   DeliverAnalysisResponse,
   AnalysisDeliveriesResponse,
   RevokeAnalysisDeliveryResponse,
+  AnalysisSummaryResponse,
   AnalysisProceduresResponse,
+  AnalysisProcedureChangesResponse,
+  BulkDeleteAnalysisInput,
+  BulkDeleteAnalysisResponse,
+  BulkDeliverAnalysisInput,
+  BulkDeliverAnalysisResponse,
 } from "@/types/analysis";
 
 export type AnalysisChatStreamCallbacks = {
@@ -177,7 +183,8 @@ export const AnalysisService = {
     });
   },
 
-  // 분석 건 공유 (영업 프로젝트, Admin/SubAdmin만 가능)
+  // 분석 건 공유 (영업 프로젝트). 접근 권한이 있는 멤버면 공유 가능.
+  // 활성 공유는 분석 건당 변호사 프로젝트 1곳으로 제한됨.
   deliver(id: number, input: DeliverAnalysisInput) {
     const { projectId, ...body } = input;
     return apiClient.post<DeliverAnalysisResponse>(`/v1/analysis/${id}/deliver`, body, {
@@ -200,6 +207,39 @@ export const AnalysisService = {
         headers: { "x-project-id": projectId },
       }
     );
+  },
+
+  // 분석 절차 변경 이력 조회 (최신 변경 스냅샷)
+  procedureChanges(id: number, projectId: string) {
+    return apiClient.get<AnalysisProcedureChangesResponse>(
+      `/v1/analysis/${id}/procedure-changes`,
+      {
+        headers: { "x-project-id": projectId },
+      }
+    );
+  },
+
+  // 분석 일괄 삭제 (자체 생성 건만). ID 목록 또는 필터 조건.
+  bulkDelete(input: BulkDeleteAnalysisInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<BulkDeleteAnalysisResponse>(`/v1/analysis/bulk-delete`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 분석 일괄 공유 (영업 프로젝트). 활성 공유는 건당 파트너 1곳.
+  bulkDeliver(input: BulkDeliverAnalysisInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<BulkDeliverAnalysisResponse>(`/v1/analysis/bulk-deliver`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 분석 요약 통계 조회 (총 건수, 이번 달 건수, 평균 성공 가능성, 절차·단계 분포)
+  summary(projectId: string) {
+    return apiClient.get<AnalysisSummaryResponse>(`/v1/analysis/summary`, {
+      headers: { "x-project-id": projectId },
+    });
   },
 
   // 절차 마스터 데이터 조회

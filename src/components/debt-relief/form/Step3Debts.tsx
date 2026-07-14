@@ -1,5 +1,4 @@
 import {
-  CAPITAL_DEBT_TYPES,
   CREDITOR_COUNT_OPTIONS,
   DEBT_AMOUNT_LABELS,
   DEBT_CAUSE_OPTIONS,
@@ -19,25 +18,10 @@ type Props = {
   derived: DiagnosisDerivedValues;
 };
 
-/** 선택 종류 → 금액 입력 필드 (캐피탈·저축은행은 공유 1칸) */
 function getDebtAmountFields(selectedTypes: DebtType[]): { key: DebtType; label: string }[] {
-  const fields: { key: DebtType; label: string }[] = [];
-  let capitalAdded = false;
-
-  for (const option of DEBT_TYPE_OPTIONS) {
-    if (!selectedTypes.includes(option.value)) continue;
-
-    if (CAPITAL_DEBT_TYPES.includes(option.value)) {
-      if (capitalAdded) continue;
-      fields.push({ key: "capital", label: DEBT_AMOUNT_LABELS.capital });
-      capitalAdded = true;
-      continue;
-    }
-
-    fields.push({ key: option.value, label: DEBT_AMOUNT_LABELS[option.value] });
-  }
-
-  return fields;
+  return DEBT_TYPE_OPTIONS.filter((option) => selectedTypes.includes(option.value)).map(
+    (option) => ({ key: option.value, label: DEBT_AMOUNT_LABELS[option.value] })
+  );
 }
 
 export default function Step3Debts({ form, update, derived }: Props) {
@@ -48,15 +32,10 @@ export default function Step3Debts({ form, update, derived }: Props) {
   const handleDebtTypesChange = (nextTypes: DebtType[]) => {
     update("debtTypes", nextTypes);
 
-    const hasCapitalGroup = nextTypes.some((type) => CAPITAL_DEBT_TYPES.includes(type));
     const pruned: Partial<Record<DebtType, number>> = {};
     nextTypes.forEach((type) => {
-      if (CAPITAL_DEBT_TYPES.includes(type)) return;
       if (form.debtAmounts[type] != null) pruned[type] = form.debtAmounts[type];
     });
-    if (hasCapitalGroup && form.debtAmounts.capital != null) {
-      pruned.capital = form.debtAmounts.capital;
-    }
     update("debtAmounts", pruned);
   };
 

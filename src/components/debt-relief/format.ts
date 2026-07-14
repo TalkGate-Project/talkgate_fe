@@ -47,14 +47,16 @@ export function formatManwonComma(manwon: number): string {
   return `${manwon.toLocaleString("ko-KR")}만원`;
 }
 
-// 고객 부가정보 → "42세 · 남 · 자영업" (일부 필드가 없으면 있는 것만 표시)
+// 고객 부가정보 → "42세 · 남" / "40대 · 남 · 자영업" (있는 필드만 표시)
 export function formatCustomerMeta(
   age?: number,
   gender?: CustomerGender,
-  occupation?: string
+  occupation?: string,
+  ageGroupLabel?: string
 ): string {
   const parts: string[] = [];
   if (typeof age === "number") parts.push(`${age}세`);
+  else if (ageGroupLabel) parts.push(ageGroupLabel);
   if (gender) parts.push(gender === "male" ? "남" : "여");
   if (occupation) parts.push(occupation);
   return parts.join(" · ");

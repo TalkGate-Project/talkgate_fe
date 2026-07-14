@@ -13,8 +13,7 @@ import type {
 } from "@/types/debtRelief";
 
 // 대시보드 요약 카드 데이터 로딩.
-// useFetch는 apiClient(실 백엔드)를 직접 호출하므로, mock 서비스 단계에서는 전용 훅을 사용한다.
-// 실제 API 연동 시 DebtReliefService 내부만 교체되고 이 훅은 그대로 유지된다.
+// DebtReliefService.getHubSummary → GET /v1/analysis/summary.
 export function useDebtReliefSummary() {
   const [projectId, ready] = useSelectedProjectId();
   const [summary, setSummary] = useState<DiagnosisHubSummary | null>(null);
@@ -54,9 +53,9 @@ export const DEBT_RELIEF_PAGE_LIMIT = 10;
 
 // 진단 목록 상태(탭/검색/정렬/페이지) + 서비스 호출.
 // 검색은 실시간(타이핑 디바운스)이 아니라 Enter 또는 검색 버튼 클릭으로만 실행된다
-// (실시간 검색은 백엔드 search 파라미터가 500을 내는 문제와 별개로, 요청 자체를 명시적
-// 트리거로 바꾼 것 — appliedKeyword가 실제 쿼리에 쓰이는 값이고 keyword는 입력창 표시용).
+// (appliedKeyword가 실제 쿼리에 쓰이는 값이고 keyword는 입력창 표시용).
 // 필터/정렬/검색 제출이 바뀌면 1페이지로 되돌린다.
+// 정렬은 GET /v1/analysis의 sortType/sortOrder로 서버에 위임한다(현재 consultationDate만 지원).
 export function useDebtReliefList() {
   const [projectId, ready] = useSelectedProjectId();
 

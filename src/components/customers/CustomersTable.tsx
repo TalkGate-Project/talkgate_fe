@@ -15,6 +15,7 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
+import CustomerProcedureBadge from "./CustomerProcedureBadge";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -187,10 +188,12 @@ export default function CustomersTable({
         "신청시간",
         "전체확인",
       ];
+  // "이름" 열은 진단 연결 배지(예: "회생 2/9")가 붙으면 이름+배지+미배정 점을 함께 담아야 해서
+  // 다른 열보다 넓게 잡는다(2026-07-14, 배지 도입 후 이름이 가려지는 문제 수정).
   const colWidths = isDataProvider
-    ? ["5%", "6%", "9%", "14%", "10%", "8%", "11%", "10%", "17%"]
-    : ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
-  const fallbackColWidths = ["5%", "6%", "9%", "15%", "10%", "8%", "9%", "10%", "9%", "11%", "8%"];
+    ? ["5%", "6%", "14%", "14%", "9%", "7%", "10%", "9%", "16%"]
+    : ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
+  const fallbackColWidths = ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
   const totalColumns = colWidths.length;
   const skeletonTotalColumns = skeletonColWidths.length;
@@ -694,10 +697,15 @@ export default function CustomersTable({
                         {rowNumber > 0 ? rowNumber : "-"}
                       </td>
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
-                          <span className="block min-w-0 flex-1 truncate leading-[17px]">
+                        <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
+                          <span className="block min-w-0 shrink truncate leading-[17px]">
                             {c.name || "-"}
                           </span>
+                          <CustomerProcedureBadge
+                            trackingProcedure={c.trackingProcedure}
+                            currentProcedureStep={c.currentProcedureStep}
+                            totalProcedureSteps={c.totalProcedureSteps}
+                          />
                           {isDataProvider && c.isPartnerUnassigned && (
                             <span
                               className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"
@@ -947,10 +955,15 @@ export default function CustomersTable({
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                             <td className="px-2 md:px-4 h-[44px]" />
                             <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5 h-full min-w-0 overflow-hidden">
-                                <span className="block min-w-0 flex-1 truncate leading-[17px]">
+                              <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
+                                <span className="block min-w-0 shrink truncate leading-[17px]">
                                   {item.name || "-"}
                                 </span>
+                                <CustomerProcedureBadge
+                                  trackingProcedure={item.trackingProcedure}
+                                  currentProcedureStep={item.currentProcedureStep}
+                                  totalProcedureSteps={item.totalProcedureSteps}
+                                />
                                 {isDataProvider && item.isPartnerUnassigned && (
                                   <span
                                     className="w-[6px] h-[6px] rounded-full flex-shrink-0 bg-[#00E272]"

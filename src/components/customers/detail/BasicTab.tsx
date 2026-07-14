@@ -3,13 +3,15 @@ import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import DatePicker from "@/components/common/DatePicker";
+import CustomerLinkedAnalysisSection from "./CustomerLinkedAnalysisSection";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
-import { ContactType } from "@/types/customers";
+import { ContactType, CustomerLinkedAnalysis } from "@/types/customers";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 import { format, isValid, parse } from "date-fns";
 
 type Props = {
+  customerId: number;
   form: CustomerFormState;
   setForm: React.Dispatch<React.SetStateAction<CustomerFormState>>;
   messengers: { id?: number; messenger: string; account: string; createdAt?: string }[];
@@ -17,9 +19,11 @@ type Props = {
   onRemoveMessenger: (index: number) => void;
   validation: CustomerValidation;
   showValidation: boolean;
+  linkedAnalysis?: CustomerLinkedAnalysis | null;
 };
 
 export default function BasicTab({
+  customerId,
   form,
   setForm,
   messengers,
@@ -27,6 +31,7 @@ export default function BasicTab({
   onRemoveMessenger,
   validation,
   showValidation,
+  linkedAnalysis,
 }: Props) {
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
   const [newMessengerAccount, setNewMessengerAccount] = useState("");
@@ -329,6 +334,13 @@ export default function BasicTab({
           )}
         </div>
       </div>
+
+      {/* 회생·파산 진단 정보 */}
+      <CustomerLinkedAnalysisSection
+        customerId={customerId}
+        customerName={form.name}
+        linkedAnalysis={linkedAnalysis}
+      />
 
       {/* 메신저 삭제 확인 모달 */}
       <ConfirmModal

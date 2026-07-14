@@ -56,7 +56,12 @@ export default function DiagnosisMobileCardList({
   return (
     <div className="flex flex-col gap-3">
       {items.map((item) => {
-        const customerMeta = formatCustomerMeta(item.age, item.gender, item.occupation);
+        const customerMeta = formatCustomerMeta(
+          item.age,
+          item.gender,
+          item.occupation,
+          item.ageGroupLabel
+        );
 
         return (
           <div

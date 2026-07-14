@@ -25,7 +25,7 @@ export type CreateAnalysisPartnerInput = {
 
 export type CreateAnalysisPartnerResponse = ApiSuccess<AnalysisPartner>;
 
-/** 변호사 파트너 목록 조회 쿼리 (영업 프로젝트 시점) */
+/** 변호사 파트너 목록 조회 쿼리 (영업 프로젝트 시점, 프로젝트 멤버 조회 가능) */
 export type AnalysisPartnerListQuery = {
   status?: AnalysisPartnerStatus;
   page?: number;

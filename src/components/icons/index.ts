@@ -8,4 +8,5 @@ export { default as AttendanceIcon } from './AttendanceIcon';
 export { default as NoticeIcon } from './NoticeIcon';
 export { default as SettingsIcon } from './SettingsIcon';
 export { default as CloseIcon } from './CloseIcon';
+export { default as AnalysisShareIcon } from './AnalysisShareIcon';
 

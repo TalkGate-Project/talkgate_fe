@@ -19,7 +19,7 @@
 
 import { getMainDomain } from "./env";
 import { clearTokens } from "./token";
-import { clearSelectedProjectId, clearUseAttendanceMenu } from "./project";
+import { clearSelectedProjectId, clearUseAttendanceMenu, clearProjectType } from "./project";
 import { talkgateSocket } from "./realtime";
 import { notificationSocket } from "./notificationSocket";
 import { resetAuthSession, setLoggingOut } from "./authSession";
@@ -97,6 +97,12 @@ export function performLogout(options: LogoutOptions = {}): void {
     clearUseAttendanceMenu();
   } catch {
     // 근태 메뉴 설정 삭제 실패 시 무시
+  }
+
+  try {
+    clearProjectType();
+  } catch {
+    // 프로젝트 타입 설정 삭제 실패 시 무시
   }
 
   // 3. React Query 캐시 정리 (제공된 경우)

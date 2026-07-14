@@ -1,27 +1,40 @@
 import type { ReactNode } from "react";
 
 // 결과 상세의 각 섹션을 감싸는 흰색 카드.
-// 전역 헤더(54) + 서브헤더(48) + 상단 여백(36) = 138px 에 가리지 않도록 scroll-mt 부여.
+// 데스크톱: 전역 헤더(54) + fixed 서브헤더(48) + 상단 여백(36) = 138px 에 가리지 않도록 scroll-mt 부여.
+// 모바일: 서브헤더가 더 이상 fixed가 아니므로 전역 헤더(54px)만 여유를 두면 된다.
 export default function SectionCard({
   id,
   title,
   action,
   children,
   className = "",
+  compactTop = false,
+  topDivider = false,
 }: {
   id: string;
   title?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  // 모바일 상단 패딩을 24px 대신 12px로 좁힌다 (overview 카드처럼 헤더 바로 아래 붙는 섹션용).
+  compactTop?: boolean;
+  // 모바일에서 카드 간 배경이 이어져 붙어도(gap-0) 영역 구분이 되도록 상단에 풀폭 구분선을 그린다.
+  // border는 padding 바깥(패딩 박스 경계)에 그려지므로 좌우 패딩과 무관하게 항상 전체 폭으로 표시된다.
+  // 데스크톱은 카드 간 gap·shadow로 이미 구분되므로 적용하지 않는다.
+  topDivider?: boolean;
 }) {
   return (
     <section
       id={id}
-      className={`scroll-mt-[138px] surface md:rounded-[14px] px-5 md:px-8 py-6 md:py-7 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none ${className}`}
+      className={`scroll-mt-[64px] md:scroll-mt-[138px] surface md:rounded-[14px] px-6 md:px-8 ${
+        compactTop ? "pt-3 pb-6" : "py-6"
+      } md:py-7 shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none ${
+        topDivider ? "border-t border-neutral-30 md:border-t-0" : ""
+      } ${className}`}
     >
       {title && (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-30">
           <h2 className="text-[18px] font-bold text-foreground">{title}</h2>
           {action}
         </div>

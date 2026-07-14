@@ -16,10 +16,12 @@ import Checkbox from "@/components/common/Checkbox";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { DebtReliefService } from "@/services/debtRelief";
+import { useProjectType } from "@/hooks/useProjectType";
 
 export default function DebtReliefHubContent() {
   const router = useRouter();
   const [projectId] = useSelectedProjectId();
+  const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const { summary, loading: summaryLoading } = useDebtReliefSummary();
   const {
     items,
@@ -76,7 +78,7 @@ export default function DebtReliefHubContent() {
     setShareTargetIds(Array.from(selectedIds));
   };
 
-  const handleShareRow = (id: string) => {
+  const handleShareItem = (id: string) => {
     setShareTargetIds([id]);
   };
 
@@ -115,9 +117,27 @@ export default function DebtReliefHubContent() {
       cancelText: "취소",
       onConfirm: async () => {
         try {
-          await Promise.all(
-            deletable.map((item) => DebtReliefService.deleteDiagnosis(projectId, item.id))
+          const result = await DebtReliefService.bulkDeleteDiagnoses(
+            projectId,
+            deletable.map((item) => item.id)
           );
+          if (result.failedCount > 0) {
+            console.error("Some diagnosis deletions failed:", result.failedAnalysisIds);
+            showErrorModal({
+              title: "삭제 실패",
+              headline:
+                result.deletedCount > 0
+                  ? "일부 진단을 삭제하지 못했습니다."
+                  : "진단을 삭제하지 못했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              hideCancel: true,
+            });
+            if (result.deletedCount > 0) {
+              clearSelection();
+              refetch();
+            }
+            return;
+          }
           clearSelection();
           refetch();
         } catch (error) {
@@ -138,19 +158,19 @@ export default function DebtReliefHubContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-5">
+    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-9">
       {/* 상단 카드: 제목 + 요약 카드 */}
       <section className="surface md:rounded-[14px] px-6 md:px-7 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4 flex-wrap min-w-0">
-            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground tracking-[-0.02em] leading-none truncate">
+            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-[22px] md:leading-7 truncate">
               회생·파산 진단 목록
             </h1>
             {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
             {summary && (
               <>
                 <span className="hidden md:block w-px h-4 bg-neutral-60" />
-                <span className="hidden md:inline text-[18px] text-neutral-60 leading-none">
+                <span className="hidden md:inline text-[18px] font-medium leading-[22px] text-neutral-60">
                   총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
                 </span>
               </>
@@ -158,14 +178,14 @@ export default function DebtReliefHubContent() {
           </div>
           <button
             type="button"
-            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
+            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
             onClick={() => router.push("/debt-relief/new")}
           >
             + 새 진단 시작
           </button>
         </div>
 
-        <div className="border-t border-neutral-30 mb-6" />
+        <div className="-mx-6 md:-mx-7 border-t border-neutral-30 mb-6" />
 
         <SummaryCards summary={summary} loading={summaryLoading} />
       </section>
@@ -175,7 +195,14 @@ export default function DebtReliefHubContent() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
           {/* 모바일은 검색창이 위, 필터 탭이 아래 — 데스크톱은 반대(탭 왼쪽, 검색 오른쪽)라 DOM 순서 대신 order로 토글 */}
           <div className="order-2 md:order-1">
-            <DiagnosisFilterTabs summary={summary} active={procedure} onChange={selectProcedure} />
+            <DiagnosisFilterTabs
+              summary={summary}
+              active={procedure}
+              onChange={selectProcedure}
+              totalCount={totalCount}
+              selectedCount={selectedIds.size}
+            />
+
           </div>
           <div className="order-1 md:order-2 flex items-center justify-end gap-3">
             <DiagnosisListActions
@@ -184,6 +211,7 @@ export default function DebtReliefHubContent() {
               limit={limit}
               onDelete={handleDeleteSelected}
               onShare={handleShareSelected}
+              showShareAction={projectTypeReady && isAnalysis}
               onLimitChange={setLimit}
             />
             <DiagnosisSearchInput
@@ -229,11 +257,13 @@ export default function DebtReliefHubContent() {
             sortDirection={sortDirection}
             onToggleSort={toggleSort}
             onOpenResult={handleOpenResult}
+            showShareColumn={projectTypeReady && isAnalysis}
+            onShareItem={handleShareItem}
+            showAssigneeColumn={projectTypeReady && isLawyer}
             selectedIds={selectedIds}
             allSelectedOnPage={allSelectedOnPage}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}
-            onShareRow={handleShareRow}
           />
         </div>
         <div className="md:hidden">
@@ -246,10 +276,7 @@ export default function DebtReliefHubContent() {
           />
         </div>
 
-        <div className="relative flex items-end justify-center mt-6 min-h-[32px]">
-          <span className="absolute left-0 bottom-0 text-[14px] font-medium leading-5 text-neutral-50">
-            총 {totalCount}건
-          </span>
+        <div className="flex items-center justify-center mt-6 min-h-[32px]">
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} disabled={listLoading} />
         </div>
       </section>

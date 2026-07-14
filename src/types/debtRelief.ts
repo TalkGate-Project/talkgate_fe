@@ -23,18 +23,25 @@ export type CustomerGender = "male" | "female";
 export type DiagnosisListItem = {
   id: string;
   customerName: string;
-  // 실 API(GET /v1/analysis) 목록 응답에는 없는 필드 — 상세 조회 전까지는 알 수 없어 optional.
+  // 목록 API에 있으면 채움. 숫자 나이(age) 또는 연령대 라벨(ageGroupLabel: "40대") 중 하나.
   age?: number;
+  ageGroupLabel?: string;
   gender?: CustomerGender;
   occupation?: string; // 표시용: 자영업, 프리랜서 등
   region: string; // 표시용: 서울, 경기·인천 등
   totalDebtManwon: number; // 총 채무 (만원)
   monthlyAvailableIncomeManwon: number; // 월 가용 소득 (만원, 음수 가능)
-  recommendedProcedure: RecommendedProcedure;
+  // 실 API 목록 응답엔 trackingProcedure만 내려오고, 아직 절차 추적을 시작하지 않은
+  // 건은 그마저도 null이라 알 수 없는 경우가 있다 — optional로 정직하게 표현.
+  recommendedProcedure?: RecommendedProcedure;
   successProbability: number; // 0~100
   progressStep: number; // 절차 안내 진행 단계 (1-based). 아직 추적 시작 전이면 1
   isShared: boolean; // 공유 링크 생성 여부
   consultedAt: string; // ISO 날짜 (YYYY-MM-DD)
+  // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버)
+  assigneeName?: string;
+  assigneeProfileImageUrl?: string;
+  assigneeProjectName?: string;
 };
 
 // 목록 테이블 "진행단계" 셀용. 상세 API의 procedureGuides가 목록에는 없어
@@ -57,28 +64,40 @@ export const PROCEDURE_PROGRESS_STEP_TITLES: Record<RecommendedProcedure, readon
 };
 
 export function getProgressStepMeta(
-  procedure: RecommendedProcedure,
+  procedure: RecommendedProcedure | undefined,
   step: number
 ): { current: number; total: number; title: string } {
-  const titles = PROCEDURE_PROGRESS_STEP_TITLES[procedure];
+  // 분석이 아직 완료되지 않았거나(추천 절차 미확정) 백엔드가 알 수 없는 값을 내려주면
+  // procedure가 없을 수 있다 — 목록 전체가 죽지 않도록 방어적으로 처리.
+  const titles = procedure ? PROCEDURE_PROGRESS_STEP_TITLES[procedure] : undefined;
+  if (!titles || titles.length === 0) {
+    return { current: 1, total: 1, title: "확인 중" };
+  }
   const total = titles.length;
   const current = Math.min(Math.max(1, step), total);
   return { current, total, title: titles[current - 1] ?? `${current}단계` };
 }
 
 // ── 대시보드 요약 ────────────────────────────────────────────
+// GET /v1/analysis/summary 응답을 허브 UI용으로 매핑한 형태.
+export type DiagnosisProgressStepItem = {
+  step: number;
+  title?: string;
+  count: number;
+};
+
 export type DiagnosisHubSummary = {
   totalAnalysisCount: number;
   thisMonthCount: number;
   averageSuccessProbability: number; // 0~100
   procedureDistribution: Record<RecommendedProcedure, number>;
-  progressStepDistribution: { step: number; count: number }[]; // step 오름차순 정렬
+  // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시)
+  progressStepsByProcedure: Record<RecommendedProcedure, DiagnosisProgressStepItem[]>;
 };
 
 // ── 목록 조회 파라미터 / 응답 ────────────────────────────────
-// 지금은 mock을 클라이언트에서 필터링하지만, 서버 페이지네이션으로 교체할 수 있도록
-// 서버 쿼리 형태를 그대로 반영한다.
-export type DiagnosisSortField = "totalDebt" | "successProbability" | "consultedAt";
+// GET /v1/analysis의 sortType은 현재 consultationDate만 지원한다.
+export type DiagnosisSortField = "consultedAt";
 export type SortDirection = "asc" | "desc";
 
 export type DiagnosisListQuery = {
@@ -192,35 +211,29 @@ export const VEHICLE_OPTIONS: PillOption<VehicleRange>[] = [
 ];
 
 // ── 3. 채무현황 ──────────────────────────────────────────────
-// 캐피탈·저축은행은 UI에서 분리 선택하지만, 실 API(debtBreakdown.capitalLoan)는
-// 하나의 슬롯이라 금액은 capital 키로 합쳐 보낸다.
+// 실 API(debtBreakdown.capitalLoan)가 캐피탈/저축은행을 슬롯 하나로만 받아, 원본이 어느 쪽이었는지
+// 되돌릴 방법이 없다(2026-07-14 확인). 그래서 폼에서도 애초에 "캐피탈/저축은행"을 단일 선택지로 합쳤다.
 export type DebtType =
   | "bank_loan"
   | "card_loan"
   | "capital"
-  | "savings_bank"
   | "private_loan"
   | "personal_borrowing";
 export const DEBT_TYPE_OPTIONS: PillOption<DebtType>[] = [
   { value: "bank_loan", label: "은행대출" },
   { value: "card_loan", label: "카드론" },
-  { value: "capital", label: "캐피탈" },
-  { value: "savings_bank", label: "저축은행" },
+  { value: "capital", label: "캐피탈 / 저축은행" },
   { value: "private_loan", label: "사채" },
   { value: "personal_borrowing", label: "개인차용" },
 ];
 
-/** 금액 입력 라벨 (캐피탈·저축은행은 공유 필드) */
 export const DEBT_AMOUNT_LABELS: Record<DebtType, string> = {
   bank_loan: "은행 대출",
   card_loan: "카드론",
   capital: "캐피탈 / 저축은행",
-  savings_bank: "캐피탈 / 저축은행",
   private_loan: "사채",
   personal_borrowing: "개인차용",
 };
-
-export const CAPITAL_DEBT_TYPES: DebtType[] = ["capital", "savings_bank"];
 
 export type OverduePeriod = "none" | "under_3m" | "3_6m" | "6_12m" | "over_1y";
 export const OVERDUE_PERIOD_OPTIONS: PillOption<OverduePeriod>[] = [
@@ -470,6 +483,14 @@ export type ProcedureGuide = {
   steps: ProcedureStep[];
 };
 
+/** 절차 단계 변경 이력 (UI 표시용 — 상세 procedureStepHistory에서 매핑) */
+export type ProcedureStepHistoryItem = {
+  stepId: number;
+  changedByMemberName: string;
+  changedByProjectName?: string | null;
+  changedAt: string;
+};
+
 export type DiagnosisDetail = {
   id: string;
   customerName: string;
@@ -481,11 +502,19 @@ export type DiagnosisDetail = {
   phone: string;
   customerId: number | null;
   consultedAt: string; // ISO datetime
+  isShared: boolean;
+  // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
+  assigneeName?: string;
+  assigneeProfileImageUrl?: string;
+  assigneeProjectName?: string;
   recommendedProcedure: RecommendedProcedure;
   successProbability: number;
   recommendation: { title: string; description: string; tags: string[] };
   procedureScores: ProcedureScore[];
+  // 추천 절차 기준 조건 분석 (문자 발송 템플릿 등에서 사용)
   conditionAnalysis: ConditionItem[];
+  // 절차별(개인회생/채무조정/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
+  conditionAnalysisByProcedure: Record<RecommendedProcedure, ConditionItem[]>;
   debtStatus: DebtStatusSummary;
   repaymentPlan: RepaymentPlan;
   counselMents: CounselMent[];
@@ -493,6 +522,8 @@ export type DiagnosisDetail = {
   // 통해 로드/전송한다 — 이 타입에는 대화 내역을 담지 않는다.
   aiSuggestedQuestions: string[];
   procedureGuide: ProcedureGuide;
+  /** 현재 추적 절차의 단계별 변경 이력 (변경 기록이 없는 단계는 제외) */
+  procedureStepHistory: ProcedureStepHistoryItem[];
 };
 
 // ════════════════════════════════════════════════════════════

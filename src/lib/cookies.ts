@@ -133,6 +133,22 @@ export function setAttendanceMenuCookie(
 }
 
 /**
+ * 프로젝트 타입 쿠키를 설정합니다.
+ * - 회생·파산 메뉴 노출 여부 등에 사용. 서브도메인 간 공유를 위해 쿠키로 유지합니다.
+ */
+export function setProjectTypeCookie(
+  response: NextResponse,
+  request: NextRequest,
+  projectType: string
+): void {
+  const cookieOptions = getCookieOptions(request);
+  response.cookies.set('tg_project_type', projectType, {
+    ...cookieOptions,
+    maxAge: AUTH_COOKIE_MAX_AGE, // 30일
+  });
+}
+
+/**
  * 모든 인증 관련 쿠키를 삭제합니다.
  * 서브도메인과 메인 도메인 모두에서 삭제를 시도합니다.
  * 

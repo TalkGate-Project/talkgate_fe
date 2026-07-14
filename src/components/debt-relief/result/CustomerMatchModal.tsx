@@ -9,6 +9,7 @@ import type { ConnectableCustomer } from "@/types/analysis";
 type Props = {
   open: boolean;
   onClose: () => void;
+  onBack?: () => void;
   analysisId: string;
   projectId: string;
   onMatched: () => void;
@@ -24,7 +25,15 @@ function CloseIcon() {
   );
 }
 
-export default function CustomerMatchModal({ open, onClose, analysisId, projectId, onMatched }: Props) {
+function BackIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export default function CustomerMatchModal({ open, onClose, onBack, analysisId, projectId, onMatched }: Props) {
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [page, setPage] = useState(1);
@@ -118,7 +127,19 @@ export default function CustomerMatchModal({ open, onClose, analysisId, projectI
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-4 shrink-0">
-          <h2 className="text-[18px] font-semibold text-foreground">고객 연결</h2>
+          <div className="flex items-center gap-2 min-w-0">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="뒤로가기"
+                className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-60 hover:opacity-70 shrink-0"
+              >
+                <BackIcon />
+              </button>
+            )}
+            <h2 className="text-[18px] font-semibold text-foreground">고객 연결</h2>
+          </div>
           <button
             type="button"
             onClick={onClose}

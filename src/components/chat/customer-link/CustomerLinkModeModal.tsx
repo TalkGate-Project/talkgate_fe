@@ -4,12 +4,15 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSelect: (mode: "existing" | "create") => void;
+  /** 기존 고객 카드 설명. 기본값은 채팅 연동용 문구 */
+  existingDescription?: string;
 };
 
 export default function CustomerLinkModeModal({
   open,
   onClose,
   onSelect,
+  existingDescription = "이미 등록된 고객과 채팅을 연결합니다.",
 }: Props) {
   if (!open) return null;
 
@@ -197,7 +200,7 @@ export default function CustomerLinkModeModal({
                 기존 고객과 연동
               </div>
               <div className="mt-1 text-[14px] text-neutral-60">
-                이미 등록된 고객과 채팅을 연결합니다.
+                {existingDescription}
               </div>
             </button>
           </div>

@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import type { DiagnosisDetail, ProcedureStep } from "@/types/debtRelief";
+import { useMemo, useState } from "react";
+import type {
+  DiagnosisDetail,
+  ProcedureStep,
+  ProcedureStepHistoryItem,
+} from "@/types/debtRelief";
+import { useMyMember } from "@/hooks/useMyMember";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
+import { formatDateTimeCompact } from "@/utils/datetime";
 import { DebtReliefSmsModal, buildProcedureStepTemplate } from "./sms";
 
 function SmsButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
@@ -51,6 +58,32 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
+function StepSetByMeta({ history }: { history: ProcedureStepHistoryItem }) {
+  const projectName = history.changedByProjectName?.trim();
+
+  return (
+    <div className="flex items-center justify-end gap-1 max-w-full min-w-0 flex-nowrap overflow-hidden">
+      <span
+        title={history.changedByMemberName}
+        className="text-[13px] font-semibold leading-4 text-foreground shrink-0 max-w-[5.5rem] truncate"
+      >
+        {history.changedByMemberName}
+      </span>
+      {projectName ? (
+        <span
+          title={projectName}
+          className="inline-flex items-center h-4 max-w-[10rem] min-w-0 px-1.5 rounded-[30px] bg-neutral-20 text-neutral-70 opacity-80 shrink"
+        >
+          <span className="text-[10px] font-medium leading-3 truncate">{projectName}</span>
+        </span>
+      ) : null}
+      <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 whitespace-nowrap shrink-0">
+        님이 {formatDateTimeCompact(history.changedAt)}에 설정
+      </span>
+    </div>
+  );
+}
+
 function StepItem({
   step,
   effectiveStatus,
@@ -60,6 +93,7 @@ function StepItem({
   onSetCurrent,
   onSendSms,
   smsDisabled,
+  stepHistory,
 }: {
   step: ProcedureStep;
   effectiveStatus: "done" | "in_progress" | "pending";
@@ -69,6 +103,7 @@ function StepItem({
   onSetCurrent: () => void;
   onSendSms: () => void;
   smsDisabled: boolean;
+  stepHistory?: ProcedureStepHistoryItem;
 }) {
   const isActive = effectiveStatus === "in_progress";
   const hasBody = Boolean(step.detail || step.checklist || step.note);
@@ -121,9 +156,9 @@ function StepItem({
         </button>
       </div>
 
-      {/* 본문 */}
+      {/* 본문 — 우측: 설정 메타는 상단, 버튼은 세로 가운데 (아래는 빈 공간) */}
       {expanded && hasBody && (
-        <div className="border-t border-neutral-30 px-4 md:px-6 py-3.5 flex flex-col md:flex-row items-stretch md:items-center md:justify-between gap-3 md:gap-4">
+        <div className="border-t border-neutral-30 px-4 md:px-6 py-3.5 flex flex-col md:flex-row items-stretch md:justify-between gap-3 md:gap-4">
           <div className="min-w-0 flex-1">
             {step.detail && (
               <p className="text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60 mb-1">
@@ -174,20 +209,27 @@ function StepItem({
             )}
           </div>
 
-          <div className="shrink-0 self-start md:self-center">
-            {isCurrent ? (
-              <span className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
-                현재 단계
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={onSetCurrent}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
-              >
-                현재 단계로 설정
-              </button>
-            )}
+          <div className="shrink-0 w-full md:w-[340px] self-stretch flex flex-col items-end min-w-0">
+            {stepHistory ? (
+              <div className="w-full flex justify-end min-w-0">
+                <StepSetByMeta history={stepHistory} />
+              </div>
+            ) : null}
+            <div className="flex-1 flex items-center justify-end">
+              {isCurrent ? (
+                <span className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
+                  현재 단계
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onSetCurrent}
+                  className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
+                >
+                  현재 단계로 설정
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -203,12 +245,28 @@ type Props = {
 
 export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Props) {
   const { procedureGuide: guide } = detail;
+  const { member } = useMyMember();
+  const { project } = useCurrentProjectDetail();
   const [currentStep, setCurrentStep] = useState(guide.currentStep);
   const [expanded, setExpanded] = useState<Set<number>>(
     () => new Set([guide.currentStep])
   );
   const [smsStep, setSmsStep] = useState<ProcedureStep | null>(null);
+  const [optimisticHistory, setOptimisticHistory] = useState<
+    Record<number, ProcedureStepHistoryItem>
+  >({});
   const canSendSms = Boolean(detail.customerId);
+
+  const historyByStepId = useMemo(() => {
+    const map = new Map<number, ProcedureStepHistoryItem>();
+    for (const item of detail.procedureStepHistory ?? []) {
+      map.set(item.stepId, item);
+    }
+    for (const [stepId, item] of Object.entries(optimisticHistory)) {
+      map.set(Number(stepId), item);
+    }
+    return map;
+  }, [detail.procedureStepHistory, optimisticHistory]);
 
   const toggle = (step: number) => {
     setExpanded((prev) => {
@@ -226,6 +284,24 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
   // (guide.progressPercent는 서버가 내려주는 최초 스냅샷 값이라 currentStep 변경을 반영하지 못해 사용하지 않는다.)
   const progressPercent = Math.round((currentStep / guide.totalSteps) * 100);
   const currentStepMeta = guide.steps.find((s) => s.step === currentStep);
+
+  const handleSetCurrent = (step: ProcedureStep) => {
+    setCurrentStep(step.step);
+
+    if (step.stepId != null && member?.name) {
+      setOptimisticHistory((prev) => ({
+        ...prev,
+        [step.stepId!]: {
+          stepId: step.stepId!,
+          changedByMemberName: member.name,
+          changedByProjectName: project?.name?.trim() || null,
+          changedAt: new Date().toISOString(),
+        },
+      }));
+    }
+
+    onSetCurrentStep?.(step);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -257,12 +333,12 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
               expanded={expanded.has(step.step)}
               onToggle={() => toggle(step.step)}
               isCurrent={step.step === currentStep}
-              onSetCurrent={() => {
-                setCurrentStep(step.step);
-                onSetCurrentStep?.(step);
-              }}
+              onSetCurrent={() => handleSetCurrent(step)}
               onSendSms={() => setSmsStep(step)}
               smsDisabled={!canSendSms}
+              stepHistory={
+                step.stepId != null ? historyByStepId.get(step.stepId) : undefined
+              }
             />
           ))}
         </div>

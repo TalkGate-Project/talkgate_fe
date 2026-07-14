@@ -53,7 +53,14 @@
       "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('total:',j.data.total, 'names:', j.data.items.map\\(i=>i.customerName\\)\\)}\\)\")",
       "Bash(grep -iE \"playwright|puppeteer\" package.json)",
       "Bash(npx --no-install playwright --version)",
-      "Bash(npx --no-install puppeteer --version)"
+      "Bash(npx --no-install puppeteer --version)",
+      "Bash(python -c \"from PIL import Image; print\\('ok'\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(python -c ' *)",
+      "Read(//dev/**)",
+      "Bash(grep -rn 'path:\\\\s*[\"`]/v1' src --include='*.tsx')",
+      "Bash(grep -nE '\"/v1|`/v1' src/services/apiKeys.ts src/services/projects.ts)"
     ]
   }
 }
