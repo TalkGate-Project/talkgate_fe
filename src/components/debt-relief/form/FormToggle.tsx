@@ -1,4 +1,4 @@
-// 토글 스위치 (ProjectFeaturesSection 스타일 재사용). on = primary-60
+// 토글 스위치. on = primary-60(#00E272), off = neutral-40(#D0D0D0)
 export default function FormToggle({
   checked,
   onChange,
@@ -15,11 +15,11 @@ export default function FormToggle({
       aria-checked={checked}
       aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
-      className={`cursor-pointer relative w-10 h-6 rounded-full shrink-0 transition-colors flex items-center px-1 ${
-        checked ? "bg-primary-60 justify-end" : "bg-neutral-30 justify-start"
+      className={`cursor-pointer relative w-10 h-6 rounded-[20px] shrink-0 transition-colors flex items-center px-1 ${
+        checked ? "bg-primary-60 justify-end" : "bg-neutral-40 justify-start"
       }`}
     >
-      <div className="w-4 h-4 bg-neutral-0 dark:bg-white rounded-full" />
+      <div className="w-4 h-4 bg-white rounded-full" />
     </button>
   );
 }
