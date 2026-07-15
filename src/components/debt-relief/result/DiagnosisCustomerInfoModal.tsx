@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnalysisService } from "@/services/analysis";
+import { useEffect } from "react";
 import type {
   AnalysisDebtBreakdown,
-  AnalysisDetail,
   AnalysisFinancialAssetRange,
   AnalysisInputData,
   AnalysisMonthlyIncomeRange,
@@ -32,13 +30,13 @@ import {
   type VehicleRange,
 } from "@/types/debtRelief";
 import { formatContactForDisplay } from "@/utils/format";
-import { showErrorModal } from "@/lib/errorModalEvents";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  analysisId: string;
-  projectId: string;
+  inputData: AnalysisInputData;
+  contact: string | null;
+  referenceNote: string | null;
 };
 
 type DisplayRow = { label: string; value: string; emphasize?: boolean };
@@ -401,18 +399,16 @@ function buildSections(
 
 /**
  * 진단 상세 「고객정보」 모달.
- * GET /v1/analysis/{id} 의 inputData + contact + referenceNote 만 사용합니다.
- * /v1/customers 는 호출하지 않습니다.
+ * 상세 페이지 진입 시 이미 조회된 inputData + contact + referenceNote를 그대로 사용합니다.
+ * (별도 API 재조회 없음 — /v1/customers 도 호출하지 않습니다.)
  */
 export default function DiagnosisCustomerInfoModal({
   open,
   onClose,
-  analysisId,
-  projectId,
+  inputData,
+  contact,
+  referenceNote,
 }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [analysis, setAnalysis] = useState<AnalysisDetail | null>(null);
-
   useEffect(() => {
     if (!open) return;
     const handleKey = (event: KeyboardEvent) => {
@@ -422,45 +418,12 @@ export default function DiagnosisCustomerInfoModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (!open || !analysisId || !projectId) return;
-
-    let cancelled = false;
-    setLoading(true);
-    setAnalysis(null);
-
-    AnalysisService.detail(Number(analysisId), projectId)
-      .then((response) => {
-        if (cancelled) return;
-        setAnalysis(response.data.data);
-      })
-      .catch((error) => {
-        console.error("Failed to load analysis detail for customer info modal:", error);
-        if (cancelled) return;
-        showErrorModal({
-          headline: "고객정보를 불러오지 못했습니다.",
-          description: "잠시 후 다시 시도해주세요.",
-        });
-        onClose();
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, analysisId, projectId, onClose]);
-
   if (!open) return null;
 
-  const input = analysis?.inputData;
-  const summaryLabel = input
-    ? [input.customerName, input.ageGroup, input.employmentType].filter(Boolean).join(" · ")
-    : "";
-  const sections = input
-    ? buildSections(input, analysis?.contact, analysis?.referenceNote)
-    : null;
+  const summaryLabel = [inputData.customerName, inputData.ageGroup, inputData.employmentType]
+    .filter(Boolean)
+    .join(" · ");
+  const sections = buildSections(inputData, contact, referenceNote);
 
   return (
     <>
@@ -521,56 +484,50 @@ export default function DiagnosisCustomerInfoModal({
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-5">
-          {loading || !sections ? (
-            <div className="flex items-center justify-center py-16 text-[14px] text-neutral-60">
-              불러오는 중...
-            </div>
-          ) : (
-            <div
-              className={[
-                "grid gap-6",
-                "grid-cols-1",
-                // 태블릿: 2열 — 고객|자산 / 채무|기타 / 소득|빈칸
-                "min-[709px]:max-[1200px]:grid-cols-2",
-                // PC: 3열 — 상단 고객|자산|채무 / 하단 소득(2) | 기타
-                "min-[1201px]:grid-cols-3",
-              ].join(" ")}
-            >
-              <InfoSection
-                title="고객 정보"
-                rows={sections.customerRows}
-                className="order-1"
-              />
-              <InfoSection
-                title="자산현황"
-                rows={sections.assetRows}
-                className="order-2"
-              />
-              <InfoSection
-                title="채무현황"
-                rows={sections.debtRows}
-                className="order-3"
-              />
-              {/*
-                모바일·PC: 소득 → 기타
-                태블릿: 기타 → 소득 (order로 전환)
-              */}
-              <InfoSection
-                title="소득/지출"
-                rows={sections.incomeRows}
-                columns={{
-                  left: sections.incomeLeftRows,
-                  right: sections.incomeRightRows,
-                }}
-                className="order-4 min-[709px]:max-[1200px]:order-5 min-[1201px]:order-4 min-[1201px]:col-span-2"
-              />
-              <InfoSection
-                title="기타사항"
-                rows={sections.otherRows}
-                className="order-5 min-[709px]:max-[1200px]:order-4 min-[1201px]:order-5"
-              />
-            </div>
-          )}
+          <div
+            className={[
+              "grid gap-6",
+              "grid-cols-1",
+              // 태블릿: 2열 — 고객|자산 / 채무|기타 / 소득|빈칸
+              "min-[709px]:max-[1200px]:grid-cols-2",
+              // PC: 3열 — 상단 고객|자산|채무 / 하단 소득(2) | 기타
+              "min-[1201px]:grid-cols-3",
+            ].join(" ")}
+          >
+            <InfoSection
+              title="고객 정보"
+              rows={sections.customerRows}
+              className="order-1"
+            />
+            <InfoSection
+              title="자산현황"
+              rows={sections.assetRows}
+              className="order-2"
+            />
+            <InfoSection
+              title="채무현황"
+              rows={sections.debtRows}
+              className="order-3"
+            />
+            {/*
+              모바일·PC: 소득 → 기타
+              태블릿: 기타 → 소득 (order로 전환)
+            */}
+            <InfoSection
+              title="소득/지출"
+              rows={sections.incomeRows}
+              columns={{
+                left: sections.incomeLeftRows,
+                right: sections.incomeRightRows,
+              }}
+              className="order-4 min-[709px]:max-[1200px]:order-5 min-[1201px]:order-4 min-[1201px]:col-span-2"
+            />
+            <InfoSection
+              title="기타사항"
+              rows={sections.otherRows}
+              className="order-5 min-[709px]:max-[1200px]:order-4 min-[1201px]:order-5"
+            />
+          </div>
         </div>
 
         <div className="border-t border-neutral-30 px-5 py-4 flex justify-end shrink-0">

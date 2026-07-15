@@ -682,6 +682,11 @@ export const DebtReliefService = {
     const scoreKey = PROCEDURE_TO_SCORE_KEY[recommendation];
     const successProbability = analysis.analysisResult?.scores[scoreKey] ?? 0;
 
+    // AI 추천(recommendation)과 별개로, 실제 상담사가 추적 중인 절차. 아직 추적을 시작하지
+    // 않았다면(trackingProcedure가 null) AI 추천으로 대체 표시한다.
+    const trackingProcedureCode: AnalysisProcedureType = analysis.trackingProcedure ?? recommendation;
+    const trackingProcedure = PROCEDURE_FROM_ANALYSIS[trackingProcedureCode];
+
     // 공유(납품) contact를 우선 사용. 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있음.
     let phone = analysis.contact?.trim() ? analysis.contact : "";
     if (!phone && analysis.customerId != null && !analysis.isShared) {
@@ -695,7 +700,7 @@ export const DebtReliefService = {
       }
     }
 
-    const guideKey = PROCEDURE_TO_SCORE_KEY[analysis.trackingProcedure ?? recommendation];
+    const guideKey = PROCEDURE_TO_SCORE_KEY[trackingProcedureCode];
     const guide = analysis.procedureGuides?.[guideKey];
     const totalDebt = inputData.totalDebt;
     const assigneeName =
@@ -719,6 +724,7 @@ export const DebtReliefService = {
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
       assigneeProjectName: analysis.sourceProjectName ?? undefined,
       recommendedProcedure,
+      trackingProcedure,
       successProbability,
       recommendation: {
         title: RECOMMENDED_PROCEDURE_LABEL[recommendedProcedure],
@@ -770,14 +776,19 @@ export const DebtReliefService = {
         changedByProjectName: item.changedByProjectName ?? null,
         changedAt: item.changedAt,
       })),
+      inputData,
+      contact: analysis.contact ?? null,
+      referenceNote: analysis.referenceNote ?? null,
     };
   },
 
   // 절차안내 "현재 단계로 설정" 저장. step.stepId는 실 API의 procedureGuides[].steps[].stepId다.
+  // currentProcedureStep을 생략하면(절차 전환 등) 서버가 단계를 초기화한다 — 이전 단계 값과 함께
+  // 보내면 "단계는 순서대로 한 단계씩만 변경 가능" 오류(ANALYSIS_PROCEDURE_STEP_SKIP_NOT_ALLOWED)가 난다.
   async updateProcedureProgress(
     projectId: string,
     id: string,
-    input: { trackingProcedure: RecommendedProcedure; currentProcedureStep: number }
+    input: { trackingProcedure: RecommendedProcedure; currentProcedureStep?: number }
   ): Promise<void> {
     await AnalysisService.update(Number(id), {
       projectId,

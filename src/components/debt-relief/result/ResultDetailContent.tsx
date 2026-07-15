@@ -3,11 +3,17 @@
 import { useEffect, useState } from "react";
 import { useDiagnosisDetail } from "@/hooks/useDebtReliefHub";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useProjectType } from "@/hooks/useProjectType";
 import { DebtReliefService } from "@/services/debtRelief";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
-import type { ProcedureStep } from "@/types/debtRelief";
+import {
+  RECOMMENDED_PROCEDURE_LABEL,
+  type ProcedureStep,
+  type RecommendedProcedure,
+} from "@/types/debtRelief";
 import ResultAnchorNav, { type AnchorSection } from "./ResultAnchorNav";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
@@ -18,19 +24,29 @@ import SectionRepaymentPlan from "./SectionRepaymentPlan";
 import SectionCounselMents from "./SectionCounselMents";
 import SectionProcedureGuide from "./SectionProcedureGuide";
 import SectionSmsSend from "./SectionSmsSend";
+import ResultDeleteButton from "./ResultDeleteButton";
 
-const SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
+const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
 export default function ResultDetailContent({ diagnosisId }: { diagnosisId: string }) {
   const { detail, loading, refetch } = useDiagnosisDetail(diagnosisId);
   const [projectId] = useSelectedProjectId();
+  const { isLawyer, ready: projectTypeReady } = useProjectType();
   const [activeId, setActiveId] = useState("overview");
+
+  // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
+  // 상담 멘트 숨김 + 추적 절차 변경도 읽기 전용으로 막는다.
+  const lawyerReceivedReadOnly = projectTypeReady && isLawyer && Boolean(detail?.isShared);
+  const hideCounselMents = lawyerReceivedReadOnly;
+  const sectionIds = hideCounselMents
+    ? ALL_SECTION_IDS.filter((id) => id !== "ments")
+    : ALL_SECTION_IDS;
 
   const handleSetCurrentStep = async (step: ProcedureStep) => {
     if (!projectId || step.stepId == null || !detail) return;
     try {
       await DebtReliefService.updateProcedureProgress(projectId, diagnosisId, {
-        trackingProcedure: detail.recommendedProcedure,
+        trackingProcedure: detail.trackingProcedure,
         currentProcedureStep: step.stepId,
       });
     } catch (error) {
@@ -40,6 +56,34 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         description: "화면에는 반영됐지만 저장되지 않았을 수 있어요. 잠시 후 다시 시도해주세요.",
       });
     }
+  };
+
+  // 절차 변경 시 새 절차의 1단계로 초기화된다 — 진행 이력(currentProcedureStep)이 절차별로
+  // 따로 저장되지 않고 분석 건에 하나뿐이라, 변경 즉시 확인 없이는 되돌릴 수 없다.
+  const handleChangeTrackingProcedure = (procedure: RecommendedProcedure) => {
+    if (!projectId || !detail) return;
+    showConfirmModal({
+      headline: "추적 절차를 변경할까요?",
+      message: `${RECOMMENDED_PROCEDURE_LABEL[procedure]}(으)로 변경하면 진행 단계가 1단계로 초기화됩니다.`,
+      type: "warning",
+      confirmText: "변경",
+      onConfirm: async () => {
+        try {
+          // currentProcedureStep은 생략 — 함께 보내면 이전 단계 대비 "건너뛰기"로 취급돼
+          // ANALYSIS_PROCEDURE_STEP_SKIP_NOT_ALLOWED 오류가 난다. 서버가 절차 전환 시 초기화한다.
+          await DebtReliefService.updateProcedureProgress(projectId, diagnosisId, {
+            trackingProcedure: procedure,
+          });
+          refetch();
+        } catch (error) {
+          console.error("Failed to change tracking procedure:", error);
+          showErrorModal({
+            headline: "절차 변경에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+          });
+        }
+      },
+    });
   };
 
   // 스크롤 스파이: 화면 상단에 걸린 섹션을 활성 처리
@@ -57,12 +101,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       { rootMargin: `${isDesktop ? "-102px" : "-64px"} 0px -55% 0px`, threshold: 0 }
     );
 
-    SECTION_IDS.forEach((id) => {
+    sectionIds.forEach((id) => {
       const element = document.getElementById(id);
       if (element) observer.observe(element);
     });
     return () => observer.disconnect();
-  }, [detail]);
+  }, [detail, sectionIds]);
 
   const scrollTo = (id: string) => {
     setActiveId(id);
@@ -86,11 +130,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   }
 
   const sections: AnchorSection[] = [
-    { id: "overview", label: detail.recommendation.title },
+    { id: "overview", label: RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure] },
     { id: "scores", label: "절차별 성공 가능성" },
     { id: "debt", label: "채무현황" },
     { id: "repayment", label: "예상 변제 계획" },
-    { id: "ments", label: "추천 상담 멘트" },
+    ...(hideCounselMents ? [] : [{ id: "ments", label: "추천 상담 멘트" }]),
     { id: "guide", label: "절차 안내" },
     { id: "sms", label: "고객 문자 전송" },
   ];
@@ -123,17 +167,33 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         <SectionRepaymentPlan detail={detail} />
       </SectionCard>
 
-      <SectionCard id="ments" compactTop>
-        <SectionCounselMents detail={detail} projectId={projectId} />
-      </SectionCard>
+      {!hideCounselMents && (
+        <SectionCard id="ments" compactTop>
+          <SectionCounselMents detail={detail} projectId={projectId} />
+        </SectionCard>
+      )}
 
       <SectionCard id="guide" compactTop>
-        <SectionProcedureGuide detail={detail} onSetCurrentStep={handleSetCurrentStep} />
+        {/* trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
+            남아있지 않도록 key로 강제 리마운트한다. */}
+        <SectionProcedureGuide
+          key={detail.trackingProcedure}
+          detail={detail}
+          onSetCurrentStep={handleSetCurrentStep}
+          onChangeTrackingProcedure={handleChangeTrackingProcedure}
+          canChangeTrackingProcedure={!lawyerReceivedReadOnly}
+        />
       </SectionCard>
 
       <SectionCard id="sms" title="고객 문자 전송" compactTop>
         <SectionSmsSend detail={detail} />
       </SectionCard>
+
+      <ResultDeleteButton
+        diagnosisId={detail.id}
+        projectId={projectId}
+        isShared={detail.isShared}
+      />
       </div>
     </>
   );

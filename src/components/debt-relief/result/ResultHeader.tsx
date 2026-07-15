@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
-import type { DiagnosisDetail } from "@/types/debtRelief";
+import { RECOMMENDED_PROCEDURE_LABEL, type DiagnosisDetail } from "@/types/debtRelief";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -348,7 +348,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           </button>
           <div className="min-w-0">
             <h1 className="text-[18px] font-bold leading-5 text-neutral-90 truncate">
-              {detail.recommendation.title}
+              {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
             </h1>
             <div className="mt-1 flex items-center gap-2 min-w-0">
               <p className="text-[13px] font-medium leading-4 text-neutral-60 truncate min-w-0">
@@ -432,7 +432,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             </svg>
           </button>
           <h1 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">
-            {detail.recommendation.title}
+            {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
           </h1>
           <span className="w-px h-4 bg-neutral-60 shrink-0" aria-hidden />
           <span className="text-[18px] font-medium leading-5 text-neutral-60 truncate min-w-0">
@@ -515,14 +515,13 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           />
         </>
       )}
-      {projectId && (
-        <DiagnosisCustomerInfoModal
-          open={customerInfoOpen}
-          onClose={() => setCustomerInfoOpen(false)}
-          analysisId={detail.id}
-          projectId={projectId}
-        />
-      )}
+      <DiagnosisCustomerInfoModal
+        open={customerInfoOpen}
+        onClose={() => setCustomerInfoOpen(false)}
+        inputData={detail.inputData}
+        contact={detail.contact}
+        referenceNote={detail.referenceNote}
+      />
       {projectId && showOwnerActions && (
         <AnalysisShareModal
           open={shareOpen}

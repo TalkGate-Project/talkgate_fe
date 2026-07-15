@@ -1,5 +1,7 @@
 // 회생·파산 진단 도메인 타입
 
+import type { AnalysisInputData } from "@/types/analysis";
+
 // ── 추천 절차 ────────────────────────────────────────────────
 // 코드는 내부 분기(배지 색상/탭 필터/분포 집계)용, 라벨은 UI 표시용.
 export type RecommendedProcedure = "individual_rehab" | "debt_adjustment" | "bankruptcy";
@@ -508,6 +510,9 @@ export type DiagnosisDetail = {
   assigneeProfileImageUrl?: string;
   assigneeProjectName?: string;
   recommendedProcedure: RecommendedProcedure;
+  // 실제 상담사가 추적 중인 절차 — AI 추천(recommendedProcedure/recommendation)과 별개.
+  // 결과 상세 최상단 타이틀에서 사용 (추적 절차 변경 기능 대비 분리).
+  trackingProcedure: RecommendedProcedure;
   successProbability: number;
   recommendation: { title: string; description: string; tags: string[] };
   procedureScores: ProcedureScore[];
@@ -524,6 +529,10 @@ export type DiagnosisDetail = {
   procedureGuide: ProcedureGuide;
   /** 현재 추적 절차의 단계별 변경 이력 (변경 기록이 없는 단계는 제외) */
   procedureStepHistory: ProcedureStepHistoryItem[];
+  // 「고객정보」 모달용 원본 입력값. 상세 조회 시 이미 받아온 데이터라 모달에서 재조회하지 않는다.
+  inputData: AnalysisInputData;
+  contact: string | null;
+  referenceNote: string | null;
 };
 
 // ════════════════════════════════════════════════════════════

@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type {
-  DiagnosisDetail,
-  ProcedureStep,
-  ProcedureStepHistoryItem,
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  RECOMMENDED_PROCEDURE_LABEL,
+  RECOMMENDED_PROCEDURE_ORDER,
+  type DiagnosisDetail,
+  type ProcedureStep,
+  type ProcedureStepHistoryItem,
+  type RecommendedProcedure,
 } from "@/types/debtRelief";
 import { useMyMember } from "@/hooks/useMyMember";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
@@ -59,6 +62,77 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
+// 추적 절차 전환 셀렉트. 진행 단계가 1단계로 초기화되는 액션이라 실제 변경 확인(모달)은
+// 호출부(onSelect)에서 처리하고, 여기서는 UI 상호작용만 담당한다.
+function ProcedureSelect({
+  value,
+  onSelect,
+  disabled,
+}: {
+  value: RecommendedProcedure;
+  onSelect: (procedure: RecommendedProcedure) => void;
+  disabled: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
+
+  if (disabled) {
+    return (
+      <span className="inline-flex items-center justify-center h-[22px] px-3 rounded-full bg-secondary-10 text-secondary-100 text-[12px] font-medium leading-[14px] opacity-80">
+        {RECOMMENDED_PROCEDURE_LABEL[value]}
+      </span>
+    );
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="cursor-pointer inline-flex items-center gap-1.5 h-[34px] px-3 rounded-[8px] border border-secondary-60 bg-secondary-10 text-secondary-100 text-[14px] font-semibold leading-[17px] hover:opacity-90"
+      >
+        {RECOMMENDED_PROCEDURE_LABEL[value]}
+        <ChevronIcon expanded={open} />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 top-full mt-2 z-30 min-w-[140px] rounded-[12px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
+        >
+          {RECOMMENDED_PROCEDURE_ORDER.filter((procedure) => procedure !== value).map(
+            (procedure) => (
+              <button
+                key={procedure}
+                type="button"
+                role="option"
+                aria-selected={false}
+                onClick={() => {
+                  setOpen(false);
+                  onSelect(procedure);
+                }}
+                className="cursor-pointer w-full text-left px-4 py-3 text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors"
+              >
+                {RECOMMENDED_PROCEDURE_LABEL[procedure]}
+              </button>
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StepSetByMeta({ history }: { history: ProcedureStepHistoryItem }) {
   const projectName = history.changedByProjectName?.trim();
 
@@ -91,6 +165,7 @@ function StepItem({
   expanded,
   onToggle,
   isCurrent,
+  canSetCurrent,
   onSetCurrent,
   onSendSms,
   smsDisabled,
@@ -101,6 +176,8 @@ function StepItem({
   expanded: boolean;
   onToggle: () => void;
   isCurrent: boolean;
+  /** 현재 단계보다 이전 단계는 되돌리기 불가 */
+  canSetCurrent: boolean;
   onSetCurrent: () => void;
   onSendSms: () => void;
   smsDisabled: boolean;
@@ -225,7 +302,12 @@ function StepItem({
                 <button
                   type="button"
                   onClick={onSetCurrent}
-                  className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
+                  disabled={!canSetCurrent}
+                  className={`h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground ${
+                    canSetCurrent
+                      ? "cursor-pointer hover:bg-neutral-10"
+                      : "opacity-40 cursor-not-allowed"
+                  }`}
                 >
                   현재 단계로 설정
                 </button>
@@ -242,9 +324,18 @@ type Props = {
   detail: DiagnosisDetail;
   // 실 API(PATCH /v1/analysis/{id})에 currentProcedureStep을 저장. 실패해도 화면 표시는 유지한다.
   onSetCurrentStep?: (step: ProcedureStep) => void;
+  // 추적 절차 전환(PATCH /v1/analysis/{id}). 호출부에서 확인 모달 + refetch까지 책임진다.
+  onChangeTrackingProcedure?: (procedure: RecommendedProcedure) => void;
+  // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용)
+  canChangeTrackingProcedure?: boolean;
 };
 
-export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Props) {
+export default function SectionProcedureGuide({
+  detail,
+  onSetCurrentStep,
+  onChangeTrackingProcedure,
+  canChangeTrackingProcedure = true,
+}: Props) {
   const { procedureGuide: guide } = detail;
   const { member } = useMyMember();
   const { project } = useCurrentProjectDetail();
@@ -289,6 +380,9 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
   const currentStepMeta = guide.steps.find((s) => s.step === currentStep);
 
   const handleSetCurrent = (step: ProcedureStep) => {
+    // 현재 단계보다 이전으로는 되돌릴 수 없음 (BE도 동일하게 거부)
+    if (step.step <= currentStep) return;
+
     setCurrentStep(step.step);
 
     if (step.stepId != null && member?.name) {
@@ -313,9 +407,11 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
           <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">
             절차안내
           </h2>
-          <span className="inline-flex items-center justify-center h-[22px] px-3 rounded-full bg-secondary-10 text-secondary-100 text-[12px] font-medium leading-[14px] opacity-80">
-            {guide.procedureLabel}
-          </span>
+          <ProcedureSelect
+            value={detail.trackingProcedure}
+            onSelect={(procedure) => onChangeTrackingProcedure?.(procedure)}
+            disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure}
+          />
           {guide.totalPeriodHint && guide.totalPeriodHint !== "-" && (
             <span className="ml-auto text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
               {guide.totalPeriodHint}
@@ -336,6 +432,7 @@ export default function SectionProcedureGuide({ detail, onSetCurrentStep }: Prop
               expanded={expanded.has(step.step)}
               onToggle={() => toggle(step.step)}
               isCurrent={step.step === currentStep}
+              canSetCurrent={step.step > currentStep}
               onSetCurrent={() => handleSetCurrent(step)}
               onSendSms={() => setSmsStep(step)}
               smsDisabled={!canSendSms}
