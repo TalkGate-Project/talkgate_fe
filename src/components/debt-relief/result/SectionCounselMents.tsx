@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   COUNSEL_MENT_TABS,
   type CounselMentCategory,
@@ -62,6 +62,14 @@ export default function SectionCounselMents({
   const [activeTab, setActiveTab] = useState<CounselMentCategory | "all">("all");
   const [input, setInput] = useState("");
   const { messages, sending, sendMessage } = useDebtReliefAiChat(detail.id, projectId);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+
+  // 새 메시지·스트리밍 응답이 추가될 때 채팅 영역을 맨 아래로 유지
+  useEffect(() => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   const suggestedQuestions =
     detail.aiSuggestedQuestions.length > 0
@@ -168,7 +176,10 @@ export default function SectionCounselMents({
 
         {/* 흰 채팅 컨테이너 */}
         <div className="bg-neutral-0 rounded-[14px] flex flex-col overflow-hidden">
-          <div className="flex flex-col gap-5 px-4 md:px-7 py-4 md:py-7 max-h-[280px] overflow-y-auto">
+          <div
+            ref={messagesScrollRef}
+            className="flex flex-col gap-5 px-4 md:px-7 py-4 md:py-7 max-h-[280px] overflow-y-auto"
+          >
             {messages.map((message) => (
               <div
                 key={message.localId}
