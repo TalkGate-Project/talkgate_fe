@@ -12,6 +12,7 @@ export type CustomerFormState = {
   contact2Type: ContactType | null;
   birth: string;
   ageRange: string;
+  gender: string;
   job: string;
   applicationRoute: string;
   site: string;
@@ -43,6 +44,7 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   contact2Type: null,
   birth: "",
   ageRange: "",
+  gender: "",
   job: "",
   applicationRoute: "",
   site: "",
@@ -76,6 +78,7 @@ export const FORM_TO_API_FIELD_MAP: Record<
   contact2Type: "contact2Type",
   birth: "birth",
   ageRange: "ageRange",
+  gender: "gender",
   job: "job",
   applicationRoute: "applicationRoute",
   site: "site",

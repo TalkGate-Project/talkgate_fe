@@ -11,6 +11,13 @@ import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
+import { PillSelect } from "@/components/debt-relief/form/PillSelect";
+import type { PillOption } from "@/types/debtRelief";
+
+const GENDER_OPTIONS: PillOption<"male" | "female">[] = [
+  { value: "male", label: "남" },
+  { value: "female", label: "여" },
+];
 
 type Props = {
   open: boolean;
@@ -57,6 +64,7 @@ export default function CustomerCreateModal({
   const [contact2Type, setContact2Type] = useState("집");
   const [contact2, setContact2] = useState("");
   const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [gender, setGender] = useState<"male" | "female" | "">("");
   const [ageRange, setAgeRange] = useState("");
   const [job, setJob] = useState("");
 
@@ -115,6 +123,7 @@ export default function CustomerCreateModal({
     setContact2Type("집");
     setContact2("");
     setBirthDate(null);
+    setGender("");
     setAgeRange("");
     setJob("");
     setMessengerAccounts([]);
@@ -147,6 +156,7 @@ export default function CustomerCreateModal({
         contact2: contact2.trim() || undefined,
         // 생년월일을 YYYY-MM-DD 형식으로 전송
         birth: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
+        gender: gender || undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,
         messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
@@ -453,6 +463,20 @@ export default function CustomerCreateModal({
                     placeholder="생년월일을 입력하세요"
                     dateFormat="yyyy-MM-dd"
                     className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
+                  />
+                </div>
+
+                {/* 성별 */}
+                <div>
+                  <label className="block text-[14px] leading-[17px] text-[#808080] dark:text-neutral-60 mb-2 tracking-[0.2px]">
+                    성별
+                  </label>
+                  <PillSelect
+                    options={GENDER_OPTIONS}
+                    value={gender || null}
+                    onChange={(value) =>
+                      setGender((prev) => (prev === value ? "" : value))
+                    }
                   />
                 </div>
 
