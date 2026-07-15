@@ -68,7 +68,7 @@ export default function Step2Assets({ form, update }: Props) {
     <div>
       <FormSectionTitle>고객 자산 현황</FormSectionTitle>
 
-      <div className="mt-3 flex flex-col gap-5">
+      <div className="mt-0 md:mt-3 flex flex-col gap-5">
         <FormField label="부동산 보유 여부" hint="(중복선택 가능)">
           <PillMultiSelect
             options={REAL_ESTATE_SELECT_OPTIONS}
@@ -106,17 +106,19 @@ export default function Step2Assets({ form, update }: Props) {
           />
         </FormField>
 
-        {/* API: AnalysisFormInput.hasRecentAssetDisposal */}
-        <div className="border border-neutral-30 rounded-[8px] px-4 py-4 flex items-center justify-between gap-3">
-          <span className="flex-1 min-w-0 text-[14px] font-medium text-foreground leading-5">
-            최근 2년 내 부동산·차량 등 재산 처분 이력 있음
-          </span>
-          <FormToggle
-            checked={form.hasRecentAssetDisposal}
-            onChange={(checked) => update("hasRecentAssetDisposal", checked)}
-            ariaLabel="최근 2년 내 부동산·차량 등 재산 처분 이력 있음"
-          />
-        </div>
+        {/* API: AnalysisFormInput.hasRecentAssetDisposal — Figma: 회색 필드 라벨 + 문구/토글 행 */}
+        <FormField label="재산 처분이력">
+          <div className="flex items-center justify-between gap-3 min-h-[34px]">
+            <span className="flex-1 min-w-0 text-[14px] font-medium leading-[17px] text-foreground">
+              최근 2년 내 부동산·차량 등 재산 처분 이력 있음
+            </span>
+            <FormToggle
+              checked={form.hasRecentAssetDisposal}
+              onChange={(checked) => update("hasRecentAssetDisposal", checked)}
+              ariaLabel="최근 2년 내 부동산·차량 등 재산 처분 이력 있음"
+            />
+          </div>
+        </FormField>
       </div>
     </div>
   );

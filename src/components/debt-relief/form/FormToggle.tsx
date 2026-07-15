@@ -23,3 +23,21 @@ export default function FormToggle({
     </button>
   );
 }
+
+/** Figma: 카드 보더 없는 토글 행 — 모바일은 양끝 정렬, 데스크톱은 라벨↔스위치 gap 20 */
+export function FormToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-5 min-h-[34px] w-full md:justify-start">
+      <span className="min-w-0 text-[14px] font-medium leading-[17px] text-foreground">{label}</span>
+      <FormToggle checked={checked} onChange={onChange} ariaLabel={label} />
+    </div>
+  );
+}

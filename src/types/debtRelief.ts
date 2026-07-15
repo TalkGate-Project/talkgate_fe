@@ -224,7 +224,7 @@ export type DebtType =
 export const DEBT_TYPE_OPTIONS: PillOption<DebtType>[] = [
   { value: "bank_loan", label: "은행대출" },
   { value: "card_loan", label: "카드론" },
-  { value: "capital", label: "캐피탈 / 저축은행" },
+  { value: "capital", label: "캐피탈/저축은행" },
   { value: "private_loan", label: "사채" },
   { value: "personal_borrowing", label: "개인차용" },
 ];
@@ -232,7 +232,7 @@ export const DEBT_TYPE_OPTIONS: PillOption<DebtType>[] = [
 export const DEBT_AMOUNT_LABELS: Record<DebtType, string> = {
   bank_loan: "은행 대출",
   card_loan: "카드론",
-  capital: "캐피탈 / 저축은행",
+  capital: "캐피탈/저축은행",
   private_loan: "사채",
   personal_borrowing: "개인차용",
 };

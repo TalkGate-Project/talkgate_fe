@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-/** 스텝 본문 섹션 제목 — 하단 구분선은 콘텐츠 폭(패딩 안) */
+/** 스텝 본문 섹션 제목 — 데스크톱만. 모바일은 상단 드로어 스텝명이 대신함 */
 export function FormSectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
+    <h3 className="hidden md:block text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
       {children}
     </h3>
   );
@@ -22,10 +22,14 @@ export function FormField({
 }) {
   return (
     <div className={className}>
-      {/* Figma: label 14/500 #808080, control까지 8px */}
+      {/* Figma: label 14/500 lh-17 #808080, control까지 8px — lh 미지정 시 기본 ~21로 간격이 벌어 보임 */}
       <div className="flex items-center gap-2 mb-2">
-        <label className="text-[14px] font-medium tracking-[0.2px] text-neutral-60">{label}</label>
-        {hint && <span className="text-[12px] text-neutral-50">{hint}</span>}
+        <label className="text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+          {label}
+        </label>
+        {hint && (
+          <span className="text-[12px] leading-[17px] text-neutral-50">{hint}</span>
+        )}
       </div>
       {children}
     </div>

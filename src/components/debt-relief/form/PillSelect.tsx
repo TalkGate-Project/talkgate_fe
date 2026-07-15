@@ -1,6 +1,7 @@
 import type { PillOption } from "@/types/debtRelief";
 
-// Figma Ticker3: h-34, px-20 py-4, radius 30
+// Figma Ticker3
+// 모바일: h-31, px-12 py-7, gap 8 / 데스크톱: h-34, px-20 py-4, radius 30
 // 선택 = #000 흰 글자 / 미선택 = border #E2E2E2, 글자 opacity 0.8
 function PillButton({
   label,
@@ -15,10 +16,10 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`cursor-pointer h-[34px] px-5 rounded-full text-[14px] font-medium leading-[17px] transition-colors ${
+      className={`cursor-pointer inline-flex items-center justify-center box-border h-[31px] md:h-[34px] px-3 md:px-5 py-0 rounded-full text-[14px] font-medium leading-none transition-colors ${
         selected
-          ? "bg-neutral-100 text-neutral-0"
-          : "border border-neutral-30 text-foreground/80 hover:border-neutral-50"
+          ? "border border-transparent bg-neutral-100 text-neutral-0"
+          : "border border-neutral-30 text-foreground/80 tracking-[-0.04em] md:tracking-normal hover:border-neutral-50"
       }`}
     >
       {label}
