@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePhoneDragScroll } from "@/components/customers/sms";
 import type { ImageFileWithPreview, ContentType } from "@/components/customers/sms";
+import { formatPhoneNumber } from "@/utils/format";
 
 type DebtReliefPhonePreviewProps = {
   senderNumber: string;
@@ -152,7 +153,7 @@ export default function DebtReliefPhonePreview({
         >
           <div className="flex justify-center py-3 sticky top-0 bg-card dark:bg-neutral-10 z-[1]">
             <span className="inline-flex items-center h-[34px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[14px] text-neutral-70 dark:text-neutral-60">
-              {senderNumber || "010-0000-0000"}
+              {senderNumber ? formatPhoneNumber(senderNumber) : "010-0000-0000"}
             </span>
           </div>
           <div className="pt-2 pb-4 flex flex-col items-start px-4">
@@ -195,7 +196,7 @@ export default function DebtReliefPhonePreview({
         >
           <div className="flex justify-center py-3 sticky top-0 bg-white dark:bg-neutral-0 z-[1]">
             <span className="inline-flex items-center h-[28px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-60">
-              {senderNumber || "010-0000-0000"}
+              {senderNumber ? formatPhoneNumber(senderNumber) : "010-0000-0000"}
             </span>
           </div>
 

@@ -11,6 +11,7 @@ import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { formatPhoneNumber } from "@/utils/format";
 
 export type DebtReliefSmsModalProps = {
   open: boolean;
@@ -199,7 +200,7 @@ export default function DebtReliefSmsModal({
                   const key = `${num.source}-${num.id}`;
                   return (
                     <option key={key} value={key}>
-                      {num.phoneNumber} ({num.source === "project" ? "공통" : "개인"})
+                      {formatPhoneNumber(num.phoneNumber)} ({num.source === "project" ? "공통" : "개인"})
                     </option>
                   );
                 })}
@@ -228,7 +229,7 @@ export default function DebtReliefSmsModal({
         <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">수신자</label>
         <span className="inline-flex items-center gap-1 h-[28px] px-3 max-w-full bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70">
           <span className="truncate max-w-[130px]">{recipientName}</span>
-          <span className="shrink-0">{recipientPhone}</span>
+          <span className="shrink-0">{formatPhoneNumber(recipientPhone)}</span>
         </span>
       </div>
 
