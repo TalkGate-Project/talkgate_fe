@@ -63,17 +63,21 @@ export function formatCustomerMeta(
 }
 
 // AI 추천 태그 → 짧은 칩 라벨.
-// "조건 → 결론" 형태면 결론만 쓰고, 너무 길면 말줄임.
+// "조건 → 결론" 형태면 결론만 쓴다. maxLength를 주면 그보다 길 때 말줄임.
 const CHIP_ARROW_PATTERN = /\s*(?:→|->|⇒|➜)\s*/;
 const CHIP_LABEL_MAX_LENGTH = 12;
 
-export function toRecommendationChipLabel(tag: string): string {
+export function toRecommendationChipLabel(
+  tag: string,
+  options?: { maxLength?: number | null }
+): string {
   const trimmed = tag.trim();
   if (!trimmed) return trimmed;
 
   const segments = trimmed.split(CHIP_ARROW_PATTERN).map((part) => part.trim()).filter(Boolean);
   const conclusion = segments.length > 1 ? segments[segments.length - 1] : trimmed;
 
-  if (conclusion.length <= CHIP_LABEL_MAX_LENGTH) return conclusion;
-  return `${conclusion.slice(0, CHIP_LABEL_MAX_LENGTH)}…`;
+  const maxLength = options?.maxLength === undefined ? CHIP_LABEL_MAX_LENGTH : options.maxLength;
+  if (maxLength == null || conclusion.length <= maxLength) return conclusion;
+  return `${conclusion.slice(0, maxLength)}…`;
 }

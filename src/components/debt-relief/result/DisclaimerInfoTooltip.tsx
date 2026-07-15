@@ -78,7 +78,8 @@ export default function DisclaimerInfoTooltip({
         aria-label={label}
         aria-expanded={open}
         aria-describedby={open ? tooltipId : undefined}
-        className="inline-flex size-6 items-center justify-center rounded-full leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-40"
+        className="inline-flex items-center justify-center rounded-full leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-40"
+        style={{ width: iconSize, height: iconSize }}
         onClick={() => {
           if (canHover()) return;
           setOpen((prev) => !prev);

@@ -88,10 +88,9 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   };
 
   // 스크롤 스파이: 화면 상단에 걸린 섹션을 활성 처리
-  // 데스크톱은 전역 헤더(54px) + fixed 서브헤더(48px), 모바일은 전역 헤더(54px)만 고려
+  // 데스크톱/모바일 모두 전역 헤더(54) + 앵커 내비(48) = 102px
   useEffect(() => {
     if (!detail) return;
-    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -99,7 +98,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
         if (visible[0]) setActiveId(visible[0].target.id);
       },
-      { rootMargin: `${isDesktop ? "-102px" : "-64px"} 0px -55% 0px`, threshold: 0 }
+      { rootMargin: "-102px 0px -55% 0px", threshold: 0 }
     );
 
     sectionIds.forEach((id) => {
@@ -143,75 +142,79 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   return (
     <>
       {/* 데스크톱만 fixed 서브헤더(48px) + 허브와 비슷한 상단 여백(36px) → 84px 확보.
-          모바일은 탭 바가 문서 흐름 안에 있으므로 별도 상단 여백이 필요 없다. */}
+          모바일은 sticky 내비(48px)가 문서 흐름에 자리를 차지하므로 별도 상단 여백이 필요 없다. */}
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-[84px] pb-[calc(3rem+env(safe-area-inset-bottom))] flex flex-col gap-0 md:gap-9">
-      {/* 헤더 + 탭 바 + AI 분석 추천 (같은 카드).
-          변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다.
-          ResultAnchorNav는 모바일에선 이 자리(제목 행 아래) 일반 흐름으로, 데스크톱에선
-          자체 md:fixed 스타일로 전역 헤더 바로 아래 전체 폭에 고정된다. */}
-      {hideAiRecommendation ? (
-        <div className="flex flex-col gap-0 md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none">
-          <SectionCard id="overview" compactTop joined="start">
-            <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
-            <div className="mt-3 md:mt-0">
-              <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
-            </div>
-          </SectionCard>
-          <SectionCard id="scores" compactTop joined="end">
-            <SectionProcedureScores detail={detail} />
-          </SectionCard>
+        {/* 모바일: 내비게이터만 전역 헤더(54px) 아래 고정. 제목/액션은 카드 안에서 스크롤된다.
+            카드 밖에 두어 overview를 지나도 sticky가 풀리지 않도록 한다. */}
+        <div className="md:hidden sticky top-[54px] z-30 bg-card border-b border-neutral-30">
+          <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
         </div>
-      ) : (
-        <>
-          <SectionCard id="overview" compactTop>
-            <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
-            <div className="mt-3 md:mt-0">
-              <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
-            </div>
-            <SectionAiRecommendation detail={detail} />
-          </SectionCard>
 
-          <SectionCard id="scores" compactTop topDivider>
-            <SectionProcedureScores detail={detail} />
-          </SectionCard>
-        </>
-      )}
+        {/* 헤더 + (데스크톱) 탭 바 + AI 분석 추천 (같은 카드).
+            변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}
+        {hideAiRecommendation ? (
+          <div className="flex flex-col gap-0 md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none">
+            <SectionCard id="overview" compactTop joined="start" className="max-md:!pt-0">
+              <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <div className="hidden md:block mt-0">
+                <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
+              </div>
+            </SectionCard>
+            <SectionCard id="scores" compactTop joined="end">
+              <SectionProcedureScores detail={detail} />
+            </SectionCard>
+          </div>
+        ) : (
+          <>
+            <SectionCard id="overview" compactTop className="max-md:!pt-0">
+              <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <div className="hidden md:block mt-0">
+                <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
+              </div>
+              <SectionAiRecommendation detail={detail} />
+            </SectionCard>
 
-      <SectionCard id="debt" compactTop>
-        <SectionDebtStatus detail={detail} />
-      </SectionCard>
+            <SectionCard id="scores" compactTop topDivider>
+              <SectionProcedureScores detail={detail} />
+            </SectionCard>
+          </>
+        )}
 
-      <SectionCard id="repayment" compactTop>
-        <SectionRepaymentPlan detail={detail} />
-      </SectionCard>
-
-      {!hideCounselMents && (
-        <SectionCard id="ments" compactTop>
-          <SectionCounselMents detail={detail} projectId={projectId} />
+        <SectionCard id="debt" compactTop>
+          <SectionDebtStatus detail={detail} />
         </SectionCard>
-      )}
 
-      <SectionCard id="guide" compactTop>
-        {/* trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
-            남아있지 않도록 key로 강제 리마운트한다. */}
-        <SectionProcedureGuide
-          key={detail.trackingProcedure}
-          detail={detail}
-          onSetCurrentStep={handleSetCurrentStep}
-          onChangeTrackingProcedure={handleChangeTrackingProcedure}
-          canChangeTrackingProcedure={!lawyerReceivedReadOnly}
+        <SectionCard id="repayment" compactTop>
+          <SectionRepaymentPlan detail={detail} />
+        </SectionCard>
+
+        {!hideCounselMents && (
+          <SectionCard id="ments" compactTop>
+            <SectionCounselMents detail={detail} projectId={projectId} />
+          </SectionCard>
+        )}
+
+        <SectionCard id="guide" compactTop>
+          {/* trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
+              남아있지 않도록 key로 강제 리마운트한다. */}
+          <SectionProcedureGuide
+            key={detail.trackingProcedure}
+            detail={detail}
+            onSetCurrentStep={handleSetCurrentStep}
+            onChangeTrackingProcedure={handleChangeTrackingProcedure}
+            canChangeTrackingProcedure={!lawyerReceivedReadOnly}
+          />
+        </SectionCard>
+
+        <SectionCard id="sms" title="고객 문자 전송" compactTop>
+          <SectionSmsSend detail={detail} />
+        </SectionCard>
+
+        <ResultDeleteButton
+          diagnosisId={detail.id}
+          projectId={projectId}
+          isShared={detail.isShared}
         />
-      </SectionCard>
-
-      <SectionCard id="sms" title="고객 문자 전송" compactTop>
-        <SectionSmsSend detail={detail} />
-      </SectionCard>
-
-      <ResultDeleteButton
-        diagnosisId={detail.id}
-        projectId={projectId}
-        isShared={detail.isShared}
-      />
       </div>
     </>
   );

@@ -427,7 +427,17 @@ export default function DebtReliefSmsModal({
               </svg>
             </button>
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90 dark:text-neutral-90 truncate">
-              {isMobilePreviewOpen ? "미리보기" : `문자전송 | ${subtitle}`}
+              {isMobilePreviewOpen ? (
+                "미리보기"
+              ) : (
+                <span className="inline-flex items-center gap-4 min-w-0">
+                  <span className="shrink-0">문자전송</span>
+                  <span className="text-[16px] leading-[20px] font-medium text-neutral-60 shrink-0">|</span>
+                  <span className="text-[16px] leading-[20px] font-medium text-neutral-60 truncate">
+                    {subtitle}
+                  </span>
+                </span>
+              )}
             </h2>
           </div>
           {isMobilePreviewOpen ? (
@@ -448,8 +458,10 @@ export default function DebtReliefSmsModal({
 
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between px-7 pt-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90 dark:text-neutral-90">
-            문자전송 <span className="text-neutral-40 dark:text-neutral-50 font-normal mx-1">|</span> {subtitle}
+          <h2 className="flex items-center gap-4 text-[18px] font-semibold leading-[21px] text-neutral-90 dark:text-neutral-90">
+            <span>문자전송</span>
+            <span className="text-[16px] leading-[20px] font-medium text-neutral-60">|</span>
+            <span className="text-[16px] leading-[20px] font-medium text-neutral-60">{subtitle}</span>
           </h2>
           <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

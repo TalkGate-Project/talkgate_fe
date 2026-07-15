@@ -48,15 +48,35 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
       height="20"
       viewBox="0 0 20 20"
       fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       aria-hidden
       className={expanded ? "rotate-180" : ""}
     >
       <path
-        d="M5 7.5l5 5 5-5"
+        d="M15.8332 7.5L9.99984 13.3333L4.1665 7.5"
         stroke="#959595"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** 커스텀 셀렉트용 위·아래 삼각형 (닫힘=아래, 열림=위) */
+function SelectCaretIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="8"
+      height="6"
+      viewBox="0 0 8 6"
+      fill="none"
+      aria-hidden
+      className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+    >
+      <path
+        d="M4.25896 5.4382C4.05939 5.71473 3.64764 5.71473 3.44807 5.4382L0.0954003 0.792604C-0.143249 0.461921 0.0930391 1.87809e-07 0.500843 2.2346e-07L7.20619 8.0966e-07C7.61399 8.45312e-07 7.85028 0.461922 7.61163 0.792604L4.25896 5.4382Z"
+        fill="currentColor"
       />
     </svg>
   );
@@ -103,7 +123,7 @@ function ProcedureSelect({
         className="cursor-pointer inline-flex items-center gap-1.5 h-[34px] px-3 rounded-[8px] border border-secondary-60 bg-secondary-10 text-secondary-100 text-[14px] font-semibold leading-[17px] hover:opacity-90"
       >
         {RECOMMENDED_PROCEDURE_LABEL[value]}
-        <ChevronIcon expanded={open} />
+        <SelectCaretIcon open={open} />
       </button>
       {open && (
         <div
@@ -137,7 +157,7 @@ function StepSetByMeta({ history }: { history: ProcedureStepHistoryItem }) {
   const projectName = history.changedByProjectName?.trim();
 
   return (
-    <div className="flex items-center justify-end gap-1 max-w-full min-w-0 flex-nowrap overflow-hidden">
+    <div className="flex items-center justify-start md:justify-end gap-1 max-w-full min-w-0 flex-nowrap overflow-hidden">
       <span
         title={history.changedByMemberName}
         className="text-[13px] font-semibold leading-4 text-foreground shrink-0 max-w-[5.5rem] truncate"
@@ -208,7 +228,7 @@ function StepItem({
               {step.step}단계. {step.title}
             </span>
             {isActive && (
-              <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px]">
+              <span className="inline-flex items-center justify-center h-[17px] px-1 rounded-[4px] bg-neutral-90 text-neutral-0 text-[11px] font-medium leading-[13px] shrink-0">
                 진행중
               </span>
             )}
@@ -234,7 +254,7 @@ function StepItem({
         </button>
       </div>
 
-      {/* 본문 — 우측: 설정 메타는 상단, 버튼은 세로 가운데 (아래는 빈 공간) */}
+      {/* 본문 — 모바일: 메타·버튼 좌정렬(콘텐츠 너비) / 데스크톱: 우측 정렬·세로 가운데 */}
       {expanded && hasBody && (
         <div className="border-t border-neutral-30 px-4 md:px-6 py-3.5 flex flex-col md:flex-row items-stretch md:justify-between gap-3 md:gap-4">
           <div className="min-w-0 flex-1">
@@ -273,7 +293,7 @@ function StepItem({
                   </svg>
                 )}
                 <span
-                  className={`text-[14px] font-medium leading-[17px] opacity-80 ${
+                  className={`text-[12px] md:text-[14px] font-medium leading-[15px] md:leading-[17px] opacity-80 ${
                     step.noteType === "warning"
                       ? "text-warning-100"
                       : step.noteType === "info"
@@ -287,13 +307,13 @@ function StepItem({
             )}
           </div>
 
-          <div className="shrink-0 w-full md:w-[340px] self-stretch flex flex-col items-end min-w-0">
+          <div className="shrink-0 w-full md:w-[340px] self-stretch flex flex-col items-start md:items-end gap-3 md:gap-0 min-w-0">
             {stepHistory ? (
-              <div className="w-full flex justify-end min-w-0">
+              <div className="w-full flex justify-start md:justify-end min-w-0">
                 <StepSetByMeta history={stepHistory} />
               </div>
             ) : null}
-            <div className="flex-1 flex items-center justify-end">
+            <div className="flex items-center justify-start md:flex-1 md:justify-end">
               {isCurrent ? (
                 <span className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em]">
                   현재 단계
@@ -413,7 +433,7 @@ export default function SectionProcedureGuide({
             disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure}
           />
           {guide.totalPeriodHint && guide.totalPeriodHint !== "-" && (
-            <span className="ml-auto text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
+            <span className="hidden md:inline ml-auto text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
               {guide.totalPeriodHint}
             </span>
           )}
@@ -445,7 +465,7 @@ export default function SectionProcedureGuide({
 
         <aside className="order-1 lg:order-2 rounded-[12px] border border-neutral-30 bg-neutral-10 overflow-hidden lg:sticky lg:top-[138px] lg:self-start lg:z-10">
           <div className="px-4 md:px-6 pt-5 md:pt-6">
-            {/* 피그마: 현재 단계 → 예상 남은 기간 세로 스택 (긴 단계명 대응) */}
+            {/* 모바일 Figma: 현재 단계만. 데스크톱: 현재 단계 + 예상 남은 기간 */}
             <div className="flex flex-col gap-4 mb-5">
               <div className="min-w-0">
                 <p className="text-[12px] md:text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 mb-1">
@@ -455,11 +475,11 @@ export default function SectionProcedureGuide({
                   {currentStep}단계. {currentStepMeta?.title}
                 </p>
               </div>
-              <div className="min-w-0">
-                <p className="text-[12px] md:text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 mb-1">
+              <div className="hidden md:block min-w-0">
+                <p className="text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 mb-1">
                   예상 남은 기간
                 </p>
-                <p className="text-[14px] md:text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
+                <p className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
                   {guide.estimatedRemaining}
                 </p>
               </div>
