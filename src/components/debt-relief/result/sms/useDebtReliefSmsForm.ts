@@ -9,7 +9,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 // 대량 발송용 assignmentType(ids/filter) 분기가 필요 없고, 발송 API가 아직 없어 DebtReliefService의 mock으로 위임한다.
 export function useDebtReliefSmsForm() {
   const [selectedSenderKey, setSelectedSenderKey] = useState<string | null>(null);
-  const [contentType, setContentType] = useState<ContentType>("advertising");
+  const [contentType, setContentType] = useState<ContentType>("informational");
   const [businessName, setBusinessName] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -138,7 +138,7 @@ export function useDebtReliefSmsForm() {
 
   // 모달을 열 때 템플릿에서 넘어온 본문으로 초기화한다.
   const handleReset = useCallback((seedBody: string = "") => {
-    setContentType("advertising");
+    setContentType("informational");
     setTitle("");
     setBody(seedBody);
     imageFilesRef.current.forEach((img) => URL.revokeObjectURL(img.previewUrl));
