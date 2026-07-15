@@ -3,6 +3,7 @@ import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import DatePicker from "@/components/common/DatePicker";
+import GenderToggle from "@/components/customers/GenderToggle";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
 import { ContactType } from "@/types/customers";
@@ -226,17 +227,10 @@ export default function BasicTab({
         <div className="mb-1">
           <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">성별</span>
         </div>
-        <div>
-          <SelectField
-            value={form.gender ?? ""}
-            onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
-            className="h-[34px] font-medium text-[14px]"
-          >
-            <option value="">선택</option>
-            <option value="male">남</option>
-            <option value="female">여</option>
-          </SelectField>
-        </div>
+        <GenderToggle
+          value={form.gender === "male" || form.gender === "female" ? form.gender : ""}
+          onChange={(value) => setForm((prev) => ({ ...prev, gender: value }))}
+        />
       </div>
 
       {/* Job */}
