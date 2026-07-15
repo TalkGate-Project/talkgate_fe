@@ -18,13 +18,13 @@ import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import MobileDrawer from "./MobileDrawer";
 import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
-const BASE_NAV_ITEMS: { label: string; href: string }[] = [
+const BASE_NAV_ITEMS_BEFORE: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
-  { label: "통계", href: "/stats" },
 ];
 
+const STATS_ITEM = { label: "통계", href: "/stats" };
 const ATTENDANCE_ITEM = { label: "근태", href: "/attendance" };
 const DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
 
@@ -55,13 +55,14 @@ export default function Header() {
   const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
   // 근태·회생·파산 메뉴 포함 여부에 따라 네비게이션 아이템 구성
-  // 순서: …통계 → 근태(조건부) → 회생·파산(조건부) → 공지사항 → 설정
+  // 순서: 고객목록 → 회생·파산(조건부) → 통계 → 근태(조건부) → 공지사항 → 설정
   // 회생·파산: analysis(영업) / lawyer(변호사) 프로젝트에서만 표시
   // Hydration 에러 방지를 위해 ready 플래그 체크
   const NAV_ITEMS = [
-    ...BASE_NAV_ITEMS,
-    ...(attendanceReady && showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
+    ...BASE_NAV_ITEMS_BEFORE,
     ...(debtReliefReady && showDebtReliefMenu ? [DEBT_RELIEF_ITEM] : []),
+    STATS_ITEM,
+    ...(attendanceReady && showAttendanceMenu ? [ATTENDANCE_ITEM] : []),
     ...COMMON_NAV_ITEMS,
   ];
 

@@ -250,20 +250,31 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
           {/* 헤더 — 모바일에서는 MobileFormSummaryDrawer가 대신하므로 숨김 */}
           {/* Figma: title 24/700, desc 18/500, gap 16, 패딩 28, 구분선은 카드 풀폭 */}
-          <div className="hidden md:flex items-center gap-4 px-7 py-[26px]">
-            <button
-              type="button"
-              onClick={goBack}
-              aria-label="이전"
-              className="cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70 shrink-0"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <h2 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">{step.title}</h2>
-            <span className="w-px h-4 bg-neutral-60 shrink-0" />
-            <p className="text-[18px] font-medium leading-5 text-neutral-60 min-w-0 truncate">{step.description}</p>
+          {/* 좌측 이전 화살표는 제거(탭 + 하단 이전/다음 버튼과 중복). X는 정보수정 진입 시에만 노출 */}
+          <div className="hidden md:flex items-center justify-between gap-4 px-7 py-[26px]">
+            <div className="flex items-center gap-4 min-w-0">
+              <h2 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">{step.title}</h2>
+              <span className="w-px h-4 bg-neutral-60 shrink-0" />
+              <p className="text-[18px] font-medium leading-5 text-neutral-60 min-w-0 truncate">{step.description}</p>
+            </div>
+            {isEdit && (
+              <button
+                type="button"
+                onClick={handleClose}
+                aria-label="닫기"
+                className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-70 shrink-0"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M6 18L18 6M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
 

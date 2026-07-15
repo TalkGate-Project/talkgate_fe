@@ -15,12 +15,12 @@ import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
-const LITE_BASE_NAV_ITEMS: { label: string; href: string }[] = [
+const LITE_BASE_NAV_ITEMS_BEFORE: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
-  { label: "통계", href: "/stats" },
 ];
+const LITE_STATS_ITEM = { label: "통계", href: "/stats" };
 const LITE_DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
 const LITE_COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },
@@ -42,9 +42,11 @@ export default function LiteHeader() {
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
   const { toggle: toggleStaffChatModal } = useTeamChatWindow();
 
+  // 순서: 고객목록 → 회생·파산(조건부) → 통계 → 공지사항 → 설정
   const LITE_NAV_ITEMS = [
-    ...LITE_BASE_NAV_ITEMS,
+    ...LITE_BASE_NAV_ITEMS_BEFORE,
     ...(debtReliefReady && showDebtReliefMenu ? [LITE_DEBT_RELIEF_ITEM] : []),
+    LITE_STATS_ITEM,
     ...LITE_COMMON_NAV_ITEMS,
   ];
 
