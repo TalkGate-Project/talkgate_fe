@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+type JoinedEdge = "start" | "end";
+
 // 결과 상세의 각 섹션을 감싸는 흰색 카드.
 // 데스크톱: 전역 헤더(54) + fixed 서브헤더(48) + 상단 여백(36) = 138px 에 가리지 않도록 scroll-mt 부여.
 // 모바일: 서브헤더가 더 이상 fixed가 아니므로 전역 헤더(54px)만 여유를 두면 된다.
@@ -11,6 +13,7 @@ export default function SectionCard({
   className = "",
   compactTop = false,
   topDivider = false,
+  joined,
 }: {
   id: string;
   title?: string;
@@ -23,15 +26,33 @@ export default function SectionCard({
   // border는 padding 바깥(패딩 박스 경계)에 그려지므로 좌우 패딩과 무관하게 항상 전체 폭으로 표시된다.
   // 데스크톱은 카드 간 gap·shadow로 이미 구분되므로 적용하지 않는다.
   topDivider?: boolean;
+  // 인접 카드와 하나의 섹션처럼 붙일 때: start=상단만 round + 하단 border, end=하단만 round.
+  // 그림자는 감싸는 래퍼에 두고, joined 카드 자체는 shadow를 끈다.
+  joined?: JoinedEdge;
 }) {
+  const isJoined = joined === "start" || joined === "end";
+  const radiusClass = isJoined
+    ? joined === "start"
+      ? "md:rounded-t-[14px] md:rounded-b-none"
+      : "md:rounded-b-[14px] md:rounded-t-none"
+    : "md:rounded-[14px]";
+  const shadowClass = isJoined
+    ? "shadow-none"
+    : "shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none";
+  const joinBorderClass =
+    joined === "start" ? "border-b border-neutral-30" : topDivider ? "border-t border-neutral-30 md:border-t-0" : "";
+  const paddingClass = isJoined
+    ? joined === "start"
+      ? "pt-3 pb-3 md:pt-7 md:pb-4"
+      : compactTop
+        ? "pt-6 pb-6 md:py-7"
+        : "py-6 md:py-7"
+    : `${compactTop ? "pt-3 pb-6" : "py-6"} md:py-7`;
+
   return (
     <section
       id={id}
-      className={`scroll-mt-[64px] md:scroll-mt-[138px] surface md:rounded-[14px] px-6 md:px-8 ${
-        compactTop ? "pt-3 pb-6" : "py-6"
-      } md:py-7 shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none ${
-        topDivider ? "border-t border-neutral-30 md:border-t-0" : ""
-      } ${className}`}
+      className={`scroll-mt-[64px] md:scroll-mt-[138px] surface ${radiusClass} px-6 md:px-8 ${paddingClass} ${shadowClass} ${joinBorderClass} ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-30">

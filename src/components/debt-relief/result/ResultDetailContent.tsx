@@ -35,8 +35,9 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [activeId, setActiveId] = useState("overview");
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
-  // 상담 멘트 숨김 + 추적 절차 변경도 읽기 전용으로 막는다.
+  // AI 분석 추천·상담 멘트 숨김 + 추적 절차 변경도 읽기 전용으로 막는다.
   const lawyerReceivedReadOnly = projectTypeReady && isLawyer && Boolean(detail?.isShared);
+  const hideAiRecommendation = lawyerReceivedReadOnly;
   const hideCounselMents = lawyerReceivedReadOnly;
   const sectionIds = hideCounselMents
     ? ALL_SECTION_IDS.filter((id) => id !== "ments")
@@ -145,19 +146,36 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           모바일은 탭 바가 문서 흐름 안에 있으므로 별도 상단 여백이 필요 없다. */}
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-[84px] pb-[calc(3rem+env(safe-area-inset-bottom))] flex flex-col gap-0 md:gap-9">
       {/* 헤더 + 탭 바 + AI 분석 추천 (같은 카드).
+          변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다.
           ResultAnchorNav는 모바일에선 이 자리(제목 행 아래) 일반 흐름으로, 데스크톱에선
           자체 md:fixed 스타일로 전역 헤더 바로 아래 전체 폭에 고정된다. */}
-      <SectionCard id="overview" compactTop>
-        <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
-        <div className="mt-3 md:mt-0">
-          <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
+      {hideAiRecommendation ? (
+        <div className="flex flex-col gap-0 md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none">
+          <SectionCard id="overview" compactTop joined="start">
+            <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+            <div className="mt-3 md:mt-0">
+              <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
+            </div>
+          </SectionCard>
+          <SectionCard id="scores" compactTop joined="end">
+            <SectionProcedureScores detail={detail} />
+          </SectionCard>
         </div>
-        <SectionAiRecommendation detail={detail} />
-      </SectionCard>
+      ) : (
+        <>
+          <SectionCard id="overview" compactTop>
+            <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+            <div className="mt-3 md:mt-0">
+              <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
+            </div>
+            <SectionAiRecommendation detail={detail} />
+          </SectionCard>
 
-      <SectionCard id="scores" compactTop topDivider>
-        <SectionProcedureScores detail={detail} />
-      </SectionCard>
+          <SectionCard id="scores" compactTop topDivider>
+            <SectionProcedureScores detail={detail} />
+          </SectionCard>
+        </>
+      )}
 
       <SectionCard id="debt" compactTop>
         <SectionDebtStatus detail={detail} />
