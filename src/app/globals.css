@@ -179,7 +179,7 @@
   --breakpoint-desktop-full: 1920px; /* 1920 */
 
   /* Map to Tailwind aliases (sm/md/lg/xl). Use concrete values (media queries don't support var()). */
-  --breakpoint-sm: 390px;
+  --breakpoint-sm: 375px;
   --breakpoint-md: 780px;
   --breakpoint-lg: 1080px;
   --breakpoint-xl: 1920px;

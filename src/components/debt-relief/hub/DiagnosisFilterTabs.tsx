@@ -58,7 +58,7 @@ export default function DiagnosisFilterTabs({
         );
       })}
 
-      <span className="text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
+      <span className="hidden md:inline text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
         총 {totalCount}건
         {selectedCount > 0 ? ` (${selectedCount}개 선택)` : ""}
       </span>
