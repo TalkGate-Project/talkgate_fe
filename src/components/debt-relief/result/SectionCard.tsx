@@ -3,8 +3,7 @@ import type { ReactNode } from "react";
 type JoinedEdge = "start" | "end";
 
 // 결과 상세의 각 섹션을 감싸는 흰색 카드.
-// 데스크톱: 전역 헤더(54) + fixed 서브헤더(48) + 상단 여백(36) = 138px 에 가리지 않도록 scroll-mt 부여.
-// 모바일: 서브헤더가 더 이상 fixed가 아니므로 전역 헤더(54px)만 여유를 두면 된다.
+// 전역 헤더(54) + 앵커 내비(48) = 102px. 데스크톱은 상단 여백(36)까지 포함해 scroll-mt 138px.
 export default function SectionCard({
   id,
   title,
@@ -52,7 +51,7 @@ export default function SectionCard({
   return (
     <section
       id={id}
-      className={`scroll-mt-[64px] md:scroll-mt-[138px] surface ${radiusClass} px-6 md:px-8 ${paddingClass} ${shadowClass} ${joinBorderClass} ${className}`}
+      className={`scroll-mt-[102px] md:scroll-mt-[138px] surface ${radiusClass} px-6 md:px-8 ${paddingClass} ${shadowClass} ${joinBorderClass} ${className}`}
     >
       {title && (
         <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-30">

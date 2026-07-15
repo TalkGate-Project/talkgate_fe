@@ -25,9 +25,11 @@ const PROCEDURE_CHIP_STYLE: Record<RecommendedProcedure, string> = {
   bankruptcy: "bg-danger-10 text-danger-40",
 };
 
+const SUMMARY_GRID_CLASS = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-5";
+
 function SummaryCardsSkeleton() {
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5">
+    <div className={SUMMARY_GRID_CLASS}>
       {Array.from({ length: 4 }).map((_, index) => (
         <div
           key={index}
@@ -140,7 +142,7 @@ export default function SummaryCards({
   const progressSteps = summary.progressStepsByProcedure[selectedProcedure] ?? [];
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5">
+    <div className={SUMMARY_GRID_CLASS}>
       {/* 총 분석 건수 — 안쪽 콘텐츠 ~80×96 (좌측 정렬, 좁은 블록) */}
       <div className={CARD_CLASS}>
         <p className={LABEL_CLASS}>총 분석 건수</p>
@@ -212,8 +214,8 @@ export default function SummaryCards({
         </div>
       </div>
 
-      {/* 진행단계 — 절차 셀렉트 + 스크롤 목록 (제목·셀렉트 상단 22px 맞춤) */}
-      <div className={CARD_PROGRESS_CLASS}>
+      {/* 진행단계 — 절차 셀렉트 + 스크롤 목록 (모바일·데스크톱 모두 높이 제한 후 내부 스크롤) */}
+      <div className={`${CARD_PROGRESS_CLASS} min-h-0`}>
         <div className="flex items-start justify-between gap-2 shrink-0">
           <div className="flex items-start gap-0.5 min-w-0">
             <p className={LABEL_CLASS}>진행단계</p>
@@ -222,7 +224,7 @@ export default function SummaryCards({
           <ProgressProcedureSelect value={selectedProcedure} onChange={setSelectedProcedure} />
         </div>
         <div
-          className="mt-2.5 md:mt-3 flex flex-col gap-3 overflow-y-auto w-full md:max-w-[248px] md:h-[76px] pr-1"
+          className="mt-2.5 md:mt-3 flex flex-col gap-3 overflow-y-auto w-full md:max-w-[248px] h-[76px] pr-1"
           style={{ scrollbarWidth: "thin", scrollbarColor: "#D0D0D0 transparent" }}
         >
           {progressSteps.length === 0 ? (

@@ -10,7 +10,7 @@ import {
 } from "@/types/debtRelief";
 import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
 import { PillSelect, PillMultiSelect } from "./PillSelect";
-import FormToggle from "./FormToggle";
+import { FormToggleRow } from "./FormToggle";
 
 type Props = {
   form: DiagnosisFormState;
@@ -45,7 +45,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
     <div>
       <FormSectionTitle>고객 채무 현황</FormSectionTitle>
 
-      <div className="mt-3 flex flex-col gap-5">
+      <div className="mt-0 md:mt-3 flex flex-col gap-5">
         <FormField label="채무종류" hint="(중복선택 가능)">
           <PillMultiSelect
             options={DEBT_TYPE_OPTIONS}
@@ -55,7 +55,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
         </FormField>
 
         {amountFields.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
             {amountFields.map((field) => (
               <FormField key={field.key} label={field.label}>
                 <ManwonInput
@@ -70,11 +70,11 @@ export default function Step3Debts({ form, update, derived }: Props) {
         {/* Figma: 금액 영역과 합계 사이 콘텐츠 폭 Divider */}
         <div role="separator" className="h-px bg-neutral-30" />
 
-        {/* Figma: 총 채무 합계 — h-56, radius 12, 숫자 Montserrat 20 */}
-        <div className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-7 h-[56px]">
+        {/* Figma: 총 채무 합계 — 모바일 h-48 px-16 / 데스크톱 h-56 px-28, radius 12, 숫자 Montserrat */}
+        <div className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 md:px-7 h-12 md:h-[56px]">
           <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-60">총 채무 합계</span>
           <span className="flex items-end gap-1">
-            <span className="font-montserrat font-bold text-[20px] leading-5 tracking-[-0.03em] text-neutral-90">
+            <span className="font-montserrat font-bold text-[18px] md:text-[20px] leading-5 tracking-[-0.03em] text-neutral-90">
               {derived.totalDebtManwon.toLocaleString("ko-KR")}
             </span>
             <span className="text-[13px] font-semibold leading-4 text-neutral-60">만원</span>
@@ -99,16 +99,11 @@ export default function Step3Debts({ form, update, derived }: Props) {
             />
           </FormField>
 
-          <div className="border border-neutral-30 rounded-[5px] px-6 h-12 flex items-center justify-between gap-4">
-            <span className="flex-1 min-w-0 text-[14px] font-medium text-foreground leading-[17px]">
-              세금/4대보험 체납이력 있음
-            </span>
-            <FormToggle
-              checked={form.hasTaxArrears}
-              onChange={(checked) => update("hasTaxArrears", checked)}
-              ariaLabel="세금/4대보험 체납이력 있음"
-            />
-          </div>
+          <FormToggleRow
+            label="세금/4대보험 체납이력 있음"
+            checked={form.hasTaxArrears}
+            onChange={(checked) => update("hasTaxArrears", checked)}
+          />
 
           <FormField label="채무발생 원인" hint="(중복선택 가능)">
             <PillMultiSelect

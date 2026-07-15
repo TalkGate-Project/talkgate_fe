@@ -31,7 +31,12 @@ function renderNote(note: string) {
 
 function CalendarIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="shrink-0 size-5 md:size-6"
+    >
       <path
         d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z"
         stroke="#2563EB"
@@ -86,17 +91,18 @@ function RepaymentTimeline({
   const yearsLabel = formatYearsLabel(months);
 
   return (
-    // 피그마: 620×118, pad 20×16, 헤더→타임라인 12px
-    <div className="rounded-[12px] bg-neutral-10 px-5 py-4 flex flex-col gap-3 lg:min-h-[118px]">
+    // 모바일 피그마: 327×118, pad 16, 헤더→타임라인 16, 타임라인 287×50
+    // 데스크톱 피그마: 620×118, pad 20×16, 헤더→타임라인 12, 타임라인 max 446×50
+    <div className="rounded-[12px] bg-neutral-10 px-4 py-4 md:px-5 flex flex-col gap-4 md:gap-3 min-h-[118px]">
       <div className="flex items-center gap-2">
         <CalendarIcon />
-        <p className="text-[16px] font-bold leading-[19px] text-foreground">
+        <p className="text-[14px] font-bold leading-[17px] md:text-[16px] md:leading-[19px] text-foreground">
           앞으로 {yearsLabel}년간 {monthlyLabel}씩 변제 예정입니다.
         </p>
       </div>
 
-      {/* 피그마 Group 427320838: 446×50, 좌우 inset 87px(중앙) */}
-      <div className="relative mx-auto w-full max-w-[446px] h-[50px]">
+      <div className="relative mx-auto w-full md:max-w-[446px] h-[50px]">
+        {/* Vector 563: secondary-20 (#7EA5F8) */}
         <div
           className="absolute left-[23px] right-[23px] top-[26px] h-px bg-secondary-20"
           aria-hidden
@@ -113,7 +119,7 @@ function RepaymentTimeline({
           </span>
         </div>
 
-        <div className="absolute left-1/2 -translate-x-1/2 top-px">
+        <div className="absolute left-1/2 -translate-x-1/2 -top-[5px] md:top-0">
           <span className="text-[13px] font-semibold leading-4 text-secondary-60 whitespace-nowrap">
             {months}개월 · {monthlyLabel}
           </span>

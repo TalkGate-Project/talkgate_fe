@@ -30,7 +30,7 @@ export function SuccessProbabilityText({ value }: { value: number }) {
   const score = Math.min(100, Math.max(0, Math.round(value)));
   return (
     <span className="inline-flex items-baseline whitespace-nowrap">
-      <span className="text-[16px] font-semibold leading-none text-neutral-90">{score}</span>
+      <span className="text-[16px] font-semibold leading-[19px] text-neutral-90">{score}</span>
       <span className="text-[10px] font-medium leading-[12px] tracking-[-0.02em] text-neutral-60">
         /100
       </span>

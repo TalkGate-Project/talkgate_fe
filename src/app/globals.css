@@ -179,7 +179,7 @@
   --breakpoint-desktop-full: 1920px; /* 1920 */
 
   /* Map to Tailwind aliases (sm/md/lg/xl). Use concrete values (media queries don't support var()). */
-  --breakpoint-sm: 390px;
+  --breakpoint-sm: 375px;
   --breakpoint-md: 780px;
   --breakpoint-lg: 1080px;
   --breakpoint-xl: 1920px;
@@ -947,33 +947,36 @@ svg path:focus {
   pointer-events: none;
 }
 
-.analyze-button:not(:disabled):hover::before {
-  opacity: 1;
-  animation: analyze-border-rotate 1.6s linear infinite;
-}
+/* hover 루프 애니메이션은 마우스/트랙패드에서만 — 터치 sticky hover 방지 */
+@media (hover: hover) and (pointer: fine) {
+  .analyze-button:not(:disabled):hover::before {
+    opacity: 1;
+    animation: analyze-border-rotate 1.6s linear infinite;
+  }
 
-.analyze-button:not(:disabled):hover .analyze-sparkle-start {
-  animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
-}
+  .analyze-button:not(:disabled):hover .analyze-sparkle-start {
+    animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
+  }
 
-.analyze-button:not(:disabled):hover .analyze-sparkle-end {
-  animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
+    animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .analyze-button:not(:disabled):hover::before {
+      animation: none;
+    }
+
+    .analyze-button:not(:disabled):hover .analyze-sparkle-start,
+    .analyze-button:not(:disabled):hover .analyze-sparkle-end {
+      animation: none;
+    }
+  }
 }
 
 .analyze-button:focus-visible {
   outline: 2px solid #3f93ff;
   outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .analyze-button:not(:disabled):hover::before {
-    animation: none;
-  }
-
-  .analyze-button:not(:disabled):hover .analyze-sparkle-start,
-  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
-    animation: none;
-  }
 }
 
 /* AI Markdown response styles */

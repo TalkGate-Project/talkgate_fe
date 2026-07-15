@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DiagnosisDetail } from "@/types/debtRelief";
+import { formatContactForDisplay } from "@/utils/format";
 import {
   DebtReliefSmsModal,
   buildRequiredDocsTemplate,
@@ -95,7 +96,9 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
         </button>
       ))}
       <span className="text-[14px] text-neutral-60">
-        {canSendSms ? `${detail.customerName} ${detail.phone}` : "연락처 정보가 없어 문자 발송이 불가능합니다"}
+        {canSendSms
+          ? `${detail.customerName} ${formatContactForDisplay(detail.phone)}`
+          : "연락처 정보가 없어 문자 발송이 불가능합니다"}
       </span>
 
       {smsTemplate && (

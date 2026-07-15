@@ -3,12 +3,19 @@ type Props = {
   onChange: (value: string) => void;
   onSearch: () => void;
   onClear: () => void;
+  className?: string;
 };
 
 // 실시간 검색이 아니라 Enter 또는 돋보기 버튼 클릭으로만 검색을 실행한다.
-export default function DiagnosisSearchInput({ value, onChange, onSearch, onClear }: Props) {
+export default function DiagnosisSearchInput({
+  value,
+  onChange,
+  onSearch,
+  onClear,
+  className,
+}: Props) {
   return (
-    <div className="relative w-full max-w-[188px]">
+    <div className={`relative w-full ${className ?? "max-w-[188px]"}`}>
       <input
         type="text"
         value={value}

@@ -215,7 +215,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         analyzeDisabled={!canAnalyze}
       />
 
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[88px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
+      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
         <FormSidebar
           form={form}
           derived={derived}
@@ -227,26 +227,24 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           analyzeDisabled={!canAnalyze}
         />
 
-        <section className="flex-1 w-full surface md:rounded-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-[560px] md:min-h-[780px]">
-          {/* Figma 모바일: X는 sticky 바가 아니라 폼 카드 우측 상단 */}
-          <div className="md:hidden flex justify-end px-4 pt-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              aria-label="닫기"
-              className="cursor-pointer w-9 h-9 grid place-items-center text-neutral-50 hover:text-neutral-70"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path
-                  d="M6 18L18 6M6 6L18 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+        <section className="relative flex-1 w-full surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
+          {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전) */}
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="닫기"
+            className="md:hidden absolute top-[8px] right-6 z-10 cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <path
+                d="M6 18L18 6M6 6L18 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
 
           {/* 헤더 — 모바일에서는 MobileFormSummaryDrawer가 대신하므로 숨김 */}
           {/* Figma: title 24/700, desc 18/500, gap 16, 패딩 28, 구분선은 카드 풀폭 */}
@@ -278,18 +276,18 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           </div>
           <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
 
-          {/* 본문 — 모바일은 위 X 행이 있으므로 상단 패딩을 줄임. Figma content inset 28px */}
-          <div className="flex-1 px-6 md:px-7 pt-2 md:pt-8 pb-7">{renderStep()}</div>
+          {/* 본문 — Figma 모바일: 좌우 16, 상단에서 바로 필드 시작 */}
+          <div className="flex-1 px-6 md:px-7 pt-4 md:pt-8 pb-7">{renderStep()}</div>
 
           {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함 */}
-          {/* Figma: 풀폭 Divider → 다음 버튼 72×34 radius 5 */}
+          {/* Figma: 풀폭 Divider → 이전/다음 버튼 72×34 radius 5 */}
           <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
           <div className="hidden md:flex items-center justify-end gap-2 px-7 pt-[13px] pb-3">
             {!isFirst && (
               <button
                 type="button"
                 onClick={goBack}
-                className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10"
+                className="cursor-pointer inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
               >
                 이전
               </button>
@@ -299,7 +297,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
                 type="button"
                 onClick={goNext}
                 disabled={!canGoNext}
-                className="cursor-pointer disabled:cursor-not-allowed h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] hover:opacity-90 disabled:opacity-40"
+                className="cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 disabled:opacity-40"
               >
                 다음
               </button>

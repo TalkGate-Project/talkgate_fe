@@ -1,6 +1,6 @@
 import type { DiagnosisFormState } from "@/types/debtRelief";
 import { FormSectionTitle } from "./FormControls";
-import FormToggle from "./FormToggle";
+import { FormToggleRow } from "./FormToggle";
 
 type Props = {
   form: DiagnosisFormState;
@@ -22,7 +22,7 @@ export default function Step5Others({ form, update }: Props) {
     <div>
       <FormSectionTitle>소송 및 회생·파산 이력</FormSectionTitle>
 
-      <div className="mt-6 flex flex-col gap-6">
+      <div className="mt-0 md:mt-6 flex flex-col gap-6">
         <ToggleDetailRow
           label="이전 개인회생 / 파산 신청 이력 있음"
           checked={form.hasPreviousApplication}
@@ -81,11 +81,7 @@ function ToggleDetailRow({
 }) {
   return (
     <div className="flex flex-col gap-3 w-full">
-      {/* Figma: row h-34, label↔toggle gap 20 */}
-      <div className="flex items-center gap-5 min-h-[34px]">
-        <span className="text-[14px] font-medium leading-[17px] text-foreground">{label}</span>
-        <FormToggle checked={checked} onChange={onChange} ariaLabel={label} />
-      </div>
+      <FormToggleRow label={label} checked={checked} onChange={onChange} />
       {checked ? (
         <input
           type="text"

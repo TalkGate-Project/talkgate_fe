@@ -11,6 +11,7 @@ import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { formatPhoneNumber } from "@/utils/format";
 
 export type DebtReliefSmsModalProps = {
   open: boolean;
@@ -199,7 +200,7 @@ export default function DebtReliefSmsModal({
                   const key = `${num.source}-${num.id}`;
                   return (
                     <option key={key} value={key}>
-                      {num.phoneNumber} ({num.source === "project" ? "공통" : "개인"})
+                      {formatPhoneNumber(num.phoneNumber)} ({num.source === "project" ? "공통" : "개인"})
                     </option>
                   );
                 })}
@@ -228,7 +229,7 @@ export default function DebtReliefSmsModal({
         <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">수신자</label>
         <span className="inline-flex items-center gap-1 h-[28px] px-3 max-w-full bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70">
           <span className="truncate max-w-[130px]">{recipientName}</span>
-          <span className="shrink-0">{recipientPhone}</span>
+          <span className="shrink-0">{formatPhoneNumber(recipientPhone)}</span>
         </span>
       </div>
 
@@ -426,7 +427,17 @@ export default function DebtReliefSmsModal({
               </svg>
             </button>
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90 dark:text-neutral-90 truncate">
-              {isMobilePreviewOpen ? "미리보기" : `문자전송 | ${subtitle}`}
+              {isMobilePreviewOpen ? (
+                "미리보기"
+              ) : (
+                <span className="inline-flex items-center gap-4 min-w-0">
+                  <span className="shrink-0">문자전송</span>
+                  <span className="text-[16px] leading-[20px] font-medium text-neutral-60 shrink-0">|</span>
+                  <span className="text-[16px] leading-[20px] font-medium text-neutral-60 truncate">
+                    {subtitle}
+                  </span>
+                </span>
+              )}
             </h2>
           </div>
           {isMobilePreviewOpen ? (
@@ -447,8 +458,10 @@ export default function DebtReliefSmsModal({
 
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between px-7 pt-6 pb-4">
-          <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90 dark:text-neutral-90">
-            문자전송 <span className="text-neutral-40 dark:text-neutral-50 font-normal mx-1">|</span> {subtitle}
+          <h2 className="flex items-center gap-4 text-[18px] font-semibold leading-[21px] text-neutral-90 dark:text-neutral-90">
+            <span>문자전송</span>
+            <span className="text-[16px] leading-[20px] font-medium text-neutral-60">|</span>
+            <span className="text-[16px] leading-[20px] font-medium text-neutral-60">{subtitle}</span>
           </h2>
           <button aria-label="close" onClick={onClose} className="cursor-pointer w-6 h-6 grid place-items-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

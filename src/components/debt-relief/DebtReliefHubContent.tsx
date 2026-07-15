@@ -191,35 +191,41 @@ export default function DebtReliefHubContent() {
 
       {/* 하단 카드: 탭 + 검색 + 테이블 + 페이지네이션 */}
       <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
-          {/* 모바일은 검색창이 위, 필터 탭이 아래 — 데스크톱은 반대(탭 왼쪽, 검색 오른쪽)라 DOM 순서 대신 order로 토글 */}
-          <div className="order-2 md:order-1">
-            <DiagnosisFilterTabs
-              summary={summary}
-              active={procedure}
-              onChange={selectProcedure}
-              totalCount={totalCount}
-              selectedCount={selectedIds.size}
-            />
-
+        <div className="flex flex-col gap-3 mb-5">
+          {/* 모바일 피그마: 필터 탭 → 검색+액션 → 총 건수. 데스크톱: 탭 왼쪽 / 검색·액션 오른쪽 */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <DiagnosisFilterTabs
+                summary={summary}
+                active={procedure}
+                onChange={selectProcedure}
+                totalCount={totalCount}
+                selectedCount={selectedIds.size}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <DiagnosisSearchInput
+                value={keyword}
+                onChange={setKeyword}
+                onSearch={submitSearch}
+                onClear={clearSearch}
+                className="flex-1 max-w-none md:flex-none md:max-w-[188px]"
+              />
+              <DiagnosisListActions
+                hasSelection={hasSelection}
+                selectedCount={selectedIds.size}
+                limit={limit}
+                onDelete={handleDeleteSelected}
+                onShare={handleShareSelected}
+                showShareAction={projectTypeReady && isAnalysis}
+                onLimitChange={setLimit}
+              />
+            </div>
           </div>
-          <div className="order-1 md:order-2 flex items-center justify-end gap-3">
-            <DiagnosisListActions
-              hasSelection={hasSelection}
-              selectedCount={selectedIds.size}
-              limit={limit}
-              onDelete={handleDeleteSelected}
-              onShare={handleShareSelected}
-              showShareAction={projectTypeReady && isAnalysis}
-              onLimitChange={setLimit}
-            />
-            <DiagnosisSearchInput
-              value={keyword}
-              onChange={setKeyword}
-              onSearch={submitSearch}
-              onClear={clearSearch}
-            />
-          </div>
+          <p className="md:hidden text-[14px] font-medium leading-5 text-neutral-50">
+            총 {totalCount}건
+            {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
+          </p>
         </div>
 
         {/* 데스크톱: 표 (가로 스크롤). 모바일: 카드 리스트 — Figma 모바일 목업 기준 별도 컴포넌트 */}

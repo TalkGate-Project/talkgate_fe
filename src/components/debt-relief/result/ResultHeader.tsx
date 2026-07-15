@@ -327,8 +327,8 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
 
   return (
     <>
-      {/* 모바일: 뒤로+제목/메타 | 수정·고객연결·공유(영업점) 또는 담당직원(변호사) */}
-      <div className="flex md:hidden items-start justify-between gap-3">
+      {/* 모바일: 뒤로+제목/메타+⋯ | 수정·고객연결·공유(영업점) 또는 담당직원(변호사) — 영역 높이 60px */}
+      <div className="flex md:hidden items-center justify-between gap-3 h-[60px]">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
@@ -347,20 +347,18 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             </svg>
           </button>
           <div className="min-w-0">
-            <h1 className="text-[18px] font-bold leading-5 text-neutral-90 truncate">
+            <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
               {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
             </h1>
-            <div className="mt-1 flex items-center gap-2 min-w-0">
-              <p className="text-[13px] font-medium leading-4 text-neutral-60 truncate min-w-0">
-                {customerSummaryLabel}
-              </p>
-              {customerInfoButton}
-            </div>
+            <p className="mt-1 text-[16px] font-medium leading-[19px] tracking-[0.2px] text-neutral-60 truncate">
+              {customerSummaryLabel}
+            </p>
           </div>
+          {customerInfoButton}
         </div>
 
         {showOwnerActions ? (
-          <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={handleEdit}
@@ -402,13 +400,13 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               type="button"
               onClick={() => setShareOpen(true)}
               aria-label="공유하기"
-              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-primary-60 text-primary-60 hover:bg-primary-10"
+              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90"
             >
               <ShareNodesIcon />
             </button>
           </div>
         ) : showAssigneeProfile ? (
-          <div className="shrink-0 pt-0.5">{assigneeProfile}</div>
+          <div className="shrink-0">{assigneeProfile}</div>
         ) : null}
       </div>
 
