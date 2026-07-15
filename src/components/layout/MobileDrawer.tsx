@@ -203,19 +203,20 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
     }
   }, [currentSettingsTab, pathname]);
 
+  // 순서: 고객목록 → 회생·파산(조건부) → 통계 → 근태(조건부) → 공지사항 → 설정
   const MENU_ITEMS = [
     { label: "대시보드", href: "/dashboard", icon: <DashboardIcon /> },
     { label: "상담", href: "/consult", icon: <ConsultIcon /> },
     { label: "고객목록", href: "/customers", icon: <CustomerListIcon /> },
-    { label: "통계", href: "/stats", icon: <StatsIcon /> },
-    // 프로젝트가 근태 메뉴를 사용하는 경우에만 표시
-    // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
-    ...(attendanceReady && showAttendanceMenu 
-      ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }] 
-      : []),
     // 회생·파산: analysis(영업) / lawyer(변호사) 프로젝트에서만 표시
     ...(debtReliefReady && showDebtReliefMenu
       ? [{ label: "회생·파산", href: "/debt-relief", icon: <DebtReliefIcon /> }]
+      : []),
+    { label: "통계", href: "/stats", icon: <StatsIcon /> },
+    // 프로젝트가 근태 메뉴를 사용하는 경우에만 표시
+    // 백엔드에서 권한 기반 필터링을 처리하므로 프론트엔드에서는 권한 체크 불필요
+    ...(attendanceReady && showAttendanceMenu
+      ? [{ label: "근태", href: "/attendance", icon: <AttendanceIcon /> }]
       : []),
     { label: "공지사항", href: "/notices", icon: <NoticeIcon /> },
     { label: "설정", href: "/settings", icon: <SettingsIcon /> },
