@@ -11,13 +11,6 @@ import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
-import { PillSelect } from "@/components/debt-relief/form/PillSelect";
-import type { PillOption } from "@/types/debtRelief";
-
-const GENDER_OPTIONS: PillOption<"male" | "female">[] = [
-  { value: "male", label: "남" },
-  { value: "female", label: "여" },
-];
 
 type Props = {
   open: boolean;
@@ -468,16 +461,36 @@ export default function CustomerCreateModal({
 
                 {/* 성별 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] dark:text-neutral-60 mb-2 tracking-[0.2px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     성별
                   </label>
-                  <PillSelect
-                    options={GENDER_OPTIONS}
-                    value={gender || null}
-                    onChange={(value) =>
-                      setGender((prev) => (prev === value ? "" : value))
-                    }
-                  />
+                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
+                    <select
+                      value={gender}
+                      onChange={(e) =>
+                        setGender(e.target.value as "male" | "female" | "")
+                      }
+                      className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-neutral-60 appearance-none pr-6"
+                    >
+                      <option value="">선택</option>
+                      <option value="male">남</option>
+                      <option value="female">여</option>
+                    </select>
+                    <svg
+                      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      width="10"
+                      height="8"
+                      viewBox="0 0 10 8"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
+                        fill="currentColor"
+                        className="fill-ink"
+                      />
+                    </svg>
+                  </div>
                 </div>
 
                 {/* 연령 */}
