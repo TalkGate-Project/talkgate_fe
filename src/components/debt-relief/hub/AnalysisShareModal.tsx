@@ -11,7 +11,9 @@ import RadioButton from "@/components/customers/sms/RadioButton";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { formatPhoneInput } from "@/utils/format";
+import AnalysisShareConfirmModal from "./AnalysisShareConfirmModal";
 import AnalysisShareContactStep from "./AnalysisShareContactStep";
+import type { CustomerGender } from "@/types/debtRelief";
 
 type ShareStep = "partners" | "contact";
 
@@ -23,6 +25,15 @@ type ContactDraft = {
 type ContactMeta = {
   customerName: string;
   initialContact: string;
+  gender?: CustomerGender;
+  age?: number;
+  ageGroupLabel?: string;
+  occupation?: string;
+};
+
+type PendingContactConfirm = {
+  contact: string;
+  referenceNote?: string;
 };
 
 type Props = {
@@ -75,9 +86,14 @@ async function loadContactMetaForId(
       }
     }
 
+    const inputData = analysis.inputData;
+
     return {
       customerName: name,
       initialContact: phone ? formatPhoneInput(phone) : "",
+      gender: inputData?.gender,
+      ageGroupLabel: inputData?.ageGroup,
+      occupation: inputData?.employmentType,
     };
   } catch (error) {
     console.error("Failed to load analysis detail for share contact step:", error);
@@ -106,6 +122,7 @@ export default function AnalysisShareModal({
   const [drafts, setDrafts] = useState<Record<string, ContactDraft>>({});
   const [metaById, setMetaById] = useState<Record<string, ContactMeta>>({});
   const [prefillLoading, setPrefillLoading] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingContactConfirm | null>(null);
 
   const loadSessionRef = useRef(0);
   const hasPrefillProps = customerNameProp != null || initialContactProp != null;
@@ -115,6 +132,7 @@ export default function AnalysisShareModal({
   const isLastContact = contactIndex >= analysisIds.length - 1;
   const currentMeta = metaById[currentAnalysisId];
   const currentDraft = drafts[currentAnalysisId];
+  const selectedPartner = partners.find((partner) => partner.id === selectedPartnerId);
 
   const fetchPartners = useCallback(() => {
     if (!open || !projectId) return;
@@ -156,6 +174,7 @@ export default function AnalysisShareModal({
       setDrafts({});
       setMetaById({});
       setPrefillLoading(false);
+      setPendingConfirm(null);
     }
   }, [open]);
 
@@ -169,23 +188,23 @@ export default function AnalysisShareModal({
       try {
         const nextMeta: Record<string, ContactMeta> = {};
 
-        // 상세 단건 prop이 있으면 첫 ID에 우선 적용
-        if (hasPrefillProps && ids[0]) {
-          nextMeta[ids[0]] = {
-            customerName: customerNameProp ?? "",
-            initialContact: initialContactProp
-              ? formatPhoneInput(initialContactProp)
-              : "",
-          };
-        }
-
-        const idsToFetch = ids.filter((id) => !nextMeta[id]);
-        const results = await Promise.all(
-          idsToFetch.map(async (id) => {
-            const meta = await loadContactMetaForId(id, projectId);
-            return [id, meta] as const;
-          })
-        );
+        const idsToFetch = ids.map(async (id) => {
+          const fetched = await loadContactMetaForId(id, projectId);
+          if (hasPrefillProps && id === ids[0]) {
+            return [
+              id,
+              {
+                ...fetched,
+                customerName: customerNameProp ?? fetched.customerName,
+                initialContact: initialContactProp
+                  ? formatPhoneInput(initialContactProp)
+                  : fetched.initialContact,
+              },
+            ] as const;
+          }
+          return [id, fetched] as const;
+        });
+        const results = await Promise.all(idsToFetch);
 
         if (session !== loadSessionRef.current) return;
 
@@ -275,32 +294,28 @@ export default function AnalysisShareModal({
 
   const handleContactSubmit = (payload: { contact: string; referenceNote?: string }) => {
     if (!currentAnalysisId) return;
+    setPendingConfirm(payload);
+  };
 
-    const customerName = currentMeta?.customerName || "고객";
-    const formattedContact = formatPhoneInput(payload.contact);
-    const messageLines = [
-      `연락처: ${formattedContact}`,
-      ...(payload.referenceNote ? [`참고사항: ${payload.referenceNote}`] : []),
-    ];
+  const handleConfirmDismiss = () => {
+    if (submitting) return;
+    setPendingConfirm(null);
+  };
 
-    showConfirmModal({
-      title: "고객 정보 확인",
-      headline: `${customerName}님의 입력 정보가 맞나요?`,
-      message: messageLines.join("\n"),
-      type: "info",
-      confirmText: isLastContact ? "공유하기" : "다음으로",
-      cancelText: "다시 입력",
-      onConfirm: () => {
-        const nextDrafts = saveDraftForCurrent(payload, { force: true });
+  const handleConfirmProceed = () => {
+    if (!pendingConfirm) return;
 
-        if (!isLastContact) {
-          setContactIndex((prev) => prev + 1);
-          return;
-        }
+    const payload = pendingConfirm;
+    setPendingConfirm(null);
 
-        void submitDeliver(nextDrafts);
-      },
-    });
+    const nextDrafts = saveDraftForCurrent(payload, { force: true });
+
+    if (!isLastContact) {
+      setContactIndex((prev) => prev + 1);
+      return;
+    }
+
+    void submitDeliver(nextDrafts);
   };
 
   const submitDeliver = async (finalDrafts: Record<string, ContactDraft>) => {
@@ -536,6 +551,22 @@ export default function AnalysisShareModal({
           </div>
         </div>
       )}
+
+      <AnalysisShareConfirmModal
+        open={pendingConfirm != null}
+        customerName={currentMeta?.customerName ?? ""}
+        age={currentMeta?.age}
+        ageGroupLabel={currentMeta?.ageGroupLabel}
+        gender={currentMeta?.gender}
+        occupation={currentMeta?.occupation}
+        partnerName={selectedPartner?.partnerProjectName ?? ""}
+        contact={pendingConfirm?.contact ?? ""}
+        referenceNote={pendingConfirm?.referenceNote}
+        confirmLabel={isLastContact ? "공유하기" : "다음으로"}
+        submitting={submitting}
+        onClose={handleConfirmDismiss}
+        onConfirm={handleConfirmProceed}
+      />
     </>
   );
 }

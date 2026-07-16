@@ -64,7 +64,10 @@
       "Skill(run)",
       "Bash(where chromium *)",
       "Bash(where chrome *)",
-      "Read(//c/Program Files/Google/Chrome/Application/**)"
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Read(//c/Users/tbrk7/OneDrive/문서/GitHub/talkgate_fe/**)",
+      "Bash(python3 *)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")"
     ]
   }
 }

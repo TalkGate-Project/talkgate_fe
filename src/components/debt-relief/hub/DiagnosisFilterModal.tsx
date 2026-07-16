@@ -6,6 +6,7 @@ import {
   DIAGNOSIS_STATUS_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
+  type DiagnosisHubSummary,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
 
@@ -22,16 +23,20 @@ const STATUS_ORDER: AnalysisStatus[] = [
 type Props = {
   procedure: RecommendedProcedure | undefined;
   status: AnalysisStatus | undefined;
+  /** 절차별 건수 표시용. 상태(status)는 요약 API에 분포 데이터가 없어 카운트를 표시하지 않는다. */
+  summary: DiagnosisHubSummary | null;
   onApply: (next: { procedure: RecommendedProcedure | undefined; status: AnalysisStatus | undefined }) => void;
   onClose: () => void;
 };
 
 function FilterPill({
   label,
+  count,
   selected,
   onClick,
 }: {
   label: string;
+  count?: number;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -40,13 +45,14 @@ function FilterPill({
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`cursor-pointer inline-flex items-center justify-center h-[34px] px-4 rounded-full text-[14px] font-medium transition-colors ${
+      className={`cursor-pointer inline-flex items-center justify-center h-[34px] px-4 rounded-full text-[14px] font-medium transition-colors whitespace-nowrap ${
         selected
-          ? "border-2 border-primary-40 bg-primary-10/40 text-foreground"
+          ? "border-2 border-neutral-90 bg-neutral-90 text-neutral-10"
           : "border border-neutral-30 bg-card text-foreground/80 hover:bg-neutral-10"
       }`}
     >
       {label}
+      {typeof count === "number" && <span className="ml-1 opacity-70">{count}</span>}
     </button>
   );
 }
@@ -67,7 +73,7 @@ function CloseIcon() {
 
 // "필터추가" 팝오버 패널 — 절차/상태 각각 카테고리당 단일선택. draft 상태로만 들고 있다가
 // "적용완료"를 눌러야 실제 목록 쿼리(useDebtReliefList)에 반영된다.
-export default function DiagnosisFilterModal({ procedure, status, onApply, onClose }: Props) {
+export default function DiagnosisFilterModal({ procedure, status, summary, onApply, onClose }: Props) {
   const [draftProcedure, setDraftProcedure] = useState(procedure);
   const [draftStatus, setDraftStatus] = useState(status);
 
@@ -119,6 +125,7 @@ export default function DiagnosisFilterModal({ procedure, status, onApply, onClo
             <FilterPill
               key={key}
               label={RECOMMENDED_PROCEDURE_LABEL[key]}
+              count={summary?.procedureDistribution[key]}
               selected={draftProcedure === key}
               onClick={() => toggleProcedure(key)}
             />

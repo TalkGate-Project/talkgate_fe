@@ -180,11 +180,13 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
         <ul>
           {selectedConditionAnalysis.map((item: ConditionItem, index) => {
             const isLast = index === selectedConditionAnalysis.length - 1;
+            const showBottomBorder =
+              !isLast || selectedConditionAnalysis.length < 5;
             return (
               <li
                 key={index}
                 className={`flex items-center gap-2 px-4 md:px-5 py-[13px] ${
-                  isLast ? "" : "border-b border-neutral-30"
+                  showBottomBorder ? "border-b border-neutral-30" : ""
                 }`}
               >
                 <ConditionIcon status={item.status} />

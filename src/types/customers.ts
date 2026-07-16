@@ -1,5 +1,6 @@
 import type { ApiSuccess } from "@/types/common";
-import type { AnalysisProcedureStep, AnalysisProcedureType } from "@/types/analysis";
+import type { AnalysisProcedureStep, AnalysisProcedureType, AnalysisStatus } from "@/types/analysis";
+import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
 // Customers domain types
 
@@ -225,6 +226,10 @@ export type CustomerLinkedAnalysis = {
   currentProcedureStep: number | null;
   /** 현재 진행 절차의 전체 단계 정보 */
   procedureSteps: AnalysisProcedureStep[];
+  /** 진단 건의 전체 진행 상태. 허브 목록(DiagnosisListItem)과 동일한 필드 — 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  status?: AnalysisStatus;
+  /** 수임료 결제 요약. 결제 계획 미설정이면 null, 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  feePlanSummary?: FeePlanSummary | null;
 };
 
 export type CustomerDetail = {

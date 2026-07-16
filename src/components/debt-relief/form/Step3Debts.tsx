@@ -107,11 +107,13 @@ export default function Step3Debts({ form, update, derived }: Props) {
             />
           </FormField>
 
-          <FormToggleRow
-            label="세금/4대보험 체납이력 있음"
-            checked={form.hasTaxArrears}
-            onChange={(checked) => update("hasTaxArrears", checked)}
-          />
+          <FormField label="체납이력">
+            <FormToggleRow
+              label="세금/4대보험 체납이력 있음"
+              checked={form.hasTaxArrears}
+              onChange={(checked) => update("hasTaxArrears", checked)}
+            />
+          </FormField>
 
           <FormField
             label="채무발생 원인"

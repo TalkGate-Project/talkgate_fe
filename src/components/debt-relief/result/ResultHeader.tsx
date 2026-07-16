@@ -135,6 +135,16 @@ function LinkedCustomerIcon({ className }: { className?: string }) {
 const ACTION_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black dark:text-foreground hover:bg-neutral-10 whitespace-nowrap";
 
+// 공유된 건(isShared)일 때만 파란색 — 리스트 페이지의 AnalysisShareIcon tone="active"와 동일한 톤
+const ACTION_BTN_SHARED =
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-secondary-60 bg-secondary-10 text-secondary-60 hover:opacity-90 transition-opacity whitespace-nowrap";
+
+const ICON_BTN =
+  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10";
+
+const ICON_BTN_SHARED =
+  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90";
+
 const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 border border-secondary-60 text-secondary-40 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
@@ -441,7 +451,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               type="button"
               onClick={() => setShareOpen(true)}
               aria-label="공유하기"
-              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90"
+              className={detail.isShared ? ICON_BTN_SHARED : ICON_BTN}
             >
               <ShareNodesIcon />
             </button>
@@ -521,7 +531,11 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               <PaymentCardIcon />
               결제정보
             </button>
-            <button type="button" className={ACTION_BTN} onClick={() => setShareOpen(true)}>
+            <button
+              type="button"
+              className={detail.isShared ? ACTION_BTN_SHARED : ACTION_BTN}
+              onClick={() => setShareOpen(true)}
+            >
               <ShareNodesIcon />
               공유하기
             </button>

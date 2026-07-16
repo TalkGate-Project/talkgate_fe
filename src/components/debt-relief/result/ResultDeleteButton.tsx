@@ -41,16 +41,14 @@ type Props = {
 
 /**
  * 진단 상세 하단 우측 삭제 버튼.
- * - 변호사: 공유받은 건이면 숨김
- * - 영업점: 공유 중이면 노출하되, 클릭 시 공유 철회 안내(삭제 API는 호출하지 않음)
+ * - 공유(납품) 중인 진단(isShared=true)이면 숨김, 아니면 노출.
  */
 export default function ResultDeleteButton({ diagnosisId, projectId, isShared }: Props) {
   const router = useRouter();
-  const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
+  const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const [checking, setChecking] = useState(false);
 
-  const showButton =
-    projectTypeReady && Boolean(projectId) && (isAnalysis || (isLawyer && !isShared));
+  const showButton = projectTypeReady && Boolean(projectId) && !isShared;
 
   if (!showButton || !projectId) return null;
 
