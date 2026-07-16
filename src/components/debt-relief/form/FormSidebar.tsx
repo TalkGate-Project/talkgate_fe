@@ -78,7 +78,12 @@ export default function FormSidebar({
 
       {/* Figma: 재무요약 → 메뉴 28px, 메뉴 gap 4px / item 48px */}
       <div className="mt-7">
-        <FormStepChecklist steps={steps} currentIndex={currentIndex} onSelectStep={onSelectStep} />
+        <FormStepChecklist
+          steps={steps}
+          currentIndex={currentIndex}
+          onSelectStep={onSelectStep}
+          form={form}
+        />
       </div>
 
       {/* Figma: 메뉴 → Divider 16px */}
@@ -90,7 +95,7 @@ export default function FormSidebar({
         onClick={onAnalyze}
         disabled={disabled}
         aria-label={analyzing ? "분석 중" : "분석하기"}
-        className="analyze-button mt-7 w-full h-11 inline-flex items-center justify-center gap-2.5 px-3 py-1.5 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold text-black cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+        className="analyze-button mt-7 w-full h-11 inline-flex items-center justify-center gap-2.5 px-3 py-1.5 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
       >
         <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
           <AnalyzeSparkleIcon />

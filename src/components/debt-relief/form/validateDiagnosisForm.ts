@@ -1,15 +1,17 @@
 import type { DiagnosisFormState } from "@/types/debtRelief";
 import type { FormStepKey } from "./steps";
 
-// 실 API(POST /v1/analysis)가 필수로 요구하지만, 폼에서는 사용자가 아직 선택하지 않았을 때
-// null일 수 있는 항목만 검사한다. (customerName/ageGroup/region/employmentType/dependents/
-// spouseIncome/hasPreviousApplication/hasGuarantor/hasOngoingLitigation은 항상 기본값이
-// 채워져 있어 null이 될 수 없다. 부동산은 realEstateBreakdown이 항목별 금액 입력이라
-// "선택 안 함" 자체가 유효한 상태 — 여기서 검사하지 않는다.)
+// 실 API(POST /v1/analysis)가 필수로 요구하는 항목. 폼에서 null/빈 값일 수 있는 것만 검사한다.
+// 토글(boolean)과 부동산 "없음"(빈 배열)은 기본값 자체가 유효한 상태라 여기서 검사하지 않는다.
 export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
   if (!form.customerName.trim()) missing.push("고객명");
   if (!form.gender) missing.push("성별");
+  if (!form.ageGroup) missing.push("연령대");
+  if (!form.region) missing.push("거주 지역");
+  if (!form.employmentType) missing.push("고용 형태");
+  if (form.dependents === null) missing.push("부양가족");
+  if (form.spouseIncome === null) missing.push("배우자 소득");
   if (!form.monthlyIncome) missing.push("월 소득 구간");
   if (!form.housingType) missing.push("주거 형태");
   if (!form.overduePeriod) missing.push("연체기간");
@@ -28,6 +30,11 @@ export function getMissingRequiredFieldLabelsForStep(
       const missing: string[] = [];
       if (!form.customerName.trim()) missing.push("고객명");
       if (!form.gender) missing.push("성별");
+      if (!form.ageGroup) missing.push("연령대");
+      if (!form.region) missing.push("거주 지역");
+      if (!form.employmentType) missing.push("고용 형태");
+      if (form.dependents === null) missing.push("부양가족");
+      if (form.spouseIncome === null) missing.push("배우자 소득");
       return missing;
     }
     case "assets": {

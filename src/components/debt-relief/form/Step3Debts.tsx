@@ -46,7 +46,11 @@ export default function Step3Debts({ form, update, derived }: Props) {
       <FormSectionTitle>고객 채무 현황</FormSectionTitle>
 
       <div className="mt-0 md:mt-3 flex flex-col gap-5">
-        <FormField label="채무종류" hint="(중복선택 가능)">
+        <FormField
+          label="채무종류"
+          hint="(중복선택 가능)"
+          filled={form.debtTypes.length > 0}
+        >
           <PillMultiSelect
             options={DEBT_TYPE_OPTIONS}
             value={form.debtTypes}
@@ -57,7 +61,11 @@ export default function Step3Debts({ form, update, derived }: Props) {
         {amountFields.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
             {amountFields.map((field) => (
-              <FormField key={field.key} label={field.label}>
+              <FormField
+                key={field.key}
+                label={field.label}
+                filled={(form.debtAmounts[field.key] ?? 0) > 0}
+              >
                 <ManwonInput
                   value={form.debtAmounts[field.key] ?? 0}
                   onChange={(value) => setAmount(field.key, value)}
@@ -83,7 +91,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
 
         {/* Figma Frame: gap 20 — 채권자 수 → 연체기간 → 체납 토글 → 채무발생 원인 */}
         <div className="flex flex-col gap-5">
-          <FormField label="채권자 수">
+          <FormField label="채권자 수" filled={form.creditorCount !== null}>
             <PillSelect
               options={CREDITOR_COUNT_OPTIONS}
               value={form.creditorCount}
@@ -91,7 +99,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
             />
           </FormField>
 
-          <FormField label="연체기간">
+          <FormField label="연체기간" required filled={form.overduePeriod !== null}>
             <PillSelect
               options={OVERDUE_PERIOD_OPTIONS}
               value={form.overduePeriod}
@@ -105,7 +113,11 @@ export default function Step3Debts({ form, update, derived }: Props) {
             onChange={(checked) => update("hasTaxArrears", checked)}
           />
 
-          <FormField label="채무발생 원인" hint="(중복선택 가능)">
+          <FormField
+            label="채무발생 원인"
+            hint="(중복선택 가능)"
+            filled={form.debtCauses.length > 0}
+          >
             <PillMultiSelect
               options={DEBT_CAUSE_OPTIONS}
               value={form.debtCauses}

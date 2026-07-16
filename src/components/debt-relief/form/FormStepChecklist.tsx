@@ -1,4 +1,6 @@
+import type { DiagnosisFormState } from "@/types/debtRelief";
 import type { FormStepMeta } from "./steps";
+import { isDiagnosisStepComplete } from "./validateDiagnosisForm";
 
 // Icon/Solid/check-circle
 function CheckCircleIcon({ className }: { className?: string }) {
@@ -18,15 +20,19 @@ type Props = {
   steps: FormStepMeta[];
   currentIndex: number;
   onSelectStep: (index: number) => void;
+  form: DiagnosisFormState;
 };
 
 // FormSidebar(데스크톱)와 MobileFormSummaryDrawer(모바일)가 공유하는 단계 체크리스트
-export default function FormStepChecklist({ steps, currentIndex, onSelectStep }: Props) {
+// v 체크는 "현재 보고 있음"이 아니라, 해당 단계 필수값 입력 + validation 통과 시에만 표시
+export default function FormStepChecklist({ steps, currentIndex, onSelectStep, form }: Props) {
   return (
     <nav className="flex flex-col gap-1">
       {steps.map((step, index) => {
         const isActive = index === currentIndex;
-        const isDone = index < currentIndex;
+        // 기타사항은 필수값이 없어 완료 판정이 항상 true가 되므로, 체크리스트에서는 v를 표시하지 않는다.
+        const isComplete =
+          step.key !== "others" && isDiagnosisStepComplete(form, step.key);
 
         return (
           <button
@@ -39,10 +45,14 @@ export default function FormStepChecklist({ steps, currentIndex, onSelectStep }:
                 : "text-ink text-[14px] font-medium hover:bg-neutral-10"
             }`}
           >
-            {isActive || isDone ? (
+            {isComplete ? (
               <CheckCircleIcon className={`shrink-0 ${isActive ? "text-neutral-20" : "text-neutral-90"}`} />
             ) : (
-              <span className="w-5 h-5 rounded-full grid place-items-center shrink-0 bg-neutral-20 text-neutral-70 text-[12px] font-semibold">
+              <span
+                className={`w-5 h-5 rounded-full grid place-items-center shrink-0 text-[12px] font-semibold ${
+                  isActive ? "bg-neutral-20 text-neutral-90" : "bg-neutral-20 text-neutral-70"
+                }`}
+              >
                 {index + 1}
               </span>
             )}

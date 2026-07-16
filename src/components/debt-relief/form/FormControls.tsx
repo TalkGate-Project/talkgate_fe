@@ -14,18 +14,33 @@ export function FormField({
   hint,
   children,
   className = "",
+  required = false,
+  filled = false,
 }: {
   label: string;
   hint?: string;
   children: ReactNode;
   className?: string;
+  /** 필수 필드 — 라벨 오른쪽에 빨간 * */
+  required?: boolean;
+  /** valid 값이 입력된 필드 — 라벨 색상 #2563EB */
+  filled?: boolean;
 }) {
   return (
     <div className={className}>
       {/* Figma: label 14/500 lh-17 #808080, control까지 8px — lh 미지정 시 기본 ~21로 간격이 벌어 보임 */}
       <div className="flex items-center gap-2 mb-2">
-        <label className="text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+        <label
+          className={`text-[14px] font-medium leading-[17px] tracking-[0.2px] ${
+            filled ? "text-secondary-60" : "text-neutral-60"
+          }`}
+        >
           {label}
+          {required ? (
+            <span className="text-danger-40" aria-hidden>
+              *
+            </span>
+          ) : null}
         </label>
         {hint && (
           <span className="text-[12px] leading-[17px] text-neutral-50">{hint}</span>

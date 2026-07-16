@@ -69,7 +69,11 @@ export default function Step2Assets({ form, update }: Props) {
       <FormSectionTitle>고객 자산 현황</FormSectionTitle>
 
       <div className="mt-0 md:mt-3 flex flex-col gap-5">
-        <FormField label="부동산 보유 여부" hint="(중복선택 가능)">
+        <FormField
+          label="부동산 보유 여부"
+          hint="(중복선택 가능)"
+          filled={form.realEstateTypes.length > 0}
+        >
           <PillMultiSelect
             options={REAL_ESTATE_SELECT_OPTIONS}
             value={realEstateSelectValue}
@@ -80,7 +84,11 @@ export default function Step2Assets({ form, update }: Props) {
         {selectedRealEstateTypes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {selectedRealEstateTypes.map((option) => (
-              <FormField key={option.value} label={`${option.label} 시가 (만원)`}>
+              <FormField
+                key={option.value}
+                label={`${option.label} 시가 (만원)`}
+                filled={(form.realEstateAmounts[option.value] ?? 0) > 0}
+              >
                 <ManwonInput
                   value={form.realEstateAmounts[option.value] ?? 0}
                   onChange={(value) => setRealEstateAmount(option.value, value)}
@@ -90,7 +98,11 @@ export default function Step2Assets({ form, update }: Props) {
           </div>
         )}
 
-        <FormField label="금융 자산 (예적금 + 주식 등)">
+        <FormField
+          label="금융 자산 (예적금 + 주식 등)"
+          required
+          filled={form.financialAsset !== null}
+        >
           <PillSelect
             options={FINANCIAL_ASSET_OPTIONS}
             value={form.financialAsset}
@@ -98,7 +110,7 @@ export default function Step2Assets({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="차량 보유">
+        <FormField label="차량 보유" required filled={form.vehicle !== null}>
           <PillSelect
             options={VEHICLE_OPTIONS}
             value={form.vehicle}
@@ -107,7 +119,7 @@ export default function Step2Assets({ form, update }: Props) {
         </FormField>
 
         {/* API: AnalysisFormInput.hasRecentAssetDisposal — Figma: 회색 필드 라벨 + 문구/토글 행 */}
-        <FormField label="재산 처분이력">
+        <FormField label="재산 처분이력" filled={form.hasRecentAssetDisposal}>
           <div className="flex items-center justify-between gap-3 min-h-[34px]">
             <span className="flex-1 min-w-0 text-[14px] font-medium leading-[17px] text-foreground">
               최근 2년 내 부동산·차량 등 재산 처분 이력 있음
