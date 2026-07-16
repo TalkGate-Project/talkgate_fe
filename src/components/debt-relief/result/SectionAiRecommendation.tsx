@@ -42,9 +42,11 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
 
   return (
     // 구분선만 카드 풀폭. 피그마: divider→라벨 46px / 좌측 68px(=32+36) / 도넛 우측 90px
-    <div className="mt-0 md:mt-[22px] -mx-6 md:-mx-8 border-t border-neutral-30 pt-5 md:pt-[46px] px-6 md:pl-8 md:pr-[90px]">
-      {/* 모바일 Figma: 헤더 → (제목+설명 | 도넛) → 칩. 도넛은 제목/설명 옆, 칩은 그 아래 풀폭 */}
-      <div className="md:hidden">
+    // 와이드(PC) 레이아웃은 공식 desktop BP(lg=1080)부터 — 수치·구조는 기존과 동일하게 유지.
+    // md~lg(태블릿)는 컴팩트 레이아웃으로 두어 문구/도넛 겹침을 피한다.
+    <div className="mt-0 md:mt-[22px] -mx-6 md:-mx-8 border-t border-neutral-30 pt-5 md:pt-[46px] px-6 md:pl-8 md:pr-8 lg:pr-[90px]">
+      {/* 모바일·태블릿: 헤더 → (제목+설명 | 도넛) → 칩 */}
+      <div className="lg:hidden">
         <div className="flex items-center h-5 mb-2">
           <p className="inline-flex h-5 items-center text-[13px] font-medium leading-5 text-neutral-60">
             AI 분석 추천
@@ -62,8 +64,9 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
           </span>
         </div>
 
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 max-w-[215px]">
+        <div className="flex items-start justify-between gap-3 md:gap-6">
+          {/* 모바일 Figma max 215, 태블릿(md+)에서는 남은 폭 사용 */}
+          <div className="min-w-0 flex-1 max-w-[215px] md:max-w-none">
             <h3 className="text-[24px] font-extrabold leading-[29px] tracking-[-0.04em] text-neutral-90">
               {recommendation.title}
             </h3>
@@ -71,8 +74,14 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
               {recommendation.description}
             </p>
           </div>
-          {/* stroke 5: Figma cover 78px on 88px → (88-78)/2 */}
-          <SuccessDonut value={successProbability} size={88} stroke={5} />
+          {/* 모바일 88 / 태블릿 120 (PC 136은 lg 와이드 레이아웃) */}
+          <div className="md:hidden shrink-0">
+            {/* stroke 5: Figma cover 78px on 88px → (88-78)/2 */}
+            <SuccessDonut value={successProbability} size={88} stroke={5} />
+          </div>
+          <div className="hidden md:block shrink-0">
+            <SuccessDonut value={successProbability} size={120} stroke={7} />
+          </div>
         </div>
 
         <div className="mt-5">
@@ -80,8 +89,8 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
         </div>
       </div>
 
-      {/* 데스크톱: 좌측(헤더+제목/설명+칩) | 우측 도넛 */}
-      <div className="hidden md:flex items-center justify-between gap-10">
+      {/* PC(lg+): 기존 와이드 레이아웃 그대로 (gap/고정폭/도넛 크기 유지) */}
+      <div className="hidden lg:flex items-center justify-between gap-10">
         <div className="min-w-0 w-full max-w-[581px] pl-[36px]">
           <div className="flex items-center mb-3">
             <p className="inline-flex h-6 items-center text-[16px] font-medium leading-none tracking-[-0.04em] text-neutral-60">

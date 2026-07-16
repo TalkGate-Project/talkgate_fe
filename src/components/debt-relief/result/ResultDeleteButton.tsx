@@ -119,7 +119,7 @@ export default function ResultDeleteButton({ diagnosisId, projectId, isShared }:
   };
 
   return (
-    <div className="flex justify-end px-4 md:px-0 mt-4 md:mt-2">
+    <div className="flex justify-end px-4 md:px-0 mt-9 md:mt-0">
       <button
         type="button"
         onClick={() => void handleDelete()}

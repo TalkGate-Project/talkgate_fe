@@ -111,7 +111,7 @@ function RepaymentTimeline({
         <div className="absolute left-0 top-0 flex flex-col items-center w-[47px]">
           <span className="text-[13px] font-medium leading-4 text-neutral-60">시작</span>
           <span
-            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF]"
+            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
             aria-hidden
           />
           <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">
@@ -128,7 +128,7 @@ function RepaymentTimeline({
         <div className="absolute right-0 top-0 flex flex-col items-center w-[45px]">
           <span className="text-[13px] font-medium leading-4 text-neutral-60">종료</span>
           <span
-            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF]"
+            className="mt-1 w-3 h-3 rounded-full bg-secondary-40 shadow-[0px_0px_7px_2px_#CDDDFF] dark:shadow-none"
             aria-hidden
           />
           <span className="mt-1 text-[12px] font-semibold leading-[14px] text-neutral-90 whitespace-nowrap">

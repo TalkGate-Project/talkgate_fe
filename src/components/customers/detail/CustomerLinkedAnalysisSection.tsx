@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import LinkIcon from "@/components/icons/LinkIcon";
 import { ProcedureBadge, DebtAmountText, SuccessProbabilityText } from "@/components/debt-relief/DiagnosisBadges";
+import { formatDebtManwonParts } from "@/components/debt-relief/format";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
+import { showErrorModal } from "@/lib/errorModalEvents";
 import type { RecommendedProcedure } from "@/types/debtRelief";
 import type { AnalysisProcedureType } from "@/types/analysis";
 import type { CustomerLinkedAnalysis } from "@/types/customers";
@@ -11,6 +13,7 @@ import type { CustomerLinkedAnalysis } from "@/types/customers";
 type Props = {
   customerId: number;
   customerName: string;
+  hasAssignedMember: boolean;
   linkedAnalysis?: CustomerLinkedAnalysis | null;
 };
 
@@ -49,12 +52,235 @@ function resolveProgress(linkedAnalysis: CustomerLinkedAnalysis): {
   };
 }
 
-export default function CustomerLinkedAnalysisSection({ customerId, customerName, linkedAnalysis }: Props) {
+function LinkedAnalysisLinkIcon({ size }: { size: number }) {
+  return (
+    <div
+      className={`shrink-0 rounded-[5px] bg-secondary-10 border border-secondary-60 flex items-center justify-center ${
+        size === 24 ? "w-6 h-6" : "w-[34px] h-[34px]"
+      }`}
+    >
+      <LinkIcon size={size === 24 ? 16 : 20} className="text-secondary-60" />
+    </div>
+  );
+}
+
+function EmptyLinkedAnalysis({
+  customerId,
+  customerName,
+  hasAssignedMember,
+  variant,
+}: {
+  customerId: number;
+  customerName: string;
+  hasAssignedMember: boolean;
+  variant: "mobile" | "desktop";
+}) {
+  const router = useRouter();
+  const isMobile = variant === "mobile";
+
+  const handleAdd = () => {
+    if (!hasAssignedMember) {
+      showErrorModal({
+        type: "info",
+        title: "알림",
+        headline: "담당자가 배정되지 않은 고객입니다.",
+        description: "진단을 추가하려면 먼저 담당자를 배정한 뒤 다시 시도해주세요.",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    router.push(
+      `/debt-relief/new?customerId=${customerId}&customerName=${encodeURIComponent(customerName)}`
+    );
+  };
+
+  return (
+    <div
+      className={
+        isMobile
+          ? "flex items-center gap-4 px-3 py-4 min-h-[86px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
+          : "flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10"
+      }
+    >
+      <div
+        className={`shrink-0 rounded-[5px] bg-neutral-10 dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] flex items-center justify-center ${
+          isMobile ? "w-6 h-6" : "w-[34px] h-[34px]"
+        }`}
+      >
+        <LinkIcon size={isMobile ? 16 : 20} className="text-neutral-50" />
+      </div>
+      <span className="flex-1 min-w-0 inline-flex items-center h-6 px-3 rounded-full bg-neutral-10 dark:bg-neutral-20 text-[12px] font-medium text-neutral-60 opacity-80 w-fit">
+        진단 데이터가 없습니다.
+      </span>
+      <button
+        type="button"
+        onClick={handleAdd}
+        className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
+      >
+        추가하기
+      </button>
+    </div>
+  );
+}
+
+/** 모바일 피그마 consultation list: 327×86, pad 16×12, gap 16, 링크아이콘 + 콘텐츠 */
+function MobileLinkedAnalysisCard({
+  customerName,
+  linkedAnalysis,
+  onOpenResult,
+}: {
+  customerName: string;
+  linkedAnalysis: CustomerLinkedAnalysis;
+  onOpenResult: () => void;
+}) {
+  const procedure = linkedAnalysis.currentProcedure
+    ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
+    : undefined;
+  const { current, total, title } = resolveProgress(linkedAnalysis);
+  const isProgressKnown = total > 1;
+  const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
+  const score = Math.min(100, Math.max(0, Math.round(linkedAnalysis.currentProcedureScore ?? 0)));
+  const { amount: debtAmount, unit: debtUnit } = formatDebtManwonParts(linkedAnalysis.totalDebt);
+  const meta = formatBasicInfoMeta(linkedAnalysis.basicInfo);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpenResult}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenResult();
+        }
+      }}
+      aria-label={`${customerName} 진단 결과 보기`}
+      className="cursor-pointer flex items-center gap-4 px-3 py-4 h-[86px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
+    >
+      <LinkedAnalysisLinkIcon size={24} />
+
+      <div className="flex-1 min-w-0 h-[54px] flex flex-col justify-between">
+        {/* 상단: 이름 + 나이·성별·직업 | 절차 칩 */}
+        <div className="flex items-center justify-between gap-2 min-h-[25px]">
+          <div className="flex items-center gap-1 min-w-0 flex-1">
+            <p className="text-[16px] font-semibold leading-[19px] text-neutral-90 whitespace-nowrap shrink-0">
+              {customerName}
+            </p>
+            {meta && (
+              <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 truncate min-w-0">
+                {meta}
+              </span>
+            )}
+          </div>
+          <span className="shrink-0 opacity-80">
+            <ProcedureBadge procedure={procedure} />
+          </span>
+        </div>
+
+        {/* 하단: [진행라벨+바] [점수] … [채무] — 점수는 바 근처, 채무는 우측 */}
+        <div className="flex items-end gap-2 w-full min-w-0">
+          <div className="flex flex-col gap-1 w-[148px] shrink-0 min-w-0">
+            <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
+              {isProgressKnown ? `${current}/${total} · ${title}` : title}
+            </p>
+            <div className="h-1.5 w-full rounded-[30px] bg-neutral-30 overflow-hidden">
+              <div
+                className="h-full rounded-l-[30px] bg-secondary-20"
+                style={{ width: `${isProgressKnown ? Math.max(progressPercent, 4) : 0}%` }}
+              />
+            </div>
+          </div>
+
+          <span className="inline-flex items-end whitespace-nowrap shrink-0">
+            <span className="text-[16px] font-semibold leading-none text-neutral-90">{score}</span>
+            <span className="text-[10px] font-medium leading-none tracking-[-0.02em] text-neutral-60">
+              /100
+            </span>
+          </span>
+
+          <span className="ml-auto inline-flex items-end whitespace-nowrap shrink-0 opacity-80">
+            <span className="text-[14px] font-bold leading-none text-black dark:text-foreground">
+              {debtAmount}
+            </span>
+            {debtUnit && (
+              <span className="text-[12px] font-medium leading-none tracking-normal text-black dark:text-foreground">
+                {debtUnit}
+              </span>
+            )}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopLinkedAnalysisCard({
+  customerName,
+  linkedAnalysis,
+  onOpenResult,
+}: {
+  customerName: string;
+  linkedAnalysis: CustomerLinkedAnalysis;
+  onOpenResult: () => void;
+}) {
+  const procedure = linkedAnalysis.currentProcedure
+    ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
+    : undefined;
+  const { current, total, title } = resolveProgress(linkedAnalysis);
+  const isProgressKnown = total > 1;
+  const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
+
+  return (
+    <div className="flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10">
+      <LinkedAnalysisLinkIcon size={34} />
+      <div className="flex flex-col gap-0.5 min-w-0 w-[120px] shrink-0">
+        <p className="text-[14px] font-bold text-neutral-90 opacity-80 truncate">{customerName}</p>
+        <p className="text-[12px] font-medium text-neutral-60 opacity-80 truncate">
+          {formatBasicInfoMeta(linkedAnalysis.basicInfo)}
+        </p>
+      </div>
+      <DebtAmountText manwon={linkedAnalysis.totalDebt} />
+      <SuccessProbabilityText value={linkedAnalysis.currentProcedureScore ?? 0} />
+      <div className="flex-1 min-w-[120px] max-w-[220px] flex flex-col justify-between gap-1.5 h-[26px]">
+        <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
+          {isProgressKnown ? `${current}/${total} · ${title}` : title}
+        </p>
+        <div className="h-[6px] w-full max-w-[140px] rounded-[30px] bg-neutral-30 overflow-hidden">
+          <div
+            className="h-full rounded-l-[30px] bg-secondary-20"
+            style={{ width: `${isProgressKnown ? Math.max(progressPercent, 4) : 0}%` }}
+          />
+        </div>
+      </div>
+      <ProcedureBadge procedure={procedure} />
+      <button
+        type="button"
+        onClick={onOpenResult}
+        className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
+      >
+        결과보기
+      </button>
+    </div>
+  );
+}
+
+export default function CustomerLinkedAnalysisSection({
+  customerId,
+  customerName,
+  hasAssignedMember,
+  linkedAnalysis,
+}: Props) {
   const router = useRouter();
   const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
 
   // 헤더에 회생·파산 메뉴가 노출되는 프로젝트(analysis/lawyer)에서만 표시 (useDebtReliefMenu와 동일 기준)
   if (!debtReliefReady || !showDebtReliefMenu) return null;
+
+  const openResult = () => {
+    if (!linkedAnalysis) return;
+    router.push(`/debt-relief/${linkedAnalysis.analysisId}`);
+  };
 
   return (
     <div className="md:col-span-2">
@@ -62,69 +288,41 @@ export default function CustomerLinkedAnalysisSection({ customerId, customerName
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
       {!linkedAnalysis ? (
-        <div className="flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10">
-          <div className="w-[34px] h-[34px] shrink-0 rounded-[5px] bg-neutral-10 dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] flex items-center justify-center">
-            <LinkIcon size={20} className="text-neutral-50" />
+        <>
+          <div className="md:hidden">
+            <EmptyLinkedAnalysis
+              customerId={customerId}
+              customerName={customerName}
+              hasAssignedMember={hasAssignedMember}
+              variant="mobile"
+            />
           </div>
-          <span className="flex-1 inline-flex items-center h-[24px] px-3 rounded-full bg-neutral-10 dark:bg-neutral-20 text-[12px] font-medium text-neutral-60 opacity-80 w-fit">
-            진단 데이터가 없습니다.
-          </span>
-          <button
-            type="button"
-            onClick={() =>
-              router.push(
-                `/debt-relief/new?customerId=${customerId}&customerName=${encodeURIComponent(customerName)}`
-              )
-            }
-            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
-          >
-            추가하기
-          </button>
-        </div>
+          <div className="hidden md:block">
+            <EmptyLinkedAnalysis
+              customerId={customerId}
+              customerName={customerName}
+              hasAssignedMember={hasAssignedMember}
+              variant="desktop"
+            />
+          </div>
+        </>
       ) : (
-        (() => {
-          const procedure = linkedAnalysis.currentProcedure
-            ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
-            : undefined;
-          const { current, total, title } = resolveProgress(linkedAnalysis);
-          const isProgressKnown = total > 1;
-          const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
-
-          return (
-            <div className="flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10">
-              <div className="w-[34px] h-[34px] shrink-0 rounded-[5px] bg-secondary-10 border border-secondary-60 flex items-center justify-center">
-                <LinkIcon size={20} className="text-secondary-60" />
-              </div>
-              <div className="flex flex-col gap-0.5 min-w-0 w-[120px] shrink-0">
-                <p className="text-[14px] font-bold text-neutral-90 opacity-80 truncate">{customerName}</p>
-                <p className="text-[12px] font-medium text-neutral-60 opacity-80 truncate">
-                  {formatBasicInfoMeta(linkedAnalysis.basicInfo)}
-                </p>
-              </div>
-              <DebtAmountText manwon={linkedAnalysis.totalDebt} />
-              <SuccessProbabilityText value={linkedAnalysis.currentProcedureScore ?? 0} />
-              <div className="flex-1 min-w-[120px] max-w-[220px] flex flex-col justify-between gap-1.5 h-[26px]">
-                <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
-                  {isProgressKnown ? `${current}/${total} · ${title}` : title}
-                </p>
-                <div className="h-[6px] w-full max-w-[140px] rounded-[30px] bg-neutral-30 overflow-hidden">
-                  <div
-                    className="h-full rounded-l-[30px] bg-secondary-20"
-                    style={{ width: `${isProgressKnown ? Math.max(progressPercent, 4) : 0}%` }}
-                  />
-                </div>
-              </div>
-              <ProcedureBadge procedure={procedure} />
-              <button
-                type="button"
-                onClick={() => router.push(`/debt-relief/${linkedAnalysis.analysisId}`)}
-                className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
-              >
-                결과보기
-              </button>
-            </div>
-          );
-        })()
+        <>
+          <div className="md:hidden">
+            <MobileLinkedAnalysisCard
+              customerName={customerName}
+              linkedAnalysis={linkedAnalysis}
+              onOpenResult={openResult}
+            />
+          </div>
+          <div className="hidden md:block">
+            <DesktopLinkedAnalysisCard
+              customerName={customerName}
+              linkedAnalysis={linkedAnalysis}
+              onOpenResult={openResult}
+            />
+          </div>
+        </>
       )}
     </div>
   );

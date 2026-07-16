@@ -190,10 +190,14 @@ export default function CustomersTable({
       ];
   // "이름" 열은 진단 연결 배지(예: "회생 2/9")가 붙으면 이름+배지+미배정 점을 함께 담아야 해서
   // 다른 열보다 넓게 잡는다(2026-07-14, 배지 도입 후 이름이 가려지는 문제 수정).
+  // 모바일은 뷰포트가 좁아 동일 %로는 이름이 잘리므로 name 셀 min-w + table min-w로만 보정한다(데스크톱 %는 유지).
   const colWidths = isDataProvider
     ? ["5%", "6%", "14%", "14%", "9%", "7%", "10%", "9%", "16%"]
     : ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   const fallbackColWidths = ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
+  // 모바일 이름 열 최소 너비(배지 포함). md 이상에서는 colgroup %에 맡긴다.
+  const nameColMinClass = "min-w-[180px] md:min-w-0";
+  const tableMinWidthClass = "min-w-[980px] md:min-w-[900px]";
   const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
   const totalColumns = colWidths.length;
   const skeletonTotalColumns = skeletonColWidths.length;
@@ -434,10 +438,14 @@ export default function CustomersTable({
           className="overflow-x-auto w-full min-w-0"
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         >
-          <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
+          <table className={`w-full ${tableMinWidthClass} text-left border-separate border-spacing-0 table-fixed`}>
             <colgroup>
               {skeletonColWidths.map((width, idx) => (
-                <col key={`skeleton-col-${idx}`} style={{ width }} />
+                <col
+                  key={`skeleton-col-${idx}`}
+                  style={{ width }}
+                  className={idx === 2 ? nameColMinClass : undefined}
+                />
               ))}
             </colgroup>
             <thead>
@@ -493,10 +501,14 @@ export default function CustomersTable({
           className="overflow-x-auto w-full min-w-0"
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         >
-          <table className="w-full min-w-[900px] text-left border-separate border-spacing-0 table-fixed">
+          <table className={`w-full ${tableMinWidthClass} text-left border-separate border-spacing-0 table-fixed`}>
           <colgroup>
             {colWidths.map((width, idx) => (
-              <col key={`col-${idx}`} style={{ width }} />
+              <col
+                key={`col-${idx}`}
+                style={{ width }}
+                className={idx === 2 ? nameColMinClass : undefined}
+              />
             ))}
           </colgroup>
           <thead>
@@ -552,7 +564,7 @@ export default function CustomersTable({
                   colSpan={1}
                   className={`bg-neutral-20 table-cell typo-title-4 font-medium px-2 md:px-4 h-[40px] whitespace-nowrap ${
                     idx === arr.length - 1 ? "rounded-r-[8px] md:rounded-r-[12px]" : ""
-                  } ${h === "카테고리" ? "text-center" : ""} ${
+                  } ${h === "이름" ? nameColMinClass : ""} ${h === "카테고리" ? "text-center" : ""} ${
                     !isDataProvider && h === "전체확인"
                       ? "text-center font-semibold underline cursor-pointer"
                       : ""
@@ -696,7 +708,7 @@ export default function CustomersTable({
                       <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-center text-neutral-70 whitespace-nowrap">
                         {rowNumber > 0 ? rowNumber : "-"}
                       </td>
-                      <td className="table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                      <td className={`table-cell px-2 md:px-4 h-[48px] align-middle text-neutral-90 opacity-80 whitespace-nowrap ${nameColMinClass}`}>
                         <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
                           <span className="block min-w-0 shrink truncate leading-[17px]">
                             {c.name || "-"}
@@ -954,7 +966,7 @@ export default function CustomersTable({
                             {/* 체크박스/순번 열은 비워 둠 */}
                             <td className="px-2 pr-4 md:pr-6 md:px-6 h-[44px]" />
                             <td className="px-2 md:px-4 h-[44px]" />
-                            <td className="table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap">
+                            <td className={`table-cell px-2 md:px-4 h-[44px] align-middle text-neutral-90 opacity-80 whitespace-nowrap ${nameColMinClass}`}>
                               <div className="flex items-center gap-2 h-full min-w-0 overflow-hidden">
                                 <span className="block min-w-0 shrink truncate leading-[17px]">
                                   {item.name || "-"}
