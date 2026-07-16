@@ -279,9 +279,9 @@ function StepItem({
               <div
                 className={`mt-3 inline-flex items-start gap-1.5 max-w-full min-h-7 px-3 py-1.5 rounded-[5px] ${
                   step.noteType === "warning"
-                    ? "bg-warning-10"
+                    ? "bg-warning-10 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)]"
                     : step.noteType === "info"
-                    ? "bg-secondary-10"
+                    ? "bg-secondary-10 dark:bg-[rgb(var(--color-blue-600-rgb)/0.3)]"
                     : "bg-neutral-10"
                 }`}
               >
@@ -295,9 +295,9 @@ function StepItem({
                 <span
                   className={`text-[12px] md:text-[14px] font-medium leading-[15px] md:leading-[17px] opacity-80 ${
                     step.noteType === "warning"
-                      ? "text-warning-100"
+                      ? "text-warning-100 dark:text-warning-40"
                       : step.noteType === "info"
-                      ? "text-secondary-100"
+                      ? "text-secondary-100 dark:text-secondary-20"
                       : "text-neutral-60"
                   }`}
                 >

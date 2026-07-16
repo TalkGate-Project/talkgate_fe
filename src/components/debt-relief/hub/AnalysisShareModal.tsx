@@ -467,7 +467,7 @@ export default function AnalysisShareModal({
                       role="radio"
                       aria-checked={selected}
                       onClick={() => setSelectedPartnerId(partner.id)}
-                      className="cursor-pointer flex items-center gap-3 h-[48px] px-4 rounded-[8px] bg-neutral-10 text-left transition-colors hover:bg-neutral-20"
+                      className="cursor-pointer flex items-center gap-3 h-[48px] px-4 rounded-[8px] bg-neutral-10 dark:bg-neutral-25 text-left transition-colors hover:bg-neutral-20 dark:hover:bg-neutral-30"
                     >
                       <span className="shrink-0 flex items-center justify-center" aria-hidden>
                         <RadioButton checked={selected} />

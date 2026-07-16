@@ -14,8 +14,8 @@ import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
 const CONDITION_TEXT_COLOR: Record<ConditionStatus, string> = {
   met: "text-neutral-90",
-  caution: "text-warning-100",
-  risk: "text-danger-100",
+  caution: "text-warning-100 dark:text-warning-40",
+  risk: "text-danger-100 dark:text-danger-40",
 };
 
 const STATUS_CHIP: Record<ConditionStatus, string> = {
