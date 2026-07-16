@@ -348,6 +348,9 @@ type Props = {
   onChangeTrackingProcedure?: (procedure: RecommendedProcedure) => void;
   // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용)
   canChangeTrackingProcedure?: boolean;
+  // true면 절차 확인(펼치기)은 그대로 두고, 절차 전환/현재 단계 설정/문자 발송 등 실제 작업만 막는다.
+  // (예: 계약 체결 전 상태 — 내용은 미리 볼 수 있어야 하지만 아직 작업 대상은 아님)
+  locked?: boolean;
 };
 
 export default function SectionProcedureGuide({
@@ -355,6 +358,7 @@ export default function SectionProcedureGuide({
   onSetCurrentStep,
   onChangeTrackingProcedure,
   canChangeTrackingProcedure = true,
+  locked = false,
 }: Props) {
   const { procedureGuide: guide } = detail;
   const { member } = useMyMember();
@@ -430,7 +434,7 @@ export default function SectionProcedureGuide({
           <ProcedureSelect
             value={detail.trackingProcedure}
             onSelect={(procedure) => onChangeTrackingProcedure?.(procedure)}
-            disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure}
+            disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure || locked}
           />
           {guide.totalPeriodHint && guide.totalPeriodHint !== "-" && (
             <span className="hidden md:inline ml-auto text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
@@ -452,10 +456,10 @@ export default function SectionProcedureGuide({
               expanded={expanded.has(step.step)}
               onToggle={() => toggle(step.step)}
               isCurrent={step.step === currentStep}
-              canSetCurrent={step.step > currentStep}
+              canSetCurrent={step.step > currentStep && !locked}
               onSetCurrent={() => handleSetCurrent(step)}
               onSendSms={() => setSmsStep(step)}
-              smsDisabled={!canSendSms}
+              smsDisabled={!canSendSms || locked}
               stepHistory={
                 step.stepId != null ? historyByStepId.get(step.stepId) : undefined
               }

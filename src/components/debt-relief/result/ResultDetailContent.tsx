@@ -167,7 +167,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           </div>
         ) : (
           <>
-            <SectionCard id="overview" compactTop className="max-md:!pt-0">
+            <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pb-[46px]">
               <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
@@ -196,25 +196,17 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         )}
 
         <SectionCard id="guide" compactTop>
-          {DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status) ? (
-            // trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
-            // 남아있지 않도록 key로 강제 리마운트한다.
-            <SectionProcedureGuide
-              key={detail.trackingProcedure}
-              detail={detail}
-              onSetCurrentStep={handleSetCurrentStep}
-              onChangeTrackingProcedure={handleChangeTrackingProcedure}
-              canChangeTrackingProcedure={!lawyerReceivedReadOnly}
-            />
-          ) : (
-            // 계약 체결(계약대기중) 전에는 절차안내를 이용할 수 없다.
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <h2 className="text-[16px] font-semibold text-foreground">절차안내</h2>
-              <p className="text-[14px] font-medium text-neutral-60">
-                계약 체결 후 절차안내를 확인할 수 있습니다.
-              </p>
-            </div>
-          )}
+          {/* trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
+              남아있지 않도록 key로 강제 리마운트한다. 계약 체결(계약대기중) 전에는 내용은 미리
+              볼 수 있되 절차 전환·현재 단계 설정·문자 발송 등 실제 작업은 잠근다. */}
+          <SectionProcedureGuide
+            key={detail.trackingProcedure}
+            detail={detail}
+            onSetCurrentStep={handleSetCurrentStep}
+            onChangeTrackingProcedure={handleChangeTrackingProcedure}
+            canChangeTrackingProcedure={!lawyerReceivedReadOnly}
+            locked={!DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status)}
+          />
         </SectionCard>
 
         <SectionCard id="sms" title="고객 문자 전송" compactTop>

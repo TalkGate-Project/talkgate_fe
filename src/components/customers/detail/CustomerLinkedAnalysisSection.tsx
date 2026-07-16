@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import LinkIcon from "@/components/icons/LinkIcon";
-import { ProcedureBadge, DebtAmountText, SuccessProbabilityText } from "@/components/debt-relief/DiagnosisBadges";
+import {
+  ProcedureBadge,
+  ProcedureNameText,
+  StatusBadge,
+  DebtAmountText,
+  FeePlanCell,
+} from "@/components/debt-relief/DiagnosisBadges";
 import { formatDebtManwonParts } from "@/components/debt-relief/format";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { showErrorModal } from "@/lib/errorModalEvents";
@@ -37,7 +43,8 @@ function resolveProgress(linkedAnalysis: CustomerLinkedAnalysis): {
   total: number;
   title: string;
 } {
-  const steps = linkedAnalysis.procedureSteps;
+  // API 응답에 procedureSteps가 누락될 수 있어(예: feePlan이 null 등) 안전하게 기본값 처리
+  const steps = linkedAnalysis.procedureSteps ?? [];
   if (steps.length === 0) return { current: 1, total: 1, title: "확인 중" };
 
   let currentIndex = steps.findIndex((step) => step.isCurrent);
@@ -110,13 +117,13 @@ function EmptyLinkedAnalysis({
       >
         <LinkIcon size={isMobile ? 16 : 20} className="text-neutral-50" />
       </div>
-      <span className="flex-1 min-w-0 inline-flex items-center h-6 px-3 rounded-full bg-neutral-10 dark:bg-neutral-20 text-[12px] font-medium text-neutral-60 opacity-80 w-fit">
+      <span className="inline-flex items-center h-6 px-3 rounded-full bg-neutral-10 dark:bg-neutral-20 text-[12px] font-medium text-neutral-60 opacity-80">
         진단 데이터가 없습니다.
       </span>
       <button
         type="button"
         onClick={handleAdd}
-        className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
+        className="cursor-pointer ml-auto shrink-0 h-[34px] px-3 rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold text-ink hover:bg-neutral-10 dark:hover:bg-neutral-20"
       >
         추가하기
       </button>
@@ -227,9 +234,11 @@ function DesktopLinkedAnalysisCard({
   const procedure = linkedAnalysis.currentProcedure
     ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
     : undefined;
-  const { current, total, title } = resolveProgress(linkedAnalysis);
+  const { current, total } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
-  const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
+  // status는 백엔드 반영 전이라 응답에 없을 수 있음 — 이 카드는 currentProcedure가 있을 때만
+  // 노출되므로(추적 중인 절차가 있다는 뜻) 값이 없으면 in_progress로 간주해 칩을 채운다.
+  const status = linkedAnalysis.status ?? (linkedAnalysis.currentProcedure ? "in_progress" : undefined);
 
   return (
     <div className="flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10">
@@ -241,19 +250,14 @@ function DesktopLinkedAnalysisCard({
         </p>
       </div>
       <DebtAmountText manwon={linkedAnalysis.totalDebt} />
-      <SuccessProbabilityText value={linkedAnalysis.currentProcedureScore ?? 0} />
-      <div className="flex-1 min-w-[120px] max-w-[220px] flex flex-col justify-between gap-1.5 h-[26px]">
-        <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
-          {isProgressKnown ? `${current}/${total} · ${title}` : title}
-        </p>
-        <div className="h-[6px] w-full max-w-[140px] rounded-[30px] bg-neutral-30 overflow-hidden">
-          <div
-            className="h-full rounded-l-[30px] bg-secondary-20"
-            style={{ width: `${isProgressKnown ? Math.max(progressPercent, 4) : 0}%` }}
-          />
-        </div>
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <ProcedureNameText procedure={procedure} />
+        {status && (
+          <StatusBadge status={status} stepLabel={isProgressKnown ? `${current}/${total}` : undefined} />
+        )}
       </div>
-      <ProcedureBadge procedure={procedure} />
+      {/* feePlanSummary는 백엔드 반영 전이라 undefined일 수 있음 — FeePlanCell이 null이면 "결제 미설정"으로 안전 처리 */}
+      <FeePlanCell summary={linkedAnalysis.feePlanSummary ?? null} />
       <button
         type="button"
         onClick={onOpenResult}

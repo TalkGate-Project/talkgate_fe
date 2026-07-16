@@ -454,8 +454,9 @@ const VEHICLE_VALUE_ESTIMATE: Record<AnalysisVehicleValueRange, number> = {
   over_2000: 2500,
 };
 
-// analysisResult.expectedRepayment 금액 필드는 원(KRW) 단위.
-// 폼/채무현황 등 나머지 UI는 만원 단위이므로 표시 전에 변환한다.
+// analysisResult.expectedRepayment 금액 필드는 대부분 원(KRW) 단위다.
+// 다만 expectedExemption은 이 상세 화면에서만 예외적으로 이미 만원 단위로 내려온다.
+// 폼/채무현황 등 나머지 UI는 만원 단위이므로 필요한 필드만 변환한다.
 function wonToManwon(won: number): number {
   return Math.round(won / 10_000);
 }
@@ -754,7 +755,7 @@ export const DebtReliefService = {
             months: analysis.analysisResult.expectedRepayment.periodMonths,
             years: Math.round((analysis.analysisResult.expectedRepayment.periodMonths / 12) * 10) / 10,
             totalPaymentManwon: wonToManwon(analysis.analysisResult.expectedRepayment.totalPayment),
-            exemptedDebtManwon: wonToManwon(analysis.analysisResult.expectedRepayment.expectedExemption),
+            exemptedDebtManwon: analysis.analysisResult.expectedRepayment.expectedExemption,
             notes: analysis.analysisResult.precautions,
           }
         : { monthlyPaymentManwon: 0, months: 0, years: 0, totalPaymentManwon: 0, exemptedDebtManwon: 0, notes: [] },

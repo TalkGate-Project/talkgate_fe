@@ -396,7 +396,7 @@ export default function FeePaymentInfoModal({
       ariaLabel="수임료 결제 정보"
       fullScreenOnMobile
       positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
-      containerClassName={`bg-card dark:bg-neutral-10 md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] flex flex-col ${
+      containerClassName={`bg-card dark:bg-[#1E1E1E] md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col ${
         editingConditions
           ? "md:w-[440px] md:h-[430px] md:max-h-[430px]"
           : "md:w-[868px]"
@@ -411,15 +411,15 @@ export default function FeePaymentInfoModal({
               onClick={handleClose}
               disabled={submitting}
               aria-label="닫기"
-              className="cursor-pointer grid h-6 w-6 place-items-center text-neutral-50 disabled:opacity-50"
+              className="cursor-pointer grid h-6 w-6 place-items-center text-neutral-50 dark:text-[#959595] disabled:opacity-50"
             >
               <CloseIcon />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 pb-4 md:overflow-y-visible md:px-7">
-            <div className="rounded-[12px] bg-neutral-10 dark:bg-neutral-20 p-5 md:h-[272px] md:p-6">
-              <label className="block text-[14px] font-medium text-neutral-60">
+            <div className="rounded-[12px] bg-neutral-10 dark:bg-[#111111] p-5 md:h-[272px] md:p-6">
+              <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                 총 수임료
               </label>
               <div className="relative mt-2">
@@ -434,16 +434,16 @@ export default function FeePaymentInfoModal({
                     }))
                   }
                   disabled={submitting}
-                  className="h-[34px] w-full rounded-[5px] border border-neutral-30 bg-card px-3 pr-12 text-[14px] text-foreground outline-none focus:border-neutral-50 disabled:opacity-60"
+                  className="h-[34px] w-full rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-card dark:bg-[#1E1E1E] px-3 pr-12 text-[14px] text-foreground dark:text-[#FDFDFD] outline-none focus:border-neutral-50 dark:focus:border-[#959595] disabled:opacity-60"
                 />
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-neutral-60">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-neutral-60 dark:text-[#B9B9B9]">
                   만원
                 </span>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-[186px_138px] md:gap-3">
                 <div>
-                  <span className="block text-[14px] font-medium text-neutral-60">
+                  <span className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                     납부방식
                   </span>
                   <div className="mt-2 flex gap-2">
@@ -469,8 +469,8 @@ export default function FeePaymentInfoModal({
                           disabled={submitting}
                           className={`cursor-pointer h-[34px] flex-1 rounded-full border px-3 text-[14px] font-medium disabled:opacity-60 ${
                             selected
-                              ? "border-neutral-100 bg-neutral-100 text-neutral-0"
-                              : "border-neutral-30 bg-card text-neutral-70"
+                              ? "border-neutral-100 bg-neutral-100 text-neutral-0 dark:border-[#FDFDFD] dark:bg-[#FDFDFD] dark:text-[#111111]"
+                              : "border-neutral-30 bg-card text-neutral-70 dark:border-[#4D4D4D] dark:bg-[#1E1E1E] dark:text-[#FDFDFD]"
                           }`}
                         >
                           {label}
@@ -481,7 +481,7 @@ export default function FeePaymentInfoModal({
                 </div>
 
                 <div>
-                  <label className="block text-[14px] font-medium text-neutral-60">
+                  <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                     분할 횟수
                   </label>
                   <div className="relative mt-2">
@@ -496,9 +496,9 @@ export default function FeePaymentInfoModal({
                         }))
                       }
                       disabled={submitting || form.paymentType === "lump_sum"}
-                      className="h-[34px] w-full rounded-[5px] border border-neutral-30 bg-card px-3 pr-12 text-[14px] text-foreground outline-none focus:border-neutral-50 disabled:opacity-50"
+                      className="h-[34px] w-full rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-card dark:bg-[#1E1E1E] px-3 pr-12 text-[14px] text-foreground dark:text-[#FDFDFD] outline-none focus:border-neutral-50 dark:focus:border-[#959595] disabled:opacity-50"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-neutral-60">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[13px] text-neutral-60 dark:text-[#B9B9B9]">
                       개월
                     </span>
                   </div>
@@ -506,7 +506,7 @@ export default function FeePaymentInfoModal({
               </div>
 
               <div className="mt-5 md:mt-6 md:w-[175px]">
-                <label className="block text-[14px] font-medium text-neutral-60">
+                <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                   첫 회차 납부일
                 </label>
                 <div className="relative mt-2">
@@ -516,10 +516,10 @@ export default function FeePaymentInfoModal({
                       setForm((previous) => ({ ...previous, firstPaymentDate: date }))
                     }
                     disabled={submitting}
-                    className="!h-[34px] !rounded-[5px] !pr-10"
+                    className="!h-[34px] !rounded-[5px] !pr-10 dark:!border-[#4D4D4D] dark:!bg-[#1E1E1E] dark:!text-[#FDFDFD]"
                     dateFormat="yyyy. MM. dd"
                   />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50 dark:text-[#959595]">
                     <CalendarIcon />
                   </span>
                 </div>
@@ -527,7 +527,7 @@ export default function FeePaymentInfoModal({
             </div>
           </div>
 
-          <div className="mt-auto flex justify-end gap-3 border-t border-neutral-30 px-6 md:px-7 py-4">
+          <div className="mt-auto flex justify-end gap-3 border-t border-neutral-30 dark:border-[#4D4D4D] px-6 md:px-7 py-4">
             <button
               type="button"
               onClick={() => {
@@ -538,7 +538,7 @@ export default function FeePaymentInfoModal({
                 handleClose();
               }}
               disabled={submitting}
-              className="cursor-pointer h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold text-foreground disabled:opacity-50"
+              className="cursor-pointer h-[34px] rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] px-3 text-[14px] font-semibold text-foreground dark:text-[#FDFDFD] disabled:opacity-50"
             >
               취소
             </button>
@@ -546,7 +546,7 @@ export default function FeePaymentInfoModal({
               type="button"
               onClick={handleApplyConditions}
               disabled={submitting}
-              className="cursor-pointer h-[34px] rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer h-[34px] rounded-[5px] bg-neutral-90 dark:bg-[#F5F5F5] px-3 text-[14px] font-semibold text-neutral-20 dark:text-[#333333] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "적용 중..." : "적용"}
             </button>

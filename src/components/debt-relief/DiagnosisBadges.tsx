@@ -68,6 +68,17 @@ export function ProcedureBadge({ procedure }: { procedure: RecommendedProcedure 
   );
 }
 
+// 추천 절차 이름 — 색칠된 배지(ProcedureBadge) 없이 플레인 텍스트로만 표기할 때 사용
+// (예: 고객 상세 연동분석 카드는 절차명 옆에 StatusBadge를 붙이는 구성이라 배지를 겹쳐 쓰지 않는다)
+export function ProcedureNameText({ procedure }: { procedure: RecommendedProcedure | undefined }) {
+  const label = procedure ? RECOMMENDED_PROCEDURE_LABEL[procedure] : undefined;
+  return (
+    <span className="text-[14px] font-medium text-neutral-90 opacity-80 whitespace-nowrap">
+      {label ?? "확인 중"}
+    </span>
+  );
+}
+
 // 성공 가능성: "78/100" — 강조(점수) 16px/600, 보조(/100) 10px/500
 export function SuccessProbabilityText({ value }: { value: number }) {
   const score = Math.min(100, Math.max(0, Math.round(value)));
