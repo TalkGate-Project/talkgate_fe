@@ -18,8 +18,8 @@ export default function SuccessDonut({
   const center = size / 2;
   // 같은 페이지에 도넛이 여러 개여도 gradient id가 충돌하지 않도록
   const gradientId = `success-donut-grad-${useId().replace(/:/g, "")}`;
-  // 모바일 88px 스펙: 라벨 10px / 점수 20px /100 10px
-  const isCompact = size <= 88;
+  // 모바일 88 / 태블릿 120 / PC 136 — 크기에 맞춰 중앙 타이포 단계
+  const density = size <= 88 ? "compact" : size < 136 ? "medium" : "full";
 
   return (
     <div className="relative grid place-items-center shrink-0" style={{ width: size, height: size }}>
@@ -66,9 +66,11 @@ export default function SuccessDonut({
       <div className="absolute flex flex-col items-center">
         <p
           className={`font-medium tracking-[-0.02em] text-neutral-60 ${
-            isCompact
+            density === "compact"
               ? "text-[10px] leading-3 mb-[7px]"
-              : "text-[14px] leading-[17px] mb-1"
+              : density === "medium"
+                ? "text-[12px] leading-[14px] mb-1"
+                : "text-[14px] leading-[17px] mb-1"
           }`}
         >
           {label}
@@ -76,14 +78,20 @@ export default function SuccessDonut({
         <div className="flex items-baseline gap-0.5">
           <span
             className={`font-montserrat font-bold tracking-[1px] text-neutral-90 ${
-              isCompact ? "text-[20px] leading-5" : "text-[28px] leading-[34px]"
+              density === "compact"
+                ? "text-[20px] leading-5"
+                : density === "medium"
+                  ? "text-[24px] leading-7"
+                  : "text-[28px] leading-[34px]"
             }`}
           >
             {clamped}
           </span>
           <span
             className={`font-medium tracking-[-0.02em] text-neutral-60 ${
-              isCompact ? "text-[10px] leading-3" : "text-[12px] leading-[14px]"
+              density === "compact"
+                ? "text-[10px] leading-3"
+                : "text-[12px] leading-[14px]"
             }`}
           >
             /100
