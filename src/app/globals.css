@@ -911,6 +911,7 @@ svg path:focus {
   overflow: hidden;
   border: 0;
   border-radius: 5px;
+  color: #000000;
   background: linear-gradient(135deg, #a1ff8b 0%, #3f93ff 96.83%);
   filter: drop-shadow(2px 2px 5px #d6fae8);
 }
@@ -945,6 +946,16 @@ svg path:focus {
   background: #ffffff;
   content: "";
   pointer-events: none;
+}
+
+/* 다크모드: 어두운 채우기 + 흰 텍스트 + 녹색 glow (Figma Dark/Dark-100) */
+:is(.dark, [data-theme="dark"]) .analyze-button {
+  color: #fdfdfd;
+  filter: drop-shadow(2px 2px 5px #105030);
+}
+
+:is(.dark, [data-theme="dark"]) .analyze-button::after {
+  background: var(--card);
 }
 
 /* hover 루프 애니메이션은 마우스/트랙패드에서만 — 터치 sticky hover 방지 */

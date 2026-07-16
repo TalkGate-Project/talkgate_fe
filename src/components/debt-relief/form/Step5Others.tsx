@@ -49,7 +49,11 @@ export default function Step5Others({ form, update }: Props) {
         />
 
         <div>
-          <label className="block text-[14px] font-medium leading-[17px] text-foreground mb-2">
+          <label
+            className={`block text-[14px] font-medium leading-[17px] mb-2 ${
+              form.counselorMemo.trim() ? "text-secondary-60" : "text-foreground"
+            }`}
+          >
             특이사항
           </label>
           <textarea

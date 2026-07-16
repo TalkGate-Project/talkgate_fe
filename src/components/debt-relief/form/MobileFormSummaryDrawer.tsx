@@ -105,7 +105,7 @@ export default function MobileFormSummaryDrawer({
             onClick={onAnalyze}
             disabled={disabled}
             aria-label={analyzing ? "분석 중" : "분석하기"}
-            className="analyze-button shrink-0 inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold text-black whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+            className="analyze-button shrink-0 inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
           >
             <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
               <MobileAnalyzeSparkleIcon />
@@ -132,7 +132,12 @@ export default function MobileFormSummaryDrawer({
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-neutral-10 px-6 pt-3 pb-5 flex flex-col gap-4">
           <FormCustomerSummary form={form} />
           <FormFinancialSummary derived={derived} className="bg-card" />
-          <FormStepChecklist steps={steps} currentIndex={currentIndex} onSelectStep={handleSelectStep} />
+          <FormStepChecklist
+            steps={steps}
+            currentIndex={currentIndex}
+            onSelectStep={handleSelectStep}
+            form={form}
+          />
         </div>
       )}
     </div>

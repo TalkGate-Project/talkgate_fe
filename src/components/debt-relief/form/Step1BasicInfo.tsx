@@ -33,14 +33,19 @@ export default function Step1BasicInfo({ form, update }: Props) {
       {/* Figma: 섹션 구분선 → 첫 필드 13px, 필드 간 20px */}
       <div className="mt-0 md:mt-3 flex flex-col gap-5">
         <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-7">
-          <FormField label="고객명" className="flex-1 min-w-0 md:max-w-[461px]">
+          <FormField
+            label="고객명"
+            required
+            filled={Boolean(form.customerName.trim())}
+            className="flex-1 min-w-0 md:max-w-[461px]"
+          >
             <TextInput
               value={form.customerName}
               onChange={(value) => update("customerName", value)}
               placeholder="고객명을 입력하세요"
             />
           </FormField>
-          <FormField label="성별" className="shrink-0">
+          <FormField label="성별" required filled={form.gender !== null}>
             <PillSelect
               options={GENDER_OPTIONS}
               value={form.gender}
@@ -49,7 +54,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           </FormField>
         </div>
 
-        <FormField label="연령대">
+        <FormField label="연령대" required filled={form.ageGroup !== null}>
           <PillSelect
             options={AGE_GROUP_OPTIONS}
             value={form.ageGroup}
@@ -57,7 +62,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="거주 지역">
+        <FormField label="거주 지역" required filled={form.region !== null}>
           <PillSelect
             options={REGION_OPTIONS}
             value={form.region}
@@ -65,7 +70,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="고용 형태">
+        <FormField label="고용 형태" required filled={form.employmentType !== null}>
           <PillSelect
             options={EMPLOYMENT_TYPE_OPTIONS}
             value={form.employmentType}
@@ -73,7 +78,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="부양가족">
+        <FormField label="부양가족" required filled={form.dependents !== null}>
           <PillSelect
             options={DEPENDENT_OPTIONS}
             value={form.dependents}
@@ -81,7 +86,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="배우자 소득">
+        <FormField label="배우자 소득" required filled={form.spouseIncome !== null}>
           <PillSelect
             options={SPOUSE_INCOME_OPTIONS}
             value={form.spouseIncome === null ? null : form.spouseIncome ? "yes" : "none"}

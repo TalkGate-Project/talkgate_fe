@@ -20,9 +20,9 @@ const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
 const LABEL_CLASS = "text-[13px] md:text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
 
 const PROCEDURE_CHIP_STYLE: Record<RecommendedProcedure, string> = {
-  individual_rehab: "bg-primary-10 text-primary-80",
-  debt_adjustment: "bg-warning-10 text-warning-60",
-  bankruptcy: "bg-danger-10 text-danger-40",
+  individual_rehab: "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
+  debt_adjustment: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
+  bankruptcy: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
 const SUMMARY_GRID_CLASS = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-5";

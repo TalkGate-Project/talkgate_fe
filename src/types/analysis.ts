@@ -1,12 +1,19 @@
 import type { ApiSuccess } from "@/types/common";
 import type { SenderNumberType, SmsAdvertisementType } from "@/types/sms";
+import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
 
 // Analysis(채무 정리 AI 진단) 도메인 타입
 // Swagger 스펙(POST/GET/PATCH/DELETE /v1/analysis 등) 기준.
 // ⚠️ src/types/debtRelief.ts의 mock 전용 RecommendedProcedure는 값이 다르다
 // ("individual_rehab" vs 여기의 "individual_rehabilitation"). 실 API 연동 시 값 매핑 필요.
 
-export type AnalysisStatus = "reviewing" | "consulting" | "in_progress";
+export type AnalysisStatus =
+  | "consulting"
+  | "reviewing"
+  | "rejected"
+  | "contract_pending"
+  | "in_progress"
+  | "suspended";
 
 export type AnalysisProcedureType =
   | "individual_rehabilitation"
@@ -243,8 +250,12 @@ export type AnalysisDetail = {
   contact?: string | null;
   /** 공유 시 전달한 참고사항 (없으면 null) */
   referenceNote?: string | null;
+  /** 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록 응답(AnalysisListItem)에는 없음 — 상세 전용. */
+  rejectionReason?: string | null;
   /** 절차 단계 변경 이력 (상세 응답에 포함된 최근 이력) */
   procedureStepHistory?: AnalysisProcedureStepHistoryItem[];
+  /** 계약대기중 이후 등록된 수임료 계획 */
+  feePlan: FeePlan | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -323,15 +334,18 @@ export type AnalysisListItem = {
   id: number;
   status: AnalysisStatus;
   customerName: string;
+  employmentType?: string | null;
   region: string;
   totalDebt: number;
   disposableIncome: number;
-  // Swagger 스펙엔 필수로 있었지만 실제 목록 API 응답엔 내려오지 않는다 — trackingProcedure를
-  // 대신 사용해야 한다 (services/debtRelief.ts의 toDiagnosisListItem 참고).
-  recommendation?: AnalysisProcedureType;
-  trackingProcedure: AnalysisProcedureType | null;
-  score: number | null; // Swagger 예시가 {}로 표기되어 있어 실제 응답으로 재확인 필요
+  // 백엔드가 trackingProcedure ?? analysisResult.recommendation ?? null 로 계산해 내려주는 단일 필드.
+  // "절차진행중이면 현재 추적 절차, 그 이전 단계에서는 AI 추천 절차"를 항상 정확히 반영한다.
+  procedure: AnalysisProcedureType | null;
+  // 계약대기중 이후 입력된 경우에만 존재하는 수임료 결제정보 요약 (설치 회차 배열은 없음 — 상세는 FeePlan 참고)
+  feePlan: FeePlanSummary | null;
   currentProcedureStep: number | null;
+  // 고객과 연결되어 있는지 여부. 변호사 프로젝트가 공유받은 건은 항상 false.
+  isCustomerConnected: boolean;
   isShared: boolean;
   sourceProjectName: string | null;
   sourceMemberName?: string | null;

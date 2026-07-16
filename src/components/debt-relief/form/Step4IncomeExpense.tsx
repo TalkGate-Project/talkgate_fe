@@ -41,7 +41,11 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
       <FormSectionTitle>고객 소득/지출</FormSectionTitle>
 
       <div className="mt-0 md:mt-3 flex flex-col gap-5">
-        <FormField label="월 소득 (세후 실수령 기준)">
+        <FormField
+          label="월 소득 (세후 실수령 기준)"
+          required
+          filled={form.monthlyIncome !== null}
+        >
           <PillSelect
             options={MONTHLY_INCOME_OPTIONS}
             value={form.monthlyIncome}
@@ -49,7 +53,7 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
           />
         </FormField>
 
-        <FormField label="주거 형태">
+        <FormField label="주거 형태" required filled={form.housingType !== null}>
           <PillSelect
             options={HOUSING_TYPE_OPTIONS}
             value={form.housingType}
@@ -68,7 +72,11 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
           {/* Figma: 모바일 2열 / 데스크톱 3열 */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 md:gap-x-7 gap-y-4 md:gap-y-5">
             {EXPENSE_FIELDS.map((field) => (
-              <FormField key={field.key} label={field.label}>
+              <FormField
+                key={field.key}
+                label={field.label}
+                filled={form.expenses[field.key] > 0}
+              >
                 <ManwonInput
                   value={form.expenses[field.key]}
                   onChange={(value) => setExpense(field.key, value)}
