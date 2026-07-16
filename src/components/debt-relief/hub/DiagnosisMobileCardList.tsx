@@ -1,8 +1,12 @@
 import EmptyState from "@/components/common/EmptyState";
 import Checkbox from "@/components/common/Checkbox";
 import LinkIcon from "@/components/icons/LinkIcon";
-import { ProcedureBadge } from "@/components/debt-relief/DiagnosisBadges";
-import { formatCustomerMeta, formatDebtManwonParts } from "@/components/debt-relief/format";
+import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
+import {
+  formatCustomerMeta,
+  formatDebtManwonParts,
+  formatFeePlanSummary,
+} from "@/components/debt-relief/format";
 import { getProgressStepMeta, type DiagnosisListItem } from "@/types/debtRelief";
 
 type Props = {
@@ -22,22 +26,21 @@ function CardSkeleton() {
 function MobileProgressBlock({
   step,
   procedure,
-  successProbability,
+  feePlanSummary,
   debtManwon,
 }: {
   step: number;
   procedure: DiagnosisListItem["recommendedProcedure"];
-  successProbability: number;
+  feePlanSummary: DiagnosisListItem["feePlanSummary"];
   debtManwon: number;
 }) {
   const { current, total, title } = getProgressStepMeta(procedure, step);
   const isKnown = total > 1;
   const percent = isKnown ? Math.round((current / total) * 100) : 0;
   const { amount, unit } = formatDebtManwonParts(debtManwon);
-  const score = Math.min(100, Math.max(0, Math.round(successProbability)));
 
   return (
-    // 피그마: [진행라벨+바] | [점수] | [채무] — 바·점수·채무 하단 맞춤
+    // 피그마: [진행라벨+바] | [결제정보] | [채무] — 바·결제정보·채무 하단 맞춤
     <div className="flex items-end gap-2 w-full min-w-0">
       <div className="flex flex-col gap-1 w-[148px] shrink-0 min-w-0">
         <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
@@ -51,15 +54,13 @@ function MobileProgressBlock({
         </div>
       </div>
 
-      {/* 점수·채무: leading-none + items-end 로 밑선 통일 (공통 SuccessProbabilityText는 line-height가 달라 제외) */}
       <div className="ml-auto flex items-end gap-3 shrink-0 min-w-0">
-        <span className="inline-flex items-end whitespace-nowrap">
-          <span className="text-[16px] font-semibold leading-none text-neutral-90">{score}</span>
-          <span className="text-[10px] font-medium leading-none tracking-[-0.02em] text-neutral-60">
-            /100
+        {feePlanSummary && (
+          <span className="text-[11px] font-medium leading-none text-neutral-60 truncate max-w-[110px]">
+            {formatFeePlanSummary(feePlanSummary)}
           </span>
-        </span>
-        <span className="inline-flex items-end whitespace-nowrap opacity-80">
+        )}
+        <span className="inline-flex items-end whitespace-nowrap opacity-80 shrink-0">
           <span className="text-[14px] font-bold leading-none text-foreground">{amount}</span>
           {unit && (
             <span className="text-[12px] font-medium leading-none text-foreground">{unit}</span>
@@ -138,7 +139,7 @@ export default function DiagnosisMobileCardList({
                   <p className="text-[16px] font-semibold leading-[19px] text-neutral-90 truncate">
                     {item.customerName}
                   </p>
-                  {item.isShared && (
+                  {item.isCustomerConnected && (
                     <LinkIcon size={16} className="text-secondary-60 shrink-0" />
                   )}
                   {customerMeta && (
@@ -148,15 +149,15 @@ export default function DiagnosisMobileCardList({
                   )}
                 </div>
                 <span className="shrink-0 opacity-80">
-                  <ProcedureBadge procedure={item.recommendedProcedure} />
+                  <StatusBadge status={item.status} />
                 </span>
               </div>
 
-              {/* 하단: 진행단계 · 점수 · 채무 / 진행 바 */}
+              {/* 하단: 진행단계 · 결제정보 · 채무 / 진행 바 */}
               <MobileProgressBlock
                 step={item.progressStep}
                 procedure={item.recommendedProcedure}
-                successProbability={item.successProbability}
+                feePlanSummary={item.feePlanSummary}
                 debtManwon={item.totalDebtManwon}
               />
             </div>

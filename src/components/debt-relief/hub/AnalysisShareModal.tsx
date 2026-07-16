@@ -276,14 +276,31 @@ export default function AnalysisShareModal({
   const handleContactSubmit = (payload: { contact: string; referenceNote?: string }) => {
     if (!currentAnalysisId) return;
 
-    const nextDrafts = saveDraftForCurrent(payload, { force: true });
+    const customerName = currentMeta?.customerName || "고객";
+    const formattedContact = formatPhoneInput(payload.contact);
+    const messageLines = [
+      `연락처: ${formattedContact}`,
+      ...(payload.referenceNote ? [`참고사항: ${payload.referenceNote}`] : []),
+    ];
 
-    if (!isLastContact) {
-      setContactIndex((prev) => prev + 1);
-      return;
-    }
+    showConfirmModal({
+      title: "고객 정보 확인",
+      headline: `${customerName}님의 입력 정보가 맞나요?`,
+      message: messageLines.join("\n"),
+      type: "info",
+      confirmText: isLastContact ? "공유하기" : "다음으로",
+      cancelText: "다시 입력",
+      onConfirm: () => {
+        const nextDrafts = saveDraftForCurrent(payload, { force: true });
 
-    void submitDeliver(nextDrafts);
+        if (!isLastContact) {
+          setContactIndex((prev) => prev + 1);
+          return;
+        }
+
+        void submitDeliver(nextDrafts);
+      },
+    });
   };
 
   const submitDeliver = async (finalDrafts: Record<string, ContactDraft>) => {

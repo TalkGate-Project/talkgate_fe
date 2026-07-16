@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { DebtReliefService } from "@/services/debtRelief";
+import type { AnalysisStatus } from "@/types/analysis";
 import type {
   DiagnosisDetail,
   DiagnosisHubSummary,
@@ -60,6 +61,7 @@ export function useDebtReliefList() {
   const [projectId, ready] = useSelectedProjectId();
 
   const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(undefined);
+  const [status, setStatusState] = useState<AnalysisStatus | undefined>(undefined);
   const [keyword, setKeyword] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
   const [sortField, setSortField] = useState<DiagnosisSortField | undefined>("consultedAt");
@@ -74,6 +76,11 @@ export function useDebtReliefList() {
 
   const selectProcedure = (next: RecommendedProcedure | undefined) => {
     setProcedureState(next);
+    setPage(1);
+  };
+
+  const selectStatus = (next: AnalysisStatus | undefined) => {
+    setStatusState(next);
     setPage(1);
   };
 
@@ -120,6 +127,7 @@ export function useDebtReliefList() {
       page,
       limit,
       procedure,
+      status,
       keyword: appliedKeyword,
       sortField,
       sortDirection,
@@ -142,7 +150,7 @@ export function useDebtReliefList() {
     return () => {
       cancelled = true;
     };
-  }, [projectId, ready, page, limit, procedure, appliedKeyword, sortField, sortDirection, refetchIndex]);
+  }, [projectId, ready, page, limit, procedure, status, appliedKeyword, sortField, sortDirection, refetchIndex]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -152,6 +160,8 @@ export function useDebtReliefList() {
     loading,
     procedure,
     selectProcedure,
+    status,
+    selectStatus,
     keyword,
     setKeyword,
     submitSearch,
@@ -175,18 +185,22 @@ export function useDiagnosisDetail(id: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const [refetchIndex, setRefetchIndex] = useState(0);
+  const loadedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!ready || !projectId || !id) return;
 
     let cancelled = false;
-    setLoading(true);
+    if (loadedIdRef.current !== id) {
+      setLoading(true);
+    }
 
     DebtReliefService.getDiagnosisDetail(projectId, id)
       .then((data) => {
         if (cancelled) return;
         setDetail(data);
         setError(null);
+        loadedIdRef.current = id;
       })
       .catch((err) => {
         if (cancelled) return;

@@ -1,4 +1,5 @@
 import type { CustomerGender } from "@/types/debtRelief";
+import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
 // 총 채무 (만원) → "3.1억원" / "5,000만원"
 export function formatDebtManwon(manwon: number): string {
@@ -60,6 +61,12 @@ export function formatCustomerMeta(
   if (gender) parts.push(gender === "male" ? "남" : "여");
   if (occupation) parts.push(occupation);
   return parts.join(" · ");
+}
+
+// 결제 정보 요약 → "분할납부 3/12회 · 1,200만원" / "일괄납부 1/1회 · 500만원"
+export function formatFeePlanSummary(summary: FeePlanSummary): string {
+  const paymentTypeLabel = summary.paymentType === "lump_sum" ? "일괄납부" : "분할납부";
+  return `${paymentTypeLabel} ${summary.paidInstallmentCount}/${summary.installmentCount}회 · ${summary.totalAmount.toLocaleString("ko-KR")}만원`;
 }
 
 // AI 추천 태그 → 짧은 칩 라벨.

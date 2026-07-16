@@ -1,6 +1,27 @@
 // 회생·파산 진단 도메인 타입
 
-import type { AnalysisInputData } from "@/types/analysis";
+import type { AnalysisInputData, AnalysisStatus } from "@/types/analysis";
+import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
+
+// ── 상태값 ───────────────────────────────────────────────────
+// 상태 코드는 절차 코드(RecommendedProcedure)와 달리 API와 UI 값이 동일해 별도 매핑 없이
+// AnalysisStatus를 그대로 재사용한다.
+export const DIAGNOSIS_STATUS_LABEL: Record<AnalysisStatus, string> = {
+  consulting: "상담중",
+  reviewing: "검토중",
+  rejected: "반려됨",
+  contract_pending: "계약대기중",
+  in_progress: "절차진행중",
+  // ⚠️ 회의 메모에 없던 상태값 — 정확한 의미(변호사 프로젝트 일시중단 등) 확인 필요, 임시 라벨.
+  suspended: "중단",
+};
+
+// 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능.
+export const DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES: readonly AnalysisStatus[] = [
+  "contract_pending",
+  "in_progress",
+  "suspended",
+];
 
 // ── 추천 절차 ────────────────────────────────────────────────
 // 코드는 내부 분기(배지 색상/탭 필터/분포 집계)용, 라벨은 UI 표시용.
@@ -33,12 +54,16 @@ export type DiagnosisListItem = {
   region: string; // 표시용: 서울, 경기·인천 등
   totalDebtManwon: number; // 총 채무 (만원)
   monthlyAvailableIncomeManwon: number; // 월 가용 소득 (만원, 음수 가능)
-  // 실 API 목록 응답엔 trackingProcedure만 내려오고, 아직 절차 추적을 시작하지 않은
-  // 건은 그마저도 null이라 알 수 없는 경우가 있다 — optional로 정직하게 표현.
+  status: AnalysisStatus;
+  // 절차진행중이면 현재 추적 절차, 그 이전 단계에서는 AI 추천 절차. 아직 알 수 없는 경우도 있어
+  // optional로 정직하게 표현.
   recommendedProcedure?: RecommendedProcedure;
-  successProbability: number; // 0~100
+  // 계약대기중 이후 입력된 경우에만 존재하는 수임료 결제정보 요약
+  feePlanSummary: FeePlanSummary | null;
   progressStep: number; // 절차 안내 진행 단계 (1-based). 아직 추적 시작 전이면 1
-  isShared: boolean; // 공유 링크 생성 여부
+  isShared: boolean; // 공유(납품) 관련 건 여부 — 삭제 가능 여부 등에 사용. 고객 연결 여부와는 다름(isCustomerConnected 참고)
+  // 고객과 연결되어 있는지 여부. 목록의 체인 아이콘 노출 조건 — isShared와 혼동 금지.
+  isCustomerConnected: boolean;
   consultedAt: string; // ISO 날짜 (YYYY-MM-DD)
   // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버)
   assigneeName?: string;
@@ -107,6 +132,7 @@ export type DiagnosisListQuery = {
   page: number;
   limit: number;
   procedure?: RecommendedProcedure; // 탭 필터. 없으면 전체
+  status?: AnalysisStatus; // 상태 필터. 없으면 전체 — 절차 필터와 동시 적용 가능
   keyword?: string; // 고객명/직업/지역 검색
   sortField?: DiagnosisSortField;
   sortDirection?: SortDirection;
@@ -358,12 +384,12 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
   return {
     customerName: "",
     gender: null,
-    // 성별을 제외한 기본정보 뱃지는 아무것도 선택되지 않은 상태를 피하기 위해 가장 왼쪽 옵션을 기본값으로 둔다.
-    ageGroup: AGE_GROUP_OPTIONS[0].value,
-    region: REGION_OPTIONS[0].value,
-    employmentType: EMPLOYMENT_TYPE_OPTIONS[0].value,
-    dependents: DEPENDENT_OPTIONS[0].value,
-    spouseIncome: false,
+    // 새 진단: 어쩔 수 없는 기본값(토글 off, 금액 0 등)을 제외하면 뱃지를 미리 선택하지 않는다.
+    ageGroup: null,
+    region: null,
+    employmentType: null,
+    dependents: null,
+    spouseIncome: null,
     realEstateTypes: [],
     realEstateAmounts: {},
     financialAsset: null,
@@ -505,6 +531,9 @@ export type DiagnosisDetail = {
   customerId: number | null;
   consultedAt: string; // ISO datetime
   isShared: boolean;
+  status: AnalysisStatus;
+  // 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록에는 없는 상세 전용 필드.
+  rejectionReason: string | null;
   // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
   assigneeName?: string;
   assigneeProfileImageUrl?: string;
@@ -533,6 +562,7 @@ export type DiagnosisDetail = {
   inputData: AnalysisInputData;
   contact: string | null;
   referenceNote: string | null;
+  feePlan: FeePlan | null;
 };
 
 // ════════════════════════════════════════════════════════════

@@ -4,20 +4,21 @@ import Checkbox from "@/components/common/Checkbox";
 import LinkIcon from "@/components/icons/LinkIcon";
 import AnalysisShareIcon from "@/components/icons/AnalysisShareIcon";
 import {
-  ProcedureBadge,
-  ProgressStepIndicator,
-  SuccessProbabilityText,
+  StatusBadge,
   DebtAmountText,
+  FeePlanCell,
 } from "@/components/debt-relief/DiagnosisBadges";
 import {
   formatAvailableIncome,
   formatConsultedDate,
   formatCustomerMeta,
 } from "@/components/debt-relief/format";
-import type {
-  DiagnosisListItem,
-  DiagnosisSortField,
-  SortDirection,
+import {
+  RECOMMENDED_PROCEDURE_LABEL,
+  getProgressStepMeta,
+  type DiagnosisListItem,
+  type DiagnosisSortField,
+  type SortDirection,
 } from "@/types/debtRelief";
 
 type Props = {
@@ -77,6 +78,13 @@ function SortableHeader({
   );
 }
 
+// 절차진행중 상태뱃지에 붙는 "현재/총단계" (예: "5/9"). 총단계를 모르면 생략.
+function resolveInProgressStepLabel(item: DiagnosisListItem): string | undefined {
+  if (item.status !== "in_progress") return undefined;
+  const { current, total } = getProgressStepMeta(item.recommendedProcedure, item.progressStep);
+  return total > 1 ? `${current}/${total}` : undefined;
+}
+
 function AssigneeCell({ item }: { item: DiagnosisListItem }) {
   if (!item.assigneeName) {
     return <span className="text-[14px] font-medium text-neutral-50">-</span>;
@@ -127,8 +135,8 @@ export default function DiagnosisTable({
   onToggleSelect,
   onToggleSelectAll,
 }: Props) {
-  // 기본 8열(체크~상담일) + 조건부 공유/담당
-  const columnCount = 8 + (showShareColumn ? 1 : 0) + (showAssigneeColumn ? 1 : 0);
+  // 기본 9열(체크~상담일) + 조건부 공유/담당
+  const columnCount = 9 + (showShareColumn ? 1 : 0) + (showAssigneeColumn ? 1 : 0);
   const consultedRoundedRight = !showShareColumn && !showAssigneeColumn;
 
   return (
@@ -149,11 +157,11 @@ export default function DiagnosisTable({
               </div>
             </th>
             <th className={`${HEADER_CELL} text-left`}>고객정보</th>
+            <th className={`${HEADER_CELL} text-left`}>지역</th>
             <th className={`${HEADER_CELL} text-left`}>총 채무</th>
             <th className={`${HEADER_CELL} text-left`}>월 가용소득</th>
-            <th className={`${HEADER_CELL} text-left`}>추천 절차</th>
-            <th className={`${HEADER_CELL} text-left`}>성공 가능성</th>
-            <th className={`${HEADER_CELL} text-left min-w-[140px]`}>진행단계</th>
+            <th className={`${HEADER_CELL} text-left`}>상태</th>
+            <th className={`${HEADER_CELL} text-left min-w-[140px]`}>결제 정보</th>
             <SortableHeader
               label="상담일"
               field="consultedAt"
@@ -216,7 +224,9 @@ export default function DiagnosisTable({
                         <p className="text-[14px] font-semibold leading-[17px] text-foreground opacity-80 truncate">
                           {item.customerName}
                         </p>
-                        {item.isShared && <LinkIcon size={16} className="text-[#2563EB] shrink-0" />}
+                        {item.isCustomerConnected && (
+                          <LinkIcon size={16} className="text-[#2563EB] shrink-0" />
+                        )}
                       </div>
                       {customerMeta ? (
                         <p className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80">
@@ -224,6 +234,9 @@ export default function DiagnosisTable({
                         </p>
                       ) : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-2 align-middle text-[14px] font-medium leading-[17px] text-neutral-90 whitespace-nowrap opacity-80">
+                    {item.region}
                   </td>
                   <td className="px-4 py-2 align-middle whitespace-nowrap">
                     <DebtAmountText manwon={item.totalDebtManwon} />
@@ -236,16 +249,17 @@ export default function DiagnosisTable({
                     {formatAvailableIncome(item.monthlyAvailableIncomeManwon)}
                   </td>
                   <td className="px-4 py-2 align-middle">
-                    <ProcedureBadge procedure={item.recommendedProcedure} />
-                  </td>
-                  <td className="px-4 py-2 align-middle">
-                    <SuccessProbabilityText value={item.successProbability} />
+                    <div className="flex items-center gap-1.5">
+                      {item.recommendedProcedure && (
+                        <span className="text-[13px] font-medium text-neutral-60 whitespace-nowrap">
+                          {RECOMMENDED_PROCEDURE_LABEL[item.recommendedProcedure]}
+                        </span>
+                      )}
+                      <StatusBadge status={item.status} stepLabel={resolveInProgressStepLabel(item)} />
+                    </div>
                   </td>
                   <td className="px-4 py-2 align-middle min-w-[140px]">
-                    <ProgressStepIndicator
-                      step={item.progressStep}
-                      procedure={item.recommendedProcedure}
-                    />
+                    <FeePlanCell summary={item.feePlanSummary} />
                   </td>
                   <td className="px-2 py-2 align-middle text-[14px] font-medium leading-[17px] text-neutral-90 whitespace-nowrap w-[56px] opacity-80">
                     {formatConsultedDate(item.consultedAt)}

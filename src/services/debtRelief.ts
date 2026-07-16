@@ -386,11 +386,6 @@ function resolveAgeGroupLabel(ageGroup?: string | null): string | undefined {
 }
 
 function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
-  // ⚠️ Swagger 스펙엔 recommendation이 있었지만 실 목록 API(GET /v1/analysis) 응답엔
-  // 내려오지 않고 trackingProcedure만 있다. trackingProcedure도 아직 절차 추적을
-  // 시작하지 않은 건은 null일 수 있어, 그 경우엔 절차를 알 수 없는 상태로 둔다
-  // (하위 UI가 "확인 중"으로 방어적으로 표시).
-  const procedureCode = item.trackingProcedure ?? item.recommendation;
   const assigneeName = item.sourceAssignedMemberName ?? item.sourceMemberName ?? undefined;
   const assigneeProfileImageUrl =
     item.sourceAssignedMemberProfileImageUrl ?? item.sourceMemberProfileImageUrl ?? undefined;
@@ -404,13 +399,13 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     region: item.region,
     totalDebtManwon: item.totalDebt,
     monthlyAvailableIncomeManwon: item.disposableIncome,
-    recommendedProcedure: procedureCode ? PROCEDURE_FROM_ANALYSIS[procedureCode] : undefined,
-    // "성공 가능성"에 대응하는 필드가 명세에 없어 추천 절차 적합도 점수(score)로 임시 대체.
-    // 의미가 다를 수 있어 실제 화면에서 재확인 필요.
-    successProbability: item.score ?? 0,
+    status: item.status,
+    recommendedProcedure: item.procedure ? PROCEDURE_FROM_ANALYSIS[item.procedure] : undefined,
+    feePlanSummary: item.feePlan,
     // 아직 절차 추적을 시작하지 않아 null이면 1단계로 표시
     progressStep: item.currentProcedureStep ?? 1,
     isShared: item.isShared,
+    isCustomerConnected: item.isCustomerConnected,
     consultedAt: item.createdAt.slice(0, 10),
     assigneeName: assigneeName || undefined,
     assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
@@ -638,13 +633,14 @@ export const DebtReliefService = {
 
   // 진단 목록 (필터·검색·페이지네이션·정렬은 GET /v1/analysis 쿼리로 서버에 위임)
   async listDiagnoses(query: DiagnosisListQuery): Promise<DiagnosisListResult> {
-    const { projectId, page, limit, procedure, keyword = "", sortField, sortDirection = "desc" } = query;
+    const { projectId, page, limit, procedure, status, keyword = "", sortField, sortDirection = "desc" } = query;
 
     const response = await AnalysisService.list({
       projectId,
       page,
       limit,
       procedure: procedure ? PROCEDURE_TO_ANALYSIS[procedure] : undefined,
+      status,
       search: keyword.trim() || undefined,
       sortType: sortField ? SORT_FIELD_TO_ANALYSIS[sortField] : undefined,
       sortOrder: sortField ? SORT_DIRECTION_TO_ANALYSIS[sortDirection] : undefined,
@@ -720,6 +716,8 @@ export const DebtReliefService = {
       customerId: analysis.customerId,
       consultedAt: analysis.createdAt,
       isShared: analysis.isShared,
+      status: analysis.status,
+      rejectionReason: analysis.rejectionReason ?? null,
       assigneeName: assigneeName || undefined,
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
       assigneeProjectName: analysis.sourceProjectName ?? undefined,
@@ -779,6 +777,7 @@ export const DebtReliefService = {
       inputData,
       contact: analysis.contact ?? null,
       referenceNote: analysis.referenceNote ?? null,
+      feePlan: analysis.feePlan ?? null,
     };
   },
 

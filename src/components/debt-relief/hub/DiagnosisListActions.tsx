@@ -14,8 +14,9 @@ type Props = {
   onLimitChange: (limit: number) => void;
 };
 
+// 고객목록(CustomersActions.tsx)과 동일한 아이콘 버튼 스타일 — 다크모드 hover까지 명시
 const ICON_BTN =
-  "cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] hover:bg-neutral-10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+  "cursor-pointer w-6 h-6 flex items-center justify-center rounded-[5px] text-neutral-50 dark:text-neutral-50 hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent";
 
 const LIMIT_OPTIONS = [10, 20, 30, 50, 100];
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDebtReliefSummary, useDebtReliefList } from "@/hooks/useDebtReliefHub";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import SummaryCards from "@/components/debt-relief/hub/SummaryCards";
-import DiagnosisFilterTabs from "@/components/debt-relief/hub/DiagnosisFilterTabs";
+import DiagnosisFilterChips from "@/components/debt-relief/hub/DiagnosisFilterChips";
 import DiagnosisSearchInput from "@/components/debt-relief/hub/DiagnosisSearchInput";
 import DiagnosisListActions from "@/components/debt-relief/hub/DiagnosisListActions";
 import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
@@ -28,6 +28,8 @@ export default function DebtReliefHubContent() {
     loading: listLoading,
     procedure,
     selectProcedure,
+    status,
+    selectStatus,
     keyword,
     setKeyword,
     submitSearch,
@@ -194,16 +196,17 @@ export default function DebtReliefHubContent() {
         <div className="flex flex-col gap-3 mb-5">
           {/* 모바일 피그마: 필터 탭 → 검색+액션 → 총 건수. 데스크톱: 탭 왼쪽 / 검색·액션 오른쪽 */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <DiagnosisFilterTabs
-                summary={summary}
-                active={procedure}
-                onChange={selectProcedure}
-                totalCount={totalCount}
-                selectedCount={selectedIds.size}
-              />
-            </div>
+            <DiagnosisFilterChips
+              procedure={procedure}
+              status={status}
+              onChangeProcedure={selectProcedure}
+              onChangeStatus={selectStatus}
+            />
             <div className="flex items-center gap-3">
+              <span className="hidden md:inline text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
+                총 {totalCount}건
+                {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
+              </span>
               <DiagnosisSearchInput
                 value={keyword}
                 onChange={setKeyword}
