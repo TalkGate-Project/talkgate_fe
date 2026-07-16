@@ -18,10 +18,11 @@ const CONDITION_TEXT_COLOR: Record<ConditionStatus, string> = {
   risk: "text-danger-100 dark:text-danger-40",
 };
 
+// 다크모드는 SummaryCards.tsx의 PROCEDURE_CHIP_STYLE / DiagnosisBadges.tsx와 동일한 chip 스펙 값으로 통일
 const STATUS_CHIP: Record<ConditionStatus, string> = {
-  met: "bg-primary-10 text-primary-80",
-  caution: "bg-warning-10 text-warning-60",
-  risk: "bg-danger-10 text-danger-40",
+  met: "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
+  caution: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
+  risk: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
 function ConditionIcon({ status }: { status: ConditionStatus }) {

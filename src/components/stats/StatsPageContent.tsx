@@ -16,9 +16,11 @@ import TeamMemberRankingList from "@/components/stats/TeamMemberRankingList";
 import MyRankingCard from "@/components/stats/MyRankingCard";
 import MonthSelector from "@/components/common/MonthSelector";
 import CurrentProjectBadge from "@/components/common/CurrentProjectBadge";
+import FeePaymentStatusPanel from "@/components/stats/fee/FeePaymentStatusPanel";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
+import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import { getCurrentRankingMonthStart } from "@/utils/datetime";
 import StatsChartFilterButton from "@/components/stats/StatsChartFilterButton";
@@ -28,15 +30,20 @@ import { readStatsFilter, writeStatsFilter } from "@/components/stats/statsFilte
 import type { Option } from "@/components/common/filterFields";
 import type { MemberTreeNode } from "@/types/membersTree";
 
-type TabKey = "apply" | "assign" | "payment" | "status" | "ranking";
+type TabKey = "apply" | "assign" | "payment" | "status" | "ranking" | "fee";
 
-const TAB_ITEMS: { key: TabKey; label: string }[] = [
+const BASE_TAB_ITEMS: { key: TabKey; label: string }[] = [
   { key: "apply", label: "신청통계" },
   { key: "assign", label: "배정통계" },
   { key: "payment", label: "매출통계" },
   { key: "status", label: "카테고리" },
   { key: "ranking", label: "전체랭킹" },
 ];
+
+const FEE_TAB_ITEM: { key: TabKey; label: string } = {
+  key: "fee",
+  label: "회생·파산 납부 현황",
+};
 
 function findNodeById(nodes: MemberTreeNode[], id: number): MemberTreeNode | null {
   for (const node of nodes) {
@@ -66,6 +73,14 @@ function StatsPageContentInner() {
   const search = useSearchParams();
   const [projectId, projectReady] = useSelectedProjectId();
   const { project, isLoading: isProjectLoading } = useCurrentProjectDetail();
+  const [showFeeTab, feeTabReady] = useDebtReliefMenu();
+
+  const tabItems = useMemo(() => {
+    if (feeTabReady && showFeeTab) {
+      return [...BASE_TAB_ITEMS, FEE_TAB_ITEM];
+    }
+    return BASE_TAB_ITEMS;
+  }, [feeTabReady, showFeeTab]);
 
   // State from query params
   const [applyMode, setApplyMode] = useState<"daily" | "monthly">(
@@ -122,9 +137,13 @@ function StatsPageContentInner() {
 
   const active: TabKey = useMemo(() => {
     const q = (search.get("tab") || "apply").toLowerCase();
-    return (TAB_ITEMS.find((t) => t.key === (q as TabKey))?.key ??
-      "apply") as TabKey;
-  }, [search]);
+    const matched = tabItems.find((t) => t.key === (q as TabKey))?.key;
+    // 회생·파산 미대상 프로젝트에서 ?tab=fee 접근 시 신청통계로 폴백
+    if (q === "fee" && (!feeTabReady || !showFeeTab)) {
+      return "apply";
+    }
+    return (matched ?? "apply") as TabKey;
+  }, [search, tabItems, feeTabReady, showFeeTab]);
 
   const statsFilterPrefix = getStatsFilterPrefix(active, assignMode);
   const appliedStatsFilter = useMemo(
@@ -325,7 +344,7 @@ function StatsPageContentInner() {
             <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0 relative">
               {/* 전체 연속된 기본 border - 탭 전체 너비를 커버하도록 내부 컨테이너에 적용 */}
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#F0F0F0] dark:bg-neutral-30 md:hidden" />
-              {TAB_ITEMS.map((t) => (
+              {tabItems.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
@@ -610,6 +629,11 @@ function StatsPageContentInner() {
               )}
             </div>
           </section>
+        )}
+
+        {/* Fee Tab: 회생·파산 납부 현황 — debt-relief 프로젝트에서만 렌더 */}
+        {active === "fee" && feeTabReady && showFeeTab && (
+          <FeePaymentStatusPanel />
         )}
       </div>
     </main>

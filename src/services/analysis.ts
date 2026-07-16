@@ -34,6 +34,22 @@ import type {
   BulkDeliverAnalysisInput,
   BulkDeliverAnalysisResponse,
 } from "@/types/analysis";
+import type {
+  FeeStatisticsQuery,
+  FeeStatisticsSummaryResponse,
+  FeeStatisticsInstallmentsResponse,
+} from "@/types/analysisFeeStatistics";
+import type {
+  CreateFeePlanInput,
+  CreateFeePlanResponse,
+  UpdateFeePlanInput,
+  UpdateFeePlanResponse,
+  PayFeeInstallmentInput,
+  PayFeeInstallmentResponse,
+  UnpayFeeInstallmentResponse,
+  RefundFeePlanResponse,
+  StopFeePlanResponse,
+} from "@/types/analysisFeePlan";
 
 export type AnalysisChatStreamCallbacks = {
   onDelta: (delta: string) => void;
@@ -256,5 +272,101 @@ export const AnalysisService = {
     return apiClient.post<AnalysisSendSmsResponse>(`/v1/analysis/${id}/send-sms`, input, {
       headers: { "x-project-id": projectId },
     });
+  },
+
+  // --- Fee Statistics (통계 탭 연동) ---
+
+  /** GET /v1/analysis/fee-statistics/summary */
+  feeStatisticsSummary(query: FeeStatisticsQuery) {
+    const { projectId, filterProjectId, startDate, endDate, page, limit } = query;
+    return apiClient.get<FeeStatisticsSummaryResponse>(
+      `/v1/analysis/fee-statistics/summary`,
+      {
+        query: {
+          ...(filterProjectId != null ? { projectId: filterProjectId } : {}),
+          ...(startDate ? { startDate } : {}),
+          ...(endDate ? { endDate } : {}),
+          ...(page != null ? { page } : {}),
+          ...(limit != null ? { limit } : {}),
+        },
+        headers: { "x-project-id": projectId },
+      }
+    );
+  },
+
+  /** GET /v1/analysis/fee-statistics/installments */
+  feeStatisticsInstallments(query: FeeStatisticsQuery) {
+    const { projectId, filterProjectId, startDate, endDate, page, limit } = query;
+    return apiClient.get<FeeStatisticsInstallmentsResponse>(
+      `/v1/analysis/fee-statistics/installments`,
+      {
+        query: {
+          ...(filterProjectId != null ? { projectId: filterProjectId } : {}),
+          ...(startDate ? { startDate } : {}),
+          ...(endDate ? { endDate } : {}),
+          ...(page != null ? { page } : {}),
+          ...(limit != null ? { limit } : {}),
+        },
+        headers: { "x-project-id": projectId },
+      }
+    );
+  },
+
+  // --- Fee Plan (추후 UI 연동용. 현재 호출부 없음) ---
+
+  /** POST /v1/analysis/{id}/fee-plan */
+  createFeePlan(id: number, input: CreateFeePlanInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<CreateFeePlanResponse>(`/v1/analysis/${id}/fee-plan`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  /** PATCH /v1/analysis/{id}/fee-plan */
+  updateFeePlan(id: number, input: UpdateFeePlanInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<UpdateFeePlanResponse>(`/v1/analysis/${id}/fee-plan`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  /** POST /v1/analysis/{id}/fee-plan/installments/{installmentId}/pay */
+  payFeeInstallment(
+    id: number,
+    installmentId: number,
+    input: PayFeeInstallmentInput
+  ) {
+    const { projectId, ...body } = input;
+    return apiClient.post<PayFeeInstallmentResponse>(
+      `/v1/analysis/${id}/fee-plan/installments/${installmentId}/pay`,
+      body,
+      { headers: { "x-project-id": projectId } }
+    );
+  },
+
+  /** DELETE /v1/analysis/{id}/fee-plan/installments/{installmentId}/pay */
+  unpayFeeInstallment(id: number, installmentId: number, projectId: string) {
+    return apiClient.delete<UnpayFeeInstallmentResponse>(
+      `/v1/analysis/${id}/fee-plan/installments/${installmentId}/pay`,
+      { headers: { "x-project-id": projectId } }
+    );
+  },
+
+  /** POST /v1/analysis/{id}/fee-plan/refund */
+  refundFeePlan(id: number, projectId: string) {
+    return apiClient.post<RefundFeePlanResponse>(
+      `/v1/analysis/${id}/fee-plan/refund`,
+      {},
+      { headers: { "x-project-id": projectId } }
+    );
+  },
+
+  /** POST /v1/analysis/{id}/fee-plan/stop */
+  stopFeePlan(id: number, projectId: string) {
+    return apiClient.post<StopFeePlanResponse>(
+      `/v1/analysis/${id}/fee-plan/stop`,
+      {},
+      { headers: { "x-project-id": projectId } }
+    );
   },
 };

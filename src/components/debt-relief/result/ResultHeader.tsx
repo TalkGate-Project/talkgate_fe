@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { RECOMMENDED_PROCEDURE_LABEL, type DiagnosisDetail } from "@/types/debtRelief";
+import type { AnalysisProcedureType } from "@/types/analysis";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -14,6 +15,7 @@ import { useProjectType } from "@/hooks/useProjectType";
 import CustomerMatchModal from "./CustomerMatchModal";
 import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
+import FeePaymentInfoModal from "./FeePaymentInfoModal";
 
 function EditIcon() {
   const maskId = useId();
@@ -46,6 +48,27 @@ function ShareNodesIcon() {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function PaymentCardIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M2.5 8.33366H17.5M5.83333 12.5003H6.66667M10 12.5003H10.8333M5 15.8337H15C16.3807 15.8337 17.5 14.7144 17.5 13.3337V6.66699C17.5 5.28628 16.3807 4.16699 15 4.16699H5C3.61929 4.16699 2.5 5.28628 2.5 6.66699V13.3337C2.5 14.7144 3.61929 15.8337 5 15.8337Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -116,6 +139,15 @@ const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 border border-secondary-60 text-secondary-40 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
   "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors";
+
+const PROCEDURE_TO_ANALYSIS: Record<
+  DiagnosisDetail["trackingProcedure"],
+  AnalysisProcedureType
+> = {
+  individual_rehab: "individual_rehabilitation",
+  debt_adjustment: "debt_adjustment",
+  bankruptcy: "bankruptcy",
+};
 
 type Props = {
   detail: DiagnosisDetail;
@@ -194,7 +226,6 @@ function AssigneeProfileChip({
       ) : (
         <>
           {profileImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profileImageUrl}
               alt=""
@@ -229,6 +260,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
   const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [paymentInfoOpen, setPaymentInfoOpen] = useState(false);
   const [customerInfoOpen, setCustomerInfoOpen] = useState(false);
   const [linkedMenuOpen, setLinkedMenuOpen] = useState(false);
   const mobileLinkedMenuRef = useRef<HTMLDivElement>(null);
@@ -398,6 +430,15 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
 
             <button
               type="button"
+              onClick={() => setPaymentInfoOpen(true)}
+              aria-label="결제정보"
+              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+            >
+              <PaymentCardIcon />
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShareOpen(true)}
               aria-label="공유하기"
               className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90"
@@ -476,6 +517,10 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               <EditIcon />
               정보수정
             </button>
+            <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
+              <PaymentCardIcon />
+              결제정보
+            </button>
             <button type="button" className={ACTION_BTN} onClick={() => setShareOpen(true)}>
               <ShareNodesIcon />
               공유하기
@@ -521,14 +566,29 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
         referenceNote={detail.referenceNote}
       />
       {projectId && showOwnerActions && (
-        <AnalysisShareModal
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-          projectId={projectId}
-          analysisIds={[detail.id]}
-          customerName={detail.customerName}
-          initialContact={detail.customerId != null ? detail.phone : ""}
-        />
+        <>
+          <FeePaymentInfoModal
+            open={paymentInfoOpen}
+            onClose={() => setPaymentInfoOpen(false)}
+            analysisId={Number(detail.id)}
+            projectId={projectId}
+            trackingProcedure={PROCEDURE_TO_ANALYSIS[detail.trackingProcedure]}
+            feePlan={detail.feePlan}
+            procedureProgress={{
+              current: detail.procedureGuide.currentStep,
+              total: detail.procedureGuide.totalSteps,
+            }}
+            onChanged={onCustomerMatchChange}
+          />
+          <AnalysisShareModal
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            projectId={projectId}
+            analysisIds={[detail.id]}
+            customerName={detail.customerName}
+            initialContact={detail.customerId != null ? detail.phone : ""}
+          />
+        </>
       )}
     </>
   );

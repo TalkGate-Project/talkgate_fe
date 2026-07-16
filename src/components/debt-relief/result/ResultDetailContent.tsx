@@ -10,6 +10,7 @@ import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
 import {
+  DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES,
   RECOMMENDED_PROCEDURE_LABEL,
   type ProcedureStep,
   type RecommendedProcedure,
@@ -195,15 +196,25 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         )}
 
         <SectionCard id="guide" compactTop>
-          {/* trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
-              남아있지 않도록 key로 강제 리마운트한다. */}
-          <SectionProcedureGuide
-            key={detail.trackingProcedure}
-            detail={detail}
-            onSetCurrentStep={handleSetCurrentStep}
-            onChangeTrackingProcedure={handleChangeTrackingProcedure}
-            canChangeTrackingProcedure={!lawyerReceivedReadOnly}
-          />
+          {DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status) ? (
+            // trackingProcedure가 바뀌면(절차 전환) 이전 절차의 로컬 진행 상태(currentStep 등)가
+            // 남아있지 않도록 key로 강제 리마운트한다.
+            <SectionProcedureGuide
+              key={detail.trackingProcedure}
+              detail={detail}
+              onSetCurrentStep={handleSetCurrentStep}
+              onChangeTrackingProcedure={handleChangeTrackingProcedure}
+              canChangeTrackingProcedure={!lawyerReceivedReadOnly}
+            />
+          ) : (
+            // 계약 체결(계약대기중) 전에는 절차안내를 이용할 수 없다.
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <h2 className="text-[16px] font-semibold text-foreground">절차안내</h2>
+              <p className="text-[14px] font-medium text-neutral-60">
+                계약 체결 후 절차안내를 확인할 수 있습니다.
+              </p>
+            </div>
+          )}
         </SectionCard>
 
         <SectionCard id="sms" title="고객 문자 전송" compactTop>
