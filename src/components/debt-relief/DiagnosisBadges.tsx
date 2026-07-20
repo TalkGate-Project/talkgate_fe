@@ -105,7 +105,7 @@ export function DebtAmountText({ manwon }: { manwon: number }) {
 
 // 결제정보 표시 상태 — feePlan.status(active/stopped/refunded)와 완납 여부를 조합해 계산.
 // active인데 다 냈으면 "완납", 덜 냈으면 "진행중". stopped="중도해지", refunded="환불처리".
-function resolveFeePlanDisplay(summary: FeePlanSummary): { label: string; barClassName: string } {
+export function resolveFeePlanDisplay(summary: FeePlanSummary): { label: string; barClassName: string } {
   if (summary.status === "refunded") return { label: "환불처리", barClassName: "bg-neutral-40" };
   if (summary.status === "stopped") return { label: "중도해지", barClassName: "bg-danger-40" };
   if (summary.paidInstallmentCount >= summary.installmentCount) {

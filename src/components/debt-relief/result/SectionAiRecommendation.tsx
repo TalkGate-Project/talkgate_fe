@@ -65,8 +65,9 @@ export default function SectionAiRecommendation({ detail }: { detail: DiagnosisD
         </div>
 
         <div className="flex items-start justify-between gap-3 md:gap-6">
-          {/* 모바일 Figma max 215, 태블릿(md+)에서는 남은 폭 사용 */}
-          <div className="min-w-0 flex-1 max-w-[215px] md:max-w-none">
+          {/* 375px 기준 Figma에서는 flex-1이 도넛 옆 남은 폭(~215px)을 채우는 정도였을 뿐,
+              고정폭이 의도는 아니었음 — 뷰포트가 넓어지면(예: 756px) 함께 넓어지도록 고정 max-w 제거 */}
+          <div className="min-w-0 flex-1">
             <h3 className="text-[24px] font-extrabold leading-[29px] tracking-[-0.04em] text-neutral-90">
               {recommendation.title}
             </h3>

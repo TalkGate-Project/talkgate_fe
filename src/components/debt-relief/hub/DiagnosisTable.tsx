@@ -15,7 +15,7 @@ import {
 } from "@/components/debt-relief/format";
 import {
   RECOMMENDED_PROCEDURE_LABEL,
-  getProgressStepMeta,
+  resolveInProgressStepLabel,
   type DiagnosisListItem,
   type DiagnosisSortField,
   type SortDirection,
@@ -76,13 +76,6 @@ function SortableHeader({
       </button>
     </th>
   );
-}
-
-// 절차진행중 상태뱃지에 붙는 "현재/총단계" (예: "5/9"). 총단계를 모르면 생략.
-function resolveInProgressStepLabel(item: DiagnosisListItem): string | undefined {
-  if (item.status !== "in_progress") return undefined;
-  const { current, total } = getProgressStepMeta(item.recommendedProcedure, item.progressStep);
-  return total > 1 ? `${current}/${total}` : undefined;
 }
 
 function AssigneeCell({ item }: { item: DiagnosisListItem }) {

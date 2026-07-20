@@ -135,18 +135,21 @@ function LinkedCustomerIcon({ className }: { className?: string }) {
 const ACTION_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black dark:text-foreground hover:bg-neutral-10 whitespace-nowrap";
 
-// 공유된 건(isShared)일 때만 파란색 — 리스트 페이지의 AnalysisShareIcon tone="active"와 동일한 톤
+// 공유된 건(isShared)일 때만 파란색 — 리스트 페이지의 AnalysisShareIcon tone="active"와 동일한 톤.
+// 타이포는 ACTION_BTN과 동일해야 하는데 색상만 오버라이드하다가 사이즈 클래스가 누락돼 있었음(브라우저 기본값 16px/400으로 렌더링되던 버그)
+// 다크모드는 라이트용 파스텔(secondary-10)을 그대로 쓰면 어두운 카드 위에서 혼자 튀어서
+// FeePaymentInfoModal의 결제상태 칩과 동일하게 진한 네이비(blue-950/800/300)로 대체
 const ACTION_BTN_SHARED =
-  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-secondary-60 bg-secondary-10 text-secondary-60 hover:opacity-90 transition-opacity whitespace-nowrap";
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-secondary-60 dark:border-blue-800 bg-secondary-10 dark:bg-blue-950 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-secondary-60 dark:text-blue-300 hover:opacity-90 transition-opacity whitespace-nowrap";
 
 const ICON_BTN =
   "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10";
 
 const ICON_BTN_SHARED =
-  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90";
+  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90";
 
 const LINKED_CHIP_BTN =
-  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 border border-secondary-60 text-secondary-40 hover:opacity-90 transition-opacity";
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
   "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors";
 
@@ -403,6 +406,15 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
+              onClick={() => setPaymentInfoOpen(true)}
+              aria-label="결제정보"
+              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+            >
+              <PaymentCardIcon />
+            </button>
+
+            <button
+              type="button"
               onClick={handleEdit}
               aria-label="정보수정"
               className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
@@ -417,7 +429,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
                   onClick={() => setLinkedMenuOpen((prev) => !prev)}
                   aria-label="연결된 고객"
                   aria-expanded={linkedMenuOpen}
-                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 border border-secondary-60 text-secondary-60 hover:opacity-90"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90"
                 >
                   <LinkedCustomerIcon />
                 </button>
@@ -437,15 +449,6 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
                 <LinkedCustomerIcon />
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => setPaymentInfoOpen(true)}
-              aria-label="결제정보"
-              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-            >
-              <PaymentCardIcon />
-            </button>
 
             <button
               type="button"
@@ -501,7 +504,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
                   aria-label={`연결된 고객 ${linkedLabel}`}
                   aria-expanded={linkedMenuOpen}
                 >
-                  <LinkedCustomerIcon className="text-secondary-60 shrink-0" />
+                  <LinkedCustomerIcon className="text-secondary-60 dark:text-blue-300 shrink-0" />
                   <span className="text-[14px] font-medium leading-5 truncate max-w-[200px]">
                     {linkedLabel}
                   </span>
@@ -525,11 +528,11 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
 
             <button type="button" className={ACTION_BTN} onClick={handleEdit}>
               <EditIcon />
-              정보수정
+              <span className="leading-none">정보수정</span>
             </button>
             <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
               <PaymentCardIcon />
-              결제정보
+              <span className="leading-none">결제정보</span>
             </button>
             <button
               type="button"
@@ -537,7 +540,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               onClick={() => setShareOpen(true)}
             >
               <ShareNodesIcon />
-              공유하기
+              <span className="leading-none">공유하기</span>
             </button>
           </div>
         ) : showAssigneeProfile ? (
