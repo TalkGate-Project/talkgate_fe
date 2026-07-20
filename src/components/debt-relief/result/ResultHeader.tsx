@@ -74,6 +74,25 @@ function PaymentCardIcon() {
   );
 }
 
+// 계약대기중 + 결제정보 미입력 상태에서 "결제정보" 버튼 아래에 떠서 클릭을 유도하는 말풍선.
+// 결제정보를 입력해야 절차 진행(진행 절차 선택 → 절차진행중)이 시작된다는 걸 안내한다.
+function PaymentInfoNudgeBubble() {
+  return (
+    <div
+      role="status"
+      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-[180px] -translate-x-1/2 rounded-[8px] bg-neutral-90 dark:bg-neutral-20 px-3 py-2 text-center text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
+    >
+      <span
+        className="absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-neutral-90 dark:bg-neutral-20"
+        aria-hidden
+      />
+      결제 정보를 입력하면
+      <br />
+      절차 진행이 시작돼요
+    </div>
+  );
+}
+
 function CustomerInfoIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -203,12 +222,12 @@ function MoreOptionsIcon() {
         y="0.5"
         width="35"
         height="35"
-        rx="5.5"
-        className="fill-white dark:fill-neutral-10 stroke-neutral-30"
+        rx="17.5"
+        className="fill-neutral-10 dark:fill-neutral-20 stroke-neutral-30"
       />
       <path
         d="M11 18H11.01M18 18H18.01M25 18H25.01M12 18C12 18.5523 11.5523 19 11 19C10.4477 19 10 18.5523 10 18C10 17.4477 10.4477 17 11 17C11.5523 17 12 17.4477 12 18ZM19 18C19 18.5523 18.5523 19 18 19C17.4477 19 17 18.5523 17 18C17 17.4477 17.4477 17 18 17C18.5523 17 19 17.4477 19 18ZM26 18C26 18.5523 25.5523 19 25 19C24.4477 19 24 18.5523 24 18C24 17.4477 24.4477 17 25 17C25.5523 17 26 17.4477 26 18Z"
-        className="stroke-neutral-60"
+        className="stroke-neutral-60 dark:stroke-neutral-50"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -282,6 +301,11 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
   // 리스트와 동일: 영업점(analysis)만 연동·수정·공유 액션 세트 노출
   const showOwnerActions = projectTypeReady && isAnalysis;
   const showAssigneeProfile = projectTypeReady && isLawyer;
+  // 계약대기중인데 결제정보가 아직 없으면 절차 진행이 시작되지 않은 상태 — 결제정보 입력을 유도한다.
+  const showPaymentNudge =
+    (showOwnerActions || showAssigneeProfile) &&
+    detail.status === "contract_pending" &&
+    !detail.feePlan;
 
   const phonePreview = detail.phone ? formatContactForDisplay(detail.phone) : "";
   const linkedLabel =
@@ -404,14 +428,17 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
 
         {showOwnerActions ? (
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => setPaymentInfoOpen(true)}
-              aria-label="결제정보"
-              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-            >
-              <PaymentCardIcon />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setPaymentInfoOpen(true)}
+                aria-label="결제정보"
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              >
+                <PaymentCardIcon />
+              </button>
+              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+            </div>
 
             <button
               type="button"
@@ -460,7 +487,20 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             </button>
           </div>
         ) : showAssigneeProfile ? (
-          <div className="shrink-0">{assigneeProfile}</div>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setPaymentInfoOpen(true)}
+                aria-label="결제정보"
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              >
+                <PaymentCardIcon />
+              </button>
+              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+            </div>
+            {assigneeProfile}
+          </div>
         ) : null}
       </div>
 
@@ -530,10 +570,13 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               <EditIcon />
               <span className="leading-none">정보수정</span>
             </button>
-            <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
-              <PaymentCardIcon />
-              <span className="leading-none">결제정보</span>
-            </button>
+            <div className="relative">
+              <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
+                <PaymentCardIcon />
+                <span className="leading-none">결제정보</span>
+              </button>
+              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+            </div>
             <button
               type="button"
               className={detail.isShared ? ACTION_BTN_SHARED : ACTION_BTN}
@@ -544,7 +587,16 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             </button>
           </div>
         ) : showAssigneeProfile ? (
-          <div className="shrink-0">{assigneeProfile}</div>
+          <div className="flex items-center justify-end gap-4 shrink-0">
+            <div className="relative">
+              <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
+                <PaymentCardIcon />
+                <span className="leading-none">결제정보</span>
+              </button>
+              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+            </div>
+            {assigneeProfile}
+          </div>
         ) : null}
       </div>
 
@@ -580,32 +632,32 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
         onClose={() => setCustomerInfoOpen(false)}
         inputData={detail.inputData}
         contact={detail.contact}
-        referenceNote={detail.referenceNote}
       />
+      {projectId && (showOwnerActions || showAssigneeProfile) && (
+        <FeePaymentInfoModal
+          open={paymentInfoOpen}
+          onClose={() => setPaymentInfoOpen(false)}
+          analysisId={Number(detail.id)}
+          projectId={projectId}
+          trackingProcedure={PROCEDURE_TO_ANALYSIS[detail.trackingProcedure]}
+          feePlan={detail.feePlan}
+          procedureScores={detail.procedureScores}
+          procedureProgress={{
+            current: detail.procedureGuide.currentStep,
+            total: detail.procedureGuide.totalSteps,
+          }}
+          onChanged={onCustomerMatchChange}
+        />
+      )}
       {projectId && showOwnerActions && (
-        <>
-          <FeePaymentInfoModal
-            open={paymentInfoOpen}
-            onClose={() => setPaymentInfoOpen(false)}
-            analysisId={Number(detail.id)}
-            projectId={projectId}
-            trackingProcedure={PROCEDURE_TO_ANALYSIS[detail.trackingProcedure]}
-            feePlan={detail.feePlan}
-            procedureProgress={{
-              current: detail.procedureGuide.currentStep,
-              total: detail.procedureGuide.totalSteps,
-            }}
-            onChanged={onCustomerMatchChange}
-          />
-          <AnalysisShareModal
-            open={shareOpen}
-            onClose={() => setShareOpen(false)}
-            projectId={projectId}
-            analysisIds={[detail.id]}
-            customerName={detail.customerName}
-            initialContact={detail.customerId != null ? detail.phone : ""}
-          />
-        </>
+        <AnalysisShareModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          projectId={projectId}
+          analysisIds={[detail.id]}
+          customerName={detail.customerName}
+          initialContact={detail.customerId != null ? detail.phone : ""}
+        />
       )}
     </>
   );

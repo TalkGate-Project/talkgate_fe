@@ -6,12 +6,23 @@ import DatePicker from "@/components/common/DatePicker";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { AnalysisService } from "@/services/analysis";
+import { DebtReliefService } from "@/services/debtRelief";
 import type { AnalysisProcedureType } from "@/types/analysis";
+import type { ProcedureScore, RecommendedProcedure } from "@/types/debtRelief";
 import type {
   FeePaymentType,
   FeePlan,
   FeePlanInstallment,
 } from "@/types/analysisFeePlan";
+import { wonToManwon } from "@/components/stats/fee/feeFormat";
+import ProcedureSelectModal from "./ProcedureSelectModal";
+
+// 총 수임료 입력값(만원)이 이 값을 넘으면 오타(0 개수 실수 등) 가능성을 사용자에게 한 번 확인시킨다.
+const LARGE_TOTAL_AMOUNT_MANWON_THRESHOLD = 5_000;
+
+function manwonToWon(manwon: number): number {
+  return manwon * 10_000;
+}
 
 type Props = {
   open: boolean;
@@ -20,6 +31,7 @@ type Props = {
   projectId: string;
   trackingProcedure: AnalysisProcedureType;
   feePlan: FeePlan | null;
+  procedureScores: ProcedureScore[];
   procedureProgress: {
     current: number;
     total: number;
@@ -32,6 +44,7 @@ type FormState = {
   paymentType: FeePaymentType;
   installmentCount: string;
   firstPaymentDate: Date | null;
+  note: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -39,6 +52,7 @@ const EMPTY_FORM: FormState = {
   paymentType: "installment",
   installmentCount: "12",
   firstPaymentDate: null,
+  note: "",
 };
 
 function parseApiDate(value: string | null | undefined): Date | null {
@@ -121,6 +135,24 @@ function CalendarIcon() {
   );
 }
 
+function WarningTriangleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M8.866 2.5c-.385-.666-1.347-.666-1.732 0L1.34 12.25c-.385.666.096 1.5.866 1.5h11.588c.77 0 1.251-.834.866-1.5L8.866 2.5Z"
+        fill="#EFB008"
+      />
+      <path
+        d="M8 6.167V9M8 11.167h.007"
+        stroke="white"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function InstallmentStatus({ installment }: { installment: FeePlanInstallment }) {
   const status = {
     scheduled: {
@@ -157,6 +189,7 @@ export default function FeePaymentInfoModal({
   projectId,
   trackingProcedure,
   feePlan,
+  procedureScores,
   procedureProgress,
   onChanged,
 }: Props) {
@@ -166,6 +199,8 @@ export default function FeePaymentInfoModal({
   const [submitting, setSubmitting] = useState(false);
   const [editingInstallmentId, setEditingInstallmentId] = useState<number | null>(null);
   const [paymentDate, setPaymentDate] = useState<Date | null>(null);
+  const [procedureSelectOpen, setProcedureSelectOpen] = useState(false);
+  const [procedureSubmitting, setProcedureSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -176,10 +211,11 @@ export default function FeePaymentInfoModal({
     setForm(
       feePlan
         ? {
-            totalAmount: String(feePlan.totalAmount),
+            totalAmount: String(wonToManwon(feePlan.totalAmount)),
             paymentType: feePlan.paymentType,
             installmentCount: String(feePlan.installmentCount),
             firstPaymentDate: parseApiDate(feePlan.firstPaymentDate),
+            note: feePlan.note ?? "",
           }
         : EMPTY_FORM
     );
@@ -212,10 +248,11 @@ export default function FeePaymentInfoModal({
   const openConditionEditor = () => {
     if (!currentPlan || submitting) return;
     setForm({
-      totalAmount: String(currentPlan.totalAmount),
+      totalAmount: String(wonToManwon(currentPlan.totalAmount)),
       paymentType: currentPlan.paymentType,
       installmentCount: String(currentPlan.installmentCount),
       firstPaymentDate: parseApiDate(currentPlan.firstPaymentDate),
+      note: currentPlan.note ?? "",
     });
     setEditingConditions(true);
   };
@@ -249,46 +286,74 @@ export default function FeePaymentInfoModal({
       return;
     }
 
-    showConfirmModal({
-      title: "결제 조건 확인",
-      headline: "결제 조건을 변경하시겠습니까?",
-      message:
-        "결제 조건을 변경하면 이미 납부(완납/환불) 처리된 회차를 포함해 전체 회차 정보가 새로 계산됩니다.\n계속하시겠습니까?",
-      type: "warning",
-      confirmText: "확인",
-      cancelText: "취소",
-      onConfirm: async () => {
-        setSubmitting(true);
-        try {
-          const firstPaymentDate = toApiDate(form.firstPaymentDate!);
-          const response = currentPlan
-            ? await AnalysisService.updateFeePlan(analysisId, {
-                projectId,
-                totalAmount,
-                paymentType: form.paymentType,
-                installmentCount,
-                firstPaymentDate,
-              })
-            : await AnalysisService.createFeePlan(analysisId, {
-                projectId,
-                totalAmount,
-                paymentType: form.paymentType,
-                installmentCount,
-                firstPaymentDate,
-                trackingProcedure,
-              });
-          updateCurrentPlan(response.data.data);
-        } catch (error) {
-          console.error("Failed to save analysis fee plan:", error);
-          showErrorModal({
-            headline: "수임료 결제 조건을 저장하지 못했습니다.",
-            description: "잠시 후 다시 시도해주세요.",
-          });
-        } finally {
-          setSubmitting(false);
-        }
-      },
-    });
+    const proceedToConfirm = () => {
+      showConfirmModal({
+        title: "결제 조건 확인",
+        headline: "결제 조건을 변경하시겠습니까?",
+        message:
+          "결제 조건을 변경하면 이미 납부(완납/환불) 처리된 회차를 포함해 전체 회차 정보가 새로 계산됩니다.\n계속하시겠습니까?",
+        type: "warning",
+        confirmText: "확인",
+        cancelText: "취소",
+        onConfirm: async () => {
+          setSubmitting(true);
+          const wasCreate = !currentPlan;
+          try {
+            const firstPaymentDate = toApiDate(form.firstPaymentDate!);
+            const note = form.note.trim() || null;
+            const totalAmountWon = manwonToWon(totalAmount);
+            const response = currentPlan
+              ? await AnalysisService.updateFeePlan(analysisId, {
+                  projectId,
+                  totalAmount: totalAmountWon,
+                  paymentType: form.paymentType,
+                  installmentCount,
+                  firstPaymentDate,
+                  message: note,
+                })
+              : await AnalysisService.createFeePlan(analysisId, {
+                  projectId,
+                  totalAmount: totalAmountWon,
+                  paymentType: form.paymentType,
+                  installmentCount,
+                  firstPaymentDate,
+                  trackingProcedure,
+                  message: note,
+                });
+            // fee-plan 저장 응답에는 전달사항이 포함되지 않아(분석 상세의 액션 메시지 히스토리로만 누적) 방금 입력한 값을 로컬로 반영
+            updateCurrentPlan({ ...response.data.data, note });
+            // 최초 결제 정보 생성 시에만 진행할 절차를 명시적으로 고르게 한다 — 이미 절차를
+            // 추적 중인 건(조건수정)은 절차를 바꾸는 액션이 아니므로 다시 묻지 않는다.
+            if (wasCreate) {
+              setProcedureSelectOpen(true);
+            }
+          } catch (error) {
+            console.error("Failed to save analysis fee plan:", error);
+            showErrorModal({
+              headline: "수임료 결제 조건을 저장하지 못했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+            });
+          } finally {
+            setSubmitting(false);
+          }
+        },
+      });
+    };
+
+    // 0을 잘못 더 입력하는 등의 실수를 걸러내기 위한 확인 단계 — 임계값을 넘으면 한 번 더 확인시킨다.
+    if (totalAmount > LARGE_TOTAL_AMOUNT_MANWON_THRESHOLD) {
+      showErrorModal({
+        type: "error",
+        headline: "입력하신 총 수임료를 확인해주세요.",
+        description: `총 수임료가 ${formatAmount(totalAmount)}만원으로 입력되었습니다. 금액이 맞다면 계속 진행해주세요.`,
+        confirmText: "계속 진행",
+        cancelText: "다시 확인",
+        onConfirm: proceedToConfirm,
+      });
+      return;
+    }
+
+    proceedToConfirm();
   };
 
   const startPayment = (installment: FeePlanInstallment) => {
@@ -382,6 +447,29 @@ export default function FeePaymentInfoModal({
     });
   };
 
+  const handleConfirmProcedure = async (procedure: RecommendedProcedure) => {
+    setProcedureSubmitting(true);
+    try {
+      await DebtReliefService.updateProcedureProgress(projectId, String(analysisId), {
+        trackingProcedure: procedure,
+      });
+      setProcedureSelectOpen(false);
+      onChanged();
+    } catch (error) {
+      console.error("Failed to set tracking procedure:", error);
+      showErrorModal({
+        headline: "진행 절차를 설정하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setProcedureSubmitting(false);
+    }
+  };
+
+  const defaultProcedure =
+    procedureScores.find((score) => score.recommended)?.procedure ??
+    procedureScores[0]?.procedure;
+
   const isPlanActive = currentPlan?.status === "active";
   const progressPercent =
     currentPlan && currentPlan.totalAmount > 0
@@ -398,7 +486,7 @@ export default function FeePaymentInfoModal({
       positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
       containerClassName={`bg-card dark:bg-[#1E1E1E] md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col ${
         editingConditions
-          ? "md:w-[440px] md:h-[430px] md:max-h-[430px]"
+          ? "md:w-[440px] md:max-h-[min(720px,90vh)]"
           : "md:w-[868px]"
       }`}
     >
@@ -417,8 +505,20 @@ export default function FeePaymentInfoModal({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-4 md:overflow-y-visible md:px-7">
-            <div className="rounded-[12px] bg-neutral-10 dark:bg-[#111111] p-5 md:h-[272px] md:p-6">
+          <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-7">
+            {currentPlan ? (
+              <div className="mb-4 flex items-start gap-2 rounded-[8px] bg-warning-10 px-3 py-2.5 dark:bg-[#3D3000]">
+                <span className="mt-0.5 shrink-0">
+                  <WarningTriangleIcon />
+                </span>
+                <p className="text-[13px] leading-[18px] text-warning-80 dark:text-warning-20">
+                  결제 조건을 수정하면 이미 납부/환불 처리된 회차를 포함해 전체 회차 정보가 초기화
+                  됩니다.
+                </p>
+              </div>
+            ) : null}
+
+            <div className="rounded-[12px] bg-neutral-10 dark:bg-[#111111] p-5 md:p-6">
               <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                 총 수임료
               </label>
@@ -524,6 +624,22 @@ export default function FeePaymentInfoModal({
                   </span>
                 </div>
               </div>
+
+              <div className="mt-5 md:mt-6">
+                <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
+                  전달사항(선택사항)
+                </label>
+                <textarea
+                  value={form.note}
+                  onChange={(event) =>
+                    setForm((previous) => ({ ...previous, note: event.target.value }))
+                  }
+                  placeholder="전달사항을 입력해 주세요"
+                  rows={3}
+                  disabled={submitting}
+                  className="mt-2 w-full min-h-[72px] resize-none rounded-[5px] border border-neutral-30 bg-card px-3 py-2.5 text-[14px] text-foreground outline-none placeholder:text-neutral-50 focus:border-neutral-50 disabled:opacity-60 dark:border-[#4D4D4D] dark:bg-[#1E1E1E] dark:text-[#FDFDFD] dark:placeholder:text-[#959595] dark:focus:border-[#959595]"
+                />
+              </div>
             </div>
           </div>
 
@@ -590,7 +706,7 @@ export default function FeePaymentInfoModal({
               <div>
                 <p className="text-[14px] font-medium text-neutral-60">총 수임료</p>
                 <p className="mt-2 text-[24px] font-bold text-foreground">
-                  {formatAmount(currentPlan.totalAmount)}
+                  {formatAmount(wonToManwon(currentPlan.totalAmount))}
                   <span className="ml-1 text-[14px] font-medium text-neutral-60">만원</span>
                 </p>
               </div>
@@ -608,6 +724,15 @@ export default function FeePaymentInfoModal({
               </div>
             </div>
 
+            {currentPlan.note?.trim() ? (
+              <div className="mt-4 rounded-[8px] bg-neutral-10 p-5 dark:bg-neutral-20 md:px-8">
+                <p className="text-[14px] font-medium text-neutral-60">전달사항</p>
+                <p className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-[150%] text-foreground">
+                  {currentPlan.note}
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-6">
               <div className="flex items-end justify-between gap-3">
                 <p className="text-[14px] font-medium text-neutral-60">납부현황</p>
@@ -616,8 +741,8 @@ export default function FeePaymentInfoModal({
                     {paidInstallments.length}
                   </strong>
                   /{currentPlan.installments.length}회 ·{" "}
-                  <strong className="text-foreground">{formatAmount(paidAmount)}만원</strong> /{" "}
-                  {formatAmount(currentPlan.totalAmount)}만원
+                  <strong className="text-foreground">{formatAmount(wonToManwon(paidAmount))}만원</strong> /{" "}
+                  {formatAmount(wonToManwon(currentPlan.totalAmount))}만원
                 </p>
               </div>
               <div className="mt-2 h-[10px] overflow-hidden rounded-full bg-neutral-20 dark:bg-neutral-30">
@@ -647,7 +772,7 @@ export default function FeePaymentInfoModal({
                       {formatDate(installment.scheduledDate)}
                     </p>
                     <p className="w-[88px] shrink-0 text-[16px] font-semibold text-foreground">
-                      {formatAmount(installment.amount)}만원
+                      {formatAmount(wonToManwon(installment.amount))}만원
                     </p>
                     <InstallmentStatus installment={installment} />
 
@@ -743,6 +868,17 @@ export default function FeePaymentInfoModal({
             </button>
           </div>
         </>
+      ) : null}
+
+      {defaultProcedure ? (
+        <ProcedureSelectModal
+          open={procedureSelectOpen}
+          onClose={() => setProcedureSelectOpen(false)}
+          onConfirm={handleConfirmProcedure}
+          procedureScores={procedureScores}
+          defaultProcedure={defaultProcedure}
+          submitting={procedureSubmitting}
+        />
       ) : null}
     </BaseModal>
   );
