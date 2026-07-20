@@ -191,14 +191,18 @@ export default function FeePaymentStatusPanel() {
         />
       </section>
 
-      {/* 납부 내역 — 토글 중앙 / 월 네비 중앙 / 영업점 우측 */}
+      {/* 납부 내역 — 토글 중앙 / 월 네비 중앙 / 영업점 우측.
+          모바일은 피그마 기준 영업점 선택이 "납부 내역" 제목과 같은 줄(우측)에 위치. */}
       <section className="surface md:rounded-[14px] px-6 md:px-7 pt-6 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        <h2 className="mb-5 text-[18px] font-semibold leading-[21px] text-foreground">
-          납부 내역
-        </h2>
+        <div className="mb-5 flex items-center justify-between gap-3 md:block">
+          <h2 className="text-[18px] font-semibold leading-[21px] text-foreground">
+            납부 내역
+          </h2>
+          <div className="md:hidden">{branchSelect}</div>
+        </div>
 
         {/* 피그마 Toogle: 132×32, #F8F8F8, active #000 */}
-        <div className="mb-3 flex justify-center md:mb-4">
+        <div className="mb-5 flex justify-center md:mb-4">
           <div
             className="relative inline-flex h-8 w-[132px] items-center rounded-[30px] bg-[#F8F8F8] p-0.5 dark:bg-neutral-20"
             role="tablist"
@@ -210,7 +214,7 @@ export default function FeePaymentStatusPanel() {
               aria-selected={dateMode === "monthly"}
               className={`flex h-7 w-16 cursor-pointer items-center justify-center rounded-[30px] text-[12px] leading-[150%] tracking-[-0.02em] transition-colors ${
                 dateMode === "monthly"
-                  ? "bg-black font-semibold text-white dark:bg-neutral-90"
+                  ? "bg-black font-semibold text-white dark:bg-neutral-90 dark:text-neutral-0"
                   : "bg-transparent font-medium text-[#808080]"
               }`}
               onClick={() => handleDateModeChange("monthly")}
@@ -223,7 +227,7 @@ export default function FeePaymentStatusPanel() {
               aria-selected={dateMode === "custom"}
               className={`flex h-7 w-16 cursor-pointer items-center justify-center rounded-[30px] text-[12px] leading-[150%] tracking-[-0.02em] transition-colors ${
                 dateMode === "custom"
-                  ? "bg-black font-semibold text-white dark:bg-neutral-90"
+                  ? "bg-black font-semibold text-white dark:bg-neutral-90 dark:text-neutral-0"
                   : "bg-transparent font-medium text-[#808080]"
               }`}
               onClick={() => handleDateModeChange("custom")}
@@ -233,9 +237,10 @@ export default function FeePaymentStatusPanel() {
           </div>
         </div>
 
-        {/* 날짜(중앙) + 영업점(우측) — 피그마 top 654 정렬 */}
+        {/* 날짜(중앙) + 영업점(우측, 데스크톱만) — 피그마 top 654 정렬.
+            모바일에서 직접입력 날짜 범위는 375px 기준 카드 폭을 거의 꽉 채우므로 full width. */}
         <div className="relative mb-6 flex flex-col items-center gap-3 md:block md:min-h-[34px]">
-          <div className="flex justify-center md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+          <div className="flex w-full justify-center md:absolute md:left-1/2 md:top-1/2 md:w-auto md:-translate-x-1/2 md:-translate-y-1/2">
             {dateMode === "monthly" ? (
               <FeeMonthSelector
                 selectedMonth={selectedMonth}
@@ -260,10 +265,13 @@ export default function FeePaymentStatusPanel() {
                   setPage(1);
                 }}
                 showInlineIcon
+                // TODO: 지금은 미사용 — 추후 다시 노출 요청 예정
+                showReset={false}
+                className="w-full md:w-auto"
               />
             )}
           </div>
-          <div className="flex w-full justify-end md:absolute md:right-0 md:top-1/2 md:w-auto md:-translate-y-1/2">
+          <div className="hidden md:flex md:absolute md:right-0 md:top-1/2 md:w-auto md:-translate-y-1/2">
             {branchSelect}
           </div>
         </div>
