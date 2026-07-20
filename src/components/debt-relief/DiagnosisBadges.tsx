@@ -9,18 +9,19 @@ import { formatDebtManwonParts } from "@/components/debt-relief/format";
 import { wonToManwon } from "@/components/stats/fee/feeFormat";
 import Tooltip from "@/components/common/Tooltip";
 
-// 상태 배지 색상 — 절차진행중은 피그마 chip 스펙 확인(Secondary-10 #E4EDFF / Secondary-60 #2563EB)
-// 그대로 hex 고정. 반려됨=danger, 계약대기중=warning, 나머지(상담중/검토중/중단)는 neutral.
-// suspended는 의미 확인 전이라 neutral 유지.
-// 다크모드: 피그마 "chip Dark" 스펙(배경 bg-*-10/90, 텍스트 *-80 — Primary만 *-100) 그대로 반영.
-// 그레이 칩은 Dark-60(#b9b9b9)/Dark-20(#333333)이 각각 neutral-60/neutral-25의 다크값과 정확히 일치.
-const STATUS_BADGE_STYLE: Record<AnalysisStatus, string> = {
-  consulting: "bg-neutral-20 text-neutral-70 dark:bg-neutral-60 dark:text-neutral-25",
-  reviewing: "bg-neutral-20 text-neutral-70 dark:bg-neutral-60 dark:text-neutral-25",
+// 상태 배지 색상 — 피그마 chip 스펙 6종 확정(2026-07-20):
+// 상담중=Cyan(#E1F7FF/#2585EB), 검토중=Warning, 반려됨=Error, 계약대기중=Indigo(#E4E3FF/#5856D6),
+// 절차진행중=Secondary, 중단됨=Light gray(#E2E2E2/#595959 = neutral-30/neutral-70).
+// Cyan·Indigo·절차진행중(Secondary-10 #E4EDFF)은 프로젝트 컬러 스케일과 정확히 일치하지 않아 hex 고정.
+// 다크모드: 기존 "chip Dark" 공식(배경 bg-*-10/90, 텍스트 *-80)을 따르되, Cyan·Indigo는 다크 스펙이
+// 없어 같은 공식(배경 90% 불투명, 텍스트를 더 진한 톤으로)으로 추론한 값 — 피그마 다크 스펙 나오면 교체.
+export const STATUS_BADGE_STYLE: Record<AnalysisStatus, string> = {
+  consulting: "bg-[#E1F7FF] text-[#2585EB] dark:bg-[#E1F7FF]/90 dark:text-[#0A5A8C]",
+  reviewing: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
   rejected: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
-  contract_pending: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
+  contract_pending: "bg-[#E4E3FF] text-[#5856D6] dark:bg-[#E4E3FF]/90 dark:text-[#3730A3]",
   in_progress: "bg-[#E4EDFF] text-[#2563EB] dark:bg-secondary-10/90 dark:text-secondary-80",
-  suspended: "bg-neutral-20 text-neutral-70 dark:bg-neutral-60 dark:text-neutral-25",
+  suspended: "bg-neutral-30 text-neutral-70 dark:bg-neutral-60 dark:text-neutral-25",
 };
 
 export function StatusBadge({

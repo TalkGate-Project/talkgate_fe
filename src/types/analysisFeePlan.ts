@@ -87,7 +87,17 @@ export type PayFeeInstallmentResponse = ApiSuccess<FeePlan>;
 export type UnpayFeeInstallmentResponse = ApiSuccess<FeePlan>;
 
 /** POST /v1/analysis/{id}/fee-plan/refund */
+export type RefundFeePlanInput = {
+  /** 전달사항 (선택) */
+  message?: string | null;
+};
+
 export type RefundFeePlanResponse = ApiSuccess<FeePlan>;
 
 /** POST /v1/analysis/{id}/fee-plan/stop */
+export type StopFeePlanInput = {
+  /** 전달사항 (선택) */
+  message?: string | null;
+};
+
 export type StopFeePlanResponse = ApiSuccess<FeePlan>;

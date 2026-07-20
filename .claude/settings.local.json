@@ -67,7 +67,11 @@
       "Read(//c/Program Files/Google/Chrome/Application/**)",
       "Read(//c/Users/tbrk7/OneDrive/문서/GitHub/talkgate_fe/**)",
       "Bash(python3 *)",
-      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")"
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Skill(claude-in-chrome)",
+      "Bash(taskkill //PID 11492 //F)",
+      "Bash(taskkill //PID 14400 //F)",
+      "Bash(tasklist)"
     ]
   }
 }

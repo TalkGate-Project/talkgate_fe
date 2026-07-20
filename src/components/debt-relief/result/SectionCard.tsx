@@ -13,6 +13,7 @@ export default function SectionCard({
   compactTop = false,
   topDivider = false,
   joined,
+  joinBottomDivider = false,
 }: {
   id: string;
   title?: string;
@@ -25,9 +26,13 @@ export default function SectionCard({
   // border는 padding 바깥(패딩 박스 경계)에 그려지므로 좌우 패딩과 무관하게 항상 전체 폭으로 표시된다.
   // 데스크톱은 카드 간 gap·shadow로 이미 구분되므로 적용하지 않는다.
   topDivider?: boolean;
-  // 인접 카드와 하나의 섹션처럼 붙일 때: start=상단만 round + 하단 border, end=하단만 round.
+  // 인접 카드와 하나의 섹션처럼 붙일 때: start=상단만 round, end=하단만 round.
   // 그림자는 감싸는 래퍼에 두고, joined 카드 자체는 shadow를 끈다.
   joined?: JoinedEdge;
+  // joined="start"에서만 의미 있음: 하단에 경계 구분선을 그릴지 여부.
+  // 마지막 자식이 이미 자체 테두리로 경계를 표시하는 콘텐츠(예: 전달사항 카드)라면 겹쳐 보이므로
+  // 그 콘텐츠가 없을 때만 켜서, overview·다음 joined 카드 사이가 완전히 비지 않게 한다.
+  joinBottomDivider?: boolean;
 }) {
   const isJoined = joined === "start" || joined === "end";
   const radiusClass = isJoined
@@ -39,7 +44,11 @@ export default function SectionCard({
     ? "shadow-none"
     : "shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none";
   const joinBorderClass =
-    joined === "start" ? "border-b border-neutral-30" : topDivider ? "border-t border-neutral-30 md:border-t-0" : "";
+    joined === "start" && joinBottomDivider
+      ? "border-b border-neutral-30"
+      : topDivider
+        ? "border-t border-neutral-30 md:border-t-0"
+        : "";
   const paddingClass = isJoined
     ? joined === "start"
       ? "pt-3 pb-3 md:pt-7 md:pb-4"

@@ -58,6 +58,8 @@ type Props = {
   analyzing: boolean;
   /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 분석하기 비활성 */
   analyzeDisabled?: boolean;
+  /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
+  isCustomerConnected?: boolean;
 };
 
 // 전역 헤더 54px + 하단 FormMobileActionBar(~58px, safe-area 포함)를 제외한 높이.
@@ -74,6 +76,7 @@ export default function MobileFormSummaryDrawer({
   onAnalyze,
   analyzing,
   analyzeDisabled = false,
+  isCustomerConnected = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const step = steps[currentIndex];
@@ -130,7 +133,7 @@ export default function MobileFormSummaryDrawer({
 
       {expanded && (
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-neutral-10 px-6 pt-3 pb-5 flex flex-col gap-4">
-          <FormCustomerSummary form={form} />
+          <FormCustomerSummary form={form} isCustomerConnected={isCustomerConnected} />
           <FormFinancialSummary derived={derived} className="bg-card" />
           <FormStepChecklist
             steps={steps}

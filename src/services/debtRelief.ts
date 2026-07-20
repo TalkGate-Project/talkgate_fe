@@ -55,6 +55,7 @@ import type {
   AnalysisScores,
   AnalysisSortOrder,
   AnalysisSortType,
+  AnalysisStatus,
   AnalysisVehicleValueRange,
   CreateAnalysisInput,
 } from "@/types/analysis";
@@ -590,14 +591,16 @@ export const DebtReliefService = {
     const response = await AnalysisService.summary(projectId);
     const data = response.data.data;
 
-    const procedureDistribution: Record<RecommendedProcedure, number> = {
-      individual_rehab: 0,
-      debt_adjustment: 0,
-      bankruptcy: 0,
+    const statusDistribution: Record<AnalysisStatus, number> = {
+      consulting: 0,
+      reviewing: 0,
+      rejected: 0,
+      contract_pending: 0,
+      in_progress: 0,
+      suspended: 0,
     };
-    for (const item of data.procedureDistribution ?? []) {
-      const key = PROCEDURE_FROM_ANALYSIS[item.procedure];
-      if (key) procedureDistribution[key] = item.count;
+    for (const item of data.statusDistribution ?? []) {
+      statusDistribution[item.status] = item.count;
     }
 
     const progressStepsByProcedure: Record<RecommendedProcedure, { step: number; title?: string; count: number }[]> = {
@@ -620,8 +623,13 @@ export const DebtReliefService = {
     return {
       totalAnalysisCount: data.totalCount,
       thisMonthCount: data.monthlyCount,
-      averageSuccessProbability: Math.round(data.averageSuccessProbability ?? 0),
-      procedureDistribution,
+      monthlyPayment: {
+        totalAmount: data.monthlyPayment?.totalAmount ?? 0,
+        totalCount: data.monthlyPayment?.totalCount ?? 0,
+        paidAmount: data.monthlyPayment?.paidAmount ?? 0,
+        paidCount: data.monthlyPayment?.paidCount ?? 0,
+      },
+      statusDistribution,
       progressStepsByProcedure,
     };
   },
@@ -818,9 +826,15 @@ export const DebtReliefService = {
   },
 
   // 편집(정보 수정) 진입 시 폼에 채울 원본 입력값 조회.
-  async getDiagnosisForm(projectId: string, id: string): Promise<DiagnosisFormState> {
+  async getDiagnosisForm(
+    projectId: string,
+    id: string
+  ): Promise<{ form: DiagnosisFormState; customerId: number | null }> {
     const response = await AnalysisService.detail(Number(id), projectId);
-    return fromAnalysisFormInput(response.data.data.inputData);
+    return {
+      form: fromAnalysisFormInput(response.data.data.inputData),
+      customerId: response.data.data.customerId,
+    };
   },
 
   // 진단 수정(재분석 요청). 성공 시 서버가 status/trackingProcedure/currentProcedureStep을

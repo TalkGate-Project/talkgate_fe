@@ -12,8 +12,8 @@ export const DIAGNOSIS_STATUS_LABEL: Record<AnalysisStatus, string> = {
   rejected: "반려됨",
   contract_pending: "계약대기중",
   in_progress: "절차진행중",
-  // ⚠️ 회의 메모에 없던 상태값 — 정확한 의미(변호사 프로젝트 일시중단 등) 확인 필요, 임시 라벨.
-  suspended: "중단",
+  // ⚠️ 회의 메모에 없던 상태값 — 정확한 의미(변호사 프로젝트 일시중단 등) 확인 필요.
+  suspended: "중단됨",
 };
 
 // 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능.
@@ -126,11 +126,26 @@ export type DiagnosisProgressStepItem = {
 export type DiagnosisHubSummary = {
   totalAnalysisCount: number;
   thisMonthCount: number;
-  averageSuccessProbability: number; // 0~100
-  procedureDistribution: Record<RecommendedProcedure, number>;
+  monthlyPayment: {
+    totalAmount: number; // 이번 달 총 결제 금액 (면제 제외)
+    totalCount: number; // 이번 달 총 결제 건수 (면제 제외)
+    paidAmount: number; // 이번 달 납부 완료 금액
+    paidCount: number; // 이번 달 납부 완료 건수
+  };
+  statusDistribution: Record<AnalysisStatus, number>;
   // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시)
   progressStepsByProcedure: Record<RecommendedProcedure, DiagnosisProgressStepItem[]>;
 };
+
+// "상태 분포" 카드 표시 순서 — 반려(rejected)도 포함해 전체 상태 분포를 보여준다.
+export const DIAGNOSIS_STATUS_DISTRIBUTION_ORDER: AnalysisStatus[] = [
+  "in_progress",
+  "consulting",
+  "reviewing",
+  "contract_pending",
+  "suspended",
+  "rejected",
+];
 
 // ── 목록 조회 파라미터 / 응답 ────────────────────────────────
 // GET /v1/analysis의 sortType은 현재 consultationDate만 지원한다.
@@ -486,7 +501,7 @@ export type RepaymentPlan = {
   notes: string[];
 };
 
-// 추천 상담 멘트
+// 상담 포인트
 export type CounselMentCategory = "core" | "concern" | "next";
 export const COUNSEL_MENT_TABS: { key: CounselMentCategory | "all"; label: string }[] = [
   { key: "all", label: "전체" },

@@ -41,12 +41,12 @@ export default function FeeMonthSelector({
         </svg>
       </button>
 
-      <div className="flex h-[34px] w-[227px] items-center justify-center rounded-[5px] border border-[#E2E2E2] bg-white px-8 dark:border-neutral-30 dark:bg-neutral-20">
+      <div className="flex h-[34px] w-[227px] justify-center rounded-[5px] border border-[#E2E2E2] bg-white px-8 dark:border-neutral-30 dark:bg-neutral-20">
         <MonthPicker
           value={selectedMonth}
           onChange={handleMonthChange}
           dateFormat="yyyy - MM월"
-          className="h-[34px] w-full cursor-pointer border-none bg-transparent p-0 text-center text-[16px] font-bold leading-[19px] text-[#252525] focus:ring-0 dark:!bg-transparent dark:text-neutral-90"
+          className="!h-full w-full cursor-pointer border-none bg-transparent p-0 text-center text-[16px] font-bold leading-[19px] text-[#252525] focus:ring-0 dark:!bg-transparent dark:text-neutral-90"
         />
       </div>
 

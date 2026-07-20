@@ -16,6 +16,7 @@ import type {
 } from "@/types/analysisFeePlan";
 import { wonToManwon } from "@/components/stats/fee/feeFormat";
 import ProcedureSelectModal from "./ProcedureSelectModal";
+import FeePlanActionConfirmModal, { type FeePlanAction } from "./FeePlanActionConfirmModal";
 
 // 총 수임료 입력값(만원)이 이 값을 넘으면 오타(0 개수 실수 등) 가능성을 사용자에게 한 번 확인시킨다.
 const LARGE_TOTAL_AMOUNT_MANWON_THRESHOLD = 5_000;
@@ -201,6 +202,7 @@ export default function FeePaymentInfoModal({
   const [paymentDate, setPaymentDate] = useState<Date | null>(null);
   const [procedureSelectOpen, setProcedureSelectOpen] = useState(false);
   const [procedureSubmitting, setProcedureSubmitting] = useState(false);
+  const [planActionModal, setPlanActionModal] = useState<FeePlanAction | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -288,11 +290,11 @@ export default function FeePaymentInfoModal({
 
     const proceedToConfirm = () => {
       showConfirmModal({
-        title: "결제 조건 확인",
-        headline: "결제 조건을 변경하시겠습니까?",
+        title: "수임료 결제 정보",
+        headline: "결제 정보를 변경합니다.",
         message:
-          "결제 조건을 변경하면 이미 납부(완납/환불) 처리된 회차를 포함해 전체 회차 정보가 새로 계산됩니다.\n계속하시겠습니까?",
-        type: "warning",
+          "이미 납부/환불 처리된 회차를 포함해 전체 회차 정보가 초기화됩니다.\n계속하시겠습니까?",
+        type: "caution",
         confirmText: "확인",
         cancelText: "취소",
         onConfirm: async () => {
@@ -413,38 +415,35 @@ export default function FeePaymentInfoModal({
     });
   };
 
-  const requestPlanAction = (action: "stop" | "refund") => {
+  const requestPlanAction = (action: FeePlanAction) => {
     if (!currentPlan || submitting || currentPlan.status !== "active") return;
+    setPlanActionModal(action);
+  };
+
+  const handlePlanActionConfirm = async (message: string) => {
+    if (!planActionModal) return;
+    const action = planActionModal;
     const isRefund = action === "refund";
-    showConfirmModal({
-      title: isRefund ? "수임료 환불" : "수임료 납부 중단",
-      headline: isRefund ? "수임료 결제를 환불 처리할까요?" : "수임료 납부를 중단할까요?",
-      message: isRefund
-        ? "환불 처리 후에는 납부 정보를 변경할 수 없습니다."
-        : "중단 처리 후에는 남은 회차를 납부 처리할 수 없습니다.",
-      type: "warning",
-      confirmText: isRefund ? "환불" : "중단",
-      cancelText: "취소",
-      onConfirm: async () => {
-        setSubmitting(true);
-        try {
-          const response = isRefund
-            ? await AnalysisService.refundFeePlan(analysisId, projectId)
-            : await AnalysisService.stopFeePlan(analysisId, projectId);
-          updateCurrentPlan(response.data.data);
-        } catch (error) {
-          console.error(`Failed to ${action} analysis fee plan:`, error);
-          showErrorModal({
-            headline: isRefund
-              ? "환불 처리에 실패했습니다."
-              : "납부 중단 처리에 실패했습니다.",
-            description: "잠시 후 다시 시도해주세요.",
-          });
-        } finally {
-          setSubmitting(false);
-        }
-      },
-    });
+    const note = message || null;
+    setSubmitting(true);
+    try {
+      const response = isRefund
+        ? await AnalysisService.refundFeePlan(analysisId, projectId, { message: note })
+        : await AnalysisService.stopFeePlan(analysisId, projectId, { message: note });
+      // fee-plan 응답에는 전달사항이 포함되지 않아(분석 상세의 액션 메시지 히스토리로만 누적) 방금 입력한 값을 로컬로 반영
+      updateCurrentPlan({ ...response.data.data, note });
+      setPlanActionModal(null);
+    } catch (error) {
+      console.error(`Failed to ${action} analysis fee plan:`, error);
+      showErrorModal({
+        headline: isRefund
+          ? "환불 처리에 실패했습니다."
+          : "납부 중단 처리에 실패했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleConfirmProcedure = async (procedure: RecommendedProcedure) => {
@@ -627,7 +626,7 @@ export default function FeePaymentInfoModal({
 
               <div className="mt-5 md:mt-6">
                 <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
-                  전달사항(선택사항)
+                  전달사항 (선택)
                 </label>
                 <textarea
                   value={form.note}
@@ -880,6 +879,14 @@ export default function FeePaymentInfoModal({
           submitting={procedureSubmitting}
         />
       ) : null}
+
+      <FeePlanActionConfirmModal
+        open={planActionModal !== null}
+        action={planActionModal ?? "stop"}
+        submitting={submitting}
+        onClose={() => setPlanActionModal(null)}
+        onConfirm={handlePlanActionConfirm}
+      />
     </BaseModal>
   );
 }

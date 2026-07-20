@@ -51,7 +51,9 @@ import type {
   PayFeeInstallmentInput,
   PayFeeInstallmentResponse,
   UnpayFeeInstallmentResponse,
+  RefundFeePlanInput,
   RefundFeePlanResponse,
+  StopFeePlanInput,
   StopFeePlanResponse,
 } from "@/types/analysisFeePlan";
 
@@ -374,19 +376,19 @@ export const AnalysisService = {
   },
 
   /** POST /v1/analysis/{id}/fee-plan/refund */
-  refundFeePlan(id: number, projectId: string) {
+  refundFeePlan(id: number, projectId: string, input?: RefundFeePlanInput) {
     return apiClient.post<RefundFeePlanResponse>(
       `/v1/analysis/${id}/fee-plan/refund`,
-      {},
+      { message: input?.message || undefined },
       { headers: { "x-project-id": projectId } }
     );
   },
 
   /** POST /v1/analysis/{id}/fee-plan/stop */
-  stopFeePlan(id: number, projectId: string) {
+  stopFeePlan(id: number, projectId: string, input?: StopFeePlanInput) {
     return apiClient.post<StopFeePlanResponse>(
       `/v1/analysis/${id}/fee-plan/stop`,
-      {},
+      { message: input?.message || undefined },
       { headers: { "x-project-id": projectId } }
     );
   },

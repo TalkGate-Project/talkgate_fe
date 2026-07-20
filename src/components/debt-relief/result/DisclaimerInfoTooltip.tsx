@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+
+// 툴팁 박스와 화면 가장자리 사이 최소 여백
+const VIEWPORT_EDGE_MARGIN = 12;
+// 기본 위치(앵커 대비) — 화면 안에 들어오면 이 값 그대로 사용
+const BASE_OFFSET_PX = 18;
 
 function InfoCircleIcon({ size = 24 }: { size?: number }) {
   return (
@@ -39,7 +44,10 @@ export default function DisclaimerInfoTooltip({
 }) {
   const tooltipId = useId();
   const containerRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
+  // 기본 위치에서 화면 밖으로 나가는 만큼 보정하는 값(px). 0이면 기본 위치 그대로.
+  const [edgeShiftPx, setEdgeShiftPx] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +68,31 @@ export default function DisclaimerInfoTooltip({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
+  }, [open]);
+
+  // 열릴 때(+리사이즈/회전 시) 툴팁이 뷰포트를 벗어나는지 측정해 좌우로 밀어 넣는다.
+  useLayoutEffect(() => {
+    if (!open) {
+      setEdgeShiftPx(0);
+      return;
+    }
+
+    const measureAndClamp = () => {
+      const tooltipEl = tooltipRef.current;
+      if (!tooltipEl) return;
+      const rect = tooltipEl.getBoundingClientRect();
+      if (rect.right > window.innerWidth - VIEWPORT_EDGE_MARGIN) {
+        setEdgeShiftPx(window.innerWidth - VIEWPORT_EDGE_MARGIN - rect.right);
+      } else if (rect.left < VIEWPORT_EDGE_MARGIN) {
+        setEdgeShiftPx(VIEWPORT_EDGE_MARGIN - rect.left);
+      } else {
+        setEdgeShiftPx(0);
+      }
+    };
+
+    measureAndClamp();
+    window.addEventListener("resize", measureAndClamp);
+    return () => window.removeEventListener("resize", measureAndClamp);
   }, [open]);
 
   return (
@@ -89,24 +122,28 @@ export default function DisclaimerInfoTooltip({
       </button>
 
       <span
+        ref={tooltipRef}
         id={tooltipId}
         role="tooltip"
         aria-hidden={!open}
-        className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] z-30 w-[min(325px,calc(100vw-40px))] -translate-x-[18px] transition-opacity duration-150 ${
+        className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] z-30 w-[min(325px,calc(100vw-40px))] transition-opacity duration-150 ${
           open ? "opacity-100" : "invisible opacity-0"
         }`}
         style={{
+          transform: `translateX(calc(-${BASE_OFFSET_PX}px + ${edgeShiftPx}px))`,
           filter: open ? "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" : undefined,
         }}
       >
         {/*
           배경 도형만 opacity 0.7로 묶어 합성 → 포인터/본체 겹쳐도 검은 선 없음.
           텍스트는 별도 레이어로 두어 흐려지지 않게 함.
+          화살표는 박스가 화면 밖으로 안 밀리도록 이동한 만큼(edgeShiftPx) 반대로 보정해
+          아이콘을 계속 가리키도록 유지한다.
         */}
         <span className="absolute inset-0 opacity-70" aria-hidden>
           <span
-            className="absolute left-[8px] top-0 h-[13px] w-5 bg-black"
-            style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
+            className="absolute top-0 h-[13px] w-5 bg-black"
+            style={{ clipPath: "polygon(50% 0, 100% 100%, 0 100%)", left: `${8 - edgeShiftPx}px` }}
           />
           <span className="absolute inset-x-0 bottom-0 top-[12px] rounded-[8px] bg-black" />
         </span>

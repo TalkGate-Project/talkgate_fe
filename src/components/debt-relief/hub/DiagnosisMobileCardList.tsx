@@ -91,7 +91,7 @@ export default function DiagnosisMobileCardList({
         const customerMeta = formatCustomerMeta(
           item.age,
           item.gender,
-          item.occupation,
+          item.occupation || "무직",
           item.ageGroupLabel
         );
 

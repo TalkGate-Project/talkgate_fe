@@ -7,6 +7,7 @@ import {
   type DiagnosisDetail,
 } from "@/types/debtRelief";
 import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
+import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 
 function AiSparkleIcon() {
   return (
@@ -100,9 +101,15 @@ export default function SectionCounselMents({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">
-          추천 상담 멘트
-        </h2>
+        <div className="flex items-center gap-1">
+          <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
+            상담 포인트
+          </h2>
+          <DisclaimerInfoTooltip label="상담 포인트 안내">
+            상담을 돕기 위한 참고 자료이며, 최종 상담 내용은{" "}
+            <span className="font-extrabold">고객 상황에 맞게 검토·수정하여 활용해 주세요.</span>
+          </DisclaimerInfoTooltip>
+        </div>
         <div className="mt-3 border-t border-neutral-30" />
       </div>
 
