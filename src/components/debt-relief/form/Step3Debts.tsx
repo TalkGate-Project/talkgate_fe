@@ -49,6 +49,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
         <FormField
           label="채무종류"
           hint="(중복선택 가능)"
+          required
           filled={form.debtTypes.length > 0}
         >
           <PillMultiSelect
@@ -91,7 +92,7 @@ export default function Step3Debts({ form, update, derived }: Props) {
 
         {/* Figma Frame: gap 20 — 채권자 수 → 연체기간 → 체납 토글 → 채무발생 원인 */}
         <div className="flex flex-col gap-5">
-          <FormField label="채권자 수" filled={form.creditorCount !== null}>
+          <FormField label="채권자 수" required filled={form.creditorCount !== null}>
             <PillSelect
               options={CREDITOR_COUNT_OPTIONS}
               value={form.creditorCount}
