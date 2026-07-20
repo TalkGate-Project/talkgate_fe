@@ -36,7 +36,6 @@ type Props = {
   onClose: () => void;
   inputData: AnalysisInputData;
   contact: string | null;
-  referenceNote: string | null;
 };
 
 type DisplayRow = { label: string; value: string; emphasize?: boolean };
@@ -261,11 +260,7 @@ function InfoSection({
   );
 }
 
-function buildSections(
-  input: AnalysisInputData,
-  contact: string | null | undefined,
-  referenceNote: string | null | undefined
-) {
+function buildSections(input: AnalysisInputData, contact: string | null | undefined) {
   const phone = contact ? formatContactForDisplay(contact) : "-";
   const bank = input.debtBreakdown.bankLoan ?? 0;
   const card = input.debtBreakdown.cardDebt ?? 0;
@@ -279,7 +274,6 @@ function buildSections(
     { label: "고용형태", value: input.employmentType || "-" },
     { label: "부양가족", value: formatDependents(input.dependents) },
     { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
-    { label: "참고사항", value: referenceNote?.trim() || "-" },
   ];
 
   const assetRows: DisplayRow[] = [
@@ -399,7 +393,7 @@ function buildSections(
 
 /**
  * 진단 상세 「고객정보」 모달.
- * 상세 페이지 진입 시 이미 조회된 inputData + contact + referenceNote를 그대로 사용합니다.
+ * 상세 페이지 진입 시 이미 조회된 inputData + contact를 그대로 사용합니다.
  * (별도 API 재조회 없음 — /v1/customers 도 호출하지 않습니다.)
  */
 export default function DiagnosisCustomerInfoModal({
@@ -407,7 +401,6 @@ export default function DiagnosisCustomerInfoModal({
   onClose,
   inputData,
   contact,
-  referenceNote,
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -423,7 +416,7 @@ export default function DiagnosisCustomerInfoModal({
   const summaryLabel = [inputData.customerName, inputData.ageGroup, inputData.employmentType]
     .filter(Boolean)
     .join(" · ");
-  const sections = buildSections(inputData, contact, referenceNote);
+  const sections = buildSections(inputData, contact);
 
   return (
     <>

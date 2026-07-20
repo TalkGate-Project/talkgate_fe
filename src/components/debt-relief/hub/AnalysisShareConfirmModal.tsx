@@ -122,7 +122,7 @@ export default function AnalysisShareConfirmModal({
           <div className="px-6 py-3 rounded-[8px] bg-neutral-10 dark:bg-neutral-25 min-h-[84px]">
             <p className="text-[14px] leading-5 font-medium text-neutral-60 whitespace-pre-line">
               {formattedContact}
-              {referenceNote ? `\n참고사항 : ${referenceNote}` : ""}
+              {referenceNote ? `\n전달사항 : ${referenceNote}` : ""}
             </p>
           </div>
         </div>

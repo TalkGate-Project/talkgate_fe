@@ -30,6 +30,8 @@ export type FeePlan = {
   paymentType: FeePaymentType;
   installmentCount: number;
   firstPaymentDate: string;
+  /** 전달사항 (선택) — API 응답에는 포함되지 않아, 마지막 저장 시 입력값을 클라이언트에서 직접 채워 넣는 값 */
+  note?: string | null;
   status: FeePlanStatus;
   installments: FeePlanInstallment[];
   createdAt: string;
@@ -54,6 +56,8 @@ export type CreateFeePlanInput = {
   installmentCount: number;
   firstPaymentDate: string;
   trackingProcedure: TrackingProcedureForFee;
+  /** 전달사항 (선택) */
+  message?: string | null;
 };
 
 export type CreateFeePlanResponse = ApiSuccess<FeePlan>;
@@ -65,6 +69,8 @@ export type UpdateFeePlanInput = {
   paymentType: FeePaymentType;
   installmentCount: number;
   firstPaymentDate: string;
+  /** 전달사항 (선택) */
+  message?: string | null;
 };
 
 export type UpdateFeePlanResponse = ApiSuccess<FeePlan>;
