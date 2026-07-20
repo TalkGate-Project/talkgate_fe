@@ -6,6 +6,8 @@ import {
 import type { AnalysisStatus } from "@/types/analysis";
 import type { FeePlanSummary } from "@/types/analysisFeePlan";
 import { formatDebtManwonParts } from "@/components/debt-relief/format";
+import { wonToManwon } from "@/components/stats/fee/feeFormat";
+import Tooltip from "@/components/common/Tooltip";
 
 // 상태 배지 색상 — 절차진행중은 피그마 chip 스펙 확인(Secondary-10 #E4EDFF / Secondary-60 #2563EB)
 // 그대로 hex 고정. 반려됨=danger, 계약대기중=warning, 나머지(상담중/검토중/중단)는 neutral.
@@ -32,11 +34,10 @@ export function StatusBadge({
   /** 절차진행중일 때만 붙는 "현재/총단계" (예: "5/9") */
   stepLabel?: string;
 }) {
-  return (
-    // 피그마 chip 스펙: padding 2px 4px, radius 5px(완전한 pill 아님), 12px/500/14 line-height,
-    // 텍스트 opacity 0.8
+  // 피그마 chip 스펙: padding 2px 4px, radius 5px(완전한 pill 아님), 12px/500/14 line-height,
+  // 텍스트 opacity 0.8
+  const badge = (
     <span
-      title={status === "rejected" ? rejectionReason ?? undefined : undefined}
       className={`inline-flex items-center justify-center h-[18px] px-1 py-0.5 rounded-[5px] whitespace-nowrap ${STATUS_BADGE_STYLE[status]}`}
     >
       <span className="text-[12px] font-medium leading-[14px] opacity-80">
@@ -44,6 +45,14 @@ export function StatusBadge({
         {status === "in_progress" && stepLabel ? ` ${stepLabel}` : ""}
       </span>
     </span>
+  );
+
+  if (status !== "rejected" || !rejectionReason) return badge;
+
+  return (
+    <Tooltip content={rejectionReason} multiline maxWidth="240px" delay={0}>
+      {badge}
+    </Tooltip>
   );
 }
 
@@ -129,7 +138,7 @@ export function FeePlanCell({ summary }: { summary: FeePlanSummary | null }) {
   return (
     <div className="flex flex-col gap-1 min-w-[130px] max-w-[160px]">
       <span className="text-[16px] font-semibold leading-none text-neutral-90">
-        {summary.totalAmount.toLocaleString("ko-KR")}
+        {wonToManwon(summary.totalAmount).toLocaleString("ko-KR")}
         <span className="ml-1 text-[12px] font-medium text-neutral-60">만원</span>
       </span>
       <div className="h-[6px] w-full rounded-[30px] bg-neutral-30 overflow-hidden">

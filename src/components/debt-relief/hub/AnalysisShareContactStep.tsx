@@ -194,11 +194,11 @@ export default function AnalysisShareContactStep({
             </div>
 
             <div>
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">참고사항</label>
+              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">전달사항</label>
               <textarea
                 value={referenceNote}
                 onChange={(e) => setReferenceNote(e.target.value)}
-                placeholder="참고사항을 입력해 주세요"
+                placeholder="전달사항을 입력해 주세요"
                 rows={5}
                 disabled={formDisabled}
                 className="w-full min-h-[120px] px-3 py-2.5 rounded-[8px] border border-neutral-30 bg-card text-[14px] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50 resize-none disabled:opacity-60"

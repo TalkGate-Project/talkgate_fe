@@ -9,6 +9,7 @@ import DiagnosisFilterTrigger from "@/components/debt-relief/hub/DiagnosisFilter
 import DiagnosisFilterAppliedChips from "@/components/debt-relief/hub/DiagnosisFilterAppliedChips";
 import DiagnosisSearchInput from "@/components/debt-relief/hub/DiagnosisSearchInput";
 import DiagnosisListActions from "@/components/debt-relief/hub/DiagnosisListActions";
+import DiagnosisListTabs from "@/components/debt-relief/hub/DiagnosisListTabs";
 import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
 import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
@@ -27,6 +28,8 @@ export default function DebtReliefHubContent() {
     items,
     totalCount,
     loading: listLoading,
+    listTab,
+    selectListTab,
     procedure,
     selectProcedure,
     status,
@@ -81,17 +84,8 @@ export default function DebtReliefHubContent() {
 
   const clearSelection = () => setSelectedIds(new Set());
 
-  const handleShareSelected = () => {
-    if (!hasSelection) return;
-    setShareTargetIds(Array.from(selectedIds));
-  };
-
   const handleShareItem = (id: string) => {
     setShareTargetIds([id]);
-  };
-
-  const handleShareSuccess = () => {
-    if (shareTargetIds && shareTargetIds.length > 1) clearSelection();
   };
 
   const handleDeleteSelected = () => {
@@ -198,12 +192,15 @@ export default function DebtReliefHubContent() {
         <SummaryCards summary={summary} loading={summaryLoading} />
       </section>
 
-      {/* 하단 카드: 탭 + 검색 + 테이블 + 페이지네이션 */}
+      {/* 하단 카드: 검색 + 테이블 + 페이지네이션 */}
       <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 */}
+        <div className="mb-3 md:hidden">
+          <DiagnosisListTabs value={listTab} onChange={selectListTab} />
+        </div>
+
         <div className="flex flex-col gap-3 mb-5">
-          {/* 1행: 필터 아이콘 + 검색 + (필터 있을 때만, 데스크톱만) 초기화 텍스트버튼 / 총 건수 + 액션.
-              모바일은 피그마 기준 한 줄에 필터·검색·액션 아이콘이 모두 들어가고 초기화 텍스트버튼은 생략(칩행의 새로고침 아이콘이 대신함).
-              2행: 적용된 필터 칩(있을 때만). */}
+          {/* 1행: 필터·검색·(데스크톱)초기화/총건수 | 우측 끝: 액션 + 전체/반려 탭(데스크톱만) */}
           <div className="flex items-center gap-2">
             <DiagnosisFilterTrigger
               procedure={procedure}
@@ -232,16 +229,17 @@ export default function DebtReliefHubContent() {
               총 {totalCount}건
               {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
             </span>
-            <div className="flex items-center gap-3 ml-auto shrink-0">
+            <div className="ml-auto flex shrink-0 items-center gap-3">
               <DiagnosisListActions
                 hasSelection={hasSelection}
                 selectedCount={selectedIds.size}
                 limit={limit}
                 onDelete={handleDeleteSelected}
-                onShare={handleShareSelected}
-                showShareAction={projectTypeReady && isAnalysis}
                 onLimitChange={setLimit}
               />
+              <div className="hidden md:block">
+                <DiagnosisListTabs value={listTab} onChange={selectListTab} />
+              </div>
             </div>
           </div>
           <DiagnosisFilterAppliedChips
@@ -293,7 +291,7 @@ export default function DebtReliefHubContent() {
         <AnalysisShareModal
           open={shareTargetIds !== null}
           onClose={() => setShareTargetIds(null)}
-          onSuccess={handleShareSuccess}
+          onSuccess={refetch}
           projectId={projectId}
           analysisIds={shareTargetIds ?? []}
         />

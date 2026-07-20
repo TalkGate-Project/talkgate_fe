@@ -333,7 +333,7 @@ export const AnalysisService = {
     );
   },
 
-  // --- Fee Plan (추후 UI 연동용. 현재 호출부 없음) ---
+  // --- Fee Plan ---
 
   /** POST /v1/analysis/{id}/fee-plan */
   createFeePlan(id: number, input: CreateFeePlanInput) {

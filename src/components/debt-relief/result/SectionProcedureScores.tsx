@@ -57,7 +57,7 @@ function ConditionIcon({ status }: { status: ConditionStatus }) {
   );
 }
 
-function ScoreRow({
+export function ScoreRow({
   score,
   isSelected,
   onSelect,

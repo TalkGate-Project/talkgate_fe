@@ -799,6 +799,27 @@ body {
   stroke: #959595;
 }
 
+/* 수임료 납부현황 요약 카드 아이콘 배경 - 다크모드에서만 10% opacity로 낮춤 (라이트모드는 원본 유지) */
+.dark .fee-summary-icon-bg-paid,
+[data-theme="dark"] .fee-summary-icon-bg-paid {
+  fill: rgba(214, 250, 232, 0.1);
+}
+
+.dark .fee-summary-icon-bg-scheduled,
+[data-theme="dark"] .fee-summary-icon-bg-scheduled {
+  fill: rgba(228, 237, 255, 0.1);
+}
+
+.dark .fee-summary-icon-bg-unpaid,
+[data-theme="dark"] .fee-summary-icon-bg-unpaid {
+  fill: rgba(255, 235, 235, 0.1);
+}
+
+.dark .fee-summary-icon-bg-refunded,
+[data-theme="dark"] .fee-summary-icon-bg-refunded {
+  fill: rgba(237, 237, 237, 0.1);
+}
+
 /* Remove browser default focus outline on select elements */
 select:focus {
   outline: none;

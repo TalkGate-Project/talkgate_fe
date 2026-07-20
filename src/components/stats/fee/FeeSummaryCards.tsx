@@ -47,7 +47,13 @@ const CARD_META: {
 function PaidIcon() {
   return (
     <svg className="w-full h-full" viewBox="0 0 56 56" fill="none" aria-hidden>
-      <circle cx="28" cy="28" r="28" fill="rgba(214, 250, 232, 0.5)" />
+      <circle
+        cx="28"
+        cy="28"
+        r="28"
+        className="fee-summary-icon-bg-paid"
+        fill="rgba(214, 250, 232, 0.5)"
+      />
       <path
         d="M16 25.3337H40M21.3333 32.0003H22.6667M28 32.0003H29.3333M20 37.3337H36C38.2091 37.3337 40 35.5428 40 33.3337V22.667C40 20.4579 38.2091 18.667 36 18.667H20C17.7909 18.667 16 20.4579 16 22.667V33.3337C16 35.5428 17.7909 37.3337 20 37.3337Z"
         stroke="#00E272"
@@ -62,7 +68,13 @@ function PaidIcon() {
 function ScheduledIcon() {
   return (
     <svg className="w-full h-full" viewBox="0 0 56 56" fill="none" aria-hidden>
-      <circle cx="28" cy="28" r="28" fill="rgba(228, 237, 255, 0.5)" />
+      <circle
+        cx="28"
+        cy="28"
+        r="28"
+        className="fee-summary-icon-bg-scheduled"
+        fill="rgba(228, 237, 255, 0.5)"
+      />
       <path
         d="M28 22.6667V28L32 32M40 28C40 34.6274 34.6274 40 28 40C21.3726 40 16 34.6274 16 28C16 21.3726 21.3726 16 28 16C34.6274 16 40 21.3726 40 28Z"
         stroke="#4D82F3"
@@ -77,7 +89,13 @@ function ScheduledIcon() {
 function UnpaidIcon() {
   return (
     <svg className="w-full h-full" viewBox="0 0 56 56" fill="none" aria-hidden>
-      <circle cx="28" cy="28" r="28" fill="rgba(255, 235, 235, 0.5)" />
+      <circle
+        cx="28"
+        cy="28"
+        r="28"
+        className="fee-summary-icon-bg-unpaid"
+        fill="rgba(255, 235, 235, 0.5)"
+      />
       <path
         d="M28 24V26.6667M28 32H28.0134M18.7624 37.3333H37.2376C39.2904 37.3333 40.5735 35.1111 39.5471 33.3333L30.3094 17.3333C29.283 15.5556 26.717 15.5556 25.6906 17.3333L16.453 33.3333C15.4266 35.1111 16.7096 37.3333 18.7624 37.3333Z"
         stroke="#D83232"
@@ -92,7 +110,13 @@ function UnpaidIcon() {
 function RefundedIcon() {
   return (
     <svg className="w-full h-full" viewBox="0 0 56 56" fill="none" aria-hidden>
-      <circle cx="28" cy="28" r="28" fill="#EDEDED" />
+      <circle
+        cx="28"
+        cy="28"
+        r="28"
+        className="fee-summary-icon-bg-refunded"
+        fill="#EDEDED"
+      />
       <path
         d="M33.3335 32V30.6667C33.3335 27.7211 30.9457 25.3333 28.0002 25.3333H22.6668M26.6668 21.3333L22.6668 25.3333L26.6668 29.3333M38.6668 40V18.6667C38.6668 17.1939 37.4729 16 36.0002 16H20.0002C18.5274 16 17.3335 17.1939 17.3335 18.6667V40L22.6668 37.3333L28.0002 40L33.3335 37.3333L38.6668 40Z"
         stroke="#808080"

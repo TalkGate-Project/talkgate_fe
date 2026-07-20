@@ -248,7 +248,11 @@ export default function DiagnosisTable({
                           {RECOMMENDED_PROCEDURE_LABEL[item.recommendedProcedure]}
                         </span>
                       )}
-                      <StatusBadge status={item.status} stepLabel={resolveInProgressStepLabel(item)} />
+                      <StatusBadge
+                        status={item.status}
+                        rejectionReason={item.rejectionReason}
+                        stepLabel={resolveInProgressStepLabel(item)}
+                      />
                     </div>
                   </td>
                   <td className="px-4 py-2 align-middle min-w-[140px]">

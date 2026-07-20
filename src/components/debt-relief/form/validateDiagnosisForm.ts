@@ -14,6 +14,8 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.spouseIncome === null) missing.push("배우자 소득");
   if (!form.monthlyIncome) missing.push("월 소득 구간");
   if (!form.housingType) missing.push("주거 형태");
+  if (form.debtTypes.length === 0) missing.push("채무종류");
+  if (!form.creditorCount) missing.push("채권자 수");
   if (!form.overduePeriod) missing.push("연체기간");
   if (!form.financialAsset) missing.push("금융 자산");
   if (!form.vehicle) missing.push("차량 보유");
@@ -45,6 +47,8 @@ export function getMissingRequiredFieldLabelsForStep(
     }
     case "debts": {
       const missing: string[] = [];
+      if (form.debtTypes.length === 0) missing.push("채무종류");
+      if (!form.creditorCount) missing.push("채권자 수");
       if (!form.overduePeriod) missing.push("연체기간");
       return missing;
     }

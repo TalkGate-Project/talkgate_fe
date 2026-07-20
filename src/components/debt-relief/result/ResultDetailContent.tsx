@@ -20,6 +20,7 @@ import AnalysisReviewBanner from "./AnalysisReviewBanner";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
+import SectionDeliveryMessages from "./SectionDeliveryMessages";
 import SectionProcedureScores from "./SectionProcedureScores";
 import SectionDebtStatus from "./SectionDebtStatus";
 import SectionRepaymentPlan from "./SectionRepaymentPlan";
@@ -176,6 +177,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
+              {detail.messages.length > 0 ? (
+                <div className="mt-5 md:mt-6">
+                  <SectionDeliveryMessages messages={detail.messages} />
+                </div>
+              ) : null}
             </SectionCard>
             <SectionCard id="scores" compactTop joined="end">
               <SectionProcedureScores detail={detail} />
@@ -188,6 +194,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
+              {detail.messages.length > 0 ? (
+                <div className="mt-5 md:mt-6">
+                  <SectionDeliveryMessages messages={detail.messages} />
+                </div>
+              ) : null}
               <SectionAiRecommendation detail={detail} />
             </SectionCard>
 
