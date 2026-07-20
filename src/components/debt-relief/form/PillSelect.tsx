@@ -34,7 +34,8 @@ export function PillSelect<T extends string>({
 }: {
   options: PillOption<T>[];
   value: T | null;
-  onChange: (value: T) => void;
+  /** 이미 선택된 항목을 다시 누르면 null로 넘어온다 — 미선택 상태로 되돌릴 수 있어야 함 */
+  onChange: (value: T | null) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -43,7 +44,7 @@ export function PillSelect<T extends string>({
           key={option.value}
           label={option.label}
           selected={value === option.value}
-          onClick={() => onChange(option.value)}
+          onClick={() => onChange(value === option.value ? null : option.value)}
         />
       ))}
     </div>

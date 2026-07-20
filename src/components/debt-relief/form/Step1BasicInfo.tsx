@@ -90,7 +90,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
           <PillSelect
             options={SPOUSE_INCOME_OPTIONS}
             value={form.spouseIncome === null ? null : form.spouseIncome ? "yes" : "none"}
-            onChange={(value) => update("spouseIncome", value === "yes")}
+            onChange={(value) => update("spouseIncome", value === null ? null : value === "yes")}
           />
         </FormField>
       </div>

@@ -243,12 +243,7 @@ export default function BasicTab({
         <PillSelect
           options={GENDER_OPTIONS}
           value={form.gender === "male" || form.gender === "female" ? form.gender : null}
-          onChange={(value) =>
-            setForm((prev) => ({
-              ...prev,
-              gender: prev.gender === value ? "" : value,
-            }))
-          }
+          onChange={(value) => setForm((prev) => ({ ...prev, gender: value ?? "" }))}
         />
       </div>
 
