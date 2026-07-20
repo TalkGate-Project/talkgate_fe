@@ -31,6 +31,7 @@ const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedur
 };
 
 function formatBasicInfoMeta(basicInfo: CustomerLinkedAnalysis["basicInfo"]): string {
+  if (!basicInfo) return "";
   const genderLabel =
     basicInfo.gender === "male" ? "남" : basicInfo.gender === "female" ? "여" : basicInfo.gender;
   return [basicInfo.ageGroup, genderLabel, basicInfo.employmentType].filter(Boolean).join(" · ");
