@@ -410,6 +410,7 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     assigneeName: assigneeName || undefined,
     assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
     assigneeProjectName: item.sourceProjectName ?? undefined,
+    rejectionReason: item.rejectionReason ?? null,
   };
 }
 
@@ -453,13 +454,6 @@ const VEHICLE_VALUE_ESTIMATE: Record<AnalysisVehicleValueRange, number> = {
   "500_to_2000": 1250,
   over_2000: 2500,
 };
-
-// analysisResult.expectedRepayment 금액 필드는 대부분 원(KRW) 단위다.
-// 다만 expectedExemption은 이 상세 화면에서만 예외적으로 이미 만원 단위로 내려온다.
-// 폼/채무현황 등 나머지 UI는 만원 단위이므로 필요한 필드만 변환한다.
-function wonToManwon(won: number): number {
-  return Math.round(won / 10_000);
-}
 
 const BREAKDOWN_LABEL: Record<keyof AnalysisDebtBreakdown, string> = {
   bankLoan: "은행대출",
@@ -718,7 +712,12 @@ export const DebtReliefService = {
       consultedAt: analysis.createdAt,
       isShared: analysis.isShared,
       status: analysis.status,
-      rejectionReason: analysis.rejectionReason ?? null,
+      // rejectionReason 단일 필드는 최신 AnalysisResponseDto에서 제거됨 — messages(type: "reject")
+      // 히스토리의 마지막 항목으로 대체됨 (types/analysis.ts AnalysisMessageDto 주석 참고).
+      rejectionReason:
+        analysis.messages
+          ?.filter((message) => message.type === "reject")
+          .at(-1)?.message ?? null,
       deliveryStatus: analysis.deliveryStatus ?? null,
       assigneeName: assigneeName || undefined,
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
@@ -750,12 +749,14 @@ export const DebtReliefService = {
         overdueMonths: OVERDUE_MONTHS_ESTIMATE[inputData.overduePeriod],
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
+      // expectedRepayment.monthlyPayment/totalPayment/expectedExemption 모두 이미 만원 단위로 내려온다
+      // (2026-07-20 실 응답 확인: monthlyPayment 125 × periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
       repaymentPlan: analysis.analysisResult
         ? {
-            monthlyPaymentManwon: wonToManwon(analysis.analysisResult.expectedRepayment.monthlyPayment),
+            monthlyPaymentManwon: analysis.analysisResult.expectedRepayment.monthlyPayment,
             months: analysis.analysisResult.expectedRepayment.periodMonths,
             years: Math.round((analysis.analysisResult.expectedRepayment.periodMonths / 12) * 10) / 10,
-            totalPaymentManwon: wonToManwon(analysis.analysisResult.expectedRepayment.totalPayment),
+            totalPaymentManwon: analysis.analysisResult.expectedRepayment.totalPayment,
             exemptedDebtManwon: analysis.analysisResult.expectedRepayment.expectedExemption,
             notes: analysis.analysisResult.precautions,
           }
@@ -779,6 +780,14 @@ export const DebtReliefService = {
       inputData,
       contact: analysis.contact ?? null,
       referenceNote: analysis.referenceNote ?? null,
+      messages: (analysis.messages ?? []).map((item) => ({
+        type: item.type,
+        memberName: item.memberName,
+        projectId: item.projectId,
+        projectName: item.projectName ?? null,
+        message: item.message ?? null,
+        createdAt: item.createdAt,
+      })),
       feePlan: analysis.feePlan ?? null,
     };
   },

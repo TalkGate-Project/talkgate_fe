@@ -150,7 +150,11 @@ export default function DiagnosisMobileCardList({
                   <span className="text-[12px] font-medium text-neutral-50">결제 미설정</span>
                 )}
                 <span className="shrink-0">
-                  <StatusBadge status={item.status} stepLabel={resolveInProgressStepLabel(item)} />
+                  <StatusBadge
+                    status={item.status}
+                    rejectionReason={item.rejectionReason}
+                    stepLabel={resolveInProgressStepLabel(item)}
+                  />
                 </span>
               </div>
 

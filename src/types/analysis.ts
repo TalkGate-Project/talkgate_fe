@@ -385,6 +385,9 @@ export type AnalysisListItem = {
   gender?: AnalysisGender | null;
   ageGroup?: string | null; // "40대" 라벨 또는 "40s" 코드
   age?: number | null;
+  // 반려됨 상태일 때 마지막 반려 사유. 2026-07-20 확인 결과 목록 응답에는 아직 없음(상세의
+  // messages(type: "reject")로만 확인 가능) — 백엔드가 목록에도 내려주기 시작하면 자동으로 채워짐.
+  rejectionReason?: string | null;
 };
 
 export type AnalysisSortType = "consultationDate";
@@ -392,8 +395,9 @@ export type AnalysisSortOrder = "ASC" | "DESC";
 
 export type AnalysisListQuery = {
   projectId: string;
-  status?: AnalysisStatus;
-  procedure?: AnalysisProcedureType;
+  /** 복수 전달 가능. 미지정 시 서버가 rejected 제외. 반려 탭은 rejected 단독 전달 */
+  status?: AnalysisStatus | AnalysisStatus[];
+  procedure?: AnalysisProcedureType | AnalysisProcedureType[];
   search?: string;
   page?: number;
   limit?: number;

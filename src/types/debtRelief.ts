@@ -69,6 +69,9 @@ export type DiagnosisListItem = {
   assigneeName?: string;
   assigneeProfileImageUrl?: string;
   assigneeProjectName?: string;
+  // 반려됨 상태일 때 마지막 반려 사유. 목록 API가 아직 안 내려줘서 대부분 null — 백엔드 반영 전이면
+  // 응답에 없을 수 있어 옵셔널(StatusBadge 툴팁이 값 있을 때만 노출하므로 생략돼도 안전).
+  rejectionReason?: string | null;
 };
 
 // 목록 테이블 "진행단계" 셀용. 상세 API의 procedureGuides가 목록에는 없어
@@ -138,8 +141,9 @@ export type DiagnosisListQuery = {
   projectId: string;
   page: number;
   limit: number;
-  procedure?: RecommendedProcedure; // 탭 필터. 없으면 전체
-  status?: AnalysisStatus; // 상태 필터. 없으면 전체 — 절차 필터와 동시 적용 가능
+  procedure?: RecommendedProcedure; // 절차 필터. 없으면 전체
+  /** 상태 필터. 미지정 시 서버가 반려(rejected)를 제외. 반려 탭은 "rejected" 전달 */
+  status?: AnalysisStatus;
   keyword?: string; // 고객명/직업/지역 검색
   sortField?: DiagnosisSortField;
   sortDirection?: SortDirection;
@@ -526,6 +530,23 @@ export type ProcedureStepHistoryItem = {
   changedAt: string;
 };
 
+/** 분석 상세 전달사항(messages) — 공유/반려/수락/수임료 액션 히스토리 */
+export type DiagnosisMessageType =
+  | "share"
+  | "reject"
+  | "accept"
+  | "fee_create"
+  | "fee_update";
+
+export type DiagnosisMessage = {
+  type: DiagnosisMessageType;
+  memberName: string;
+  projectId: number;
+  projectName: string | null;
+  message: string | null;
+  createdAt: string;
+};
+
 export type DiagnosisDetail = {
   id: string;
   customerName: string;
@@ -573,6 +594,8 @@ export type DiagnosisDetail = {
   inputData: AnalysisInputData;
   contact: string | null;
   referenceNote: string | null;
+  /** 공유/반려/수락/수임료 입력·수정 등 액션 메시지 히스토리 */
+  messages: DiagnosisMessage[];
   feePlan: FeePlan | null;
 };
 
