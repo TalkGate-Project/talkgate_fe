@@ -601,8 +601,15 @@ export type BulkDeliverAnalysisResponse = ApiSuccess<BulkDeliverAnalysisResult>;
 // 분석 요약 통계 (GET /v1/analysis/summary)
 // ============================================
 
-export type AnalysisProcedureDistributionItem = {
-  procedure: AnalysisProcedureType;
+export type AnalysisMonthlyPayment = {
+  totalAmount: number; // 이번 달 총 결제 금액 (면제 제외)
+  totalCount: number; // 이번 달 총 결제 건수 (면제 제외)
+  paidAmount: number; // 이번 달 납부 완료 금액
+  paidCount: number; // 이번 달 납부 완료 건수
+};
+
+export type AnalysisStatusDistributionItem = {
+  status: AnalysisStatus;
   count: number;
 };
 
@@ -621,8 +628,8 @@ export type AnalysisStepProgressByProcedure = {
 export type AnalysisSummary = {
   totalCount: number;
   monthlyCount: number;
-  averageSuccessProbability: number;
-  procedureDistribution: AnalysisProcedureDistributionItem[];
+  monthlyPayment: AnalysisMonthlyPayment;
+  statusDistribution: AnalysisStatusDistributionItem[];
   stepProgressByProcedure: AnalysisStepProgressByProcedure[];
 };
 

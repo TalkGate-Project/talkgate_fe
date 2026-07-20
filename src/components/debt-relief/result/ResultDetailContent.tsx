@@ -146,7 +146,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     { id: "scores", label: "절차별 성공 가능성" },
     { id: "debt", label: "채무현황" },
     { id: "repayment", label: "예상 변제 계획" },
-    ...(hideCounselMents ? [] : [{ id: "ments", label: "추천 상담 멘트" }]),
+    ...(hideCounselMents ? [] : [{ id: "ments", label: "상담 포인트" }]),
     { id: "guide", label: "절차 안내" },
     { id: "sms", label: "고객 문자 전송" },
   ];
@@ -172,13 +172,19 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}
         {hideAiRecommendation ? (
           <div className="flex flex-col gap-0 md:rounded-[14px] md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:md:shadow-none">
-            <SectionCard id="overview" compactTop joined="start" className="max-md:!pt-0">
+            <SectionCard
+              id="overview"
+              compactTop
+              joined="start"
+              joinBottomDivider={detail.messages.length === 0}
+              className="max-md:!pt-0"
+            >
               <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
               {detail.messages.length > 0 ? (
-                <div className="mt-5 md:mt-6">
+                <div className="mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:px-8">
                   <SectionDeliveryMessages messages={detail.messages} />
                 </div>
               ) : null}
@@ -195,7 +201,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
               {detail.messages.length > 0 ? (
-                <div className="mt-5 md:mt-6">
+                <div className="mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:px-8">
                   <SectionDeliveryMessages messages={detail.messages} />
                 </div>
               ) : null}

@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  DIAGNOSIS_STATUS_DISTRIBUTION_ORDER,
+  DIAGNOSIS_STATUS_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
   type DiagnosisHubSummary,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
 import SortIcon from "@/components/common/SortIcon";
+import { STATUS_BADGE_STYLE } from "@/components/debt-relief/DiagnosisBadges";
 
 // 카드 외곽은 공통(304×148 비율)이되, 안쪽 콘텐츠 영역 너비·높이는 카드마다 다름 (피그마 Group 치수).
 const CARD_BASE =
@@ -18,12 +21,6 @@ const CARD_CLASS = `${CARD_BASE} md:py-[22px]`;
 const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
 
 const LABEL_CLASS = "text-[13px] md:text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
-
-const PROCEDURE_CHIP_STYLE: Record<RecommendedProcedure, string> = {
-  individual_rehab: "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
-  debt_adjustment: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
-  bankruptcy: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
-};
 
 // 피그마 모바일: 2×2 그리드 (375px에서도 한 행에 카드 2개)
 const SUMMARY_GRID_CLASS = "grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5";
@@ -136,11 +133,15 @@ export default function SummaryCards({
 
   if (loading || !summary) return <SummaryCardsSkeleton />;
 
-  const maxProcedureCount = Math.max(
+  const maxStatusCount = Math.max(
     1,
-    ...RECOMMENDED_PROCEDURE_ORDER.map((key) => summary.procedureDistribution[key])
+    ...DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.map((key) => summary.statusDistribution[key])
   );
   const progressSteps = summary.progressStepsByProcedure[selectedProcedure] ?? [];
+  const monthlyPaymentAmountRatio =
+    summary.monthlyPayment.totalAmount > 0
+      ? Math.min(100, Math.max(0, (summary.monthlyPayment.paidAmount / summary.monthlyPayment.totalAmount) * 100))
+      : 0;
 
   return (
     <div className={SUMMARY_GRID_CLASS}>
@@ -149,7 +150,7 @@ export default function SummaryCards({
         <p className={LABEL_CLASS}>총 분석 건수</p>
         <div className="mt-3 md:mt-3 flex flex-col w-fit max-w-full md:h-[62px] md:justify-between">
           <p className="flex items-end gap-1.5">
-            <span className="font-montserrat font-bold text-[22px] md:text-[28px] leading-[34px] tracking-[1px] text-neutral-90">
+            <span className="font-montserrat font-bold text-[22px] md:text-[28px] leading-none tracking-[-0.04em] text-neutral-90">
               {summary.totalAnalysisCount.toLocaleString("ko-KR")}
             </span>
             <span className="text-[14px] md:text-[16px] font-semibold leading-[19px] text-neutral-90 pb-1.5">
@@ -162,48 +163,58 @@ export default function SummaryCards({
         </div>
       </div>
 
-      {/* 평균 성공 가능성 — 안쪽 콘텐츠 ~248×96 (프로그레스 바 풀폭) */}
+      {/* 이번 달 결제 — 안쪽 콘텐츠 ~248×96 (금액/건수 + 프로그레스 바 풀폭) */}
       <div className={CARD_CLASS}>
-        <p className={LABEL_CLASS}>평균 성공 가능성</p>
+        <p className={LABEL_CLASS}>이번 달 결제</p>
         <div className="mt-3 md:mt-[17px] flex flex-col flex-1 min-h-0 w-full md:max-w-[248px]">
-          <p className="flex items-baseline gap-0.5">
-            <span className="font-montserrat font-bold text-[22px] md:text-[28px] leading-[34px] tracking-[1px] text-neutral-90">
-              {summary.averageSuccessProbability}
+          <p className="flex items-end gap-1 flex-wrap">
+            <span className="font-montserrat font-bold text-[22px] md:text-[28px] leading-none tracking-[-0.04em] text-neutral-90">
+              {summary.monthlyPayment.paidAmount.toLocaleString("ko-KR")}
+            </span>
+            <span className="font-montserrat font-medium text-[15px] md:text-[18px] leading-[22px] tracking-[-0.02em] text-neutral-60">
+              /
             </span>
             <span className="font-montserrat font-semibold text-[15px] md:text-[18px] leading-[22px] tracking-[-0.02em] text-neutral-60">
-              /100
+              {summary.monthlyPayment.totalAmount.toLocaleString("ko-KR")}
+            </span>
+            <span className="font-montserrat font-medium text-[15px] md:text-[18px] leading-[22px] tracking-[-0.02em] text-neutral-60">
+              원
             </span>
           </p>
           <div className="mt-auto pt-3 md:pt-0">
             <div className="h-1.5 md:h-2 w-full rounded-[30px] bg-neutral-30 overflow-hidden">
               <div
                 className="h-full rounded-l-[30px] bg-primary-40"
-                style={{
-                  width: `${Math.min(100, Math.max(0, summary.averageSuccessProbability))}%`,
-                }}
+                style={{ width: `${monthlyPaymentAmountRatio}%` }}
               />
             </div>
+            <p className="mt-2 text-[12px] md:text-[13px] font-medium leading-[14px] text-neutral-50">
+              {summary.monthlyPayment.paidCount}/{summary.monthlyPayment.totalCount}건 납부 완료
+            </p>
           </div>
         </div>
       </div>
 
-      {/* 추천 절차 분포 — 안쪽 콘텐츠 ~248×104 (칩+바 행, gap 8) */}
+      {/* 상태 분포 — 안쪽 콘텐츠 ~248×104 (칩+바 행, gap 8, 항목이 많으면 내부 스크롤) */}
       <div className={CARD_CLASS}>
-        <p className={LABEL_CLASS}>추천 절차 분포</p>
-        <div className="mt-2.5 md:mt-3 flex flex-col gap-2 w-full md:max-w-[248px] md:h-[76px]">
-          {RECOMMENDED_PROCEDURE_ORDER.map((key) => {
-            const count = summary.procedureDistribution[key];
+        <p className={LABEL_CLASS}>상태 분포</p>
+        <div
+          className="mt-2.5 md:mt-3 flex flex-col gap-2 overflow-y-auto w-full md:max-w-[248px] md:h-[76px] pr-1"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "#D0D0D0 transparent" }}
+        >
+          {DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.map((key) => {
+            const count = summary.statusDistribution[key];
             return (
               <div key={key} className="flex items-center gap-3 h-5 shrink-0">
                 <span
-                  className={`inline-flex items-center justify-center h-5 px-3 rounded-[30px] text-[12px] font-medium leading-[14px] opacity-80 whitespace-nowrap shrink-0 ${PROCEDURE_CHIP_STYLE[key]}`}
+                  className={`inline-flex items-center justify-center h-5 px-3 rounded-[30px] text-[12px] font-medium leading-[14px] opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
                 >
-                  {RECOMMENDED_PROCEDURE_LABEL[key]}
+                  {DIAGNOSIS_STATUS_LABEL[key]}
                 </span>
                 <div className="w-full max-w-[140px] min-w-0 h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
                   <div
                     className="h-full rounded-l-[30px] bg-neutral-70"
-                    style={{ width: `${(count / maxProcedureCount) * 100}%` }}
+                    style={{ width: `${(count / maxStatusCount) * 100}%` }}
                   />
                 </div>
                 <span className="text-[12px] font-medium leading-[14px] text-neutral-60 shrink-0 whitespace-nowrap text-right">

@@ -1,11 +1,11 @@
-export type ConfirmModalType = "warning" | "info" | "success";
+export type ConfirmModalType = "warning" | "caution" | "info" | "success";
 
 export type ConfirmModalCallbacks = {
   title?: string;
   /** 제목 아래에 표시할 강조 문구. 없으면 message만 표시(기존 동작) */
   headline?: string;
   message?: string;
-  /** warning=붉은 경고삼각형+붉은 headline, info=파란 정보원, success=초록 체크(headline은 기본 스타일) */
+  /** warning=붉은 경고삼각형+붉은 headline, caution=주황 느낌표원+주황 headline, info=파란 정보원, success=초록 체크(headline은 기본 스타일) */
   type?: ConfirmModalType;
   confirmText?: string;
   cancelText?: string | null;

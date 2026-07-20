@@ -194,7 +194,9 @@ export default function AnalysisShareContactStep({
             </div>
 
             <div>
-              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">전달사항</label>
+              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                전달사항 (선택)
+              </label>
               <textarea
                 value={referenceNote}
                 onChange={(e) => setReferenceNote(e.target.value)}

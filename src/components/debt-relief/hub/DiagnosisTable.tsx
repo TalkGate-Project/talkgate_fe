@@ -192,7 +192,7 @@ export default function DiagnosisTable({
               const customerMeta = formatCustomerMeta(
                 item.age,
                 item.gender,
-                undefined,
+                item.occupation || "무직",
                 item.ageGroupLabel
               );
               return (

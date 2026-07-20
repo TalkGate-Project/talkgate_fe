@@ -93,9 +93,12 @@ export default function AnalysisShareConfirmModal({
           공유 전 고객 정보를 다시 한번 확인해 주세요.
         </p>
 
-        <div className="px-7 pb-6 flex flex-col gap-2">
-          <div className="flex items-center gap-4 px-6 py-4 rounded-[12px] border border-neutral-30 bg-card">
-            <div className="min-w-0 flex items-baseline gap-2 flex-wrap">
+        <div className="px-7 pb-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="text-[14px] leading-[17px] font-medium text-neutral-60 tracking-[0.2px]">
+              고객정보
+            </span>
+            <div className="flex items-center gap-2 px-6 py-4 rounded-[12px] border border-neutral-30 bg-card flex-wrap">
               <span className="text-[16px] leading-[19px] font-semibold text-foreground">
                 {displayName}
               </span>
@@ -104,27 +107,47 @@ export default function AnalysisShareConfirmModal({
                   {customerMeta}
                 </span>
               ) : null}
+              {formattedContact ? (
+                <span className="text-[12px] leading-[14px] font-medium text-neutral-60 opacity-80">
+                  {formattedContact}
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 px-6 py-3 rounded-[8px] bg-neutral-10 dark:bg-neutral-25">
-            <div
-              className="w-5 h-5 rounded-full bg-neutral-20 dark:bg-neutral-30 shrink-0 grid place-items-center text-[11px] font-semibold text-neutral-60"
-              aria-hidden
-            >
-              {displayPartnerName.charAt(0).toUpperCase() || "?"}
-            </div>
-            <span className="text-[14px] leading-5 font-semibold text-foreground truncate min-w-0">
-              {displayPartnerName}
+          <div className="flex flex-col gap-2">
+            <span className="text-[14px] leading-[17px] font-medium text-neutral-60 tracking-[0.2px]">
+              공유받는 프로젝트
             </span>
+            <div className="flex items-center gap-4 px-6 py-3 rounded-[8px] bg-neutral-10 dark:bg-neutral-25">
+              <div
+                className="w-5 h-5 rounded-full bg-neutral-20 dark:bg-neutral-30 shrink-0 grid place-items-center text-[11px] font-semibold text-neutral-60"
+                aria-hidden
+              >
+                {displayPartnerName.charAt(0).toUpperCase() || "?"}
+              </div>
+              <span className="text-[14px] leading-5 font-semibold text-foreground truncate min-w-0">
+                {displayPartnerName}
+              </span>
+            </div>
           </div>
 
-          <div className="px-6 py-3 rounded-[8px] bg-neutral-10 dark:bg-neutral-25 min-h-[84px]">
-            <p className="text-[14px] leading-5 font-medium text-neutral-60 whitespace-pre-line">
-              {formattedContact}
-              {referenceNote ? `\n전달사항 : ${referenceNote}` : ""}
-            </p>
-          </div>
+          {referenceNote ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-[14px] leading-[17px] font-medium text-neutral-60 tracking-[0.2px]">
+                전달사항
+              </span>
+              <div className="flex flex-col gap-2 px-6 py-3 rounded-[8px] bg-neutral-10 dark:bg-neutral-25">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-secondary-20 shrink-0" aria-hidden />
+                  <span className="text-[14px] font-bold leading-5 text-foreground">공유</span>
+                </div>
+                <p className="whitespace-pre-wrap break-words text-[14px] font-medium leading-5 text-neutral-60">
+                  {referenceNote}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="w-full h-px border-t border-neutral-30 shrink-0" />

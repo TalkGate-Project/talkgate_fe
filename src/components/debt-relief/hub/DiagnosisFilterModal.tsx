@@ -22,7 +22,7 @@ const STATUS_ORDER: AnalysisStatus[] = [
 type Props = {
   procedure: RecommendedProcedure | undefined;
   status: AnalysisStatus | undefined;
-  /** 절차별 건수 표시용. 상태(status)는 요약 API에 분포 데이터가 없어 카운트를 표시하지 않는다. */
+  /** 상태별 건수 표시용. 절차(procedure)는 요약 API가 더 이상 분포 데이터를 내려주지 않아 카운트를 표시하지 않는다. */
   summary: DiagnosisHubSummary | null;
   onApply: (next: { procedure: RecommendedProcedure | undefined; status: AnalysisStatus | undefined }) => void;
   onClose: () => void;
@@ -124,7 +124,6 @@ export default function DiagnosisFilterModal({ procedure, status, summary, onApp
             <FilterPill
               key={key}
               label={RECOMMENDED_PROCEDURE_LABEL[key]}
-              count={summary?.procedureDistribution[key]}
               selected={draftProcedure === key}
               onClick={() => toggleProcedure(key)}
             />
@@ -139,6 +138,7 @@ export default function DiagnosisFilterModal({ procedure, status, summary, onApp
             <FilterPill
               key={key}
               label={DIAGNOSIS_STATUS_LABEL[key]}
+              count={summary?.statusDistribution[key]}
               selected={draftStatus === key}
               onClick={() => toggleStatus(key)}
             />

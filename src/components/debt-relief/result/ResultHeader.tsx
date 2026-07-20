@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { RECOMMENDED_PROCEDURE_LABEL, type DiagnosisDetail } from "@/types/debtRelief";
+import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import type { AnalysisProcedureType } from "@/types/analysis";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
@@ -383,6 +384,19 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
     .filter(Boolean)
     .join(" · ");
 
+  const inProgressStepLabel =
+    detail.status === "in_progress" && detail.procedureGuide.totalSteps > 1
+      ? `${detail.procedureGuide.currentStep}/${detail.procedureGuide.totalSteps}`
+      : undefined;
+
+  const statusBadge = (
+    <StatusBadge
+      status={detail.status}
+      rejectionReason={detail.rejectionReason}
+      stepLabel={inProgressStepLabel}
+    />
+  );
+
   const customerInfoButton = (
     <button
       type="button"
@@ -416,9 +430,12 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
             </svg>
           </button>
           <div className="min-w-0">
-            <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
-              {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
-            </h1>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
+                {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
+              </h1>
+              {statusBadge}
+            </div>
             <p className="mt-1 text-[16px] font-medium leading-[19px] tracking-[0.2px] text-neutral-60 truncate">
               {customerSummaryLabel}
             </p>
@@ -526,6 +543,7 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
           <h1 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">
             {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
           </h1>
+          {statusBadge}
           <span className="w-px h-4 bg-neutral-60 shrink-0" aria-hidden />
           <span className="text-[18px] font-medium leading-5 text-neutral-60 truncate min-w-0">
             {customerSummaryLabel}

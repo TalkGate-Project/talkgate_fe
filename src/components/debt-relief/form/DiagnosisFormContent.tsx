@@ -37,6 +37,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const [loadingForm, setLoadingForm] = useState(isEdit);
   // 수정 모드: 불러온 원본 스냅샷. dirty 비교용. 생성 모드에서는 null.
   const [baselineForm, setBaselineForm] = useState<DiagnosisFormState | null>(null);
+  // 수정 모드: 불러온 진단이 실제 고객 레코드와 매칭되어 있는지. 생성 모드에서는 아래
+  // linkedCustomerId(고객 상세 「추가하기」 진입)로 대체 판단한다.
+  const [existingCustomerId, setExistingCustomerId] = useState<number | null>(null);
 
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
@@ -46,6 +49,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       ? Number(customerIdParam)
       : undefined;
   const customerNameParam = searchParams.get("customerName");
+
+  // 실제 고객 레코드와 연동된 데이터인지 — 생성: URL로 넘어온 연결 대상, 수정: 이미 매칭된 고객.
+  const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(linkedCustomerId);
 
   // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
   useEffect(() => {
@@ -79,10 +85,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     let cancelled = false;
     setLoadingForm(true);
     DebtReliefService.getDiagnosisForm(projectId, diagnosisId)
-      .then((data) => {
+      .then(({ form: data, customerId }) => {
         if (cancelled) return;
         setForm(data);
         setBaselineForm(data);
+        setExistingCustomerId(customerId);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -213,6 +220,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onAnalyze={handleAnalyze}
         analyzing={analyzing}
         analyzeDisabled={!canAnalyze}
+        isCustomerConnected={isCustomerConnected}
       />
 
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
@@ -225,6 +233,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           onAnalyze={handleAnalyze}
           analyzing={analyzing}
           analyzeDisabled={!canAnalyze}
+          isCustomerConnected={isCustomerConnected}
         />
 
         <section className="relative flex-1 w-full surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">

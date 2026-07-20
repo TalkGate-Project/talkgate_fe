@@ -92,7 +92,6 @@ export default function SectionDeliveryMessages({
         </span>
       </button>
 
-      <div className="border-t border-neutral-30" role="separator" />
       <ul
         className={`px-6 py-4 ${
           expanded ? "" : "max-h-[260px] overflow-y-auto"
@@ -135,7 +134,11 @@ export default function SectionDeliveryMessages({
                   <p className="mt-1 whitespace-pre-wrap break-words text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-80">
                     {item.message}
                   </p>
-                ) : null}
+                ) : (
+                  <p className="mt-1 text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-40 dark:text-neutral-60">
+                    내용 없음
+                  </p>
+                )}
               </div>
             </li>
           );
