@@ -10,13 +10,12 @@ import {
   type RecommendedProcedure,
 } from "@/types/debtRelief";
 
-// 상태 pill 표시 순서 — 피그마 순서(절차진행중 → 상담중 → 검토중 / 계약대기중 → 반려됨 → 중단됨)
+// 상태 pill 표시 순서 — 반려(rejected)는 목록 상단 탭으로 분리되어 필터에서 제외
 const STATUS_ORDER: AnalysisStatus[] = [
   "in_progress",
   "consulting",
   "reviewing",
   "contract_pending",
-  "rejected",
   "suspended",
 ];
 

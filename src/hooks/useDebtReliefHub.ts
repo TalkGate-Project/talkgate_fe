@@ -52,14 +52,18 @@ export function useDebtReliefSummary() {
 
 export const DEBT_RELIEF_PAGE_LIMIT = 10;
 
+export type DiagnosisListTab = "all" | "rejected";
+
 // 진단 목록 상태(탭/검색/정렬/페이지) + 서비스 호출.
 // 검색은 실시간(타이핑 디바운스)이 아니라 Enter 또는 검색 버튼 클릭으로만 실행된다
 // (appliedKeyword가 실제 쿼리에 쓰이는 값이고 keyword는 입력창 표시용).
 // 필터/정렬/검색 제출이 바뀌면 1페이지로 되돌린다.
 // 정렬은 GET /v1/analysis의 sortType/sortOrder로 서버에 위임한다(현재 consultationDate만 지원).
+// 목록 탭: 전체=status 미지정(서버가 rejected 제외), 반려=status=rejected.
 export function useDebtReliefList() {
   const [projectId, ready] = useSelectedProjectId();
 
+  const [listTab, setListTabState] = useState<DiagnosisListTab>("all");
   const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(undefined);
   const [status, setStatusState] = useState<AnalysisStatus | undefined>(undefined);
   const [keyword, setKeyword] = useState("");
@@ -73,6 +77,15 @@ export function useDebtReliefList() {
   const [items, setItems] = useState<DiagnosisListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const selectListTab = (next: DiagnosisListTab) => {
+    setListTabState(next);
+    // 반려 탭은 status=rejected 전용 — 필터 모달의 상태 선택은 해제한다.
+    if (next === "rejected") {
+      setStatusState(undefined);
+    }
+    setPage(1);
+  };
 
   const selectProcedure = (next: RecommendedProcedure | undefined) => {
     setProcedureState(next);
@@ -116,6 +129,10 @@ export function useDebtReliefList() {
 
   const refetch = useCallback(() => setRefetchIndex((prev) => prev + 1), []);
 
+  // 반려 탭: status=rejected 고정. 전체 탭: 필터 상태(있으면)만 전달 — 미지정 시 서버가 rejected 제외.
+  const queryStatus: AnalysisStatus | undefined =
+    listTab === "rejected" ? "rejected" : status;
+
   useEffect(() => {
     if (!ready || !projectId) return;
 
@@ -127,7 +144,7 @@ export function useDebtReliefList() {
       page,
       limit,
       procedure,
-      status,
+      status: queryStatus,
       keyword: appliedKeyword,
       sortField,
       sortDirection,
@@ -150,7 +167,18 @@ export function useDebtReliefList() {
     return () => {
       cancelled = true;
     };
-  }, [projectId, ready, page, limit, procedure, status, appliedKeyword, sortField, sortDirection, refetchIndex]);
+  }, [
+    projectId,
+    ready,
+    page,
+    limit,
+    procedure,
+    queryStatus,
+    appliedKeyword,
+    sortField,
+    sortDirection,
+    refetchIndex,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / limit));
 
@@ -158,6 +186,8 @@ export function useDebtReliefList() {
     items,
     totalCount,
     loading,
+    listTab,
+    selectListTab,
     procedure,
     selectProcedure,
     status,

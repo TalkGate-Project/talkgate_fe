@@ -1,16 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import AnalysisShareIcon from "@/components/icons/AnalysisShareIcon";
 
 type Props = {
   hasSelection: boolean;
   selectedCount: number;
   limit: number;
   onDelete: () => void;
-  onShare: () => void;
-  /** 영업점(analysis)에서만 선택 공유 버튼 표시 */
-  showShareAction?: boolean;
   onLimitChange: (limit: number) => void;
 };
 
@@ -38,8 +34,6 @@ export default function DiagnosisListActions({
   selectedCount,
   limit,
   onDelete,
-  onShare,
-  showShareAction = true,
   onLimitChange,
 }: Props) {
   const [limitOpen, setLimitOpen] = useState(false);
@@ -77,20 +71,6 @@ export default function DiagnosisListActions({
           </svg>
         </button>
       </IconTooltip>
-
-      {showShareAction && (
-        <IconTooltip label="선택 공유">
-          <button
-            type="button"
-            onClick={onShare}
-            disabled={!hasSelection}
-            className={ICON_BTN}
-            aria-label={`선택한 ${selectedCount}건 공유`}
-          >
-            <AnalysisShareIcon tone="muted" />
-          </button>
-        </IconTooltip>
-      )}
 
       <div className="relative h-6" ref={popoverRef}>
         <IconTooltip label="목록 개수">
