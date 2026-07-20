@@ -25,7 +25,8 @@ const PROCEDURE_CHIP_STYLE: Record<RecommendedProcedure, string> = {
   bankruptcy: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
-const SUMMARY_GRID_CLASS = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-5";
+// 피그마 모바일: 2×2 그리드 (375px에서도 한 행에 카드 2개)
+const SUMMARY_GRID_CLASS = "grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5";
 
 function SummaryCardsSkeleton() {
   return (

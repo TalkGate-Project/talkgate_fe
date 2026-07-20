@@ -20,6 +20,8 @@ const NOTIFICATION_TYPE_LABEL: Record<Notification["type"], string> = {
   customer_assignment: "담당배정",
   system: "시스템",
   analysis_delivery: "분석결과",
+  analysis_rejected: "분석반려",
+  analysis_accepted: "분석승인",
 };
 
 const NOTIFICATION_TYPE_ICON: Record<Notification["type"], ToastNotificationIcon> = {
@@ -29,6 +31,8 @@ const NOTIFICATION_TYPE_ICON: Record<Notification["type"], ToastNotificationIcon
   customer_assignment: "customer",
   system: "system",
   analysis_delivery: "customer",
+  analysis_rejected: "customer",
+  analysis_accepted: "customer",
 };
 
 function parseNotificationFromSocketPayload(payload: unknown): Notification | null {
@@ -71,7 +75,11 @@ function resolveNotificationUrl(notification: Notification): string {
   if (notification.type === "system") {
     return "/my-settings?tab=billing";
   }
-  if (notification.type === "analysis_delivery") {
+  if (
+    notification.type === "analysis_delivery" ||
+    notification.type === "analysis_rejected" ||
+    notification.type === "analysis_accepted"
+  ) {
     return withSubdomain(notification.referenceId ? `/debt-relief/${notification.referenceId}` : "/debt-relief");
   }
   return "/notifications";

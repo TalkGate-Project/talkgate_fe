@@ -719,6 +719,7 @@ export const DebtReliefService = {
       isShared: analysis.isShared,
       status: analysis.status,
       rejectionReason: analysis.rejectionReason ?? null,
+      deliveryStatus: analysis.deliveryStatus ?? null,
       assigneeName: assigneeName || undefined,
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
       assigneeProjectName: analysis.sourceProjectName ?? undefined,
@@ -795,6 +796,16 @@ export const DebtReliefService = {
       trackingProcedure: PROCEDURE_TO_ANALYSIS[input.trackingProcedure],
       currentProcedureStep: input.currentProcedureStep,
     });
+  },
+
+  // 공유받은 분석 건 수락 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 계약대기중으로 전환.
+  async acceptSharedAnalysis(projectId: string, id: string, message?: string): Promise<void> {
+    await AnalysisService.accept(Number(id), { projectId, ...(message ? { message } : {}) });
+  },
+
+  // 공유받은 분석 건 거절 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 반려됨으로 전환.
+  async rejectSharedAnalysis(projectId: string, id: string, message?: string): Promise<void> {
+    await AnalysisService.reject(Number(id), { projectId, ...(message ? { message } : {}) });
   },
 
   // 편집(정보 수정) 진입 시 폼에 채울 원본 입력값 조회.

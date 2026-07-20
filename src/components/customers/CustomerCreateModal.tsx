@@ -474,9 +474,7 @@ export default function CustomerCreateModal({
                   <PillSelect
                     options={GENDER_OPTIONS}
                     value={gender || null}
-                    onChange={(value) =>
-                      setGender((prev) => (prev === value ? "" : value))
-                    }
+                    onChange={(value) => setGender(value ?? "")}
                   />
                 </div>
 

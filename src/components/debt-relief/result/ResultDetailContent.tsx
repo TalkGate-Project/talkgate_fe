@@ -16,6 +16,7 @@ import {
   type RecommendedProcedure,
 } from "@/types/debtRelief";
 import ResultAnchorNav, { type AnchorSection } from "./ResultAnchorNav";
+import AnalysisReviewBanner from "./AnalysisReviewBanner";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
@@ -130,6 +131,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     );
   }
 
+  // 영업점이 전달한 검토중 건을 변호사 프로젝트가 열었을 때만 수락/거절 배너 노출.
+  // 배너는 lawyerReceivedReadOnly(읽기전용/AI추천 숨김)와는 별개 조건 — 검토중일 때만이다.
+  const showReviewBanner =
+    projectTypeReady &&
+    isLawyer &&
+    detail.isShared &&
+    detail.status === "reviewing" &&
+    detail.deliveryStatus === "delivered";
+
   const sections: AnchorSection[] = [
     { id: "overview", label: RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure] },
     { id: "scores", label: "절차별 성공 가능성" },
@@ -150,6 +160,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         <div className="md:hidden sticky top-[54px] z-30 bg-card border-b border-neutral-30">
           <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
         </div>
+
+        {showReviewBanner && (
+          <div className="px-6 md:px-0 pt-4 md:pt-0">
+            <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} />
+          </div>
+        )}
 
         {/* 헤더 + (데스크톱) 탭 바 + AI 분석 추천 (같은 카드).
             변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}

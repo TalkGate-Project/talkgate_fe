@@ -217,7 +217,8 @@ export type CustomerLinkedAnalysisBasicInfo = {
 /** 고객 상세 - 연동된 분석 데이터 정보 (Analysis/Lawyer 프로젝트에서 연결된 분석 건이 있을 때만 포함) */
 export type CustomerLinkedAnalysis = {
   analysisId: number;
-  basicInfo: CustomerLinkedAnalysisBasicInfo;
+  /** 기본 인적사항. status/feePlanSummary와 마찬가지로 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  basicInfo?: CustomerLinkedAnalysisBasicInfo | null;
   /** 총 채무액 (만원) */
   totalDebt: number;
   currentProcedure: AnalysisProcedureType | null;

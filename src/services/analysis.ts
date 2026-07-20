@@ -24,6 +24,10 @@ import type {
   DeliverAnalysisResponse,
   AnalysisDeliveriesResponse,
   RevokeAnalysisDeliveryResponse,
+  AcceptAnalysisInput,
+  AcceptAnalysisResponse,
+  RejectAnalysisInput,
+  RejectAnalysisResponse,
   AnalysisSummaryResponse,
   AnalysisProceduresResponse,
   AnalysisProcedureChangesResponse,
@@ -206,6 +210,23 @@ export const AnalysisService = {
   deliver(id: number, input: DeliverAnalysisInput) {
     const { projectId, ...body } = input;
     return apiClient.post<DeliverAnalysisResponse>(`/v1/analysis/${id}/deliver`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 공유받은 분석 건 수락 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 계약대기중으로 전환.
+  accept(id: number, input: AcceptAnalysisInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<AcceptAnalysisResponse>(`/v1/analysis/${id}/accept`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
+
+  // 공유받은 분석 건 반려 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 반려됨으로 전환.
+  // 반려돼도 접근 권한(isShared 조회)은 유지되고, 영업 프로젝트는 동일 파트너에게 재공유 가능.
+  reject(id: number, input: RejectAnalysisInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<RejectAnalysisResponse>(`/v1/analysis/${id}/reject`, body, {
       headers: { "x-project-id": projectId },
     });
   },

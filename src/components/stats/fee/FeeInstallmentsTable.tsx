@@ -30,8 +30,9 @@ export default function FeeInstallmentsTable({
 }: FeeInstallmentsTableProps) {
   return (
     <>
-      <div className="overflow-hidden rounded-[8px] md:rounded-[12px]">
-        <table className="w-full border-separate border-spacing-0">
+      {/* 모바일: 열이 다 들어가기엔 좁아 피그마처럼 가로 스크롤(overflow-hidden이면 상태 열이 잘림) */}
+      <div className="overflow-x-auto rounded-[8px] md:rounded-[12px]">
+        <table className="w-full min-w-[560px] border-separate border-spacing-0 md:min-w-0">
           <thead>
             <tr className="h-[40px]">
               <th className="bg-neutral-20 text-left px-2 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px] md:rounded-l-[12px] w-[110px] md:w-[130px] flex-shrink-0">

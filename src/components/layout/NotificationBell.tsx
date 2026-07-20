@@ -271,8 +271,12 @@ export default function NotificationBell() {
     } else if (notification.type === "system") {
       // 시스템 알림: 결제관리 메뉴로 이동
       router.push("/my-settings?tab=billing");
-    } else if (notification.type === "analysis_delivery") {
-      // 분석결과 전달 알림: 회생파산 화면으로 이동
+    } else if (
+      notification.type === "analysis_delivery" ||
+      notification.type === "analysis_rejected" ||
+      notification.type === "analysis_accepted"
+    ) {
+      // 분석결과 전달/반려/승인 알림: 회생파산 화면으로 이동
       navigateByNotificationProject(
         notification,
         notification.referenceId ? `/debt-relief/${notification.referenceId}` : "/debt-relief"

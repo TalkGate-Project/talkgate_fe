@@ -201,39 +201,38 @@ export default function DebtReliefHubContent() {
       {/* 하단 카드: 탭 + 검색 + 테이블 + 페이지네이션 */}
       <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         <div className="flex flex-col gap-3 mb-5">
-          {/* 1행: 필터 아이콘 + 검색 + (필터 있을 때만) 초기화 텍스트버튼 / 총 건수 + 액션.
-              2행: 적용된 필터 칩(있을 때만). 모바일도 동일 순서로 줄바꿈. */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <DiagnosisFilterTrigger
-                procedure={procedure}
-                status={status}
-                summary={summary}
-                onChangeProcedure={selectProcedure}
-                onChangeStatus={selectStatus}
-              />
-              <DiagnosisSearchInput
-                value={keyword}
-                onChange={setKeyword}
-                onSearch={submitSearch}
-                onClear={clearSearch}
-                className="flex-1 max-w-none md:flex-none md:max-w-[188px]"
-              />
-              {hasActiveFilter && (
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="cursor-pointer shrink-0 h-[38px] px-3 rounded-[8px] border border-neutral-30 text-[14px] font-semibold text-foreground hover:bg-neutral-10 whitespace-nowrap"
-                >
-                  초기화
-                </button>
-              )}
-              <span className="hidden md:inline text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
-                총 {totalCount}건
-                {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
+          {/* 1행: 필터 아이콘 + 검색 + (필터 있을 때만, 데스크톱만) 초기화 텍스트버튼 / 총 건수 + 액션.
+              모바일은 피그마 기준 한 줄에 필터·검색·액션 아이콘이 모두 들어가고 초기화 텍스트버튼은 생략(칩행의 새로고침 아이콘이 대신함).
+              2행: 적용된 필터 칩(있을 때만). */}
+          <div className="flex items-center gap-2">
+            <DiagnosisFilterTrigger
+              procedure={procedure}
+              status={status}
+              summary={summary}
+              onChangeProcedure={selectProcedure}
+              onChangeStatus={selectStatus}
+            />
+            <DiagnosisSearchInput
+              value={keyword}
+              onChange={setKeyword}
+              onSearch={submitSearch}
+              onClear={clearSearch}
+              className="flex-1 min-w-0 max-w-none md:flex-none md:max-w-[188px]"
+            />
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="hidden md:inline-flex cursor-pointer shrink-0 h-[38px] px-3 rounded-[8px] border border-neutral-30 text-[14px] font-semibold text-foreground hover:bg-neutral-10 whitespace-nowrap"
+              >
+                초기화
+              </button>
+            )}
+            <span className="hidden md:inline text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
+              총 {totalCount}건
+              {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
+            </span>
+            <div className="flex items-center gap-3 ml-auto shrink-0">
               <DiagnosisListActions
                 hasSelection={hasSelection}
                 selectedCount={selectedIds.size}

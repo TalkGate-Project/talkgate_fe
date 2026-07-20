@@ -1,13 +1,15 @@
 import EmptyState from "@/components/common/EmptyState";
 import Checkbox from "@/components/common/Checkbox";
 import LinkIcon from "@/components/icons/LinkIcon";
-import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import {
-  formatCustomerMeta,
-  formatDebtManwonParts,
-  formatFeePlanSummary,
-} from "@/components/debt-relief/format";
-import { getProgressStepMeta, type DiagnosisListItem } from "@/types/debtRelief";
+  StatusBadge,
+  DebtAmountText,
+  ProcedureNameText,
+  resolveFeePlanDisplay,
+} from "@/components/debt-relief/DiagnosisBadges";
+import { formatCustomerMeta } from "@/components/debt-relief/format";
+import { resolveInProgressStepLabel, type DiagnosisListItem } from "@/types/debtRelief";
+import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
 type Props = {
   items: DiagnosisListItem[];
@@ -19,60 +21,45 @@ type Props = {
 
 function CardSkeleton() {
   return (
-    <div className="h-[86px] rounded-[12px] border border-neutral-30 bg-card animate-pulse" />
+    <div className="h-[102px] rounded-[12px] border border-neutral-30 bg-card animate-pulse" />
   );
 }
 
-function MobileProgressBlock({
-  step,
-  procedure,
-  feePlanSummary,
-  debtManwon,
-}: {
-  step: number;
-  procedure: DiagnosisListItem["recommendedProcedure"];
-  feePlanSummary: DiagnosisListItem["feePlanSummary"];
-  debtManwon: number;
-}) {
-  const { current, total, title } = getProgressStepMeta(procedure, step);
-  const isKnown = total > 1;
-  const percent = isKnown ? Math.round((current / total) * 100) : 0;
-  const { amount, unit } = formatDebtManwonParts(debtManwon);
+// 결제상태 라벨 색상 — 진행바 색과 짝을 맞춘다 (완납=primary, 진행중=secondary, 중도해지=danger, 환불처리=neutral).
+const FEE_PLAN_LABEL_TEXT_CLASS: Record<string, string> = {
+  완납: "text-primary-80 dark:text-primary-40",
+  진행중: "text-secondary-60 dark:text-secondary-40",
+  중도해지: "text-danger-40 dark:text-danger-40",
+  환불처리: "text-neutral-50",
+};
+
+function MobileFeePlanBlock({ summary }: { summary: FeePlanSummary }) {
+  const { label, barClassName } = resolveFeePlanDisplay(summary);
+  const percent =
+    summary.installmentCount > 0
+      ? Math.min(100, Math.round((summary.paidInstallmentCount / summary.installmentCount) * 100))
+      : 0;
 
   return (
-    // 피그마: [진행라벨+바] | [결제정보] | [채무] — 바·결제정보·채무 하단 맞춤
-    <div className="flex items-end gap-2 w-full min-w-0">
-      <div className="flex flex-col gap-1 w-[148px] shrink-0 min-w-0">
-        <p className="text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-neutral-90 whitespace-nowrap truncate">
-          {isKnown ? `${current}/${total} · ${title}` : title}
-        </p>
-        <div className="h-1.5 w-full rounded-[30px] bg-neutral-30 overflow-hidden">
-          <div
-            className="h-full rounded-l-[30px] bg-secondary-20"
-            style={{ width: `${isKnown ? Math.max(percent, 4) : 0}%` }}
-          />
-        </div>
+    <div className="flex flex-col gap-1 flex-1 min-w-0 max-w-[160px]">
+      <div className="h-1.5 w-full rounded-[30px] bg-neutral-30 overflow-hidden">
+        <div
+          className={`h-full rounded-l-[30px] ${barClassName}`}
+          style={{ width: `${Math.max(percent, 4)}%` }}
+        />
       </div>
-
-      <div className="ml-auto flex items-end gap-3 shrink-0 min-w-0">
-        {feePlanSummary && (
-          <span className="text-[11px] font-medium leading-none text-neutral-60 truncate max-w-[110px]">
-            {formatFeePlanSummary(feePlanSummary)}
-          </span>
-        )}
-        <span className="inline-flex items-end whitespace-nowrap opacity-80 shrink-0">
-          <span className="text-[14px] font-bold leading-none text-foreground">{amount}</span>
-          {unit && (
-            <span className="text-[12px] font-medium leading-none text-foreground">{unit}</span>
-          )}
+      <div className="flex items-center justify-between text-[11px] font-medium text-neutral-60">
+        <span>
+          {summary.paidInstallmentCount}/{summary.installmentCount}
         </span>
+        <span className={FEE_PLAN_LABEL_TEXT_CLASS[label] ?? "text-neutral-60"}>{label}</span>
       </div>
     </div>
   );
 }
 
 // 데스크톱 DiagnosisTable(표)의 모바일 대응 카드 리스트.
-// 피그마 consultation list: 327×86, pad 16×12, gap 16, 체크(24) + 콘텐츠(이름/메타/배지 · 진행/점수/채무).
+// 피그마: 1행 이름·메타 / 절차명, 2행 결제금액 / 진단상태뱃지, 3행 결제진행바 / 총채무.
 export default function DiagnosisMobileCardList({
   items,
   loading,
@@ -101,11 +88,10 @@ export default function DiagnosisMobileCardList({
   return (
     <div className="flex flex-col gap-4">
       {items.map((item) => {
-        // 모바일 카드 헤더는 피그마처럼 나이·성별 위주. 직업은 공간이 좁아 생략.
         const customerMeta = formatCustomerMeta(
           item.age,
           item.gender,
-          undefined,
+          item.occupation,
           item.ageGroupLabel
         );
 
@@ -121,7 +107,7 @@ export default function DiagnosisMobileCardList({
                 onOpenResult(item.id);
               }
             }}
-            className="cursor-pointer flex items-center gap-4 px-3 py-4 h-[86px] rounded-[12px] border border-neutral-30 bg-card"
+            className="cursor-pointer flex items-center gap-4 px-3 py-3.5 rounded-[12px] border border-neutral-30 bg-card"
           >
             <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
               <Checkbox
@@ -132,9 +118,9 @@ export default function DiagnosisMobileCardList({
               />
             </div>
 
-            <div className="flex-1 min-w-0 h-[54px] flex flex-col justify-between">
-              {/* 상단: 이름 + 링크 + 나이·성별 | 절차 칩 */}
-              <div className="flex items-center justify-between gap-2 min-h-[25px]">
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              {/* 1행: 이름 + 링크 + 나이·성별·직업 | 추천 절차명 */}
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                   <p className="text-[16px] font-semibold leading-[19px] text-neutral-90 truncate">
                     {item.customerName}
@@ -143,23 +129,42 @@ export default function DiagnosisMobileCardList({
                     <LinkIcon size={16} className="text-secondary-60 shrink-0" />
                   )}
                   {customerMeta && (
-                    <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 whitespace-nowrap shrink-0">
+                    <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 truncate">
                       {customerMeta}
                     </span>
                   )}
                 </div>
-                <span className="shrink-0 opacity-80">
-                  <StatusBadge status={item.status} />
+                <span className="shrink-0">
+                  <ProcedureNameText procedure={item.recommendedProcedure} />
                 </span>
               </div>
 
-              {/* 하단: 진행단계 · 결제정보 · 채무 / 진행 바 */}
-              <MobileProgressBlock
-                step={item.progressStep}
-                procedure={item.recommendedProcedure}
-                feePlanSummary={item.feePlanSummary}
-                debtManwon={item.totalDebtManwon}
-              />
+              {/* 2행: 결제 금액 | 진단 상태뱃지 */}
+              <div className="flex items-center justify-between gap-2">
+                {item.feePlanSummary ? (
+                  <span className="text-[14px] font-bold leading-none text-foreground">
+                    {item.feePlanSummary.totalAmount.toLocaleString("ko-KR")}
+                    <span className="ml-0.5 text-[12px] font-medium">만원</span>
+                  </span>
+                ) : (
+                  <span className="text-[12px] font-medium text-neutral-50">결제 미설정</span>
+                )}
+                <span className="shrink-0">
+                  <StatusBadge status={item.status} stepLabel={resolveInProgressStepLabel(item)} />
+                </span>
+              </div>
+
+              {/* 3행: 결제 진행바 + 회차 + 결제상태 | 총 채무 */}
+              <div className="flex items-end gap-2 w-full min-w-0">
+                {item.feePlanSummary ? (
+                  <MobileFeePlanBlock summary={item.feePlanSummary} />
+                ) : (
+                  <span />
+                )}
+                <span className="ml-auto shrink-0">
+                  <DebtAmountText manwon={item.totalDebtManwon} />
+                </span>
+              </div>
             </div>
           </div>
         );

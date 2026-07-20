@@ -23,7 +23,7 @@ export function FormField({
   className?: string;
   /** 필수 필드 — 라벨 오른쪽에 빨간 * */
   required?: boolean;
-  /** valid 값이 입력된 필드 — 라벨 색상 #2563EB */
+  /** valid 값이 입력된 필드 — 라벨 색상 #2563EB (다크모드는 Secondary-20) */
   filled?: boolean;
 }) {
   return (
@@ -32,7 +32,7 @@ export function FormField({
       <div className="flex items-center gap-2 mb-2">
         <label
           className={`text-[14px] font-medium leading-[17px] tracking-[0.2px] ${
-            filled ? "text-secondary-60" : "text-neutral-60"
+            filled ? "text-secondary-60 dark:text-secondary-20" : "text-neutral-60"
           }`}
         >
           {label}
