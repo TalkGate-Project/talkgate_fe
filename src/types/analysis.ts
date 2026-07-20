@@ -250,14 +250,36 @@ export type AnalysisDetail = {
   contact?: string | null;
   /** 공유 시 전달한 참고사항 (없으면 null) */
   referenceNote?: string | null;
-  /** 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록 응답(AnalysisListItem)에는 없음 — 상세 전용. */
+  /** 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록 응답(AnalysisListItem)에는 없음 — 상세 전용.
+   * ⚠️ 2026-07-20 accept/reject 스펙 확인 결과 이 필드는 최신 AnalysisResponseDto에 더 이상 없음 —
+   * messages(type: "reject")의 message로 대체된 것으로 보임. 실 API로 확인 전까지는 유지. */
   rejectionReason?: string | null;
   /** 절차 단계 변경 이력 (상세 응답에 포함된 최근 이력) */
   procedureStepHistory?: AnalysisProcedureStepHistoryItem[];
+  /** 공유 연결 상태. delivered=공유중(수락 이후에도 연결이 유지되는 한 계속 delivered — "검토 대기"가 아님,
+   * 검토 대기 여부는 status==="reviewing"으로 판단), rejected=반려됨, revoked=철회됨. 연결 없으면 null */
+  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
+  /** 공유 대상 변호사 프로젝트 ID (재공유 시 동일 프로젝트 제한용) */
+  lawyerProjectId?: number | null;
+  lawyerProjectName?: string | null;
+  /** 공유 API에 사용하는 파트너 관계 ID(analysis_partner). 재공유 시 partnerId로 사용 */
+  partnerId?: number | null;
+  /** 공유/반려/수락/수임료 입력·수정 등 액션 메시지 히스토리 (시간순) */
+  messages?: AnalysisMessageDto[];
   /** 계약대기중 이후 등록된 수임료 계획 */
   feePlan: FeePlan | null;
   createdAt: string;
   updatedAt: string;
+};
+
+/** 분석 건 액션(공유/반려/수락/수임료 입력·수정) 메시지 히스토리 항목 */
+export type AnalysisMessageDto = {
+  type: "share" | "reject" | "accept" | "fee_create" | "fee_update";
+  memberName: string;
+  projectId: number;
+  projectName?: string | null;
+  message?: string | null;
+  createdAt: string;
 };
 
 /** 절차 단계 변경 이력 항목 (상세 procedureStepHistory / GET procedure-changes) */
@@ -352,6 +374,12 @@ export type AnalysisListItem = {
   sourceMemberProfileImageUrl?: string | null;
   sourceAssignedMemberName?: string | null;
   sourceAssignedMemberProfileImageUrl?: string | null;
+  // 2026-07-20 실 응답 확인 결과 목록에도 상세와 동일하게 내려옴 — 타입에 누락돼 있었음.
+  // delivered=공유중(검토 대기 여부와 무관하게 연결이 살아있는 동안 유지), rejected=반려됨, revoked=철회됨.
+  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
+  lawyerProjectId?: number | null;
+  lawyerProjectName?: string | null;
+  partnerId?: number | null;
   createdAt: string;
   // 고객정보 셀 하단(나이·성별) 표시용. 백엔드가 내려주는 경우만 채운다.
   gender?: AnalysisGender | null;
@@ -475,6 +503,28 @@ export type DeliverAnalysisInput = {
 };
 
 export type DeliverAnalysisResponse = ApiSuccess<AnalysisDelivery>;
+
+// ============================================
+// 공유받은 분석 건 수락/반려 (변호사 프로젝트)
+// ============================================
+
+export type AcceptAnalysisInput = {
+  projectId: string;
+  /** 선택 — 히스토리(messages)로 누적됨 */
+  message?: string;
+};
+
+/** 수락 성공 시 status가 contract_pending으로 바뀐 분석 상세를 그대로 반환 */
+export type AcceptAnalysisResponse = ApiSuccess<AnalysisDetail>;
+
+export type RejectAnalysisInput = {
+  projectId: string;
+  /** 선택 — 히스토리(messages)로 누적됨 */
+  message?: string;
+};
+
+/** 반려 성공 시 status가 rejected로 바뀐 분석 상세를 그대로 반환. 접근 권한(isShared 조회)은 유지됨 */
+export type RejectAnalysisResponse = ApiSuccess<AnalysisDetail>;
 
 // ⚠️ Swagger 예시는 data가 단일 객체로 표기돼 있으나 "공유 이력 조회"이므로 배열일 가능성이 높다.
 // 실제 응답 확인 후 필요시 수정.

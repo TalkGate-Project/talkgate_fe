@@ -105,6 +105,13 @@ export function getProgressStepMeta(
   return { current, total, title: titles[current - 1] ?? `${current}단계` };
 }
 
+// 절차진행중 상태뱃지에 붙는 "현재/총단계" (예: "5/9"). 총단계를 모르면 생략.
+export function resolveInProgressStepLabel(item: DiagnosisListItem): string | undefined {
+  if (item.status !== "in_progress") return undefined;
+  const { current, total } = getProgressStepMeta(item.recommendedProcedure, item.progressStep);
+  return total > 1 ? `${current}/${total}` : undefined;
+}
+
 // ── 대시보드 요약 ────────────────────────────────────────────
 // GET /v1/analysis/summary 응답을 허브 UI용으로 매핑한 형태.
 export type DiagnosisProgressStepItem = {
@@ -534,6 +541,10 @@ export type DiagnosisDetail = {
   status: AnalysisStatus;
   // 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록에는 없는 상세 전용 필드.
   rejectionReason: string | null;
+  // 공유 연결 상태. delivered=공유중(수락 이후에도 연결이 유지되는 한 계속 delivered — "검토 대기"라는
+  // 뜻이 아님), rejected=반려됨, revoked=철회됨. 연결 없으면 null.
+  // status가 "reviewing"이고 이 값이 "delivered"일 때만 변호사 프로젝트에 수락/거절 배너를 띄운다.
+  deliveryStatus: "delivered" | "revoked" | "rejected" | null;
   // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
   assigneeName?: string;
   assigneeProfileImageUrl?: string;

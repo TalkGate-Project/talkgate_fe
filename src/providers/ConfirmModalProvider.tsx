@@ -216,6 +216,24 @@ export default function ConfirmModalProvider({
                         strokeLinejoin="round"
                       />
                     </svg>
+                  ) : state.type === "success" ? (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-primary-80 dark:text-primary-40"
+                    >
+                      <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        d="M13 20.5L17.5 25L27 15"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   ) : (
                     <svg
                       width="40"
