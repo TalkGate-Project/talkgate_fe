@@ -136,6 +136,9 @@ export default function SectionDeliveryMessages({
 }) {
   // false(접힘, 기본값) = 약 3건 높이로 제한하고 넘치면 내부 스크롤. true(펼침) = 높이 제한 없이 전체 표시.
   const [expanded, setExpanded] = useState(false);
+  // 3건 이하면 접어봤자 다 보이는 높이라 펼치기/접기 버튼 자체가 무의미 — 버튼을 숨기고 항상 전체 표시.
+  const canToggle = messages.length > 3;
+  const isExpanded = expanded || !canToggle;
 
   if (messages.length === 0) return null;
 
@@ -144,21 +147,29 @@ export default function SectionDeliveryMessages({
       className="rounded-[12px] border border-secondary-20 bg-card dark:border-secondary-40"
       aria-label="전달사항"
     >
-      <button
-        type="button"
-        onClick={() => setExpanded((previous) => !previous)}
-        aria-expanded={expanded}
-        className="flex w-full cursor-pointer items-center justify-between px-6 py-4 text-left"
-      >
-        <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
-          전달사항
-        </h3>
-        <span className="text-neutral-50 dark:text-neutral-60">
-          <ChevronIcon expanded={expanded} />
-        </span>
-      </button>
+      {canToggle ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((previous) => !previous)}
+          aria-expanded={expanded}
+          className="flex w-full cursor-pointer items-center justify-between px-6 py-4 text-left"
+        >
+          <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
+            전달사항
+          </h3>
+          <span className="text-neutral-50 dark:text-neutral-60">
+            <ChevronIcon expanded={expanded} />
+          </span>
+        </button>
+      ) : (
+        <div className="flex w-full items-center justify-between px-6 py-4 text-left">
+          <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
+            전달사항
+          </h3>
+        </div>
+      )}
 
-      <div className={`px-6 py-4 ${expanded ? "" : "max-h-[260px] overflow-y-auto"}`}>
+      <div className={`px-6 py-4 ${isExpanded ? "" : "max-h-[260px] overflow-y-auto"}`}>
         <DeliveryMessageTimeline messages={messages} />
       </div>
     </section>

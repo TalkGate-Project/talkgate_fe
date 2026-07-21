@@ -11,7 +11,7 @@ import {
 } from "@/types/debtRelief";
 import SortIcon from "@/components/common/SortIcon";
 import { STATUS_BADGE_STYLE } from "@/components/debt-relief/DiagnosisBadges";
-import { formatWonAsManwonCompact } from "@/components/stats/fee/feeFormat";
+import { formatWonAsManwonCompact, formatWonAsManwonNumber } from "@/components/stats/fee/feeFormat";
 
 // 카드 외곽은 공통(304×148 비율)이되, 안쪽 콘텐츠 영역 너비·높이는 카드마다 다름 (피그마 Group 치수).
 // 모바일(< md)은 카드 높이를 96px로 제한하고 내용이 넘치면 카드 내부에서 세로 스크롤한다.
@@ -175,7 +175,10 @@ export default function SummaryCards({
               "/"가 줄바꿈 시 혼자 남지 않도록 "/ 총액"을 한 덩어리로 묶어서 wrap 단위로 취급 */}
           <p className="flex items-end gap-1 flex-wrap">
             <span className="font-montserrat font-bold text-[20px] md:text-[28px] leading-none tracking-[-0.04em] text-neutral-90">
-              {formatWonAsManwonCompact(summary.monthlyPayment.paidAmount)}
+              {formatWonAsManwonNumber(summary.monthlyPayment.paidAmount)}
+            </span>
+            <span className="font-montserrat font-semibold text-[12px] md:text-[18px] leading-[15px] md:leading-[22px] tracking-[-0.02em] text-neutral-60">
+              만원
             </span>
             <span className="inline-flex items-end gap-1">
               <span className="font-montserrat font-medium text-[12px] md:text-[18px] leading-[15px] md:leading-[22px] tracking-[-0.02em] text-neutral-60">
