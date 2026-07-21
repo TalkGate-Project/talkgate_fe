@@ -7,11 +7,6 @@ export type FeePlanStatus = "active" | "refunded" | "stopped";
 
 export type FeePlanInstallmentStatus = "scheduled" | "paid" | "refunded" | "waived";
 
-export type TrackingProcedureForFee =
-  | "individual_rehabilitation"
-  | "bankruptcy"
-  | string;
-
 export type FeePlanInstallment = {
   id: number;
   installmentNumber: number;
@@ -48,14 +43,14 @@ export type FeePlanSummary = {
   status: FeePlanStatus;
 };
 
-/** POST /v1/analysis/{id}/fee-plan */
+/** POST /v1/analysis/{id}/fee-plan — 계약대기중 이전 단계에서도 저장 가능하도록 trackingProcedure는 받지 않는다.
+ * 절차 지정은 계약대기중 상태에서 별도로 DebtReliefService.updateProcedureProgress(PATCH /v1/analysis/{id})로 한다. */
 export type CreateFeePlanInput = {
   projectId: string;
   totalAmount: number;
   paymentType: FeePaymentType;
   installmentCount: number;
   firstPaymentDate: string;
-  trackingProcedure: TrackingProcedureForFee;
   /** 전달사항 (선택) */
   message?: string | null;
 };

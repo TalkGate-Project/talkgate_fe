@@ -351,8 +351,11 @@ body {
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
-/* Mobile viewport uses fixed page background by theme. */
-@media (max-width: 639px) {
+/* Mobile/tablet viewport uses fixed page background by theme.
+   779px는 이 앱의 모바일→데스크톱 레이아웃 전환 기준(--breakpoint-tablet/md: 780px)과 맞춘 값 —
+   기존 639px 기준이면 640~779px(세로로 긴 태블릿 세로모드 등)에서 레이아웃은 아직 모바일 형태인데
+   배경만 회색(--background)으로 바뀌어 카드가 짧을 때 하단에 이질적인 색이 노출됐다. */
+@media (max-width: 779px) {
   body {
     background-color: #ffffff;
   }
@@ -901,6 +904,22 @@ svg path:focus {
   50% {
     stop-color: #9bc8ff;
   }
+}
+
+/* 상담 멘트 복사 완료 아이콘 팝인 */
+@keyframes copy-success-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@utility animate-copy-success-pop {
+  animation: copy-success-pop 0.2s ease-out;
 }
 
 .analyze-button {

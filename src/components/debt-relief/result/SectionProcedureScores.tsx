@@ -118,8 +118,10 @@ export function ScoreRow({
 }
 
 export default function SectionProcedureScores({ detail }: { detail: DiagnosisDetail }) {
+  // 초기 active 상태는 AI 추천(recommendedProcedure)이 아니라 실제로 설정된(추적 중인) 절차를
+  // 기준으로 잡는다 — AI 추천은 ScoreRow의 "추천" 티커로 이미 별도 표시되므로 중복 강조하지 않는다.
   const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure>(
-    detail.recommendedProcedure
+    detail.trackingProcedure
   );
 
   const selectedScore = detail.procedureScores.find(

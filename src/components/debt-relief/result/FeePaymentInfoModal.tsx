@@ -7,7 +7,6 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { AnalysisService } from "@/services/analysis";
 import { DebtReliefService } from "@/services/debtRelief";
-import type { AnalysisProcedureType } from "@/types/analysis";
 import type { ProcedureScore, RecommendedProcedure } from "@/types/debtRelief";
 import type {
   FeePaymentType,
@@ -30,7 +29,8 @@ type Props = {
   onClose: () => void;
   analysisId: number;
   projectId: string;
-  trackingProcedure: AnalysisProcedureType;
+  /** 계약대기중 상태일 때만, 수임료 계획 최초 생성 직후 진행 절차 선택 모달을 띄운다 */
+  isContractPending: boolean;
   feePlan: FeePlan | null;
   procedureScores: ProcedureScore[];
   procedureProgress: {
@@ -176,7 +176,7 @@ function InstallmentStatus({ installment }: { installment: FeePlanInstallment })
 
   return (
     <span
-      className={`inline-flex h-6 items-center rounded-[5px] px-2 text-[12px] font-semibold ${status.className}`}
+      className={`inline-flex h-[18px] shrink-0 items-center whitespace-nowrap rounded-[5px] px-1 text-[12px] font-medium ${status.className}`}
     >
       {status.label}
     </span>
@@ -188,7 +188,7 @@ export default function FeePaymentInfoModal({
   onClose,
   analysisId,
   projectId,
-  trackingProcedure,
+  isContractPending,
   feePlan,
   procedureScores,
   procedureProgress,
@@ -310,16 +310,17 @@ export default function FeePaymentInfoModal({
               paymentType: form.paymentType,
               installmentCount,
               firstPaymentDate,
-              trackingProcedure,
               message: note,
             });
         // fee-plan 저장 응답에는 전달사항이 포함되지 않아(분석 상세의 액션 메시지 히스토리로만 누적) 방금 입력한 값을 로컬로 반영
         updateCurrentPlan({ ...response.data.data, note });
-        // 최초 결제 정보 생성 시에만 진행할 절차를 명시적으로 고르게 한다 — 이미 절차를
-        // 추적 중인 건(조건수정)은 절차를 바꾸는 액션이 아니므로 다시 묻지 않는다.
+        // 계약대기중 이전 단계에서도 수임료 계획을 미리 저장할 수 있어(trackingProcedure 없이 생성),
+        // 최초 생성 직후 진행 절차를 바로 고르게 하는 건 계약대기중 상태일 때만 — 그 이전 단계는
+        // 아직 추적할 절차를 정할 시점이 아니므로 여기서 묻지 않는다. 이미 절차를 추적 중인 건
+        // (조건수정)도 절차를 바꾸는 액션이 아니므로 다시 묻지 않는다.
         // defaultProcedure가 없으면(procedureScores 없음) 모달이 렌더링되지 않아 닫을 방법이
         // 없는 채로 멈추므로, 그 경우엔 절차 선택을 건너뛴다.
-        if (wasCreate && defaultProcedure) {
+        if (wasCreate && isContractPending && defaultProcedure) {
           setProcedureSelectOpen(true);
         }
       } catch (error) {
@@ -510,11 +511,12 @@ export default function FeePaymentInfoModal({
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       ariaLabel="수임료 결제 정보"
       fullScreenOnMobile
+      disableAutoContainerSizing
       positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
-      containerClassName={`bg-card dark:bg-[#1E1E1E] md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col ${
+      containerClassName={`w-full h-full md:h-auto bg-card dark:bg-[#1E1E1E] md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col ${
         editingConditions
           ? "md:w-[440px] md:max-h-[min(720px,90vh)]"
-          : "md:w-[868px]"
+          : "md:w-[868px] md:max-h-[90vh]"
       }`}
     >
       {editingConditions ? (
@@ -790,87 +792,112 @@ export default function FeePaymentInfoModal({
                 return (
                   <div
                     key={installment.id}
-                    className="flex min-h-[62px] flex-wrap items-center gap-x-4 gap-y-3 rounded-[14px] border border-neutral-30 px-4 md:px-6"
+                    className="flex w-full flex-col gap-3 rounded-[14px] border border-neutral-30 px-4 py-3 md:px-6"
                   >
-                    <p className="w-[54px] shrink-0 text-[15px] font-semibold text-foreground">
-                      {installment.installmentNumber}회차
-                    </p>
-                    <p className="w-[110px] shrink-0 text-[14px] text-neutral-60">
-                      {formatDate(installment.scheduledDate)}
-                    </p>
-                    <p className="w-[88px] shrink-0 text-[16px] font-semibold text-foreground">
-                      {formatAmount(wonToManwon(installment.amount))}만원
-                    </p>
-                    <InstallmentStatus installment={installment} />
+                    {/* 1줄: 회차 요약 — 항상 한 줄. 회차/날짜/금액은 모든 행에서 동일한 고정폭이라 편집 중이든 아니든 열이 어긋나지 않음.
+                        간격은 화면이 넓어질수록(모바일→태블릿→PC) 커지고, 상태칩→액션 사이도 동일한 간격을 공유함 */}
+                    <div className="flex flex-nowrap items-center gap-3 md:gap-6 lg:gap-10">
+                      <p className="w-[50px] shrink-0 whitespace-nowrap text-[14px] font-semibold text-foreground">
+                        {installment.installmentNumber}회차
+                      </p>
+                      <p className="w-[78px] shrink-0 whitespace-nowrap text-[12px] font-medium text-neutral-60">
+                        {formatDate(installment.scheduledDate)}
+                      </p>
+                      <p className="w-[64px] shrink-0 whitespace-nowrap text-[14px] font-semibold text-neutral-80">
+                        {formatAmount(wonToManwon(installment.amount))}만원
+                      </p>
+                      <InstallmentStatus installment={installment} />
 
-                    <div className="ml-auto flex min-w-0 items-center gap-2">
-                      {installment.status === "scheduled" || editing ? (
-                        <div className="relative flex items-center gap-2">
-                          {/* 날짜 입력 영역은 항상 자리(폭)를 차지하고, 편집 중이 아닐 때는 안 보이게만
-                              처리한다 — 체크해서 데이트피커가 나타나도 행/모달 너비가 변하지 않도록. */}
-                          <div
-                            className={`flex items-center gap-2 ${editing ? "" : "invisible pointer-events-none"}`}
-                            aria-hidden={!editing}
-                          >
-                            <div className="w-[190px] max-w-[45vw]">
-                              <div className="relative">
-                                <DatePicker
-                                  value={paymentDate}
-                                  onChange={setPaymentDate}
-                                  disabled={submitting || !editing}
-                                  className="!h-[38px] !pr-10"
-                                  dateFormat="yyyy. MM. dd"
-                                />
-                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
-                                  <CalendarIcon />
-                                </span>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => void confirmPayment(installment)}
-                              disabled={!editing || !paymentDate || submitting}
-                              aria-label={`${installment.installmentNumber}회차 납부 저장`}
-                              className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-primary-60 text-white disabled:opacity-50"
-                            >
-                              <CheckIcon />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingInstallmentId(null);
-                                setPaymentDate(null);
-                              }}
-                              disabled={!editing || submitting}
-                              aria-label="납부 입력 취소"
-                              className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-neutral-30 text-white disabled:opacity-50"
-                            >
-                              <CloseIcon />
-                            </button>
-                          </div>
-
-                          {!editing && (
-                            <button
-                              type="button"
-                              onClick={() => startPayment(installment)}
-                              disabled={!canChange || submitting}
-                              aria-label={`${installment.installmentNumber}회차 납부 처리`}
-                              className="absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer h-8 w-8 rounded-[6px] border border-neutral-40 bg-card disabled:cursor-not-allowed disabled:opacity-40"
+                      {editing ? (
+                        <div className="ml-auto flex shrink-0 items-center gap-2">
+                          {/* PC 전용: 날짜 입력을 같은 줄에 인라인으로 (모바일은 아래 2줄에 따로 표시) */}
+                          <div className="relative hidden w-[175px] shrink-0 md:block">
+                            <DatePicker
+                              value={paymentDate}
+                              onChange={setPaymentDate}
+                              disabled={submitting}
+                              className="!h-[34px] !pr-10"
+                              dateFormat="yyyy. MM. dd"
                             />
-                          )}
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+                              <CalendarIcon />
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void confirmPayment(installment)}
+                            disabled={!paymentDate || submitting}
+                            aria-label={`${installment.installmentNumber}회차 납부 저장`}
+                            className="cursor-pointer grid h-6 w-6 shrink-0 place-items-center rounded-[5px] bg-primary-60 text-white disabled:opacity-50"
+                          >
+                            <CheckIcon />
+                          </button>
+                          {/* PC 전용: 취소 버튼도 같은 줄에 (모바일은 아래 2줄의 취소 버튼 사용) */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingInstallmentId(null);
+                              setPaymentDate(null);
+                            }}
+                            disabled={submitting}
+                            aria-label="납부 입력 취소"
+                            className="hidden h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-[5px] bg-neutral-30 text-white disabled:opacity-50 md:grid"
+                          >
+                            <CloseIcon />
+                          </button>
                         </div>
+                      ) : installment.status === "scheduled" ? (
+                        <button
+                          type="button"
+                          onClick={() => startPayment(installment)}
+                          disabled={!canChange || submitting}
+                          aria-label={`${installment.installmentNumber}회차 납부 처리`}
+                          className="ml-auto h-6 w-6 shrink-0 cursor-pointer rounded-[5px] border border-neutral-40 bg-card disabled:cursor-not-allowed disabled:opacity-40"
+                        />
                       ) : installment.status === "paid" ? (
                         <button
                           type="button"
                           onClick={() => requestUnpay(installment)}
                           disabled={!canChange || submitting}
                           aria-label={`${installment.installmentNumber}회차 납부 처리 취소`}
-                          className="cursor-pointer grid h-8 w-8 place-items-center rounded-[6px] bg-primary-60 text-white disabled:cursor-not-allowed disabled:opacity-40"
+                          className="ml-auto grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-[5px] bg-primary-60 text-white disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <CheckIcon />
                         </button>
                       ) : null}
                     </div>
+
+                    {/* 2줄: 모바일 전용 — 편집 중일 때만, 날짜 입력+취소를 한 그룹으로 오른쪽 정렬 (PC는 위 1줄에 이미 인라인으로 포함되어 이 줄이 숨겨짐) */}
+                    {editing && (
+                      <div className="flex items-center md:hidden">
+                        <div className="ml-auto flex shrink-0 items-center gap-2">
+                          <div className="relative w-[175px] shrink-0">
+                            <DatePicker
+                              value={paymentDate}
+                              onChange={setPaymentDate}
+                              disabled={submitting}
+                              className="!h-[34px] !pr-10"
+                              dateFormat="yyyy. MM. dd"
+                            />
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+                              <CalendarIcon />
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingInstallmentId(null);
+                              setPaymentDate(null);
+                            }}
+                            disabled={submitting}
+                            aria-label="납부 입력 취소"
+                            className="cursor-pointer grid h-6 w-6 shrink-0 place-items-center rounded-[5px] bg-neutral-30 text-white disabled:opacity-50"
+                          >
+                            <CloseIcon />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

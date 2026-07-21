@@ -560,12 +560,15 @@ function buildProcedureGuide(
   });
 
   // currentProcedureStep은 stepId를 저장하는 것으로 보고 배열에서 찾아 1-based 위치로 변환한다.
-  // 못 찾으면(아직 추적 시작 전 등) 1단계로 표시.
-  const currentIndex = guide.steps.findIndex((step) => step.stepId === currentProcedureStep);
-  const currentStep = currentIndex >= 0 ? currentIndex + 1 : 1;
+  // null이면(아직 추적 시작 전) 0으로 — 어떤 단계도 "진행중"으로 표시하지 않는 센티널 값.
+  const currentIndex =
+    currentProcedureStep != null
+      ? guide.steps.findIndex((step) => step.stepId === currentProcedureStep)
+      : -1;
+  const currentStep = currentIndex >= 0 ? currentIndex + 1 : 0;
 
   const remainingWeeks = guide.steps
-    .slice(currentStep - 1)
+    .slice(Math.max(currentStep - 1, 0))
     .reduce((sum, step) => sum + (step.durationWeeks || 0), 0);
   const estimatedRemainingMonths = Math.max(1, Math.round(remainingWeeks / 4.345));
 
@@ -583,7 +586,7 @@ function buildProcedureGuide(
 const EMPTY_PROCEDURE_GUIDE: ProcedureGuide = {
   procedureLabel: "",
   totalSteps: 0,
-  currentStep: 1,
+  currentStep: 0,
   estimatedRemaining: "-",
   totalPeriodHint: "-",
   progressPercent: 0,
@@ -783,7 +786,15 @@ export const DebtReliefService = {
         : [],
       // 실 API에 대응 필드 없음 — AI 생성 추천 질문 기능은 추후 재검토.
       aiSuggestedQuestions: [],
-      procedureGuide: guide ? buildProcedureGuide(guide, analysis.currentProcedureStep) : EMPTY_PROCEDURE_GUIDE,
+      // analysis.trackingProcedure가 null이면(아직 추적 시작 전) currentProcedureStep이 남아있어도
+      // 무시한다 — trackingProcedureCode는 이 경우 AI 추천으로 대체 표시되는 값이라, 그 값의 단계를
+      // "진행중"으로 표시하면 실제로 추적 중인 절차가 없는데도 있는 것처럼 보이게 된다.
+      procedureGuide: guide
+        ? buildProcedureGuide(
+            guide,
+            analysis.trackingProcedure != null ? analysis.currentProcedureStep : null
+          )
+        : EMPTY_PROCEDURE_GUIDE,
       procedureStepHistory: (analysis.procedureStepHistory ?? []).map((item) => ({
         stepId: item.stepId,
         changedByMemberName: item.changedByMemberName,
@@ -825,7 +836,7 @@ export const DebtReliefService = {
     await AnalysisService.accept(Number(id), { projectId, ...(message ? { message } : {}) });
   },
 
-  // 공유받은 분석 건 거절 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 반려됨으로 전환.
+  // 공유받은 분석 건 반려 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 반려됨으로 전환.
   async rejectSharedAnalysis(projectId: string, id: string, message?: string): Promise<void> {
     await AnalysisService.reject(Number(id), { projectId, ...(message ? { message } : {}) });
   },
