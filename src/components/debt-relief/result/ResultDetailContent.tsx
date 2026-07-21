@@ -11,6 +11,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
 import {
   DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES,
+  DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES,
   RECOMMENDED_PROCEDURE_LABEL,
   type ProcedureStep,
   type RecommendedProcedure,
@@ -21,6 +22,7 @@ import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
 import SectionDeliveryMessages from "./SectionDeliveryMessages";
+import DeliveryMessagesPopup from "./DeliveryMessagesPopup";
 import SectionProcedureScores from "./SectionProcedureScores";
 import SectionDebtStatus from "./SectionDebtStatus";
 import SectionRepaymentPlan from "./SectionRepaymentPlan";
@@ -36,6 +38,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [projectId] = useSelectedProjectId();
   const { isLawyer, ready: projectTypeReady } = useProjectType();
   const [activeId, setActiveId] = useState("overview");
+  // 모바일 전용 "전달사항" 토글(AI 추천 영역을 덮는 팝업). 데스크톱은 항상 접이식 섹션으로 쌓아 보여준다.
+  const [mobileMessagesOpen, setMobileMessagesOpen] = useState(false);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
   // AI 분석 추천·상담 멘트 숨김 + 추적 절차 변경도 읽기 전용으로 막는다.
@@ -196,16 +200,34 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         ) : (
           <>
             <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pb-[46px]">
-              <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <ResultHeader
+                detail={detail}
+                projectId={projectId}
+                onCustomerMatchChange={refetch}
+                showMessagesToggle={detail.messages.length > 0}
+                messagesOpen={mobileMessagesOpen}
+                onToggleMessages={() => setMobileMessagesOpen((previous) => !previous)}
+              />
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
+              {/* 데스크톱은 AI 추천 위에 전달사항을 쌓아 보여준다. 모바일은 공간이 좁아
+                  전달사항이 AI 추천을 밀어내지 않도록, ResultHeader의 말풍선 토글로 여는
+                  팝업(아래 relative 래퍼)이 AI 추천 영역을 덮는 방식으로 대신한다. */}
               {detail.messages.length > 0 ? (
-                <div className="mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:px-8">
+                <div className="hidden md:block mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:px-8">
                   <SectionDeliveryMessages messages={detail.messages} />
                 </div>
               ) : null}
-              <SectionAiRecommendation detail={detail} />
+              <div className="relative">
+                <SectionAiRecommendation detail={detail} showTopDivider={detail.messages.length === 0} />
+                {mobileMessagesOpen && detail.messages.length > 0 ? (
+                  <DeliveryMessagesPopup
+                    messages={detail.messages}
+                    onClose={() => setMobileMessagesOpen(false)}
+                  />
+                ) : null}
+              </div>
             </SectionCard>
 
             <SectionCard id="scores" compactTop topDivider>
@@ -239,6 +261,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             onChangeTrackingProcedure={handleChangeTrackingProcedure}
             canChangeTrackingProcedure={!lawyerReceivedReadOnly}
             locked={!DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status)}
+            stepLocked={!DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES.includes(detail.status)}
           />
         </SectionCard>
 

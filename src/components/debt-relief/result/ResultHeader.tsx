@@ -77,20 +77,58 @@ function PaymentCardIcon() {
 
 // 계약대기중 + 결제정보 미입력 상태에서 "결제정보" 버튼 아래에 떠서 클릭을 유도하는 말풍선.
 // 결제정보를 입력해야 절차 진행(진행 절차 선택 → 절차진행중)이 시작된다는 걸 안내한다.
-function PaymentInfoNudgeBubble() {
+// 말풍선 클릭 또는 결제정보 버튼 클릭 시 닫힌다.
+function PaymentInfoNudgeBubble({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div
-      role="status"
-      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-[180px] -translate-x-1/2 rounded-[8px] bg-neutral-90 dark:bg-neutral-20 px-3 py-2 text-center text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
-    >
-      <span
-        className="absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-neutral-90 dark:bg-neutral-20"
-        aria-hidden
-      />
-      결제 정보를 입력하면
-      <br />
-      절차 진행이 시작돼요
+    <div className="absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2">
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="결제정보 안내 닫기"
+        className="animate-payment-nudge-in relative w-max max-w-[180px] cursor-pointer rounded-[8px] bg-neutral-90 dark:bg-neutral-20 px-3 py-2 text-center text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
+      >
+        <span
+          className="absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-neutral-90 dark:bg-neutral-20"
+          aria-hidden
+        />
+        결제 정보를 입력하면
+        <br />
+        절차 진행이 시작돼요
+      </button>
     </div>
+  );
+}
+
+// 모바일 "전달사항" 토글 — 원형 테두리(34x34)가 아이콘 안에 포함돼 있어 버튼 자체엔
+// 별도 배경/테두리 클래스가 필요 없다. 꺼짐: neutral-30 테두리 + neutral-50 아이콘.
+// 켜짐: secondary-40 테두리 + secondary-10/50 배경(반투명) + secondary-20 아이콘.
+function AnnotationToggleIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden>
+      <rect
+        x="0.5"
+        y="0.5"
+        width="33"
+        height="33"
+        rx="16.5"
+        className={
+          active
+            ? "fill-[rgba(228,237,255,0.5)] stroke-[var(--secondary-40)] dark:fill-blue-950 dark:stroke-blue-800"
+            : "fill-transparent stroke-neutral-30"
+        }
+      />
+      <path
+        d="M12.8333 13.6663H21.1667M12.8333 16.9997H16.1667M17 23.6663L13.6667 20.333H11.1667C10.2462 20.333 9.5 19.5868 9.5 18.6663V11.9997C9.5 11.0792 10.2462 10.333 11.1667 10.333H22.8333C23.7538 10.333 24.5 11.0792 24.5 11.9997V18.6663C24.5 19.5868 23.7538 20.333 22.8333 20.333H20.3333L17 23.6663Z"
+        className={
+          active
+            ? "stroke-[var(--secondary-20)] dark:stroke-blue-300"
+            : "stroke-neutral-50 dark:stroke-neutral-60"
+        }
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -186,6 +224,11 @@ type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
   onCustomerMatchChange: () => void;
+  // 모바일 전용 "전달사항" 토글 아이콘. AI 분석 추천을 보여줄 수 있는 화면(전달사항이
+  // 그 영역을 덮는 팝업으로 뜨는 화면)에서만 부모가 넘겨준다.
+  showMessagesToggle?: boolean;
+  messagesOpen?: boolean;
+  onToggleMessages?: () => void;
 };
 
 function LinkedCustomerMenu({
@@ -215,9 +258,11 @@ function LinkedCustomerMenu({
   );
 }
 
-function MoreOptionsIcon() {
+// size: 데스크톱 헤더는 36(기본), 모바일 고객정보 칩 안에서는 24로 축소해 쓴다(viewBox는
+// 36x36 그대로 두고 렌더 크기만 줄여 내부 비율을 유지).
+function MoreOptionsIcon({ size = 36 }: { size?: number }) {
   return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <rect
         x="0.5"
         y="0.5"
@@ -287,13 +332,21 @@ function AssigneeProfileChip({
   );
 }
 
-export default function ResultHeader({ detail, projectId, onCustomerMatchChange }: Props) {
+export default function ResultHeader({
+  detail,
+  projectId,
+  onCustomerMatchChange,
+  showMessagesToggle = false,
+  messagesOpen = false,
+  onToggleMessages,
+}: Props) {
   const router = useRouter();
   const { openCustomerModal } = useCustomerModal();
   const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [paymentInfoOpen, setPaymentInfoOpen] = useState(false);
+  const [paymentNudgeDismissed, setPaymentNudgeDismissed] = useState(false);
   const [customerInfoOpen, setCustomerInfoOpen] = useState(false);
   const [linkedMenuOpen, setLinkedMenuOpen] = useState(false);
   const mobileLinkedMenuRef = useRef<HTMLDivElement>(null);
@@ -303,10 +356,21 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
   const showOwnerActions = projectTypeReady && isAnalysis;
   const showAssigneeProfile = projectTypeReady && isLawyer;
   // 계약대기중인데 결제정보가 아직 없으면 절차 진행이 시작되지 않은 상태 — 결제정보 입력을 유도한다.
+  // 말풍선·결제정보 버튼 클릭으로 닫으면 다시 띄우지 않는다.
   const showPaymentNudge =
     (showOwnerActions || showAssigneeProfile) &&
     detail.status === "contract_pending" &&
-    !detail.feePlan;
+    !detail.feePlan &&
+    !paymentNudgeDismissed;
+
+  const handleOpenPaymentInfo = () => {
+    setPaymentNudgeDismissed(true);
+    setPaymentInfoOpen(true);
+  };
+
+  const handleDismissPaymentNudge = () => {
+    setPaymentNudgeDismissed(true);
+  };
 
   const phonePreview = detail.phone ? formatContactForDisplay(detail.phone) : "";
   const linkedLabel =
@@ -329,6 +393,17 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
   }, [linkedMenuOpen]);
 
   const handleEdit = () => {
+    // 정보수정(재분석)은 상담중/반려된 건만 가능 — 계약 이후(계약대기중 이상) 건은 절차가 이미
+    // 진행돼 입력값을 되돌려 재분석하면 안 되므로 서버도 이 상태에서만 허용한다.
+    if (detail.status !== "consulting" && detail.status !== "rejected") {
+      showErrorModal({
+        type: "info",
+        title: "정보수정 불가",
+        headline: "정보수정은 상담중 또는 반려된 분석 건만 가능합니다.",
+        hideCancel: true,
+      });
+      return;
+    }
     router.push(`/debt-relief/${detail.id}/edit`);
   };
   const handleGoToList = () => {
@@ -408,117 +483,150 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
     </button>
   );
 
+  // 모바일 2줄째 "김민수 · 42세 · 자영업 ⋯" 칩 안에 들어가는 축소 버전(24px).
+  const customerInfoButtonCompact = (
+    <button
+      type="button"
+      onClick={() => setCustomerInfoOpen(true)}
+      aria-label="고객정보"
+      className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
+    >
+      <MoreOptionsIcon size={24} />
+    </button>
+  );
+
   return (
     <>
-      {/* 모바일: 뒤로+제목/메타+⋯ | 수정·고객연결·공유(영업점) 또는 담당직원(변호사) — 영역 높이 60px */}
-      <div className="flex md:hidden items-center justify-between gap-3 h-[60px]">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <button
-            type="button"
-            onClick={handleGoToList}
-            aria-label="목록으로"
-            className="cursor-pointer w-9 h-9 -ml-1.5 grid place-items-center text-foreground hover:opacity-70 shrink-0"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="block">
-              <path
-                d="M15 19L8 12L15 5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
-                {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
-              </h1>
-              {statusBadge}
-            </div>
-            <p className="mt-1 text-[16px] font-medium leading-[19px] tracking-[0.2px] text-neutral-60 truncate">
-              {customerSummaryLabel}
-            </p>
-          </div>
-          {customerInfoButton}
-        </div>
-
-        {showOwnerActions ? (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setPaymentInfoOpen(true)}
-                aria-label="결제정보"
-                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-              >
-                <PaymentCardIcon />
-              </button>
-              {showPaymentNudge && <PaymentInfoNudgeBubble />}
-            </div>
-
+      {/* 모바일: 2줄 구성 — 1줄(뒤로+제목 | 수정·고객연결·공유(영업점) 또는 담당직원(변호사)),
+          2줄(고객메타+⋯+상태뱃지 | 전달사항 토글). 전달사항이 늘어나도 1줄 높이엔 영향 없음.
+          두 줄 사이에 카드 풀폭 구분선(SectionAiRecommendation에 있던 것을 여기로 옮김). */}
+      <div className="flex md:hidden flex-col py-1.5">
+        <div className="flex items-center justify-between gap-3 pb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
-              onClick={handleEdit}
-              aria-label="정보수정"
-              className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              onClick={handleGoToList}
+              aria-label="목록으로"
+              className="cursor-pointer w-9 h-9 -ml-1.5 grid place-items-center text-foreground hover:opacity-70 shrink-0"
             >
-              <EditIcon />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="block">
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
+            <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
+              {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
+            </h1>
+          </div>
 
-            {isMatched ? (
-              <div className="relative" ref={mobileLinkedMenuRef}>
+          {showOwnerActions ? (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setLinkedMenuOpen((prev) => !prev)}
-                  aria-label="연결된 고객"
-                  aria-expanded={linkedMenuOpen}
-                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90"
+                  onClick={handleOpenPaymentInfo}
+                  aria-label="결제정보"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                >
+                  <PaymentCardIcon />
+                </button>
+                {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleEdit}
+                aria-label="정보수정"
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              >
+                <EditIcon />
+              </button>
+
+              {isMatched ? (
+                <div className="relative" ref={mobileLinkedMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setLinkedMenuOpen((prev) => !prev)}
+                    aria-label="연결된 고객"
+                    aria-expanded={linkedMenuOpen}
+                    className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90"
+                  >
+                    <LinkedCustomerIcon />
+                  </button>
+                  <LinkedCustomerMenu
+                    open={linkedMenuOpen}
+                    onOpenCustomerInfo={handleOpenCustomerDetail}
+                    onUnlink={handleUnlink}
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOpenMatchModal}
+                  aria-label="고객 연결"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
                 >
                   <LinkedCustomerIcon />
                 </button>
-                <LinkedCustomerMenu
-                  open={linkedMenuOpen}
-                  onOpenCustomerInfo={handleOpenCustomerDetail}
-                  onUnlink={handleUnlink}
-                />
-              </div>
-            ) : (
+              )}
+
               <button
                 type="button"
-                onClick={handleOpenMatchModal}
-                aria-label="고객 연결"
-                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                onClick={() => setShareOpen(true)}
+                aria-label="공유하기"
+                className={detail.isShared ? ICON_BTN_SHARED : ICON_BTN}
               >
-                <LinkedCustomerIcon />
+                <ShareNodesIcon />
               </button>
-            )}
+            </div>
+          ) : showAssigneeProfile ? (
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleOpenPaymentInfo}
+                  aria-label="결제정보"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                >
+                  <PaymentCardIcon />
+                </button>
+                {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
+              </div>
+              {assigneeProfile}
+            </div>
+          ) : null}
+        </div>
 
+        <div className="-mx-6 border-t border-neutral-30" />
+
+        <div className="flex items-center justify-between gap-3 pt-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2.5 rounded-full border border-neutral-30 px-3 py-1.5">
+              <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.04em] text-black dark:text-neutral-90">
+                {customerSummaryLabel}
+              </p>
+              {customerInfoButtonCompact}
+            </div>
+            {statusBadge}
+          </div>
+
+          {showMessagesToggle ? (
             <button
               type="button"
-              onClick={() => setShareOpen(true)}
-              aria-label="공유하기"
-              className={detail.isShared ? ICON_BTN_SHARED : ICON_BTN}
+              onClick={onToggleMessages}
+              aria-label="전달사항"
+              aria-pressed={messagesOpen}
+              className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
             >
-              <ShareNodesIcon />
+              <AnnotationToggleIcon active={messagesOpen} />
             </button>
-          </div>
-        ) : showAssigneeProfile ? (
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setPaymentInfoOpen(true)}
-                aria-label="결제정보"
-                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-              >
-                <PaymentCardIcon />
-              </button>
-              {showPaymentNudge && <PaymentInfoNudgeBubble />}
-            </div>
-            {assigneeProfile}
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
 
       {/* 데스크톱: 뒤로 | 제목 | 메타  ……  액션 세트(영업점) 또는 담당직원(변호사) */}
@@ -589,11 +697,11 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
               <span className="leading-none">정보수정</span>
             </button>
             <div className="relative">
-              <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
+              <button type="button" className={ACTION_BTN} onClick={handleOpenPaymentInfo}>
                 <PaymentCardIcon />
                 <span className="leading-none">결제정보</span>
               </button>
-              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+              {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
             </div>
             <button
               type="button"
@@ -607,11 +715,11 @@ export default function ResultHeader({ detail, projectId, onCustomerMatchChange 
         ) : showAssigneeProfile ? (
           <div className="flex items-center justify-end gap-4 shrink-0">
             <div className="relative">
-              <button type="button" className={ACTION_BTN} onClick={() => setPaymentInfoOpen(true)}>
+              <button type="button" className={ACTION_BTN} onClick={handleOpenPaymentInfo}>
                 <PaymentCardIcon />
                 <span className="leading-none">결제정보</span>
               </button>
-              {showPaymentNudge && <PaymentInfoNudgeBubble />}
+              {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
             </div>
             {assigneeProfile}
           </div>

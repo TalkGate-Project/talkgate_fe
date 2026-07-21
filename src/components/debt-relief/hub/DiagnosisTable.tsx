@@ -18,6 +18,7 @@ import {
   resolveInProgressStepLabel,
   type DiagnosisListItem,
   type DiagnosisSortField,
+  type ProcedureStepTitlesByProcedure,
   type SortDirection,
 } from "@/types/debtRelief";
 
@@ -30,13 +31,15 @@ type Props = {
   onOpenResult: (id: string) => void;
   /** 영업점(analysis): 행별 공유 버튼 표시 */
   showShareColumn?: boolean;
-  onShareItem?: (id: string) => void;
+  onShareItem?: (item: DiagnosisListItem) => void;
   /** 변호사(lawyer): 담당직원 컬럼 표시 */
   showAssigneeColumn?: boolean;
   selectedIds: Set<string>;
   allSelectedOnPage: boolean;
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
+  /** "진행단계"(n/m) 표시용 절차 마스터 데이터. 생략 시 하드코딩 폴백 사용 */
+  stepTitlesByProcedure?: ProcedureStepTitlesByProcedure;
 };
 
 const HEADER_CELL_BASE =
@@ -127,6 +130,7 @@ export default function DiagnosisTable({
   allSelectedOnPage,
   onToggleSelect,
   onToggleSelectAll,
+  stepTitlesByProcedure,
 }: Props) {
   // 기본 9열(체크~상담일) + 조건부 공유/담당
   const columnCount = 9 + (showShareColumn ? 1 : 0) + (showAssigneeColumn ? 1 : 0);
@@ -251,7 +255,7 @@ export default function DiagnosisTable({
                       <StatusBadge
                         status={item.status}
                         rejectionReason={item.rejectionReason}
-                        stepLabel={resolveInProgressStepLabel(item)}
+                        stepLabel={resolveInProgressStepLabel(item, stepTitlesByProcedure)}
                       />
                     </div>
                   </td>
@@ -272,7 +276,7 @@ export default function DiagnosisTable({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onShareItem?.(item.id);
+                          onShareItem?.(item);
                         }}
                         className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-80 transition-opacity"
                         aria-label={`${item.customerName} 공유하기`}

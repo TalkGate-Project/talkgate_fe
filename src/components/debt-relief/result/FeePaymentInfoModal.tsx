@@ -288,7 +288,57 @@ export default function FeePaymentInfoModal({
       return;
     }
 
+    const saveFeePlan = async () => {
+      setSubmitting(true);
+      const wasCreate = !currentPlan;
+      try {
+        const firstPaymentDate = toApiDate(form.firstPaymentDate!);
+        const note = form.note.trim() || null;
+        const totalAmountWon = manwonToWon(totalAmount);
+        const response = currentPlan
+          ? await AnalysisService.updateFeePlan(analysisId, {
+              projectId,
+              totalAmount: totalAmountWon,
+              paymentType: form.paymentType,
+              installmentCount,
+              firstPaymentDate,
+              message: note,
+            })
+          : await AnalysisService.createFeePlan(analysisId, {
+              projectId,
+              totalAmount: totalAmountWon,
+              paymentType: form.paymentType,
+              installmentCount,
+              firstPaymentDate,
+              trackingProcedure,
+              message: note,
+            });
+        // fee-plan 저장 응답에는 전달사항이 포함되지 않아(분석 상세의 액션 메시지 히스토리로만 누적) 방금 입력한 값을 로컬로 반영
+        updateCurrentPlan({ ...response.data.data, note });
+        // 최초 결제 정보 생성 시에만 진행할 절차를 명시적으로 고르게 한다 — 이미 절차를
+        // 추적 중인 건(조건수정)은 절차를 바꾸는 액션이 아니므로 다시 묻지 않는다.
+        // defaultProcedure가 없으면(procedureScores 없음) 모달이 렌더링되지 않아 닫을 방법이
+        // 없는 채로 멈추므로, 그 경우엔 절차 선택을 건너뛴다.
+        if (wasCreate && defaultProcedure) {
+          setProcedureSelectOpen(true);
+        }
+      } catch (error) {
+        console.error("Failed to save analysis fee plan:", error);
+        showErrorModal({
+          headline: "수임료 결제 조건을 저장하지 못했습니다.",
+          description: "잠시 후 다시 시도해주세요.",
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
     const proceedToConfirm = () => {
+      // 최초 결제 정보 생성 시에는 초기화될 기존 회차 정보가 없으므로 변경 확인 모달을 건너뛴다.
+      if (!currentPlan) {
+        void saveFeePlan();
+        return;
+      }
       showConfirmModal({
         title: "수임료 결제 정보",
         headline: "결제 정보를 변경합니다.",
@@ -297,48 +347,7 @@ export default function FeePaymentInfoModal({
         type: "caution",
         confirmText: "확인",
         cancelText: "취소",
-        onConfirm: async () => {
-          setSubmitting(true);
-          const wasCreate = !currentPlan;
-          try {
-            const firstPaymentDate = toApiDate(form.firstPaymentDate!);
-            const note = form.note.trim() || null;
-            const totalAmountWon = manwonToWon(totalAmount);
-            const response = currentPlan
-              ? await AnalysisService.updateFeePlan(analysisId, {
-                  projectId,
-                  totalAmount: totalAmountWon,
-                  paymentType: form.paymentType,
-                  installmentCount,
-                  firstPaymentDate,
-                  message: note,
-                })
-              : await AnalysisService.createFeePlan(analysisId, {
-                  projectId,
-                  totalAmount: totalAmountWon,
-                  paymentType: form.paymentType,
-                  installmentCount,
-                  firstPaymentDate,
-                  trackingProcedure,
-                  message: note,
-                });
-            // fee-plan 저장 응답에는 전달사항이 포함되지 않아(분석 상세의 액션 메시지 히스토리로만 누적) 방금 입력한 값을 로컬로 반영
-            updateCurrentPlan({ ...response.data.data, note });
-            // 최초 결제 정보 생성 시에만 진행할 절차를 명시적으로 고르게 한다 — 이미 절차를
-            // 추적 중인 건(조건수정)은 절차를 바꾸는 액션이 아니므로 다시 묻지 않는다.
-            if (wasCreate) {
-              setProcedureSelectOpen(true);
-            }
-          } catch (error) {
-            console.error("Failed to save analysis fee plan:", error);
-            showErrorModal({
-              headline: "수임료 결제 조건을 저장하지 못했습니다.",
-              description: "잠시 후 다시 시도해주세요.",
-            });
-          } finally {
-            setSubmitting(false);
-          }
-        },
+        onConfirm: saveFeePlan,
       });
     };
 
@@ -474,6 +483,25 @@ export default function FeePaymentInfoModal({
     currentPlan && currentPlan.totalAmount > 0
       ? Math.min(100, Math.max(0, (paidAmount / currentPlan.totalAmount) * 100))
       : 0;
+
+  // 최초 결제 정보 생성 후 진행 절차 선택 모달이 열려 있는 동안에는 본 모달을
+  // 겹쳐서 노출하지 않고, 절차 선택 → 결제 정보 상세 순으로 순차 노출한다.
+  if (procedureSelectOpen) {
+    return (
+      <>
+        {defaultProcedure ? (
+          <ProcedureSelectModal
+            open={procedureSelectOpen}
+            onClose={() => setProcedureSelectOpen(false)}
+            onConfirm={handleConfirmProcedure}
+            procedureScores={procedureScores}
+            defaultProcedure={defaultProcedure}
+            submitting={procedureSubmitting}
+          />
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <BaseModal
@@ -776,52 +804,61 @@ export default function FeePaymentInfoModal({
                     <InstallmentStatus installment={installment} />
 
                     <div className="ml-auto flex min-w-0 items-center gap-2">
-                      {editing ? (
-                        <>
-                          <div className="w-[190px] max-w-[45vw]">
-                            <div className="relative">
-                              <DatePicker
-                                value={paymentDate}
-                                onChange={setPaymentDate}
-                                disabled={submitting}
-                                className="!h-[38px] !pr-10"
-                                dateFormat="yyyy. MM. dd"
-                              />
-                              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
-                                <CalendarIcon />
-                              </span>
+                      {installment.status === "scheduled" || editing ? (
+                        <div className="relative flex items-center gap-2">
+                          {/* 날짜 입력 영역은 항상 자리(폭)를 차지하고, 편집 중이 아닐 때는 안 보이게만
+                              처리한다 — 체크해서 데이트피커가 나타나도 행/모달 너비가 변하지 않도록. */}
+                          <div
+                            className={`flex items-center gap-2 ${editing ? "" : "invisible pointer-events-none"}`}
+                            aria-hidden={!editing}
+                          >
+                            <div className="w-[190px] max-w-[45vw]">
+                              <div className="relative">
+                                <DatePicker
+                                  value={paymentDate}
+                                  onChange={setPaymentDate}
+                                  disabled={submitting || !editing}
+                                  className="!h-[38px] !pr-10"
+                                  dateFormat="yyyy. MM. dd"
+                                />
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-50">
+                                  <CalendarIcon />
+                                </span>
+                              </div>
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => void confirmPayment(installment)}
+                              disabled={!editing || !paymentDate || submitting}
+                              aria-label={`${installment.installmentNumber}회차 납부 저장`}
+                              className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-primary-60 text-white disabled:opacity-50"
+                            >
+                              <CheckIcon />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingInstallmentId(null);
+                                setPaymentDate(null);
+                              }}
+                              disabled={!editing || submitting}
+                              aria-label="납부 입력 취소"
+                              className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-neutral-30 text-white disabled:opacity-50"
+                            >
+                              <CloseIcon />
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => void confirmPayment(installment)}
-                            disabled={!paymentDate || submitting}
-                            aria-label={`${installment.installmentNumber}회차 납부 저장`}
-                            className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-primary-60 text-white disabled:opacity-50"
-                          >
-                            <CheckIcon />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingInstallmentId(null);
-                              setPaymentDate(null);
-                            }}
-                            disabled={submitting}
-                            aria-label="납부 입력 취소"
-                            className="cursor-pointer grid h-9 w-9 place-items-center rounded-[5px] bg-neutral-30 text-white disabled:opacity-50"
-                          >
-                            <CloseIcon />
-                          </button>
-                        </>
-                      ) : installment.status === "scheduled" ? (
-                        <button
-                          type="button"
-                          onClick={() => startPayment(installment)}
-                          disabled={!canChange || submitting}
-                          aria-label={`${installment.installmentNumber}회차 납부 처리`}
-                          className="cursor-pointer h-8 w-8 rounded-[6px] border border-neutral-40 bg-card disabled:cursor-not-allowed disabled:opacity-40"
-                        />
+
+                          {!editing && (
+                            <button
+                              type="button"
+                              onClick={() => startPayment(installment)}
+                              disabled={!canChange || submitting}
+                              aria-label={`${installment.installmentNumber}회차 납부 처리`}
+                              className="absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer h-8 w-8 rounded-[6px] border border-neutral-40 bg-card disabled:cursor-not-allowed disabled:opacity-40"
+                            />
+                          )}
+                        </div>
                       ) : installment.status === "paid" ? (
                         <button
                           type="button"
@@ -867,17 +904,6 @@ export default function FeePaymentInfoModal({
             </button>
           </div>
         </>
-      ) : null}
-
-      {defaultProcedure ? (
-        <ProcedureSelectModal
-          open={procedureSelectOpen}
-          onClose={() => setProcedureSelectOpen(false)}
-          onConfirm={handleConfirmProcedure}
-          procedureScores={procedureScores}
-          defaultProcedure={defaultProcedure}
-          submitting={procedureSubmitting}
-        />
       ) : null}
 
       <FeePlanActionConfirmModal

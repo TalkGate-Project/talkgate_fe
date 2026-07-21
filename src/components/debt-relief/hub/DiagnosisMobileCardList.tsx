@@ -8,7 +8,11 @@ import {
   resolveFeePlanDisplay,
 } from "@/components/debt-relief/DiagnosisBadges";
 import { formatCustomerMeta } from "@/components/debt-relief/format";
-import { resolveInProgressStepLabel, type DiagnosisListItem } from "@/types/debtRelief";
+import {
+  resolveInProgressStepLabel,
+  type DiagnosisListItem,
+  type ProcedureStepTitlesByProcedure,
+} from "@/types/debtRelief";
 import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
 type Props = {
@@ -17,6 +21,8 @@ type Props = {
   onOpenResult: (id: string) => void;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
+  /** "진행단계"(n/m) 표시용 절차 마스터 데이터. 생략 시 하드코딩 폴백 사용 */
+  stepTitlesByProcedure?: ProcedureStepTitlesByProcedure;
 };
 
 function CardSkeleton() {
@@ -66,6 +72,7 @@ export default function DiagnosisMobileCardList({
   onOpenResult,
   selectedIds,
   onToggleSelect,
+  stepTitlesByProcedure,
 }: Props) {
   if (loading) {
     return (
@@ -153,7 +160,7 @@ export default function DiagnosisMobileCardList({
                   <StatusBadge
                     status={item.status}
                     rejectionReason={item.rejectionReason}
-                    stepLabel={resolveInProgressStepLabel(item)}
+                    stepLabel={resolveInProgressStepLabel(item, stepTitlesByProcedure)}
                   />
                 </span>
               </div>

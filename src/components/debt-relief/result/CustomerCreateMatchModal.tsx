@@ -216,7 +216,7 @@ export default function CustomerCreateMatchModal({
           </div>
 
           <div>
-            <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">참고사항</label>
+            <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">전달사항 (선택)</label>
             <textarea
               value={specialNotes}
               onChange={(e) => setSpecialNotes(e.target.value)}

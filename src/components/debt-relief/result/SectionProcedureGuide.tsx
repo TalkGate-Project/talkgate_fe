@@ -348,9 +348,12 @@ type Props = {
   onChangeTrackingProcedure?: (procedure: RecommendedProcedure) => void;
   // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용)
   canChangeTrackingProcedure?: boolean;
-  // true면 절차 확인(펼치기)은 그대로 두고, 절차 전환/현재 단계 설정/문자 발송 등 실제 작업만 막는다.
+  // true면 절차 확인(펼치기)은 그대로 두고, 절차 전환/문자 발송 등 실제 작업만 막는다.
   // (예: 계약 체결 전 상태 — 내용은 미리 볼 수 있어야 하지만 아직 작업 대상은 아님)
   locked?: boolean;
+  // "현재 단계로 설정" 전용 잠금. currentProcedureStep 지정은 실 API가 절차진행중(in_progress)
+  // 상태에서만 허용해서 locked보다 좁게 막아야 한다 — 생략 시 locked를 그대로 따른다(안전한 기본값).
+  stepLocked?: boolean;
 };
 
 export default function SectionProcedureGuide({
@@ -359,6 +362,7 @@ export default function SectionProcedureGuide({
   onChangeTrackingProcedure,
   canChangeTrackingProcedure = true,
   locked = false,
+  stepLocked = locked,
 }: Props) {
   const { procedureGuide: guide } = detail;
   const { member } = useMyMember();
@@ -456,7 +460,7 @@ export default function SectionProcedureGuide({
               expanded={expanded.has(step.step)}
               onToggle={() => toggle(step.step)}
               isCurrent={step.step === currentStep}
-              canSetCurrent={step.step > currentStep && !locked}
+              canSetCurrent={step.step > currentStep && !stepLocked}
               onSetCurrent={() => handleSetCurrent(step)}
               onSendSms={() => setSmsStep(step)}
               smsDisabled={!canSendSms || locked}

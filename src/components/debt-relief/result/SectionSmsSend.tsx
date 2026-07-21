@@ -95,7 +95,7 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
           {label}
         </button>
       ))}
-      <span className="text-[14px] text-neutral-60">
+      <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
         {canSendSms
           ? `${detail.customerName} ${formatContactForDisplay(detail.phone)}`
           : "연락처 정보가 없어 문자 발송이 불가능합니다"}

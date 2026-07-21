@@ -150,7 +150,7 @@ export default function SectionRepaymentPlan({ detail }: { detail: DiagnosisDeta
           <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
             예상 변제 계획
           </h2>
-          <DisclaimerInfoTooltip label="예상 변제 계획 안내">
+          <DisclaimerInfoTooltip label="예상 변제 계획 안내" maxWidthPx={480} fitContent>
             아래 금액·기간은 예상 시뮬레이션이며, 실제 인가·면책 범위는
             <br />
             법원 결정에 따라 달라질 수 있습니다.

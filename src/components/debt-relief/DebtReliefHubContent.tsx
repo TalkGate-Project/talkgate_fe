@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDebtReliefSummary, useDebtReliefList } from "@/hooks/useDebtReliefHub";
+import { useAnalysisProcedureMaster } from "@/hooks/useAnalysisProcedureMaster";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import SummaryCards from "@/components/debt-relief/hub/SummaryCards";
 import DiagnosisFilterTrigger from "@/components/debt-relief/hub/DiagnosisFilterTrigger";
@@ -18,12 +19,14 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { DebtReliefService } from "@/services/debtRelief";
 import { useProjectType } from "@/hooks/useProjectType";
+import type { DiagnosisListItem } from "@/types/debtRelief";
 
 export default function DebtReliefHubContent() {
   const router = useRouter();
   const [projectId] = useSelectedProjectId();
   const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const { summary, loading: summaryLoading } = useDebtReliefSummary();
+  const { stepTitlesByProcedure } = useAnalysisProcedureMaster(projectId);
   const {
     items,
     totalCount,
@@ -51,6 +54,9 @@ export default function DebtReliefHubContent() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [shareTargetIds, setShareTargetIds] = useState<string[] | null>(null);
+  // 과거에 공유한 적 있는 건(partnerId 보유)이면 재공유이므로 동일 프로젝트로 고정 —
+  // AnalysisShareModal의 프로젝트 선택 스텝을 건너뛴다.
+  const [shareLockedPartner, setShareLockedPartner] = useState<{ id: number; projectName: string } | null>(null);
 
   // 목록이 새로 로드될 때(필터·검색·정렬·페이지 변경)마다 선택 상태를 초기화한다.
   useEffect(() => {
@@ -84,8 +90,18 @@ export default function DebtReliefHubContent() {
 
   const clearSelection = () => setSelectedIds(new Set());
 
-  const handleShareItem = (id: string) => {
-    setShareTargetIds([id]);
+  const handleShareItem = (item: DiagnosisListItem) => {
+    setShareTargetIds([item.id]);
+    setShareLockedPartner(
+      item.partnerId != null && item.lawyerProjectId != null
+        ? { id: item.partnerId, projectName: item.lawyerProjectName || "프로젝트" }
+        : null
+    );
+  };
+
+  const handleCloseShareModal = () => {
+    setShareTargetIds(null);
+    setShareLockedPartner(null);
   };
 
   const handleDeleteSelected = () => {
@@ -160,10 +176,10 @@ export default function DebtReliefHubContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-9">
+    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0 md:gap-9">
       {/* 상단 카드: 제목 + 요약 카드 */}
-      <section className="surface md:rounded-[14px] px-6 md:px-7 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        <div className="flex items-center justify-between gap-4 mb-6">
+      <section className="surface md:rounded-[14px] px-6 md:px-7 py-3 md:py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        <div className="flex items-center justify-between gap-4 mb-3 md:mb-6">
           <div className="flex items-center gap-4 flex-wrap min-w-0">
             <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-[22px] md:leading-7 truncate">
               회생·파산 진단 목록
@@ -270,6 +286,7 @@ export default function DebtReliefHubContent() {
             allSelectedOnPage={allSelectedOnPage}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}
+            stepTitlesByProcedure={stepTitlesByProcedure}
           />
         </div>
         <div className="md:hidden">
@@ -279,6 +296,7 @@ export default function DebtReliefHubContent() {
             onOpenResult={handleOpenResult}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            stepTitlesByProcedure={stepTitlesByProcedure}
           />
         </div>
 
@@ -290,10 +308,11 @@ export default function DebtReliefHubContent() {
       {projectId && (
         <AnalysisShareModal
           open={shareTargetIds !== null}
-          onClose={() => setShareTargetIds(null)}
+          onClose={handleCloseShareModal}
           onSuccess={refetch}
           projectId={projectId}
           analysisIds={shareTargetIds ?? []}
+          lockedPartner={shareLockedPartner}
         />
       )}
     </div>
