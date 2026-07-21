@@ -292,9 +292,15 @@ export default function CustomerLinkedAnalysisSection({
       <div className="text-[16px] font-semibold text-neutral-90 mb-3">회생·파산 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
+      {/*
+        이 섹션은 데스크톱 모달 안에서도 오른쪽 사이드 패널(330~384px)과 나란히 배치되어
+        실제 가용 폭이 뷰포트보다 훨씬 좁다. md(780px)~lg(1080px) 구간에서는 그 폭이
+        DesktopLinkedAnalysisCard가 요구하는 최소 폭보다 작아 요소가 깨지므로,
+        이 섹션만 lg 기준으로 모바일형 카드를 더 오래 사용한다.
+      */}
       {!linkedAnalysis ? (
         <>
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
@@ -302,7 +308,7 @@ export default function CustomerLinkedAnalysisSection({
               variant="mobile"
             />
           </div>
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
@@ -313,14 +319,14 @@ export default function CustomerLinkedAnalysisSection({
         </>
       ) : (
         <>
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <MobileLinkedAnalysisCard
               customerName={customerName}
               linkedAnalysis={linkedAnalysis}
               onOpenResult={openResult}
             />
           </div>
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <DesktopLinkedAnalysisCard
               customerName={customerName}
               linkedAnalysis={linkedAnalysis}

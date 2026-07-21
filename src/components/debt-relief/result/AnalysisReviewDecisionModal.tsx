@@ -27,7 +27,7 @@ function CloseIcon() {
   );
 }
 
-// 변호사 프로젝트가 전달받은 분석 건을 수락/거절할 때 메시지(수락 인사말 또는 거절 사유)를
+// 변호사 프로젝트가 전달받은 분석 건을 수락/반려할 때 메시지(수락 인사말 또는 반려 사유)를
 // 입력받는 모달. 여기서 입력한 메시지가 영업담당자에게 전달되며(rejectSharedAnalysis의
 // message), 반려됨 상태 툴팁(DiagnosisBadges의 StatusBadge)의 데이터 출처가 된다.
 export default function AnalysisReviewDecisionModal({
@@ -46,11 +46,11 @@ export default function AnalysisReviewDecisionModal({
   if (!open) return null;
 
   const isAccept = mode === "accept";
-  const title = isAccept ? "분석 데이터 수락" : "분석 데이터 거절";
+  const title = isAccept ? "분석 데이터 수락" : "분석 데이터 반려";
   const description = isAccept
     ? "수락 메시지를 입력해 주세요. 영업담당자에게 전달됩니다."
-    : "거절 사유를 입력해 주세요. 영업담당자에게 전달됩니다.";
-  const confirmLabel = isAccept ? "수락하기" : "거절하기";
+    : "반려 사유를 입력해 주세요. 영업담당자에게 전달됩니다.";
+  const confirmLabel = isAccept ? "수락하기" : "반려하기";
 
   return (
     <BaseModal

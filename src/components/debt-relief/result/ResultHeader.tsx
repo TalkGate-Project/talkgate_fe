@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { RECOMMENDED_PROCEDURE_LABEL, type DiagnosisDetail } from "@/types/debtRelief";
 import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
-import type { AnalysisProcedureType } from "@/types/analysis";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -210,15 +209,6 @@ const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
   "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors";
-
-const PROCEDURE_TO_ANALYSIS: Record<
-  DiagnosisDetail["trackingProcedure"],
-  AnalysisProcedureType
-> = {
-  individual_rehab: "individual_rehabilitation",
-  debt_adjustment: "debt_adjustment",
-  bankruptcy: "bankruptcy",
-};
 
 type Props = {
   detail: DiagnosisDetail;
@@ -500,7 +490,7 @@ export default function ResultHeader({
       {/* 모바일: 2줄 구성 — 1줄(뒤로+제목 | 수정·고객연결·공유(영업점) 또는 담당직원(변호사)),
           2줄(고객메타+⋯+상태뱃지 | 전달사항 토글). 전달사항이 늘어나도 1줄 높이엔 영향 없음.
           두 줄 사이에 카드 풀폭 구분선(SectionAiRecommendation에 있던 것을 여기로 옮김). */}
-      <div className="flex md:hidden flex-col py-1.5">
+      <div className="flex md:hidden flex-col pt-1.5">
         <div className="flex items-center justify-between gap-3 pb-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
@@ -604,7 +594,7 @@ export default function ResultHeader({
 
         <div className="-mx-6 border-t border-neutral-30" />
 
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex items-center justify-between gap-3 pt-3">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex min-w-0 items-center gap-2.5 rounded-full border border-neutral-30 px-3 py-1.5">
               <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.04em] text-black dark:text-neutral-90">
@@ -765,7 +755,7 @@ export default function ResultHeader({
           onClose={() => setPaymentInfoOpen(false)}
           analysisId={Number(detail.id)}
           projectId={projectId}
-          trackingProcedure={PROCEDURE_TO_ANALYSIS[detail.trackingProcedure]}
+          isContractPending={detail.status === "contract_pending"}
           feePlan={detail.feePlan}
           procedureScores={detail.procedureScores}
           procedureProgress={{

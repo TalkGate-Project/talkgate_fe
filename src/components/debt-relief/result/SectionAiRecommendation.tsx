@@ -54,7 +54,7 @@ export default function SectionAiRecommendation({
     // md~lg(태블릿)는 컴팩트 레이아웃으로 두어 문구/도넛 겹침을 피한다.
     // 모바일은 이 구분선을 ResultHeader의 1줄·2줄 사이로 옮겨서(border-t-0) 여기서는 안 그린다.
     <div
-      className={`mt-[22px] md:mt-7 -mx-6 md:-mx-8 border-t-0 ${showTopDivider ? "md:border-t" : ""} border-neutral-30 px-6 md:pl-8 md:pr-8 lg:pr-[90px]`}
+      className={`mt-[22px] md:mt-6 -mx-6 md:-mx-8 border-t-0 ${showTopDivider ? "md:border-t md:pt-5" : ""} border-neutral-30 px-6 md:pl-8 md:pr-8 lg:pr-[90px]`}
     >
       {/* 모바일·태블릿: 헤더 → (제목+설명 | 도넛) → 칩 */}
       <div className="lg:hidden">
@@ -96,7 +96,7 @@ export default function SectionAiRecommendation({
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-1 max-w-[480px]">
           <RecommendationChips tags={recommendation.tags} truncateLabel={false} />
         </div>
       </div>
