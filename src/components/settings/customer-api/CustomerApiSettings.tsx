@@ -10,6 +10,7 @@ import ApiKeyCreateModal from "./ApiKeyCreateModal";
 import ApiKeyLinkModal from "./ApiKeyLinkModal";
 import ApiKeyHistoryView from "./ApiKeyHistoryView";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import CopyIconButton from "@/components/common/CopyIconButton";
 
 export default function CustomerApiSettings() {
   const [projectId] = useSelectedProjectId();
@@ -313,26 +314,14 @@ export default function CustomerApiSettings() {
                 disabled={loading}
                 className="flex-1 min-w-0 bg-transparent text-[13px] md:text-[14px] text-neutral-70 font-medium outline-none tracking-[-0.02em] disabled:text-neutral-50"
               />
-              <button
+              <CopyIconButton
+                copied={copyState === "copied"}
                 onClick={handleCopyEndpoint}
                 disabled={loading || !apiEndpoint}
-                className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-              >
-                <div className="md:hidden">
-                  {copyState === "copied" ? (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17L4 12" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </div>
-                <span className="hidden md:inline">
-                  {copyState === "copied" ? "복사됨" : "복사"}
-                </span>
-              </button>
+                ariaLabel="API 엔드포인트 복사"
+                className="flex-shrink-0"
+                variant="plain"
+              />
             </div>
           </div>
         </section>
@@ -471,15 +460,12 @@ export default function CustomerApiSettings() {
                         </>
                       )}
                       {/* 복사 버튼 */}
-                      <button
+                      <CopyIconButton
+                        copied={copyStates[apiKey.id] === "copied"}
                         onClick={() => handleCopyKey(apiKey.keyValue, apiKey.id, apiKey.name)}
-                        className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="복사"
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M8 16H6C4.89543 16 4 15.1046 4 14V6C4 4.89543 4.89543 4 6 4H14C15.1046 4 16 4.89543 16 6V8M10 20H18C19.1046 20 20 19.1046 20 18V10C20 8.89543 19.1046 8 18 8H10C8.89543 8 8 8.89543 8 10V18C8 19.1046 8.89543 20 10 20Z" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
+                        ariaLabel="API 키 복사"
+                        variant="plain"
+                      />
                       {/* 삭제 버튼 */}
                       <button
                         onClick={() => handleDeleteApiKey(apiKey.id)}

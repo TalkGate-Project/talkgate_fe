@@ -16,7 +16,7 @@ type Props = {
 const ACTION_BTN_BASE =
   "cursor-pointer inline-flex items-center justify-center h-[34px] w-[72px] rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed";
 
-// 영업점이 전달(공유)한 분석 건이 검토중 상태일 때, 변호사 프로젝트에서 수락/거절을 요청하는 배너.
+// 영업점이 전달(공유)한 분석 건이 검토중 상태일 때, 변호사 프로젝트에서 수락/반려를 요청하는 배너.
 // 피그마: 검토중 + deliveryStatus === "delivered"일 때만 노출.
 export default function AnalysisReviewBanner({ detail, projectId, onDecided }: Props) {
   const [decisionMode, setDecisionMode] = useState<"accept" | "reject" | null>(null);
@@ -55,7 +55,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
       console.error(`Failed to ${decisionMode} shared analysis:`, error);
       showErrorModal({
         headline:
-          decisionMode === "accept" ? "수락 처리에 실패했습니다." : "거절 처리에 실패했습니다.",
+          decisionMode === "accept" ? "수락 처리에 실패했습니다." : "반려 처리에 실패했습니다.",
         description: "잠시 후 다시 시도해주세요.",
       });
     } finally {
@@ -101,7 +101,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
             분석 데이터 검토 요청
           </p>
           <p className="mt-1.5 text-[14px] font-normal leading-[17px] tracking-[-0.02em] text-neutral-80">
-            영업팀이 전달한 AI 분석 결과를 검토하고 수락 또는 거절해 주세요.
+            영업팀이 전달한 AI 분석 결과를 검토하고 수락 또는 반려해 주세요.
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -111,7 +111,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
             disabled={submitting}
             className={`${ACTION_BTN_BASE} border border-danger-40 bg-card text-danger-40 hover:opacity-80`}
           >
-            거절
+            반려
           </button>
           <button
             type="button"

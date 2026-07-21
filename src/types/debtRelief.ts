@@ -557,7 +557,7 @@ export type ProcedureStep = {
 export type ProcedureGuide = {
   procedureLabel: string; // "개인회생 · 9단계"
   totalSteps: number;
-  currentStep: number; // 1-based
+  currentStep: number; // 1-based. 0이면 아직 추적 시작 전(어떤 단계도 진행중이 아님)
   estimatedRemaining: string; // "약 3년 11개월"
   totalPeriodHint: string; // "42~54개월"
   progressPercent: number;
@@ -608,7 +608,7 @@ export type DiagnosisDetail = {
   rejectionReason: string | null;
   // 공유 연결 상태. delivered=공유중(수락 이후에도 연결이 유지되는 한 계속 delivered — "검토 대기"라는
   // 뜻이 아님), rejected=반려됨, revoked=철회됨. 연결 없으면 null.
-  // status가 "reviewing"이고 이 값이 "delivered"일 때만 변호사 프로젝트에 수락/거절 배너를 띄운다.
+  // status가 "reviewing"이고 이 값이 "delivered"일 때만 변호사 프로젝트에 수락/반려 배너를 띄운다.
   deliveryStatus: "delivered" | "revoked" | "rejected" | null;
   // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
   assigneeName?: string;

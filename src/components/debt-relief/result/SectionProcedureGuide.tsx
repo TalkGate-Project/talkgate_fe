@@ -404,7 +404,8 @@ export default function SectionProcedureGuide({
 
   // "현재 단계로 설정"으로 currentStep이 바뀔 때마다 이전 단계까지 완료한 것으로 간주해 재계산한다.
   // (guide.progressPercent는 서버가 내려주는 최초 스냅샷 값이라 currentStep 변경을 반영하지 못해 사용하지 않는다.)
-  const progressPercent = Math.round((currentStep / guide.totalSteps) * 100);
+  const progressPercent =
+    guide.totalSteps > 0 ? Math.round((currentStep / guide.totalSteps) * 100) : 0;
   const currentStepMeta = guide.steps.find((s) => s.step === currentStep);
 
   const handleSetCurrent = (step: ProcedureStep) => {
@@ -480,7 +481,7 @@ export default function SectionProcedureGuide({
                   현재 단계
                 </p>
                 <p className="text-[14px] md:text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
-                  {currentStep}단계. {currentStepMeta?.title}
+                  {currentStep > 0 && currentStepMeta ? `${currentStep}단계. ${currentStepMeta.title}` : "진행 전"}
                 </p>
               </div>
               <div className="hidden md:block min-w-0">

@@ -8,6 +8,7 @@ import {
 } from "@/types/debtRelief";
 import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
+import CopyIconButton from "@/components/common/CopyIconButton";
 
 function AiSparkleIcon() {
   return (
@@ -62,8 +63,16 @@ export default function SectionCounselMents({
 }) {
   const [activeTab, setActiveTab] = useState<CounselMentCategory | "all">("all");
   const [input, setInput] = useState("");
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const { messages, sending, sendMessage } = useDebtReliefAiChat(detail.id, projectId);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
+    };
+  }, []);
 
   // 새 메시지·스트리밍 응답이 추가될 때 채팅 영역을 맨 아래로 유지
   useEffect(() => {
@@ -82,8 +91,15 @@ export default function SectionCounselMents({
       ? detail.counselMents
       : detail.counselMents.filter((ment) => ment.category === activeTab);
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard?.writeText(text).catch(() => undefined);
+  const handleCopy = (text: string, index: number) => {
+    navigator.clipboard
+      ?.writeText(text)
+      .then(() => {
+        setCopiedIndex(index);
+        if (copyResetTimeoutRef.current) clearTimeout(copyResetTimeoutRef.current);
+        copyResetTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1500);
+      })
+      .catch(() => undefined);
   };
 
   const handleSend = (rawText?: string) => {
@@ -148,13 +164,11 @@ export default function SectionCounselMents({
                 <p className="text-[14px] font-semibold leading-[22px] text-foreground">{ment.text}</p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => handleCopy(ment.text)}
-              className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
-            >
-              복사하기
-            </button>
+            <CopyIconButton
+              copied={copiedIndex === index}
+              onClick={() => handleCopy(ment.text, index)}
+              className="self-center"
+            />
           </div>
         ))}
       </div>
@@ -185,9 +199,16 @@ export default function SectionCounselMents({
         <div className="bg-neutral-0 rounded-[14px] flex flex-col overflow-hidden">
           <div
             ref={messagesScrollRef}
-            className="flex flex-col gap-5 px-4 md:px-7 py-4 md:py-7 max-h-[280px] overflow-y-auto"
+            className={`flex flex-col gap-5 px-4 md:px-7 py-4 md:py-7 max-h-[280px] overflow-y-auto ${
+              messages.length === 0 ? "items-center justify-center text-center" : ""
+            }`}
           >
-            {messages.map((message) => (
+            {messages.length === 0 ? (
+              <p className="text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+                AI에게 자유롭게 질문해보세요.
+              </p>
+            ) : (
+              messages.map((message) => (
               <div
                 key={message.localId}
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -202,7 +223,8 @@ export default function SectionCounselMents({
                   {message.content || (message.status === "streaming" ? "답변 작성 중…" : "")}
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="border-t border-neutral-30 px-4 md:px-7 py-3 md:py-4 flex items-center gap-3">

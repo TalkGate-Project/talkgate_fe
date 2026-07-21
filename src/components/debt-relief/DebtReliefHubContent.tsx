@@ -236,7 +236,7 @@ export default function DebtReliefHubContent() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="hidden md:inline-flex cursor-pointer shrink-0 h-[38px] px-3 rounded-[8px] border border-neutral-30 text-[14px] font-semibold text-foreground hover:bg-neutral-10 whitespace-nowrap"
+                className="hidden md:inline-flex items-center justify-center cursor-pointer shrink-0 h-[38px] px-3 rounded-[8px] border border-neutral-30 text-[14px] font-semibold text-foreground hover:bg-neutral-10 whitespace-nowrap"
               >
                 초기화
               </button>

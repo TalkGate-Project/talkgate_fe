@@ -136,7 +136,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     );
   }
 
-  // 영업점이 전달한 검토중 건을 변호사 프로젝트가 열었을 때만 수락/거절 배너 노출.
+  // 영업점이 전달한 검토중 건을 변호사 프로젝트가 열었을 때만 수락/반려 배너 노출.
   // 배너는 lawyerReceivedReadOnly(읽기전용/AI추천 숨김)와는 별개 조건 — 검토중일 때만이다.
   const showReviewBanner =
     projectTypeReady &&
@@ -199,7 +199,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           </div>
         ) : (
           <>
-            <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pb-[46px]">
+            <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pt-[20px] md:!pb-[30px]">
               <ResultHeader
                 detail={detail}
                 projectId={projectId}
@@ -215,7 +215,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
                   전달사항이 AI 추천을 밀어내지 않도록, ResultHeader의 말풍선 토글로 여는
                   팝업(아래 relative 래퍼)이 AI 추천 영역을 덮는 방식으로 대신한다. */}
               {detail.messages.length > 0 ? (
-                <div className="hidden md:block mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:px-8">
+                <div className="hidden md:block mt-3 -mx-6 md:-mx-8 border-t border-neutral-30 px-6 pt-3 md:pt-5 md:px-8">
                   <SectionDeliveryMessages messages={detail.messages} />
                 </div>
               ) : null}
