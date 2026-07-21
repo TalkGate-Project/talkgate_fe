@@ -9,13 +9,7 @@ import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
 import { ContactType, CustomerLinkedAnalysis } from "@/types/customers";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 import { format, isValid, parse } from "date-fns";
-import { PillSelect } from "@/components/debt-relief/form/PillSelect";
-import type { PillOption } from "@/types/debtRelief";
-
-const GENDER_OPTIONS: PillOption<"male" | "female">[] = [
-  { value: "male", label: "남" },
-  { value: "female", label: "여" },
-];
+import GenderToggle from "@/components/customers/GenderToggle";
 
 type Props = {
   customerId: number;
@@ -236,14 +230,11 @@ export default function BasicTab({
       {/* Gender */}
       <div>
         <div className="mb-1">
-          <span className="text-[14px] text-[#808080] dark:text-neutral-60 font-medium tracking-[0.2px]">
-            성별
-          </span>
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">성별</span>
         </div>
-        <PillSelect
-          options={GENDER_OPTIONS}
-          value={form.gender === "male" || form.gender === "female" ? form.gender : null}
-          onChange={(value) => setForm((prev) => ({ ...prev, gender: value ?? "" }))}
+        <GenderToggle
+          value={form.gender === "male" || form.gender === "female" ? form.gender : ""}
+          onChange={(value) => setForm((prev) => ({ ...prev, gender: value }))}
         />
       </div>
 

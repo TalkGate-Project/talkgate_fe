@@ -11,13 +11,7 @@ import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
-import { PillSelect } from "@/components/debt-relief/form/PillSelect";
-import type { PillOption } from "@/types/debtRelief";
-
-const GENDER_OPTIONS: PillOption<"male" | "female">[] = [
-  { value: "male", label: "남" },
-  { value: "female", label: "여" },
-];
+import GenderToggle from "@/components/customers/GenderToggle";
 
 type Props = {
   open: boolean;
@@ -468,14 +462,10 @@ export default function CustomerCreateModal({
 
                 {/* 성별 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-[#808080] dark:text-neutral-60 mb-2 tracking-[0.2px]">
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     성별
                   </label>
-                  <PillSelect
-                    options={GENDER_OPTIONS}
-                    value={gender || null}
-                    onChange={(value) => setGender(value ?? "")}
-                  />
+                  <GenderToggle value={gender} onChange={setGender} />
                 </div>
 
                 {/* 연령 */}
