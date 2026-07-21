@@ -154,7 +154,7 @@ export default function ConfirmModalProvider({
             className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
             onClick={handleCancel}
           />
-          <div className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
+          <div className="relative w-[calc(100%-2rem)] max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
             <div className="px-7 pt-6 pb-[30px]">
               <div
                 className={`flex items-start ${
@@ -216,6 +216,48 @@ export default function ConfirmModalProvider({
                         strokeLinejoin="round"
                       />
                     </svg>
+                  ) : state.type === "caution" ? (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-warning-40 dark:text-warning-20"
+                    >
+                      <circle
+                        cx="20"
+                        cy="20"
+                        r="18"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M20 12V20M20 28H20.01"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : state.type === "success" ? (
+                    <svg
+                      width="40"
+                      height="40"
+                      viewBox="0 0 40 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="text-primary-80 dark:text-primary-40"
+                    >
+                      <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        d="M13 20.5L17.5 25L27 15"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   ) : (
                     <svg
                       width="40"
@@ -242,6 +284,8 @@ export default function ConfirmModalProvider({
                       className={
                         state.type === "warning"
                           ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-[#D83232] dark:text-red-400"
+                          : state.type === "caution"
+                          ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-warning-40 dark:text-warning-20"
                           : state.type === "info"
                           ? "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-secondary-80 dark:text-secondary-20"
                           : "whitespace-pre-line text-[18px] font-semibold leading-[20px] text-neutral-90 dark:text-neutral-80"

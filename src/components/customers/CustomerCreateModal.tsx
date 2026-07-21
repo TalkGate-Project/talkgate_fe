@@ -5,13 +5,13 @@ import BaseModal from "@/components/common/BaseModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import DatePicker from "@/components/common/DatePicker";
-import GenderToggle from "@/components/customers/GenderToggle";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
+import GenderToggle from "@/components/customers/GenderToggle";
 
 type Props = {
   open: boolean;

@@ -1,0 +1,320 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDebtReliefSummary, useDebtReliefList } from "@/hooks/useDebtReliefHub";
+import { useAnalysisProcedureMaster } from "@/hooks/useAnalysisProcedureMaster";
+import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import SummaryCards from "@/components/debt-relief/hub/SummaryCards";
+import DiagnosisFilterTrigger from "@/components/debt-relief/hub/DiagnosisFilterTrigger";
+import DiagnosisFilterAppliedChips from "@/components/debt-relief/hub/DiagnosisFilterAppliedChips";
+import DiagnosisSearchInput from "@/components/debt-relief/hub/DiagnosisSearchInput";
+import DiagnosisListActions from "@/components/debt-relief/hub/DiagnosisListActions";
+import DiagnosisListTabs from "@/components/debt-relief/hub/DiagnosisListTabs";
+import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
+import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
+import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import Pagination from "@/components/common/Pagination";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
+import { showErrorModal } from "@/lib/errorModalEvents";
+import { DebtReliefService } from "@/services/debtRelief";
+import { useProjectType } from "@/hooks/useProjectType";
+import type { DiagnosisListItem } from "@/types/debtRelief";
+
+export default function DebtReliefHubContent() {
+  const router = useRouter();
+  const [projectId] = useSelectedProjectId();
+  const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
+  const { summary, loading: summaryLoading } = useDebtReliefSummary();
+  const { stepTitlesByProcedure } = useAnalysisProcedureMaster(projectId);
+  const {
+    items,
+    totalCount,
+    loading: listLoading,
+    listTab,
+    selectListTab,
+    procedure,
+    selectProcedure,
+    status,
+    selectStatus,
+    keyword,
+    setKeyword,
+    submitSearch,
+    clearSearch,
+    sortField,
+    sortDirection,
+    toggleSort,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    totalPages,
+    refetch,
+  } = useDebtReliefList();
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [shareTargetIds, setShareTargetIds] = useState<string[] | null>(null);
+  // 과거에 공유한 적 있는 건(partnerId 보유)이면 재공유이므로 동일 프로젝트로 고정 —
+  // AnalysisShareModal의 프로젝트 선택 스텝을 건너뛴다.
+  const [shareLockedPartner, setShareLockedPartner] = useState<{ id: number; projectName: string } | null>(null);
+
+  // 목록이 새로 로드될 때(필터·검색·정렬·페이지 변경)마다 선택 상태를 초기화한다.
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [items]);
+
+  const allSelectedOnPage = items.length > 0 && items.every((item) => selectedIds.has(item.id));
+  const hasSelection = selectedIds.size > 0;
+  const hasActiveFilter = Boolean(procedure) || Boolean(status);
+
+  const handleResetFilters = () => {
+    selectProcedure(undefined);
+    selectStatus(undefined);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelectedOnPage ? new Set() : new Set(items.map((item) => item.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleShareItem = (item: DiagnosisListItem) => {
+    setShareTargetIds([item.id]);
+    setShareLockedPartner(
+      item.partnerId != null && item.lawyerProjectId != null
+        ? { id: item.partnerId, projectName: item.lawyerProjectName || "프로젝트" }
+        : null
+    );
+  };
+
+  const handleCloseShareModal = () => {
+    setShareTargetIds(null);
+    setShareLockedPartner(null);
+  };
+
+  const handleDeleteSelected = () => {
+    if (!projectId || !hasSelection) return;
+
+    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    const deletable = selectedItems.filter((item) => !item.isShared);
+    const skippedSharedCount = selectedItems.length - deletable.length;
+
+    if (deletable.length === 0) {
+      showErrorModal({
+        title: "삭제 불가",
+        headline: "공유받은 진단은 삭제할 수 없습니다.",
+        description: "선택 항목을 확인한 뒤 다시 시도해주세요.",
+        hideCancel: true,
+      });
+      return;
+    }
+
+    const sharedNote =
+      skippedSharedCount > 0
+        ? ` (공유받은 ${skippedSharedCount}건은 제외됩니다)`
+        : "";
+
+    showConfirmModal({
+      title: "진단 삭제",
+      headline: `선택한 ${deletable.length}건의 진단을 삭제하시겠습니까?${sharedNote}`,
+      message: "삭제된 진단은 복구할 수 없습니다.",
+      type: "warning",
+      confirmText: "삭제",
+      cancelText: "취소",
+      onConfirm: async () => {
+        try {
+          const result = await DebtReliefService.bulkDeleteDiagnoses(
+            projectId,
+            deletable.map((item) => item.id)
+          );
+          if (result.failedCount > 0) {
+            console.error("Some diagnosis deletions failed:", result.failedAnalysisIds);
+            showErrorModal({
+              title: "삭제 실패",
+              headline:
+                result.deletedCount > 0
+                  ? "일부 진단을 삭제하지 못했습니다."
+                  : "진단을 삭제하지 못했습니다.",
+              description: "잠시 후 다시 시도해주세요.",
+              hideCancel: true,
+            });
+            if (result.deletedCount > 0) {
+              clearSelection();
+              refetch();
+            }
+            return;
+          }
+          clearSelection();
+          refetch();
+        } catch (error) {
+          console.error("Failed to delete diagnoses:", error);
+          showErrorModal({
+            title: "삭제 실패",
+            headline: "진단을 삭제하지 못했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+            hideCancel: true,
+          });
+        }
+      },
+    });
+  };
+
+  const handleOpenResult = (id: string) => {
+    router.push(`/debt-relief/${id}`);
+  };
+
+  return (
+    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0 md:gap-9">
+      {/* 상단 카드: 제목 + 요약 카드 */}
+      <section className="surface md:rounded-[14px] px-6 md:px-7 py-3 md:py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        <div className="flex items-center justify-between gap-4 mb-3 md:mb-6">
+          <div className="flex items-center gap-4 flex-wrap min-w-0">
+            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-[22px] md:leading-7 truncate">
+              회생·파산 진단 목록
+            </h1>
+            {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
+            {summary && (
+              <>
+                <span className="hidden md:block w-px h-4 bg-neutral-60" />
+                <span className="hidden md:inline text-[18px] font-medium leading-[22px] text-neutral-60">
+                  총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
+                </span>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
+            onClick={() => router.push("/debt-relief/new")}
+          >
+            + 새 진단 시작
+          </button>
+        </div>
+
+        <div className="-mx-6 md:-mx-7 border-t border-neutral-30 mb-6" />
+
+        <SummaryCards summary={summary} loading={summaryLoading} />
+      </section>
+
+      {/* 하단 카드: 검색 + 테이블 + 페이지네이션 */}
+      <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 */}
+        <div className="mb-3 md:hidden">
+          <DiagnosisListTabs value={listTab} onChange={selectListTab} />
+        </div>
+
+        <div className="flex flex-col gap-3 mb-5">
+          {/* 1행: 필터·검색·(데스크톱)초기화/총건수 | 우측 끝: 액션 + 전체/반려 탭(데스크톱만) */}
+          <div className="flex items-center gap-2">
+            <DiagnosisFilterTrigger
+              procedure={procedure}
+              status={status}
+              summary={summary}
+              onChangeProcedure={selectProcedure}
+              onChangeStatus={selectStatus}
+            />
+            <DiagnosisSearchInput
+              value={keyword}
+              onChange={setKeyword}
+              onSearch={submitSearch}
+              onClear={clearSearch}
+              className="flex-1 min-w-0 max-w-none md:flex-none md:max-w-[188px]"
+            />
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="hidden md:inline-flex cursor-pointer shrink-0 h-[38px] px-3 rounded-[8px] border border-neutral-30 text-[14px] font-semibold text-foreground hover:bg-neutral-10 whitespace-nowrap"
+              >
+                초기화
+              </button>
+            )}
+            <span className="hidden md:inline text-[14px] font-medium leading-5 text-neutral-50 whitespace-nowrap">
+              총 {totalCount}건
+              {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
+            </span>
+            <div className="ml-auto flex shrink-0 items-center gap-3">
+              <DiagnosisListActions
+                hasSelection={hasSelection}
+                selectedCount={selectedIds.size}
+                limit={limit}
+                onDelete={handleDeleteSelected}
+                onLimitChange={setLimit}
+              />
+              <div className="hidden md:block">
+                <DiagnosisListTabs value={listTab} onChange={selectListTab} />
+              </div>
+            </div>
+          </div>
+          <DiagnosisFilterAppliedChips
+            procedure={procedure}
+            status={status}
+            onChangeProcedure={selectProcedure}
+            onChangeStatus={selectStatus}
+          />
+          <p className="md:hidden text-[14px] font-medium leading-5 text-neutral-50">
+            총 {totalCount}건
+            {selectedIds.size > 0 ? ` (${selectedIds.size}개 선택)` : ""}
+          </p>
+        </div>
+
+        {/* 데스크톱: 표 (가로 스크롤). 모바일: 카드 리스트 — Figma 모바일 목업 기준 별도 컴포넌트 */}
+        <div className="hidden md:block">
+          <DiagnosisTable
+            items={items}
+            loading={listLoading}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onToggleSort={toggleSort}
+            onOpenResult={handleOpenResult}
+            showShareColumn={projectTypeReady && isAnalysis}
+            onShareItem={handleShareItem}
+            showAssigneeColumn={projectTypeReady && isLawyer}
+            selectedIds={selectedIds}
+            allSelectedOnPage={allSelectedOnPage}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            stepTitlesByProcedure={stepTitlesByProcedure}
+          />
+        </div>
+        <div className="md:hidden">
+          <DiagnosisMobileCardList
+            items={items}
+            loading={listLoading}
+            onOpenResult={handleOpenResult}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            stepTitlesByProcedure={stepTitlesByProcedure}
+          />
+        </div>
+
+        <div className="flex items-center justify-center mt-6 min-h-[32px]">
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} disabled={listLoading} />
+        </div>
+      </section>
+
+      {projectId && (
+        <AnalysisShareModal
+          open={shareTargetIds !== null}
+          onClose={handleCloseShareModal}
+          onSuccess={refetch}
+          projectId={projectId}
+          analysisIds={shareTargetIds ?? []}
+          lockedPartner={shareLockedPartner}
+        />
+      )}
+    </div>
+  );
+}

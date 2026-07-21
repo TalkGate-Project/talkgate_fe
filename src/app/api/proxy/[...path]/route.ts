@@ -67,6 +67,30 @@ function decodeJwtPayload(token: string): any {
   }
 }
 
+/**
+ * SSE(text/event-stream) 응답인지 확인
+ * - 이 응답은 버퍼링 없이 그대로 pass-through 해야 스트리밍이 유지된다
+ */
+function isEventStreamResponse(response: Response): boolean {
+  const contentType = response.headers.get('content-type') || '';
+  return response.ok && contentType.includes('text/event-stream');
+}
+
+/**
+ * SSE 응답을 버퍼링 없이 그대로 클라이언트로 전달
+ * - response.json()/text()로 모으면 스트리밍 효과가 사라지므로 body 스트림을 직접 넘긴다
+ */
+function passThroughEventStream(response: Response): Response {
+  const streamHeaders = new Headers();
+  streamHeaders.set('Content-Type', response.headers.get('content-type') || 'text/event-stream');
+  streamHeaders.set('Cache-Control', 'no-cache, no-transform');
+  streamHeaders.set('X-Accel-Buffering', 'no');
+  return new Response(response.body, {
+    status: response.status,
+    headers: streamHeaders,
+  });
+}
+
 async function refreshAccessToken(
   apiBaseUrl: string,
   refreshToken: string
@@ -337,6 +361,10 @@ async function handleRequest(
       status: response.status,
     });
 
+    if (isEventStreamResponse(response)) {
+      return passThroughEventStream(response);
+    }
+
     // 응답 데이터 읽기
     const contentTypeHeader = response.headers.get('content-type') || '';
     let data: any;
@@ -427,7 +455,11 @@ async function handleRequest(
               // 새 토큰으로 원래 요청 재시도
               headers['Authorization'] = `Bearer ${tokensToUse.accessToken}`;
               response = await executeRequest();
-              
+
+              if (isEventStreamResponse(response)) {
+                return passThroughEventStream(response);
+              }
+
               // 재시도 응답 처리
               const retryContentType = response.headers.get('content-type') || '';
               if (retryContentType.includes('application/json')) {
@@ -485,7 +517,11 @@ async function handleRequest(
               // 새 토큰으로 원래 요청 재시도
               headers['Authorization'] = `Bearer ${tokens.accessToken}`;
               response = await executeRequest();
-              
+
+              if (isEventStreamResponse(response)) {
+                return passThroughEventStream(response);
+              }
+
               // 재시도 응답 처리
               const retryContentType = response.headers.get('content-type') || '';
               if (retryContentType.includes('application/json')) {

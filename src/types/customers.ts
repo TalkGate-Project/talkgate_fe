@@ -1,4 +1,6 @@
 import type { ApiSuccess } from "@/types/common";
+import type { AnalysisProcedureStep, AnalysisProcedureType, AnalysisStatus } from "@/types/analysis";
+import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
 // Customers domain types
 
@@ -56,6 +58,14 @@ export type CustomerListItem = {
   duplicateCount?: number;
   /** 한 번도 파트너에 배정되지 않은 경우 true (데이터 제공자 프로젝트용) */
   isPartnerUnassigned?: boolean;
+  /** 분석 데이터 연결 여부 (Analysis/Lawyer 프로젝트) */
+  isAnalysisConnected?: boolean;
+  /** 연결된 분석의 현재 진행 절차 (Analysis/Lawyer 프로젝트). 절차 추적 시작 전이면 null */
+  trackingProcedure?: AnalysisProcedureType | null;
+  /** 연결된 분석 진행 절차의 총 단계 수 (Analysis/Lawyer 프로젝트) */
+  totalProcedureSteps?: number | null;
+  /** 연결된 분석의 현재 진행 단계 (Analysis/Lawyer 프로젝트) */
+  currentProcedureStep?: number | null;
 };
 
 export type CustomersListResponse = {
@@ -194,6 +204,35 @@ export type AssignedPartnerItem = {
   thumbnailUrl?: string | null;
 };
 
+/** 고객 상세 - 연동된 분석(회생·파산 진단) 기본 인적사항. 값은 라벨 문자열로 내려온다(예: "30대", "프리랜서"). */
+export type CustomerLinkedAnalysisBasicInfo = {
+  gender: string;
+  ageGroup: string;
+  region: string;
+  employmentType: string;
+  dependents: number;
+  hasSpouseIncome: boolean;
+};
+
+/** 고객 상세 - 연동된 분석 데이터 정보 (Analysis/Lawyer 프로젝트에서 연결된 분석 건이 있을 때만 포함) */
+export type CustomerLinkedAnalysis = {
+  analysisId: number;
+  /** 기본 인적사항. status/feePlanSummary와 마찬가지로 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  basicInfo?: CustomerLinkedAnalysisBasicInfo | null;
+  /** 총 채무액 (만원) */
+  totalDebt: number;
+  currentProcedure: AnalysisProcedureType | null;
+  /** 현재 진행 절차의 성공 가능성 점수 (0~100) */
+  currentProcedureScore: number | null;
+  currentProcedureStep: number | null;
+  /** 현재 진행 절차의 전체 단계 정보 */
+  procedureSteps: AnalysisProcedureStep[];
+  /** 진단 건의 전체 진행 상태. 허브 목록(DiagnosisListItem)과 동일한 필드 — 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  status?: AnalysisStatus;
+  /** 수임료 결제 요약. 결제 계획 미설정이면 null, 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
+  feePlanSummary?: FeePlanSummary | null;
+};
+
 export type CustomerDetail = {
   id: number;
   name: string;
@@ -236,6 +275,8 @@ export type CustomerDetail = {
   recentNotes?: RecentNote[]; // 일부 API 응답에서 사용
   /** 배정 완료된 파트너 목록 (데이터 제공자 프로젝트용) */
   assignedPartners?: AssignedPartnerItem[];
+  /** 연동된 분석(회생·파산 진단) 데이터 정보. 연결된 분석 건이 없으면 null */
+  linkedAnalysis?: CustomerLinkedAnalysis | null;
   createdAt: string;
   updatedAt: string;
 };

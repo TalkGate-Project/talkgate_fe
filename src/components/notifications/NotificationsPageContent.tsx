@@ -18,6 +18,9 @@ const mapNotificationTypeToCategory = (type: NotificationType): NotificationCate
     case "customer_assignment":
     case "customer_registration":
     case "customer_schedule":
+    case "analysis_delivery":
+    case "analysis_rejected":
+    case "analysis_accepted":
       return "customer";
     case "system":
       return "system";
@@ -69,7 +72,7 @@ function NotificationsPageContentInner() {
       // 향후 API에 카테고리별 카운트 엔드포인트가 추가되면 서버 사이드 카운트로 변경 필요
       const allCount = uiNotifications.length;
       const noticeCount = uiNotifications.filter((n) => n.type === "notice").length;
-      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration" || n.type === "customer_schedule").length;
+      const customerCount = uiNotifications.filter((n) => n.type === "customer_assignment" || n.type === "customer_registration" || n.type === "customer_schedule" || n.type === "analysis_delivery" || n.type === "analysis_rejected" || n.type === "analysis_accepted").length;
       const systemCount = uiNotifications.filter((n) => n.type === "system").length;
       // TODO: security 타입은 현재 API에 없습니다. 향후 API에 추가되면 연동 필요
       const securityCount = 0;
@@ -180,6 +183,16 @@ function NotificationsPageContentInner() {
     } else if (notification.type === "system") {
       // 시스템 알림: 결제관리 메뉴로 이동
       router.push("/my-settings?tab=billing");
+    } else if (
+      notification.type === "analysis_delivery" ||
+      notification.type === "analysis_rejected" ||
+      notification.type === "analysis_accepted"
+    ) {
+      // 분석결과 전달/반려/승인 알림: 회생파산 화면으로 이동
+      navigateByNotificationProject(
+        notification,
+        notification.referenceId ? `/debt-relief/${notification.referenceId}` : "/debt-relief"
+      );
     }
   };
 
@@ -190,6 +203,9 @@ function NotificationsPageContentInner() {
       case "customer_assignment":
       case "customer_registration":
       case "customer_schedule":
+      case "analysis_delivery":
+      case "analysis_rejected":
+      case "analysis_accepted":
         return <NoticeUsersIcon />;
       case "system":
         return <NoticeCogIcon />;

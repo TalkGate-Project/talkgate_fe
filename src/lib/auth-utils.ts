@@ -1,7 +1,7 @@
 "use client";
 
 import { clearTokens } from "./token";
-import { clearSelectedProjectId, clearUseAttendanceMenu } from "./project";
+import { clearSelectedProjectId, clearUseAttendanceMenu, clearProjectType } from "./project";
 import { clearPendingInviteToken } from "./invite";
 
 /**
@@ -89,6 +89,13 @@ export function cleanupSessionBeforeLogin(): void {
   }
 
   try {
+    clearProjectType();
+    debugLog("✅ 프로젝트 타입 설정 정리 완료");
+  } catch (e) {
+    debugLog("❌ 프로젝트 타입 설정 정리 실패", e);
+  }
+
+  try {
     // 4. 대기 중인 초대 토큰은 유지 (로그인 후 처리 필요할 수 있음)
     // clearPendingInviteToken(); // 필요시 주석 해제
     debugLog("ℹ️ 초대 토큰은 유지됨");
@@ -138,6 +145,7 @@ export function performFullLogout(): void {
     clearTokens();
     clearSelectedProjectId();
     clearUseAttendanceMenu();
+    clearProjectType();
     clearPendingInviteToken();
     
     // 디버그 로그도 정리

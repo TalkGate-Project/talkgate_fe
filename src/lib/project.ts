@@ -1,8 +1,18 @@
 "use client";
 
+import type { ProjectType } from "@/types/projects";
+
 const COOKIE_KEY = "tg_selected_project_id";
 const ATTENDANCE_STORAGE_KEY = "tg_use_attendance_menu";
 const ATTENDANCE_COOKIE_KEY = "tg_use_attendance_menu";
+const PROJECT_TYPE_STORAGE_KEY = "tg_project_type";
+const PROJECT_TYPE_COOKIE_KEY = "tg_project_type";
+
+const PROJECT_TYPES: readonly ProjectType[] = ["general", "analysis", "lawyer"];
+
+function isProjectType(value: string | null | undefined): value is ProjectType {
+  return value === "general" || value === "analysis" || value === "lawyer";
+}
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
@@ -158,6 +168,68 @@ export function clearUseAttendanceMenu() {
     document.cookie = `${ATTENDANCE_COOKIE_KEY}=; ${attrs.join("; ")}`;
   } catch (e) {
     console.error("Failed to clear attendance menu state:", e);
+  }
+}
+
+/** 회생·파산 메뉴 대상 프로젝트 타입 (영업 analysis / 변호사 lawyer) */
+export function isDebtReliefProjectType(type: ProjectType | null | undefined): boolean {
+  return type === "analysis" || type === "lawyer";
+}
+
+export function setProjectType(projectType: ProjectType) {
+  if (!isBrowser()) return;
+  if (!PROJECT_TYPES.includes(projectType)) return;
+  try {
+    localStorage.setItem(PROJECT_TYPE_STORAGE_KEY, projectType);
+    document.cookie = `${PROJECT_TYPE_COOKIE_KEY}=${encodeURIComponent(projectType)}; ${cookieAttrs()}`;
+    window.dispatchEvent(
+      new CustomEvent("tg:project-type-change", {
+        detail: { projectType },
+      })
+    );
+  } catch (e) {
+    console.error("Failed to set project type:", e);
+  }
+}
+
+export function getProjectType(): ProjectType | null {
+  if (!isBrowser()) return null;
+  try {
+    const stored = localStorage.getItem(PROJECT_TYPE_STORAGE_KEY);
+    if (isProjectType(stored)) return stored;
+
+    const cookieValue = getCookieValue(PROJECT_TYPE_COOKIE_KEY);
+    if (isProjectType(cookieValue)) {
+      try {
+        localStorage.setItem(PROJECT_TYPE_STORAGE_KEY, cookieValue);
+      } catch {
+        // localStorage 접근 불가 환경에서는 무시
+      }
+      return cookieValue;
+    }
+
+    return null;
+  } catch (e) {
+    console.error("Failed to get project type:", e);
+    return null;
+  }
+}
+
+export function clearProjectType() {
+  if (!isBrowser()) return;
+  try {
+    localStorage.removeItem(PROJECT_TYPE_STORAGE_KEY);
+
+    const attrs: string[] = ["Max-Age=0", "Path=/"];
+    if (window.location.protocol === "https:") {
+      attrs.push("Secure");
+      if (isProductionDomain()) {
+        attrs.push("Domain=.talkgate.im");
+      }
+    }
+    document.cookie = `${PROJECT_TYPE_COOKIE_KEY}=; ${attrs.join("; ")}`;
+  } catch (e) {
+    console.error("Failed to clear project type:", e);
   }
 }
 

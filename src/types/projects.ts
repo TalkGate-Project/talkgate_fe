@@ -9,6 +9,9 @@ export enum ProjectSubscriptionStatus {
   Inactive = 'inactive', // 구독 했다가 끝난 상태
 }
 
+/** 프로젝트 타입. general: 일반, analysis: 회생/파산 분석 영업, lawyer: 변호사사무실 */
+export type ProjectType = "general" | "analysis" | "lawyer";
+
 /**
  * 프로젝트 단건 타입.
  * GET /v1/projects/{subDomain}, GET /v1/projects/by-id 등 응답 data 필드와 동일.
@@ -21,6 +24,7 @@ export type Project = {
   useAttendanceMenu: boolean;
   /** 데이터 제공자 여부. true면 데이터 제공자, false면 일반 프로젝트 */
   isDataProvider: boolean;
+  type: ProjectType;
   createdAt: string;
   updatedAt: string;
 };
@@ -40,6 +44,8 @@ export type CreateProjectPayload = {
   subDomain?: string;
   logoUrl?: string;
   useAttendanceMenu?: boolean;
+  /** 프로젝트 타입. 기본값 general */
+  type?: ProjectType;
 };
 
 export type UpdateProjectPayload = {

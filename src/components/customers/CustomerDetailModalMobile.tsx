@@ -368,6 +368,7 @@ export default function CustomerDetailModalMobile({
           <>
             {tab === "basic" && (
               <BasicTab
+                customerId={detail.id}
                 form={form}
                 setForm={setForm}
                 messengers={messengersLocal}
@@ -375,6 +376,7 @@ export default function CustomerDetailModalMobile({
                 onRemoveMessenger={actions.removeMessenger}
                 validation={validation}
                 showValidation={showValidation}
+                linkedAnalysis={detail.linkedAnalysis}
               />
             )}
 

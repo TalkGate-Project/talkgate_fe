@@ -13,7 +13,7 @@ import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyCons
 import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { setSelectedProjectId, setUseAttendanceMenu } from "@/lib/project";
+import { setSelectedProjectId, setUseAttendanceMenu, setProjectType } from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import {
   getAllowedPostAuthRedirect,
@@ -133,6 +133,7 @@ export default function ProjectsContent() {
     if (isDev) {
       setSelectedProjectId(p.id);
       setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+      setProjectType(p.type ?? "general");
       window.location.href = "/dashboard";
       return;
     }
@@ -142,6 +143,7 @@ export default function ProjectsContent() {
       if (subdomainUrl) {
         setSelectedProjectId(p.id);
         setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+        setProjectType(p.type ?? "general");
         window.location.href = subdomainUrl;
         return;
       }
@@ -149,6 +151,7 @@ export default function ProjectsContent() {
 
     setSelectedProjectId(p.id);
     setUseAttendanceMenu(p.useAttendanceMenu ?? false);
+    setProjectType(p.type ?? "general");
     window.location.href = "/dashboard";
   };
 

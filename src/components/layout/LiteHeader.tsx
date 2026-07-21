@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { getSelectedProjectId } from "@/lib/project";
+import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import UserMenuDropdown from "./UserMenuDropdown";
 import NotificationBell from "./NotificationBell";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";
@@ -14,11 +15,14 @@ import { useTeamChatWindow } from "@/providers/TeamChatWindowProvider";
 import { requestNotificationPermissionWithGuide } from "@/utils/notification";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
-const LITE_NAV_ITEMS: { label: string; href: string }[] = [
+const LITE_BASE_NAV_ITEMS_BEFORE: { label: string; href: string }[] = [
   { label: "대시보드", href: "/dashboard" },
   { label: "상담", href: "/consult" },
   { label: "고객목록", href: "/customers" },
-  { label: "통계", href: "/stats" },
+];
+const LITE_STATS_ITEM = { label: "통계", href: "/stats" };
+const LITE_DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
+const LITE_COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },
   { label: "설정", href: "/settings" },
 ];
@@ -33,9 +37,18 @@ export default function LiteHeader() {
   const [hasProject, setHasProject] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user } = useMe();
+  const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
   const teamChatContext = useTeamChatContextSafe();
   const teamChatHasUnread = teamChatContext?.hasUnread ?? false;
   const { toggle: toggleStaffChatModal } = useTeamChatWindow();
+
+  // 순서: 고객목록 → 회생·파산(조건부) → 통계 → 공지사항 → 설정
+  const LITE_NAV_ITEMS = [
+    ...LITE_BASE_NAV_ITEMS_BEFORE,
+    ...(debtReliefReady && showDebtReliefMenu ? [LITE_DEBT_RELIEF_ITEM] : []),
+    LITE_STATS_ITEM,
+    ...LITE_COMMON_NAV_ITEMS,
+  ];
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -61,15 +74,9 @@ export default function LiteHeader() {
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // 저장된 값이 없으면 OS 설정과 무관하게 light를 기본값으로 사용
     const initialTheme =
-      storedTheme === "dark" || storedTheme === "light"
-        ? storedTheme
-        : prefersDark
-        ? "dark"
-        : "light";
+      storedTheme === "dark" || storedTheme === "light" ? storedTheme : "light";
     setIsDarkMode(initialTheme === "dark");
   }, [mounted]);
 

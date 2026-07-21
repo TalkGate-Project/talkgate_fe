@@ -179,7 +179,7 @@
   --breakpoint-desktop-full: 1920px; /* 1920 */
 
   /* Map to Tailwind aliases (sm/md/lg/xl). Use concrete values (media queries don't support var()). */
-  --breakpoint-sm: 390px;
+  --breakpoint-sm: 375px;
   --breakpoint-md: 780px;
   --breakpoint-lg: 1080px;
   --breakpoint-xl: 1920px;
@@ -334,50 +334,15 @@
   --color-surface-10: #f8f8f8; /* Light/Light-10 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    /* Mirror data-theme="dark" fallback when no explicit theme set */
-    --neutral-0: var(--neutral-dark-0);
-    --neutral-10: var(--neutral-dark-10);
-    --neutral-20: var(--neutral-dark-20);
-    --neutral-25: var(--neutral-dark-25);
-    --neutral-30: var(--neutral-dark-30);
-    --neutral-40: var(--neutral-dark-40);
-    --neutral-50: var(--neutral-dark-50);
-    --neutral-60: var(--neutral-dark-60);
-    --neutral-70: var(--neutral-dark-70);
-    --neutral-80: var(--neutral-dark-80);
-    --neutral-90: var(--neutral-dark-90);
-    --neutral-100: var(--neutral-dark-100);
-
-    --background: var(--neutral-dark-10);
-    --foreground: var(--neutral-dark-80);
-    --card: var(--neutral-dark-0);
-    --muted: var(--neutral-dark-20);
-    --muted-foreground: var(--neutral-dark-60);
-    --border: #444444;
-    --primary: var(--primary-60);
-    --success: var(--primary-80);
-    --warning: var(--warning-40);
-    --danger: var(--danger-40);
-    --color-surface-10: var(--neutral-dark-20);
-    
-    /* Notification unread background (dark mode) */
-    --notification-unread-bg: rgba(214, 250, 232, 0.1);
-    --notification-unread-border: var(--primary-40);
-    
-    /* Customer link modal gradients (dark mode) */
-    --customer-link-create-gradient: linear-gradient(74.9deg, rgba(0, 181, 91, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
-    --customer-link-existing-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
-    
-    /* Team leader highlight background (dark mode) */
-    --team-leader-highlight-bg: #111111;
-  }
-}
+/* data-theme 미설정 시 :root light 토큰을 그대로 사용 (OS prefers-color-scheme 미반영) */
 
 html, body {
   min-width: 306px; /* 레이아웃이 306px 미만으로 줄어들지 않도록 고정 (뷰포트가 더 좁으면 가로 스크롤) */
-  overflow-x: hidden; /* 삼성 인터넷 등 일부 모바일 브라우저에서 가로 스크롤 방지 */
+  /*
+   * 가로 스크롤 방지. `hidden` 대신 `clip`을 사용해야 body가 스크롤 컨테이너가 되지 않는다.
+   * (overflow-x: hidden이면 overflow-y가 auto로 계산되어 position: sticky가 동작하지 않음)
+   */
+  overflow-x: clip;
 }
 
 body {
@@ -795,6 +760,27 @@ body {
   stroke: #959595;
 }
 
+/* 수임료 납부현황 요약 카드 아이콘 배경 - 다크모드에서만 10% opacity로 낮춤 (라이트모드는 원본 유지) */
+.dark .fee-summary-icon-bg-paid,
+[data-theme="dark"] .fee-summary-icon-bg-paid {
+  fill: rgba(214, 250, 232, 0.1);
+}
+
+.dark .fee-summary-icon-bg-scheduled,
+[data-theme="dark"] .fee-summary-icon-bg-scheduled {
+  fill: rgba(228, 237, 255, 0.1);
+}
+
+.dark .fee-summary-icon-bg-unpaid,
+[data-theme="dark"] .fee-summary-icon-bg-unpaid {
+  fill: rgba(255, 235, 235, 0.1);
+}
+
+.dark .fee-summary-icon-bg-refunded,
+[data-theme="dark"] .fee-summary-icon-bg-refunded {
+  fill: rgba(237, 237, 237, 0.1);
+}
+
 /* Remove browser default focus outline on select elements */
 select:focus {
   outline: none;
@@ -852,6 +838,154 @@ svg path:focus {
 
 @utility animate-toast-slide-up {
   animation: toast-slide-up 0.25s ease-out;
+}
+
+/* 결제정보 유도 말풍선 등장 */
+@keyframes payment-nudge-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility animate-payment-nudge-in {
+  animation: payment-nudge-in 0.28s ease-out;
+}
+
+/* Debt-relief analysis loading dots */
+@keyframes analysis-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-analysis-dot {
+  animation: analysis-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes analyze-border-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0turn);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(1turn);
+  }
+}
+
+@keyframes analyze-sparkle-start-color {
+  0%,
+  100% {
+    stop-color: #00e272;
+  }
+  50% {
+    stop-color: #3f93ff;
+  }
+}
+
+@keyframes analyze-sparkle-end-color {
+  0%,
+  100% {
+    stop-color: #a9ffd4;
+  }
+  50% {
+    stop-color: #9bc8ff;
+  }
+}
+
+.analyze-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  color: #000000;
+  background: linear-gradient(135deg, #a1ff8b 0%, #3f93ff 96.83%);
+  filter: drop-shadow(2px 2px 5px #d6fae8);
+}
+
+.analyze-button::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    #a1ff8b 0%,
+    #00e272 24%,
+    #3f93ff 68%,
+    #a1ff8b 100%
+  );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 180ms ease;
+  will-change: transform;
+}
+
+.analyze-button::after {
+  position: absolute;
+  z-index: 0;
+  inset: 2px;
+  border-radius: 3px;
+  background: #ffffff;
+  content: "";
+  pointer-events: none;
+}
+
+/* 다크모드: 어두운 채우기 + 흰 텍스트 + 녹색 glow (Figma Dark/Dark-100) */
+:is(.dark, [data-theme="dark"]) .analyze-button {
+  color: #fdfdfd;
+  filter: drop-shadow(2px 2px 5px #105030);
+}
+
+:is(.dark, [data-theme="dark"]) .analyze-button::after {
+  background: var(--card);
+}
+
+/* hover 루프 애니메이션은 마우스/트랙패드에서만 — 터치 sticky hover 방지 */
+@media (hover: hover) and (pointer: fine) {
+  .analyze-button:not(:disabled):hover::before {
+    opacity: 1;
+    animation: analyze-border-rotate 1.6s linear infinite;
+  }
+
+  .analyze-button:not(:disabled):hover .analyze-sparkle-start {
+    animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
+  }
+
+  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
+    animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .analyze-button:not(:disabled):hover::before {
+      animation: none;
+    }
+
+    .analyze-button:not(:disabled):hover .analyze-sparkle-start,
+    .analyze-button:not(:disabled):hover .analyze-sparkle-end {
+      animation: none;
+    }
+  }
+}
+
+.analyze-button:focus-visible {
+  outline: 2px solid #3f93ff;
+  outline-offset: 3px;
 }
 
 /* AI Markdown response styles */

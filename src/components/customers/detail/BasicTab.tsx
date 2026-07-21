@@ -3,14 +3,16 @@ import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import DatePicker from "@/components/common/DatePicker";
-import GenderToggle from "@/components/customers/GenderToggle";
+import CustomerLinkedAnalysisSection from "./CustomerLinkedAnalysisSection";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState, CustomerValidation } from "./useCustomerDetail";
-import { ContactType } from "@/types/customers";
+import { ContactType, CustomerLinkedAnalysis } from "@/types/customers";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 import { format, isValid, parse } from "date-fns";
+import GenderToggle from "@/components/customers/GenderToggle";
 
 type Props = {
+  customerId: number;
   form: CustomerFormState;
   setForm: React.Dispatch<React.SetStateAction<CustomerFormState>>;
   messengers: { id?: number; messenger: string; account: string; createdAt?: string }[];
@@ -18,9 +20,11 @@ type Props = {
   onRemoveMessenger: (index: number) => void;
   validation: CustomerValidation;
   showValidation: boolean;
+  linkedAnalysis?: CustomerLinkedAnalysis | null;
 };
 
 export default function BasicTab({
+  customerId,
   form,
   setForm,
   messengers,
@@ -28,6 +32,7 @@ export default function BasicTab({
   onRemoveMessenger,
   validation,
   showValidation,
+  linkedAnalysis,
 }: Props) {
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
   const [newMessengerAccount, setNewMessengerAccount] = useState("");
@@ -233,21 +238,6 @@ export default function BasicTab({
         />
       </div>
 
-      {/* Job */}
-      <div>
-        <div className="mb-1">
-          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">직업</span>
-        </div>
-        <div>
-          <input
-            value={form.job}
-            onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
-            placeholder="직업을 입력하세요."
-          />
-        </div>
-      </div>
-
       {/* Age Range */}
       <div>
         <div className="mb-1">
@@ -261,6 +251,21 @@ export default function BasicTab({
             }
             className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
             placeholder="연령대를 입력하세요."
+          />
+        </div>
+      </div>
+
+      {/* Job */}
+      <div>
+        <div className="mb-1">
+          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">직업</span>
+        </div>
+        <div>
+          <input
+            value={form.job}
+            onChange={(e) => setForm((prev) => ({ ...prev, job: e.target.value }))}
+            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px]"
+            placeholder="직업을 입력하세요."
           />
         </div>
       </div>
@@ -341,6 +346,14 @@ export default function BasicTab({
           )}
         </div>
       </div>
+
+      {/* 회생·파산 진단 정보 */}
+      <CustomerLinkedAnalysisSection
+        customerId={customerId}
+        customerName={form.name}
+        hasAssignedMember={Boolean(form.assignedMemberName?.trim())}
+        linkedAnalysis={linkedAnalysis}
+      />
 
       {/* 메신저 삭제 확인 모달 */}
       <ConfirmModal

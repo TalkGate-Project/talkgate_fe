@@ -10,6 +10,8 @@ type DateRangePickerProps = {
   className?: string;
   disabled?: boolean;
   showInlineIcon?: boolean;
+  /** "초기화" 버튼 노출 여부. 기본 true — 특정 화면에서만 임시로 숨기고 싶을 때 false로 전달 */
+  showReset?: boolean;
 };
 
 export default function DateRangePicker({
@@ -21,6 +23,7 @@ export default function DateRangePicker({
   className = "",
   disabled = false,
   showInlineIcon = false,
+  showReset = true,
 }: DateRangePickerProps) {
   const [startKey, setStartKey] = useState(0);
   const [endKey, setEndKey] = useState(0);
@@ -108,14 +111,16 @@ export default function DateRangePicker({
         undefined,
         startDate
       )}
-      <button
-        type="button"
-        onClick={handleReset}
-        disabled={disabled}
-        className="hidden md:inline-flex md:items-center h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-      >
-        초기화
-      </button>
+      {showReset && (
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={disabled}
+          className="hidden md:inline-flex md:items-center h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] font-semibold text-neutral-90 tracking-[-0.02em] hover:bg-neutral-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+        >
+          초기화
+        </button>
+      )}
     </div>
   );
 }

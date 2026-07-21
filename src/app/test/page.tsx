@@ -110,13 +110,9 @@ export default function TestPage() {
     if (!mounted || typeof window === "undefined") return;
 
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    const initialTheme = storedTheme === "dark" || storedTheme === "light"
-      ? storedTheme
-      : prefersDark
-        ? "dark"
-        : "light";
+    // 저장된 값이 없으면 OS 설정과 무관하게 light를 기본값으로 사용
+    const initialTheme =
+      storedTheme === "dark" || storedTheme === "light" ? storedTheme : "light";
 
     setIsDarkMode(initialTheme === "dark");
   }, [mounted]);

@@ -7,7 +7,7 @@ import { ProjectsService } from "@/services/projects";
 import pleaseDragImg from "@/assets/images/projects/please_drag.webp";
 import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
-import type { Project } from "@/types/projects";
+import type { Project, ProjectType } from "@/types/projects";
 
 type Props = {
   onClose: () => void;
@@ -20,12 +20,65 @@ const SUBDOMAIN_PATTERN = /^[a-z0-9-]+$/;
 // 프로젝트 이름 최대 글자수
 const PROJECT_NAME_MAX_LENGTH = 20;
 
+// 선택(active) 카드의 아이콘은 초록, 미선택 카드는 회색 — 두 타입 아이콘 공통 색상 규칙
+const MENU_ICON_ACTIVE_COLOR = "#00E272";
+const MENU_ICON_INACTIVE_COLOR = "#B0B0B0";
+
+function GeneralMenuIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M9.75 17L9 20L8 21H16L15 20L14.25 17M3 13H21M5 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3H5C3.89543 3 3 3.89543 3 5V15C3 16.1046 3.89543 17 5 17Z"
+        stroke={active ? MENU_ICON_ACTIVE_COLOR : MENU_ICON_INACTIVE_COLOR}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AnalysisMenuIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M3 6L6 7M6 7L3 16C4.77253 17.3334 7.22866 17.3334 9.00119 16M6 7L9.00006 16M6 7L12 5M18 7L21 6M18 7L15 16C16.7725 17.3334 19.2287 17.3334 21.0012 16M18 7L21.0001 16M18 7L12 5M12 3V5M12 21V5M12 21H9M12 21H15"
+        stroke={active ? MENU_ICON_ACTIVE_COLOR : MENU_ICON_INACTIVE_COLOR}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const PROJECT_TYPE_OPTIONS: {
+  value: ProjectType;
+  label: string;
+  description: string;
+  icon: (props: { active: boolean }) => React.JSX.Element;
+}[] = [
+  {
+    value: "general",
+    label: "일반",
+    description: "범용적인 고객 정보 관리 기능을 제공해요",
+    icon: GeneralMenuIcon,
+  },
+  {
+    value: "analysis",
+    label: "회생파산",
+    description: "AI 진단을 기반으로 회생·파산 상담을 지원해요",
+    icon: AnalysisMenuIcon,
+  },
+];
+
 export default function CreateProjectModal({ onClose, onCreated }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
 
-  // 1단계: 브랜드 아이콘 + 프로젝트 이름
+  // 1단계: 브랜드 아이콘 + 프로젝트 이름 + 메뉴(타입) 선택
   const [projectName, setProjectName] = useState("");
+  const [projectType, setProjectType] = useState<ProjectType>("general");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -207,6 +260,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
         subDomain: subDomainValue,
         logoUrl,
         useAttendanceMenu: false,
+        type: projectType,
       });
       const createdProject = createRes.data?.data as Project | undefined;
       await onCreated(createdProject);
@@ -234,7 +288,7 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center md:bg-black/50 md:dark:bg-[#000000CC]">
       {/* 모바일: 전체 화면, 데스크톱: 모달 오버레이 */}
       <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC] md:block hidden" />
-      <div className="relative bg-card dark:bg-neutral-10 md:rounded-[14px] md:w-[848px] md:h-[597px] w-full h-full md:max-h-[597px] flex flex-col">
+      <div className="relative bg-card dark:bg-neutral-10 md:rounded-[14px] md:w-[848px] md:h-[731px] w-full h-full md:max-h-[731px] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center px-4 md:px-7 pt-4 md:pt-0 mb-[18px] md:mb-0">
           {/* 모바일: 뒤로가기 버튼 */}
@@ -382,6 +436,47 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
                   maxLength={PROJECT_NAME_MAX_LENGTH}
                   className="mt-2 w-full h-[34px] rounded-[5px] border border-neutral-30 px-3 text-[14px] text-foreground bg-card"
                 />
+              </div>
+
+              {/* 프로젝트 유형 */}
+              <div className="rounded-[5px] bg-neutral-10 dark:bg-neutral-25 px-4 md:px-6 py-3">
+                <div className="text-[14px] font-medium text-foreground">
+                  프로젝트 유형 <span className="text-danger-40">*</span>
+                </div>
+                <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {PROJECT_TYPE_OPTIONS.map((option) => {
+                    const isSelected = projectType === option.value;
+                    const Icon = option.icon;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setProjectType(option.value)}
+                        className={`cursor-pointer flex items-start gap-3 rounded-[10px] border px-4 py-3 text-left transition-colors ${
+                          isSelected
+                            ? "border-primary-80 bg-primary-10/40"
+                            : "border-neutral-30 bg-card hover:border-neutral-50"
+                        }`}
+                      >
+                        <span
+                          className={`shrink-0 w-9 h-9 rounded-[8px] grid place-items-center ${
+                            isSelected ? "bg-primary-10" : "bg-neutral-20"
+                          }`}
+                        >
+                          <Icon active={isSelected} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-semibold text-foreground">
+                            {option.label}
+                          </span>
+                          <span className="block text-[13px] text-neutral-60 mt-0.5">
+                            {option.description}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
