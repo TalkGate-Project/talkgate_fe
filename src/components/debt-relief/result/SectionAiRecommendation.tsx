@@ -37,14 +37,25 @@ function RecommendationChips({
   );
 }
 
-export default function SectionAiRecommendation({ detail }: { detail: DiagnosisDetail }) {
+export default function SectionAiRecommendation({
+  detail,
+  showTopDivider = true,
+}: {
+  detail: DiagnosisDetail;
+  // 데스크톱에서 바로 위에 전달사항 카드가 쌓여 있으면 그 카드 자체 테두리와 겹쳐 보이므로
+  // 이 구분선을 끈다(false). 전달사항이 없으면 헤더와의 유일한 구분선이라 계속 그린다.
+  showTopDivider?: boolean;
+}) {
   const { recommendation, successProbability } = detail;
 
   return (
     // 구분선만 카드 풀폭. 피그마: divider→라벨 46px / 좌측 68px(=32+36) / 도넛 우측 90px
-    // 와이드(PC) 레이아웃은 공식 desktop BP(lg=1080)부터 — 수치·구조는 기존과 동일하게 유지.
+    // 와이드(PC) 레이아웃은 공식 desktop BP(1080)부터 — 수치·구조는 기존과 동일하게 유지.
     // md~lg(태블릿)는 컴팩트 레이아웃으로 두어 문구/도넛 겹침을 피한다.
-    <div className="mt-0 md:mt-[22px] -mx-6 md:-mx-8 border-t border-neutral-30 pt-5 md:pt-[46px] px-6 md:pl-8 md:pr-8 lg:pr-[90px]">
+    // 모바일은 이 구분선을 ResultHeader의 1줄·2줄 사이로 옮겨서(border-t-0) 여기서는 안 그린다.
+    <div
+      className={`mt-0 md:mt-[22px] -mx-6 md:-mx-8 border-t-0 ${showTopDivider ? "md:border-t" : ""} border-neutral-30 pt-5 md:pt-[46px] px-6 md:pl-8 md:pr-8 lg:pr-[90px]`}
+    >
       {/* 모바일·태블릿: 헤더 → (제목+설명 | 도넛) → 칩 */}
       <div className="lg:hidden">
         <div className="flex items-center h-5 mb-2">

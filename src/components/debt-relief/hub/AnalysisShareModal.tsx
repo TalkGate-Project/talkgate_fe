@@ -47,6 +47,9 @@ type Props = {
   customerName?: string;
   /** 고객 매칭된 경우 프리필 연락처 */
   initialContact?: string;
+  /** 과거에 공유한 적 있는 건(재공유): 프로젝트 선택 스텝을 건너뛰고 이 파트너로 고정한다.
+   * 백엔드가 재공유를 동일 프로젝트로만 허용해서(ANALYSIS_ALREADY_SHARED_TO_OTHER_PROJECT), 없으면 최초 공유. */
+  lockedPartner?: { id: number; projectName: string } | null;
 };
 
 const PAGE_LIMIT = 5;
@@ -109,6 +112,7 @@ export default function AnalysisShareModal({
   analysisIds,
   customerName: customerNameProp,
   initialContact: initialContactProp,
+  lockedPartner,
 }: Props) {
   const [step, setStep] = useState<ShareStep>("partners");
   const [partners, setPartners] = useState<AnalysisPartner[]>([]);
@@ -135,7 +139,7 @@ export default function AnalysisShareModal({
   const selectedPartner = partners.find((partner) => partner.id === selectedPartnerId);
 
   const fetchPartners = useCallback(() => {
-    if (!open || !projectId) return;
+    if (!open || !projectId || lockedPartner) return;
 
     setLoading(true);
     AnalysisPartnersService.list(
@@ -155,11 +159,22 @@ export default function AnalysisShareModal({
         });
       })
       .finally(() => setLoading(false));
-  }, [open, projectId, page]);
+  }, [open, projectId, page, lockedPartner]);
 
   useEffect(() => {
     fetchPartners();
   }, [fetchPartners]);
+
+  // 재공유(lockedPartner 있음): 프로젝트 선택 스텝을 건너뛰고 바로 연락처 입력으로 시작
+  useEffect(() => {
+    if (open && lockedPartner) {
+      setSelectedPartnerId(lockedPartner.id);
+      setStep("contact");
+      setContactIndex(0);
+      void ensureMetaLoaded(analysisIds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, lockedPartner]);
 
   // 닫힐 때 상태 초기화
   useEffect(() => {
@@ -289,6 +304,11 @@ export default function AnalysisShareModal({
       setContactIndex((prev) => prev - 1);
       return;
     }
+    // 재공유(lockedPartner)는 돌아갈 프로젝트 선택 스텝이 없으므로 닫기 확인으로 대체
+    if (lockedPartner) {
+      requestClose();
+      return;
+    }
     setStep("partners");
   };
 
@@ -343,7 +363,8 @@ export default function AnalysisShareModal({
       deliveryItems.push({
         analysisId: Number(id),
         contact: draft.contact,
-        ...(draft.referenceNote ? { referenceNote: draft.referenceNote } : {}),
+        // 실 API 필드명은 message (내부 상태명은 UI 맥락상 referenceNote 유지)
+        ...(draft.referenceNote ? { message: draft.referenceNote } : {}),
       });
     }
 
@@ -559,7 +580,7 @@ export default function AnalysisShareModal({
         ageGroupLabel={currentMeta?.ageGroupLabel}
         gender={currentMeta?.gender}
         occupation={currentMeta?.occupation}
-        partnerName={selectedPartner?.partnerProjectName ?? ""}
+        partnerName={lockedPartner?.projectName ?? selectedPartner?.partnerProjectName ?? ""}
         contact={pendingConfirm?.contact ?? ""}
         referenceNote={pendingConfirm?.referenceNote}
         confirmLabel={isLastContact ? "공유하기" : "다음으로"}

@@ -87,7 +87,7 @@ const PROCEDURE_TO_ANALYSIS: Record<RecommendedProcedure, AnalysisProcedureType>
   bankruptcy: "bankruptcy",
 };
 
-const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
+export const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
   individual_rehabilitation: "individual_rehab",
   debt_adjustment: "debt_adjustment",
   bankruptcy: "bankruptcy",
@@ -397,6 +397,7 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     age: typeof item.age === "number" ? item.age : undefined,
     ageGroupLabel: resolveAgeGroupLabel(item.ageGroup),
     gender: item.gender ?? undefined,
+    occupation: item.employmentType ?? undefined,
     region: item.region,
     totalDebtManwon: item.totalDebt,
     monthlyAvailableIncomeManwon: item.disposableIncome,
@@ -406,6 +407,10 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     // 아직 절차 추적을 시작하지 않아 null이면 1단계로 표시
     progressStep: item.currentProcedureStep ?? 1,
     isShared: item.isShared,
+    deliveryStatus: item.deliveryStatus ?? null,
+    lawyerProjectId: item.lawyerProjectId ?? null,
+    lawyerProjectName: item.lawyerProjectName ?? null,
+    partnerId: item.partnerId ?? null,
     isCustomerConnected: item.isCustomerConnected,
     consultedAt: item.createdAt.slice(0, 10),
     assigneeName: assigneeName || undefined,

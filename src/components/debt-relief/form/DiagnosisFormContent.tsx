@@ -203,7 +203,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       case "income":
         return <Step4IncomeExpense form={form} update={update} derived={derived} />;
       case "others":
-        return <Step5Others form={form} update={update} />;
+        return <Step5Others form={form} update={update} onClose={handleClose} />;
     }
   };
 
@@ -237,23 +237,27 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         />
 
         <section className="relative flex-1 w-full surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
-          {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전) */}
-          <button
-            type="button"
-            onClick={handleClose}
-            aria-label="닫기"
-            className="md:hidden absolute top-[8px] right-6 z-10 cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-              <path
-                d="M6 18L18 6M6 6L18 18"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+          {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전).
+              "기타사항" 스텝은 본문이 토글로 바로 시작해 이 절대배치 X가 어색하게 떠 보여서,
+              그 스텝에서는 숨기고 Step5Others가 자체 타이틀 행에 동일 기능의 X를 대신 렌더링한다. */}
+          {step.key !== "others" && (
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="닫기"
+              className="md:hidden absolute top-[8px] right-6 z-10 cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path
+                  d="M6 18L18 6M6 6L18 18"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
 
           {/* 헤더 — 모바일에서는 MobileFormSummaryDrawer가 대신하므로 숨김 */}
           {/* Figma: title 24/700, desc 18/500, gap 16, 패딩 28, 구분선은 카드 풀폭 */}

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { DebtReliefService } from "@/services/debtRelief";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import type { DiagnosisDetail } from "@/types/debtRelief";
+import type { DiagnosisDetail, RecommendedProcedure } from "@/types/debtRelief";
 import AnalysisReviewDecisionModal from "./AnalysisReviewDecisionModal";
+import ProcedureSelectModal from "./ProcedureSelectModal";
 
 type Props = {
   detail: DiagnosisDetail;
@@ -20,6 +21,8 @@ const ACTION_BTN_BASE =
 export default function AnalysisReviewBanner({ detail, projectId, onDecided }: Props) {
   const [decisionMode, setDecisionMode] = useState<"accept" | "reject" | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [procedureSelectOpen, setProcedureSelectOpen] = useState(false);
+  const [procedureSubmitting, setProcedureSubmitting] = useState(false);
 
   const closeDecisionModal = () => {
     if (submitting) return;
@@ -32,11 +35,22 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
     try {
       if (decisionMode === "accept") {
         await DebtReliefService.acceptSharedAnalysis(projectId, detail.id, message || undefined);
+        setDecisionMode(null);
+        // 결제 정보가 이미 입력돼 있는 건은 수락 직후 추적할 절차를 바로 정할 수 있게 한다.
+        // onDecided(refetch)는 상태가 바뀌어 이 배너 자체가 사라지게 만들므로, 절차 선택
+        // 모달이 뜨는 동안은 미루고 모달이 닫힐 때(선택 완료/취소) 호출한다.
+        // defaultProcedure가 없으면(procedureScores 없음) 모달이 렌더링되지 않아 onDecided가
+        // 영영 호출되지 않는 채로 멈추므로, 그 경우엔 절차 선택을 건너뛴다.
+        if (detail.feePlan && defaultProcedure) {
+          setProcedureSelectOpen(true);
+        } else {
+          onDecided();
+        }
       } else {
         await DebtReliefService.rejectSharedAnalysis(projectId, detail.id, message || undefined);
+        setDecisionMode(null);
+        onDecided();
       }
-      setDecisionMode(null);
-      onDecided();
     } catch (error) {
       console.error(`Failed to ${decisionMode} shared analysis:`, error);
       showErrorModal({
@@ -46,6 +60,36 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const defaultProcedure =
+    detail.procedureScores.find((score) => score.recommended)?.procedure ??
+    detail.procedureScores[0]?.procedure;
+
+  const closeProcedureSelect = () => {
+    if (procedureSubmitting) return;
+    setProcedureSelectOpen(false);
+    onDecided();
+  };
+
+  const handleConfirmProcedure = async (procedure: RecommendedProcedure) => {
+    if (!projectId) return;
+    setProcedureSubmitting(true);
+    try {
+      await DebtReliefService.updateProcedureProgress(projectId, detail.id, {
+        trackingProcedure: procedure,
+      });
+      setProcedureSelectOpen(false);
+      onDecided();
+    } catch (error) {
+      console.error("Failed to set tracking procedure:", error);
+      showErrorModal({
+        headline: "진행 절차를 설정하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setProcedureSubmitting(false);
     }
   };
 
@@ -87,6 +131,17 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
         onClose={closeDecisionModal}
         onSubmit={handleSubmitDecision}
       />
+
+      {defaultProcedure ? (
+        <ProcedureSelectModal
+          open={procedureSelectOpen}
+          onClose={closeProcedureSelect}
+          onConfirm={handleConfirmProcedure}
+          procedureScores={detail.procedureScores}
+          defaultProcedure={defaultProcedure}
+          submitting={procedureSubmitting}
+        />
+      ) : null}
     </>
   );
 }

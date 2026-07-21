@@ -37,10 +37,18 @@ export default function DisclaimerInfoTooltip({
   children,
   iconSize = 24,
   label = "안내",
+  maxWidthPx = 325,
+  fitContent = false,
 }: {
   children: ReactNode;
   iconSize?: number;
   label?: string;
+  /** 말풍선 최대 너비(px). 뷰포트가 좁으면 calc(100vw-40px)로 자동 축소된다. */
+  maxWidthPx?: number;
+  /** true면 maxWidthPx는 상한선으로만 쓰고, 실제 너비는 내용(줄바꿈 포함)에 맞춰 줄어든다.
+   * children에 <br/>로 줄바꿈을 직접 지정한 경우 사용 — 폰트 로딩/폭 변화에 관계없이 항상
+   * 지정한 줄 수로 렌더된다. false(기본)면 항상 maxWidthPx로 고정해 자연스러운 문단 줄바꿈을 유도한다. */
+  fitContent?: boolean;
 }) {
   const tooltipId = useId();
   const containerRef = useRef<HTMLSpanElement>(null);
@@ -126,10 +134,12 @@ export default function DisclaimerInfoTooltip({
         id={tooltipId}
         role="tooltip"
         aria-hidden={!open}
-        className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] z-30 w-[min(325px,calc(100vw-40px))] transition-opacity duration-150 ${
+        className={`pointer-events-none absolute left-1/2 top-[calc(100%+4px)] z-30 transition-opacity duration-150 ${
           open ? "opacity-100" : "invisible opacity-0"
         }`}
         style={{
+          width: fitContent ? "fit-content" : `min(${maxWidthPx}px, calc(100vw - 40px))`,
+          maxWidth: `min(${maxWidthPx}px, calc(100vw - 40px))`,
           transform: `translateX(calc(-${BASE_OFFSET_PX}px + ${edgeShiftPx}px))`,
           filter: open ? "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" : undefined,
         }}

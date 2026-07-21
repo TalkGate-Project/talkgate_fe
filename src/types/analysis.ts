@@ -272,9 +272,9 @@ export type AnalysisDetail = {
   updatedAt: string;
 };
 
-/** 분석 건 액션(공유/반려/수락/수임료 입력·수정) 메시지 히스토리 항목 */
+/** 분석 건 액션(공유/반려/수락/수임료 입력·수정·중단·환불) 메시지 히스토리 항목 */
 export type AnalysisMessageDto = {
-  type: "share" | "reject" | "accept" | "fee_create" | "fee_update";
+  type: "share" | "reject" | "accept" | "fee_create" | "fee_update" | "fee_stop" | "fee_refund";
   memberName: string;
   projectId: number;
   projectName?: string | null;
@@ -502,8 +502,9 @@ export type DeliverAnalysisInput = {
   partnerId: number;
   /** 공유 시 함께 전달할 연락처 (선택) */
   contact?: string;
-  /** 공유 시 함께 전달할 참고사항 (선택) */
-  referenceNote?: string;
+  /** 공유 시 함께 전달할 참고사항 (선택). 실 API 필드명은 referenceNote가 아니라 message —
+   * 히스토리(messages)로 누적되는 자유 텍스트다. */
+  message?: string;
 };
 
 export type DeliverAnalysisResponse = ApiSuccess<AnalysisDelivery>;
@@ -570,7 +571,8 @@ export type BulkDeleteAnalysisResponse = ApiSuccess<BulkDeleteAnalysisResult>;
 export type BulkDeliverAnalysisItem = {
   analysisId: number;
   contact?: string;
-  referenceNote?: string;
+  /** 실 API 필드명은 referenceNote가 아니라 message. */
+  message?: string;
 };
 
 /**

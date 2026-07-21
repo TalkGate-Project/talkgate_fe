@@ -16,11 +16,20 @@ export const DIAGNOSIS_STATUS_LABEL: Record<AnalysisStatus, string> = {
   suspended: "중단됨",
 };
 
-// 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능.
+// 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능. 트래킹 절차 전환(개인회생/채무조정/
+// 파산 변경, currentProcedureStep 없이 호출)과 문자 발송에 적용 — PATCH /v1/analysis/{id}가 절차
+// 자체를 바꾸는 요청은 계약대기중부터도 허용하기 때문.
 export const DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES: readonly AnalysisStatus[] = [
   "contract_pending",
   "in_progress",
   "suspended",
+];
+
+// "현재 단계로 설정"(currentProcedureStep 지정) 전용 잠금 기준. 실 API 스펙상 PATCH
+// /v1/analysis/{id}의 절차 진행 단계 업데이트는 절차진행중(in_progress) 상태에서만 허용된다 —
+// 위 GUIDE_UNLOCKED_STATUSES보다 좁다(contract_pending/suspended 제외).
+export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus[] = [
+  "in_progress",
 ];
 
 // ── 추천 절차 ────────────────────────────────────────────────
@@ -62,6 +71,13 @@ export type DiagnosisListItem = {
   feePlanSummary: FeePlanSummary | null;
   progressStep: number; // 절차 안내 진행 단계 (1-based). 아직 추적 시작 전이면 1
   isShared: boolean; // 공유(납품) 관련 건 여부 — 삭제 가능 여부 등에 사용. 고객 연결 여부와는 다름(isCustomerConnected 참고)
+  // 공유 연결 상태. delivered=공유중, rejected=반려됨, revoked=철회됨. 연결 없으면 null.
+  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
+  // 과거에 공유한 적 있는 건이면 채워짐 — 재공유 시 동일 프로젝트로 제한하는 데 사용
+  // (AnalysisShareModal의 lockedPartner). partnerId는 공유 API 호출 시 그대로 사용.
+  lawyerProjectId?: number | null;
+  lawyerProjectName?: string | null;
+  partnerId?: number | null;
   // 고객과 연결되어 있는지 여부. 목록의 체인 아이콘 노출 조건 — isShared와 혼동 금지.
   isCustomerConnected: boolean;
   consultedAt: string; // ISO 날짜 (YYYY-MM-DD)
@@ -74,9 +90,13 @@ export type DiagnosisListItem = {
   rejectionReason?: string | null;
 };
 
-// 목록 테이블 "진행단계" 셀용. 상세 API의 procedureGuides가 목록에는 없어
-// 절차별 고정 단계명을 클라이언트에서 참조한다. (개인회생 9단계는 기존 mock/피그마와 동일)
-export const PROCEDURE_PROGRESS_STEP_TITLES: Record<RecommendedProcedure, readonly string[]> = {
+export type ProcedureStepTitlesByProcedure = Record<RecommendedProcedure, readonly string[]>;
+
+// 목록 테이블 "진행단계" 셀용 폴백. 상세 API의 procedureGuides가 목록에는 없어 절차별 단계명이
+// 필요한데, 실 마스터 데이터(GET /v1/analysis/procedures, useAnalysisProcedureMaster)가 아직
+// 로딩 전이거나 실패했을 때만 이 값을 쓴다 — 정상 상황에선 마스터 데이터가 우선한다.
+// (개인회생 9단계는 기존 mock/피그마 값 — 실 API와 단계 수가 다를 수 있음을 감안한 방어값.)
+export const PROCEDURE_PROGRESS_STEP_TITLES: ProcedureStepTitlesByProcedure = {
   individual_rehab: [
     "신청 전 상담",
     "신청서 작성 및 접수",
@@ -88,18 +108,18 @@ export const PROCEDURE_PROGRESS_STEP_TITLES: Record<RecommendedProcedure, readon
     "변제 수행",
     "면책결정",
   ],
-  // 채무조정·파산은 상세 guides가 우선. 목록용 폴백(단계 수·명칭은 백엔드 guides와 달라질 수 있음).
   debt_adjustment: ["상담·접수", "신청", "심사", "확정", "상환 이행", "완료"],
   bankruptcy: ["신청 전 상담", "신청서 접수", "파산선고", "면책심문", "면책결정", "종료"],
 };
 
 export function getProgressStepMeta(
   procedure: RecommendedProcedure | undefined,
-  step: number
+  step: number,
+  stepTitlesByProcedure: ProcedureStepTitlesByProcedure = PROCEDURE_PROGRESS_STEP_TITLES
 ): { current: number; total: number; title: string } {
   // 분석이 아직 완료되지 않았거나(추천 절차 미확정) 백엔드가 알 수 없는 값을 내려주면
   // procedure가 없을 수 있다 — 목록 전체가 죽지 않도록 방어적으로 처리.
-  const titles = procedure ? PROCEDURE_PROGRESS_STEP_TITLES[procedure] : undefined;
+  const titles = procedure ? stepTitlesByProcedure[procedure] : undefined;
   if (!titles || titles.length === 0) {
     return { current: 1, total: 1, title: "확인 중" };
   }
@@ -109,9 +129,16 @@ export function getProgressStepMeta(
 }
 
 // 절차진행중 상태뱃지에 붙는 "현재/총단계" (예: "5/9"). 총단계를 모르면 생략.
-export function resolveInProgressStepLabel(item: DiagnosisListItem): string | undefined {
+export function resolveInProgressStepLabel(
+  item: DiagnosisListItem,
+  stepTitlesByProcedure?: ProcedureStepTitlesByProcedure
+): string | undefined {
   if (item.status !== "in_progress") return undefined;
-  const { current, total } = getProgressStepMeta(item.recommendedProcedure, item.progressStep);
+  const { current, total } = getProgressStepMeta(
+    item.recommendedProcedure,
+    item.progressStep,
+    stepTitlesByProcedure
+  );
   return total > 1 ? `${current}/${total}` : undefined;
 }
 
@@ -551,7 +578,9 @@ export type DiagnosisMessageType =
   | "reject"
   | "accept"
   | "fee_create"
-  | "fee_update";
+  | "fee_update"
+  | "fee_stop"
+  | "fee_refund";
 
 export type DiagnosisMessage = {
   type: DiagnosisMessageType;
