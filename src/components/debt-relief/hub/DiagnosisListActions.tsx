@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import AnalysisShareIcon from "@/components/icons/AnalysisShareIcon";
 
 type Props = {
   hasSelection: boolean;
   selectedCount: number;
   limit: number;
   onDelete: () => void;
+  onShare: () => void;
+  /** 영업점(analysis) + 전체 탭에서만 선택 공유 버튼 표시. 반려 탭에서는 숨김 */
+  showShareAction?: boolean;
+  /** 선택 항목에 이미 공유된 건이 포함된 경우 true — 버튼 비활성화 */
+  shareDisabled?: boolean;
   onLimitChange: (limit: number) => void;
 };
 
@@ -34,6 +40,9 @@ export default function DiagnosisListActions({
   selectedCount,
   limit,
   onDelete,
+  onShare,
+  showShareAction = true,
+  shareDisabled = false,
   onLimitChange,
 }: Props) {
   const [limitOpen, setLimitOpen] = useState(false);
@@ -71,6 +80,20 @@ export default function DiagnosisListActions({
           </svg>
         </button>
       </IconTooltip>
+
+      {showShareAction && (
+        <IconTooltip label={shareDisabled ? "이미 공유된 항목이 포함되어 있습니다" : "선택 공유"}>
+          <button
+            type="button"
+            onClick={onShare}
+            disabled={!hasSelection || shareDisabled}
+            className={ICON_BTN}
+            aria-label={`선택한 ${selectedCount}건 공유`}
+          >
+            <AnalysisShareIcon tone="muted" />
+          </button>
+        </IconTooltip>
+      )}
 
       <div className="relative h-6" ref={popoverRef}>
         <IconTooltip label="목록 개수">

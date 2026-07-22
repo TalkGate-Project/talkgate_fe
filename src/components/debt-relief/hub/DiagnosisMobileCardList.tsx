@@ -51,7 +51,7 @@ function MobileFeePlanBlock({ summary }: { summary: FeePlanSummary }) {
       : 0;
 
   return (
-    <div className="flex flex-col gap-1 flex-1 min-w-0 max-w-[160px]">
+    <div className="flex flex-col gap-1 flex-1 min-w-0 max-w-[200px]">
       <div className="h-1.5 w-full rounded-[30px] bg-neutral-30 overflow-hidden">
         <div
           className={`h-full rounded-l-[30px] ${barClassName}`}
@@ -120,83 +120,87 @@ export default function DiagnosisMobileCardList({
                 onOpenResult(item.id);
               }
             }}
-            className="cursor-pointer flex items-center gap-4 px-3 py-3.5 rounded-[12px] border border-neutral-30 bg-card"
+            className="cursor-pointer flex flex-col gap-1.5 p-4 rounded-[12px] border border-neutral-30 bg-card"
           >
-            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-              <Checkbox
-                checked={selectedIds.has(item.id)}
-                onChange={() => onToggleSelect(item.id)}
-                ariaLabel={`${item.customerName} 선택`}
-                size={24}
-              />
-            </div>
-
-            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-              {/* 1행: 이름 + 링크 + 나이·성별·직업 | 추천 절차명 */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1 min-w-0 flex-1">
-                  <p className="text-[16px] font-semibold leading-[19px] text-neutral-90 truncate">
-                    {item.customerName}
-                  </p>
-                  {item.isCustomerConnected && (
-                    <LinkIcon size={16} className="text-secondary-60 shrink-0" />
-                  )}
-                  {customerMeta && (
-                    <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 truncate">
-                      {customerMeta}
-                    </span>
-                  )}
-                </div>
-                <span className="flex items-center gap-1.5 shrink-0">
-                  <ProcedureNameText procedure={item.recommendedProcedure} />
-                  {showShareButton && (
-                    // 아이콘 자체는 20px로 작게 두되(좁은 카드 헤더 행에 맞춤), 터치 영역은
-                    // -m-2/p-2로 넓혀 44px 권장치에 최대한 가깝게 확보한다.
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onShareItem?.(item);
-                      }}
-                      className="cursor-pointer -m-2 p-2 inline-flex items-center justify-center hover:opacity-80 transition-opacity"
-                      aria-label={`${item.customerName} 공유하기`}
-                    >
-                      <AnalysisShareIcon tone={item.isShared ? "active" : "muted"} className="w-5 h-5" />
-                    </button>
-                  )}
-                </span>
+            {/* 0행: 체크박스 | 공유 대상 법인명(공유완료)·공유하기 버튼(미공유, 영업점만) */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds.has(item.id)}
+                  onChange={() => onToggleSelect(item.id)}
+                  ariaLabel={`${item.customerName} 선택`}
+                  size={24}
+                />
               </div>
-
-              {/* 2행: 결제 금액 | 진단 상태뱃지 */}
-              <div className="flex items-center justify-between gap-2">
-                {item.feePlanSummary ? (
-                  <span className="text-[14px] font-bold leading-none text-foreground">
-                    {item.feePlanSummary.totalAmount.toLocaleString("ko-KR")}
-                    <span className="ml-0.5 text-[12px] font-medium">만원</span>
+              {showShareButton &&
+                (item.isShared ? (
+                  <span className="inline-flex items-center h-[20px] max-w-[160px] px-1.5 rounded-[5px] bg-neutral-20">
+                    <span className="text-[11px] font-medium leading-[13px] text-neutral-70 truncate">
+                      {item.lawyerProjectName || "공유된 프로젝트"}
+                    </span>
                   </span>
                 ) : (
-                  <span className="text-[12px] font-medium text-neutral-50">결제 미설정</span>
-                )}
-                <span className="shrink-0">
-                  <StatusBadge
-                    status={item.status}
-                    rejectionReason={item.rejectionReason}
-                    stepLabel={resolveInProgressStepLabel(item, stepTitlesByProcedure)}
-                  />
-                </span>
-              </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShareItem?.(item);
+                    }}
+                    className="cursor-pointer -m-2 p-2 inline-flex items-center justify-center hover:opacity-80 transition-opacity"
+                    aria-label={`${item.customerName} 공유하기`}
+                  >
+                    <AnalysisShareIcon tone="muted" className="w-6 h-6" />
+                  </button>
+                ))}
+            </div>
 
-              {/* 3행: 결제 진행바 + 회차 + 결제상태 | 총 채무 */}
-              <div className="flex items-end gap-2 w-full min-w-0">
-                {item.feePlanSummary ? (
-                  <MobileFeePlanBlock summary={item.feePlanSummary} />
-                ) : (
-                  <span />
+            {/* 1행: 이름 + 링크 + 나이·성별·직업 | 추천 절차명 */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 min-w-0 flex-1">
+                <p className="text-[16px] font-semibold leading-[19px] text-neutral-90 truncate">
+                  {item.customerName}
+                </p>
+                {item.isCustomerConnected && (
+                  <LinkIcon size={16} className="text-secondary-60 shrink-0" />
                 )}
-                <span className="ml-auto shrink-0">
-                  <DebtAmountText manwon={item.totalDebtManwon} />
-                </span>
+                {customerMeta && (
+                  <span className="text-[12px] font-medium leading-[14px] text-neutral-60 opacity-80 truncate">
+                    {customerMeta}
+                  </span>
+                )}
               </div>
+              <ProcedureNameText procedure={item.recommendedProcedure} />
+            </div>
+
+            {/* 2행: 결제 금액 | 진단 상태뱃지 */}
+            <div className="flex items-center justify-between gap-2">
+              {item.feePlanSummary ? (
+                <span className="text-[14px] font-bold leading-none text-foreground">
+                  {item.feePlanSummary.totalAmount.toLocaleString("ko-KR")}
+                  <span className="ml-0.5 text-[12px] font-medium">만원</span>
+                </span>
+              ) : (
+                <span className="text-[12px] font-medium text-neutral-50">결제 미설정</span>
+              )}
+              <span className="shrink-0">
+                <StatusBadge
+                  status={item.status}
+                  rejectionReason={item.rejectionReason}
+                  stepLabel={resolveInProgressStepLabel(item, stepTitlesByProcedure)}
+                />
+              </span>
+            </div>
+
+            {/* 3행: 결제 진행바 + 회차 + 결제상태 | 총 채무 */}
+            <div className="flex items-end gap-2 w-full min-w-0">
+              {item.feePlanSummary ? (
+                <MobileFeePlanBlock summary={item.feePlanSummary} />
+              ) : (
+                <span />
+              )}
+              <span className="ml-auto shrink-0">
+                <DebtAmountText manwon={item.totalDebtManwon} />
+              </span>
             </div>
           </div>
         );

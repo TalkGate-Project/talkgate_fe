@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/lib/confirmModalEvents";
 import Pagination from "@/components/common/Pagination";
 import { formatContactForDisplay } from "@/utils/format";
 import { formatDateTime } from "@/utils/datetime";
@@ -14,6 +15,8 @@ type Props = {
   onBack?: () => void;
   analysisId: string;
   projectId: string;
+  /** 진단 원본 입력 성명. 연동 대상 고객명과 다르면 확인 모달로 한 번 더 확인한다. */
+  analysisCustomerName?: string;
   onMatched: () => void;
 };
 
@@ -63,6 +66,7 @@ export default function CustomerMatchModal({
   onBack,
   analysisId,
   projectId,
+  analysisCustomerName,
   onMatched,
 }: Props) {
   const [keyword, setKeyword] = useState("");
@@ -135,8 +139,7 @@ export default function CustomerMatchModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, matchingId, onClose]);
 
-  const handleMatch = async (customerId: number) => {
-    if (matchingId) return;
+  const performMatch = async (customerId: number) => {
     setMatchingId(customerId);
     try {
       await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
@@ -159,6 +162,28 @@ export default function CustomerMatchModal({
     } finally {
       setMatchingId(null);
     }
+  };
+
+  const handleMatch = (customerId: number) => {
+    if (matchingId) return;
+
+    const candidateName = customers.find((customer) => customer.id === customerId)?.name?.trim();
+    const originalName = analysisCustomerName?.trim();
+    const nameMismatch = Boolean(candidateName && originalName && candidateName !== originalName);
+
+    if (nameMismatch) {
+      showConfirmModal({
+        headline: "이름이 다른 고객에게 매칭하려고 합니다.",
+        message: "이어서 진행하시겠습니까?",
+        type: "caution",
+        confirmText: "연동",
+        cancelText: "취소",
+        onConfirm: () => performMatch(customerId),
+      });
+      return;
+    }
+
+    void performMatch(customerId);
   };
 
   if (!open) return null;

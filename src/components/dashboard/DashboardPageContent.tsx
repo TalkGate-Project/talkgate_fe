@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useMemo, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -70,8 +71,17 @@ function DashboardContentInner() {
   const missingProject = projectReady && !projectId;
   const { member } = useMyMember();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const hasRefetchedRef = useRef(false);
   const hasCheckedPartnerRequestsRef = useRef(false);
+
+  // 회생·파산 미지원 프로젝트에서 /debt-relief 직접 접근 시 미들웨어가 리다이렉트하며 남긴 쿼리 정리.
+  // 다른 메뉴 가드와 동일하게 모달 없이 조용히 처리.
+  useEffect(() => {
+    if (searchParams.get("error") !== "debt_relief_unavailable") return;
+    router.replace("/dashboard");
+  }, [searchParams, router]);
 
   // 파트너 요청 모달 상태
   const [partnerRequests, setPartnerRequests] = useState<ProjectPartnerRequest[]>([]);
