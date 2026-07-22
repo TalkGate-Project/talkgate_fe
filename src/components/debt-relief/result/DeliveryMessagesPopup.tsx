@@ -28,7 +28,7 @@ export default function DeliveryMessagesPopup({
 }) {
   return (
     <div className="md:hidden absolute inset-x-0 top-0 z-20 rounded-[12px] border border-secondary-20 bg-card shadow-[0_13px_61px_rgba(169,169,169,0.25)] dark:border-secondary-40 dark:shadow-none">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between border-b border-neutral-30 px-6 py-4">
         <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
           전달사항
         </h3>
@@ -41,7 +41,7 @@ export default function DeliveryMessagesPopup({
           <CloseIcon />
         </button>
       </div>
-      <div className="max-h-[320px] overflow-y-auto px-6 pb-4">
+      <div className="max-h-[320px] overflow-y-auto px-6 py-4">
         <DeliveryMessageTimeline messages={messages} />
       </div>
     </div>

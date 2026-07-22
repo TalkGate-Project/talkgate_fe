@@ -5,17 +5,22 @@ export default function SuccessDonut({
   size = 136,
   stroke = 8,
   label = "성공 가능성",
+  /** 회색 카드 위 등에서 중앙(성공 가능성·점수)을 흰 원으로 덮을 때 */
+  whiteCover = false,
 }: {
   value: number;
   size?: number;
   stroke?: number;
   label?: string;
+  whiteCover?: boolean;
 }) {
   const clamped = Math.min(100, Math.max(0, value));
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - clamped / 100);
   const center = size / 2;
+  // Figma cover: size 88 / stroke 5 → 78 (= size - stroke * 2)
+  const coverSize = size - stroke * 2;
   // 같은 페이지에 도넛이 여러 개여도 gradient id가 충돌하지 않도록
   const gradientId = `success-donut-grad-${useId().replace(/:/g, "")}`;
   // 모바일 88 / 태블릿 120 / PC 136 — 크기에 맞춰 중앙 타이포 단계
@@ -62,6 +67,14 @@ export default function SuccessDonut({
           />
         </g>
       </svg>
+
+      {whiteCover ? (
+        <div
+          className="absolute rounded-full bg-white dark:bg-neutral-10"
+          style={{ width: coverSize, height: coverSize }}
+          aria-hidden
+        />
+      ) : null}
 
       <div className="absolute flex flex-col items-center">
         <p

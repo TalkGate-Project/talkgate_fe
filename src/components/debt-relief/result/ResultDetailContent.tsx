@@ -206,7 +206,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           </div>
         ) : (
           <>
-            <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pt-[20px] md:!pb-[30px]">
+            {/* AI 추천이 있는 overview → scores: 모바일 풀폭 구분선 제거 후 간격이 넓어
+                mobileCompactBottom으로 overview 하단만 pb-2. md+는 className의 pb-[30px] 유지.
+                변호사 공유(joined) 분기에는 넘기지 않는다. */}
+            <SectionCard
+              id="overview"
+              compactTop
+              mobileCompactBottom
+              className="max-md:!pt-0 md:!pt-[20px] md:!pb-[30px]"
+            >
               <ResultHeader
                 detail={detail}
                 projectId={projectId}
@@ -237,7 +245,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               </div>
             </SectionCard>
 
-            <SectionCard id="scores" compactTop topDivider>
+            <SectionCard id="scores" compactTop>
               <SectionProcedureScores detail={detail} />
             </SectionCard>
           </>
