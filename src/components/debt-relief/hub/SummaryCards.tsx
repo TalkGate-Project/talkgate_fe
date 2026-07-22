@@ -217,11 +217,16 @@ export default function SummaryCards({
             const count = summary.statusDistribution[key];
             return (
               <div key={key} className="flex items-center gap-3 h-[14px] md:h-5 shrink-0">
-                <span
-                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
-                >
-                  {DIAGNOSIS_STATUS_LABEL[key]}
-                </span>
+                {/* 칩 자체는 내용에 맞춰 좁아지되(짧은 라벨이 불필요하게 넓어지지 않게), 이 칩을 담는
+                    슬롯은 가장 긴 라벨("절차진행중"/"계약대기중") 기준 고정폭으로 둬서 슬롯 뒤에 오는
+                    바의 시작 위치가 행마다 흔들리지 않도록 한다. */}
+                <div className="shrink-0 md:w-[60px]">
+                  <span
+                    className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap ${STATUS_BADGE_STYLE[key]}`}
+                  >
+                    {DIAGNOSIS_STATUS_LABEL[key]}
+                  </span>
+                </div>
                 <div className="w-full max-w-[140px] min-w-0 h-1 md:h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
                   <div
                     className="h-full rounded-l-[30px] bg-neutral-70"
