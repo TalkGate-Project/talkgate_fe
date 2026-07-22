@@ -80,9 +80,14 @@ Statistics / Analysis Partner)와 현재 코드를 대조해 연동 현황을 �
    스키마에 아예 없는 필드라 항상 null이었던 것도 확인됨 — 참고사항은 `messages` 타임라인의 "공유"
    항목으로만 확인 가능(`SectionDeliveryMessages`). §2-D-6에서 실제로 참고사항 입력 후 타임라인에
    찍히는지 확인 필요(수정 후 최초 검증).
-3. **모바일 카드 리스트엔 공유 아이콘이 아예 없음** — `DiagnosisMobileCardList.tsx`. 영업점이 모바일에서
-   진단을 공유할 방법이 없다. 모바일 대응 범위(`docs/DEBT_RELIEF_MOBILE_RESPONSIVE_TASKS.md`)에 포함됐는지
-   확인 필요.
+3. ~~모바일 카드 리스트엔 공유 아이콘이 아예 없음~~ — **수정 완료(2026-07-22)**. `DiagnosisMobileCardList.tsx`
+   영업점이 모바일에서 진단을 공유할 방법이 없었음 — 데스크톱 `DiagnosisTable`과 동일한
+   `AnalysisShareIcon`/`handleShareItem`을 재사용해 카드 헤더 행(절차명 옆)에 공유 버튼 추가.
+   카드 전체가 클릭 시 상세로 이동하는 구조라 `stopPropagation` 처리, 터치 영역은 `-m-2 p-2`로
+   확장. 강제 CSS 오버라이드로 모바일 카드 레이아웃을 렌더링시켜 아이콘이 절차 배지 옆에 정상
+   배치되는 것과, 버튼을 프로그래밍적으로 클릭해 공유 모달이 정상 열리고(재공유 흐름 진입 확인)
+   카드 자체의 상세 이동은 트리거되지 않는 것까지 확인함(실제 390px 뷰포트는 이번에도 자동화로
+   재현 불가해 이 방식으로 대체).
 4. ~~"다시 분석하기"에 확인 모달 없음~~ — **수정 완료(2026-07-22)**. `DiagnosisFormContent.tsx`
    `handleAnalyze`. 재분석 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는 되돌릴 수
    없는 부수효과가 있었는데 클릭 전 경고가 없었음 — 수정 모드(`isEdit`)에서만 `showConfirmModal`로
