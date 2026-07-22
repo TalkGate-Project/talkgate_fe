@@ -219,8 +219,10 @@ export default function SummaryCards({
               <div key={key} className="flex items-center gap-3 h-[14px] md:h-5 shrink-0">
                 {/* 칩 자체는 내용에 맞춰 좁아지되(짧은 라벨이 불필요하게 넓어지지 않게), 이 칩을 담는
                     슬롯은 가장 긴 라벨("절차진행중"/"계약대기중") 기준 고정폭으로 둬서 슬롯 뒤에 오는
-                    바의 시작 위치가 행마다 흔들리지 않도록 한다. */}
-                <div className="shrink-0 md:w-[60px]">
+                    바의 시작 위치가 행마다 흔들리지 않도록 한다. 모바일 44px(8px 폰트 기준 실측
+                    42.5px+여유), md 60px(12px 폰트 기준 실측 59.8px+여유) — 둘 다 같은 로직, 폰트
+                    크기별로 값만 다름. */}
+                <div className="w-11 shrink-0 md:w-[60px]">
                   <span
                     className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap ${STATUS_BADGE_STYLE[key]}`}
                   >
