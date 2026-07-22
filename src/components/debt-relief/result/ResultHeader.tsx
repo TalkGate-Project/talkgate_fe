@@ -196,14 +196,15 @@ const ACTION_BTN =
 // 타이포는 ACTION_BTN과 동일해야 하는데 색상만 오버라이드하다가 사이즈 클래스가 누락돼 있었음(브라우저 기본값 16px/400으로 렌더링되던 버그)
 // 다크모드는 라이트용 파스텔(secondary-10)을 그대로 쓰면 어두운 카드 위에서 혼자 튀어서
 // FeePaymentInfoModal의 결제상태 칩과 동일하게 진한 네이비(blue-950/800/300)로 대체
+// 공유 완료 상태에서는 재공유 불가 → cursor-default, hover 없음
 const ACTION_BTN_SHARED =
-  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-secondary-60 dark:border-blue-800 bg-secondary-10 dark:bg-blue-950 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-secondary-60 dark:text-blue-300 hover:opacity-90 transition-opacity whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[220px] px-3 rounded-[5px] border border-secondary-60 dark:border-blue-800 bg-secondary-10 dark:bg-blue-950 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-secondary-60 dark:text-blue-300 cursor-default whitespace-nowrap disabled:opacity-100";
 
 const ICON_BTN =
   "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10";
 
 const ICON_BTN_SHARED =
-  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90";
+  "w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 cursor-default disabled:opacity-100";
 
 const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
@@ -353,6 +354,16 @@ export default function ResultHeader({
     !detail.feePlan &&
     !paymentNudgeDismissed;
 
+  // 공유 완료(isShared): 라벨을 공유처 프로젝트명으로 바꾸고 재공유 클릭을 막는다.
+  const shareLabel = detail.isShared
+    ? detail.lawyerProjectName?.trim() || "공유됨"
+    : "공유하기";
+
+  const handleShareClick = () => {
+    if (detail.isShared) return;
+    setShareOpen(true);
+  };
+
   const handleOpenPaymentInfo = () => {
     setPaymentNudgeDismissed(true);
     setPaymentInfoOpen(true);
@@ -488,8 +499,9 @@ export default function ResultHeader({
   return (
     <>
       {/* 모바일: 2줄 구성 — 1줄(뒤로+제목 | 수정·고객연결·공유(영업점) 또는 담당직원(변호사)),
-          2줄(고객메타+⋯+상태뱃지 | 전달사항 토글). 전달사항이 늘어나도 1줄 높이엔 영향 없음.
-          두 줄 사이에 카드 풀폭 구분선(SectionAiRecommendation에 있던 것을 여기로 옮김). */}
+          2줄(고객메타+⋯ | [공유처칩+전달사항 토글]).
+          공유 중(isShared)이면 공유처 프로젝트 칩을 전달사항 토글 쪽에 붙인다.
+          상태 뱃지는 AI 분석 추천 제목 옆에 표시한다. */}
       <div className="flex md:hidden flex-col pt-1.5">
         <div className="flex items-center justify-between gap-3 pb-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -497,9 +509,9 @@ export default function ResultHeader({
               type="button"
               onClick={handleGoToList}
               aria-label="목록으로"
-              className="cursor-pointer w-9 h-9 -ml-1.5 grid place-items-center text-foreground hover:opacity-70 shrink-0"
+              className="cursor-pointer w-6 h-6 -ml-1.5 grid place-items-center text-foreground hover:opacity-70 shrink-0"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="block">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M15 19L8 12L15 5"
                   stroke="currentColor"
@@ -567,8 +579,10 @@ export default function ResultHeader({
 
               <button
                 type="button"
-                onClick={() => setShareOpen(true)}
-                aria-label="공유하기"
+                onClick={handleShareClick}
+                disabled={detail.isShared}
+                aria-label={shareLabel}
+                title={detail.isShared ? shareLabel : undefined}
                 className={detail.isShared ? ICON_BTN_SHARED : ICON_BTN}
               >
                 <ShareNodesIcon />
@@ -602,20 +616,31 @@ export default function ResultHeader({
               </p>
               {customerInfoButtonCompact}
             </div>
-            {statusBadge}
           </div>
 
-          {showMessagesToggle ? (
-            <button
-              type="button"
-              onClick={onToggleMessages}
-              aria-label="전달사항"
-              aria-pressed={messagesOpen}
-              className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
-            >
-              <AnnotationToggleIcon active={messagesOpen} />
-            </button>
-          ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {detail.isShared ? (
+              <span
+                title={shareLabel}
+                className="inline-flex h-[22px] max-w-[140px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5"
+              >
+                <span className="truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
+                  {shareLabel}
+                </span>
+              </span>
+            ) : null}
+            {showMessagesToggle ? (
+              <button
+                type="button"
+                onClick={onToggleMessages}
+                aria-label="전달사항"
+                aria-pressed={messagesOpen}
+                className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
+              >
+                <AnnotationToggleIcon active={messagesOpen} />
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -696,10 +721,13 @@ export default function ResultHeader({
             <button
               type="button"
               className={detail.isShared ? ACTION_BTN_SHARED : ACTION_BTN}
-              onClick={() => setShareOpen(true)}
+              onClick={handleShareClick}
+              disabled={detail.isShared}
+              aria-label={shareLabel}
+              title={detail.isShared ? shareLabel : undefined}
             >
               <ShareNodesIcon />
-              <span className="leading-none">공유하기</span>
+              <span className="min-w-0 truncate leading-none">{shareLabel}</span>
             </button>
           </div>
         ) : showAssigneeProfile ? (
@@ -773,6 +801,14 @@ export default function ResultHeader({
           analysisIds={[detail.id]}
           customerName={detail.customerName}
           initialContact={detail.customerId != null ? detail.phone : ""}
+          lockedPartner={
+            detail.partnerId != null && detail.lawyerProjectId != null
+              ? {
+                  id: detail.partnerId,
+                  projectName: detail.lawyerProjectName?.trim() || "프로젝트",
+                }
+              : null
+          }
         />
       )}
     </>

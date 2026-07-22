@@ -735,6 +735,9 @@ export const DebtReliefService = {
           ?.filter((message) => message.type === "reject")
           .at(-1)?.message ?? null,
       deliveryStatus: analysis.deliveryStatus ?? null,
+      lawyerProjectId: analysis.lawyerProjectId ?? null,
+      lawyerProjectName: analysis.lawyerProjectName ?? null,
+      partnerId: analysis.partnerId ?? null,
       assigneeName: assigneeName || undefined,
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
       assigneeProjectName: analysis.sourceProjectName ?? undefined,
