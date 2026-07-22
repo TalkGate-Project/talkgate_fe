@@ -138,7 +138,11 @@ export default function DisclaimerInfoTooltip({
           open ? "opacity-100" : "invisible opacity-0"
         }`}
         style={{
-          width: fitContent ? "fit-content" : `min(${maxWidthPx}px, calc(100vw - 40px))`,
+          // fit-content(shrink-to-fit)는 절대배치 기준(containerRef, 아이콘 크기만큼만 넓은 relative
+          // 부모)의 가용 너비로 클램프돼 한국어 텍스트가 글자 단위로 줄바꿈되는 문제가 있었다.
+          // max-content는 그 클램프 없이 내용의 실제 폭(줄바꿈 포함)을 그대로 쓰고, 아래 maxWidth로
+          // 상한만 걸어준다.
+          width: fitContent ? "max-content" : `min(${maxWidthPx}px, calc(100vw - 40px))`,
           maxWidth: `min(${maxWidthPx}px, calc(100vw - 40px))`,
           transform: `translateX(calc(-${BASE_OFFSET_PX}px + ${edgeShiftPx}px))`,
           filter: open ? "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" : undefined,
