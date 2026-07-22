@@ -139,9 +139,10 @@ export default function SummaryCards({
 
   if (loading || !summary) return <SummaryCardsSkeleton />;
 
-  const maxStatusCount = Math.max(
+  // 바 채움 비율은 "이 카드 안 최댓값 대비"가 아니라 "전체 건수 대비 이 상태가 차지하는 비율"이어야 한다.
+  const totalStatusCount = Math.max(
     1,
-    ...DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.map((key) => summary.statusDistribution[key])
+    DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.reduce((sum, key) => sum + summary.statusDistribution[key], 0)
   );
   const progressSteps = summary.progressStepsByProcedure[selectedProcedure] ?? [];
   const monthlyPaymentAmountRatio =
@@ -217,14 +218,14 @@ export default function SummaryCards({
             return (
               <div key={key} className="flex items-center gap-3 h-[14px] md:h-5 shrink-0">
                 <span
-                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-5 md:px-3 md:rounded-[30px] md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
+                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:w-[60px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
                 >
                   {DIAGNOSIS_STATUS_LABEL[key]}
                 </span>
                 <div className="w-full max-w-[140px] min-w-0 h-1 md:h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
                   <div
                     className="h-full rounded-l-[30px] bg-neutral-70"
-                    style={{ width: `${(count / maxStatusCount) * 100}%` }}
+                    style={{ width: `${(count / totalStatusCount) * 100}%` }}
                   />
                 </div>
                 <span className="text-[10px] md:text-[12px] font-medium leading-[12px] md:leading-[14px] text-neutral-60 shrink-0 whitespace-nowrap text-right">
