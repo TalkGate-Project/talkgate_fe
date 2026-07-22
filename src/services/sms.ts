@@ -6,10 +6,6 @@ import type {
   MemberSenderNumberListResponse,
   ProjectSenderNumberListQuery,
   ProjectSenderNumberListResponse,
-  RegisterMemberSenderNumberInput,
-  RegisterMemberSenderNumberResponse,
-  RegisterProjectSenderNumberInput,
-  RegisterProjectSenderNumberResponse,
   SendSmsInput,
   SendSmsResponse,
 } from "@/types/sms";

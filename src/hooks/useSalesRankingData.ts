@@ -6,7 +6,7 @@ import type {
   RankingTeamRecord,
   RankingTeamResponse,
 } from "@/types/statistics";
-import { formatCurrencyKR, formatAmountChangeKR, formatPercentChange, formatRankChange, parseFloatSafe } from "@/utils/format";
+import { formatCurrencyKR, formatAmountChangeKR } from "@/utils/format";
 
 export type RankingMode = "team" | "member";
 

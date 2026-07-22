@@ -1,5 +1,3 @@
-import { TOKENS } from "./tokens";
-
 type Props = {
   viewMode: "list" | "tree";
   onChange: (mode: "list" | "tree") => void;

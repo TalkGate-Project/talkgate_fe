@@ -1,6 +1,4 @@
-import { useState, useCallback } from "react";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { useCallback } from "react";
 import MonthPicker from "@/components/common/MonthPicker";
 
 interface MonthSelectorProps {

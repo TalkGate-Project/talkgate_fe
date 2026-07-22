@@ -1,4 +1,4 @@
-import type { UpdateCustomerInput, CustomerDetail, ContactType } from "@/types/customers";
+import type { UpdateCustomerInput, ContactType } from "@/types/customers";
 
 // ============================================================================
 // Form State Types

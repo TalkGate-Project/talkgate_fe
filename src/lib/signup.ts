@@ -51,7 +51,7 @@ export function getPendingSignupState(): PendingSignupState | null {
     }
     
     return state;
-  } catch (error) {
+  } catch {
     clearPendingSignupState();
     return null;
   }

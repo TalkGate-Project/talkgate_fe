@@ -36,55 +36,48 @@ export default function PhonePreview({
       // 모달 컨테이너 찾기
       const modalContainer = containerRef.current.closest('[class*="max-h"]');
 
-      if (!modalContainer) {
-        setScale(1);
-        return;
+      // 세로: 모달의 실제 높이와 스크롤 여부 확인해 max-height에 걸릴 때만 축소
+      let heightScale = 1;
+      if (modalContainer) {
+        const modalHeight = modalContainer.clientHeight;
+        const modalScrollHeight = modalContainer.scrollHeight;
+        const hasScroll = modalScrollHeight > modalHeight;
+
+        const computedStyle = window.getComputedStyle(modalContainer);
+        const maxHeightStr = computedStyle.maxHeight;
+        const maxHeight =
+          maxHeightStr && maxHeightStr !== "none"
+            ? parseFloat(maxHeightStr)
+            : null;
+
+        if (hasScroll || (maxHeight != null && modalHeight >= maxHeight)) {
+          const previewContainerHeight = containerRef.current.clientHeight;
+          const phoneBaseHeight = 600;
+          const previewPadding = 48; // p-6 * 2
+          const titleHeight = 32; // "미리보기" 제목
+
+          const availableHeight =
+            previewContainerHeight - previewPadding - titleHeight;
+
+          if (availableHeight < phoneBaseHeight) {
+            heightScale = Math.max(0.7, (availableHeight / phoneBaseHeight) * 0.98);
+          }
+        }
       }
 
-      // 모달의 실제 높이와 스크롤 여부 확인
-      const modalHeight = modalContainer.clientHeight;
-      const modalScrollHeight = modalContainer.scrollHeight;
-      const hasScroll = modalScrollHeight > modalHeight;
+      // 가로: 태블릿 폭에서 좌우 2열(폼/미리보기)이 300px 폰 목업보다 좁게 눌리는
+      // 구간이 있어 overflow-hidden에 의해 오른쪽이 잘린다 — 컨테이너 실측 폭 기준으로도 축소
+      const previewContainerWidth = containerRef.current.clientWidth;
+      const phoneBaseWidth = 300;
+      const previewPaddingX = 48; // p-6 좌우
+      const availableWidth = previewContainerWidth - previewPaddingX;
 
-      // 모달의 max-height 값 가져오기
-      const computedStyle = window.getComputedStyle(modalContainer);
-      const maxHeightStr = computedStyle.maxHeight;
-      const maxHeight =
-        maxHeightStr && maxHeightStr !== "none"
-          ? parseFloat(maxHeightStr)
-          : null;
-
-      // 스크롤이 없고 모달이 max-height에 도달하지 않았다면 scale 1 유지
-      if (!hasScroll && (!maxHeight || modalHeight < maxHeight)) {
-        setScale(1);
-        return;
+      let widthScale = 1;
+      if (availableWidth < phoneBaseWidth) {
+        widthScale = Math.max(0.7, availableWidth / phoneBaseWidth);
       }
 
-      // 스크롤이 있거나 max-height에 도달한 경우에만 스케일 계산
-      // PhonePreview 컨테이너의 실제 높이 측정
-      const previewContainer = containerRef.current;
-      const previewContainerHeight = previewContainer.clientHeight;
-
-      // 핸드폰 기본 높이 (600px)
-      const phoneBaseHeight = 600;
-      const previewPadding = 48; // p-6 * 2
-      const titleHeight = 32; // "미리보기" 제목
-
-      // 실제 사용 가능한 높이 (PhonePreview 컨테이너 높이에서 제목과 패딩 제외)
-      const availableHeight =
-        previewContainerHeight - previewPadding - titleHeight;
-
-      // 스케일 계산: 사용 가능한 높이가 충분하면 1, 아니면 비례적으로 축소
-      let calculatedScale = 1;
-
-      if (availableHeight < phoneBaseHeight) {
-        // 공간이 부족하면 축소 (여유 공간을 위해 0.98 곱함)
-        calculatedScale = (availableHeight / phoneBaseHeight) * 0.98;
-        // 최소 스케일 제한
-        calculatedScale = Math.max(0.7, calculatedScale);
-      }
-
-      setScale(calculatedScale);
+      setScale(Math.min(heightScale, widthScale));
     };
 
     // 초기 계산

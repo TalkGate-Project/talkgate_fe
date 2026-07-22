@@ -36,7 +36,6 @@ import SecurityIcon from "@/components/my-settings/icons/SecurityIcon";
 
 // Settings 상수 및 타입
 import { SETTINGS_ITEMS, type SettingsTab, type SettingsSidebarItem } from "@/components/settings/constants";
-import { DOCUMENTATION_URL } from "@/lib/constants";
 
 export interface MobileDrawerProps {
   isOpen: boolean;
