@@ -152,7 +152,7 @@ export default function SectionDeliveryMessages({
           type="button"
           onClick={() => setExpanded((previous) => !previous)}
           aria-expanded={expanded}
-          className="flex w-full cursor-pointer items-center justify-between px-6 py-4 text-left"
+          className="flex w-full cursor-pointer items-center justify-between border-b border-neutral-30 px-6 py-4 text-left"
         >
           <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
             전달사항
@@ -162,7 +162,7 @@ export default function SectionDeliveryMessages({
           </span>
         </button>
       ) : (
-        <div className="flex w-full items-center justify-between px-6 py-4 text-left">
+        <div className="flex w-full items-center justify-between border-b border-neutral-30 px-6 py-4 text-left">
           <h3 className="text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
             전달사항
           </h3>

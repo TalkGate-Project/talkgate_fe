@@ -129,6 +129,27 @@ Phase 2의 셸(요약 드로어/상단 바/하단 액션바)과 달리 **마크�
 - [x] **3.2 SummaryCards — [CSS]** `grid-cols-1 md:grid-cols-2 xl:grid-cols-4`로 이미 모바일에서 세로 스택 확인, 카드 내부 padding도 375px 기준으로 여유 있어 수정 불필요.
 - [x] **3.3 DiagnosisFilterTabs / DiagnosisSearchInput — [CSS]** 둘 다 이미 `flex-wrap`/`w-full md:w-[260px]`로 모바일 대응됨, 수정 불필요.
 - [x] **3.4 — [CSS]** 상단 타이틀+"새 진단 시작" 버튼 행을 `flex-col md:flex-row`로 전환(모바일에서 줄바꿈 시 버튼과 겹치던 문제 해결). "전체 N건 선택됨 / 공유하기 / 선택해제" 액션바에 `flex-wrap` 추가(고정 한 줄이라 좁은 화면에서 넘칠 수 있었음).
+- [x] **3.5 SummaryCards — "상태 분포" 카드 칩/바 정비 (2026-07-22 요청, 완료)** 사용자가 Figma 참고
+  이미지(`상태 분포` 카드: 칩 + 진행바 + 건수)를 근거로 요청. 두 가지 변경 필요:
+  1. **칩(태그) 라운드 제거** — 현재 `SummaryCards.tsx`의 상태 칩이 `rounded-[5px] md:rounded-[30px]`로,
+     데스크톱(`md:`)에서만 완전 캡슐형(pill)으로 바뀐다. 이게 Figma 스펙과 어긋남 — Figma 스펙은
+     `border-radius: 5px`(모바일과 동일, 완전 pill 아님), `width: 60px`, `height: 18px`,
+     `padding: 2px 4px`, 텍스트 `Pretendard 500 12px/14px`, `opacity: 0.8`. 참고로 이미 저장소에
+     이 스펙 그대로인 공용 `StatusBadge`(`DiagnosisBadges.tsx:42`, `rounded-[5px] h-[18px] px-1 py-0.5`)가
+     있음 — `contract_pending` 색상(`bg-[#E4E3FF] text-[#5856D6]`)이 사용자가 붙여넣은 CSS의 색상과
+     정확히 일치. `md:rounded-[30px]` 오버라이드만 제거하고 모바일과 동일한 `rounded-[5px]`로
+     통일하거나, 아예 공용 `StatusBadge`를 재사용하는 방향도 검토.
+  2. **진행바 채움 비율 기준 변경** — 현재 `width: (count / maxStatusCount) * 100%`(그 카드 안에서 가장 큰
+     상태값 대비 비율이라 최댓값 상태는 항상 100% 꽉 참). 사용자 요청은 **전체 건수 대비 이 상태가
+     차지하는 비율**로 바꾸는 것(`count / 전체 합계 * 100`) — 예: 절차진행중 1건/상담중 0건/검토중 3건이면
+     분모는 4(=1+0+3)가 되어야 함. 트랙(바) 자체의 길이는 지금처럼 각 행에서 동일하게 유지(현재
+     `w-full max-w-[140px]`가 대체로 이미 일정하긴 하나, 칩을 고정폭(60px)으로 바꾸면 더 안정적으로
+     고정됨 — 위 1번과 함께 확인).
+  - **처리 결과**: 트릭시 QA 종료 후 반영. `md:rounded-[30px]` 제거하고 `rounded-[5px]`로 통일(칩을
+    `md:h-[18px] md:w-[60px]`로 Figma 치수에 맞춤, 공용 `StatusBadge`는 재사용하지 않고 기존 인라인
+    스타일 유지). 바 채움 비율은 `maxStatusCount` 대신 `totalStatusCount`(전체 6개 상태 합계)로
+    분모 교체. 1280px에서 실측(9/0/0/2/3/0건, 합계 14) 대비 렌더된 `width` 값이 64.29%/0%/0%/14.29%/
+    21.43%/0%로 정확히 일치함을 DOM에서 직접 확인.
 
 ---
 

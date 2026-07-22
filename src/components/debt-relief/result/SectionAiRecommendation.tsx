@@ -1,15 +1,19 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
 import { formatDateTimeDisplay, toRecommendationChipLabel } from "@/components/debt-relief/format";
+import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 import SuccessDonut from "./SuccessDonut";
 
 function RecommendationChips({
   tags,
   truncateLabel = true,
+  /** 모바일 회색 카드 위에서는 흰 칩(피그마 chip2) */
+  onMutedSurface = false,
 }: {
   tags: string[];
   /** false면 말줄임 없이 전체 결론 라벨을 쓰고, 칩이 넘치면 개행한다. */
   truncateLabel?: boolean;
+  onMutedSurface?: boolean;
 }) {
   return (
     <div
@@ -27,7 +31,11 @@ function RecommendationChips({
           <span
             key={tag}
             title={tag}
-            className="inline-flex items-center justify-center h-[22px] px-3 rounded-full bg-neutral-20 text-[12px] font-medium leading-[14px] text-neutral-70 opacity-80 whitespace-nowrap shrink-0"
+            className={`inline-flex items-center justify-center h-5 px-3 rounded-full text-[12px] font-medium leading-[14px] text-neutral-70 opacity-80 whitespace-nowrap shrink-0 ${
+              onMutedSurface
+                ? "bg-white dark:bg-neutral-10"
+                : "bg-neutral-20 dark:bg-neutral-30"
+            }`}
           >
             {label}
           </span>
@@ -47,6 +55,10 @@ export default function SectionAiRecommendation({
   showTopDivider?: boolean;
 }) {
   const { recommendation, successProbability } = detail;
+  const inProgressStepLabel =
+    detail.status === "in_progress" && detail.procedureGuide.totalSteps > 1
+      ? `${detail.procedureGuide.currentStep}/${detail.procedureGuide.totalSteps}`
+      : undefined;
 
   return (
     // 구분선만 카드 풀폭. 피그마: divider→라벨 46px / 좌측 68px(=32+36) / 도넛 우측 90px
@@ -56,8 +68,65 @@ export default function SectionAiRecommendation({
     <div
       className={`mt-[22px] md:mt-6 -mx-6 md:-mx-8 border-t-0 ${showTopDivider ? "md:border-t md:pt-5" : ""} border-neutral-30 px-6 md:pl-8 md:pr-8 lg:pr-[90px]`}
     >
-      {/* 모바일·태블릿: 헤더 → (제목+설명 | 도넛) → 칩 */}
-      <div className="lg:hidden">
+      {/* 모바일(피그마 375): 회색 카드 / 날짜 우측 / 도넛은 제목+설명 블록 세로 중앙 */}
+      <div className="md:hidden">
+        <div className="rounded-[12px] bg-neutral-10 p-4 dark:bg-neutral-20">
+          <div className="mb-2 flex h-5 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center">
+              <p className="inline-flex h-5 items-center text-[13px] font-medium leading-5 text-neutral-60">
+                AI 분석 추천
+              </p>
+              <div className="ml-1 shrink-0 inline-flex h-5 items-center">
+                <DisclaimerInfoTooltip label="AI 분석 추천 안내" iconSize={20}>
+                  본 기능은 고객 상담을 돕기 위한{" "}
+                  <span className="font-extrabold">사전 분석 참고 도구</span>이며
+                  <br />
+                  법률 자문 또는 결과 보장을 제공하지 않습니다.
+                </DisclaimerInfoTooltip>
+              </div>
+            </div>
+            <span className="shrink-0 text-[12px] font-medium leading-4 text-neutral-50 whitespace-nowrap">
+              {formatDateTimeDisplay(detail.consultedAt)}
+            </span>
+          </div>
+
+          {/* items-center: 도넛이 좌측(제목+설명) 블록의 세로 가운데에 오도록 */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[24px] font-extrabold leading-[29px] tracking-[-0.04em] text-neutral-90">
+                  {recommendation.title}
+                </h3>
+                <div className="shrink-0">
+                  <StatusBadge
+                    status={detail.status}
+                    rejectionReason={detail.rejectionReason}
+                    stepLabel={inProgressStepLabel}
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
+                {recommendation.description}
+              </p>
+            </div>
+            {/* stroke 5: Figma cover 78px on 88px → (88-78)/2 */}
+            <div className="shrink-0">
+              <SuccessDonut value={successProbability} size={88} stroke={5} whiteCover />
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <RecommendationChips
+              tags={recommendation.tags}
+              truncateLabel={false}
+              onMutedSurface
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 태블릿(md~lg): 기존 컴팩트 레이아웃 유지 */}
+      <div className="hidden md:block lg:hidden">
         <div className="flex items-center h-5 mb-2">
           <p className="inline-flex h-5 items-center text-[13px] font-medium leading-5 text-neutral-60">
             AI 분석 추천
@@ -75,9 +144,7 @@ export default function SectionAiRecommendation({
           </span>
         </div>
 
-        <div className="flex items-start justify-between gap-3 md:gap-6">
-          {/* 375px 기준 Figma에서는 flex-1이 도넛 옆 남은 폭(~215px)을 채우는 정도였을 뿐,
-              고정폭이 의도는 아니었음 — 뷰포트가 넓어지면(예: 756px) 함께 넓어지도록 고정 max-w 제거 */}
+        <div className="flex items-center justify-between gap-6">
           <div className="min-w-0 flex-1">
             <h3 className="text-[24px] font-extrabold leading-[29px] tracking-[-0.04em] text-neutral-90">
               {recommendation.title}
@@ -86,12 +153,7 @@ export default function SectionAiRecommendation({
               {recommendation.description}
             </p>
           </div>
-          {/* 모바일 88 / 태블릿 120 (PC 136은 lg 와이드 레이아웃) */}
-          <div className="md:hidden shrink-0">
-            {/* stroke 5: Figma cover 78px on 88px → (88-78)/2 */}
-            <SuccessDonut value={successProbability} size={88} stroke={5} />
-          </div>
-          <div className="hidden md:block shrink-0">
+          <div className="shrink-0">
             <SuccessDonut value={successProbability} size={120} stroke={7} />
           </div>
         </div>
@@ -131,7 +193,7 @@ export default function SectionAiRecommendation({
               </p>
             </div>
 
-            <RecommendationChips tags={recommendation.tags} />
+            <RecommendationChips tags={recommendation.tags} truncateLabel={false} />
           </div>
         </div>
 

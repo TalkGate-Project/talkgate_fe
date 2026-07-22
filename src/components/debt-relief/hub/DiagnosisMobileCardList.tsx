@@ -1,6 +1,7 @@
 import EmptyState from "@/components/common/EmptyState";
 import Checkbox from "@/components/common/Checkbox";
 import LinkIcon from "@/components/icons/LinkIcon";
+import AnalysisShareIcon from "@/components/icons/AnalysisShareIcon";
 import {
   StatusBadge,
   DebtAmountText,
@@ -23,6 +24,9 @@ type Props = {
   onToggleSelect: (id: string) => void;
   /** "진행단계"(n/m) 표시용 절차 마스터 데이터. 생략 시 하드코딩 폴백 사용 */
   stepTitlesByProcedure?: ProcedureStepTitlesByProcedure;
+  /** 영업점(analysis): 카드별 공유 버튼 표시 */
+  showShareButton?: boolean;
+  onShareItem?: (item: DiagnosisListItem) => void;
 };
 
 function CardSkeleton() {
@@ -73,6 +77,8 @@ export default function DiagnosisMobileCardList({
   selectedIds,
   onToggleSelect,
   stepTitlesByProcedure,
+  showShareButton = false,
+  onShareItem,
 }: Props) {
   if (loading) {
     return (
@@ -141,8 +147,23 @@ export default function DiagnosisMobileCardList({
                     </span>
                   )}
                 </div>
-                <span className="shrink-0">
+                <span className="flex items-center gap-1.5 shrink-0">
                   <ProcedureNameText procedure={item.recommendedProcedure} />
+                  {showShareButton && (
+                    // 아이콘 자체는 20px로 작게 두되(좁은 카드 헤더 행에 맞춤), 터치 영역은
+                    // -m-2/p-2로 넓혀 44px 권장치에 최대한 가깝게 확보한다.
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShareItem?.(item);
+                      }}
+                      className="cursor-pointer -m-2 p-2 inline-flex items-center justify-center hover:opacity-80 transition-opacity"
+                      aria-label={`${item.customerName} 공유하기`}
+                    >
+                      <AnalysisShareIcon tone={item.isShared ? "active" : "muted"} className="w-5 h-5" />
+                    </button>
+                  )}
                 </span>
               </div>
 

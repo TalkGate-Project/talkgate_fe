@@ -444,6 +444,9 @@ export default function AnalysisShareModal({
   if (!open) return null;
 
   const customerNameTitle = `${currentMeta?.customerName || "고객"}님 고객 정보 입력`;
+  // 일반 공유: 이전 스텝에서 고른 파트너명 / 재공유·반려 재시도: lockedPartner(lawyerProjectName)
+  const shareProjectName =
+    lockedPartner?.projectName ?? selectedPartner?.partnerProjectName ?? "프로젝트";
 
   // draft가 있으면 draft 우선(뒤로가기·미완료 입력 복원), 없으면 meta prefill
   const stepInitialContact =
@@ -466,6 +469,7 @@ export default function AnalysisShareModal({
         <AnalysisShareContactStep
           key={currentAnalysisId}
           customerNameTitle={customerNameTitle}
+          shareProjectName={shareProjectName}
           initialContact={stepInitialContact}
           initialReferenceNote={stepInitialReferenceNote}
           prefillLoading={prefillLoading && !currentMeta}

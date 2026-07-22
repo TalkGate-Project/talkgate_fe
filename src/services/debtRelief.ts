@@ -735,6 +735,9 @@ export const DebtReliefService = {
           ?.filter((message) => message.type === "reject")
           .at(-1)?.message ?? null,
       deliveryStatus: analysis.deliveryStatus ?? null,
+      lawyerProjectId: analysis.lawyerProjectId ?? null,
+      lawyerProjectName: analysis.lawyerProjectName ?? null,
+      partnerId: analysis.partnerId ?? null,
       assigneeName: assigneeName || undefined,
       assigneeProfileImageUrl: assigneeProfileImageUrl || undefined,
       assigneeProjectName: analysis.sourceProjectName ?? undefined,
@@ -845,11 +848,12 @@ export const DebtReliefService = {
   async getDiagnosisForm(
     projectId: string,
     id: string
-  ): Promise<{ form: DiagnosisFormState; customerId: number | null }> {
+  ): Promise<{ form: DiagnosisFormState; customerId: number | null; status: AnalysisStatus }> {
     const response = await AnalysisService.detail(Number(id), projectId);
     return {
       form: fromAnalysisFormInput(response.data.data.inputData),
       customerId: response.data.data.customerId,
+      status: response.data.data.status,
     };
   },
 

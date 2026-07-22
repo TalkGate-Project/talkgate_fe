@@ -116,9 +116,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     return () => observer.disconnect();
   }, [detail, sectionIds]);
 
+  // behavior:"smooth"(scrollIntoView든 scrollTo든 동일)는 body에 zoom:0.8이 걸린 상태(데스크톱
+  // ≥1280px, CLAUDE.md 줌 정책)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
+  // 있어 애니메이션 없는 즉시 이동으로 우회한다(zoom과 무관하게 항상 동작 확인됨).
   const scrollTo = (id: string) => {
     setActiveId(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const element = document.getElementById(id);
+    if (!element) return;
+    const top = element.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top, behavior: "auto" });
   };
 
   if (loading) {
@@ -200,7 +206,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           </div>
         ) : (
           <>
-            <SectionCard id="overview" compactTop className="max-md:!pt-0 md:!pt-[20px] md:!pb-[30px]">
+            {/* AI 추천이 있는 overview → scores: 모바일 풀폭 구분선 제거 후 간격이 넓어
+                mobileCompactBottom으로 overview 하단만 pb-2. md+는 className의 pb-[30px] 유지.
+                변호사 공유(joined) 분기에는 넘기지 않는다. */}
+            <SectionCard
+              id="overview"
+              compactTop
+              mobileCompactBottom
+              className="max-md:!pt-0 md:!pt-[20px] md:!pb-[30px]"
+            >
               <ResultHeader
                 detail={detail}
                 projectId={projectId}
@@ -231,7 +245,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               </div>
             </SectionCard>
 
-            <SectionCard id="scores" compactTop topDivider>
+            <SectionCard id="scores" compactTop>
               <SectionProcedureScores detail={detail} />
             </SectionCard>
           </>

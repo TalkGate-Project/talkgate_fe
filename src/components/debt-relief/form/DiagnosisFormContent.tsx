@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { DebtReliefService } from "@/services/debtRelief";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { DiagnosisFormState } from "@/types/debtRelief";
 import { useDiagnosisForm } from "./useDiagnosisForm";
@@ -79,14 +80,30 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   );
 
   // 편집 모드: 기존 진단의 원본 입력값을 불러와 폼을 채운다.
+  // 정보수정(재분석)은 상담중/반려된 건만 가능 — ResultHeader.handleEdit이 진입 버튼 클릭 시
+  // 동일하게 막지만, 그 가드는 버튼에만 걸려 있어 이 라우트에 URL로 직접 들어오면 우회된다.
+  // 여기서도 같은 기준으로 막고, 막히는 동안은 폼을 채우지 않고 로딩 상태를 유지해 빈 폼이
+  // 잠깐이라도 보이지 않게 한다.
   useEffect(() => {
     if (!isEdit || !ready || !projectId || !diagnosisId) return;
 
     let cancelled = false;
+    let redirecting = false;
     setLoadingForm(true);
     DebtReliefService.getDiagnosisForm(projectId, diagnosisId)
-      .then(({ form: data, customerId }) => {
+      .then(({ form: data, customerId, status }) => {
         if (cancelled) return;
+        if (status !== "consulting" && status !== "rejected") {
+          redirecting = true;
+          showErrorModal({
+            type: "info",
+            title: "정보수정 불가",
+            headline: "정보수정은 상담중 또는 반려된 분석 건만 가능합니다.",
+            hideCancel: true,
+          });
+          router.replace(`/debt-relief/${diagnosisId}`);
+          return;
+        }
         setForm(data);
         setBaselineForm(data);
         setExistingCustomerId(customerId);
@@ -100,13 +117,13 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         });
       })
       .finally(() => {
-        if (!cancelled) setLoadingForm(false);
+        if (!cancelled && !redirecting) setLoadingForm(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [isEdit, ready, projectId, diagnosisId, setForm]);
+  }, [isEdit, ready, projectId, diagnosisId, setForm, router]);
 
   // 생성: 필수값 전부 채워졌을 때만. 수정: 원본 대비 변경 + 필수값 유지일 때만.
   const canAnalyze = useMemo(() => {
@@ -168,6 +185,23 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
+    // 재분석(수정 모드)은 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는
+    // 되돌릴 수 없는 부수효과가 있어 확인을 먼저 받는다. 신규 생성은 잃을 기존 상태가 없어 대상 아님.
+    if (isEdit) {
+      showConfirmModal({
+        headline: "다시 분석할까요?",
+        message: "다시 분석하면 진행 상태·절차가 1단계로 초기화되고 AI 상담 채팅 이력이 삭제됩니다.",
+        type: "warning",
+        confirmText: "다시 분석",
+        onConfirm: submitAnalyze,
+      });
+      return;
+    }
+
+    await submitAnalyze();
+  };
+
+  const submitAnalyze = async () => {
     setAnalyzing(true);
     try {
       const result = isEdit

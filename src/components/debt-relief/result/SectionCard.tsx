@@ -11,6 +11,7 @@ export default function SectionCard({
   children,
   className = "",
   compactTop = false,
+  mobileCompactBottom = false,
   topDivider = false,
   joined,
   joinBottomDivider = false,
@@ -22,6 +23,10 @@ export default function SectionCard({
   className?: string;
   // 모바일 상단 패딩을 24px 대신 12px로 좁힌다 (overview 카드처럼 헤더 바로 아래 붙는 섹션용).
   compactTop?: boolean;
+  // 모바일 전용: 다음 섹션과 풀폭 구분선 없이 바로 이어질 때 하단 패딩을 pb-2로 줄인다.
+  // (예: AI 분석 추천 → 절차별 성공 가능성). md+는 기존 md:py-7 또는 className 오버라이드를 유지한다.
+  // joined 카드에는 적용하지 않는다(변호사 공유 건의 overview·scores 결합 레이아웃과 분리).
+  mobileCompactBottom?: boolean;
   // 모바일에서 카드 간 배경이 이어져 붙어도(gap-0) 영역 구분이 되도록 상단에 풀폭 구분선을 그린다.
   // border는 padding 바깥(패딩 박스 경계)에 그려지므로 좌우 패딩과 무관하게 항상 전체 폭으로 표시된다.
   // 데스크톱은 카드 간 gap·shadow로 이미 구분되므로 적용하지 않는다.
@@ -49,13 +54,24 @@ export default function SectionCard({
       : topDivider
         ? "border-t border-neutral-30 md:border-t-0"
         : "";
-  const paddingClass = isJoined
-    ? joined === "start"
-      ? "pt-3 pb-3 md:pt-7 md:pb-4"
-      : compactTop
-        ? "pt-6 pb-6 md:py-7"
-        : "py-6 md:py-7"
-    : `${compactTop ? "pt-3 pb-6" : "py-6"} md:py-7`;
+
+  // joined / 일반 카드 패딩은 서로 다른 레이아웃이므로 분기 유지.
+  // mobileCompactBottom은 비-joined + compactTop일 때만 모바일 pb를 줄인다.
+  let paddingClass: string;
+  if (isJoined) {
+    paddingClass =
+      joined === "start"
+        ? "pt-3 pb-3 md:pt-7 md:pb-4"
+        : compactTop
+          ? "pt-6 pb-6 md:py-7"
+          : "py-6 md:py-7";
+  } else if (compactTop && mobileCompactBottom) {
+    paddingClass = "pt-3 pb-2 md:py-7";
+  } else if (compactTop) {
+    paddingClass = "pt-3 pb-6 md:py-7";
+  } else {
+    paddingClass = "py-6 md:py-7";
+  }
 
   return (
     <section

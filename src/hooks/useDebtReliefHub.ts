@@ -68,7 +68,9 @@ export function useDebtReliefList() {
   const [status, setStatusState] = useState<AnalysisStatus | undefined>(undefined);
   const [keyword, setKeyword] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
-  const [sortField, setSortField] = useState<DiagnosisSortField | undefined>("consultedAt");
+  // 서버가 내부적으로 기본 정렬을 가지고 있어 프론트에서 상담일 기본 정렬을 명시적으로 보내지
+  // 않는다(전에는 여기서 "consultedAt" 기본값을 줬었음 — 백엔드 기본 정렬과 이중으로 겹쳤었다).
+  const [sortField, setSortField] = useState<DiagnosisSortField | undefined>(undefined);
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
   const [limit, setLimitState] = useState(DEBT_RELIEF_PAGE_LIMIT);
@@ -102,12 +104,15 @@ export function useDebtReliefList() {
     setPage(1);
   };
 
+  // 오름차순 → 내림차순 → 정렬 해제 3단계로 순환한다.
   const toggleSort = (field: DiagnosisSortField) => {
-    if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
+    if (sortField !== field) {
       setSortField(field);
+      setSortDirection("asc");
+    } else if (sortDirection === "asc") {
       setSortDirection("desc");
+    } else {
+      setSortField(undefined);
     }
     setPage(1);
   };

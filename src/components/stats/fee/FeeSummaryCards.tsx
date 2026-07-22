@@ -149,8 +149,8 @@ export default function FeeSummaryCards({
   }
 
   return (
-    // 피그마 모바일: 2×2 그리드 (375px에서도 한 행에 카드 2개)
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+    // 모바일·태블릿: 2×2 / PC(lg+): 1×4
+    <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
       {CARD_META.map((card) => {
         const bucket = summary?.[card.key];
         return (
