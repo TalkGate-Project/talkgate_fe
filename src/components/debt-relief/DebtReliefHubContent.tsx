@@ -217,6 +217,11 @@ export default function DebtReliefHubContent() {
 
       {/* 하단 카드: 검색 + 테이블 + 페이지네이션 */}
       <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        {/* 모바일: 상단 요약 카드와 탭 사이 구분선 — 컨테이너 좌우 패딩(px-4) 무시하고 풀폭으로 확장.
+            위: 이전 섹션의 pb-3(12px)+이 섹션의 pt-6(24px)=36px, 아래: mb-6(24px)+탭 래퍼 없음 →
+            카드 하단~탭 상단 전체 48px 간격의 정중앙(24px/24px)에 오도록 -mt-3로 12px 끌어올림 */}
+        <div className="-mx-4 md:hidden border-t border-neutral-30 -mt-3 mb-6" />
+
         {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 */}
         <div className="mb-3 md:hidden">
           <DiagnosisListTabs value={listTab} onChange={selectListTab} />

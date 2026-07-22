@@ -167,6 +167,20 @@ function UnlinkIcon() {
   );
 }
 
+function ShareMenuIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M11.6667 3.33301H15.8333M15.8333 3.33301V7.49967M15.8333 3.33301L10 9.16634M8.33333 5.83301H5.83333C4.91286 5.83301 4.16667 6.5792 4.16667 7.49967V14.1663C4.16667 15.0868 4.91286 15.833 5.83333 15.833H12.5C13.4205 15.833 14.1667 15.0868 14.1667 14.1663V11.6663"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function LinkedCustomerIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -189,6 +203,22 @@ function LinkedCustomerIcon({ className }: { className?: string }) {
   );
 }
 
+// 모바일 헤더 액션 통합 버튼 — 피그마 vertical dots (34x34, radius 5, white + #E2E2E2)
+function MobileActionsMoreIcon() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" className="fill-white dark:fill-neutral-10 stroke-neutral-30" />
+      <path
+        d="M17.9997 12.1663L17.9997 12.1747M17.9997 17.9997L17.9997 18.008M17.9997 23.833L17.9997 23.8413M17.9997 12.9997C17.5394 12.9997 17.1663 12.6266 17.1663 12.1663C17.1663 11.7061 17.5394 11.333 17.9997 11.333C18.4599 11.333 18.833 11.7061 18.833 12.1663C18.833 12.6266 18.4599 12.9997 17.9997 12.9997ZM17.9997 18.833C17.5394 18.833 17.1663 18.4599 17.1663 17.9997C17.1663 17.5394 17.5394 17.1663 17.9997 17.1663C18.4599 17.1663 18.833 17.5394 18.833 17.9997C18.833 18.4599 18.4599 18.833 17.9997 18.833ZM17.9997 24.6663C17.5394 24.6663 17.1663 24.2932 17.1663 23.833C17.1663 23.3728 17.5394 22.9997 17.9997 22.9997C18.4599 22.9997 18.833 23.3728 18.833 23.833C18.833 24.2932 18.4599 24.6663 17.9997 24.6663Z"
+        className="stroke-neutral-90"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const ACTION_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black dark:text-foreground hover:bg-neutral-10 whitespace-nowrap";
 
@@ -200,16 +230,10 @@ const ACTION_BTN =
 const ACTION_BTN_SHARED =
   "inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[220px] px-3 rounded-[5px] border border-secondary-60 dark:border-blue-800 bg-secondary-10 dark:bg-blue-950 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-secondary-60 dark:text-blue-300 cursor-default whitespace-nowrap disabled:opacity-100";
 
-const ICON_BTN =
-  "cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10";
-
-const ICON_BTN_SHARED =
-  "w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 cursor-default disabled:opacity-100";
-
 const LINKED_CHIP_BTN =
   "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
-  "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors";
+  "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
 
 type Props = {
   detail: DiagnosisDetail;
@@ -244,6 +268,53 @@ function LinkedCustomerMenu({
       <button type="button" role="menuitem" onClick={onUnlink} className={MENU_ITEM}>
         <UnlinkIcon />
         연결해제
+      </button>
+    </div>
+  );
+}
+
+function MobileActionsMenu({
+  open,
+  isShared,
+  onCustomerLink,
+  onEdit,
+  onPaymentInfo,
+  onShare,
+}: {
+  open: boolean;
+  isShared: boolean;
+  onCustomerLink: () => void;
+  onEdit: () => void;
+  onPaymentInfo: () => void;
+  onShare: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      role="menu"
+      className="absolute right-0 top-full mt-2 z-30 min-w-[148px] rounded-[12px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
+    >
+      <button type="button" role="menuitem" onClick={onCustomerLink} className={MENU_ITEM}>
+        <LinkedCustomerIcon />
+        고객연동
+      </button>
+      <button type="button" role="menuitem" onClick={onEdit} className={MENU_ITEM}>
+        <EditIcon />
+        정보수정
+      </button>
+      <button type="button" role="menuitem" onClick={onPaymentInfo} className={MENU_ITEM}>
+        <PaymentCardIcon />
+        결제정보
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onShare}
+        disabled={isShared}
+        className={MENU_ITEM}
+      >
+        <ShareMenuIcon />
+        공유하기
       </button>
     </div>
   );
@@ -340,7 +411,9 @@ export default function ResultHeader({
   const [paymentNudgeDismissed, setPaymentNudgeDismissed] = useState(false);
   const [customerInfoOpen, setCustomerInfoOpen] = useState(false);
   const [linkedMenuOpen, setLinkedMenuOpen] = useState(false);
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const mobileLinkedMenuRef = useRef<HTMLDivElement>(null);
+  const mobileActionsMenuRef = useRef<HTMLDivElement>(null);
   const desktopLinkedMenuRef = useRef<HTMLDivElement>(null);
   const isMatched = detail.customerId != null;
   // 리스트와 동일: 영업점(analysis)만 연동·수정·공유 액션 세트 노출
@@ -361,11 +434,13 @@ export default function ResultHeader({
 
   const handleShareClick = () => {
     if (detail.isShared) return;
+    setActionsMenuOpen(false);
     setShareOpen(true);
   };
 
   const handleOpenPaymentInfo = () => {
     setPaymentNudgeDismissed(true);
+    setActionsMenuOpen(false);
     setPaymentInfoOpen(true);
   };
 
@@ -380,20 +455,23 @@ export default function ResultHeader({
       : detail.customerName;
 
   useEffect(() => {
-    if (!linkedMenuOpen) return;
+    if (!linkedMenuOpen && !actionsMenuOpen) return;
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
-      const inMobile = mobileLinkedMenuRef.current?.contains(target);
+      const inMobileLinked = mobileLinkedMenuRef.current?.contains(target);
+      const inMobileActions = mobileActionsMenuRef.current?.contains(target);
       const inDesktop = desktopLinkedMenuRef.current?.contains(target);
-      if (!inMobile && !inDesktop) {
+      if (!inMobileLinked && !inMobileActions && !inDesktop) {
         setLinkedMenuOpen(false);
+        setActionsMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [linkedMenuOpen]);
+  }, [linkedMenuOpen, actionsMenuOpen]);
 
   const handleEdit = () => {
+    setActionsMenuOpen(false);
     // 정보수정(재분석)은 상담중/반려된 건만 가능 — 계약 이후(계약대기중 이상) 건은 절차가 이미
     // 진행돼 입력값을 되돌려 재분석하면 안 되므로 서버도 이 상태에서만 허용한다.
     if (detail.status !== "consulting" && detail.status !== "rejected") {
@@ -412,6 +490,7 @@ export default function ResultHeader({
   };
 
   const handleOpenMatchModal = () => {
+    setActionsMenuOpen(false);
     setLinkStep("mode");
   };
 
@@ -422,11 +501,13 @@ export default function ResultHeader({
   const handleOpenCustomerDetail = () => {
     if (detail.customerId == null) return;
     setLinkedMenuOpen(false);
+    setActionsMenuOpen(false);
     openCustomerModal(detail.customerId);
   };
 
   const handleUnlink = () => {
     setLinkedMenuOpen(false);
+    setActionsMenuOpen(false);
     showConfirmModal({
       headline: "고객 연결을 해제할까요?",
       message: "연결을 해제하면 문자 발송에 필요한 연락처 정보가 사라집니다.",
@@ -446,6 +527,15 @@ export default function ResultHeader({
         }
       },
     });
+  };
+
+  const handleMobileCustomerLink = () => {
+    setActionsMenuOpen(false);
+    if (isMatched) {
+      setLinkedMenuOpen(true);
+      return;
+    }
+    handleOpenMatchModal();
   };
 
   const assigneeProfile = (
@@ -498,12 +588,11 @@ export default function ResultHeader({
 
   return (
     <>
-      {/* 모바일: 2줄 구성 — 1줄(뒤로+제목 | 수정·고객연결·공유(영업점) 또는 담당직원(변호사)),
-          2줄(고객메타+⋯ | [공유처칩+전달사항 토글]).
-          공유 중(isShared)이면 공유처 프로젝트 칩을 전달사항 토글 쪽에 붙인다.
-          상태 뱃지는 AI 분석 추천 제목 옆에 표시한다. */}
+      {/* 모바일: 1줄(뒤로+제목+상태[+공유처칩] | ⋮ 액션메뉴),
+          2줄(고객메타+⋯ | 전달사항 토글).
+          영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합. */}
       <div className="flex md:hidden flex-col pt-1.5">
-        <div className="flex items-center justify-between gap-3 pb-2">
+        <div className="flex items-center justify-between gap-2 pb-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
@@ -521,89 +610,71 @@ export default function ResultHeader({
                 />
               </svg>
             </button>
-            <h1 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-black dark:text-neutral-90 truncate">
+            <h1 className="text-[18px] font-semibold leading-[21px] text-black dark:text-neutral-90 truncate min-w-0">
               {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
             </h1>
+            <div className="shrink-0">{statusBadge}</div>
           </div>
 
-          {showOwnerActions ? (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <div className="relative">
+          <div className="flex items-center gap-2 shrink-0">
+            {detail.isShared ? (
+              <span className="inline-flex h-[22px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5 whitespace-nowrap">
+                <span className="text-[12px] font-semibold leading-[17px] text-neutral-60">
+                  {shareLabel}
+                </span>
+              </span>
+            ) : null}
+
+            {showOwnerActions ? (
+              <div className="relative" ref={mobileActionsMenuRef}>
                 <button
                   type="button"
-                  onClick={handleOpenPaymentInfo}
-                  aria-label="결제정보"
-                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                  onClick={() => {
+                    setLinkedMenuOpen(false);
+                    setActionsMenuOpen((prev) => !prev);
+                  }}
+                  aria-label="더보기"
+                  aria-expanded={actionsMenuOpen || linkedMenuOpen}
+                  className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
                 >
-                  <PaymentCardIcon />
+                  <MobileActionsMoreIcon />
                 </button>
-                {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleEdit}
-                aria-label="정보수정"
-                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-              >
-                <EditIcon />
-              </button>
-
-              {isMatched ? (
-                <div className="relative" ref={mobileLinkedMenuRef}>
-                  <button
-                    type="button"
-                    onClick={() => setLinkedMenuOpen((prev) => !prev)}
-                    aria-label="연결된 고객"
-                    aria-expanded={linkedMenuOpen}
-                    className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-60 dark:text-blue-300 hover:opacity-90"
-                  >
-                    <LinkedCustomerIcon />
-                  </button>
+                {showPaymentNudge && !actionsMenuOpen && !linkedMenuOpen ? (
+                  <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />
+                ) : null}
+                <MobileActionsMenu
+                  open={actionsMenuOpen}
+                  isShared={detail.isShared}
+                  onCustomerLink={handleMobileCustomerLink}
+                  onEdit={handleEdit}
+                  onPaymentInfo={handleOpenPaymentInfo}
+                  onShare={handleShareClick}
+                />
+                <div ref={mobileLinkedMenuRef}>
                   <LinkedCustomerMenu
                     open={linkedMenuOpen}
                     onOpenCustomerInfo={handleOpenCustomerDetail}
                     onUnlink={handleUnlink}
                   />
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleOpenMatchModal}
-                  aria-label="고객 연결"
-                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-                >
-                  <LinkedCustomerIcon />
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={handleShareClick}
-                disabled={detail.isShared}
-                aria-label={shareLabel}
-                title={detail.isShared ? shareLabel : undefined}
-                className={detail.isShared ? ICON_BTN_SHARED : ICON_BTN}
-              >
-                <ShareNodesIcon />
-              </button>
-            </div>
-          ) : showAssigneeProfile ? (
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={handleOpenPaymentInfo}
-                  aria-label="결제정보"
-                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
-                >
-                  <PaymentCardIcon />
-                </button>
-                {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
               </div>
-              {assigneeProfile}
-            </div>
-          ) : null}
+            ) : showAssigneeProfile ? (
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={handleOpenPaymentInfo}
+                    aria-label="결제정보"
+                    className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                  >
+                    <PaymentCardIcon />
+                  </button>
+                  {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
+                </div>
+                {assigneeProfile}
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div className="-mx-6 border-t border-neutral-30" />
@@ -618,29 +689,17 @@ export default function ResultHeader({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            {detail.isShared ? (
-              <span
-                title={shareLabel}
-                className="inline-flex h-[22px] max-w-[140px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5"
-              >
-                <span className="truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
-                  {shareLabel}
-                </span>
-              </span>
-            ) : null}
-            {showMessagesToggle ? (
-              <button
-                type="button"
-                onClick={onToggleMessages}
-                aria-label="전달사항"
-                aria-pressed={messagesOpen}
-                className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
-              >
-                <AnnotationToggleIcon active={messagesOpen} />
-              </button>
-            ) : null}
-          </div>
+          {showMessagesToggle ? (
+            <button
+              type="button"
+              onClick={onToggleMessages}
+              aria-label="전달사항"
+              aria-pressed={messagesOpen}
+              className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
+            >
+              <AnnotationToggleIcon active={messagesOpen} />
+            </button>
+          ) : null}
         </div>
       </div>
 
