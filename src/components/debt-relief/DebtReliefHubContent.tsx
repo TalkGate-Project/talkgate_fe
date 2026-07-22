@@ -66,6 +66,8 @@ export default function DebtReliefHubContent() {
   const allSelectedOnPage = items.length > 0 && items.every((item) => selectedIds.has(item.id));
   const hasSelection = selectedIds.size > 0;
   const hasActiveFilter = Boolean(procedure) || Boolean(status);
+  const selectedItems = items.filter((item) => selectedIds.has(item.id));
+  const hasSharedSelected = selectedItems.some((item) => item.isShared);
 
   const handleResetFilters = () => {
     selectProcedure(undefined);
@@ -90,6 +92,12 @@ export default function DebtReliefHubContent() {
 
   const clearSelection = () => setSelectedIds(new Set());
 
+  const handleShareSelected = () => {
+    if (!hasSelection || hasSharedSelected) return;
+    setShareTargetIds(Array.from(selectedIds));
+    setShareLockedPartner(null);
+  };
+
   const handleShareItem = (item: DiagnosisListItem) => {
     setShareTargetIds([item.id]);
     setShareLockedPartner(
@@ -107,7 +115,6 @@ export default function DebtReliefHubContent() {
   const handleDeleteSelected = () => {
     if (!projectId || !hasSelection) return;
 
-    const selectedItems = items.filter((item) => selectedIds.has(item.id));
     const deletable = selectedItems.filter((item) => !item.isShared);
     const skippedSharedCount = selectedItems.length - deletable.length;
 
@@ -251,6 +258,9 @@ export default function DebtReliefHubContent() {
                 selectedCount={selectedIds.size}
                 limit={limit}
                 onDelete={handleDeleteSelected}
+                onShare={handleShareSelected}
+                showShareAction={projectTypeReady && isAnalysis && listTab === "all"}
+                shareDisabled={hasSharedSelected}
                 onLimitChange={setLimit}
               />
               <div className="hidden md:block">
