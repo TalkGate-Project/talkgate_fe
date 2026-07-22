@@ -512,16 +512,15 @@ export default function FeePaymentInfoModal({
       ariaLabel="수임료 결제 정보"
       fullScreenOnMobile
       disableAutoContainerSizing
-      positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
-      containerClassName={`w-full h-full md:h-auto bg-card dark:bg-[#1E1E1E] md:rounded-[14px] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col ${
-        editingConditions
-          ? "md:w-[440px] md:max-h-[min(720px,90vh)]"
-          : "md:w-[868px] md:max-h-[90vh]"
+      // 모바일: viewport 높이 고정(스크롤·하단 버튼 고정). 태블릿+: 여백+라운드 떠 있는 모달.
+      positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      containerClassName={`relative w-full h-full rounded-none bg-card dark:bg-[#1E1E1E] overflow-hidden shadow-[0_8px_24px_rgba(9,30,66,0.18)] dark:shadow-none flex flex-col md:h-auto md:w-[calc(100%-2rem)] md:rounded-[14px] md:max-h-[90vh] ${
+        editingConditions ? "md:max-w-[440px]" : "md:max-w-[868px]"
       }`}
     >
       {editingConditions ? (
         <>
-          <div className="flex items-center justify-between px-6 md:px-7 pt-6 pb-5">
+          <div className="flex shrink-0 items-center justify-between px-6 md:px-7 pt-6 pb-5">
             <h2 className="text-[18px] font-semibold text-foreground">수임료 결제 정보</h2>
             <button
               type="button"
@@ -534,7 +533,7 @@ export default function FeePaymentInfoModal({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 pb-4 md:px-7">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 md:px-7">
             {currentPlan ? (
               <div className="mb-4 flex items-start gap-2 rounded-[8px] bg-warning-10 px-3 py-2.5 dark:bg-[#3D3000]">
                 <span className="mt-0.5 shrink-0">
@@ -672,7 +671,7 @@ export default function FeePaymentInfoModal({
             </div>
           </div>
 
-          <div className="mt-auto flex justify-end gap-3 border-t border-neutral-30 dark:border-[#4D4D4D] px-6 md:px-7 py-4">
+          <div className="mt-auto flex shrink-0 justify-end gap-3 border-t border-neutral-30 dark:border-[#4D4D4D] px-6 md:px-7 py-4">
             <button
               type="button"
               onClick={() => {
@@ -699,7 +698,7 @@ export default function FeePaymentInfoModal({
         </>
       ) : currentPlan ? (
         <>
-          <div className="flex items-center justify-between gap-4 px-6 md:px-9 pt-6 pb-5">
+          <div className="flex shrink-0 items-center justify-between gap-4 px-6 md:px-9 pt-6 pb-5">
             <div className="flex min-w-0 items-center gap-3">
               <h2 className="shrink-0 text-[20px] font-semibold text-foreground">
                 수임료 결제 정보
@@ -708,15 +707,16 @@ export default function FeePaymentInfoModal({
                 절차진행중 {procedureProgress.current}/{procedureProgress.total}
               </span>
             </div>
-            <div className="flex shrink-0 items-center gap-4">
+            <div className="flex shrink-0 items-center gap-2 md:gap-4">
               <button
                 type="button"
                 onClick={openConditionEditor}
                 disabled={!isPlanActive || submitting}
-                className="cursor-pointer inline-flex h-[40px] items-center gap-2 rounded-[6px] border border-neutral-30 px-4 text-[14px] font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="조건수정"
+                className="cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-[6px] border border-neutral-30 text-foreground disabled:cursor-not-allowed disabled:opacity-40 md:h-[40px] md:w-auto md:gap-2 md:px-4"
               >
                 <EditIcon />
-                <span className="hidden sm:inline">조건수정</span>
+                <span className="hidden md:inline text-[14px] font-semibold">조건수정</span>
               </button>
               <button
                 type="button"
@@ -912,7 +912,8 @@ export default function FeePaymentInfoModal({
             ) : null}
           </div>
 
-          <div className="mt-auto flex justify-end gap-3 border-t border-neutral-30 px-6 md:px-9 py-4">
+          {/* 스크롤 영역 밖 + shrink-0 → 모바일에서도 하단 고정 */}
+          <div className="mt-auto flex shrink-0 justify-end gap-3 border-t border-neutral-30 px-6 md:px-9 py-4">
             <button
               type="button"
               onClick={() => requestPlanAction("stop")}
