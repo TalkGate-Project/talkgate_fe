@@ -221,7 +221,7 @@ export default function DebtReliefHubContent() {
             <DiagnosisFilterTrigger
               procedure={procedure}
               status={status}
-              summary={summary}
+              listTab={listTab}
               onChangeProcedure={selectProcedure}
               onChangeStatus={selectStatus}
             />

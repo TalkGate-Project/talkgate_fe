@@ -6,9 +6,9 @@ import {
   DIAGNOSIS_STATUS_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
-  type DiagnosisHubSummary,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
+import type { DiagnosisListTab } from "@/hooks/useDebtReliefHub";
 
 // 상태 pill 표시 순서 — 반려(rejected)는 목록 상단 탭으로 분리되어 필터에서 제외
 const STATUS_ORDER: AnalysisStatus[] = [
@@ -22,20 +22,18 @@ const STATUS_ORDER: AnalysisStatus[] = [
 type Props = {
   procedure: RecommendedProcedure | undefined;
   status: AnalysisStatus | undefined;
-  /** 상태별 건수 표시용. 절차(procedure)는 요약 API가 더 이상 분포 데이터를 내려주지 않아 카운트를 표시하지 않는다. */
-  summary: DiagnosisHubSummary | null;
+  /** 반려 탭에서는 상태값이 rejected로 고정되므로 상태 필터 섹션 자체를 숨긴다. */
+  listTab: DiagnosisListTab;
   onApply: (next: { procedure: RecommendedProcedure | undefined; status: AnalysisStatus | undefined }) => void;
   onClose: () => void;
 };
 
 function FilterPill({
   label,
-  count,
   selected,
   onClick,
 }: {
   label: string;
-  count?: number;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -51,7 +49,6 @@ function FilterPill({
       }`}
     >
       {label}
-      {typeof count === "number" && <span className="ml-1 opacity-70">{count}</span>}
     </button>
   );
 }
@@ -72,7 +69,7 @@ function CloseIcon() {
 
 // "필터추가" 팝오버 패널 — 절차/상태 각각 카테고리당 단일선택. draft 상태로만 들고 있다가
 // "적용완료"를 눌러야 실제 목록 쿼리(useDebtReliefList)에 반영된다.
-export default function DiagnosisFilterModal({ procedure, status, summary, onApply, onClose }: Props) {
+export default function DiagnosisFilterModal({ procedure, status, listTab, onApply, onClose }: Props) {
   const [draftProcedure, setDraftProcedure] = useState(procedure);
   const [draftStatus, setDraftStatus] = useState(status);
 
@@ -117,7 +114,7 @@ export default function DiagnosisFilterModal({ procedure, status, summary, onApp
         </button>
       </div>
 
-      <div className="px-5 pb-2">
+      <div className={listTab === "rejected" ? "px-5 pb-5" : "px-5 pb-2"}>
         <p className="text-[13px] font-medium text-neutral-60 mb-2">진행절차</p>
         <div className="flex flex-wrap gap-2">
           {RECOMMENDED_PROCEDURE_ORDER.map((key) => (
@@ -131,20 +128,21 @@ export default function DiagnosisFilterModal({ procedure, status, summary, onApp
         </div>
       </div>
 
-      <div className="px-5 pt-4 pb-5">
-        <p className="text-[13px] font-medium text-neutral-60 mb-2">상태</p>
-        <div className="flex flex-wrap gap-2">
-          {STATUS_ORDER.map((key) => (
-            <FilterPill
-              key={key}
-              label={DIAGNOSIS_STATUS_LABEL[key]}
-              count={summary?.statusDistribution[key]}
-              selected={draftStatus === key}
-              onClick={() => toggleStatus(key)}
-            />
-          ))}
+      {listTab !== "rejected" && (
+        <div className="px-5 pt-4 pb-5">
+          <p className="text-[13px] font-medium text-neutral-60 mb-2">상태</p>
+          <div className="flex flex-wrap gap-2">
+            {STATUS_ORDER.map((key) => (
+              <FilterPill
+                key={key}
+                label={DIAGNOSIS_STATUS_LABEL[key]}
+                selected={draftStatus === key}
+                onClick={() => toggleStatus(key)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex justify-end gap-2 border-t border-neutral-30 px-5 py-4">
         <button
