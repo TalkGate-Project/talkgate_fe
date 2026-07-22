@@ -42,7 +42,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [mobileMessagesOpen, setMobileMessagesOpen] = useState(false);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
-  // AI 분석 추천·상담 멘트 숨김 + 추적 절차 변경도 읽기 전용으로 막는다.
+  // AI 분석 추천·상담 멘트만 숨긴다. 추적 절차 변경 드롭다운은 영업점/법무법인 구분 없이
+  // 계속 사용 가능해야 한다 — canChangeTrackingProcedure에는 반영하지 않는다.
   const lawyerReceivedReadOnly = projectTypeReady && isLawyer && Boolean(detail?.isShared);
   const hideAiRecommendation = lawyerReceivedReadOnly;
   const hideCounselMents = lawyerReceivedReadOnly;
@@ -259,7 +260,6 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             detail={detail}
             onSetCurrentStep={handleSetCurrentStep}
             onChangeTrackingProcedure={handleChangeTrackingProcedure}
-            canChangeTrackingProcedure={!lawyerReceivedReadOnly}
             locked={!DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status)}
             stepLocked={!DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES.includes(detail.status)}
           />

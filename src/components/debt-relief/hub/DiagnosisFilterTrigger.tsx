@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisStatus } from "@/types/analysis";
-import type { DiagnosisHubSummary, RecommendedProcedure } from "@/types/debtRelief";
+import type { RecommendedProcedure } from "@/types/debtRelief";
+import type { DiagnosisListTab } from "@/hooks/useDebtReliefHub";
 import DiagnosisFilterModal from "./DiagnosisFilterModal";
 
 type Props = {
   procedure: RecommendedProcedure | undefined;
   status: AnalysisStatus | undefined;
-  summary: DiagnosisHubSummary | null;
+  listTab: DiagnosisListTab;
   onChangeProcedure: (next: RecommendedProcedure | undefined) => void;
   onChangeStatus: (next: AnalysisStatus | undefined) => void;
 };
@@ -32,7 +33,7 @@ function FilterIcon() {
 export default function DiagnosisFilterTrigger({
   procedure,
   status,
-  summary,
+  listTab,
   onChangeProcedure,
   onChangeStatus,
 }: Props) {
@@ -65,7 +66,7 @@ export default function DiagnosisFilterTrigger({
         <DiagnosisFilterModal
           procedure={procedure}
           status={status}
-          summary={summary}
+          listTab={listTab}
           onApply={({ procedure: nextProcedure, status: nextStatus }) => {
             onChangeProcedure(nextProcedure);
             onChangeStatus(nextStatus);
