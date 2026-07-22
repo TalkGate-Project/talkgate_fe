@@ -116,9 +116,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     return () => observer.disconnect();
   }, [detail, sectionIds]);
 
+  // behavior:"smooth"(scrollIntoView든 scrollTo든 동일)는 body에 zoom:0.8이 걸린 상태(데스크톱
+  // ≥1280px, CLAUDE.md 줌 정책)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
+  // 있어 애니메이션 없는 즉시 이동으로 우회한다(zoom과 무관하게 항상 동작 확인됨).
   const scrollTo = (id: string) => {
     setActiveId(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const element = document.getElementById(id);
+    if (!element) return;
+    const top = element.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top, behavior: "auto" });
   };
 
   if (loading) {

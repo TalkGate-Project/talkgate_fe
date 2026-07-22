@@ -26,8 +26,10 @@ const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
 const LABEL_CLASS = "text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
 
 // 375px 미만은 한 줄에 카드 1개, 375px부터(피그마 모바일 기준) 2×2 — 카드 156px에 맞춰 gap 16px,
-// md부터 4열 + gap 20px.
-const SUMMARY_GRID_CLASS = "grid grid-cols-1 min-[375px]:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5";
+// lg(1080px)부터 4열 + gap 20px. md(780px)에서 바로 4열로 가면 780~1079px 구간에서 카드 폭이
+// 진행단계 라벨보다 좁아져 텍스트가 "1단..." 식으로 과도하게 잘리는 문제가 있어(DashboardPageContent의
+// grid-cols-2 md:grid-cols-2 lg:grid-cols-4 컨벤션과 동일하게 lg로 늦춤).
+const SUMMARY_GRID_CLASS = "grid grid-cols-1 min-[375px]:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5";
 
 function SummaryCardsSkeleton() {
   return (
