@@ -845,11 +845,12 @@ export const DebtReliefService = {
   async getDiagnosisForm(
     projectId: string,
     id: string
-  ): Promise<{ form: DiagnosisFormState; customerId: number | null }> {
+  ): Promise<{ form: DiagnosisFormState; customerId: number | null; status: AnalysisStatus }> {
     const response = await AnalysisService.detail(Number(id), projectId);
     return {
       form: fromAnalysisFormInput(response.data.data.inputData),
       customerId: response.data.data.customerId,
+      status: response.data.data.status,
     };
   },
 
