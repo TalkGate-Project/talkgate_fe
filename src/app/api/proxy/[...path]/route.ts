@@ -279,7 +279,7 @@ async function handleRequest(
               bodyData.refreshToken = refreshToken;
               body = JSON.stringify(bodyData);
             }
-          } catch (e) {
+          } catch {
             // JSON 파싱 실패 시 쿠키의 refreshToken으로 새 body 생성
             if (refreshToken) {
               logger.server('[API Proxy] 🔄 refresh 요청 - 쿠키의 refreshToken으로 body 생성');

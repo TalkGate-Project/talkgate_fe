@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { MemberTreeNode } from "@/types/membersTree";
-import { TeamMember } from "@/types/teams";
 import { transformMembers, isAssignedMember } from "@/utils/teamManagement";
 
 function splitMembersByAssignment(

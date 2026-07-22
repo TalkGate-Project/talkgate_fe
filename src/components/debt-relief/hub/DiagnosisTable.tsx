@@ -91,7 +91,6 @@ function AssigneeCell({ item }: { item: DiagnosisListItem }) {
   return (
     <div className="flex items-center gap-2 min-w-0">
       {item.assigneeProfileImageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={item.assigneeProfileImageUrl}
           alt=""

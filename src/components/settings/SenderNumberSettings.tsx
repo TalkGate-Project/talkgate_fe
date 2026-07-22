@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useMyMember } from "@/hooks/useMyMember";
-import { hasAdminAccess } from "@/utils/permissions";
 import { SmsService } from "@/services/sms";
 import type { ProjectSenderNumber, MemberSenderNumber } from "@/types/sms";
 import SelfAuthenticationModal from "./SelfAuthenticationModal";

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { StatisticsService } from "@/services/statistics";
-import type { CustomerAssignmentTeamRecord, CustomerAssignmentByTeamResponse } from "@/types/statistics";
+import type { CustomerAssignmentByTeamResponse } from "@/types/statistics";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 const COLORS = [

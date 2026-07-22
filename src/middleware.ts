@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, getCookieOptions, deleteAuthCookies } from "@/lib/cookies";
+import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, deleteAuthCookies } from "@/lib/cookies";
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
 import { logger } from "@/lib/logger";

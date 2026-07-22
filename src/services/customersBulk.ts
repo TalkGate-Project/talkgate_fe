@@ -1,10 +1,9 @@
 import { apiClient } from "@/lib/apiClient";
-import type { 
-  BulkJob, 
-  BulkJobDetail, 
-  BulkJobListResponse, 
-  BulkJobListQuery, 
-  BulkJobStatus 
+import type {
+  BulkJob,
+  BulkJobDetail,
+  BulkJobListResponse,
+  BulkJobListQuery
 } from "@/types/customersBulk";
 
 export const CustomersBulkService = {

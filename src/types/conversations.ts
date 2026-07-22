@@ -126,7 +126,7 @@ export type WebSocketErrorCode =
 
 // REST API envelopes
 
-import type { ApiSuccessResponse, ApiErrorResponse } from "./common";
+import type { ApiSuccessResponse } from "./common";
 
 export type ConversationActionResponse = ApiSuccessResponse<Record<string, unknown>>;
 

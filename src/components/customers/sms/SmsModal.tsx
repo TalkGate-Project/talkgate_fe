@@ -4,7 +4,6 @@ import { useMemo, useEffect, useState, useRef } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
-import type { CustomerListItem } from "@/types/customers";
 import { useSmsForm } from "./useSmsForm";
 import PhonePreview from "./PhonePreview";
 import RadioButton from "./RadioButton";
@@ -137,7 +136,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
               }
             }
           }
-        } catch (uploadError: any) {
+        } catch {
           showErrorModal({
             title: "오류 발생",
             headline: "이미지 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.",
