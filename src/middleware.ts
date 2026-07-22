@@ -411,8 +411,22 @@ export async function middleware(req: NextRequest) {
     // 인증됨 + 서브도메인 있음 → 프로젝트 정보 확인
     if (subdomain && accessToken) {
       const project = await fetchProjectBySubdomain(subdomain, accessToken, host);
-      
+
       if (project) {
+        // 회생·파산 미지원 프로젝트 타입(general)인데 /debt-relief를 직접 주소로 접근한 경우 차단
+        if (
+          matchesPath(pathname, ["/debt-relief"]) &&
+          project.type !== "analysis" &&
+          project.type !== "lawyer"
+        ) {
+          logger.server(
+            `[Middleware] 회생·파산 미지원 프로젝트 타입(${project.type}) + /debt-relief 접근 → 대시보드로 리다이렉트`
+          );
+          const redirectUrl = new URL(`${protocol}//${host}/dashboard`);
+          redirectUrl.searchParams.set("error", "debt_relief_unavailable");
+          return NextResponse.redirect(redirectUrl);
+        }
+
         const subdomainProjectId = String(project.id);
         const currentProjectId = req.cookies.get("tg_selected_project_id")?.value;
 

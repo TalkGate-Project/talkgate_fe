@@ -71,7 +71,9 @@
       "Skill(claude-in-chrome)",
       "Bash(taskkill //PID 11492 //F)",
       "Bash(taskkill //PID 14400 //F)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"http.server 8899\")"
     ]
   }
 }
