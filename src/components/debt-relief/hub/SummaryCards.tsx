@@ -218,7 +218,7 @@ export default function SummaryCards({
             return (
               <div key={key} className="flex items-center gap-3 h-[14px] md:h-5 shrink-0">
                 <span
-                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:w-[60px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
+                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
                 >
                   {DIAGNOSIS_STATUS_LABEL[key]}
                 </span>
