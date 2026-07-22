@@ -758,6 +758,7 @@ export default function ResultHeader({
             onBack={() => setLinkStep("mode")}
             analysisId={detail.id}
             projectId={projectId}
+            analysisCustomerName={detail.customerName}
             onMatched={onCustomerMatchChange}
           />
           <CustomerCreateMatchModal
