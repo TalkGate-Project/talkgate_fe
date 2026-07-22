@@ -610,6 +610,11 @@ export type DiagnosisDetail = {
   // 뜻이 아님), rejected=반려됨, revoked=철회됨. 연결 없으면 null.
   // status가 "reviewing"이고 이 값이 "delivered"일 때만 변호사 프로젝트에 수락/반려 배너를 띄운다.
   deliveryStatus: "delivered" | "revoked" | "rejected" | null;
+  // 과거에 공유한 적 있는 건이면 채워짐 — 재공유 시 동일 프로젝트로 제한하는 데 사용
+  // (AnalysisShareModal의 lockedPartner). partnerId는 공유 API 호출 시 그대로 사용.
+  lawyerProjectId?: number | null;
+  lawyerProjectName?: string | null;
+  partnerId?: number | null;
   // 담당직원 (납품/배정 멤버 우선, 없으면 생성 멤버) — 변호사(lawyer) 프로젝트 상세 헤더용
   assigneeName?: string;
   assigneeProfileImageUrl?: string;

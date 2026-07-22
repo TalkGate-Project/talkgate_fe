@@ -297,6 +297,8 @@ export default function DebtReliefHubContent() {
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
             stepTitlesByProcedure={stepTitlesByProcedure}
+            showShareButton={projectTypeReady && isAnalysis}
+            onShareItem={handleShareItem}
           />
         </div>
 

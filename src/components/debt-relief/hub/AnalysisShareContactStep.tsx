@@ -7,6 +7,8 @@ import { ContactType } from "@/types/customers";
 
 type Props = {
   customerNameTitle: string;
+  /** 공유 대상 프로젝트명 (이전 스텝 선택 또는 lawyerProjectName). readonly 표시용 */
+  shareProjectName: string;
   initialContact?: string;
   initialReferenceNote?: string;
   prefillLoading?: boolean;
@@ -56,6 +58,7 @@ function BackIcon() {
 
 export default function AnalysisShareContactStep({
   customerNameTitle,
+  shareProjectName,
   initialContact = "",
   initialReferenceNote = "",
   prefillLoading = false,
@@ -149,6 +152,26 @@ export default function AnalysisShareContactStep({
           </div>
         ) : (
           <>
+            <div>
+              <label className="block text-[14px] leading-[17px] tracking-[0.2px] text-neutral-60 mb-2">
+                공유할 프로젝트
+              </label>
+              <div
+                className="flex items-center gap-4 h-[44px] px-6 rounded-[5px] bg-neutral-10 dark:bg-neutral-20"
+                aria-readonly="true"
+              >
+                <div
+                  className="w-5 h-5 rounded-full bg-neutral-90 dark:bg-neutral-70 shrink-0 grid place-items-center text-[11px] font-semibold text-neutral-20"
+                  aria-hidden
+                >
+                  {(shareProjectName.trim().charAt(0) || "?").toUpperCase()}
+                </div>
+                <span className="text-[14px] font-semibold leading-5 text-neutral-60 truncate min-w-0">
+                  {shareProjectName.trim() || "프로젝트"}
+                </span>
+              </div>
+            </div>
+
             <div>
               <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                 연락처1<span className="text-danger-60">*</span>

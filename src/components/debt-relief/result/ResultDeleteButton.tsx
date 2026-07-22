@@ -77,12 +77,14 @@ export default function ResultDeleteButton({ diagnosisId, projectId, isShared }:
     });
   };
 
-  const showRevokeShareGuide = () => {
+  // 공유 철회 UI가 별도로 없어 "철회한 뒤 다시 시도" 안내는 사용자가 실행할 방법이 없는
+  // 막다른 길이었다 — 실행 불가능한 다음 행동을 지시하지 않도록 안내만으로 축소.
+  const showSharedDeleteBlockedModal = () => {
     showErrorModal({
       type: "info",
       title: "삭제 불가",
       headline: "공유 중인 진단은 삭제할 수 없습니다.",
-      description: "삭제를 원하시면 먼저 공유를 철회한 뒤 다시 시도해주세요.",
+      description: "공유받은 프로젝트와의 연결이 유지되는 동안은 삭제할 수 없습니다.",
       hideCancel: true,
     });
   };
@@ -96,7 +98,7 @@ export default function ResultDeleteButton({ diagnosisId, projectId, isShared }:
       try {
         const response = await AnalysisService.deliveries(Number(diagnosisId), projectId);
         if (hasActiveDelivery(normalizeDeliveries(response.data?.data))) {
-          showRevokeShareGuide();
+          showSharedDeleteBlockedModal();
           return;
         }
       } catch (error) {

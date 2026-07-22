@@ -26,8 +26,10 @@ const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
 const LABEL_CLASS = "text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
 
 // 375px 미만은 한 줄에 카드 1개, 375px부터(피그마 모바일 기준) 2×2 — 카드 156px에 맞춰 gap 16px,
-// md부터 4열 + gap 20px.
-const SUMMARY_GRID_CLASS = "grid grid-cols-1 min-[375px]:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5";
+// lg(1080px)부터 4열 + gap 20px. md(780px)에서 바로 4열로 가면 780~1079px 구간에서 카드 폭이
+// 진행단계 라벨보다 좁아져 텍스트가 "1단..." 식으로 과도하게 잘리는 문제가 있어(DashboardPageContent의
+// grid-cols-2 md:grid-cols-2 lg:grid-cols-4 컨벤션과 동일하게 lg로 늦춤).
+const SUMMARY_GRID_CLASS = "grid grid-cols-1 min-[375px]:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5";
 
 function SummaryCardsSkeleton() {
   return (
@@ -137,9 +139,10 @@ export default function SummaryCards({
 
   if (loading || !summary) return <SummaryCardsSkeleton />;
 
-  const maxStatusCount = Math.max(
+  // 바 채움 비율은 "이 카드 안 최댓값 대비"가 아니라 "전체 건수 대비 이 상태가 차지하는 비율"이어야 한다.
+  const totalStatusCount = Math.max(
     1,
-    ...DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.map((key) => summary.statusDistribution[key])
+    DIAGNOSIS_STATUS_DISTRIBUTION_ORDER.reduce((sum, key) => sum + summary.statusDistribution[key], 0)
   );
   const progressSteps = summary.progressStepsByProcedure[selectedProcedure] ?? [];
   const monthlyPaymentAmountRatio =
@@ -214,15 +217,22 @@ export default function SummaryCards({
             const count = summary.statusDistribution[key];
             return (
               <div key={key} className="flex items-center gap-3 h-[14px] md:h-5 shrink-0">
-                <span
-                  className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-5 md:px-3 md:rounded-[30px] md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap shrink-0 ${STATUS_BADGE_STYLE[key]}`}
-                >
-                  {DIAGNOSIS_STATUS_LABEL[key]}
-                </span>
+                {/* 칩 자체는 내용에 맞춰 좁아지되(짧은 라벨이 불필요하게 넓어지지 않게), 이 칩을 담는
+                    슬롯은 가장 긴 라벨("절차진행중"/"계약대기중") 기준 고정폭으로 둬서 슬롯 뒤에 오는
+                    바의 시작 위치가 행마다 흔들리지 않도록 한다. 모바일 44px(8px 폰트 기준 실측
+                    42.5px+여유), md 60px(12px 폰트 기준 실측 59.8px+여유) — 둘 다 같은 로직, 폰트
+                    크기별로 값만 다름. */}
+                <div className="w-11 shrink-0 md:w-[60px]">
+                  <span
+                    className={`inline-flex items-center justify-center h-[14px] px-1 rounded-[5px] text-[8px] leading-[10px] md:h-[18px] md:px-1 md:text-[12px] md:leading-[14px] font-medium opacity-80 whitespace-nowrap ${STATUS_BADGE_STYLE[key]}`}
+                  >
+                    {DIAGNOSIS_STATUS_LABEL[key]}
+                  </span>
+                </div>
                 <div className="w-full max-w-[140px] min-w-0 h-1 md:h-1.5 rounded-[30px] bg-neutral-30 overflow-hidden">
                   <div
                     className="h-full rounded-l-[30px] bg-neutral-70"
-                    style={{ width: `${(count / maxStatusCount) * 100}%` }}
+                    style={{ width: `${(count / totalStatusCount) * 100}%` }}
                   />
                 </div>
                 <span className="text-[10px] md:text-[12px] font-medium leading-[12px] md:leading-[14px] text-neutral-60 shrink-0 whitespace-nowrap text-right">
