@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import AsyncButton from "@/components/common/AsyncButton";
-import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { getIndent } from "./tokens";
 import type { OrgNode } from "./memberInfoUtils";
 

@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { clearSelectedProjectId, clearUseAttendanceMenu, getSelectedProjectId } from "@/lib/project";
+import { getSelectedProjectId } from "@/lib/project";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/hooks/useMe";
 import { useAttendanceMenu } from "@/hooks/useAttendanceMenu";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import NotificationBell from "./NotificationBell";
-import { clearTokens } from "@/lib/token";
 import UserMenuDropdown from "./UserMenuDropdown";
 import { useChatContextSafe } from "@/providers/ChatProvider";
 import { useTeamChatContextSafe } from "@/providers/TeamChatProvider";

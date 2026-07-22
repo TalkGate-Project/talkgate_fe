@@ -1,5 +1,3 @@
-import { AttendanceItem } from "@/types/attendance";
-
 export function formatHm(iso?: string | null) {
   if (!iso) return "-";
   const d = new Date(iso);

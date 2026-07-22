@@ -5,8 +5,6 @@ import type {
   NotificationListResponse,
   NotificationUnreadCountResponse,
   NotificationListQuery,
-  NotificationCategory,
-  NotificationType,
 } from "@/types/notifications";
 
 export const NotificationsService = {

@@ -90,37 +90,44 @@ export default function DebtReliefPhonePreview({
       if (!containerRef.current) return;
 
       const modalContainer = containerRef.current.closest('[class*="max-h"]');
-      if (!modalContainer) {
-        setScale(1);
-        return;
+
+      // 세로: 모달이 max-height에 걸려 스크롤이 생기는 경우에만 축소
+      let heightScale = 1;
+      if (modalContainer) {
+        const modalHeight = modalContainer.clientHeight;
+        const modalScrollHeight = modalContainer.scrollHeight;
+        const hasScroll = modalScrollHeight > modalHeight;
+
+        const computedStyle = window.getComputedStyle(modalContainer);
+        const maxHeightStr = computedStyle.maxHeight;
+        const maxHeight = maxHeightStr && maxHeightStr !== "none" ? parseFloat(maxHeightStr) : null;
+
+        if (hasScroll || (maxHeight != null && modalHeight >= maxHeight)) {
+          const previewContainerHeight = containerRef.current.clientHeight;
+          const phoneBaseHeight = 600;
+          const previewPadding = 48;
+          const titleHeight = 32;
+          const availableHeight = previewContainerHeight - previewPadding - titleHeight;
+
+          if (availableHeight < phoneBaseHeight) {
+            heightScale = Math.max(0.7, (availableHeight / phoneBaseHeight) * 0.98);
+          }
+        }
       }
 
-      const modalHeight = modalContainer.clientHeight;
-      const modalScrollHeight = modalContainer.scrollHeight;
-      const hasScroll = modalScrollHeight > modalHeight;
+      // 가로: 태블릿 폭에서 좌우 2열(폼/미리보기)이 300px 폰 목업보다 좁게 눌리는
+      // 구간이 있어 overflow-hidden에 의해 오른쪽이 잘린다 — 컨테이너 실측 폭 기준으로도 축소
+      const previewContainerWidth = containerRef.current.clientWidth;
+      const phoneBaseWidth = 300;
+      const previewPaddingX = 48; // p-6 좌우
+      const availableWidth = previewContainerWidth - previewPaddingX;
 
-      const computedStyle = window.getComputedStyle(modalContainer);
-      const maxHeightStr = computedStyle.maxHeight;
-      const maxHeight = maxHeightStr && maxHeightStr !== "none" ? parseFloat(maxHeightStr) : null;
-
-      if (!hasScroll && (!maxHeight || modalHeight < maxHeight)) {
-        setScale(1);
-        return;
+      let widthScale = 1;
+      if (availableWidth < phoneBaseWidth) {
+        widthScale = Math.max(0.7, availableWidth / phoneBaseWidth);
       }
 
-      const previewContainer = containerRef.current;
-      const previewContainerHeight = previewContainer.clientHeight;
-      const phoneBaseHeight = 600;
-      const previewPadding = 48;
-      const titleHeight = 32;
-      const availableHeight = previewContainerHeight - previewPadding - titleHeight;
-
-      let calculatedScale = 1;
-      if (availableHeight < phoneBaseHeight) {
-        calculatedScale = (availableHeight / phoneBaseHeight) * 0.98;
-        calculatedScale = Math.max(0.7, calculatedScale);
-      }
-      setScale(calculatedScale);
+      setScale(Math.min(heightScale, widthScale));
     };
 
     updateScale();

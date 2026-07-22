@@ -125,7 +125,7 @@ export function useCustomerActions({
             messengerId: target.id,
             projectId: getProjectId(),
           });
-        } catch (e) {
+        } catch {
           // 실패 시 롤백
           setMessengersLocal(prevList);
           showErrorModal({
@@ -349,7 +349,7 @@ export function useCustomerActions({
               }
             : prev
         );
-      } catch (error) {
+      } catch {
         showErrorModal({
           title: "오류 발생",
           headline: "상담 내용 삭제에 실패했습니다.",

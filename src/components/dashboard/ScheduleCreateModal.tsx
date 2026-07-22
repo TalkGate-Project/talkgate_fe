@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { format, addDays, subDays } from "date-fns";
-import { ko } from "date-fns/locale";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
@@ -150,7 +149,7 @@ export default function ScheduleCreateModal({ defaultDate, onClose, onCreated, e
       }
       onCreated?.();
       onClose();
-    } catch (e: any) {
+    } catch {
       showErrorModal({
         title: "오류 발생",
         headline: `일정 ${isEditMode ? "수정" : "추가"}에 실패했습니다. 잠시 후 다시 시도해주세요.`,

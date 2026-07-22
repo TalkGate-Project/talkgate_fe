@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { TeamMember } from "@/types/teams";
-import { DragHandlers, DragState, flattenTeamData } from "@/hooks/useTeamTree";
+import { DragHandlers, DragState } from "@/hooks/useTeamTree";
 import { getIndent } from "./tokens";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 

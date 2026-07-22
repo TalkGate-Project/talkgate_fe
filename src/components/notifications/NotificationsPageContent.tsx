@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotificationsService, Notification, NotificationCategory, NotificationType } from "@/services/notifications";
-import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon, NoticeShieldIcon } from "@/components/notice/icons/NoticeIcons";
+import { NoticeMegaphoneIcon, NoticeUsersIcon, NoticeCogIcon } from "@/components/notice/icons/NoticeIcons";
 import { setSelectedProjectId } from "@/lib/project";
 import { getCurrentSubdomain, getProjectSubdomainUrl } from "@/lib/subdomain";
 

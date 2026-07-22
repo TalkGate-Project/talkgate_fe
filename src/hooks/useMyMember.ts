@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { apiClient } from "@/lib/apiClient";
 import { getSelectedProjectId } from "@/lib/project";
-import { MyMember, MyMemberResponse, MemberRole } from "@/types/members";
+import { MyMember, MyMemberResponse } from "@/types/members";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 // 캐싱 설정 상수

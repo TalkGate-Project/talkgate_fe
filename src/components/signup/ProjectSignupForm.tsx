@@ -114,7 +114,7 @@ export function ProjectSignupForm() {
       setHasInitializedDefaults(true);
 
       return true;
-    } catch (err) {
+    } catch {
       if (retryCount < MAX_RETRIES) {
         await delay(RETRY_DELAY);
         return checkUserEmail(retryCount + 1);
@@ -302,7 +302,7 @@ export function ProjectSignupForm() {
 
       // 프로젝트 선택 페이지로 이동 (zoom 적용을 위해 전체 페이지 새로고침)
       window.location.replace("/projects");
-    } catch (error: any) {
+    } catch {
       showErrorModal({
         title: "오류 발생",
         headline: "처리에 실패했습니다. 잠시 후 다시 시도해주세요.",
