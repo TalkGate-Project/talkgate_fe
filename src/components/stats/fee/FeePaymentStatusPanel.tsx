@@ -192,13 +192,14 @@ export default function FeePaymentStatusPanel() {
       </section>
 
       {/* 납부 내역 — 토글 중앙 / 월 네비 중앙 / 영업점 우측.
-          모바일은 피그마 기준 영업점 선택이 "납부 내역" 제목과 같은 줄(우측)에 위치. */}
+          모바일·태블릿: 영업점 선택이 "납부 내역" 제목과 같은 줄(우측).
+          PC(lg+): 날짜 네비와 같은 줄 우측. */}
       <section className="surface md:rounded-[14px] px-6 md:px-7 pt-6 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        <div className="mb-5 flex items-center justify-between gap-3 md:block">
+        <div className="mb-5 flex items-center justify-between gap-3 lg:block">
           <h2 className="text-[18px] font-semibold leading-[21px] text-foreground">
             납부 내역
           </h2>
-          <div className="md:hidden">{branchSelect}</div>
+          <div className="lg:hidden">{branchSelect}</div>
         </div>
 
         {/* 피그마 Toogle: 132×32, #F8F8F8, active #000 */}
@@ -237,10 +238,10 @@ export default function FeePaymentStatusPanel() {
           </div>
         </div>
 
-        {/* 날짜(중앙) + 영업점(우측, 데스크톱만) — 피그마 top 654 정렬.
+        {/* 날짜(중앙) + 영업점(우측, PC만) — 피그마 top 654 정렬.
             모바일에서 직접입력 날짜 범위는 375px 기준 카드 폭을 거의 꽉 채우므로 full width. */}
-        <div className="relative mb-6 flex flex-col items-center gap-3 md:block md:min-h-[34px]">
-          <div className="flex w-full justify-center md:absolute md:left-1/2 md:top-1/2 md:w-auto md:-translate-x-1/2 md:-translate-y-1/2">
+        <div className="relative mb-6 flex flex-col items-center gap-3 lg:block lg:min-h-[34px]">
+          <div className="flex w-full justify-center lg:absolute lg:left-1/2 lg:top-1/2 lg:w-auto lg:-translate-x-1/2 lg:-translate-y-1/2">
             {dateMode === "monthly" ? (
               <FeeMonthSelector
                 selectedMonth={selectedMonth}
@@ -267,11 +268,11 @@ export default function FeePaymentStatusPanel() {
                 showInlineIcon
                 // TODO: 지금은 미사용 — 추후 다시 노출 요청 예정
                 showReset={false}
-                className="w-full md:w-auto"
+                className="w-full lg:w-auto"
               />
             )}
           </div>
-          <div className="hidden md:flex md:absolute md:right-0 md:top-1/2 md:w-auto md:-translate-y-1/2">
+          <div className="hidden lg:flex lg:absolute lg:right-0 lg:top-1/2 lg:w-auto lg:-translate-y-1/2">
             {branchSelect}
           </div>
         </div>
