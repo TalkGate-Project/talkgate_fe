@@ -171,10 +171,10 @@ export default function DiagnosisTable({
                 담당직원
               </th>
             )}
-            {/* 영업점 공유 열: 제목 없이 아이콘만. 우측 여백은 이 열 셀에만 적용 */}
+            {/* 영업점 공유 열: 미공유=아이콘 버튼, 공유완료=변호사 프로젝트명 칩(클릭 불가) */}
             {showShareColumn && (
               <th
-                className={`${HEADER_CELL_BASE} rounded-r-[8px] pl-3 pr-[78px] w-[102px]`}
+                className={`${HEADER_CELL_BASE} rounded-r-[8px] pl-3 pr-6 min-w-[120px]`}
                 aria-label="공유하기"
               />
             )}
@@ -270,18 +270,32 @@ export default function DiagnosisTable({
                     </td>
                   )}
                   {showShareColumn && (
-                    <td className="pl-3 pr-[78px] py-2 align-middle w-[102px]">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onShareItem?.(item);
-                        }}
-                        className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-80 transition-opacity"
-                        aria-label={`${item.customerName} 공유하기`}
-                      >
-                        <AnalysisShareIcon tone={item.isShared ? "active" : "muted"} />
-                      </button>
+                    <td className="pl-3 pr-6 py-2 align-middle min-w-[120px]">
+                      <div className="flex h-full items-center">
+                        {item.isShared ? (
+                          <span
+                            className="inline-flex h-[22px] max-w-[160px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5"
+                            title={item.lawyerProjectName?.trim() || "공유됨"}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span className="truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
+                              {item.lawyerProjectName?.trim() || "공유됨"}
+                            </span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onShareItem?.(item);
+                            }}
+                            className="cursor-pointer inline-flex items-center justify-center w-6 h-6 leading-none hover:opacity-80 transition-opacity"
+                            aria-label={`${item.customerName} 공유하기`}
+                          >
+                            <AnalysisShareIcon tone="muted" className="block" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>

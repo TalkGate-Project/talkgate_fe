@@ -134,8 +134,8 @@ export default function DiagnosisMobileCardList({
               </div>
               {showShareButton &&
                 (item.isShared ? (
-                  <span className="inline-flex items-center h-[20px] max-w-[160px] px-1.5 rounded-[5px] bg-neutral-20">
-                    <span className="text-[11px] font-medium leading-[13px] text-neutral-70 truncate">
+                  <span className="inline-flex h-[22px] max-w-[160px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5">
+                    <span className="truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
                       {item.lawyerProjectName || "공유된 프로젝트"}
                     </span>
                   </span>
