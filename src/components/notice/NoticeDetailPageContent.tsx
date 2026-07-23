@@ -196,8 +196,8 @@ export default function NoticeDetailPageContent({ noticeIdParam }: NoticeDetailP
         <div className="mb-4 md:mb-5">
           <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
             {notice.important && (
-              <div className="px-3 py-1 bg-danger-10 rounded-[30px] flex-shrink-0">
-                <span className="text-[12px] font-medium text-danger-40 leading-[1]">
+              <div className="h-[22px] px-3 bg-danger-10 rounded-[30px] flex-shrink-0 inline-flex items-center justify-center">
+                <span className="text-[12px] font-medium text-danger-40 leading-none">
                   중요
                 </span>
               </div>
