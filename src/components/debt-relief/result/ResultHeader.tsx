@@ -16,6 +16,7 @@ import CustomerMatchModal from "./CustomerMatchModal";
 import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
+import LinkIcon from "@/components/icons/LinkIcon";
 
 function EditIcon() {
   const maskId = useId();
@@ -752,6 +753,9 @@ export default function ResultHeader({
               <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.04em] text-black dark:text-neutral-90">
                 {customerSummaryLabel}
               </p>
+              {isMatched ? (
+                <LinkIcon className="shrink-0 text-[#2563EB] dark:text-blue-300" />
+              ) : null}
               {customerInfoButtonCompact}
             </div>
           </div>
