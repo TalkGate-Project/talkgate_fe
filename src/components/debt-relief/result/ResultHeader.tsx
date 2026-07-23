@@ -77,9 +77,23 @@ function PaymentCardIcon() {
 // 계약대기중 + 결제정보 미입력 상태에서 "결제정보" 버튼 아래에 떠서 클릭을 유도하는 말풍선.
 // 결제정보를 입력해야 절차 진행(진행 절차 선택 → 절차진행중)이 시작된다는 걸 안내한다.
 // 말풍선 클릭 또는 결제정보 버튼 클릭 시 닫힌다.
-function PaymentInfoNudgeBubble({ onDismiss }: { onDismiss: () => void }) {
+// align="end": 트리거가 화면/카드 우측에 있을 때(모바일 ⋮ 등) 중앙 정렬하면 말풍선이
+// 오른쪽으로 잘리므로 버튼 우측에 맞춰 왼쪽으로 펼친다.
+function PaymentInfoNudgeBubble({
+  onDismiss,
+  align = "center",
+}: {
+  onDismiss: () => void;
+  align?: "center" | "end";
+}) {
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2">
+    <div
+      className={
+        align === "end"
+          ? "absolute right-0 top-full z-20 mt-2"
+          : "absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2"
+      }
+    >
       <button
         type="button"
         onClick={onDismiss}
@@ -87,7 +101,11 @@ function PaymentInfoNudgeBubble({ onDismiss }: { onDismiss: () => void }) {
         className="animate-payment-nudge-in relative w-max max-w-[180px] cursor-pointer rounded-[8px] bg-neutral-90 dark:bg-neutral-20 px-3 py-2 text-center text-[12px] font-medium leading-[16px] text-white shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
       >
         <span
-          className="absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-neutral-90 dark:bg-neutral-20"
+          className={
+            align === "end"
+              ? "absolute -top-[5px] right-3 h-2.5 w-2.5 rotate-45 bg-neutral-90 dark:bg-neutral-20"
+              : "absolute -top-[5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-neutral-90 dark:bg-neutral-20"
+          }
           aria-hidden
         />
         결제 정보를 입력하면
@@ -98,7 +116,7 @@ function PaymentInfoNudgeBubble({ onDismiss }: { onDismiss: () => void }) {
   );
 }
 
-// 모바일 "전달사항" 토글 — 원형 테두리(34x34)가 아이콘 안에 포함돼 있어 버튼 자체엔
+// 모바일·태블릿 "전달사항" 토글 — 원형 테두리(34x34)가 아이콘 안에 포함돼 있어 버튼 자체엔
 // 별도 배경/테두리 클래스가 필요 없다. 꺼짐: neutral-30 테두리 + neutral-50 아이콘.
 // 켜짐: secondary-40 테두리 + secondary-10/50 배경(반투명) + secondary-20 아이콘.
 function AnnotationToggleIcon({ active }: { active: boolean }) {
@@ -204,9 +222,18 @@ function LinkedCustomerIcon({ className }: { className?: string }) {
 }
 
 // 모바일 헤더 액션 통합 버튼 — 피그마 vertical dots (34x34, radius 5, white + #E2E2E2)
+// block: 버튼 안 SVG 기본 baseline 정렬로 아이콘이 위로 떠 보이는 현상 방지.
 function MobileActionsMoreIcon() {
   return (
-    <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg
+      width="34"
+      height="34"
+      viewBox="0 0 36 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+      className="block"
+    >
       <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" className="fill-white dark:fill-neutral-10 stroke-neutral-30" />
       <path
         d="M17.9997 12.1663L17.9997 12.1747M17.9997 17.9997L17.9997 18.008M17.9997 23.833L17.9997 23.8413M17.9997 12.9997C17.5394 12.9997 17.1663 12.6266 17.1663 12.1663C17.1663 11.7061 17.5394 11.333 17.9997 11.333C18.4599 11.333 18.833 11.7061 18.833 12.1663C18.833 12.6266 18.4599 12.9997 17.9997 12.9997ZM17.9997 18.833C17.5394 18.833 17.1663 18.4599 17.1663 17.9997C17.1663 17.5394 17.5394 17.1663 17.9997 17.1663C18.4599 17.1663 18.833 17.5394 18.833 17.9997C18.833 18.4599 18.4599 18.833 17.9997 18.833ZM17.9997 24.6663C17.5394 24.6663 17.1663 24.2932 17.1663 23.833C17.1663 23.3728 17.5394 22.9997 17.9997 22.9997C18.4599 22.9997 18.833 23.3728 18.833 23.833C18.833 24.2932 18.4599 24.6663 17.9997 24.6663Z"
@@ -239,8 +266,8 @@ type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
   onCustomerMatchChange: () => void;
-  // 모바일 전용 "전달사항" 토글 아이콘. AI 분석 추천을 보여줄 수 있는 화면(전달사항이
-  // 그 영역을 덮는 팝업으로 뜨는 화면)에서만 부모가 넘겨준다.
+  // 모바일·태블릿(lg 미만) "전달사항" 토글 아이콘. AI 분석 추천을 보여줄 수 있는
+  // 화면(전달사항이 그 영역을 덮는 팝업으로 뜨는 화면)에서만 부모가 넘겨준다.
   showMessagesToggle?: boolean;
   messagesOpen?: boolean;
   onToggleMessages?: () => void;
@@ -593,7 +620,7 @@ export default function ResultHeader({
           영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합.
           태블릿(md~lg)도 PC 버튼 세트가 겹쳐 보여 이 컴팩트 레이아웃을 lg까지 확장. */}
       <div className="flex lg:hidden flex-col pt-1.5">
-        <div className="flex items-center justify-between gap-2 pb-2">
+        <div className="flex items-center justify-between gap-2 pb-2 md:pb-3">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
               type="button"
@@ -627,7 +654,7 @@ export default function ResultHeader({
             ) : null}
 
             {showOwnerActions ? (
-              <div className="relative" ref={mobileActionsMenuRef}>
+              <div className="relative flex items-center" ref={mobileActionsMenuRef}>
                 <button
                   type="button"
                   onClick={() => {
@@ -636,12 +663,12 @@ export default function ResultHeader({
                   }}
                   aria-label="더보기"
                   aria-expanded={actionsMenuOpen || linkedMenuOpen}
-                  className="cursor-pointer shrink-0 hover:opacity-80 transition-opacity"
+                  className="cursor-pointer inline-flex h-[34px] w-[34px] shrink-0 items-center justify-center hover:opacity-80 transition-opacity"
                 >
                   <MobileActionsMoreIcon />
                 </button>
                 {showPaymentNudge && !actionsMenuOpen && !linkedMenuOpen ? (
-                  <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />
+                  <PaymentInfoNudgeBubble align="end" onDismiss={handleDismissPaymentNudge} />
                 ) : null}
                 <MobileActionsMenu
                   open={actionsMenuOpen}
@@ -661,7 +688,7 @@ export default function ResultHeader({
               </div>
             ) : showAssigneeProfile ? (
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative flex items-center">
                   <button
                     type="button"
                     onClick={handleOpenPaymentInfo}
@@ -670,7 +697,9 @@ export default function ResultHeader({
                   >
                     <PaymentCardIcon />
                   </button>
-                  {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
+                  {showPaymentNudge && (
+                    <PaymentInfoNudgeBubble align="end" onDismiss={handleDismissPaymentNudge} />
+                  )}
                 </div>
                 {assigneeProfile}
               </div>
@@ -680,7 +709,9 @@ export default function ResultHeader({
 
         <div className="-mx-6 border-t border-neutral-30" />
 
-        <div className="flex items-center justify-between gap-3 pt-3">
+        {/* 고객칩 행: 위 구분선과의 간격. 태블릿은 1줄 pb-3과 균형을 맞추고,
+            아래 AI 구분선 여백은 SectionAiRecommendation(mt-3 md:mt-4 lg:mt-6)에서 조절한다. */}
+        <div className="flex items-center justify-between gap-3 pt-3 md:pt-4">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex min-w-0 items-center gap-2.5 rounded-full border border-neutral-30 px-3 py-1.5">
               <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.04em] text-black dark:text-neutral-90">
