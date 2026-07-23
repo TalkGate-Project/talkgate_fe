@@ -20,8 +20,10 @@ const CARD_BASE =
   "bg-neutral-10 rounded-[8px] px-4 py-3 md:rounded-[14px] md:px-7 max-h-24 overflow-y-auto md:h-[148px] md:max-h-none md:overflow-visible flex flex-col min-h-0";
 // 1~3번 카드: 상하 패딩 22px(데스크톱)
 const CARD_CLASS = `${CARD_BASE} md:py-[22px]`;
-// 진행단계만 하단 패딩 14px — 공통 py를 쓰지 않고 pt/pb를 분리해 다른 카드에 영향 없게 함
-const CARD_PROGRESS_CLASS = `${CARD_BASE} md:pt-[22px] md:pb-3.5`;
+// 진행단계: 우측에 셀렉트가 있어 라벨 행이 다른 카드보다 높아 보임.
+// 상단 패딩을 줄여(모바일 8px / md+ 18px) 셀렉트 상단이 다른 카드 라벨 라인과
+// 시각적으로 맞도록 보정. 하단은 모바일 12px / md+ 14px.
+const CARD_PROGRESS_CLASS = `${CARD_BASE} !pt-2 pb-3 md:!pt-[18px] md:pb-3.5`;
 
 const LABEL_CLASS = "text-[14px] font-medium leading-[17px] text-neutral-60 shrink-0";
 
