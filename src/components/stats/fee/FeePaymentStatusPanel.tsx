@@ -178,9 +178,10 @@ export default function FeePaymentStatusPanel() {
   );
 
   return (
-    <div className="space-y-6 md:space-y-9">
+    // 모바일·태블릿: 흰 섹션을 붙여 body bg가 비치지 않도록. PC(lg+): 카드 간격 유지.
+    <div className="space-y-0 lg:space-y-9">
       {/* 납부 현황 요약 — 피그마: 흰 카드 안 #F8F8F8 메트릭 4열 */}
-      <section className="surface md:rounded-[14px] px-6 md:px-6 lg:px-[24px] pt-6 md:pt-[27px] pb-6 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      <section className="surface rounded-none md:rounded-t-[14px] md:rounded-b-none lg:rounded-[14px] px-6 md:px-6 lg:px-[24px] pt-6 md:pt-[27px] pb-6 md:pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         <h2 className="mb-5 md:mb-6 text-[18px] font-semibold leading-[21px] text-foreground">
           납부 현황
         </h2>
@@ -194,7 +195,7 @@ export default function FeePaymentStatusPanel() {
       {/* 납부 내역 — 토글 중앙 / 월 네비 중앙 / 영업점 우측.
           모바일·태블릿: 영업점 선택이 "납부 내역" 제목과 같은 줄(우측).
           PC(lg+): 날짜 네비와 같은 줄 우측. */}
-      <section className="surface md:rounded-[14px] px-6 md:px-7 pt-6 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      <section className="surface rounded-none md:rounded-b-[14px] md:rounded-t-none lg:rounded-[14px] px-6 md:px-7 pt-6 pb-[30px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         <div className="mb-5 flex items-center justify-between gap-3 lg:block">
           <h2 className="text-[18px] font-semibold leading-[21px] text-foreground">
             납부 내역

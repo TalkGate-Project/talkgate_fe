@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { DebtReliefService } from "@/services/debtRelief";
 import type { AnalysisStatus } from "@/types/analysis";
@@ -60,21 +61,58 @@ export type DiagnosisListTab = "all" | "rejected";
 // 필터/정렬/검색 제출이 바뀌면 1페이지로 되돌린다.
 // 정렬은 GET /v1/analysis의 sortType/sortOrder로 서버에 위임한다(현재 consultationDate만 지원).
 // 목록 탭: 전체=status 미지정(서버가 rejected 제외), 반려=status=rejected.
+//
+// 상태를 URL 쿼리스트링에도 동기화한다 — 상세 페이지로 이동했다가 브라우저 "뒤로가기"로
+// 돌아오면 이 훅이 완전히 새로 마운트되면서(다른 라우트라 언마운트됨) 순수 useState만으로는
+// 검색어/필터/페이지가 전부 초기화되던 문제(§3-E 회귀) 때문. 고객목록의 useCustomersFilters와
+// 같은 방향이되, 여기선 뒤로가기 복원만이 목적이라 로컬스토리지 복원 레이어는 가져오지 않는다.
 export function useDebtReliefList() {
   const [projectId, ready] = useSelectedProjectId();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [listTab, setListTabState] = useState<DiagnosisListTab>("all");
-  const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(undefined);
-  const [status, setStatusState] = useState<AnalysisStatus | undefined>(undefined);
-  const [keyword, setKeyword] = useState("");
-  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [listTab, setListTabState] = useState<DiagnosisListTab>(
+    () => (searchParams.get("listTab") === "rejected" ? "rejected" : "all")
+  );
+  const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(
+    () => (searchParams.get("procedure") as RecommendedProcedure) || undefined
+  );
+  const [status, setStatusState] = useState<AnalysisStatus | undefined>(
+    () => (searchParams.get("status") as AnalysisStatus) || undefined
+  );
+  const [keyword, setKeyword] = useState(() => searchParams.get("keyword") || "");
+  const [appliedKeyword, setAppliedKeyword] = useState(() => searchParams.get("keyword") || "");
   // 서버가 내부적으로 기본 정렬을 가지고 있어 프론트에서 상담일 기본 정렬을 명시적으로 보내지
   // 않는다(전에는 여기서 "consultedAt" 기본값을 줬었음 — 백엔드 기본 정렬과 이중으로 겹쳤었다).
-  const [sortField, setSortField] = useState<DiagnosisSortField | undefined>(undefined);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [page, setPage] = useState(1);
-  const [limit, setLimitState] = useState(DEBT_RELIEF_PAGE_LIMIT);
+  const [sortField, setSortField] = useState<DiagnosisSortField | undefined>(
+    () => (searchParams.get("sortField") as DiagnosisSortField) || undefined
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    () => (searchParams.get("sortDirection") as SortDirection) || "desc"
+  );
+  const [page, setPage] = useState(() => Number(searchParams.get("page")) || 1);
+  const [limit, setLimitState] = useState(
+    () => Number(searchParams.get("limit")) || DEBT_RELIEF_PAGE_LIMIT
+  );
   const [refetchIndex, setRefetchIndex] = useState(0);
+
+  // 위 상태들이 바뀔 때마다 현재 URL의 쿼리스트링을 갱신(히스토리 replace, 스크롤 유지) —
+  // 나중에 상세로 갔다가 뒤로가기로 돌아왔을 때 이 값을 그대로 복원할 수 있도록.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (listTab === "rejected") params.set("listTab", "rejected");
+    if (procedure) params.set("procedure", procedure);
+    if (status) params.set("status", status);
+    if (appliedKeyword) params.set("keyword", appliedKeyword);
+    if (sortField) {
+      params.set("sortField", sortField);
+      params.set("sortDirection", sortDirection);
+    }
+    if (page > 1) params.set("page", String(page));
+    if (limit !== DEBT_RELIEF_PAGE_LIMIT) params.set("limit", String(limit));
+    const queryString = params.toString();
+    router.replace(queryString ? `/debt-relief?${queryString}` : "/debt-relief", { scroll: false });
+  }, [listTab, procedure, status, appliedKeyword, sortField, sortDirection, page, limit, router]);
 
   const [items, setItems] = useState<DiagnosisListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
