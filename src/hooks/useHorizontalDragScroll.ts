@@ -3,6 +3,13 @@ import { useCallback, useRef } from "react";
 // 드래그로 스크롤됐다고 판단하는 최소 이동 거리(px). 이보다 작으면 "클릭"으로 취급한다.
 const DRAG_THRESHOLD_PX = 6;
 
+type UseHorizontalDragScrollOptions = {
+  /** 지정하면 [min, max) 폭(px) 범위에서만 드래그 스크롤이 활성화된다. 생략 시 항상 활성화.
+   * 폭 판정은 render 시점이 아니라 mousedown 시점에 window.innerWidth를 즉시 읽어 판단한다
+   * (이 파일이 속한 컴포넌트들이 이미 쓰는 방식과 동일 — resize 리스너 없이도 항상 최신값). */
+  widthRange?: { min?: number; max?: number };
+};
+
 /**
  * 가로 스크롤 컨테이너(overflow-x-auto)에 마우스 드래그로 스크롤할 수 있게 해주는 훅.
  * 태블릿 폭처럼 내용이 잘려 가로 스크롤이 필요한 표에서, 좁은 네이티브 스크롤바를
@@ -13,7 +20,10 @@ const DRAG_THRESHOLD_PX = 6;
  * 오인돼 의도치 않은 네비게이션이 발생한다. 터치는 브라우저가 스와이프 이후 클릭을 알아서
  * 억제해주므로 마우스 드래그만 다룬다.
  */
-export function useHorizontalDragScroll<T extends HTMLElement>() {
+export function useHorizontalDragScroll<T extends HTMLElement>(
+  options?: UseHorizontalDragScrollOptions
+) {
+  const { min: minWidth = 0, max: maxWidth = Infinity } = options?.widthRange ?? {};
   const containerRef = useRef<T>(null);
   const isPointerDownRef = useRef(false);
   const didDragRef = useRef(false);
@@ -21,6 +31,10 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
   const startScrollLeftRef = useRef(0);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<T>) => {
+    if (typeof window !== "undefined") {
+      const width = window.innerWidth;
+      if (width < minWidth || width >= maxWidth) return;
+    }
     // 체크박스·버튼 등 자체 상호작용이 있는 요소 위에서는 드래그 스크롤을 시작하지 않는다.
     if ((e.target as HTMLElement).closest("button, a, input, label")) return;
     if (!containerRef.current) return;
@@ -29,7 +43,7 @@ export function useHorizontalDragScroll<T extends HTMLElement>() {
     didDragRef.current = false;
     startXRef.current = e.pageX;
     startScrollLeftRef.current = containerRef.current.scrollLeft;
-  }, []);
+  }, [minWidth, maxWidth]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<T>) => {
     if (!isPointerDownRef.current || !containerRef.current) return;
