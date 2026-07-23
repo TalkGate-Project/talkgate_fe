@@ -64,7 +64,7 @@ function TimelineDot({
   );
 }
 
-// 전달사항 타임라인 목록 — 데스크톱 접이식 섹션(SectionDeliveryMessages)과 모바일 팝업
+// 전달사항 타임라인 목록 — PC 접이식 섹션(SectionDeliveryMessages)과 모바일·태블릿 팝업
 // (DeliveryMessagesPopup)이 동일한 마크업을 공유한다.
 export function DeliveryMessageTimeline({ messages }: { messages: DiagnosisMessage[] }) {
   const ordered = useMemo(
@@ -169,7 +169,8 @@ export default function SectionDeliveryMessages({
         </div>
       )}
 
-      <div className={`px-6 py-4 ${isExpanded ? "" : "max-h-[260px] overflow-y-auto"}`}>
+      {/* 접힘: 약 3건 높이. 260px는 짧은 메시지 기준 4건이 보여 200px로 맞춤. */}
+      <div className={`px-6 py-4 ${isExpanded ? "" : "max-h-[200px] overflow-y-auto"}`}>
         <DeliveryMessageTimeline messages={messages} />
       </div>
     </section>
