@@ -1,6 +1,7 @@
 import SortIcon from "@/components/common/SortIcon";
 import EmptyState from "@/components/common/EmptyState";
 import Checkbox from "@/components/common/Checkbox";
+import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import LinkIcon from "@/components/icons/LinkIcon";
 import AnalysisShareIcon from "@/components/icons/AnalysisShareIcon";
 import {
@@ -135,8 +136,12 @@ export default function DiagnosisTable({
   const columnCount = 9 + (showShareColumn ? 1 : 0) + (showAssigneeColumn ? 1 : 0);
   const consultedRoundedRight = !showShareColumn && !showAssigneeColumn;
 
+  // 태블릿 폭에서 표가 잘려 가로 스크롤이 필요할 때, 좁은 네이티브 스크롤바를 정확히
+  // 조준하지 않아도 셀 영역을 드래그해 스크롤할 수 있게 한다(행 클릭 오인 방지 포함).
+  const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
       <table className="w-full min-w-[960px] border-separate border-spacing-y-0">
         <thead>
           <tr>
