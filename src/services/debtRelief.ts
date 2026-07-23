@@ -694,9 +694,11 @@ export const DebtReliefService = {
     const trackingProcedureCode: AnalysisProcedureType = analysis.trackingProcedure ?? recommendation;
     const trackingProcedure = PROCEDURE_FROM_ANALYSIS[trackingProcedureCode];
 
-    // 공유(납품) contact를 우선 사용. 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있음.
+    // 공유(납품) contact를 우선 사용. 없으면 매칭된 고객 연락처를 조회한다.
+    // 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있어 실패해도 무시한다.
+    // isShared여도 영업점(원본)은 고객 연락처에 접근 가능하므로 공유 여부와 무관하게 조회한다.
     let phone = analysis.contact?.trim() ? analysis.contact : "";
-    if (!phone && analysis.customerId != null && !analysis.isShared) {
+    if (!phone && analysis.customerId != null) {
       try {
         const customerRes = await CustomersService.detail(String(analysis.customerId)).withProject(
           projectId

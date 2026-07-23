@@ -50,7 +50,7 @@ export default function SectionAiRecommendation({
 }: {
   detail: DiagnosisDetail;
   // PC(lg+)에서 바로 위에 전달사항 카드가 쌓여 있으면 그 카드 자체 테두리와 겹쳐 보이므로
-  // 이 구분선을 lg에서만 끈다(false). 모바일·태블릿은 전달사항이 팝업이라 md~lg 구분선은 유지한다.
+  // 이 구분선을 lg에서만 끈다(false). 모바일은 ResultHeader 쪽 구분선, 태블릿(md~lg)은 구분선 없음.
   showTopDivider?: boolean;
 }) {
   const { recommendation, successProbability } = detail;
@@ -59,10 +59,10 @@ export default function SectionAiRecommendation({
     // 구분선만 카드 풀폭. 전 구간 회색 카드(#F8F8F8, radius 12).
     // md~lg는 컴팩트 타이포로 문구/도넛 겹침을 피하고, lg+는 피그마 와이드 레이아웃.
     // 모바일 구분선은 ResultHeader 쪽으로 이동.
-    // 태블릿(md~lg)도 컴팩트 헤더를 쓰므로 PC용 md:mt-6이면 고객칩↔구분선 간격이 과도하다.
-    // 모바일 mt-3 / 태블릿 mt-4 / PC(lg+) mt-6.
+    // 태블릿(md~lg): 고객칩↔AI 구분선 제거, 상단 간격은 mt-4.
+    // 모바일 mt-3 / 태블릿 mt-4 / PC(lg+) mt-6 + 구분선.
     <div
-      className={`mt-3 md:mt-4 lg:mt-6 -mx-6 md:-mx-8 border-t-0 md:border-t md:pt-3 lg:pt-5 ${
+      className={`mt-3 md:mt-4 lg:mt-6 -mx-6 md:-mx-8 border-t-0 lg:border-t lg:pt-5 ${
         showTopDivider ? "" : "lg:border-t-0 lg:pt-0"
       } border-neutral-30 px-6 md:px-8`}
     >

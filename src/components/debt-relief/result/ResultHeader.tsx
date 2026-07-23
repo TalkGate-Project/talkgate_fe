@@ -16,6 +16,7 @@ import CustomerMatchModal from "./CustomerMatchModal";
 import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
+import LinkIcon from "@/components/icons/LinkIcon";
 
 function EditIcon() {
   const maskId = useId();
@@ -258,9 +259,17 @@ const ACTION_BTN_SHARED =
   "inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[220px] px-3 rounded-[5px] border border-secondary-60 dark:border-blue-800 bg-secondary-10 dark:bg-blue-950 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-secondary-60 dark:text-blue-300 cursor-default whitespace-nowrap disabled:opacity-100";
 
 const LINKED_CHIP_BTN =
-  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[244px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
+  "cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] max-w-[320px] px-[7px] py-1.5 rounded-[5px] bg-secondary-10 dark:bg-blue-950 border border-secondary-60 dark:border-blue-800 text-secondary-40 dark:text-blue-300 hover:opacity-90 transition-opacity";
 const MENU_ITEM =
   "cursor-pointer w-full flex items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+
+// 모바일 ⋮ 액션 팝업 — 피그마 POP-UP 기준, 웹에서 말줄임 방지로 너비·우측 여백 보정
+const MOBILE_ACTIONS_PANEL =
+  "absolute right-0 top-full mt-2 z-30 flex w-[139px] flex-col overflow-hidden rounded-lg bg-white dark:bg-card shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-[0_13px_61px_rgba(0,0,0,0.45)]";
+const MOBILE_ACTIONS_ITEM =
+  "cursor-pointer flex h-[52px] w-full items-center gap-2 pl-[19px] pr-[18px] py-4 text-left text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-black dark:text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+const MOBILE_ACTIONS_ITEM_LINKED =
+  "cursor-pointer flex h-12 w-full items-center gap-2 bg-white pl-[19px] pr-[18px] py-3 text-left text-[#2563EB] dark:bg-card dark:text-blue-300 hover:bg-neutral-10 transition-colors";
 
 type Props = {
   detail: DiagnosisDetail;
@@ -286,7 +295,7 @@ function LinkedCustomerMenu({
   return (
     <div
       role="menu"
-      className="absolute right-0 top-full mt-2 z-30 min-w-[140px] rounded-[12px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
+      className="absolute right-0 top-full mt-2 z-30 min-w-[140px] overflow-hidden rounded-lg bg-white dark:bg-card shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-[0_13px_61px_rgba(0,0,0,0.45)]"
     >
       <button type="button" role="menuitem" onClick={onOpenCustomerInfo} className={MENU_ITEM}>
         <CustomerInfoIcon />
@@ -303,6 +312,9 @@ function LinkedCustomerMenu({
 function MobileActionsMenu({
   open,
   isShared,
+  isMatched,
+  customerName,
+  phonePreview,
   onCustomerLink,
   onEdit,
   onPaymentInfo,
@@ -310,26 +322,47 @@ function MobileActionsMenu({
 }: {
   open: boolean;
   isShared: boolean;
+  isMatched: boolean;
+  customerName: string;
+  phonePreview: string;
   onCustomerLink: () => void;
   onEdit: () => void;
   onPaymentInfo: () => void;
   onShare: () => void;
 }) {
   if (!open) return null;
+
+  const linkedAriaLabel = phonePreview
+    ? `연결된 고객 ${customerName} · ${phonePreview}`
+    : `연결된 고객 ${customerName}`;
+
   return (
-    <div
-      role="menu"
-      className="absolute right-0 top-full mt-2 z-30 min-w-[148px] rounded-[12px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
-    >
-      <button type="button" role="menuitem" onClick={onCustomerLink} className={MENU_ITEM}>
-        <LinkedCustomerIcon />
-        고객연동
+    <div role="menu" className={MOBILE_ACTIONS_PANEL}>
+      <button
+        type="button"
+        role="menuitem"
+        onClick={onCustomerLink}
+        aria-label={isMatched ? linkedAriaLabel : "고객연동"}
+        className={isMatched ? MOBILE_ACTIONS_ITEM_LINKED : MOBILE_ACTIONS_ITEM}
+      >
+        <LinkedCustomerIcon className="shrink-0" />
+        {isMatched ? (
+          <span className="flex min-w-0 flex-1 flex-col text-[10px] font-medium leading-3">
+            <span className="truncate">
+              {customerName}
+              {phonePreview ? " ·" : ""}
+            </span>
+            {phonePreview ? <span className="whitespace-nowrap">{phonePreview}</span> : null}
+          </span>
+        ) : (
+          "고객연동"
+        )}
       </button>
-      <button type="button" role="menuitem" onClick={onEdit} className={MENU_ITEM}>
+      <button type="button" role="menuitem" onClick={onEdit} className={MOBILE_ACTIONS_ITEM}>
         <EditIcon />
         정보수정
       </button>
-      <button type="button" role="menuitem" onClick={onPaymentInfo} className={MENU_ITEM}>
+      <button type="button" role="menuitem" onClick={onPaymentInfo} className={MOBILE_ACTIONS_ITEM}>
         <PaymentCardIcon />
         결제정보
       </button>
@@ -338,7 +371,7 @@ function MobileActionsMenu({
         role="menuitem"
         onClick={onShare}
         disabled={isShared}
-        className={MENU_ITEM}
+        className={MOBILE_ACTIONS_ITEM}
       >
         <ShareMenuIcon />
         공유하기
@@ -673,6 +706,9 @@ export default function ResultHeader({
                 <MobileActionsMenu
                   open={actionsMenuOpen}
                   isShared={detail.isShared}
+                  isMatched={isMatched}
+                  customerName={detail.customerName}
+                  phonePreview={phonePreview}
                   onCustomerLink={handleMobileCustomerLink}
                   onEdit={handleEdit}
                   onPaymentInfo={handleOpenPaymentInfo}
@@ -710,13 +746,16 @@ export default function ResultHeader({
         <div className="-mx-6 border-t border-neutral-30" />
 
         {/* 고객칩 행: 위 구분선과의 간격. 태블릿은 1줄 pb-3과 균형을 맞추고,
-            아래 AI 구분선 여백은 SectionAiRecommendation(mt-3 md:mt-4 lg:mt-6)에서 조절한다. */}
+            아래 AI 여백은 SectionAiRecommendation(모바일 mt-3 / 태블릿 구분선 없음 mt-4 / PC mt-6)에서 조절한다. */}
         <div className="flex items-center justify-between gap-3 pt-3 md:pt-4">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex min-w-0 items-center gap-2.5 rounded-full border border-neutral-30 px-3 py-1.5">
               <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.04em] text-black dark:text-neutral-90">
                 {customerSummaryLabel}
               </p>
+              {isMatched ? (
+                <LinkIcon className="shrink-0 text-[#2563EB] dark:text-blue-300" />
+              ) : null}
               {customerInfoButtonCompact}
             </div>
           </div>
@@ -777,8 +816,9 @@ export default function ResultHeader({
                   aria-expanded={linkedMenuOpen}
                 >
                   <LinkedCustomerIcon className="text-secondary-60 dark:text-blue-300 shrink-0" />
-                  <span className="text-[14px] font-medium leading-5 truncate max-w-[200px]">
-                    {linkedLabel}
+                  <span className="min-w-0 truncate text-[14px] font-medium leading-5 whitespace-nowrap">
+                    {detail.customerName}
+                    {phonePreview ? ` · ${phonePreview}` : null}
                   </span>
                 </button>
                 <LinkedCustomerMenu
