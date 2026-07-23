@@ -16,6 +16,7 @@ import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
 import CustomerProcedureBadge from "./CustomerProcedureBadge";
+import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -195,9 +196,17 @@ export default function CustomersTable({
     ? ["5%", "6%", "14%", "14%", "9%", "7%", "10%", "9%", "16%"]
     : ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
   const fallbackColWidths = ["5%", "6%", "14%", "15%", "10%", "7%", "8%", "9%", "8%", "10%", "8%"];
-  // 모바일 이름 열 최소 너비(배지 포함). md 이상에서는 colgroup %에 맡긴다.
-  const nameColMinClass = "min-w-[180px] md:min-w-0";
-  const tableMinWidthClass = "min-w-[980px] md:min-w-[900px]";
+  // 이름 열 최소 너비(배지 포함). md~lg(태블릿) 구간은 테이블 자체가 lg:min-w-[900px]에 가깝게
+  // 눌려 있어서 14% 몫만으론 배지+이름이 서로 가려진다(2026-07-23 재확인) — 이 구간만 살짝 더
+  // 띄우고, lg 이상(데스크톱)은 테이블이 충분히 넓어지므로 기존처럼 %에 맡긴다.
+  // (2026-07-23: 처음 220px/1080px로 넓혔더니 과했다는 피드백 받고 205px/1000px로 축소)
+  const nameColMinClass = "min-w-[180px] md:min-w-[205px] lg:min-w-0";
+  const tableMinWidthClass = "min-w-[980px] md:min-w-[1000px] lg:min-w-[900px]";
+  // 태블릿(md~lg)에서만 드래그로 가로 스크롤 — 모바일은 터치 스와이프가 이미 되고,
+  // 데스크톱(lg+)은 보통 표가 잘리지 않아 굳이 붙일 이유가 없다.
+  const { containerRef: dragScrollRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>({
+    widthRange: { min: 768, max: 1024 },
+  });
   const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
   const totalColumns = colWidths.length;
   const skeletonTotalColumns = skeletonColWidths.length;
@@ -498,8 +507,10 @@ export default function CustomersTable({
         </div>
       ) : (
         <div
+          ref={dragScrollRef}
           className="overflow-x-auto w-full min-w-0"
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+          {...dragScrollHandlers}
         >
           <table className={`w-full ${tableMinWidthClass} text-left border-separate border-spacing-0 table-fixed`}>
           <colgroup>

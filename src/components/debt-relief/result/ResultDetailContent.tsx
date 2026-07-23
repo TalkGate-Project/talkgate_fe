@@ -52,8 +52,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     ? ALL_SECTION_IDS.filter((id) => id !== "ments")
     : ALL_SECTION_IDS;
 
+  // SectionProcedureGuide가 currentStep을 낙관적으로 먼저 반영한 뒤 이 함수를 호출한다.
+  // 실패 시 반드시 throw해야 그쪽에서 낙관적 반영을 원복한다 — 여기서 에러를 삼키면
+  // 저장은 실패했는데 화면엔 성공한 것처럼 남는다.
   const handleSetCurrentStep = async (step: ProcedureStep) => {
-    if (!projectId || step.stepId == null || !detail) return;
+    if (!projectId || step.stepId == null || !detail) {
+      throw new Error("Missing projectId/detail/stepId for procedure step update");
+    }
     try {
       await DebtReliefService.updateProcedureProgress(projectId, diagnosisId, {
         trackingProcedure: detail.trackingProcedure,
@@ -63,8 +68,9 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       console.error("Failed to update procedure progress:", error);
       showErrorModal({
         headline: "단계 저장에 실패했습니다.",
-        description: "화면에는 반영됐지만 저장되지 않았을 수 있어요. 잠시 후 다시 시도해주세요.",
+        description: "잠시 후 다시 시도해주세요.",
       });
+      throw error;
     }
   };
 
