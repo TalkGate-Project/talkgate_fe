@@ -269,7 +269,11 @@ export default function FeePaymentStatusPanel() {
                 showInlineIcon
                 // TODO: 지금은 미사용 — 추후 다시 노출 요청 예정
                 showReset={false}
-                className="w-full lg:w-auto"
+                // w-full은 모바일 전용(375px 카드 폭을 꽉 채우는 의도). lg:w-auto였을 때는
+                // 태블릿 구간까지 full width가 적용돼, DateRangePicker 내부에 justify-center가
+                // 없어 컨텐츠가 왼쪽으로 붙어 보였다 — md부터 content 폭으로 되돌려 부모의
+                // justify-center가 실제로 중앙 정렬을 담당하게 한다.
+                className="w-full md:w-auto"
               />
             )}
           </div>
