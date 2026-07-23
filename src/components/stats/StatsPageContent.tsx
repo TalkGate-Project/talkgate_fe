@@ -351,7 +351,9 @@ function StatsPageContentInner() {
                   통계
                 </h1>
                 <span className="hidden md:block w-px h-4 bg-neutral-60 opacity-60" />
-                <p className="hidden md:block translate-y-[3px] text-[18px] leading-[20px] font-medium text-neutral-60">
+                {/* 태블릿(md~lg, 예: 797px)에서는 제목+구분선+설명+프로젝트 배지가 한 줄에 다
+                    안 들어가 개행되던 문제 — 이 구간만 설명 글자 크기를 줄여 폭을 확보한다. */}
+                <p className="hidden md:block translate-y-[3px] text-[13px] md:leading-4 lg:text-[18px] lg:leading-5 font-medium text-neutral-60">
                   고객 신청, 배정, 카테고리, 결제, 랭킹 통계를 한눈에 확인하세요
                 </p>
               </div>
