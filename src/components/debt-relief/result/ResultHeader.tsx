@@ -588,10 +588,11 @@ export default function ResultHeader({
 
   return (
     <>
-      {/* 모바일: 1줄(뒤로+제목+상태[+공유처칩] | ⋮ 액션메뉴),
+      {/* 모바일·태블릿(lg 미만): 1줄(뒤로+제목+상태[+공유처칩] | ⋮ 액션메뉴),
           2줄(고객메타+⋯ | 전달사항 토글).
-          영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합. */}
-      <div className="flex md:hidden flex-col pt-1.5">
+          영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합.
+          태블릿(md~lg)도 PC 버튼 세트가 겹쳐 보여 이 컴팩트 레이아웃을 lg까지 확장. */}
+      <div className="flex lg:hidden flex-col pt-1.5">
         <div className="flex items-center justify-between gap-2 pb-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <button
@@ -703,8 +704,8 @@ export default function ResultHeader({
         </div>
       </div>
 
-      {/* 데스크톱: 뒤로 | 제목 | 메타  ……  액션 세트(영업점) 또는 담당직원(변호사) */}
-      <div className="hidden md:flex items-center justify-between gap-4">
+      {/* PC(lg 이상): 뒤로 | 제목 | 메타  ……  액션 세트(영업점) 또는 담당직원(변호사) */}
+      <div className="hidden lg:flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 min-w-0">
           <button
             type="button"
