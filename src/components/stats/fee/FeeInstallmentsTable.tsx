@@ -30,9 +30,12 @@ export default function FeeInstallmentsTable({
 }: FeeInstallmentsTableProps) {
   return (
     <>
-      {/* 모바일: 열이 다 들어가기엔 좁아 피그마처럼 가로 스크롤(overflow-hidden이면 상태 열이 잘림) */}
+      {/* 열이 다 들어가기엔 좁아 피그마처럼 가로 스크롤(overflow-hidden이면 상태 열이 잘림).
+          md:min-w-0로 태블릿 구간 바닥을 없앴더니 진짜로 넘치는 대신 표가 눌려서, 상태 열
+          라벨(2글자)이 폭 부족으로 세로로 쌓여 보이는 문제가 있었다 — 항상 min-w-[560px]를
+          유지해 그 구간에서도 overflow-x-auto가 실제로 스크롤을 맡도록 한다. */}
       <div className="overflow-x-auto rounded-[8px] md:rounded-[12px]">
-        <table className="w-full min-w-[560px] border-separate border-spacing-0 md:min-w-0">
+        <table className="w-full min-w-[560px] border-separate border-spacing-0">
           <thead>
             <tr className="h-[40px]">
               <th className="bg-neutral-20 text-left px-2 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px] md:rounded-l-[12px] w-[110px] md:w-[130px] flex-shrink-0">
@@ -115,9 +118,9 @@ export default function FeeInstallmentsTable({
                     <td className="px-2 md:px-4 text-[13px] md:text-[15px] font-medium text-neutral-90 whitespace-nowrap">
                       {formatWonAsManwonCompact(item.amount)}
                     </td>
-                    <td className="px-2 md:px-4 pr-3 md:pr-[30px]">
+                    <td className="px-2 md:px-4 pr-3 md:pr-[30px] whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-[12px] md:text-[13px] font-medium ${pill.className}`}
+                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] md:text-[13px] font-medium ${pill.className}`}
                       >
                         {pill.label}
                       </span>

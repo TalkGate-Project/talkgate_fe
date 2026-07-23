@@ -180,40 +180,48 @@ export default function DebtReliefPhonePreview({
     <div ref={containerRef} className="bg-[#F8F8F8] dark:bg-neutral-25 rounded-[12px] p-6">
       <h3 className="text-[16px] font-semibold leading-[19px] text-ink dark:text-neutral-90 mb-4">미리보기</h3>
 
-      <div
-        className="relative w-[300px] h-[600px] mx-auto origin-top"
-        style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}
-      >
-        <img
-          src="/phone_case.png"
-          alt="Phone case"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none dark:hidden"
-        />
-        <img
-          src="/phone_case_dark.png"
-          alt="Phone case"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none hidden dark:block"
-        />
-
+      {/* justify-center로 감싸야 태블릿 폭처럼 300px 박스가 컨테이너보다 넓어지는 구간에서도
+          중앙 정렬이 유지된다. mx-auto는 오버플로 시 margin이 0으로 붕괴해 박스가 왼쪽으로 붙고,
+          그 상태로 scale(top center)을 적용하면 시각적으로 오른쪽에 치우쳐 보인다.
+          shrink-0 필수: flex item은 기본 flex-shrink:1이라 300px 지정폭이 flexbox에 의해
+          먼저 눌린 뒤 scale()이 중첩 적용되면서 폰 케이스 object-contain 비율까지 깨진다
+          (실측 재현 완료 — shrink-0 없이는 300px 박스가 실제로 180px대로 짓눌림). */}
+      <div className="flex justify-center">
         <div
-          ref={phoneScreenRef}
-          className="absolute top-[58px] left-[22px] right-[22px] bottom-[62px] bg-white dark:bg-neutral-0 overflow-y-auto rounded-[20px] select-none"
-          style={{ cursor: "grab" }}
-          {...dragHandlers}
+          className="relative w-[300px] h-[600px] shrink-0 origin-top"
+          style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}
         >
-          <div className="flex justify-center py-3 sticky top-0 bg-white dark:bg-neutral-0 z-[1]">
-            <span className="inline-flex items-center h-[28px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-60">
-              {senderNumber ? formatPhoneNumber(senderNumber) : "010-0000-0000"}
-            </span>
-          </div>
+          <img
+            src="/phone_case.png"
+            alt="Phone case"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none dark:hidden"
+          />
+          <img
+            src="/phone_case_dark.png"
+            alt="Phone case"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none hidden dark:block"
+          />
 
-          <div className="px-4 pt-2 pb-4 flex flex-col items-start">
-            <MessageBubble
-              headerLine={headerLine}
-              body={body}
-              imageFiles={imageFiles}
-              bubbleClassName="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[85%]"
-            />
+          <div
+            ref={phoneScreenRef}
+            className="absolute top-[58px] left-[22px] right-[22px] bottom-[62px] bg-white dark:bg-neutral-0 overflow-y-auto rounded-[20px] select-none"
+            style={{ cursor: "grab" }}
+            {...dragHandlers}
+          >
+            <div className="flex justify-center py-3 sticky top-0 bg-white dark:bg-neutral-0 z-[1]">
+              <span className="inline-flex items-center h-[28px] px-4 border border-neutral-30 dark:border-neutral-30 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-60">
+                {senderNumber ? formatPhoneNumber(senderNumber) : "010-0000-0000"}
+              </span>
+            </div>
+
+            <div className="px-4 pt-2 pb-4 flex flex-col items-start">
+              <MessageBubble
+                headerLine={headerLine}
+                body={body}
+                imageFiles={imageFiles}
+                bubbleClassName="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] p-4 max-w-[85%]"
+              />
+            </div>
           </div>
         </div>
       </div>
