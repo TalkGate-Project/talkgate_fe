@@ -205,7 +205,7 @@ export default function CustomerDetailModalDesktop({
       onClose={handleClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       positionerClassName="min-h-full flex items-center justify-center p-2"
-      containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[630px] md:!h-[600px] lg:!h-[720px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] lg:!w-[calc(100%-32px)] lg:!max-w-[1284px] overflow-hidden"
+      containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[670px] md:!h-[640px] lg:!h-[760px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] lg:!w-[calc(100%-32px)] lg:!max-w-[1284px] overflow-hidden"
       ariaLabel="고객정보"
     >
       {/* Header */}
