@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Panel from "@/components/common/Panel";
 import AssignMemberTable, { type AssignMemberTableHandle } from "@/components/stats/AssignMemberTable";
@@ -21,6 +21,7 @@ import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { useStatsRegistration } from "@/hooks/useStatsRegistration";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
+import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { useMembersTreeWithoutParent, useTeams } from "@/hooks/useMembersTree";
 import { getCurrentRankingMonthStart } from "@/utils/datetime";
 import StatsChartFilterButton from "@/components/stats/StatsChartFilterButton";
@@ -122,6 +123,11 @@ function StatsPageContentInner() {
   const statusChartRef = useRef<StatusBarChartHandle>(null);
   const { data: teamsData } = useTeams(projectId);
   const { data: treeData } = useMembersTreeWithoutParent(projectId);
+  // 탭 개수가 늘면서 태블릿 폭에서 탭 줄이 잘려 눌리지도 않던 문제 — 드래그로도 스크롤되게 한다.
+  // 스크롤바 자체가 scrollbar-hide로 안 보여서 드래그가 아니면 마우스로는 스크롤할 방법이 없다.
+  const { containerRef: tabScrollRef, dragScrollHandlers: tabDragScrollHandlers } =
+    useHorizontalDragScroll<HTMLDivElement>();
+  const tabButtonRefs = useRef<Partial<Record<TabKey, HTMLButtonElement | null>>>({});
 
   const handleAssignFilterClick = () => {
     if (assignMode === "member") {
@@ -144,6 +150,25 @@ function StatsPageContentInner() {
     }
     return (matched ?? "apply") as TabKey;
   }, [search, tabItems, feeTabReady, showFeeTab]);
+
+  // URL 직접 진입·뒤로가기 등으로 active가 바뀌었을 때 탭 줄이 그 탭을 가리고 있으면 스크롤을
+  // 맞춰 보이게 한다. scrollIntoView 대신 컨테이너 scrollLeft만 직접 계산·조정해서 페이지
+  // 자체가 세로로 스크롤되는(scrollIntoView의 부수효과) 일이 없게 했다. useLayoutEffect로 페인트
+  // 전에 맞춰서 잘못된 스크롤 위치가 한 프레임이라도 보이지 않게 한다.
+  useLayoutEffect(() => {
+    const container = tabScrollRef.current;
+    const activeButton = tabButtonRefs.current[active];
+    if (!container || !activeButton) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const buttonRect = activeButton.getBoundingClientRect();
+
+    if (buttonRect.left < containerRect.left) {
+      container.scrollLeft += buttonRect.left - containerRect.left;
+    } else if (buttonRect.right > containerRect.right) {
+      container.scrollLeft += buttonRect.right - containerRect.right;
+    }
+  }, [active, tabScrollRef]);
 
   const statsFilterPrefix = getStatsFilterPrefix(active, assignMode);
   const appliedStatsFilter = useMemo(
@@ -340,13 +365,22 @@ function StatsPageContentInner() {
           }
           bodyClassName="px-7 py-[30px] border-t border-neutral-30"
         >
-          <div className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3 relative">
-            <div className="flex items-center gap-6 md:gap-2 min-w-max md:min-w-0 relative">
+          <div
+            ref={tabScrollRef}
+            className="md:h-[48px] md:bg-neutral-20 md:rounded-[8px] md:px-3 md:flex md:items-center overflow-x-auto scrollbar-hide px-0 md:px-3 relative"
+            {...tabDragScrollHandlers}
+          >
+            {/* min-w-0로 md 이상에서 이 줄을 눌러서 맞추면(shrink) 탭이 잘려 보이던 문제 —
+                min-w-max를 항상 유지해 넘칠 때 줄이지 않고 그대로 overflow-x-auto로 넘긴다. */}
+            <div className="flex items-center gap-6 md:gap-2 min-w-max relative">
               {/* 전체 연속된 기본 border - 탭 전체 너비를 커버하도록 내부 컨테이너에 적용 */}
               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#F0F0F0] dark:bg-neutral-30 md:hidden" />
               {tabItems.map((t) => (
                 <button
                   key={t.key}
+                  ref={(el) => {
+                    tabButtonRefs.current[t.key] = el;
+                  }}
                   onClick={() => setTab(t.key)}
                   className={`flex flex-col items-start gap-3 h-[33px] md:h-[30px] md:flex-row md:items-center md:rounded-[5px] md:px-8 text-[16px] leading-[19px] tracking-[0.2px] cursor-pointer whitespace-nowrap relative ${
                     active === t.key

@@ -35,8 +35,11 @@ export function useHorizontalDragScroll<T extends HTMLElement>(
       const width = window.innerWidth;
       if (width < minWidth || width >= maxWidth) return;
     }
-    // 체크박스·버튼 등 자체 상호작용이 있는 요소 위에서는 드래그 스크롤을 시작하지 않는다.
-    if ((e.target as HTMLElement).closest("button, a, input, label")) return;
+    // 버튼 등 상호작용 요소 위에서 시작해도 드래그 추적은 그대로 건다 — 실제로 막아야 할 건
+    // "드래그 뒤에 오인되는 클릭"이지 "버튼에서 시작한 mousedown 자체"가 아니다. 이동거리
+    // 임계값 + handleClickCapture만으로 클릭/드래그가 이미 정확히 구분되고, 컨테이너 전체가
+    // 버튼으로 채워진 탭바 같은 경우엔 버튼 위에서 시작을 막으면 드래그를 시작할 곳이
+    // 사실상 없어진다(2026-07-23, 통계 탭바에서 실제로 이 문제로 드래그가 전혀 안 먹혔음).
     if (!containerRef.current) return;
 
     isPointerDownRef.current = true;
