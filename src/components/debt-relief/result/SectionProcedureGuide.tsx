@@ -342,8 +342,10 @@ function StepItem({
 
 type Props = {
   detail: DiagnosisDetail;
-  // 실 API(PATCH /v1/analysis/{id})에 currentProcedureStep을 저장. 실패해도 화면 표시는 유지한다.
-  onSetCurrentStep?: (step: ProcedureStep) => void;
+  // 실 API(PATCH /v1/analysis/{id})에 currentProcedureStep을 저장. reject되면(Promise가 실패하면)
+  // 낙관적으로 반영했던 currentStep·이력 표시를 이 컴포넌트가 직접 원복한다 — 호출부는 에러 모달
+  // 표시 후 반드시 throw로 실패를 전파해야 한다(showErrorModal만 하고 삼키면 원복이 동작하지 않음).
+  onSetCurrentStep?: (step: ProcedureStep) => Promise<void>;
   // 추적 절차 전환(PATCH /v1/analysis/{id}). 호출부에서 확인 모달 + refetch까지 책임진다.
   onChangeTrackingProcedure?: (procedure: RecommendedProcedure) => void;
   // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용)
@@ -408,25 +410,49 @@ export default function SectionProcedureGuide({
     guide.totalSteps > 0 ? Math.round((currentStep / guide.totalSteps) * 100) : 0;
   const currentStepMeta = guide.steps.find((s) => s.step === currentStep);
 
-  const handleSetCurrent = (step: ProcedureStep) => {
+  // 저장 요청이 진행 중인 동안엔 다른 "현재 단계로 설정" 클릭을 막는다 — 동시에 두 요청이
+  // 나가면 실패 시 어느 시점 상태로 원복해야 할지 꼬여서(레이스) 화면이 잘못된 값에 멈출 수 있다.
+  const [savingStep, setSavingStep] = useState(false);
+
+  const handleSetCurrent = async (step: ProcedureStep) => {
     // 현재 단계보다 이전으로는 되돌릴 수 없음 (BE도 동일하게 거부)
-    if (step.step <= currentStep) return;
+    if (step.step <= currentStep || savingStep) return;
+
+    const previousStep = currentStep;
+    const optimisticHistoryStepId = step.stepId != null && member?.name ? step.stepId : null;
 
     setCurrentStep(step.step);
 
-    if (step.stepId != null && member?.name) {
+    if (optimisticHistoryStepId != null) {
       setOptimisticHistory((prev) => ({
         ...prev,
-        [step.stepId!]: {
-          stepId: step.stepId!,
-          changedByMemberName: member.name,
+        [optimisticHistoryStepId]: {
+          stepId: optimisticHistoryStepId,
+          changedByMemberName: member!.name,
           changedByProjectName: project?.name?.trim() || null,
           changedAt: new Date().toISOString(),
         },
       }));
     }
 
-    onSetCurrentStep?.(step);
+    if (!onSetCurrentStep) return;
+
+    setSavingStep(true);
+    try {
+      await onSetCurrentStep(step);
+    } catch {
+      // 저장 실패 — 낙관적으로 반영했던 현재 단계·이력 표시를 원복한다.
+      setCurrentStep(previousStep);
+      if (optimisticHistoryStepId != null) {
+        setOptimisticHistory((prev) => {
+          const next = { ...prev };
+          delete next[optimisticHistoryStepId];
+          return next;
+        });
+      }
+    } finally {
+      setSavingStep(false);
+    }
   };
 
   return (
@@ -461,7 +487,7 @@ export default function SectionProcedureGuide({
               expanded={expanded.has(step.step)}
               onToggle={() => toggle(step.step)}
               isCurrent={step.step === currentStep}
-              canSetCurrent={step.step > currentStep && !stepLocked}
+              canSetCurrent={step.step > currentStep && !stepLocked && !savingStep}
               onSetCurrent={() => handleSetCurrent(step)}
               onSendSms={() => setSmsStep(step)}
               smsDisabled={!canSendSms || locked}
