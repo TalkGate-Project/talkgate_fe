@@ -746,7 +746,7 @@ export default function ResultHeader({
         <div className="-mx-6 border-t border-neutral-30" />
 
         {/* 고객칩 행: 위 구분선과의 간격. 태블릿은 1줄 pb-3과 균형을 맞추고,
-            아래 AI 구분선 여백은 SectionAiRecommendation(mt-3 md:mt-4 lg:mt-6)에서 조절한다. */}
+            아래 AI 여백은 SectionAiRecommendation(모바일 mt-3 / 태블릿 구분선 없음 mt-4 / PC mt-6)에서 조절한다. */}
         <div className="flex items-center justify-between gap-3 pt-3 md:pt-4">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="flex min-w-0 items-center gap-2.5 rounded-full border border-neutral-30 px-3 py-1.5">
