@@ -162,7 +162,7 @@ export default function SummaryCards({
             <span className="font-montserrat font-bold text-[20px] md:text-[28px] leading-none tracking-[-0.04em] text-neutral-90">
               {summary.totalAnalysisCount.toLocaleString("ko-KR")}
             </span>
-            <span className="text-[12px] md:text-[16px] font-semibold leading-[14px] md:leading-[19px] text-neutral-90 pb-0 md:pb-1.5">
+            <span className="text-[12px] md:text-[16px] font-semibold leading-[14px] md:leading-[19px] text-neutral-90">
               건
             </span>
           </p>

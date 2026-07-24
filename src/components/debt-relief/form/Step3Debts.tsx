@@ -108,17 +108,9 @@ export default function Step3Debts({ form, update, derived }: Props) {
             />
           </FormField>
 
-          {/* 2026-07-24 피드백 추가 항목 — 만원 단위 숫자입력 3종.
-              md(780px)는 좌측 사이드바가 이미 붙어 실제 폼 폭이 좁은 구간이라 md:grid-cols-3이면
-              "최근 3개월/1년 내 채무액" 같은 긴 라벨이 2줄로 줄바꿈된다(CustomerLinkedAnalysisSection.tsx의
-              동일 사례 참고, docs/RESPONSIVE_BREAKPOINT_DRIFT_TASKS.md) — lg(1080px)부터 3열로 전환. */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-7 gap-y-4 lg:gap-y-5">
-            <FormField label="담보부채무" filled={form.securedDebt > 0}>
-              <ManwonInput
-                value={form.securedDebt}
-                onChange={(value) => update("securedDebt", value)}
-              />
-            </FormField>
+          {/* 2026-07-24 피드백 추가 항목 — 만원 단위 숫자입력 3종. 위 채무종류별 금액 그리드(62번 줄)와
+              동일하게 2열(md:grid-cols-2)로 배치 — 3번째 필드는 다음 줄로 넘어간다. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
             <FormField label="최근 3개월 내 채무액" filled={form.recentDebtWithin3Months > 0}>
               <ManwonInput
                 value={form.recentDebtWithin3Months}
@@ -129,6 +121,12 @@ export default function Step3Debts({ form, update, derived }: Props) {
               <ManwonInput
                 value={form.recentDebtWithin1Year}
                 onChange={(value) => update("recentDebtWithin1Year", value)}
+              />
+            </FormField>
+            <FormField label="담보부채무" filled={form.securedDebt > 0}>
+              <ManwonInput
+                value={form.securedDebt}
+                onChange={(value) => update("securedDebt", value)}
               />
             </FormField>
           </div>

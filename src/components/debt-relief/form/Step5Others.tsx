@@ -1,6 +1,17 @@
-import type { DiagnosisFormState } from "@/types/debtRelief";
-import { FormSectionTitle } from "./FormControls";
+import {
+  SPECIAL_ELIGIBILITY_OPTIONS,
+  type DiagnosisFormState,
+  type SpecialEligibilityType,
+} from "@/types/debtRelief";
+import { FormField, FormSectionTitle } from "./FormControls";
 import { FormToggleRow } from "./FormToggle";
+import { PillMultiSelect } from "./PillSelect";
+
+// 만 29세 이하/만 65세 이상은 동시 선택 불가 — 서로의 상대값
+const AGE_EXCLUSIVE_PAIR: Partial<Record<SpecialEligibilityType, SpecialEligibilityType>> = {
+  age_29_or_under: "age_65_or_over",
+  age_65_or_over: "age_29_or_under",
+};
 
 type Props = {
   form: DiagnosisFormState;
@@ -20,6 +31,12 @@ const TEXTAREA_CLASS =
  * 카드 보더 없음. 항목 간 gap 24px.
  */
 export default function Step5Others({ form, update, onClose }: Props) {
+  const handleSpecialEligibilityChange = (next: SpecialEligibilityType[]) => {
+    const added = next.find((item) => !form.specialEligibility.includes(item));
+    const conflicting = added ? AGE_EXCLUSIVE_PAIR[added] : undefined;
+    update("specialEligibility", conflicting ? next.filter((item) => item !== conflicting) : next);
+  };
+
   return (
     <div>
       {/* 모바일 전용 — 이 스텝은 다른 스텝과 달리 본문이 토글 목록으로 바로 시작해서, 카드
@@ -75,29 +92,15 @@ export default function Step5Others({ form, update, onClose }: Props) {
           detailPlaceholder="소송·압류 상세 내용"
         />
 
-        {/* 2026-07-24 피드백 추가 항목 */}
-        <div className="flex flex-col gap-3">
-          <FormToggleRow
-            label="만 29세 이하"
-            checked={form.isAge29OrUnder}
-            onChange={(checked) => update("isAge29OrUnder", checked)}
+        {/* 2026-07-24 피드백: 토글 4종 → 중복선택 가능한 pill로 변경. 만 29세 이하/만 65세 이상은
+            동시 선택 불가(handleSpecialEligibilityChange에서 상호배타 처리) */}
+        <FormField label="특례 대상" hint="(중복선택 가능)" filled={form.specialEligibility.length > 0}>
+          <PillMultiSelect
+            options={SPECIAL_ELIGIBILITY_OPTIONS}
+            value={form.specialEligibility}
+            onChange={handleSpecialEligibilityChange}
           />
-          <FormToggleRow
-            label="만 65세 이상"
-            checked={form.isAge65OrOver}
-            onChange={(checked) => update("isAge65OrOver", checked)}
-          />
-          <FormToggleRow
-            label="중증 장애인"
-            checked={form.hasSevereDisability}
-            onChange={(checked) => update("hasSevereDisability", checked)}
-          />
-          <FormToggleRow
-            label="전세사기 피해자"
-            checked={form.isJeonseFraudVictim}
-            onChange={(checked) => update("isJeonseFraudVictim", checked)}
-          />
-        </div>
+        </FormField>
 
         <div>
           <label

@@ -90,6 +90,13 @@ export type AnalysisDebtBreakdown = {
   personalBorrowing?: number;
 };
 
+// 2026-07-24 스펙 갱신: 개인회생 변제기간 단축 특례 대상(중복 선택 가능, 없으면 빈 배열).
+export type AnalysisSpecialEligibility =
+  | "under_29"
+  | "over_65"
+  | "severe_disability"
+  | "jeonse_fraud_victim";
+
 // ============================================
 // 분석 생성/수정 입력
 // ============================================
@@ -106,6 +113,9 @@ export type AnalysisFormInput = {
   housingType: AnalysisHousingType;
   fixedExpenses: AnalysisFixedExpenses;
   debtBreakdown: AnalysisDebtBreakdown;
+  collateralDebt: number; // 담보부 채무 (만원)
+  debtIncurredLast3Months: number; // 최근 3개월 내 발생 채무액 (만원)
+  debtIncurredLast1Year: number; // 최근 1년 내 발생 채무액 (만원)
   overduePeriod: AnalysisOverduePeriod;
   debtCauses: AnalysisDebtCause[];
   realEstateBreakdown: AnalysisRealEstateBreakdown;
@@ -120,6 +130,7 @@ export type AnalysisFormInput = {
   creditorCount?: number;
   hasTaxArrears?: boolean;
   hasRecentAssetDisposal?: boolean;
+  specialEligibilities: AnalysisSpecialEligibility[]; // 없으면 []
   additionalNotes?: string;
 };
 
@@ -195,6 +206,8 @@ export type AnalysisResult = {
   expectedRepayment: AnalysisExpectedRepayment;
   precautions: string[];
   consultingScripts: AnalysisConsultingScripts;
+  // 개인회생 선택 시에만 노출되는 "채무조정 비교" 섹션 문구. 1~3문장, **강조** 마크업 포함 가능.
+  debtAdjustmentComparison?: string | null;
 };
 
 export type AnalysisProcedureStepDetails = {
