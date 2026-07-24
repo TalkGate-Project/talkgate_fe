@@ -75,29 +75,27 @@ export default function Step5Others({ form, update, onClose }: Props) {
           detailPlaceholder="소송·압류 상세 내용"
         />
 
-        {/* 2026-07-24 피드백 추가 항목 */}
-        <div className="flex flex-col gap-3">
-          <FormToggleRow
-            label="만 29세 이하"
-            checked={form.isAge29OrUnder}
-            onChange={(checked) => update("isAge29OrUnder", checked)}
-          />
-          <FormToggleRow
-            label="만 65세 이상"
-            checked={form.isAge65OrOver}
-            onChange={(checked) => update("isAge65OrOver", checked)}
-          />
-          <FormToggleRow
-            label="중증 장애인"
-            checked={form.hasSevereDisability}
-            onChange={(checked) => update("hasSevereDisability", checked)}
-          />
-          <FormToggleRow
-            label="전세사기 피해자"
-            checked={form.isJeonseFraudVictim}
-            onChange={(checked) => update("isJeonseFraudVictim", checked)}
-          />
-        </div>
+        {/* 2026-07-24 피드백 추가 항목 — 위 3개 토글과 같은 gap-6 리듬을 타도록 별도 wrapper 없이 직계 자식으로 배치 */}
+        <FormToggleRow
+          label="만 29세 이하"
+          checked={form.isAge29OrUnder}
+          onChange={(checked) => update("isAge29OrUnder", checked)}
+        />
+        <FormToggleRow
+          label="만 65세 이상"
+          checked={form.isAge65OrOver}
+          onChange={(checked) => update("isAge65OrOver", checked)}
+        />
+        <FormToggleRow
+          label="중증 장애인"
+          checked={form.hasSevereDisability}
+          onChange={(checked) => update("hasSevereDisability", checked)}
+        />
+        <FormToggleRow
+          label="전세사기 피해자"
+          checked={form.isJeonseFraudVictim}
+          onChange={(checked) => update("isJeonseFraudVictim", checked)}
+        />
 
         <div>
           <label
