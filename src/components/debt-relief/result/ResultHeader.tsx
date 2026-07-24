@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
-import { RECOMMENDED_PROCEDURE_LABEL, type DiagnosisDetail } from "@/types/debtRelief";
+import {
+  RECOMMENDED_PROCEDURE_LABEL,
+  canEditDiagnosisInfo,
+  type DiagnosisDetail,
+} from "@/types/debtRelief";
 import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
@@ -312,6 +316,7 @@ function LinkedCustomerMenu({
 function MobileActionsMenu({
   open,
   isShared,
+  canShare,
   isMatched,
   customerName,
   phonePreview,
@@ -322,6 +327,7 @@ function MobileActionsMenu({
 }: {
   open: boolean;
   isShared: boolean;
+  canShare: boolean;
   isMatched: boolean;
   customerName: string;
   phonePreview: string;
@@ -366,16 +372,18 @@ function MobileActionsMenu({
         <PaymentCardIcon />
         결제정보
       </button>
-      <button
-        type="button"
-        role="menuitem"
-        onClick={onShare}
-        disabled={isShared}
-        className={MOBILE_ACTIONS_ITEM}
-      >
-        <ShareMenuIcon />
-        공유하기
-      </button>
+      {canShare && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={onShare}
+          disabled={isShared}
+          className={MOBILE_ACTIONS_ITEM}
+        >
+          <ShareMenuIcon />
+          공유하기
+        </button>
+      )}
     </div>
   );
 }
@@ -476,9 +484,14 @@ export default function ResultHeader({
   const mobileActionsMenuRef = useRef<HTMLDivElement>(null);
   const desktopLinkedMenuRef = useRef<HTMLDivElement>(null);
   const isMatched = detail.customerId != null;
-  // 리스트와 동일: 영업점(analysis)만 연동·수정·공유 액션 세트 노출
-  const showOwnerActions = projectTypeReady && isAnalysis;
-  const showAssigneeProfile = projectTypeReady && isLawyer;
+  // 소유자 액션(고객연동·정보수정·결제정보) 노출 조건: 영업점은 항상, 변호사는 자체 등록(공유받지 않은)
+  // 건일 때만. 변호사가 영업점에서 공유받은 건은 원본 데이터라 소유자 액션 대상이 아니다.
+  const showOwnerActions =
+    projectTypeReady && (isAnalysis || (isLawyer && !detail.isReceivedShare));
+  // 공유하기(납품)는 영업점→변호사 방향 기능이므로 영업점 전용 — 변호사 자체 등록 건에는 노출하지 않는다.
+  const canShare = projectTypeReady && isAnalysis;
+  // 담당직원(출처) 프로필은 공유받은 변호사 건에서만 — 자체 등록 건은 출처가 없어 표시하지 않는다.
+  const showAssigneeProfile = projectTypeReady && isLawyer && detail.isReceivedShare;
   // 계약대기중인데 결제정보가 아직 없으면 절차 진행이 시작되지 않은 상태 — 결제정보 입력을 유도한다.
   // 말풍선·결제정보 버튼 클릭으로 닫으면 다시 띄우지 않는다.
   const showPaymentNudge =
@@ -532,13 +545,19 @@ export default function ResultHeader({
 
   const handleEdit = () => {
     setActionsMenuOpen(false);
-    // 정보수정(재분석)은 상담중/반려된 건만 가능 — 계약 이후(계약대기중 이상) 건은 절차가 이미
-    // 진행돼 입력값을 되돌려 재분석하면 안 되므로 서버도 이 상태에서만 허용한다.
-    if (detail.status !== "consulting" && detail.status !== "rejected") {
+    // 정보수정(재분석) 가능 여부는 canEditDiagnosisInfo 한 곳에서 판정한다(편집 페이지 게이트와 동일 기준).
+    // 영업점 자체 건: 상담중/반려. 변호사 자체 생성건: + 계약대기중. 공유받은 건: 불가.
+    if (
+      !canEditDiagnosisInfo({
+        status: detail.status,
+        isReceivedShare: detail.isReceivedShare,
+        isAnalysisProject: isAnalysis,
+      })
+    ) {
       showErrorModal({
         type: "info",
         title: "정보수정 불가",
-        headline: "정보수정은 상담중 또는 반려된 분석 건만 가능합니다.",
+        headline: "지금은 정보수정이 불가능한 상태입니다.",
         hideCancel: true,
       });
       return;
@@ -706,6 +725,7 @@ export default function ResultHeader({
                 <MobileActionsMenu
                   open={actionsMenuOpen}
                   isShared={detail.isShared}
+                  canShare={canShare}
                   isMatched={isMatched}
                   customerName={detail.customerName}
                   phonePreview={phonePreview}
@@ -849,17 +869,19 @@ export default function ResultHeader({
               </button>
               {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
             </div>
-            <button
-              type="button"
-              className={detail.isShared ? ACTION_BTN_SHARED : ACTION_BTN}
-              onClick={handleShareClick}
-              disabled={detail.isShared}
-              aria-label={shareLabel}
-              title={detail.isShared ? shareLabel : undefined}
-            >
-              <ShareNodesIcon />
-              <span className="min-w-0 truncate leading-none">{shareLabel}</span>
-            </button>
+            {canShare && (
+              <button
+                type="button"
+                className={detail.isShared ? ACTION_BTN_SHARED : ACTION_BTN}
+                onClick={handleShareClick}
+                disabled={detail.isShared}
+                aria-label={shareLabel}
+                title={detail.isShared ? shareLabel : undefined}
+              >
+                <ShareNodesIcon />
+                <span className="min-w-0 truncate leading-none">{shareLabel}</span>
+              </button>
+            )}
           </div>
         ) : showAssigneeProfile ? (
           <div className="flex items-center justify-end gap-4 shrink-0">
@@ -925,7 +947,7 @@ export default function ResultHeader({
           onChanged={onCustomerMatchChange}
         />
       )}
-      {projectId && showOwnerActions && (
+      {projectId && canShare && (
         <AnalysisShareModal
           open={shareOpen}
           onClose={() => setShareOpen(false)}
