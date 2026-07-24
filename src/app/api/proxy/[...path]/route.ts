@@ -19,6 +19,12 @@ import { getRememberPolicyFromRequest, setAuthCookies } from '@/lib/cookies';
  * 사용법: /api/proxy/v1/auth/user -> 백엔드의 /v1/auth/user로 프록시
  */
 
+// Vercel 서버리스 함수 기본 실행 제한(플랜별 상이, 기본 10~15초)이 apiClient의 클라이언트
+// 타임아웃(analysis.ts의 create/reanalyze 등 최대 120초)보다 짧아 AI 분석처럼 오래 걸리는
+// 요청은 클라이언트가 응답을 기다리기도 전에 이 함수가 먼저 종료되어 504로 끊긴다
+// (2026-07-24 확인). 플랜이 허용하는 한도 내에서 클라이언트 타임아웃과 맞춰 연장.
+export const maxDuration = 120;
+
 // Refresh queue: 동시에 여러 요청이 401을 받아도 refresh는 한 번만 실행
 let refreshInFlight: Promise<{ accessToken?: string; refreshToken?: string } | null> | null = null;
 // Refresh 성공 후 새 토큰 저장 (대기 중인 요청들이 사용)
