@@ -206,7 +206,8 @@ export default function DebtReliefHubContent() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-foreground text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:bg-neutral-10 transition-colors whitespace-nowrap flex items-center gap-1"
+              aria-label="관련뉴스"
+              className="cursor-pointer w-[34px] h-[34px] md:w-auto md:px-3 rounded-[5px] border border-neutral-30 text-foreground text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:bg-neutral-10 transition-colors whitespace-nowrap flex items-center justify-center md:justify-start gap-1"
               onClick={() => setIsNewsDrawerOpen(true)}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -218,7 +219,8 @@ export default function DebtReliefHubContent() {
                   strokeLinejoin="round"
                 />
               </svg>
-              관련뉴스
+              {/* 모바일은 아이콘만, md(780px)부터 문구 노출 — SectionProcedureGuide.tsx의 SmsButton과 동일 패턴 */}
+              <span className="hidden md:inline">관련뉴스</span>
             </button>
             <button
               type="button"
