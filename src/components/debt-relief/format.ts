@@ -68,23 +68,3 @@ export function formatFeePlanSummary(summary: FeePlanSummary): string {
   const paymentTypeLabel = summary.paymentType === "lump_sum" ? "일괄납부" : "분할납부";
   return `${paymentTypeLabel} ${summary.paidInstallmentCount}/${summary.installmentCount}회 · ${summary.totalAmount.toLocaleString("ko-KR")}만원`;
 }
-
-// AI 추천 태그 → 짧은 칩 라벨.
-// "조건 → 결론" 형태면 결론만 쓴다. maxLength를 주면 그보다 길 때 말줄임.
-const CHIP_ARROW_PATTERN = /\s*(?:→|->|⇒|➜)\s*/;
-const CHIP_LABEL_MAX_LENGTH = 12;
-
-export function toRecommendationChipLabel(
-  tag: string,
-  options?: { maxLength?: number | null }
-): string {
-  const trimmed = tag.trim();
-  if (!trimmed) return trimmed;
-
-  const segments = trimmed.split(CHIP_ARROW_PATTERN).map((part) => part.trim()).filter(Boolean);
-  const conclusion = segments.length > 1 ? segments[segments.length - 1] : trimmed;
-
-  const maxLength = options?.maxLength === undefined ? CHIP_LABEL_MAX_LENGTH : options.maxLength;
-  if (maxLength == null || conclusion.length <= maxLength) return conclusion;
-  return `${conclusion.slice(0, maxLength)}…`;
-}
