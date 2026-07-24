@@ -64,6 +64,41 @@ export function getMissingRequiredFieldLabelsForStep(
   }
 }
 
+/** 담보부채무·최근 3개월/1년 내 채무액 합이 총 채무 합계(채무종류별 금액 합)를 넘는지 검사 */
+export function isRecentAndSecuredDebtOverTotal(
+  form: DiagnosisFormState,
+  totalDebtManwon: number
+): boolean {
+  const sum = form.securedDebt + form.recentDebtWithin3Months + form.recentDebtWithin1Year;
+  return sum > totalDebtManwon;
+}
+
+export type OverLimitDebtField = "securedDebt" | "recentDebtWithin3Months" | "recentDebtWithin1Year";
+
+/**
+ * 합계 초과 시 어떤 필드가 원인인지 최대한 특정한다. 한 필드의 값만으로도 총 채무를 넘는다면
+ * (다른 두 필드가 0이어도 초과) 그 필드가 명백한 원인이므로 해당 필드만 반환한다.
+ * 여러 필드가 함께 더해져야만 초과하는 조합이면 수학적으로 "범인"을 특정할 수 없으므로
+ * 세 필드 모두 반환한다(기존 동작 유지). 초과하지 않으면 빈 배열.
+ */
+export function getOverLimitDebtFields(
+  form: DiagnosisFormState,
+  totalDebtManwon: number
+): OverLimitDebtField[] {
+  if (!isRecentAndSecuredDebtOverTotal(form, totalDebtManwon)) return [];
+
+  const fields: { key: OverLimitDebtField; value: number }[] = [
+    { key: "securedDebt", value: form.securedDebt },
+    { key: "recentDebtWithin3Months", value: form.recentDebtWithin3Months },
+    { key: "recentDebtWithin1Year", value: form.recentDebtWithin1Year },
+  ];
+  const individuallyOverLimit = fields
+    .filter((field) => field.value > totalDebtManwon)
+    .map((field) => field.key);
+
+  return individuallyOverLimit.length > 0 ? individuallyOverLimit : fields.map((field) => field.key);
+}
+
 export function isDiagnosisFormComplete(form: DiagnosisFormState): boolean {
   return getMissingRequiredFieldLabels(form).length === 0;
 }

@@ -11,11 +11,15 @@ import {
 import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
 import { PillSelect, PillMultiSelect } from "./PillSelect";
 import { FormToggleRow } from "./FormToggle";
+import { getOverLimitDebtFields } from "./validateDiagnosisForm";
 
 type Props = {
   form: DiagnosisFormState;
   update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void;
   derived: DiagnosisDerivedValues;
+  // 분석하기 제출 시점에 담보부채무·최근 3개월/1년 내 채무액의 합이 총 채무 합계를 초과한 적이
+  // 있으면 true. 이후 값이 다시 유효해지면(sum <= totalDebt) 매 렌더마다 재계산되어 즉시 해제된다.
+  debtSumOverLimitChecked?: boolean;
 };
 
 function getDebtAmountFields(selectedTypes: DebtType[]): { key: DebtType; label: string }[] {
@@ -24,7 +28,13 @@ function getDebtAmountFields(selectedTypes: DebtType[]): { key: DebtType; label:
   );
 }
 
-export default function Step3Debts({ form, update, derived }: Props) {
+export default function Step3Debts({ form, update, derived, debtSumOverLimitChecked = false }: Props) {
+  // 값 하나만으로 총 채무를 넘는 필드가 있으면 그 필드만 표시하고, 여러 필드의 조합으로만
+  // 초과하는 경우(원인을 특정할 수 없음)에는 세 필드 모두 표시한다 — getOverLimitDebtFields 참고.
+  const overLimitFields = debtSumOverLimitChecked
+    ? getOverLimitDebtFields(form, derived.totalDebtManwon)
+    : [];
+
   const setAmount = (type: DebtType, value: number) => {
     update("debtAmounts", { ...form.debtAmounts, [type]: value });
   };
@@ -108,27 +118,28 @@ export default function Step3Debts({ form, update, derived }: Props) {
             />
           </FormField>
 
-          {/* 2026-07-24 피드백 추가 항목 — 만원 단위 숫자입력 3종.
-              md(780px)는 좌측 사이드바가 이미 붙어 실제 폼 폭이 좁은 구간이라 md:grid-cols-3이면
-              "최근 3개월/1년 내 채무액" 같은 긴 라벨이 2줄로 줄바꿈된다(CustomerLinkedAnalysisSection.tsx의
-              동일 사례 참고, docs/RESPONSIVE_BREAKPOINT_DRIFT_TASKS.md) — lg(1080px)부터 3열로 전환. */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-7 gap-y-4 lg:gap-y-5">
-            <FormField label="담보부채무" filled={form.securedDebt > 0}>
-              <ManwonInput
-                value={form.securedDebt}
-                onChange={(value) => update("securedDebt", value)}
-              />
-            </FormField>
+          {/* 2026-07-24 피드백 추가 항목 — 만원 단위 숫자입력 3종. 위 채무종류별 금액 그리드(62번 줄)와
+              동일하게 2열(md:grid-cols-2)로 배치 — 3번째 필드는 다음 줄로 넘어간다. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
             <FormField label="최근 3개월 내 채무액" filled={form.recentDebtWithin3Months > 0}>
               <ManwonInput
                 value={form.recentDebtWithin3Months}
                 onChange={(value) => update("recentDebtWithin3Months", value)}
+                invalid={overLimitFields.includes("recentDebtWithin3Months")}
               />
             </FormField>
             <FormField label="최근 1년 내 채무액" filled={form.recentDebtWithin1Year > 0}>
               <ManwonInput
                 value={form.recentDebtWithin1Year}
                 onChange={(value) => update("recentDebtWithin1Year", value)}
+                invalid={overLimitFields.includes("recentDebtWithin1Year")}
+              />
+            </FormField>
+            <FormField label="담보부채무" filled={form.securedDebt > 0}>
+              <ManwonInput
+                value={form.securedDebt}
+                onChange={(value) => update("securedDebt", value)}
+                invalid={overLimitFields.includes("securedDebt")}
               />
             </FormField>
           </div>

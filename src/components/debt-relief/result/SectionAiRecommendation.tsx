@@ -1,48 +1,7 @@
 import type { DiagnosisDetail } from "@/types/debtRelief";
-import { formatDateTimeDisplay, toRecommendationChipLabel } from "@/components/debt-relief/format";
+import { formatDateTimeDisplay } from "@/components/debt-relief/format";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 import SuccessDonut from "./SuccessDonut";
-
-function RecommendationChips({
-  tags,
-  truncateLabel = true,
-  /** 회색 카드(#F8F8F8) 위에서는 흰 칩(피그마 chip2) */
-  onMutedSurface = false,
-}: {
-  tags: string[];
-  /** false면 말줄임 없이 전체 결론 라벨을 쓰고, 칩이 넘치면 개행한다. */
-  truncateLabel?: boolean;
-  onMutedSurface?: boolean;
-}) {
-  return (
-    <div
-      className={`flex gap-2 ${
-        truncateLabel
-          ? "flex-nowrap overflow-x-auto scrollbar-hide"
-          : "flex-wrap"
-      }`}
-    >
-      {tags.map((tag) => {
-        const label = toRecommendationChipLabel(tag, {
-          maxLength: truncateLabel ? undefined : null,
-        });
-        return (
-          <span
-            key={tag}
-            title={tag}
-            className={`inline-flex items-center justify-center h-[22px] px-3 rounded-[30px] text-[12px] font-medium leading-[14px] text-neutral-70 opacity-80 whitespace-nowrap shrink-0 ${
-              onMutedSurface
-                ? "bg-white dark:bg-neutral-10"
-                : "bg-neutral-20 dark:bg-neutral-30"
-            }`}
-          >
-            {label}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function SectionAiRecommendation({
   detail,
@@ -103,14 +62,6 @@ export default function SectionAiRecommendation({
               <SuccessDonut value={successProbability} size={88} stroke={5} whiteCover />
             </div>
           </div>
-
-          <div className="mt-3">
-            <RecommendationChips
-              tags={recommendation.tags}
-              truncateLabel={false}
-              onMutedSurface
-            />
-          </div>
         </div>
       </div>
 
@@ -142,13 +93,6 @@ export default function SectionAiRecommendation({
               <p className="mt-[11px] text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
                 {recommendation.description}
               </p>
-              <div className="mt-3 max-w-[480px]">
-                <RecommendationChips
-                  tags={recommendation.tags}
-                  truncateLabel={false}
-                  onMutedSurface
-                />
-              </div>
             </div>
             {/* stroke 7: cover 106 on 120 → (120-106)/2 ≈ 7 */}
             <div className="shrink-0 self-center">
@@ -158,11 +102,11 @@ export default function SectionAiRecommendation({
         </div>
       </div>
 
-      {/* PC(lg+): 피그마 회색 카드 — 라벨+날짜 / 제목+설명 가로 / 흰 칩 / 우측 136 도넛 */}
+      {/* PC(lg+): 피그마 회색 카드 — 라벨+날짜 / 제목+설명 가로 / 우측 120 도넛 */}
       <div className="hidden lg:block">
         <div className="rounded-[12px] bg-neutral-10 px-10 py-6 dark:bg-neutral-20">
           <div className="flex items-center justify-between gap-10">
-            <div className="min-w-0 flex-1 max-w-[581px]">
+            <div className="min-w-0 flex-1 max-w-[800px]">
               <div className="flex h-6 items-center">
                 <p className="inline-flex h-5 items-center text-[16px] font-medium leading-5 tracking-[-0.04em] text-neutral-60">
                   AI 분석 추천
@@ -184,23 +128,15 @@ export default function SectionAiRecommendation({
                 <h3 className="shrink-0 text-[36px] font-extrabold leading-[43px] tracking-[-0.04em] text-neutral-90">
                   {recommendation.title}
                 </h3>
-                <p className="min-w-0 w-[392px] max-w-[392px] shrink-0 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
+                <p className="min-w-0 w-[690px] max-w-[690px] shrink-0 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
                   {recommendation.description}
                 </p>
               </div>
-
-              <div className="mt-6">
-                <RecommendationChips
-                  tags={recommendation.tags}
-                  truncateLabel={false}
-                  onMutedSurface
-                />
-              </div>
             </div>
 
-            {/* stroke 8: Figma cover 120px on 136px → (136-120)/2 */}
+            {/* stroke 7: cover 106 on 120 → (120-106)/2 ≈ 7 */}
             <div className="shrink-0 self-center">
-              <SuccessDonut value={successProbability} size={136} stroke={8} whiteCover />
+              <SuccessDonut value={successProbability} size={120} stroke={7} whiteCover />
             </div>
           </div>
         </div>

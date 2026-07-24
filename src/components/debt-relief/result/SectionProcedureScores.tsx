@@ -130,40 +130,42 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
   const selectedConditionAnalysis =
     detail.conditionAnalysisByProcedure[selectedProcedure] ?? detail.conditionAnalysis;
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-9">
-      {/* 좌: 절차별 성공 가능성 */}
-      <div className="min-w-0 flex flex-col">
-        <div>
-          <div className="flex items-center gap-1">
-            <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
-              절차별 성공 가능성
-            </h2>
-            <DisclaimerInfoTooltip label="절차별 성공 가능성 안내">
-              성공 가능성 점수는 입력 정보 기준{" "}
-              <span className="font-extrabold">AI 참고 지표</span>이며,
-              <br />
-              법원·채권자 심사 결과를 보장하지 않습니다.
-            </DisclaimerInfoTooltip>
-          </div>
-          <div className="mt-3 border-t border-neutral-30" />
-        </div>
+  // 개인회생/파산 중 AI가 추천한 절차가 항상 왼쪽에 오도록 정렬한다 — API 응답 순서에 고정되지 않음.
+  const orderedScores = [...detail.procedureScores].sort(
+    (a, b) => Number(b.recommended) - Number(a.recommended)
+  );
 
-        {/* justify-evenly: 채무조정 제거로 절차 항목이 2개로 줄어도(개인회생·파산) 남는 세로 공간이
-            justify-center처럼 위아래로만 몰리지 않고 행 사이에도 고르게 분배되도록 한다. */}
-        <div className="flex-1 flex flex-col justify-evenly gap-3 md:gap-5 mt-5 md:mt-8">
-          {detail.procedureScores.map((score) => (
-            <ScoreRow
-              key={score.procedure}
-              score={score}
-              isSelected={score.procedure === selectedProcedure}
-              onSelect={() => setSelectedProcedure(score.procedure)}
-            />
-          ))}
+  return (
+    <div className="flex flex-col gap-6 md:gap-8">
+      {/* 절차별 성공 가능성 타이틀 */}
+      <div>
+        <div className="flex items-center gap-1">
+          <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
+            절차별 성공 가능성
+          </h2>
+          <DisclaimerInfoTooltip label="절차별 성공 가능성 안내">
+            성공 가능성 점수는 입력 정보 기준{" "}
+            <span className="font-extrabold">AI 참고 지표</span>이며,
+            <br />
+            법원·채권자 심사 결과를 보장하지 않습니다.
+          </DisclaimerInfoTooltip>
         </div>
+        <div className="mt-3 border-t border-neutral-30" />
       </div>
 
-      {/* 우: 조건 분석 카드 */}
+      {/* 절차 점수 카드: 추천 절차(개인회생/파산 중 하나)가 왼쪽 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+        {orderedScores.map((score) => (
+          <ScoreRow
+            key={score.procedure}
+            score={score}
+            isSelected={score.procedure === selectedProcedure}
+            onSelect={() => setSelectedProcedure(score.procedure)}
+          />
+        ))}
+      </div>
+
+      {/* 조건 분석 카드 */}
       <div className="min-w-0 rounded-[12px] border border-neutral-30 overflow-hidden">
         <div className="min-h-[42px] px-4 md:px-5 py-2 md:py-0 bg-neutral-10 flex flex-wrap items-center justify-between gap-2 md:gap-3">
           <h3 className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">

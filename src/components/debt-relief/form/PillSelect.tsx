@@ -31,14 +31,18 @@ export function PillSelect<T extends string>({
   options,
   value,
   onChange,
+  className = "",
 }: {
   options: PillOption<T>[];
   value: T | null;
   /** 이미 선택된 항목을 다시 누르면 null로 넘어온다 — 미선택 상태로 되돌릴 수 있어야 함 */
   onChange: (value: T | null) => void;
+  /** 기본 flex-wrap 레이아웃에 추가로 얹을 클래스 — 옵션이 많은 필드(거주지역 등)에서 md 이상
+   * 한 줄 최대 개수를 grid로 제한하고 싶을 때 사용 */
+  className?: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={`flex flex-wrap gap-2 ${className}`}>
       {options.map((option) => (
         <PillButton
           key={option.value}

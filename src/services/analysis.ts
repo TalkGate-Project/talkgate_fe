@@ -63,11 +63,15 @@ export type AnalysisChatStreamCallbacks = {
 };
 
 export const AnalysisService = {
-  // 분석 생성 및 AI 진단 실행
+  // 분석 생성 및 AI 진단 실행. 실제 LLM 호출이 끼어 있어 apiClient 기본 타임아웃(30초)을
+  // 넘기는 경우가 있어(2026-07-24 확인 — AbortError로 실패하지만 서버는 정상 완료됨) 2분으로 연장.
+  // 서버는 완료됐는데 클라이언트만 타임아웃나면 재시도 시 중복 분석 건이 생기므로 주의
+  // (2026-07-24 실사용 중 "채무테스트" 3건 중복 생성 확인).
   create(input: CreateAnalysisInput) {
     const { projectId, ...body } = input;
     return apiClient.post<CreateAnalysisResponse>(`/v1/analysis`, body, {
       headers: { "x-project-id": projectId },
+      timeoutMs: 120000,
     });
   },
 
@@ -97,10 +101,12 @@ export const AnalysisService = {
 
   // 분석 입력값 수정 및 AI 재진단 (자체 생성 분석 건만 가능). 성공 시 status/trackingProcedure/
   // currentProcedureStep이 초기화되고 AI 채팅 이력이 삭제된다 — 호출 전 UI에서 사용자에게 안내 필요.
+  // create와 동일하게 실제 LLM 호출이 있어 타임아웃을 넉넉히 연장(위 create 주석 참고).
   reanalyze(id: number, input: ReanalyzeAnalysisInput) {
     const { projectId, ...body } = input;
     return apiClient.patch<ReanalyzeAnalysisResponse>(`/v1/analysis/${id}/input`, body, {
       headers: { "x-project-id": projectId },
+      timeoutMs: 120000,
     });
   },
 

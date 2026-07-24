@@ -36,7 +36,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
             label="고객명"
             required
             filled={Boolean(form.customerName.trim())}
-            className="flex-1 min-w-0 md:max-w-[240px]"
+            className="flex-1 min-w-0 md:max-w-[230px]"
           >
             <TextInput
               value={form.customerName}
@@ -62,10 +62,12 @@ export default function Step1BasicInfo({ form, update }: Props) {
         </FormField>
 
         <FormField label="거주 지역" required filled={form.region !== null}>
+          {/* 옵션이 17개라 PC에서 한 줄에 끝까지 늘어지면 부자연스러워 md 이상은 한 줄 최대 9개로 제한 */}
           <PillSelect
             options={REGION_OPTIONS}
             value={form.region}
             onChange={(value) => update("region", value)}
+            className="md:grid md:grid-cols-[repeat(9,max-content)]"
           />
         </FormField>
 

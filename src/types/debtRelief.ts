@@ -412,6 +412,21 @@ export type MonthlyExpenses = {
   other: number; // 기타 고정지출
 };
 
+// ── 5. 기타사항 ──────────────────────────────────────────────
+// 2026-07-24 피드백: 특례 대상 — 중복선택 가능(단, 만 29세 이하/만 65세 이상은 동시 선택 불가,
+// Step5Others.tsx의 handleSpecialEligibilityChange에서 상호배타 처리).
+export type SpecialEligibilityType =
+  | "age_29_or_under"
+  | "age_65_or_over"
+  | "severe_disability"
+  | "jeonse_fraud_victim";
+export const SPECIAL_ELIGIBILITY_OPTIONS: PillOption<SpecialEligibilityType>[] = [
+  { value: "age_29_or_under", label: "만 29세 이하" },
+  { value: "age_65_or_over", label: "만 65세 이상" },
+  { value: "severe_disability", label: "중증 장애인" },
+  { value: "jeonse_fraud_victim", label: "전세사기 피해자" },
+];
+
 // ── 폼 전체 상태 ─────────────────────────────────────────────
 export type DiagnosisFormState = {
   // 1. 기본정보
@@ -438,8 +453,8 @@ export type DiagnosisFormState = {
   debtCauses: DebtCause[];
   creditorCount: CreditorCountRange | null; // 채권자 수 구간
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
-  // 2026-07-24 피드백 추가 항목. ⚠️ 실 API(POST /v1/analysis)에 아직 대응 필드가 없어 현재는
-  // 폼 로컬 상태로만 존재 — 제출 시 서버로 전송되지 않는다(services/debtRelief.ts 참고).
+  // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
+  // 대응(services/debtRelief.ts 참고).
   securedDebt: number; // 담보부채무 (만원)
   recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (만원)
   recentDebtWithin1Year: number; // 최근 1년 내 채무액 (만원)
@@ -456,12 +471,9 @@ export type DiagnosisFormState = {
   guarantorDetail: string;
   hasOngoingLitigation: boolean;
   litigationDetail: string;
-  // 2026-07-24 피드백 추가 항목. 위 채무현황 신규 필드와 마찬가지로 실 API 대응 필드가 아직
-  // 없어 폼 로컬 상태로만 존재한다.
-  isAge29OrUnder: boolean; // 만 29세 이하
-  isAge65OrOver: boolean; // 만 65세 이상
-  hasSevereDisability: boolean; // 중증 장애인
-  isJeonseFraudVictim: boolean; // 전세사기 피해자
+  // 2026-07-24 피드백 추가 항목. API specialEligibilities에 대응(services/debtRelief.ts 참고).
+  // 중복선택 가능(만 29세 이하/만 65세 이상은 상호배타).
+  specialEligibility: SpecialEligibilityType[];
   counselorMemo: string;
 };
 
@@ -498,10 +510,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     guarantorDetail: "",
     hasOngoingLitigation: false,
     litigationDetail: "",
-    isAge29OrUnder: false,
-    isAge65OrOver: false,
-    hasSevereDisability: false,
-    isJeonseFraudVictim: false,
+    specialEligibility: [],
     counselorMemo: "",
   };
 }
@@ -670,6 +679,8 @@ export type DiagnosisDetail = {
   // 절차별(개인회생/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
   conditionAnalysisByProcedure: Record<RecommendedProcedure, ConditionItem[]>;
   debtStatus: DebtStatusSummary;
+  // 개인회생 추적 시에만 노출되는 "채무조정 비교" 문구 (없으면 null — 섹션 자체를 숨김)
+  debtAdjustmentComparison: string | null;
   repaymentPlan: RepaymentPlan;
   counselMents: CounselMent[];
   // 실 AI 채팅은 useDebtReliefAiChat 훅이 별도로 GET/POST /v1/analysis/{id}/chat(/stream)을
