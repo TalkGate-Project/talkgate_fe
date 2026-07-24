@@ -32,6 +32,26 @@ export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus
   "in_progress",
 ];
 
+// 정보수정(재분석) 가능 여부 판정 — 버튼 게이트(ResultHeader)와 URL 직접진입 게이트
+// (DiagnosisFormContent)가 동일 기준을 쓰도록 한 곳으로 모은다. 두 게이트가 어긋나면
+// 버튼은 막히는데 URL로는 통과하는(또는 그 반대) 구멍이 생긴다.
+//
+// - 공유(납품)받은 건: 원본 영업 데이터라 재분석 불가.
+// - 영업점 자체 건: 상담중/반려만 (기존 정책).
+// - 변호사 자체 생성건: 상담중을 거치지 않고 바로 계약대기중으로 생성되므로, 상담중/반려에
+//   더해 계약대기중(contract_pending)에서도 수정 가능해야 한다.
+export function canEditDiagnosisInfo(params: {
+  status: AnalysisStatus;
+  isReceivedShare: boolean;
+  isAnalysisProject: boolean;
+}): boolean {
+  if (params.isReceivedShare) return false;
+  const baseEditable = params.status === "consulting" || params.status === "rejected";
+  if (params.isAnalysisProject) return baseEditable;
+  // 변호사 자체 생성건(공유받지 않은 건) — 계약대기중도 허용
+  return baseEditable || params.status === "contract_pending";
+}
+
 // ── 추천 절차 ────────────────────────────────────────────────
 // 코드는 내부 분기(배지 색상/탭 필터/분포 집계)용, 라벨은 UI 표시용.
 // ⚠️ 채무조정 절차가 스키마·enum에서 완전히 제거됨(2026-07-24) — 개인회생/파산 2종만 남는다.
@@ -651,6 +671,11 @@ export type DiagnosisDetail = {
   customerId: number | null;
   consultedAt: string; // ISO datetime
   isShared: boolean;
+  // 다른(영업) 프로젝트에서 공유(납품)받은 건인지 여부. 원본 출처(source) 정보가 있으면 true —
+  // source 필드는 "받은 쪽"에만 존재해 방향을 정확히 가른다(반려/철회된 공유 건도 출처 정보는 남아 포함).
+  // deliveryStatus는 공유 양쪽 모두에 남아 판별에 쓰면 영업점 자기 데이터를 오판하므로 쓰지 않는다.
+  // 변호사 프로젝트가 직접 등록한 건은 false → 소유자 액션(연동/수정/결제)을 노출한다.
+  isReceivedShare: boolean;
   status: AnalysisStatus;
   // 반려됨 상태인 경우 변호사 프로젝트가 남긴 반려 사유. 목록에는 없는 상세 전용 필드.
   rejectionReason: string | null;
