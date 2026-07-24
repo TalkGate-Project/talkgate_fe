@@ -19,7 +19,7 @@ export default function DataTab({
   const canEditProviderFields = isDataProvider;
 
   return (
-    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+    <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
       {/* 좌: 신청경로 / 우: 사이트 */}
       <label className="block">
         <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">신청경로</span>

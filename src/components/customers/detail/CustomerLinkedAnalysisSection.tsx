@@ -107,7 +107,7 @@ function EmptyLinkedAnalysis({
     <div
       className={
         isMobile
-          ? "flex items-center gap-4 px-3 py-4 min-h-[86px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
+          ? "flex items-center gap-4 px-3 h-[58px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
           : "flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10"
       }
     >
@@ -288,7 +288,7 @@ export default function CustomerLinkedAnalysisSection({
   };
 
   return (
-    <div className="md:col-span-2">
+    <div className="lg:col-span-2">
       <div className="text-[16px] font-semibold text-neutral-90 mb-3">회생·파산 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
