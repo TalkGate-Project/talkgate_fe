@@ -381,10 +381,7 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     hasOngoingLitigation: input.hasActiveLawsuit,
     litigationDetail: input.lawsuitNote ?? "",
     // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다.
-    isAge29OrUnder: false,
-    isAge65OrOver: false,
-    hasSevereDisability: false,
-    isJeonseFraudVictim: false,
+    specialEligibility: [],
     counselorMemo: input.additionalNotes ?? "",
   };
 }
