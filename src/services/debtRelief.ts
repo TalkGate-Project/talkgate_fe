@@ -282,7 +282,13 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     debtBreakdown[key] = (debtBreakdown[key] ?? 0) + (form.debtAmounts[type] ?? 0);
   });
 
-  const realEstateBreakdown: AnalysisRealEstateBreakdown = {};
+  // 실 API는 "미보유 항목은 0 또는 생략"이라 안내하지만, 부동산 미보유 시 빈 객체({})가
+  // 그대로 나가는 사례가 있어 항목별로 명시적으로 0을 채워 보낸다.
+  const realEstateBreakdown: AnalysisRealEstateBreakdown = {
+    ownedValue: 0,
+    jeonseDeposit: 0,
+    rentalValue: 0,
+  };
   form.realEstateTypes.forEach((type) => {
     const key = REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY[type];
     realEstateBreakdown[key] = (realEstateBreakdown[key] ?? 0) + (form.realEstateAmounts[type] ?? 0);
