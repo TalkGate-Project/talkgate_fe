@@ -213,20 +213,43 @@ export const AGE_GROUP_OPTIONS: PillOption<AgeGroup>[] = [
   { value: "60s_plus", label: "60대 이상" },
 ];
 
+// 2026-07-24 피드백: 광역 묶음(6개) → 17개 광역시·도 단위로 세분화.
 export type RegionCode =
   | "seoul"
-  | "gyeonggi_incheon"
-  | "busan_gyeongnam"
-  | "daegu_gyeongbuk"
-  | "chungcheong_gangwon"
-  | "honam_jeju";
+  | "gyeonggi"
+  | "incheon"
+  | "busan"
+  | "daegu"
+  | "gwangju"
+  | "daejeon"
+  | "ulsan"
+  | "sejong"
+  | "gangwon"
+  | "chungbuk"
+  | "chungnam"
+  | "jeonbuk"
+  | "jeonnam"
+  | "gyeongbuk"
+  | "gyeongnam"
+  | "jeju";
 export const REGION_OPTIONS: PillOption<RegionCode>[] = [
   { value: "seoul", label: "서울" },
-  { value: "gyeonggi_incheon", label: "경기·인천" },
-  { value: "busan_gyeongnam", label: "부산·경남" },
-  { value: "daegu_gyeongbuk", label: "대구·경북" },
-  { value: "chungcheong_gangwon", label: "충청·강원" },
-  { value: "honam_jeju", label: "호남·제주" },
+  { value: "gyeonggi", label: "경기" },
+  { value: "incheon", label: "인천" },
+  { value: "busan", label: "부산" },
+  { value: "daegu", label: "대구" },
+  { value: "gwangju", label: "광주" },
+  { value: "daejeon", label: "대전" },
+  { value: "ulsan", label: "울산" },
+  { value: "sejong", label: "세종" },
+  { value: "gangwon", label: "강원" },
+  { value: "chungbuk", label: "충북" },
+  { value: "chungnam", label: "충남" },
+  { value: "jeonbuk", label: "전북" },
+  { value: "jeonnam", label: "전남" },
+  { value: "gyeongbuk", label: "경북" },
+  { value: "gyeongnam", label: "경남" },
+  { value: "jeju", label: "제주" },
 ];
 
 export type EmploymentType =
@@ -415,6 +438,11 @@ export type DiagnosisFormState = {
   debtCauses: DebtCause[];
   creditorCount: CreditorCountRange | null; // 채권자 수 구간
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
+  // 2026-07-24 피드백 추가 항목. ⚠️ 실 API(POST /v1/analysis)에 아직 대응 필드가 없어 현재는
+  // 폼 로컬 상태로만 존재 — 제출 시 서버로 전송되지 않는다(services/debtRelief.ts 참고).
+  securedDebt: number; // 담보부채무 (만원)
+  recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (만원)
+  recentDebtWithin1Year: number; // 최근 1년 내 채무액 (만원)
 
   // 4. 소득/지출
   monthlyIncome: MonthlyIncomeRange | null;
@@ -428,6 +456,12 @@ export type DiagnosisFormState = {
   guarantorDetail: string;
   hasOngoingLitigation: boolean;
   litigationDetail: string;
+  // 2026-07-24 피드백 추가 항목. 위 채무현황 신규 필드와 마찬가지로 실 API 대응 필드가 아직
+  // 없어 폼 로컬 상태로만 존재한다.
+  isAge29OrUnder: boolean; // 만 29세 이하
+  isAge65OrOver: boolean; // 만 65세 이상
+  hasSevereDisability: boolean; // 중증 장애인
+  isJeonseFraudVictim: boolean; // 전세사기 피해자
   counselorMemo: string;
 };
 
@@ -452,6 +486,9 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     debtCauses: [],
     creditorCount: null,
     hasTaxArrears: false,
+    securedDebt: 0,
+    recentDebtWithin3Months: 0,
+    recentDebtWithin1Year: 0,
     monthlyIncome: null,
     housingType: null,
     expenses: { housing: 0, food: 0, education: 0, transportation: 0, other: 0 },
@@ -461,6 +498,10 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     guarantorDetail: "",
     hasOngoingLitigation: false,
     litigationDetail: "",
+    isAge29OrUnder: false,
+    isAge65OrOver: false,
+    hasSevereDisability: false,
+    isJeonseFraudVictim: false,
     counselorMemo: "",
   };
 }

@@ -360,6 +360,11 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     hasTaxArrears: input.hasTaxArrears ?? false,
+    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다 —
+    // 서버가 필드를 내려주기 시작하면 여기서 역매핑을 추가할 것.
+    securedDebt: 0,
+    recentDebtWithin3Months: 0,
+    recentDebtWithin1Year: 0,
     monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
     housingType: input.housingType,
     expenses: {
@@ -375,6 +380,11 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     guarantorDetail: input.guarantorNote ?? "",
     hasOngoingLitigation: input.hasActiveLawsuit,
     litigationDetail: input.lawsuitNote ?? "",
+    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다.
+    isAge29OrUnder: false,
+    isAge65OrOver: false,
+    hasSevereDisability: false,
+    isJeonseFraudVictim: false,
     counselorMemo: input.additionalNotes ?? "",
   };
 }

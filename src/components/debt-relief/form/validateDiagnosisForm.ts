@@ -34,7 +34,6 @@ export function getMissingRequiredFieldLabelsForStep(
       if (!form.gender) missing.push("성별");
       if (!form.ageGroup) missing.push("연령대");
       if (!form.region) missing.push("거주 지역");
-      if (!form.employmentType) missing.push("고용 형태");
       if (form.dependents === null) missing.push("부양가족");
       if (form.spouseIncome === null) missing.push("배우자 소득");
       return missing;
@@ -54,6 +53,7 @@ export function getMissingRequiredFieldLabelsForStep(
     }
     case "income": {
       const missing: string[] = [];
+      if (!form.employmentType) missing.push("고용 형태");
       if (!form.monthlyIncome) missing.push("월 소득 구간");
       if (!form.housingType) missing.push("주거 형태");
       return missing;
