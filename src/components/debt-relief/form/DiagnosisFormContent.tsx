@@ -14,6 +14,7 @@ import {
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
   isDiagnosisStepComplete,
+  isRecentAndSecuredDebtOverTotal,
 } from "./validateDiagnosisForm";
 import { FORM_STEPS } from "./steps";
 import FormSidebar from "./FormSidebar";
@@ -33,6 +34,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const [projectId, ready] = useSelectedProjectId();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
+  // 분석하기 클릭 시 담보부채무·최근 3개월/1년 내 채무액 합이 총 채무 합계를 초과한 적이 있으면
+  // true로 래치. Step3Debts가 이 값과 최신 폼 상태를 함께 계산해 여전히 초과 상태일 때만 필드
+  // 테두리를 빨갛게 표시하고, 값이 다시 유효해지는 즉시(재계산 결과 false) 자동으로 해제된다.
+  const [debtSumOverLimitChecked, setDebtSumOverLimitChecked] = useState(false);
 
   const isEdit = Boolean(diagnosisId);
   const [loadingForm, setLoadingForm] = useState(isEdit);
@@ -185,6 +190,20 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
+    if (isRecentAndSecuredDebtOverTotal(form, derived.totalDebtManwon)) {
+      setDebtSumOverLimitChecked(true);
+      showErrorModal({
+        type: "info",
+        title: "알림",
+        headline: "채무 금액을 다시 확인해주세요.",
+        description: "담보부채무·최근 3개월/1년 내 채무액의 합이 총 채무 합계를 초과할 수 없습니다.",
+        confirmText: "채무 현황 입력",
+        hideCancel: true,
+        onConfirm: () => goToStep(2),
+      });
+      return;
+    }
+
     // 재분석(수정 모드)은 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는
     // 되돌릴 수 없는 부수효과가 있어 확인을 먼저 받는다. 신규 생성은 잃을 기존 상태가 없어 대상 아님.
     if (isEdit) {
@@ -233,7 +252,14 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       case "assets":
         return <Step2Assets form={form} update={update} />;
       case "debts":
-        return <Step3Debts form={form} update={update} derived={derived} />;
+        return (
+          <Step3Debts
+            form={form}
+            update={update}
+            derived={derived}
+            debtSumOverLimitChecked={debtSumOverLimitChecked}
+          />
+        );
       case "income":
         return <Step4IncomeExpense form={form} update={update} derived={derived} />;
       case "others":

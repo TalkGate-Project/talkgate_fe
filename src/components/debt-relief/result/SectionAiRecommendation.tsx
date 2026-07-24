@@ -106,7 +106,7 @@ export default function SectionAiRecommendation({
       <div className="hidden lg:block">
         <div className="rounded-[12px] bg-neutral-10 px-10 py-6 dark:bg-neutral-20">
           <div className="flex items-center justify-between gap-10">
-            <div className="min-w-0 flex-1 max-w-[581px]">
+            <div className="min-w-0 flex-1 max-w-[800px]">
               <div className="flex h-6 items-center">
                 <p className="inline-flex h-5 items-center text-[16px] font-medium leading-5 tracking-[-0.04em] text-neutral-60">
                   AI 분석 추천
@@ -128,7 +128,7 @@ export default function SectionAiRecommendation({
                 <h3 className="shrink-0 text-[36px] font-extrabold leading-[43px] tracking-[-0.04em] text-neutral-90">
                   {recommendation.title}
                 </h3>
-                <p className="min-w-0 w-[392px] max-w-[392px] shrink-0 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
+                <p className="min-w-0 w-[690px] max-w-[690px] shrink-0 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-90 whitespace-pre-line">
                   {recommendation.description}
                 </p>
               </div>

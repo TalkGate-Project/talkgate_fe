@@ -75,15 +75,24 @@ export function TextInput({
   );
 }
 
+// 최대 9자리(999,999,999만원 = 약 10조원) — 이보다 길면 Number.MAX_SAFE_INTEGER를 넘어
+// parseInt 결과가 부정확해지고 toLocaleString 표시가 깨진다. 개인 채무/자산 입력 범위로는
+// 충분히 넉넉해 실사용에는 제약이 되지 않는다.
+const MANWON_MAX_DIGITS = 9;
+
 // 만원 단위 숫자 입력. 값은 콤마 포맷, 우측에 "만원" 접미사
 export function ManwonInput({
   value,
   onChange,
   placeholder = "0",
+  invalid = false,
 }: {
   value: number;
   onChange: (value: number) => void;
   placeholder?: string;
+  // true면 border를 danger 색으로 표시 (예: 제출 시점에 발견된 채무 금액 합계 초과).
+  // 호출부에서 값이 다시 유효해지는 순간 false로 넘겨주면 즉시 해제된다.
+  invalid?: boolean;
 }) {
   return (
     <div className="relative">
@@ -91,11 +100,11 @@ export function ManwonInput({
         inputMode="numeric"
         value={value ? value.toLocaleString("ko-KR") : ""}
         onChange={(e) => {
-          const digits = e.target.value.replace(/[^0-9]/g, "");
+          const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
           onChange(digits ? parseInt(digits, 10) : 0);
         }}
         placeholder={placeholder}
-        className={`${INPUT_CLASS} pr-12`}
+        className={`${INPUT_CLASS} pr-12 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
         만원
