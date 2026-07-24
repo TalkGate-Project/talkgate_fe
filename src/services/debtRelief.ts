@@ -276,14 +276,21 @@ function optionValueFromLabel<T extends string>(
 // 생성(POST /v1/analysis)과 재분석(PATCH /v1/analysis/{id}/input)이 동일한 입력 형태를
 // 쓰므로 공통 매핑만 여기서 만들고, projectId/customerId 등 나머지는 호출부에서 붙인다.
 function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
-  const debtBreakdown: AnalysisDebtBreakdown = {};
+  // 실 API는 "해당 없는 항목은 0 또는 생략"이라 안내하지만, 채무종류를 하나도 선택하지
+  // 않으면 빈 객체({})가 그대로 나가는 사례가 있어 항목별로 명시적으로 0을 채워 보낸다.
+  const debtBreakdown: AnalysisDebtBreakdown = {
+    bankLoan: 0,
+    cardDebt: 0,
+    capitalLoan: 0,
+    privateDebt: 0,
+    personalBorrowing: 0,
+  };
   form.debtTypes.forEach((type) => {
     const key = DEBT_TYPE_TO_BREAKDOWN_KEY[type];
     debtBreakdown[key] = (debtBreakdown[key] ?? 0) + (form.debtAmounts[type] ?? 0);
   });
 
-  // 실 API는 "미보유 항목은 0 또는 생략"이라 안내하지만, 부동산 미보유 시 빈 객체({})가
-  // 그대로 나가는 사례가 있어 항목별로 명시적으로 0을 채워 보낸다.
+  // 부동산 미보유 시에도 동일한 이유로 명시적으로 0을 채워 보낸다.
   const realEstateBreakdown: AnalysisRealEstateBreakdown = {
     ownedValue: 0,
     jeonseDeposit: 0,
