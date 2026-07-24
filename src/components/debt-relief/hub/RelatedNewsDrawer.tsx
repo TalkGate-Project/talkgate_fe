@@ -18,33 +18,31 @@ function formatNewsDate(pubDate: string): string {
   return `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
-// 모바일: 카드형(둥근 배경 + 발행사 배지) / 데스크톱: 구분선 리스트(점 구분자) — 브레이크포인트만 다르게 준다
-// (이 프로젝트 md는 780px, globals.css --breakpoint-md 참고)
 function NewsListItem({ article }: { article: NewsArticle }) {
   return (
     <a
       href={article.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="block mx-4 mb-3 rounded-[12px] bg-neutral-10 px-4 py-4 hover:bg-neutral-20 transition-colors md:mx-0 md:mb-0 md:rounded-none md:bg-transparent md:px-6 md:py-5 md:border-b md:border-neutral-30 md:hover:bg-neutral-10"
+      className="block rounded-[12px] bg-neutral-10 px-4 py-4 transition-colors hover:bg-neutral-20"
     >
-      <div className="flex items-center gap-2 mb-2 text-[13px]">
-        <span className="font-semibold text-foreground md:font-medium md:text-neutral-60">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-[14px] font-semibold leading-[20px] text-primary-80">
           {formatNewsDate(article.pubDate)}
         </span>
-        <span className="hidden md:inline-block w-1 h-1 rounded-full bg-neutral-40 shrink-0" />
-        <span className="hidden md:inline truncate text-neutral-60">{article.publisher}</span>
-        <span className="md:hidden shrink-0 truncate rounded-[4px] bg-neutral-20 px-1.5 py-0.5 text-[12px] font-medium text-neutral-70">
+        <span className="rounded-[24px] border border-neutral-20 bg-card px-2 py-0.5 text-[10px] font-semibold leading-[16px] text-neutral-60">
           {article.publisher}
         </span>
       </div>
-      <h4 className="text-[15px] font-semibold text-foreground leading-[20px] mb-1 line-clamp-2">
+      <h4 className="mb-2 truncate text-[14px] font-semibold leading-[16px] text-foreground">
         {article.title}
       </h4>
-      <p className="text-[13px] text-neutral-60 leading-[18px] line-clamp-2 mb-2">
+      <p className="mb-2 truncate text-[13px] font-medium leading-[16px] text-neutral-60">
         {article.description}
       </p>
-      <span className="text-[13px] font-medium text-neutral-70">자세히 보기 →</span>
+      <span className="flex h-4 items-center text-[13px] font-semibold tracking-[-0.02em] text-neutral-80">
+        자세히 보기 →
+      </span>
     </a>
   );
 }
@@ -88,7 +86,7 @@ export default function RelatedNewsDrawer({ isOpen, onClose }: RelatedNewsDrawer
             className="fixed top-0 right-0 bottom-0 w-full max-w-[420px] bg-card z-[101] shadow-lg flex flex-col"
           >
             <div className="h-[64px] flex items-center justify-between px-6 border-b border-neutral-30 flex-shrink-0">
-              <h3 className="text-[18px] font-bold text-foreground">회생·파산 관련 뉴스</h3>
+              <h3 className="text-[18px] font-semibold text-foreground">회생·파산 관련 뉴스</h3>
               <button
                 type="button"
                 onClick={onClose}
@@ -116,7 +114,7 @@ export default function RelatedNewsDrawer({ isOpen, onClose }: RelatedNewsDrawer
                 <EmptyState message={error ? "뉴스를 불러오지 못했습니다." : "관련 뉴스가 없습니다."} error={Boolean(error)} />
               ) : (
                 <>
-                  <div className="pt-3 md:pt-0">
+                  <div className="flex flex-col gap-4 px-6 py-4">
                     {articles.map((article) => (
                       <NewsListItem key={article.id} article={article} />
                     ))}
@@ -124,7 +122,7 @@ export default function RelatedNewsDrawer({ isOpen, onClose }: RelatedNewsDrawer
                   {hasMore ? (
                     // 다음 페이지 로딩 중(스크롤로 sentinel에 닿아 자동 요청되는 동안) 표시.
                     // sentinel 자체는 항상 렌더링해 관찰 대상을 유지하고, 스피너만 로딩 중에만 보여준다.
-                    <div ref={sentinelRef} className="py-6 flex justify-center">
+                    <div ref={sentinelRef} className="pb-6 flex justify-center">
                       {loadingMore && <LoadingSpinner size="sm" />}
                     </div>
                   ) : (

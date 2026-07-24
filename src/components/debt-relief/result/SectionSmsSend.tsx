@@ -92,7 +92,7 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
           }`}
         >
           <Icon />
-          {label}
+          <span className="leading-none">{label}</span>
         </button>
       ))}
       <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
