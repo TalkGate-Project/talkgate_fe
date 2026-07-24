@@ -298,7 +298,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         </SectionCard>
 
         <SectionCard id="sms" title="고객 문자 전송" compactTop>
-          <SectionSmsSend detail={detail} />
+          <SectionSmsSend detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
         </SectionCard>
 
         <ResultDeleteButton
