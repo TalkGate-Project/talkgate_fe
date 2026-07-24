@@ -26,6 +26,7 @@ import type {
   SendGuidanceSmsInput,
   SendGuidanceSmsResult,
   SortDirection,
+  SpecialEligibilityType,
   VehicleRange,
 } from "@/types/debtRelief";
 import {
@@ -55,6 +56,7 @@ import type {
   AnalysisScores,
   AnalysisSortOrder,
   AnalysisSortType,
+  AnalysisSpecialEligibility,
   AnalysisStatus,
   AnalysisVehicleValueRange,
   CreateAnalysisInput,
@@ -198,6 +200,20 @@ const DEBT_CAUSE_FROM_ANALYSIS: Record<AnalysisDebtCause, DebtCause> = {
   other: "other",
 };
 
+const SPECIAL_ELIGIBILITY_TO_ANALYSIS: Record<SpecialEligibilityType, AnalysisSpecialEligibility> = {
+  age_29_or_under: "under_29",
+  age_65_or_over: "over_65",
+  severe_disability: "severe_disability",
+  jeonse_fraud_victim: "jeonse_fraud_victim",
+};
+
+const SPECIAL_ELIGIBILITY_FROM_ANALYSIS: Record<AnalysisSpecialEligibility, SpecialEligibilityType> = {
+  under_29: "age_29_or_under",
+  over_65: "age_65_or_over",
+  severe_disability: "severe_disability",
+  jeonse_fraud_victim: "jeonse_fraud_victim",
+};
+
 const DEBT_TYPE_TO_BREAKDOWN_KEY: Record<DebtType, keyof AnalysisDebtBreakdown> = {
   bank_loan: "bankLoan",
   card_loan: "cardDebt",
@@ -290,6 +306,9 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       otherFixedCost: form.expenses.other,
     },
     debtBreakdown,
+    collateralDebt: form.securedDebt,
+    debtIncurredLast3Months: form.recentDebtWithin3Months,
+    debtIncurredLast1Year: form.recentDebtWithin1Year,
     overduePeriod: OVERDUE_PERIOD_TO_ANALYSIS[form.overduePeriod!],
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
     realEstateBreakdown,
@@ -306,6 +325,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       : undefined,
     hasTaxArrears: form.hasTaxArrears,
     hasRecentAssetDisposal: form.hasRecentAssetDisposal,
+    specialEligibilities: form.specialEligibility.map((item) => SPECIAL_ELIGIBILITY_TO_ANALYSIS[item]),
     additionalNotes: form.counselorMemo || undefined,
   };
 }
@@ -360,11 +380,9 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     hasTaxArrears: input.hasTaxArrears ?? false,
-    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다 —
-    // 서버가 필드를 내려주기 시작하면 여기서 역매핑을 추가할 것.
-    securedDebt: 0,
-    recentDebtWithin3Months: 0,
-    recentDebtWithin1Year: 0,
+    securedDebt: input.collateralDebt ?? 0,
+    recentDebtWithin3Months: input.debtIncurredLast3Months ?? 0,
+    recentDebtWithin1Year: input.debtIncurredLast1Year ?? 0,
     monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
     housingType: input.housingType,
     expenses: {
@@ -380,8 +398,9 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     guarantorDetail: input.guarantorNote ?? "",
     hasOngoingLitigation: input.hasActiveLawsuit,
     litigationDetail: input.lawsuitNote ?? "",
-    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다.
-    specialEligibility: [],
+    specialEligibility: (input.specialEligibilities ?? []).map(
+      (item) => SPECIAL_ELIGIBILITY_FROM_ANALYSIS[item]
+    ),
     counselorMemo: input.additionalNotes ?? "",
   };
 }
@@ -784,6 +803,7 @@ export const DebtReliefService = {
         overdueMonths: OVERDUE_MONTHS_ESTIMATE[inputData.overduePeriod],
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
+      debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
       // expectedRepayment.monthlyPayment/totalPayment/expectedExemption 모두 이미 만원 단위로 내려온다
       // (2026-07-20 실 응답 확인: monthlyPayment 125 × periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
       repaymentPlan: analysis.analysisResult
