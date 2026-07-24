@@ -59,6 +59,7 @@ import type {
   AnalysisVehicleValueRange,
   CreateAnalysisInput,
 } from "@/types/analysis";
+import { normalizeProcedureType } from "@/types/analysis";
 
 // sendGuidanceSms(문자 발송, 2026-07-14 연동): AnalysisService.sendSms(POST
 // /v1/analysis/{id}/send-sms)로 위임한다. 수신자는 서버가 결정(공유 시 전달받은 contact 우선,
@@ -83,13 +84,11 @@ import type {
 // mock 도메인(individual_rehab)과 실 API(individual_rehabilitation)의 절차 코드값이 다르다.
 const PROCEDURE_TO_ANALYSIS: Record<RecommendedProcedure, AnalysisProcedureType> = {
   individual_rehab: "individual_rehabilitation",
-  debt_adjustment: "debt_adjustment",
   bankruptcy: "bankruptcy",
 };
 
 export const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
   individual_rehabilitation: "individual_rehab",
-  debt_adjustment: "debt_adjustment",
   bankruptcy: "bankruptcy",
 };
 
@@ -361,6 +360,11 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     hasTaxArrears: input.hasTaxArrears ?? false,
+    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다 —
+    // 서버가 필드를 내려주기 시작하면 여기서 역매핑을 추가할 것.
+    securedDebt: 0,
+    recentDebtWithin3Months: 0,
+    recentDebtWithin1Year: 0,
     monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
     housingType: input.housingType,
     expenses: {
@@ -376,6 +380,11 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     guarantorDetail: input.guarantorNote ?? "",
     hasOngoingLitigation: input.hasActiveLawsuit,
     litigationDetail: input.lawsuitNote ?? "",
+    // ⚠️ 실 API에 아직 대응 필드가 없어(DiagnosisFormState 주석 참고) 항상 기본값으로 채운다.
+    isAge29OrUnder: false,
+    isAge65OrOver: false,
+    hasSevereDisability: false,
+    isJeonseFraudVictim: false,
     counselorMemo: input.additionalNotes ?? "",
   };
 }
@@ -402,7 +411,9 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     totalDebtManwon: item.totalDebt,
     monthlyAvailableIncomeManwon: item.disposableIncome,
     status: item.status,
-    recommendedProcedure: item.procedure ? PROCEDURE_FROM_ANALYSIS[item.procedure] : undefined,
+    recommendedProcedure: item.procedure
+      ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(item.procedure)]
+      : undefined,
     feePlanSummary: item.feePlan,
     // 아직 절차 추적을 시작하지 않아 null이면 1단계로 표시
     progressStep: item.currentProcedureStep ?? 1,
@@ -423,7 +434,6 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
 // AnalysisScores/AnalysisProcedureConditionsMap/AnalysisProcedureGuidesMap이 공유하는 키 형식.
 const PROCEDURE_TO_SCORE_KEY: Record<AnalysisProcedureType, keyof AnalysisScores> = {
   individual_rehabilitation: "individualRehabilitation",
-  debt_adjustment: "debtAdjustment",
   bankruptcy: "bankruptcy",
 };
 
@@ -613,19 +623,22 @@ export const DebtReliefService = {
 
     const progressStepsByProcedure: Record<RecommendedProcedure, { step: number; title?: string; count: number }[]> = {
       individual_rehab: [],
-      debt_adjustment: [],
       bankruptcy: [],
     };
     for (const procedure of data.stepProgressByProcedure ?? []) {
-      const key = PROCEDURE_FROM_ANALYSIS[procedure.procedure];
-      if (!key) continue;
-      progressStepsByProcedure[key] = (procedure.steps ?? [])
-        .map((step) => ({
-          step: step.stepId,
-          title: step.title,
-          count: step.count,
-        }))
-        .sort((a, b) => a.step - b.step);
+      // 레거시 채무조정 데이터가 여전히 집계에 섞여 내려오면(방어 코드) 개인회생 그룹에 합산한다
+      // — stepId가 겹치면 건수를 더하고, 새 stepId면 추가한다.
+      const key = PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(procedure.procedure)];
+      const merged = new Map(progressStepsByProcedure[key].map((item) => [item.step, { ...item }]));
+      for (const step of procedure.steps ?? []) {
+        const existing = merged.get(step.stepId);
+        if (existing) {
+          existing.count += step.count;
+        } else {
+          merged.set(step.stepId, { step: step.stepId, title: step.title, count: step.count });
+        }
+      }
+      progressStepsByProcedure[key] = Array.from(merged.values()).sort((a, b) => a.step - b.step);
     }
 
     return {
@@ -683,15 +696,19 @@ export const DebtReliefService = {
     const analysis = response.data.data;
     const inputData = analysis.inputData;
 
-    const recommendation: AnalysisProcedureType =
-      analysis.analysisResult?.recommendation ?? analysis.trackingProcedure ?? "individual_rehabilitation";
+    // normalizeProcedureType: 레거시 채무조정 데이터 방어 — 개인회생/파산이 아니면 개인회생으로 대체.
+    const recommendation: AnalysisProcedureType = normalizeProcedureType(
+      analysis.analysisResult?.recommendation ?? analysis.trackingProcedure ?? "individual_rehabilitation"
+    );
     const recommendedProcedure = PROCEDURE_FROM_ANALYSIS[recommendation];
     const scoreKey = PROCEDURE_TO_SCORE_KEY[recommendation];
     const successProbability = analysis.analysisResult?.scores[scoreKey] ?? 0;
 
     // AI 추천(recommendation)과 별개로, 실제 상담사가 추적 중인 절차. 아직 추적을 시작하지
     // 않았다면(trackingProcedure가 null) AI 추천으로 대체 표시한다.
-    const trackingProcedureCode: AnalysisProcedureType = analysis.trackingProcedure ?? recommendation;
+    const trackingProcedureCode: AnalysisProcedureType = normalizeProcedureType(
+      analysis.trackingProcedure ?? recommendation
+    );
     const trackingProcedure = PROCEDURE_FROM_ANALYSIS[trackingProcedureCode];
 
     // 공유(납품) contact를 우선 사용. 없으면 매칭된 고객 연락처를 조회한다.
@@ -759,7 +776,7 @@ export const DebtReliefService = {
         : [],
       conditionAnalysisByProcedure: analysis.analysisResult
         ? buildConditionAnalysisByProcedure(analysis.analysisResult.procedureConditions)
-        : { individual_rehab: [], debt_adjustment: [], bankruptcy: [] },
+        : { individual_rehab: [], bankruptcy: [] },
       debtStatus: {
         totalDebtManwon: totalDebt,
         totalAssetManwon:

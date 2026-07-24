@@ -57,11 +57,10 @@ export function StatusBadge({
   );
 }
 
-// 추천 절차 배지 색상 (피그마: 개인회생=Primary, 채무조정=Warning, 파산=Danger)
+// 추천 절차 배지 색상 (피그마: 개인회생=Primary, 파산=Danger)
 // 다크모드는 SummaryCards.tsx의 PROCEDURE_CHIP_STYLE과 동일한 값으로 통일
 const PROCEDURE_BADGE_STYLE: Record<RecommendedProcedure, string> = {
   individual_rehab: "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
-  debt_adjustment: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
   bankruptcy: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 

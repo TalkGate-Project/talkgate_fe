@@ -75,6 +75,30 @@ export default function Step5Others({ form, update, onClose }: Props) {
           detailPlaceholder="소송·압류 상세 내용"
         />
 
+        {/* 2026-07-24 피드백 추가 항목 */}
+        <div className="flex flex-col gap-3">
+          <FormToggleRow
+            label="만 29세 이하"
+            checked={form.isAge29OrUnder}
+            onChange={(checked) => update("isAge29OrUnder", checked)}
+          />
+          <FormToggleRow
+            label="만 65세 이상"
+            checked={form.isAge65OrOver}
+            onChange={(checked) => update("isAge65OrOver", checked)}
+          />
+          <FormToggleRow
+            label="중증 장애인"
+            checked={form.hasSevereDisability}
+            onChange={(checked) => update("hasSevereDisability", checked)}
+          />
+          <FormToggleRow
+            label="전세사기 피해자"
+            checked={form.isJeonseFraudVictim}
+            onChange={(checked) => update("isJeonseFraudVictim", checked)}
+          />
+        </div>
+
         <div>
           <label
             className={`block text-[14px] font-medium leading-[17px] mb-2 ${

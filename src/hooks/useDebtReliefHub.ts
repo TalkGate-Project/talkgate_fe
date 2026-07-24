@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { DebtReliefService } from "@/services/debtRelief";
 import type { AnalysisStatus } from "@/types/analysis";
-import type {
-  DiagnosisDetail,
-  DiagnosisHubSummary,
-  DiagnosisListItem,
-  DiagnosisSortField,
-  RecommendedProcedure,
-  SortDirection,
+import {
+  RECOMMENDED_PROCEDURE_ORDER,
+  type DiagnosisDetail,
+  type DiagnosisHubSummary,
+  type DiagnosisListItem,
+  type DiagnosisSortField,
+  type RecommendedProcedure,
+  type SortDirection,
 } from "@/types/debtRelief";
 
 // 대시보드 요약 카드 데이터 로딩.
@@ -74,9 +75,13 @@ export function useDebtReliefList() {
   const [listTab, setListTabState] = useState<DiagnosisListTab>(
     () => (searchParams.get("listTab") === "rejected" ? "rejected" : "all")
   );
-  const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(
-    () => (searchParams.get("procedure") as RecommendedProcedure) || undefined
-  );
+  const [procedure, setProcedureState] = useState<RecommendedProcedure | undefined>(() => {
+    // 채무조정 제거 이전 북마크/공유 링크 등에 남아있던 절차 값은(레거시) 필터 미지정으로 처리한다.
+    const raw = searchParams.get("procedure");
+    return RECOMMENDED_PROCEDURE_ORDER.includes(raw as RecommendedProcedure)
+      ? (raw as RecommendedProcedure)
+      : undefined;
+  });
   const [status, setStatusState] = useState<AnalysisStatus | undefined>(
     () => (searchParams.get("status") as AnalysisStatus) || undefined
   );

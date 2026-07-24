@@ -15,10 +15,17 @@ export type AnalysisStatus =
   | "in_progress"
   | "suspended";
 
-export type AnalysisProcedureType =
-  | "individual_rehabilitation"
-  | "debt_adjustment"
-  | "bankruptcy";
+export type AnalysisProcedureType = "individual_rehabilitation" | "bankruptcy";
+
+// 채무조정 절차가 스키마·enum에서 완전히 제거됨(2026-07-24, 백엔드 이건하). 기존에 생성된 분석 건 중
+// 일부는 DB에 trackingProcedure/recommendation 등이 여전히 레거시 값("debt_adjustment")으로 남아있을
+// 수 있어, 이 값이 그대로 화면에 흘러들어와 라벨 조회가 undefined가 되는 걸 막기 위한 방어 코드.
+// 개인회생/파산 둘 중 하나가 아니면(레거시 채무조정 포함) 전부 개인회생으로 대체 표시한다.
+export function normalizeProcedureType(
+  value: AnalysisProcedureType | string | null | undefined
+): AnalysisProcedureType {
+  return value === "bankruptcy" ? "bankruptcy" : "individual_rehabilitation";
+}
 
 export type AnalysisGender = "male" | "female";
 
@@ -156,13 +163,11 @@ export type AnalysisProcedureConditions = {
 
 export type AnalysisProcedureConditionsMap = {
   individualRehabilitation: AnalysisProcedureConditions;
-  debtAdjustment: AnalysisProcedureConditions;
   bankruptcy: AnalysisProcedureConditions;
 };
 
 export type AnalysisScores = {
   individualRehabilitation: number;
-  debtAdjustment: number;
   bankruptcy: number;
 };
 
@@ -225,7 +230,6 @@ export type AnalysisProcedureGuide = {
 
 export type AnalysisProcedureGuidesMap = {
   individualRehabilitation: AnalysisProcedureGuide;
-  debtAdjustment: AnalysisProcedureGuide;
   bankruptcy: AnalysisProcedureGuide;
 };
 
@@ -649,6 +653,6 @@ export type AnalysisProcedureMaster = {
   steps: AnalysisProcedureStep[];
 };
 
-// 개별회생/채무조정/파산 3개 절차의 마스터 데이터를 모두 반환하는 것으로 추정(쿼리 파라미터 없음).
+// 개인회생/파산 2개 절차의 마스터 데이터를 모두 반환하는 것으로 추정(쿼리 파라미터 없음).
 // 실제 응답 확인 후 필요시 수정.
 export type AnalysisProceduresResponse = ApiSuccess<AnalysisProcedureMaster[]>;

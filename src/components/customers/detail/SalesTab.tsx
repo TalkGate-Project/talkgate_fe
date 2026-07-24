@@ -212,7 +212,7 @@ export default function SalesTab({
   return (
     <div className="mt-3 space-y-[30px]">
       {/* Investment Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
         <label className="block">
           <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
             요약정보
@@ -304,7 +304,7 @@ export default function SalesTab({
             매출 내역
           </div>
         </div>
-        <div className="md:hidden space-y-4 mb-4">
+        <div className="lg:hidden space-y-4 mb-4">
           <label className="block">
             <span className="flex items-center gap-1 text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
               날짜
@@ -394,7 +394,7 @@ export default function SalesTab({
             </button>
           </div>
         </div>
-        <div className="hidden md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-start">
+        <div className="hidden lg:grid lg:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] lg:gap-2 lg:items-start">
           <label className="block">
             <span className="flex items-center gap-1 text-[14px] text-neutral-60 dark:text-neutral-60 mb-1 font-medium">
               날짜
@@ -487,25 +487,25 @@ export default function SalesTab({
           {paymentHistories?.map((ph) => (
             <div
               key={ph.id}
-              className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 text-[14px] flex items-center gap-3 md:grid md:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] md:gap-2 md:items-center"
+              className="bg-neutral-10 dark:bg-neutral-20 rounded-[12px] px-4 py-3 text-[14px] flex items-center gap-3 lg:grid lg:grid-cols-[200px_120px_160px_minmax(0,1fr)_auto] lg:gap-2 lg:items-center"
             >
-              <span className="w-[166px] md:w-auto text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
+              <span className="w-[166px] lg:w-auto text-neutral-60 dark:text-neutral-60 whitespace-nowrap">
                 {formatDetailDate(ph.paymentDate)}
               </span>
-              <div className="min-w-0 md:-ml-2">
+              <div className="min-w-0 lg:-ml-2">
                 <span className="inline-flex max-w-full items-center justify-center px-3 py-1 rounded-[30px] bg-[#E2F5EB] dark:bg-[#D6FAE8] text-[#22C55E] dark:text-[#10B981] text-[12px] whitespace-nowrap">
                   {getPaymentMethodLabel(ph.paymentMethod)}
                 </span>
               </div>
-              <span className="flex-1 md:flex-none text-[#16A34A] dark:text-[#22C55E] font-semibold whitespace-nowrap">
+              <span className="flex-1 lg:flex-none text-[#16A34A] dark:text-[#22C55E] font-semibold whitespace-nowrap">
                 {ph.amount?.toLocaleString()}원
               </span>
-              <span className="flex-1 md:flex-none min-w-0 truncate text-ink dark:text-neutral-80">
+              <span className="flex-1 lg:flex-none min-w-0 truncate text-ink dark:text-neutral-80">
                 {ph.description || "결제"}
               </span>
 
               <button
-                className="cursor-pointer ml-2 md:ml-0 md:justify-self-end w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
+                className="cursor-pointer ml-2 lg:ml-0 lg:justify-self-end w-5 h-5 grid place-items-center rounded-full bg-neutral-100 dark:bg-neutral-80 text-white dark:text-neutral-20"
                 onClick={() => {
                   showConfirmModal({
                     title: "확인",
@@ -532,7 +532,7 @@ export default function SalesTab({
         </div>
 
         {/* 날짜 & 컬러 영역 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
           {/* 날짜 */}
           <div>
           <div className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
@@ -703,7 +703,7 @@ export default function SalesTab({
                 className="bg-neutral-10 dark:bg-neutral-25 rounded-[12px] px-4 py-3 text-[14px]"
               >
                 {/* 모바일: 날짜/일정내용 2줄 + 삭제버튼 안쪽 */}
-                <div className="md:hidden flex flex-col gap-1">
+                <div className="lg:hidden flex flex-col gap-1">
                   <div className="flex items-start gap-3">
                     <div className="flex flex-col gap-2 shrink-0">
                       <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">
@@ -724,7 +724,7 @@ export default function SalesTab({
                   </div>
                 </div>
                 {/* 웹: 기존 가로 배치 유지 */}
-                <div className="hidden md:flex items-center gap-3">
+                <div className="hidden lg:flex items-center gap-3">
                   <span className="inline-flex items-center justify-center px-3 py-1 rounded-[30px] bg-[#D6FAE8] dark:bg-[#D6FAE8] text-[#10B981] dark:text-[#10B981] text-[12px] whitespace-nowrap">
                     {formatScheduleTime(sc.scheduleTime)}
                   </span>

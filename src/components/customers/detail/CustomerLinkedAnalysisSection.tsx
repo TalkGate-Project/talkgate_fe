@@ -13,7 +13,7 @@ import { formatDebtManwonParts } from "@/components/debt-relief/format";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import type { RecommendedProcedure } from "@/types/debtRelief";
-import type { AnalysisProcedureType } from "@/types/analysis";
+import { normalizeProcedureType, type AnalysisProcedureType } from "@/types/analysis";
 import type { CustomerLinkedAnalysis } from "@/types/customers";
 
 type Props = {
@@ -23,10 +23,9 @@ type Props = {
   linkedAnalysis?: CustomerLinkedAnalysis | null;
 };
 
-// debtRelief.ts의 PROCEDURE_FROM_ANALYSIS와 동일한 매핑(모듈 비공개라 재사용 불가 — 값 3개뿐이라 로컬 복제)
+// debtRelief.ts의 PROCEDURE_FROM_ANALYSIS와 동일한 매핑(모듈 비공개라 재사용 불가 — 값 2개뿐이라 로컬 복제)
 const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
   individual_rehabilitation: "individual_rehab",
-  debt_adjustment: "debt_adjustment",
   bankruptcy: "bankruptcy",
 };
 
@@ -107,7 +106,7 @@ function EmptyLinkedAnalysis({
     <div
       className={
         isMobile
-          ? "flex items-center gap-4 px-3 py-4 min-h-[86px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
+          ? "flex items-center gap-4 px-3 h-[58px] rounded-[12px] border border-neutral-30 dark:border-[#444444] bg-card dark:bg-neutral-10"
           : "flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10"
       }
     >
@@ -143,7 +142,7 @@ function MobileLinkedAnalysisCard({
   onOpenResult: () => void;
 }) {
   const procedure = linkedAnalysis.currentProcedure
-    ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
+    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.currentProcedure)]
     : undefined;
   const { current, total, title } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
@@ -233,7 +232,7 @@ function DesktopLinkedAnalysisCard({
   onOpenResult: () => void;
 }) {
   const procedure = linkedAnalysis.currentProcedure
-    ? PROCEDURE_FROM_ANALYSIS[linkedAnalysis.currentProcedure]
+    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.currentProcedure)]
     : undefined;
   const { current, total } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
@@ -288,7 +287,7 @@ export default function CustomerLinkedAnalysisSection({
   };
 
   return (
-    <div className="md:col-span-2">
+    <div className="lg:col-span-2">
       <div className="text-[16px] font-semibold text-neutral-90 mb-3">회생·파산 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
