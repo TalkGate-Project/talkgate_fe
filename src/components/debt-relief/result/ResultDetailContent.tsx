@@ -24,6 +24,7 @@ import SectionAiRecommendation from "./SectionAiRecommendation";
 import SectionDeliveryMessages from "./SectionDeliveryMessages";
 import DeliveryMessagesPopup from "./DeliveryMessagesPopup";
 import SectionProcedureScores from "./SectionProcedureScores";
+import SectionDebtAdjustmentComparison from "./SectionDebtAdjustmentComparison";
 import SectionDebtStatus from "./SectionDebtStatus";
 import SectionRepaymentPlan from "./SectionRepaymentPlan";
 import SectionCounselMents from "./SectionCounselMents";
@@ -256,6 +257,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               <SectionProcedureScores detail={detail} />
             </SectionCard>
           </>
+        )}
+
+        {/* 개인회생 추적 중이고 서버가 문구를 내려줄 때만 노출 — 앵커 내비에는 항목을 두지 않는다. */}
+        {detail.trackingProcedure === "individual_rehab" && detail.debtAdjustmentComparison && (
+          <SectionCard id="debt-adjustment-comparison" compactTop>
+            <SectionDebtAdjustmentComparison detail={detail} />
+          </SectionCard>
         )}
 
         <SectionCard id="debt" compactTop>
