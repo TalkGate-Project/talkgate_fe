@@ -271,13 +271,13 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
     { label: "성별", value: input.gender === "female" ? "여" : input.gender === "male" ? "남" : "-" },
     { label: "연령대", value: input.ageGroup || "-" },
     { label: "휴대폰번호", value: phone },
-    { label: "고용형태", value: input.employmentType || "-" },
     { label: "부양가족", value: formatDependents(input.dependents) },
     { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
   ];
 
   const assetRows: DisplayRow[] = [
     { label: "부동산 보유여부", value: realEstateOwnershipLabel(input.realEstateBreakdown) },
+    { label: "자가 소유 시가", value: formatManwon(input.totalRealEstateValue) },
     {
       label: "금융자산",
       value: optionLabel(
@@ -321,6 +321,7 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
         INCOME_FROM[input.monthlyIncomeRange] ?? input.monthlyIncomeRange
       ),
     },
+    { label: "고용형태", value: input.employmentType || "-" },
     {
       label: "주거형태",
       value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType),
@@ -347,9 +348,9 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
 
   // 1열(모바일·태블릿)에서는 지출 항목을 가용소득 앞에 모아 자연스럽게 읽히도록 함
   const incomeRows: DisplayRow[] = [
-    ...incomeLeftRows.slice(0, 4),
+    ...incomeLeftRows.slice(0, -1),
     ...incomeRightRows,
-    incomeLeftRows[4],
+    incomeLeftRows[incomeLeftRows.length - 1],
   ];
 
   const otherRows: DisplayRow[] = [
