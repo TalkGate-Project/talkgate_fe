@@ -758,6 +758,14 @@ export const DebtReliefService = {
     const guideKey = PROCEDURE_TO_SCORE_KEY[trackingProcedureCode];
     const guide = analysis.procedureGuides?.[guideKey];
     const totalDebt = inputData.totalDebt;
+    // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
+    // "양쪽"(보낸 영업점 + 받은 변호사) 모두에 남아, 영업점이 자기가 공유했다 반려당한 "자기 데이터"를
+    // 봐도 rejected가 찍혀 오판된다. sourceProjectName/sourceMemberName은 "받은 경우"에만 채워져
+    // 받은 쪽에만 존재하므로 방향을 정확히 가른다(반려/철회된 건도 출처 정보는 남아 계속 잡힌다).
+    const isReceivedShare =
+      analysis.sourceProjectName != null ||
+      analysis.sourceMemberName != null ||
+      analysis.sourceAssignedMemberName != null;
     const assigneeName =
       analysis.sourceAssignedMemberName ?? analysis.sourceMemberName ?? undefined;
     const assigneeProfileImageUrl =
@@ -775,6 +783,7 @@ export const DebtReliefService = {
       customerId: analysis.customerId,
       consultedAt: analysis.createdAt,
       isShared: analysis.isShared,
+      isReceivedShare,
       status: analysis.status,
       // rejectionReason 단일 필드는 최신 AnalysisResponseDto에서 제거됨 — messages(type: "reject")
       // 히스토리의 마지막 항목으로 대체됨 (types/analysis.ts AnalysisMessageDto 주석 참고).
@@ -897,12 +906,25 @@ export const DebtReliefService = {
   async getDiagnosisForm(
     projectId: string,
     id: string
-  ): Promise<{ form: DiagnosisFormState; customerId: number | null; status: AnalysisStatus }> {
+  ): Promise<{
+    form: DiagnosisFormState;
+    customerId: number | null;
+    status: AnalysisStatus;
+    isReceivedShare: boolean;
+  }> {
     const response = await AnalysisService.detail(Number(id), projectId);
+    const detail = response.data.data;
     return {
-      form: fromAnalysisFormInput(response.data.data.inputData),
-      customerId: response.data.data.customerId,
-      status: response.data.data.status,
+      form: fromAnalysisFormInput(detail.inputData),
+      customerId: detail.customerId,
+      status: detail.status,
+      // 공유(납품)받은 건은 자체 소유가 아니므로 편집(재분석) 대상이 아니다 — 반려 상태로 status 게이트를
+      // 통과하더라도 URL 직접 진입까지 막기 위해 함께 내려준다. deliveryStatus는 공유 양쪽(영업점/변호사)
+      // 모두에 남아 방향 판별이 안 되므로, 받은 쪽에만 존재하는 source 필드로만 판단한다(매핑부 주석 참고).
+      isReceivedShare:
+        detail.sourceProjectName != null ||
+        detail.sourceMemberName != null ||
+        detail.sourceAssignedMemberName != null,
     };
   },
 

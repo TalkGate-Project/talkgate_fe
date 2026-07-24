@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useProjectType } from "@/hooks/useProjectType";
 import { DebtReliefService } from "@/services/debtRelief";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import type { DiagnosisFormState } from "@/types/debtRelief";
+import { canEditDiagnosisInfo, type DiagnosisFormState } from "@/types/debtRelief";
 import { useDiagnosisForm } from "./useDiagnosisForm";
 import {
   getMissingRequiredFieldLabels,
@@ -32,6 +33,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [projectId, ready] = useSelectedProjectId();
+  const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
   // 분석하기 클릭 시 담보부채무·최근 3개월/1년 내 채무액 합이 총 채무 합계를 초과한 적이 있으면
@@ -90,20 +92,35 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 여기서도 같은 기준으로 막고, 막히는 동안은 폼을 채우지 않고 로딩 상태를 유지해 빈 폼이
   // 잠깐이라도 보이지 않게 한다.
   useEffect(() => {
-    if (!isEdit || !ready || !projectId || !diagnosisId) return;
+    if (!isEdit || !ready || !projectTypeReady || !projectId || !diagnosisId) return;
 
     let cancelled = false;
     let redirecting = false;
     setLoadingForm(true);
     DebtReliefService.getDiagnosisForm(projectId, diagnosisId)
-      .then(({ form: data, customerId, status }) => {
+      .then(({ form: data, customerId, status, isReceivedShare }) => {
         if (cancelled) return;
-        if (status !== "consulting" && status !== "rejected") {
+        // 공유(납품)받은 건은 자체 소유 데이터가 아니므로 편집(재분석) 불가 — 반려 상태로 status 게이트를
+        // 통과하더라도 여기서 막는다(원본 영업 데이터를 변호사 프로젝트가 되돌려 재분석하면 안 된다).
+        if (isReceivedShare) {
           redirecting = true;
           showErrorModal({
             type: "info",
             title: "정보수정 불가",
-            headline: "정보수정은 상담중 또는 반려된 분석 건만 가능합니다.",
+            headline: "공유받은 분석 건은 정보를 수정할 수 없습니다.",
+            hideCancel: true,
+          });
+          router.replace(`/debt-relief/${diagnosisId}`);
+          return;
+        }
+        // 편집 가능 상태 판정은 canEditDiagnosisInfo로 통일(버튼 게이트와 동일). 영업점은 상담중/반려,
+        // 변호사 자체 생성건은 계약대기중까지 허용. status만 검사하던 URL 우회 구멍을 막는다.
+        if (!canEditDiagnosisInfo({ status, isReceivedShare, isAnalysisProject: isAnalysis })) {
+          redirecting = true;
+          showErrorModal({
+            type: "info",
+            title: "정보수정 불가",
+            headline: "지금은 정보수정이 불가능한 상태입니다.",
             hideCancel: true,
           });
           router.replace(`/debt-relief/${diagnosisId}`);
@@ -128,7 +145,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return () => {
       cancelled = true;
     };
-  }, [isEdit, ready, projectId, diagnosisId, setForm, router]);
+  }, [isEdit, ready, projectTypeReady, isAnalysis, projectId, diagnosisId, setForm, router]);
 
   // 생성: 필수값 전부 채워졌을 때만. 수정: 원본 대비 변경 + 필수값 유지일 때만.
   const canAnalyze = useMemo(() => {

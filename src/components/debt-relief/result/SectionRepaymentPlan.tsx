@@ -174,15 +174,20 @@ export default function SectionRepaymentPlan({ detail }: { detail: DiagnosisDeta
           consultedAt={detail.consultedAt}
         />
 
-        {/* 좌하: pad 32×16, 내부 간격 12 */}
-        <div className="rounded-[12px] bg-neutral-10 px-5 md:px-8 py-4 flex flex-col gap-3 lg:min-h-[118px]">
-          <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 면책 채무</p>
-          <p className="font-montserrat font-bold text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
-            약 {formatManwonComma(plan.exemptedDebtManwon)}
-          </p>
-          <p className="text-[14px] font-medium leading-[17px] text-neutral-60">
-            변제 완료 후 법원 결정으로 면책되는 잔여 채무 금액입니다.
-          </p>
+        {/* 좌하: pad 32×16, 내부 간격 12. PC(lg+)는 컴팩트해진 요소에 맞춰 좌측만 44px로. */}
+        <div className="rounded-[12px] bg-neutral-10 px-5 md:px-8 lg:pl-11 py-4 flex items-center gap-6 lg:min-h-[118px]">
+          <div className="flex-1 flex flex-col gap-3">
+            <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 면책 채무</p>
+            <p className="font-montserrat font-bold text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+              약 {formatManwonComma(plan.exemptedDebtManwon)}
+            </p>
+          </div>
+          <div className="flex-1 flex flex-col gap-3">
+            <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 잔여 채무</p>
+            <p className="font-montserrat font-bold text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+              약 {formatManwonComma(plan.totalPaymentManwon)}
+            </p>
+          </div>
         </div>
 
         {/* 우하: 제목→목록 8px, 줄간격 22 */}
