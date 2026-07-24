@@ -81,7 +81,10 @@
       "Read(//c/Users/tbrk7/AppData/Local/Temp/claude/C--Users-tbrk7-OneDrive----GitHub-talkgate-fe/20039316-6510-4710-9e96-32829b77aa5f/scratchpad/**)",
       "Bash(taskkill //F //IM node.exe //FI \"WINDOWTITLE eq *http-server*\")",
       "Bash(pkill -f \"http-server -p 8899\")",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(findstr \":3000\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\")",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }
