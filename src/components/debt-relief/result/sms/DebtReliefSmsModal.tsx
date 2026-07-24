@@ -7,6 +7,7 @@ import TimePicker from "@/components/common/TimePicker";
 import { RadioButton, MAX_IMAGES } from "@/components/customers/sms";
 import { useDebtReliefSmsForm } from "./useDebtReliefSmsForm";
 import DebtReliefPhonePreview from "./DebtReliefPhonePreview";
+import SenderNumberSelect from "./SenderNumberSelect";
 import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
@@ -180,48 +181,13 @@ export default function DebtReliefSmsModal({
       {/* 발신번호 */}
       <div className="mb-5">
         <label className="block text-[14px] leading-[17px] text-neutral-60 dark:text-neutral-60 mb-2">발신번호</label>
-        <div className="relative">
-          {loadingSenders ? (
-            <div className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 flex items-center bg-neutral-10 dark:bg-neutral-20">
-              발신번호 로딩 중...
-            </div>
-          ) : senderNumbers.length === 0 ? (
-            <div className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] text-neutral-60 dark:text-neutral-60 flex items-center bg-neutral-10 dark:bg-neutral-20">
-              등록된 발신번호가 없습니다
-            </div>
-          ) : (
-            <>
-              <select
-                value={selectedSenderKey ?? ""}
-                onChange={(e) => handleSenderChange(e.target.value)}
-                className="w-full h-[34px] px-3 border border-neutral-30 dark:border-neutral-30 rounded-[5px] text-[14px] leading-[17px] text-ink dark:text-neutral-90 appearance-none bg-card dark:bg-neutral-10 pr-10 outline-none focus:border-neutral-60 dark:focus:border-neutral-60"
-              >
-                {senderNumbers.map((num) => {
-                  const key = `${num.source}-${num.id}`;
-                  return (
-                    <option key={key} value={key}>
-                      {formatPhoneNumber(num.phoneNumber)} ({num.source === "project" ? "공통" : "개인"})
-                    </option>
-                  );
-                })}
-              </select>
-              <svg
-                className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                width="10"
-                height="8"
-                viewBox="0 0 10 8"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5.40544 7.4382C5.20587 7.71473 4.79413 7.71473 4.59456 7.4382L0.241885 2.7926C0.00323535 2.46192 0.239523 2 0.647327 2L9.35267 2C9.76048 2 9.99676 2.46192 9.75812 2.7926L5.40544 7.4382Z"
-                  fill="currentColor"
-                  className="fill-ink dark:fill-neutral-90"
-                />
-              </svg>
-            </>
-          )}
-        </div>
+        <SenderNumberSelect
+          senderNumbers={senderNumbers}
+          selectedSenderKey={selectedSenderKey}
+          selectedSender={selectedSender}
+          loading={loadingSenders}
+          onChange={handleSenderChange}
+        />
       </div>
 
       {/* 수신자 */}
