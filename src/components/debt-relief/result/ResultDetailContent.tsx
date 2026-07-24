@@ -259,8 +259,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           </>
         )}
 
-        {/* 개인회생 추적 중이고 서버가 문구를 내려줄 때만 노출 — 앵커 내비에는 항목을 두지 않는다. */}
-        {detail.trackingProcedure === "individual_rehab" && detail.debtAdjustmentComparison && (
+        {/* trackingProcedure와 무관하게 서버가 문구를 내려줄 때만 노출 — 앵커 내비에는 항목을 두지 않는다. */}
+        {detail.debtAdjustmentComparison && (
           <SectionCard id="debt-adjustment-comparison" compactTop>
             <SectionDebtAdjustmentComparison detail={detail} />
           </SectionCard>
