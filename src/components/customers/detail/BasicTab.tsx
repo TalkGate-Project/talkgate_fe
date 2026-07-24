@@ -109,7 +109,7 @@ export default function BasicTab({
   }, [form.birth]);
 
   return (
-    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+    <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
       {/* Name */}
       <div>
         <div className="flex items-center gap-1 mb-1">
@@ -271,7 +271,7 @@ export default function BasicTab({
       </div>
 
       {/* Messenger Accounts */}
-      <div className="md:col-span-2">
+      <div className="lg:col-span-2">
         <div className="text-[16px] font-semibold text-neutral-90 mb-3">메신저 계정</div>
         <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
         <div className="flex flex-col gap-2 min-w-0">

@@ -205,7 +205,7 @@ export default function CustomersTable({
   // 태블릿(md~lg)에서만 드래그로 가로 스크롤 — 모바일은 터치 스와이프가 이미 되고,
   // 데스크톱(lg+)은 보통 표가 잘리지 않아 굳이 붙일 이유가 없다.
   const { containerRef: dragScrollRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>({
-    widthRange: { min: 768, max: 1024 },
+    widthRange: { min: 780, max: 1080 },
   });
   const skeletonColWidths = isDataProviderReady ? colWidths : fallbackColWidths;
   const totalColumns = colWidths.length;
@@ -218,7 +218,7 @@ export default function CustomersTable({
     customer: CustomerListItem | CustomerDuplicateItem
   ) => {
     // 모바일에서는 호버 미리보기 비활성화
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
+    if (typeof window !== "undefined" && window.innerWidth < 780) {
       return;
     }
 
@@ -254,7 +254,7 @@ export default function CustomersTable({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     // 모바일에서는 호버 미리보기 비활성화
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
+    if (typeof window !== "undefined" && window.innerWidth < 780) {
       return;
     }
 
@@ -678,7 +678,7 @@ export default function CustomersTable({
                         // 모바일에서는 호버 이벤트 비활성화
                         if (
                           typeof window !== "undefined" &&
-                          window.innerWidth >= 768
+                          window.innerWidth >= 780
                         ) {
                           handleMouseEnter(e, c);
                         }
@@ -687,7 +687,7 @@ export default function CustomersTable({
                         // 모바일에서는 호버 이벤트 비활성화
                         if (
                           typeof window !== "undefined" &&
-                          window.innerWidth >= 768
+                          window.innerWidth >= 780
                         ) {
                           handleMouseMove(e);
                         }
@@ -696,7 +696,7 @@ export default function CustomersTable({
                         // 모바일에서는 호버 이벤트 비활성화
                         if (
                           typeof window !== "undefined" &&
-                          window.innerWidth >= 768
+                          window.innerWidth >= 780
                         ) {
                           handleMouseLeave();
                         }
@@ -952,7 +952,7 @@ export default function CustomersTable({
                             onMouseEnter={(e) => {
                               if (
                                 typeof window !== "undefined" &&
-                                window.innerWidth >= 768
+                                window.innerWidth >= 780
                               ) {
                                 handleMouseEnter(e, item);
                               }
@@ -960,7 +960,7 @@ export default function CustomersTable({
                             onMouseMove={(e) => {
                               if (
                                 typeof window !== "undefined" &&
-                                window.innerWidth >= 768
+                                window.innerWidth >= 780
                               ) {
                                 handleMouseMove(e);
                               }
@@ -968,7 +968,7 @@ export default function CustomersTable({
                             onMouseLeave={() => {
                               if (
                                 typeof window !== "undefined" &&
-                                window.innerWidth >= 768
+                                window.innerWidth >= 780
                               ) {
                                 handleMouseLeave();
                               }

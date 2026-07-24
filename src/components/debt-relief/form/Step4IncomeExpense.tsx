@@ -1,4 +1,5 @@
 import {
+  EMPLOYMENT_TYPE_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   MONTHLY_INCOME_OPTIONS,
   type DiagnosisDerivedValues,
@@ -41,6 +42,15 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
       <FormSectionTitle>고객 소득/지출</FormSectionTitle>
 
       <div className="mt-0 md:mt-3 flex flex-col gap-5">
+        {/* 2026-07-24 피드백: 기본정보(Step1)에서 이 스텝으로 이동 */}
+        <FormField label="고용 형태" required filled={form.employmentType !== null}>
+          <PillSelect
+            options={EMPLOYMENT_TYPE_OPTIONS}
+            value={form.employmentType}
+            onChange={(value) => update("employmentType", value)}
+          />
+        </FormField>
+
         <FormField
           label="월 소득 (세후 실수령 기준)"
           required

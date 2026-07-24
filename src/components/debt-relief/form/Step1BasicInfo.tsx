@@ -1,7 +1,6 @@
 import {
   AGE_GROUP_OPTIONS,
   DEPENDENT_OPTIONS,
-  EMPLOYMENT_TYPE_OPTIONS,
   REGION_OPTIONS,
   type CustomerGender,
   type DiagnosisFormState,
@@ -37,7 +36,7 @@ export default function Step1BasicInfo({ form, update }: Props) {
             label="고객명"
             required
             filled={Boolean(form.customerName.trim())}
-            className="flex-1 min-w-0 md:max-w-[461px]"
+            className="flex-1 min-w-0 md:max-w-[240px]"
           >
             <TextInput
               value={form.customerName}
@@ -67,14 +66,6 @@ export default function Step1BasicInfo({ form, update }: Props) {
             options={REGION_OPTIONS}
             value={form.region}
             onChange={(value) => update("region", value)}
-          />
-        </FormField>
-
-        <FormField label="고용 형태" required filled={form.employmentType !== null}>
-          <PillSelect
-            options={EMPLOYMENT_TYPE_OPTIONS}
-            value={form.employmentType}
-            onChange={(value) => update("employmentType", value)}
           />
         </FormField>
 

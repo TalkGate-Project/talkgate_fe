@@ -21,12 +21,12 @@ export type CustomerDetailModalProps = {
 export default function CustomerDetailModal(props: CustomerDetailModalProps) {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 767px)").matches;
+    return window.matchMedia("(max-width: 779px)").matches;
   });
 
   useEffect(() => {
-    // Tailwind md 브레이크포인트는 768px
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    // 이 프로젝트의 실제 md 브레이크포인트는 780px (globals.css --breakpoint-md, 기본 768px 아님)
+    const mediaQuery = window.matchMedia("(max-width: 779px)");
     
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       setIsMobile(e.matches);
