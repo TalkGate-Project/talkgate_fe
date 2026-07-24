@@ -12,6 +12,10 @@ import {
 import { useMyMember } from "@/hooks/useMyMember";
 import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { formatDateTimeCompact } from "@/utils/datetime";
+import { showConfirmModal } from "@/providers/ConfirmModalProvider";
+import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
+import CustomerMatchModal from "./CustomerMatchModal";
+import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import { DebtReliefSmsModal, buildProcedureStepTemplate } from "./sms";
 
 function SmsButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
@@ -21,7 +25,6 @@ function SmsButton({ onClick, disabled }: { onClick: () => void; disabled?: bool
       onClick={onClick}
       disabled={disabled}
       aria-label="문자 보내기"
-      title={disabled ? "연락처 정보가 없어 문자 발송이 불가능합니다" : undefined}
       className={`inline-flex items-center justify-center gap-1 h-9 w-9 md:h-[34px] md:w-auto md:px-3 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-60 ${
         disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-neutral-10"
       }`}
@@ -342,6 +345,9 @@ function StepItem({
 
 type Props = {
   detail: DiagnosisDetail;
+  // 고객 연동 플로우용 — 미연동 상태에서 문자 버튼 클릭 시 연동 모달을 띄운다(SectionSmsSend와 동일).
+  projectId: string | null;
+  onCustomerMatchChange: () => void;
   // 실 API(PATCH /v1/analysis/{id})에 currentProcedureStep을 저장. reject되면(Promise가 실패하면)
   // 낙관적으로 반영했던 currentStep·이력 표시를 이 컴포넌트가 직접 원복한다 — 호출부는 에러 모달
   // 표시 후 반드시 throw로 실패를 전파해야 한다(showErrorModal만 하고 삼키면 원복이 동작하지 않음).
@@ -360,6 +366,8 @@ type Props = {
 
 export default function SectionProcedureGuide({
   detail,
+  projectId,
+  onCustomerMatchChange,
   onSetCurrentStep,
   onChangeTrackingProcedure,
   canChangeTrackingProcedure = true,
@@ -374,12 +382,31 @@ export default function SectionProcedureGuide({
     () => new Set([guide.currentStep])
   );
   const [smsStep, setSmsStep] = useState<ProcedureStep | null>(null);
+  const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   const [optimisticHistory, setOptimisticHistory] = useState<
     Record<number, ProcedureStepHistoryItem>
   >({});
   // 서버는 공유 시 전달받은 연락처를 우선 쓰고, 없으면 매칭된 고객 연락처를 쓴다 — detail.phone이
   // 이미 그 결과를 반영하므로 phone 유무로만 판단한다(SectionSmsSend.tsx 참고).
   const canSendSms = Boolean(detail.phone);
+
+  // 문자 버튼은 절차 잠금(locked)이 아니면 항상 활성화한다. 미연동 상태에서 누르면 발송 대신
+  // 연동 유도 모달을 띄운다 — SectionSmsSend와 동일한 로직.
+  const handleSendSms = (step: ProcedureStep) => {
+    if (canSendSms) {
+      setSmsStep(step);
+      return;
+    }
+    showConfirmModal({
+      type: "caution",
+      title: "고객정보 연동",
+      headline: "고객 정보를 연동하시겠습니까?",
+      message: "문자 발송을 위해 고객 정보를 먼저 연동해 주세요.",
+      confirmText: "연동하기",
+      cancelText: "취소",
+      onConfirm: () => setLinkStep("mode"),
+    });
+  };
 
   const historyByStepId = useMemo(() => {
     const map = new Map<number, ProcedureStepHistoryItem>();
@@ -489,8 +516,8 @@ export default function SectionProcedureGuide({
               isCurrent={step.step === currentStep}
               canSetCurrent={step.step > currentStep && !stepLocked && !savingStep}
               onSetCurrent={() => handleSetCurrent(step)}
-              onSendSms={() => setSmsStep(step)}
-              smsDisabled={!canSendSms || locked}
+              onSendSms={() => handleSendSms(step)}
+              smsDisabled={locked}
               stepHistory={
                 step.stepId != null ? historyByStepId.get(step.stepId) : undefined
               }
@@ -608,6 +635,35 @@ export default function SectionProcedureGuide({
           recipientPhone={detail.phone}
           {...buildProcedureStepTemplate(detail, smsStep)}
         />
+      )}
+
+      {projectId && (
+        <>
+          <CustomerLinkModeModal
+            open={linkStep === "mode"}
+            onClose={() => setLinkStep(null)}
+            onSelect={(mode) => setLinkStep(mode)}
+            existingDescription="이미 등록된 고객 정보를 연동합니다."
+          />
+          <CustomerMatchModal
+            open={linkStep === "existing"}
+            onClose={() => setLinkStep(null)}
+            onBack={() => setLinkStep("mode")}
+            analysisId={detail.id}
+            projectId={projectId}
+            analysisCustomerName={detail.customerName}
+            onMatched={onCustomerMatchChange}
+          />
+          <CustomerCreateMatchModal
+            open={linkStep === "create"}
+            onClose={() => setLinkStep(null)}
+            onBack={() => setLinkStep("mode")}
+            customerName={detail.customerName}
+            analysisId={detail.id}
+            projectId={projectId}
+            onMatched={onCustomerMatchChange}
+          />
+        </>
       )}
     </div>
   );

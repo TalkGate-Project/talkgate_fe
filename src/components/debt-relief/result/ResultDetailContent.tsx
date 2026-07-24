@@ -290,6 +290,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           <SectionProcedureGuide
             key={detail.trackingProcedure}
             detail={detail}
+            projectId={projectId}
+            onCustomerMatchChange={refetch}
             onSetCurrentStep={handleSetCurrentStep}
             onChangeTrackingProcedure={handleChangeTrackingProcedure}
             locked={!DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES.includes(detail.status)}
