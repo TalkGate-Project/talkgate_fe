@@ -15,9 +15,9 @@ function renderComparisonText(text: string) {
   });
 }
 
-// 개인회생 추적 시에만 노출 — 파산 추적 중이거나 서버가 문구를 내려주지 않으면 섹션 자체를 숨긴다.
+// trackingProcedure와 무관하게 참조할 값(debtAdjustmentComparison)이 있으면 노출한다.
 export default function SectionDebtAdjustmentComparison({ detail }: { detail: DiagnosisDetail }) {
-  if (detail.trackingProcedure !== "individual_rehab" || !detail.debtAdjustmentComparison) {
+  if (!detail.debtAdjustmentComparison) {
     return null;
   }
 
