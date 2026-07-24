@@ -16,8 +16,8 @@ export const DIAGNOSIS_STATUS_LABEL: Record<AnalysisStatus, string> = {
   suspended: "중단됨",
 };
 
-// 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능. 트래킹 절차 전환(개인회생/채무조정/
-// 파산 변경, currentProcedureStep 없이 호출)과 문자 발송에 적용 — PATCH /v1/analysis/{id}가 절차
+// 절차안내는 계약 체결(contract_pending) 이후부터 이용 가능. 트래킹 절차 전환(개인회생/파산 변경,
+// currentProcedureStep 없이 호출)과 문자 발송에 적용 — PATCH /v1/analysis/{id}가 절차
 // 자체를 바꾸는 요청은 계약대기중부터도 허용하기 때문.
 export const DIAGNOSIS_PROCEDURE_GUIDE_UNLOCKED_STATUSES: readonly AnalysisStatus[] = [
   "contract_pending",
@@ -34,18 +34,17 @@ export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus
 
 // ── 추천 절차 ────────────────────────────────────────────────
 // 코드는 내부 분기(배지 색상/탭 필터/분포 집계)용, 라벨은 UI 표시용.
-export type RecommendedProcedure = "individual_rehab" | "debt_adjustment" | "bankruptcy";
+// ⚠️ 채무조정 절차가 스키마·enum에서 완전히 제거됨(2026-07-24) — 개인회생/파산 2종만 남는다.
+export type RecommendedProcedure = "individual_rehab" | "bankruptcy";
 
 export const RECOMMENDED_PROCEDURE_LABEL: Record<RecommendedProcedure, string> = {
   individual_rehab: "개인회생",
-  debt_adjustment: "채무조정",
   bankruptcy: "파산",
 };
 
 // 탭/분포에서 반복 렌더링할 때 사용하는 순서 고정 배열
 export const RECOMMENDED_PROCEDURE_ORDER: RecommendedProcedure[] = [
   "individual_rehab",
-  "debt_adjustment",
   "bankruptcy",
 ];
 
@@ -108,7 +107,6 @@ export const PROCEDURE_PROGRESS_STEP_TITLES: ProcedureStepTitlesByProcedure = {
     "변제 수행",
     "면책결정",
   ],
-  debt_adjustment: ["상담·접수", "신청", "심사", "확정", "상환 이행", "완료"],
   bankruptcy: ["신청 전 상담", "신청서 접수", "파산선고", "면책심문", "면책결정", "종료"],
 };
 
@@ -491,7 +489,7 @@ export const PROCEDURE_GRADE_LABEL: Record<ProcedureGrade, string> = {
 
 export type ProcedureScore = {
   procedure: RecommendedProcedure;
-  label: string; // "개인회생", "채무조정(워크아웃)", "파산"
+  label: string; // "개인회생", "파산"
   score: number; // 0~100
   grade: ProcedureGrade;
   recommended: boolean;
@@ -628,7 +626,7 @@ export type DiagnosisDetail = {
   procedureScores: ProcedureScore[];
   // 추천 절차 기준 조건 분석 (문자 발송 템플릿 등에서 사용)
   conditionAnalysis: ConditionItem[];
-  // 절차별(개인회생/채무조정/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
+  // 절차별(개인회생/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
   conditionAnalysisByProcedure: Record<RecommendedProcedure, ConditionItem[]>;
   debtStatus: DebtStatusSummary;
   repaymentPlan: RepaymentPlan;

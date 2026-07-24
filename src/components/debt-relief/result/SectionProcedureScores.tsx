@@ -149,7 +149,9 @@ export default function SectionProcedureScores({ detail }: { detail: DiagnosisDe
           <div className="mt-3 border-t border-neutral-30" />
         </div>
 
-        <div className="flex-1 flex flex-col justify-center gap-3 md:gap-5 mt-5 md:mt-8">
+        {/* justify-evenly: 채무조정 제거로 절차 항목이 2개로 줄어도(개인회생·파산) 남는 세로 공간이
+            justify-center처럼 위아래로만 몰리지 않고 행 사이에도 고르게 분배되도록 한다. */}
+        <div className="flex-1 flex flex-col justify-evenly gap-3 md:gap-5 mt-5 md:mt-8">
           {detail.procedureScores.map((score) => (
             <ScoreRow
               key={score.procedure}
