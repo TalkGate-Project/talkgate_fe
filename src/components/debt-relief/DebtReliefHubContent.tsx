@@ -14,6 +14,7 @@ import DiagnosisListTabs from "@/components/debt-relief/hub/DiagnosisListTabs";
 import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
 import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import RelatedNewsDrawer from "@/components/debt-relief/hub/RelatedNewsDrawer";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
@@ -57,6 +58,7 @@ export default function DebtReliefHubContent() {
   // 과거에 공유한 적 있는 건(partnerId 보유)이면 재공유이므로 동일 프로젝트로 고정 —
   // AnalysisShareModal의 프로젝트 선택 스텝을 건너뛴다.
   const [shareLockedPartner, setShareLockedPartner] = useState<{ id: number; projectName: string } | null>(null);
+  const [isNewsDrawerOpen, setIsNewsDrawerOpen] = useState(false);
 
   // 목록이 새로 로드될 때(필터·검색·정렬·페이지 변경)마다 선택 상태를 초기화한다.
   useEffect(() => {
@@ -201,13 +203,31 @@ export default function DebtReliefHubContent() {
               </>
             )}
           </div>
-          <button
-            type="button"
-            className="cursor-pointer shrink-0 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
-            onClick={() => router.push("/debt-relief/new")}
-          >
-            + 새 진단 시작
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-foreground text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:bg-neutral-10 transition-colors whitespace-nowrap flex items-center gap-1"
+              onClick={() => setIsNewsDrawerOpen(true)}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M15.8333 16.6668H4.16667C3.24619 16.6668 2.5 15.9206 2.5 15.0002L2.5 5.00016C2.5 4.07969 3.24619 3.3335 4.16667 3.3335L12.5 3.3335C13.4205 3.3335 14.1667 4.07969 14.1667 5.00016V5.8335M15.8333 16.6668C14.9129 16.6668 14.1667 15.9206 14.1667 15.0002L14.1667 5.8335M15.8333 16.6668C16.7538 16.6668 17.5 15.9206 17.5 15.0002V7.50016C17.5 6.57969 16.7538 5.8335 15.8333 5.8335L14.1667 5.8335M10.8333 3.3335L7.5 3.3335M5.83333 13.3335H10.8333M5.83333 6.66683H10.8333V10.0002H5.83333V6.66683Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              관련뉴스
+            </button>
+            <button
+              type="button"
+              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
+              onClick={() => router.push("/debt-relief/new")}
+            >
+              + 새 진단 시작
+            </button>
+          </div>
         </div>
 
         <div className="-mx-6 md:-mx-7 border-t border-neutral-30 mb-6" />
@@ -332,6 +352,8 @@ export default function DebtReliefHubContent() {
           lockedPartner={shareLockedPartner}
         />
       )}
+
+      <RelatedNewsDrawer isOpen={isNewsDrawerOpen} onClose={() => setIsNewsDrawerOpen(false)} />
     </div>
   );
 }
