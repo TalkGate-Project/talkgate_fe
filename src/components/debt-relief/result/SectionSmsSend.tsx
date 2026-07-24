@@ -3,6 +3,10 @@
 import { useState } from "react";
 import type { DiagnosisDetail } from "@/types/debtRelief";
 import { formatContactForDisplay } from "@/utils/format";
+import { showConfirmModal } from "@/providers/ConfirmModalProvider";
+import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
+import CustomerMatchModal from "./CustomerMatchModal";
+import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import {
   DebtReliefSmsModal,
   buildRequiredDocsTemplate,
@@ -73,11 +77,36 @@ const ACTION_BUILDERS: {
   { label: "직접작성", icon: PencilIcon, build: buildBlankTemplate },
 ];
 
-export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) {
+type Props = {
+  detail: DiagnosisDetail;
+  projectId: string | null;
+  onCustomerMatchChange: () => void;
+};
+
+export default function SectionSmsSend({ detail, projectId, onCustomerMatchChange }: Props) {
   const [smsTemplate, setSmsTemplate] = useState<SmsTemplate | null>(null);
+  const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   // 서버는 공유 시 전달받은 연락처를 우선 쓰고, 없으면 매칭된 고객 연락처를 쓴다(getDiagnosisDetail
   // 참고). detail.phone이 이미 그 결과를 반영하므로 phone 유무로만 판단하면 된다.
   const canSendSms = Boolean(detail.phone);
+
+  // 문자 버튼은 항상 활성화한다(피드백 반영). 연동 전이면 발송 대신 연동 유도 모달을 띄운다 —
+  // 비활성 버튼으로 막기보다 왜 못 보내는지/무엇을 해야 하는지 안내하는 편이 낫다.
+  const handleTemplateClick = (build: (detail: DiagnosisDetail) => SmsTemplate) => {
+    if (canSendSms) {
+      setSmsTemplate(build(detail));
+      return;
+    }
+    showConfirmModal({
+      type: "caution",
+      title: "고객정보 연동",
+      headline: "고객 정보를 연동하시겠습니까?",
+      message: "문자 발송을 위해 고객 정보를 먼저 연동해 주세요.",
+      confirmText: "연동하기",
+      cancelText: "취소",
+      onConfirm: () => setLinkStep("mode"),
+    });
+  };
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -85,21 +114,33 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
         <button
           key={label}
           type="button"
-          disabled={!canSendSms}
-          onClick={() => setSmsTemplate(build(detail))}
-          className={`inline-flex items-center justify-center gap-1 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] ${
-            canSendSms ? "cursor-pointer hover:opacity-90" : "opacity-40 cursor-not-allowed"
-          }`}
+          onClick={() => handleTemplateClick(build)}
+          className="inline-flex items-center justify-center gap-1 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] cursor-pointer hover:opacity-90"
         >
           <Icon />
           <span className="leading-none">{label}</span>
         </button>
       ))}
-      <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
-        {canSendSms
-          ? `${detail.customerName} ${formatContactForDisplay(detail.phone)}`
-          : "연락처 정보가 없어 문자 발송이 불가능합니다"}
-      </span>
+
+      {canSendSms ? (
+        <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
+          {`${detail.customerName} ${formatContactForDisplay(detail.phone)}`}
+        </span>
+      ) : (
+        <>
+          {/* 문구 양옆(왼쪽 버튼 영역·오른쪽 연동하기)만 24px. 부모 gap-2(8px)에 좌우 mx-4(16px)를 더해 8+16=24px. */}
+          <span className="mx-4 text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
+            고객정보가 없습니다. 고객 정보를 추가해주세요.
+          </span>
+          <button
+            type="button"
+            onClick={() => setLinkStep("mode")}
+            className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 cursor-pointer"
+          >
+            연동하기
+          </button>
+        </>
+      )}
 
       {smsTemplate && (
         <DebtReliefSmsModal
@@ -110,6 +151,35 @@ export default function SectionSmsSend({ detail }: { detail: DiagnosisDetail }) 
           recipientPhone={detail.phone}
           {...smsTemplate}
         />
+      )}
+
+      {projectId && (
+        <>
+          <CustomerLinkModeModal
+            open={linkStep === "mode"}
+            onClose={() => setLinkStep(null)}
+            onSelect={(mode) => setLinkStep(mode)}
+            existingDescription="이미 등록된 고객 정보를 연동합니다."
+          />
+          <CustomerMatchModal
+            open={linkStep === "existing"}
+            onClose={() => setLinkStep(null)}
+            onBack={() => setLinkStep("mode")}
+            analysisId={detail.id}
+            projectId={projectId}
+            analysisCustomerName={detail.customerName}
+            onMatched={onCustomerMatchChange}
+          />
+          <CustomerCreateMatchModal
+            open={linkStep === "create"}
+            onClose={() => setLinkStep(null)}
+            onBack={() => setLinkStep("mode")}
+            customerName={detail.customerName}
+            analysisId={detail.id}
+            projectId={projectId}
+            onMatched={onCustomerMatchChange}
+          />
+        </>
       )}
     </div>
   );
