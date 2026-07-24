@@ -20,7 +20,7 @@ type Props = {
 export default function DiagnosisListTabs({ value, onChange }: Props) {
   return (
     <div
-      className="flex h-12 w-full shrink-0 items-center rounded-[12px] bg-[#EDEDED] px-3 dark:bg-neutral-20 md:w-[248px]"
+      className="flex h-12 w-full shrink-0 items-center rounded-[12px] bg-neutral-20 px-3 md:w-[248px]"
       role="tablist"
       aria-label="목록 상태"
     >
@@ -36,7 +36,7 @@ export default function DiagnosisListTabs({ value, onChange }: Props) {
               onClick={() => onChange(tab.key)}
               className={`cursor-pointer flex h-[31px] flex-1 items-center justify-center rounded-[5px] px-8 text-[16px] leading-[19px] md:w-[106px] md:flex-none md:px-8 ${
                 selected
-                  ? "bg-card font-bold text-neutral-90 dark:bg-neutral-10"
+                  ? "bg-card font-bold text-foreground"
                   : "bg-transparent font-medium text-neutral-60"
               }`}
             >
