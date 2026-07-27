@@ -17,6 +17,8 @@ type FeeInstallmentsTableProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  /** 담당자 열은 법무법인 프로젝트에서만 노출 (영업점 프로젝트는 하위 담당자 개념이 없음) */
+  showAssigneeColumn: boolean;
 };
 
 export default function FeeInstallmentsTable({
@@ -27,7 +29,10 @@ export default function FeeInstallmentsTable({
   currentPage,
   totalPages,
   onPageChange,
+  showAssigneeColumn,
 }: FeeInstallmentsTableProps) {
+  const columnCount = showAssigneeColumn ? 6 : 5;
+
   return (
     <>
       {/* 열이 다 들어가기엔 좁아 피그마처럼 가로 스크롤(overflow-hidden이면 상태 열이 잘림).
@@ -41,13 +46,15 @@ export default function FeeInstallmentsTable({
               <th className="bg-neutral-20 text-left px-2 md:px-4 pl-3 md:pl-[30px] text-[13px] md:text-[16px] font-medium text-neutral-70 rounded-l-[8px] md:rounded-l-[12px] w-[110px] md:w-[130px] flex-shrink-0">
                 날짜
               </th>
-              <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">
+              <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 w-[140px] md:w-[170px]">
                 고객명
               </th>
-              <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70">
-                담당자
-              </th>
-              <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 w-[80px] md:w-[100px]">
+              {showAssigneeColumn && (
+                <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 w-[160px] md:w-[190px]">
+                  담당자
+                </th>
+              )}
+              <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 w-[90px] md:w-[110px]">
                 회차
               </th>
               <th className="bg-neutral-20 text-left px-2 md:px-4 text-[13px] md:text-[16px] font-medium text-neutral-70 w-[90px] md:w-[120px]">
@@ -61,7 +68,7 @@ export default function FeeInstallmentsTable({
           <tbody>
             {!hasProject ? (
               <tr>
-                <td colSpan={6} className="text-center py-20 text-[14px] text-neutral-60">
+                <td colSpan={columnCount} className="text-center py-20 text-[14px] text-neutral-60">
                   프로젝트를 먼저 선택해주세요.
                 </td>
               </tr>
@@ -72,8 +79,8 @@ export default function FeeInstallmentsTable({
                     key={idx}
                     columns={[
                       { width: 100, paddingX: 4 },
-                      { width: "flex", paddingX: 4 },
-                      { width: "flex", paddingX: 4 },
+                      { width: 140, paddingX: 4 },
+                      ...(showAssigneeColumn ? [{ width: 160, paddingX: 4 }] : []),
                       { width: 80, paddingX: 4 },
                       { width: 90, paddingX: 4 },
                       { width: 80, paddingX: 4 },
@@ -84,13 +91,13 @@ export default function FeeInstallmentsTable({
               </>
             ) : isError ? (
               <tr>
-                <td colSpan={6} className="text-center py-20 text-[14px] text-danger-40">
+                <td colSpan={columnCount} className="text-center py-20 text-[14px] text-danger-40">
                   납부 내역을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-20 text-[14px] text-neutral-60">
+                <td colSpan={columnCount} className="text-center py-20 text-[14px] text-neutral-60">
                   조회된 납부 내역이 없습니다.
                 </td>
               </tr>
@@ -105,15 +112,41 @@ export default function FeeInstallmentsTable({
                     <td className="px-2 md:px-4 text-[13px] md:text-[15px] text-neutral-90 min-w-0">
                       <span className="block truncate">{item.customerName || "-"}</span>
                     </td>
-                    <td className="px-2 md:px-4 text-[13px] md:text-[15px] text-neutral-80 min-w-0">
-                      {/* TODO: assignee name when API provides it — 현재는 sourceProjectName만 표시 */}
-                      <span className="block truncate">
-                        {item.sourceProjectName || "-"}
-                      </span>
-                    </td>
-                    <td className="px-2 md:px-4 text-[13px] md:text-[15px] text-neutral-80 whitespace-nowrap">
-                      {/* TODO: total installmentCount when API provides it (예: 3/8회차) */}
-                      {item.installmentNumber}회차
+                    {showAssigneeColumn && (
+                      <td className="px-2 md:px-4 min-w-0">
+                        {item.sourceMemberName ? (
+                          <p className="truncate">
+                            <span className="text-[14px] font-semibold leading-[17px] text-neutral-90 opacity-80">
+                              {item.sourceMemberName}
+                            </span>
+                            {item.sourceProjectName && (
+                              <span className="ml-1 text-[14px] font-medium leading-[17px] text-neutral-60 opacity-80">
+                                {item.sourceProjectName}
+                              </span>
+                            )}
+                          </p>
+                        ) : (
+                          <span className="block truncate text-[13px] md:text-[15px] text-neutral-80">
+                            {item.sourceProjectName || "-"}
+                          </span>
+                        )}
+                      </td>
+                    )}
+                    <td className="px-2 md:px-4 whitespace-nowrap">
+                      {item.installmentCount ? (
+                        <span className="text-[13px] md:text-[15px]">
+                          <span className="font-semibold text-neutral-90 opacity-80">
+                            {item.installmentNumber}
+                          </span>
+                          <span className="font-medium text-neutral-60 opacity-80">
+                            /{item.installmentCount}회차
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[13px] md:text-[15px] text-neutral-80">
+                          {item.installmentNumber}회차
+                        </span>
+                      )}
                     </td>
                     <td className="px-2 md:px-4 text-[13px] md:text-[15px] font-medium text-neutral-90 whitespace-nowrap">
                       {formatWonAsManwonCompact(item.amount)}

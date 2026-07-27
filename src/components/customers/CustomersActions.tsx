@@ -5,6 +5,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import CustomerShareModal from "@/components/customers/CustomerShareModal";
 import CustomerExcelUploadModal from "@/components/customers/CustomerExcelUploadModal";
+import BulkCategoryChangeModal from "@/components/customers/BulkCategoryChangeModal";
 import type { DeleteCustomersFilterConditions } from "@/types/customers";
 
 export type CustomersActionsProps = {
@@ -23,6 +24,7 @@ export type CustomersActionsProps = {
   onBulkScheduleOpen: () => void;
   onShareSuccess?: () => void;
   onDeleteSuccess?: () => void;
+  onCategoryChangeSuccess?: () => void;
   /** 데이터 제공자 프로젝트일 때만 파트너배정 버튼 노출 조건에 포함 (기본 false) */
   isDataProvider?: boolean;
   /** 어드민/서브어드민일 때만 파트너배정 버튼 표시 (isDataProvider && admin|subAdmin 권한, 기본 비노출) */
@@ -110,6 +112,7 @@ export default function CustomersActions({
   onBulkScheduleOpen,
   onShareSuccess,
   onDeleteSuccess,
+  onCategoryChangeSuccess,
   isDataProvider: _isDataProvider = false,
   showPartnerAssignButton = false,
   showAssignButton = true,
@@ -119,6 +122,7 @@ export default function CustomersActions({
 }: CustomersActionsProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [excelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [limitPopoverOpen, setLimitPopoverOpen] = useState(false);
   const desktopLimitPopoverRef = useRef<HTMLDivElement | null>(null);
   const mobileLimitPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -296,6 +300,25 @@ export default function CustomersActions({
     });
   };
 
+  const categoryTargetCount = selectionMode === "all" ? total : selectedIds.length;
+
+  /** 한 페이지 분량을 넘게 선택했으면 적용 대상 건수를 먼저 확인받은 뒤 변경 모달을 연다 */
+  const handleCategoryClick = () => {
+    if (categoryTargetCount > limit) {
+      showConfirmModal({
+        type: "caution",
+        title: "전체 선택",
+        headline: `전체 ${categoryTargetCount.toLocaleString()}건 항목에 적용됩니다.`,
+        message: "계속 진행하시겠습니까?",
+        confirmText: "확인",
+        cancelText: "취소",
+        onConfirm: () => setCategoryModalOpen(true),
+      });
+      return;
+    }
+    setCategoryModalOpen(true);
+  };
+
   const iconOnlyButtonClass =
     "cursor-pointer h-9 w-9 flex items-center justify-center rounded-[8px] bg-neutral-90 text-neutral-20 flex-shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -372,6 +395,22 @@ export default function CustomersActions({
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                   <path d="M6.66667 5.83333V2.5M13.3333 5.83333V2.5M5.83333 9.16667H14.1667M4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V5.83333C17.5 4.91286 16.7538 4.16667 15.8333 4.16667H4.16667C3.24619 4.16667 2.5 4.91286 2.5 5.83333V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </LocalIconTooltip>
+            <LocalIconTooltip label="카테고리">
+              <button
+                type="button"
+                className={iconOnlyButtonClass}
+                onClick={handleCategoryClick}
+                disabled={selectedIds.length === 0 && selectionMode !== "all"}
+                aria-label="카테고리"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M3.33301 5.00016C3.33301 4.07969 4.0792 3.3335 4.99967 3.3335H6.66634C7.58682 3.3335 8.33301 4.07969 8.33301 5.00016V6.66683C8.33301 7.5873 7.58682 8.3335 6.66634 8.3335H4.99967C4.0792 8.3335 3.33301 7.5873 3.33301 6.66683V5.00016Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M11.6663 5.00016C11.6663 4.07969 12.4125 3.3335 13.333 3.3335H14.9997C15.9201 3.3335 16.6663 4.07969 16.6663 5.00016V6.66683C16.6663 7.5873 15.9201 8.3335 14.9997 8.3335H13.333C12.4125 8.3335 11.6663 7.5873 11.6663 6.66683V5.00016Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3.33301 13.3335C3.33301 12.413 4.0792 11.6668 4.99967 11.6668H6.66634C7.58682 11.6668 8.33301 12.413 8.33301 13.3335V15.0002C8.33301 15.9206 7.58682 16.6668 6.66634 16.6668H4.99967C4.0792 16.6668 3.33301 15.9206 3.33301 15.0002V13.3335Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M11.6663 13.3335C11.6663 12.413 12.4125 11.6668 13.333 11.6668H14.9997C15.9201 11.6668 16.6663 12.413 16.6663 13.3335V15.0002C16.6663 15.9206 15.9201 16.6668 14.9997 16.6668H13.333C12.4125 16.6668 11.6663 15.9206 11.6663 15.0002V13.3335Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </LocalIconTooltip>
@@ -504,6 +543,20 @@ export default function CustomersActions({
             </svg>
             <span>일정추가</span>
           </button>
+          <button
+            type="button"
+            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-1 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
+            onClick={handleCategoryClick}
+            disabled={selectedIds.length === 0 && selectionMode !== "all"}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
+              <path d="M3.33301 5.00016C3.33301 4.07969 4.0792 3.3335 4.99967 3.3335H6.66634C7.58682 3.3335 8.33301 4.07969 8.33301 5.00016V6.66683C8.33301 7.5873 7.58682 8.3335 6.66634 8.3335H4.99967C4.0792 8.3335 3.33301 7.5873 3.33301 6.66683V5.00016Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11.6663 5.00016C11.6663 4.07969 12.4125 3.3335 13.333 3.3335H14.9997C15.9201 3.3335 16.6663 4.07969 16.6663 5.00016V6.66683C16.6663 7.5873 15.9201 8.3335 14.9997 8.3335H13.333C12.4125 8.3335 11.6663 7.5873 11.6663 6.66683V5.00016Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3.33301 13.3335C3.33301 12.413 4.0792 11.6668 4.99967 11.6668H6.66634C7.58682 11.6668 8.33301 12.413 8.33301 13.3335V15.0002C8.33301 15.9206 7.58682 16.6668 6.66634 16.6668H4.99967C4.0792 16.6668 3.33301 15.9206 3.33301 15.0002V13.3335Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11.6663 13.3335C11.6663 12.413 12.4125 11.6668 13.333 11.6668H14.9997C15.9201 11.6668 16.6663 12.413 16.6663 13.3335V15.0002C16.6663 15.9206 15.9201 16.6668 14.9997 16.6668H13.333C12.4125 16.6668 11.6663 15.9206 11.6663 15.0002V13.3335Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>카테고리</span>
+          </button>
           <div className="text-[14px] text-neutral-50">
             총 {total.toLocaleString()}건 ({selectedCount}개 선택)
           </div>
@@ -626,6 +679,17 @@ export default function CustomersActions({
         onClose={() => setExcelUploadModalOpen(false)}
         projectId={projectId}
         onUploadSuccess={onUploadSuccess}
+      />
+
+      <BulkCategoryChangeModal
+        open={categoryModalOpen}
+        onClose={() => setCategoryModalOpen(false)}
+        onSuccess={onCategoryChangeSuccess}
+        projectId={projectId}
+        selectedIds={selectedIds}
+        selectionMode={selectionMode}
+        appliedFilters={appliedFilters}
+        total={total}
       />
     </div>
   );

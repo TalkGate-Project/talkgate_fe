@@ -32,6 +32,8 @@ import {
   ConfirmAllCustomersResponse,
   UpdateCustomerCategoryInput,
   CustomerCategoryHistoryItem,
+  BulkChangeCategoryInput,
+  BulkChangeCategoryResponse,
 } from "@/types/customers";
 import type { RecentlyAssignedCustomersResponse } from "@/types/dashboard";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
@@ -221,6 +223,13 @@ export const CustomersService = {
       headers: { "x-project-id": projectId },
     });
   },
+  // 카테고리 일괄 변경 (선택한 고객 ID 목록 또는 현재 필터 조건 전체 대상)
+  bulkChangeCategory(input: BulkChangeCategoryInput) {
+    const { projectId, ...body } = input;
+    return apiClient.post<BulkChangeCategoryResponse>(`/v1/customers/category/bulk`, body, {
+      headers: { "x-project-id": projectId },
+    });
+  },
   categoryHistory(customerId: string, projectId: string) {
     return apiClient.get<BasicSuccessResponse>(`/v1/customers/${customerId}/category-history`, {
       headers: { "x-project-id": projectId },
@@ -338,4 +347,7 @@ export type {
   ConfirmAllCustomersResponse,
   UpdateCustomerCategoryInput,
   CustomerCategoryHistoryItem,
+  BulkChangeCategoryInput,
+  BulkChangeCategoryFilterConditions,
+  BulkChangeCategoryResponse,
 } from "@/types/customers";

@@ -940,10 +940,6 @@ export default function ResultHeader({
           isContractPending={detail.status === "contract_pending"}
           feePlan={detail.feePlan}
           procedureScores={detail.procedureScores}
-          procedureProgress={{
-            current: detail.procedureGuide.currentStep,
-            total: detail.procedureGuide.totalSteps,
-          }}
           onChanged={onCustomerMatchChange}
         />
       )}

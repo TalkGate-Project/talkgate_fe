@@ -67,7 +67,7 @@ function EditIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** 복사 아이콘 (Outline duplicate – 두 겹친 사각형), 24x24, stroke #B0B0B0 */
+/** 복사 아이콘 (Outline duplicate – 두 겹친 사각형), 24x24, stroke #B0B0B0 (dark: #959595) */
 function CopyIcon({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -85,12 +85,12 @@ function CopyIcon({ className = "" }: { className?: string }) {
         width="12"
         height="12"
         rx="1"
-        stroke="#B0B0B0"
+        className="stroke-[#B0B0B0] dark:stroke-[#959595]"
         strokeWidth="2"
       />
       <path
         d="M6 16V5C6 4.44772 6.44772 4 7 4H16"
-        stroke="#B0B0B0"
+        className="stroke-[#B0B0B0] dark:stroke-[#959595]"
         strokeWidth="2"
         strokeLinecap="round"
       />

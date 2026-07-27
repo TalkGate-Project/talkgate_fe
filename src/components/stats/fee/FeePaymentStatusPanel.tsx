@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import DateRangePicker from "@/components/common/DateRangePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useProjectType } from "@/hooks/useProjectType";
+import { useCurrentProjectDetail } from "@/hooks/useCurrentProjectDetail";
 import { AnalysisService } from "@/services/analysis";
 import { AnalysisPartnersService } from "@/services/analysisPartners";
 import { getCurrentRankingMonthStart } from "@/utils/datetime";
@@ -21,6 +22,7 @@ type DateMode = "monthly" | "custom";
 export default function FeePaymentStatusPanel() {
   const [projectId, projectReady] = useSelectedProjectId();
   const { isLawyer, ready: projectTypeReady } = useProjectType();
+  const { project: currentProject } = useCurrentProjectDetail();
   const hasProject = projectReady && Boolean(projectId);
 
   const [dateMode, setDateMode] = useState<DateMode>("monthly");
@@ -52,11 +54,20 @@ export default function FeePaymentStatusPanel() {
     [projectId, filterProjectId, dateRange.startDate, dateRange.endDate]
   );
 
+  // GET /v1/analysis-partners/requests: 법무법인(lawyer) 프로젝트 시점에서 연결된 영업점 목록 조회
+  // (projectId/projectName = 영업 프로젝트 ID/명, partnerProjectId = 이 법무법인 프로젝트 ID).
+  // 변호사 시점에 연결된 영업점을 조회할 수 있는 엔드포인트는 이것뿐이라 승인된 건(status=approved)만
+  // 걸러 필터 옵션으로 쓴다. 원래 Admin/SubAdmin 전용이라 일반 직원은 403으로 목록이 비었으나,
+  // 일반 직원도 영업점별 필터링이 가능해야 해 백엔드에서 권한 제한을 푸는 것으로 확정
+  // (docs/ANALYSIS_API_QA_CHECKLIST.md §2 이슈 12).
+  // ⚠️ GET /v1/analysis-partners(.list)는 영업점(analysis) 프로젝트 시점 전용이라 법무법인에서 호출하면
+  // 항상 403(INVALID_PROJECT_TYPE) — 잘못된 엔드포인트였다. /v1/project-partners("협력업체")도 시도했으나
+  // 이건 쿠폰/제휴 관리용 별개 도메인이라 이 관계와 무관(테스트 데이터에서 항상 빈 목록으로 확인됨).
   const partnersQuery = useQuery({
-    queryKey: ["analysis-partners-fee-filter", projectId],
+    queryKey: ["analysis-partners-requests-fee-filter", projectId],
     enabled: hasProject && projectTypeReady && isLawyer,
     queryFn: async () => {
-      const res = await AnalysisPartnersService.list(
+      const res = await AnalysisPartnersService.listRequests(
         { status: "approved", page: 1, limit: PARTNER_LIMIT },
         { "x-project-id": projectId! }
       );
@@ -66,14 +77,22 @@ export default function FeePaymentStatusPanel() {
 
   const branchOptions = useMemo(() => {
     const partners = partnersQuery.data ?? [];
-    // 변호사: projectId = 영업 프로젝트 ID, projectName = 영업점명
-    return partners
+    // 변호사 시점: projectId = 영업 프로젝트 ID, projectName = 영업점명
+    const partnerOptions = partners
       .filter((p) => p.projectId != null)
       .map((p) => ({
         value: p.projectId,
         label: p.projectName || `영업점 #${p.projectId}`,
       }));
-  }, [partnersQuery.data]);
+    // 법무법인 프로젝트 자체(현재 프로젝트)도 필터 대상에 포함
+    if (currentProject) {
+      return [
+        { value: currentProject.id, label: `${currentProject.name} (현재프로젝트)` },
+        ...partnerOptions,
+      ];
+    }
+    return partnerOptions;
+  }, [partnersQuery.data, currentProject]);
 
   const summaryQuery = useQuery({
     queryKey: ["fee-statistics-summary", sharedQuery],
@@ -134,6 +153,11 @@ export default function FeePaymentStatusPanel() {
 
   const handleDateModeChange = (mode: DateMode) => {
     setDateMode(mode);
+    if (mode === "custom" && !customStart && !customEnd) {
+      const now = new Date();
+      setCustomStart(new Date(now.getFullYear(), now.getMonth(), 1));
+      setCustomEnd(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    }
     setPage(1);
   };
 
@@ -147,7 +171,8 @@ export default function FeePaymentStatusPanel() {
     setPage(1);
   };
 
-  const branchSelect = (
+  // 영업점 필터는 법무법인 프로젝트에서만 노출 (영업점 프로젝트에는 하위 영업점 개념이 없음)
+  const branchSelect = isLawyer ? (
     <div className="flex items-center gap-2.5">
       <span className="whitespace-nowrap text-[16px] font-medium leading-[19px] text-[#808080]">
         영업점
@@ -156,17 +181,15 @@ export default function FeePaymentStatusPanel() {
         <select
           value={filterProjectId != null ? String(filterProjectId) : ""}
           onChange={(e) => handleBranchChange(e.target.value)}
-          disabled={!isLawyer}
-          className="h-full w-full min-w-[127px] cursor-pointer appearance-none rounded-[5px] border border-[#E2E2E2] bg-white py-2 pl-3 pr-7 text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-black disabled:cursor-not-allowed disabled:bg-neutral-10 disabled:text-neutral-60 dark:border-neutral-30 dark:bg-neutral-20 dark:text-neutral-90"
+          className="h-full w-full min-w-[127px] cursor-pointer appearance-none rounded-[5px] border border-[#E2E2E2] bg-white py-2 pl-3 pr-7 text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-black dark:border-neutral-30 dark:bg-neutral-20 dark:text-neutral-90"
           aria-label="영업점 필터"
         >
-          <option value="">전체 영업점</option>
-          {isLawyer &&
-            branchOptions.map((opt) => (
-              <option key={opt.value} value={String(opt.value)}>
-                {opt.label}
-              </option>
-            ))}
+          <option value="">전체</option>
+          {branchOptions.map((opt) => (
+            <option key={opt.value} value={String(opt.value)}>
+              {opt.label}
+            </option>
+          ))}
         </select>
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden>
@@ -175,7 +198,7 @@ export default function FeePaymentStatusPanel() {
         </span>
       </div>
     </div>
-  );
+  ) : null;
 
   return (
     // 모바일·태블릿: 흰 섹션을 붙여 body bg가 비치지 않도록. PC(lg+): 카드 간격 유지.
@@ -290,6 +313,7 @@ export default function FeePaymentStatusPanel() {
           currentPage={page}
           totalPages={totalPages}
           onPageChange={setPage}
+          showAssigneeColumn={isLawyer}
         />
       </section>
     </div>
