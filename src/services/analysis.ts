@@ -1,6 +1,9 @@
 import { apiClient } from "@/lib/apiClient";
 import { readEventStream } from "@/lib/sse";
 import { setAuthSessionExpired } from "@/lib/authSession";
+import { env } from "@/lib/env";
+import { getAccessToken } from "@/lib/token";
+import { AuthService } from "@/services/auth";
 import type {
   CreateAnalysisInput,
   CreateAnalysisResponse,
@@ -126,33 +129,51 @@ export const AnalysisService = {
 
   // AI 채팅 메시지 전송 (SSE 스트리밍)
   //
-  // apiClient는 응답을 완전히 버퍼링한 뒤 반환하므로 SSE에 쓸 수 없다.
-  // /api/proxy는 그대로 경유하되(백엔드 직접 호출 금지 규칙 준수) apiClient 래퍼를 우회해
-  // fetch로 직접 스트림을 읽는다. 이 스트림이 실제로 흐르려면 서버 쪽
-  // src/app/api/proxy/[...path]/route.ts가 text/event-stream 응답을 버퍼링 없이
-  // pass-through 하도록 되어 있어야 한다(2026-07-10 기준 적용됨).
+  // 이 엔드포인트만 예외적으로 /api/proxy를 거치지 않고 브라우저가 AWS 백엔드에 직접
+  // 요청한다(백엔드 팀 제안, 2026-07-27). 원인: 배포된 파이프라인이 Vercel(프론트)과
+  // AWS(백엔드)로 나뉘어 있는데, 프록시(Vercel 서버리스 함수)를 한 번 거치면 그 구간에서
+  // 응답이 버퍼링되어 SSE가 스트리밍이 아니라 한 번에 도착한다(로컬/백엔드까지 전부 Vercel인
+  // 경우엔 문제없이 스트리밍됨). CLAUDE.md의 "클라이언트는 백엔드를 직접 호출하지 않는다"
+  // 원칙의 의도적 예외 — 실시간 채팅 소켓(src/lib/realtime.ts)도 같은 이유로 이미 직접
+  // 연결하고 있어 선례가 있다.
   //
-  // apiClient와 달리 401 자동 refresh/retry는 프록시가 대신 처리해주지만(재시도 후에도
-  // 실패한 "진짜" 401만 여기로 내려온다), suppressAutoLogout 등 apiClient의 세부 예외
-  // 옵션은 없다. 이 엔드포인트는 CLAUDE.md의 401 예외 목록에 없으므로 진짜 401이면
-  // apiClient와 동일하게 세션 만료 처리한다.
+  // 프록시를 안 거치므로 401 자동 refresh/retry도 여기서 직접 처리해야 한다: 토큰은
+  // apiClient처럼 쿠키(x-project-id)+Authorization 헤더로 넘기되, Authorization은
+  // getAccessToken()으로 non-httpOnly 쿠키에서 읽어 수동 구성한다(realtime.ts와 동일 패턴).
+  // 첫 요청이 401이면 AuthService.refresh()(프록시 경유, CORS 문제 없음)로 한 번만
+  // 갱신을 시도하고, 새 토큰으로 스트림 요청을 한 번 재시도한다. 재시도까지 실패하면
+  // apiClient와 동일하게 세션 만료 처리.
   async streamChatMessage(
     input: AnalysisChatSendInput,
     callbacks: AnalysisChatStreamCallbacks,
     signal?: AbortSignal
   ): Promise<void> {
     const { id, projectId, message } = input;
+    const url = `${env.NEXT_PUBLIC_API_BASE_URL}/v1/analysis/${id}/chat/stream`;
 
-    const response = await fetch(`/api/proxy/v1/analysis/${id}/chat/stream`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-project-id": projectId,
-      },
-      credentials: "include",
-      body: JSON.stringify({ message }),
-      signal,
-    });
+    // 백엔드가 인증을 Authorization 헤더로만 판별하므로(프록시가 쿠키→헤더 변환해오던 방식과 동일),
+    // 쿠키를 굳이 전송할 필요가 없다 — credentials를 생략해 크로스오리진 CORS 요건을
+    // Allow-Credentials 없이 Origin 허용만으로 단순화한다.
+    const requestStream = (accessToken: string | null) =>
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-project-id": projectId,
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ message }),
+        signal,
+      });
+
+    let response = await requestStream(getAccessToken());
+
+    if (response.status === 401) {
+      const refreshed = await AuthService.refresh().catch(() => null);
+      if (refreshed?.ok) {
+        response = await requestStream(getAccessToken());
+      }
+    }
 
     const contentType = response.headers.get("content-type") || "";
 
