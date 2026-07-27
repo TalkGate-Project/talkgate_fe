@@ -56,8 +56,9 @@ Statistics / Analysis Partner)와 현재 코드를 대조해 연동 현황을 �
 
 | 엔드포인트 | 상태 |
 |---|---|
-| `GET /v1/analysis-partners` | ✅ 승인된 목록만 조회(`AnalysisShareModal.tsx`) |
-| `POST` / `DELETE /{id}` / `PATCH /{id}/status` / `GET /requests` | 의도적으로 이 프론트엔드 범위 밖 — 별도 외부 admin이 전담 (`services/analysisPartners.ts` 상단 주석 참고) |
+| `GET /v1/analysis-partners` | ✅ 승인된 목록만 조회(`AnalysisShareModal.tsx`). **영업점(analysis) 프로젝트 시점 전용** — 변호사 프로젝트에서 호출하면 403 `INVALID_PROJECT_TYPE` |
+| `GET /v1/analysis-partners/requests` | ✅ 변호사 프로젝트 시점의 연결된 영업점 목록 조회(`FeePaymentStatusPanel.tsx` 영업점 필터, 읽기 전용). Admin/SubAdmin만 가능 → §2 이슈 12 |
+| `POST` / `DELETE /{id}` / `PATCH /{id}/status` | 의도적으로 이 프론트엔드 범위 밖 — 별도 외부 admin이 전담 (`services/analysisPartners.ts` 상단 주석 참고) |
 
 ---
 
@@ -130,6 +131,27 @@ Statistics / Analysis Partner)와 현재 코드를 대조해 연동 현황을 �
     페이지(다른 라우트)로 이동하며 완전히 언마운트되면 상태가 사라지는 게 원인이었음. 고객목록
     `useCustomersFilters`와 같은 방향으로 URL 쿼리 동기화를 추가(로컬스토리지 복원 레이어는 이번
     범위 밖이라 제외) — 실브라우저로 검색→상세진입→뒤로가기 복원까지 확인.
+12. ~~통계 > 회생·파산 납부 현황의 "영업점" 필터가 절대 채워지지 않던 건~~ — **수정 완료(2026-07-27)**.
+    `FeePaymentStatusPanel.tsx`가 `GET /v1/analysis-partners`(`AnalysisPartnersService.list`)로 영업점
+    목록을 조회했는데, 이 엔드포인트는 **영업점(analysis) 프로젝트 시점 전용**이라 변호사 프로젝트에서
+    호출하면 항상 403 `INVALID_PROJECT_TYPE`이 떨어졌음. 필터 쿼리는 `console.error`만 찍고 옵션은
+    `?? []`로 폴백해서 페이지는 멀쩡히 렌더됐고(핵심 데이터인 summary/installments는 별개 쿼리),
+    "전체"와 "현재프로젝트"만 뜬 채 하위 영업점이 영원히 안 나오는 조용한 실패였음. 변호사 시점의
+    올바른 엔드포인트인 `GET /v1/analysis-partners/requests`(`listRequests`, 응답의 `projectId`/
+    `projectName`이 영업점 ID/명)로 교체 — 200 OK 및 실제 영업점 옵션 노출, 선택 시
+    `fee-statistics/*?projectId=…` 필터 적용까지 브라우저로 확인함. (중간에 `GET /v1/project-partners`도
+    시도했으나 이건 쿠폰/제휴 관리용 별개 도메인이라 이 관계와 무관.)
+    - **엔드포인트 확정**: API 스펙 확인 결과 Analysis Partner 도메인에서 **변호사 프로젝트 시점의
+      조회 엔드포인트는 `/requests`가 유일**함(`GET /v1/analysis-partners`는 영업 프로젝트 전용).
+      이름은 "등록 요청 목록"이지만 `status=approved`로 걸러 쓰는 것이 맞는 사용법으로 확정.
+    - **남은 작업 (백엔드 배포 대기)**: `/requests`는 원래 Admin/SubAdmin 전용이라 일반 직원 계정에서는
+      403 `FORBIDDEN`("Only admin can perform this action")으로 영업점 목록이 비어 버림 —
+      `이건하`(project 57에서 `/v1/members/my` 기준 `role: "member"`) 계정으로 재현 확인(2026-07-27).
+      일반 직원도 영업점별 필터링이 가능해야 하므로 **백엔드에서 이 엔드포인트의 Admin/SubAdmin 제한을
+      해제하기로 확정**. 배포 후 일반 직원 계정으로 (1) 200 응답, (2) 영업점 옵션 노출, (3) 선택 시
+      `fee-statistics/*?projectId=…` 필터 적용까지 재검증 필요. 프론트 코드는 추가 변경 없음.
+    - **알려진 제한**: 옵션은 1페이지 100건(`PARTNER_LIMIT`)까지만 가져옴 — 연결 영업점이 100곳을
+      넘으면 드롭다운에서 누락됨. 현재 규모에서는 문제 없으나 늘어나면 페이지네이션/검색 필요.
 
 ---
 

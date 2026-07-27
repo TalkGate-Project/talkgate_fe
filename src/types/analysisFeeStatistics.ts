@@ -41,14 +41,16 @@ export type FeeStatisticsInstallmentItem = {
   analysisId: number;
   sourceProjectId: number;
   sourceProjectName: string | null;
+  /** 담당자명 (영업점 담당 직원) */
+  sourceMemberName: string | null;
   customerName: string;
   installmentNumber: number;
-  // TODO: total installmentCount when API provides it (예: 3/8회차)
+  /** 총 회차 수 (예: 3/8회차). 아직 엔드포인트가 내려주지 않아 없을 수 있음 — 없으면 현재 회차만 표시 */
+  installmentCount?: number;
   amount: number; // 원(KRW)
   scheduledDate: string;
   paidAt: string | null;
   status: FeeInstallmentStatus;
-  // TODO: assignee name when API provides it (담당자명 + 영업점)
 };
 
 export type FeeStatisticsInstallmentsPayload = {

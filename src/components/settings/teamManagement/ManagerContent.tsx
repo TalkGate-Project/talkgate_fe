@@ -159,7 +159,7 @@ export default function ManagerContent({
                     onChange={(d) =>
                       setHrFormData((prev) => ({ ...prev, birthDate: d }))
                     }
-                    minDate={new Date(1950, 0, 1)}
+                    maxDate={new Date()}
                     className="cursor-pointer pr-10 h-[34px] text-[13px] md:text-[14px]"
                   />
                   <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />

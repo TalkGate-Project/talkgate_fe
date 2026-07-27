@@ -11,9 +11,10 @@ import type {
   AnalysisPartnerRequestsResponse,
 } from "@/types/analysisPartners";
 
-// create/remove/updateStatus/listRequests는 이 프론트엔드에서 사용하지 않는다.
+// create/remove/updateStatus는 이 프론트엔드에서 사용하지 않는다.
 // 변호사 파트너 등록/삭제/승인·거부 플로우는 별도의 임시 외부 admin이 전담하며,
-// 이 프로젝트는 승인된 파트너 목록 조회(list)만 담당한다(2026-07-14 확정).
+// 이 프로젝트는 승인된 파트너 목록 조회(list, listRequests)만 담당한다(2026-07-14 확정,
+// listRequests는 2026-07-27 통계 탭 영업점 필터용으로 읽기 전용 예외 추가).
 // 향후 이 플로우가 본 프로젝트로 이관되기 전까지는 특별한 지시 없이 아래 메서드들을
 // 연동 잔량으로 취급하지 않는다.
 export const AnalysisPartnersService = {
@@ -76,9 +77,12 @@ export const AnalysisPartnersService = {
   },
 
   /**
-   * 파트너 등록 요청 목록 조회 (변호사 프로젝트, Admin/SubAdmin만 가능)
+   * 파트너 등록 요청 목록 조회 (변호사 프로젝트 시점)
    * GET /v1/analysis-partners/requests
-   * 이 프론트엔드에서 미사용 — 외부 admin이 전담(파일 상단 안내 참고).
+   * 승인/거부 등 쓰기 플로우는 외부 admin 전담(파일 상단 안내 참고) — 이 메서드는 통계 탭
+   * 영업점 필터(FeePaymentStatusPanel)에서 status=approved로 걸러 "연결된 영업점 목록"을
+   * 얻는 읽기 전용 용도로만 사용한다(변호사 시점에는 이 엔드포인트가 유일).
+   * 원래 Admin/SubAdmin 전용이었으나 일반 직원도 필터를 쓸 수 있도록 백엔드에서 권한 제한 해제 예정.
    */
   listRequests(query: AnalysisPartnerRequestsQuery, headers?: Record<string, string>) {
     return apiClient.get<AnalysisPartnerRequestsResponse>("/v1/analysis-partners/requests", {

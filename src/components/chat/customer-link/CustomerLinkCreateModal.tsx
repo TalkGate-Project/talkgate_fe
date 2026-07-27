@@ -360,6 +360,7 @@ export default function CustomerLinkCreateModal({
                     onChange={setBirthDate}
                     placeholder="YYYY-MM-DD"
                     dateFormat="yyyy-MM-dd"
+                    maxDate={new Date()}
                     className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-neutral-90 dark:text-neutral-90"
                   />
                 </div>
