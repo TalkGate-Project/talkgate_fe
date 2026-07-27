@@ -27,34 +27,51 @@ type DatePickerProps = {
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const MONTHS = Array.from({ length: 12 }, (_, idx) => idx);
+
+/** day: 일 선택 / month: 월 선택 / year: 연도 선택 */
+type DatePickerMode = "day" | "month" | "year";
+
+/** minDate가 없을 때 연도 선택 목록이 거슬러 올라가는 하한(고령 고객 생년월일까지 커버) */
+const EARLIEST_SELECTABLE_YEAR = 1920;
+/** maxDate가 없을 때 연도 선택 목록이 나아가는 기본 범위 */
+const DEFAULT_YEARS_AHEAD = 10;
 
 export default function DatePicker(props: DatePickerProps) {
 	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false } = props;
 
 	const [open, setOpen] = useState(false);
-	const [mode, setMode] = useState<"month" | "year">("month");
+	const [mode, setMode] = useState<DatePickerMode>("day");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
 	const [view, setView] = useState<Date>(new Date(initial.getFullYear(), initial.getMonth(), 1));
-	// Calculate yearStart: if minDate exists, start from minDate year, otherwise start from initial year - 20
-	const minYear = minDate ? minDate.getFullYear() : null;
-	const maxYear = maxDate ? maxDate.getFullYear() : new Date().getFullYear() + 10;
-	const defaultYearStart = minYear ? minYear : initial.getFullYear() - 20;
-	const [yearStart, setYearStart] = useState<number>(defaultYearStart); // Starting year for year selection
+
+	// 선택 가능한 연도 범위. min/max가 없으면 넉넉한 기본 범위를 쓰고,
+	// 이미 선택된 값이 그 범위 밖이면(오래된 생년월일 등) 범위를 넓혀 항상 노출되게 한다.
+	const currentYear = new Date().getFullYear();
+	const initialYear = initial.getFullYear();
+	const firstSelectableYear = minDate
+		? minDate.getFullYear()
+		: Math.min(EARLIEST_SELECTABLE_YEAR, initialYear);
+	const lastSelectableYear = maxDate
+		? maxDate.getFullYear()
+		: Math.max(currentYear + DEFAULT_YEARS_AHEAD, initialYear);
+	const selectableYears = useMemo(() => {
+		const total = Math.max(0, lastSelectableYear - firstSelectableYear + 1);
+		return Array.from({ length: total }, (_, idx) => firstSelectableYear + idx);
+	}, [firstSelectableYear, lastSelectableYear]);
 
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const panelRef = useRef<HTMLDivElement | null>(null);
+	const yearListRef = useRef<HTMLDivElement | null>(null);
 	const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
 
 	const closeAndReset = useCallback(() => {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		const resetMinYear = minDate ? minDate.getFullYear() : null;
-		const resetYearStart = resetMinYear ? resetMinYear : base.getFullYear() - 20;
-		setYearStart(resetYearStart);
-		setMode("month");
-	}, [value, minDate]);
+		setMode("day");
+	}, [value]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -135,47 +152,75 @@ export default function DatePicker(props: DatePickerProps) {
 			window.removeEventListener("resize", update);
 			window.removeEventListener("scroll", update, true);
 		};
-	}, [open, panelOffsetY]);
+		// mode가 바뀌면 패널 높이가 달라지므로(일/월/연도) 위치를 다시 계산한다.
+	}, [open, panelOffsetY, mode]);
 
 	useEffect(() => {
 		// Keep view in sync when external value changes while closed
 		if (!open) {
 			const base = value ? new Date(value) : new Date();
 			setView(new Date(base.getFullYear(), base.getMonth(), 1));
-			const syncMinYear = minDate ? minDate.getFullYear() : null;
-			const syncYearStart = syncMinYear ? syncMinYear : base.getFullYear() - 20;
-			setYearStart(syncYearStart);
-			setMode("month");
+			setMode("day");
 		}
-	}, [value, open, minDate]);
+	}, [value, open]);
+
+	// 연도 모드로 들어오면 현재 보고 있는 연도가 목록 가운데에 오도록 스크롤한다.
+	useEffect(() => {
+		if (!open || mode !== "year") return;
+		const container = yearListRef.current;
+		if (!container) return;
+		const target = container.querySelector<HTMLElement>(`[data-year="${view.getFullYear()}"]`);
+		if (!target) return;
+		container.scrollTop = Math.max(
+			0,
+			target.offsetTop - container.clientHeight / 2 + target.offsetHeight / 2
+		);
+	}, [open, mode, view]);
 
 	const label = useMemo(() => {
 		const y = view.getFullYear();
 		const m = view.getMonth() + 1;
-		return `${m}월 ${y}`;
-	}, [view]);
+		// 일 선택 화면에서만 월까지 보여준다. 월/연도 선택 중에는 기준 연도만 보여주는 편이 덜 헷갈린다.
+		return mode === "day" ? `${m}월 ${y}` : `${y}`;
+	}, [view, mode]);
 
 	function openPicker() {
 		if (disabled) return;
 		setOpen(true);
-		setMode("month");
+		setMode("day");
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
-		const openMinYear = minDate ? minDate.getFullYear() : null;
-		const openYearStart = openMinYear ? openMinYear : base.getFullYear() - 20;
-		setYearStart(openYearStart);
+	}
+
+	// 연도 모드에서는 긴 연도 목록을 한 화면씩 넘긴다(휠 없이도 먼 연도로 이동 가능).
+	function scrollYearList(direction: -1 | 1) {
+		const container = yearListRef.current;
+		if (!container) return;
+		container.scrollBy({ top: direction * container.clientHeight, behavior: "smooth" });
 	}
 
 	function goPrev() {
-		if (mode === "month") {
+		if (mode === "day") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1));
+			return;
 		}
+		if (mode === "month") {
+			setView((v) => new Date(v.getFullYear() - 1, v.getMonth(), 1));
+			return;
+		}
+		scrollYearList(-1);
 	}
 
 	function goNext() {
-		if (mode === "month") {
+		if (mode === "day") {
 			setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1));
+			return;
 		}
+		if (mode === "month") {
+			setView((v) => new Date(v.getFullYear() + 1, v.getMonth(), 1));
+			return;
+		}
+		scrollYearList(1);
 	}
 
 	function onSelectDay(d: Date) {
@@ -183,9 +228,15 @@ export default function DatePicker(props: DatePickerProps) {
 		closeAndReset();
 	}
 
+	// 연도 → 월 → 일 순으로 좁혀 들어간다. 먼 과거(생년월일)로 이동할 때 화살표 연타를 없애기 위함.
 	function onSelectYear(y: number) {
 		setView((v) => new Date(y, v.getMonth(), 1));
 		setMode("month");
+	}
+
+	function onSelectMonth(monthIndex: number) {
+		setView((v) => new Date(v.getFullYear(), monthIndex, 1));
+		setMode("day");
 	}
 
 	const monthCells = useMemo(() => generateMonthCells(view), [view]);
@@ -218,17 +269,7 @@ export default function DatePicker(props: DatePickerProps) {
 						<button
 							type="button"
 							className="px-2 py-1 rounded-[6px] hover:bg-neutral-10 dark:hover:bg-neutral-30 text-[14px] font-medium text-[#252525] dark:text-neutral-80 flex items-center gap-2 cursor-pointer"
-							onClick={() => {
-								if (mode === "month") {
-									setMode("year");
-									// When switching to year mode, start from minYear if exists, otherwise from current year
-									const toggleMinYear = minDate ? minDate.getFullYear() : null;
-									const toggleYearStart = toggleMinYear ? toggleMinYear : view.getFullYear() - 20;
-									setYearStart(toggleYearStart);
-								} else {
-									setMode("month");
-								}
-							}}
+							onClick={() => setMode((m) => (m === "year" ? "day" : "year"))}
 							aria-label="연도 선택 토글"
 							style={{ fontFamily: "var(--font-montserrat)" }}
 						>
@@ -252,46 +293,46 @@ export default function DatePicker(props: DatePickerProps) {
 								/>
 							</svg>
 						</button>
-						{mode === "month" && (
-							<div className="flex items-center gap-2">
-								<button
-									type="button"
-									className="w-[30px] h-[30px] flex items-center justify-center rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-									onClick={() => onChange(null)}
-									aria-label="선택 날짜 초기화"
-									disabled={!value}
-								>
-									<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M2 2.8V5.8H5" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
-										<path d="M2.3 5.2C2.96 3.66 4.49 2.58 6.28 2.58C8.68 2.58 10.62 4.52 10.62 6.92C10.62 9.32 8.68 11.26 6.28 11.26C4.49 11.26 2.95 10.16 2.29 8.62" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
-									</svg>
+						<div className="flex items-center gap-2">
+							{mode === "day" && (
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+								onClick={() => onChange(null)}
+								aria-label="선택 날짜 초기화"
+								disabled={!value}
+							>
+								<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M2 2.8V5.8H5" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
+									<path d="M2.3 5.2C2.96 3.66 4.49 2.58 6.28 2.58C8.68 2.58 10.62 4.52 10.62 6.92C10.62 9.32 8.68 11.26 6.28 11.26C4.49 11.26 2.95 10.16 2.29 8.62" stroke="#B0B0B0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60" />
+								</svg>
+							</button>
+							)}
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
+								onClick={goPrev}
+								aria-label={mode === "day" ? "이전 달" : mode === "month" ? "이전 연도" : "이전 연도 목록"}
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
+								</svg>
+							</button>
+							<button
+								type="button"
+								className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
+								onClick={goNext}
+								aria-label={mode === "day" ? "다음 달" : mode === "month" ? "다음 연도" : "다음 연도 목록"}
+							>
+								<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
+								</svg>
 								</button>
-								<button
-									type="button"
-									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
-									onClick={goPrev}
-									aria-label="이전"
-								>
-									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M7 13L1 7L7 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
-									</svg>
-								</button>
-								<button
-									type="button"
-									className="w-[30px] h-[30px] flex items-center justify-center cursor-pointer rounded-[6px] border border-[#E2E2E2] dark:border-[#444444] hover:bg-neutral-10 dark:hover:bg-neutral-30"
-									onClick={goNext}
-									aria-label="다음"
-								>
-									<svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-										<path d="M1 13L7 7L1 1" stroke="#B0B0B0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="dark:stroke-neutral-60"/>
-									</svg>
-								</button>
-							</div>
-						)}
+						</div>
 					</div>
 
 					{/* Body */}
-					{mode === "month" ? (
+					{mode === "day" ? (
 						<div>
 							{/* Weekday header */}
 							<div className="grid grid-cols-7 gap-y-2 mb-2">
@@ -355,12 +396,41 @@ export default function DatePicker(props: DatePickerProps) {
 								})}
 							</div>
 						</div>
+					) : mode === "month" ? (
+						<div className="grid grid-cols-3 gap-2 py-1">
+							{MONTHS.map((monthIndex) => {
+								const isCurrentMonth = view.getMonth() === monthIndex;
+								// 해당 월 전체가 min/max 밖이면 선택 불가
+								const monthStart = new Date(view.getFullYear(), monthIndex, 1);
+								const monthEnd = new Date(view.getFullYear(), monthIndex + 1, 0);
+								const minDateOnly = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
+								const maxDateOnly = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
+								const isDisabled =
+									(minDateOnly ? monthEnd < minDateOnly : false) ||
+									(maxDateOnly ? monthStart > maxDateOnly : false);
+								return (
+									<button
+										key={monthIndex}
+										type="button"
+										onClick={() => !isDisabled && onSelectMonth(monthIndex)}
+										disabled={isDisabled || undefined}
+										className={`h-9 rounded-[6px] text-[14px] ${
+											isDisabled
+												? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
+												: isCurrentMonth
+													? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium cursor-pointer"
+													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
+										}`}
+									>
+										{monthIndex + 1}월
+									</button>
+								);
+							})}
+						</div>
 					) : (
-						<div className="max-h-[240px] overflow-y-auto custom-scrollbar">
+						<div ref={yearListRef} className="relative max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
-								{Array.from({ length: Math.min(80, maxYear - yearStart + 1) }).map((_, idx) => {
-									const y = yearStart + idx;
-									if (y > maxYear) return null;
+								{selectableYears.map((y) => {
 									const isCurrentYear = view.getFullYear() === y;
 									// Check if year is disabled based on minDate and maxDate
 									const isDisabled = (minDate ? y < minDate.getFullYear() : false) || (maxDate ? y > maxDate.getFullYear() : false);
@@ -368,6 +438,7 @@ export default function DatePicker(props: DatePickerProps) {
 										<button
 											key={y}
 											type="button"
+											data-year={y}
 											onClick={() => !isDisabled && onSelectYear(y)}
 											disabled={isDisabled || undefined}
 											className={`h-8 rounded-[6px] text-[14px] ${
