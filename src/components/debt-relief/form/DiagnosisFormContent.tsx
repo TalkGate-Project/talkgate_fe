@@ -14,7 +14,6 @@ import {
   getMissingRequiredFieldLabels,
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
-  isDiagnosisStepComplete,
   isRecentAndSecuredDebtOverTotal,
 } from "./validateDiagnosisForm";
 import { FORM_STEPS } from "./steps";
@@ -57,6 +56,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       ? Number(customerIdParam)
       : undefined;
   const customerNameParam = searchParams.get("customerName");
+  const genderParam = searchParams.get("gender");
 
   // 실제 고객 레코드와 연동된 데이터인지 — 생성: URL로 넘어온 연결 대상, 수정: 이미 매칭된 고객.
   const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(linkedCustomerId);
@@ -67,6 +67,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     setForm((prev) => (prev.customerName ? prev : { ...prev, customerName: customerNameParam }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, customerNameParam]);
+
+  // 고객 상세 「추가하기」 진입 시 성별만 프리필한다. ageGroup/employmentType은 고객 쪽 값이
+  // 자유 텍스트(ageRange)·추정(job)이라 잘못 매핑되면 분석 결과를 조용히 틀리게 만들 수 있어
+  // 제외 — gender는 enum(male/female)-to-enum으로 무손실 매핑되는 유일한 필드.
+  useEffect(() => {
+    if (isEdit) return;
+    if (genderParam !== "male" && genderParam !== "female") return;
+    setForm((prev) => (prev.gender ? prev : { ...prev, gender: genderParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, genderParam]);
 
   // 현재 단계는 ?step= 쿼리스트링을 단일 진실 공급원으로 삼는다(1-indexed).
   // 브라우저 뒤로/앞으로 가기로 쿼리가 바뀌면 currentIndex도 함께 갱신된다.
@@ -154,12 +164,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return true;
   }, [form, isEdit, baselineForm]);
 
-  // 생성 플로우만: 현재 스텝 필수값이 채워져야 "다음" 활성. 수정은 자유롭게 이동.
-  const canGoNext = useMemo(() => {
-    if (isEdit) return true;
-    return isDiagnosisStepComplete(form, FORM_STEPS[currentIndex].key);
-  }, [form, isEdit, currentIndex]);
-
   const step = FORM_STEPS[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === FORM_STEPS.length - 1;
@@ -172,8 +176,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     goToStep(currentIndex - 1);
   };
 
+  // 스텝 이동은 생성/수정 모두 자유롭게 허용한다(사이드바 체크리스트로도 어차피 스텝을
+  // 자유 이동할 수 있어 여기만 막는 건 의미 없는 제약이었음). 실제 필수값 검증은 제출
+  // 시점(canAnalyze/handleAnalyze)에서만 한다.
   const goNext = () => {
-    if (!isLast && canGoNext) goToStep(currentIndex + 1);
+    if (!isLast) goToStep(currentIndex + 1);
   };
 
   // 모바일 폼 카드 우측 상단 X: 스텝과 무관하게 항상 이전 페이지(허브 또는 상세)로 나간다.
@@ -384,8 +391,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               <button
                 type="button"
                 onClick={goNext}
-                disabled={!canGoNext}
-                className="cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 disabled:opacity-40"
+                className="cursor-pointer inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90"
               >
                 다음
               </button>
@@ -399,7 +405,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         isLast={isLast}
         onBack={goBack}
         onNext={goNext}
-        nextDisabled={!canGoNext}
       />
     </>
   );

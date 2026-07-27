@@ -9,6 +9,7 @@ import {
 import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 import CopyIconButton from "@/components/common/CopyIconButton";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 
 function AiSparkleIcon() {
   return (
@@ -218,11 +219,19 @@ export default function SectionCounselMents({
                 <div
                   className={`max-w-[90%] px-5 py-4 text-[14px] font-medium leading-[26px] tracking-[0.1px] ${
                     message.role === "user"
-                      ? "bg-neutral-90 text-neutral-0 rounded-[16px_16px_0_16px]"
+                      ? "bg-neutral-90 text-neutral-0 rounded-[16px_16px_0_16px] whitespace-pre-wrap"
                       : "bg-neutral-20 text-foreground/95 rounded-[16px_16px_16px_0]"
                   }`}
                 >
-                  {message.content || (message.status === "streaming" ? "답변 작성 중…" : "")}
+                  {message.role === "assistant" ? (
+                    message.content ? (
+                      <MarkdownRenderer content={message.content} />
+                    ) : message.status === "streaming" ? (
+                      "답변 작성 중…"
+                    ) : null
+                  ) : (
+                    message.content
+                  )}
                 </div>
               </div>
               ))
