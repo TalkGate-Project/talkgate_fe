@@ -14,7 +14,6 @@ import {
   getMissingRequiredFieldLabels,
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
-  isDiagnosisStepComplete,
   isRecentAndSecuredDebtOverTotal,
 } from "./validateDiagnosisForm";
 import { FORM_STEPS } from "./steps";
@@ -165,12 +164,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return true;
   }, [form, isEdit, baselineForm]);
 
-  // 생성 플로우만: 현재 스텝 필수값이 채워져야 "다음" 활성. 수정은 자유롭게 이동.
-  const canGoNext = useMemo(() => {
-    if (isEdit) return true;
-    return isDiagnosisStepComplete(form, FORM_STEPS[currentIndex].key);
-  }, [form, isEdit, currentIndex]);
-
   const step = FORM_STEPS[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === FORM_STEPS.length - 1;
@@ -183,8 +176,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     goToStep(currentIndex - 1);
   };
 
+  // 스텝 이동은 생성/수정 모두 자유롭게 허용한다(사이드바 체크리스트로도 어차피 스텝을
+  // 자유 이동할 수 있어 여기만 막는 건 의미 없는 제약이었음). 실제 필수값 검증은 제출
+  // 시점(canAnalyze/handleAnalyze)에서만 한다.
   const goNext = () => {
-    if (!isLast && canGoNext) goToStep(currentIndex + 1);
+    if (!isLast) goToStep(currentIndex + 1);
   };
 
   // 모바일 폼 카드 우측 상단 X: 스텝과 무관하게 항상 이전 페이지(허브 또는 상세)로 나간다.
@@ -395,8 +391,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               <button
                 type="button"
                 onClick={goNext}
-                disabled={!canGoNext}
-                className="cursor-pointer disabled:cursor-not-allowed inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 disabled:opacity-40"
+                className="cursor-pointer inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90"
               >
                 다음
               </button>
@@ -410,7 +405,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         isLast={isLast}
         onBack={goBack}
         onNext={goNext}
-        nextDisabled={!canGoNext}
       />
     </>
   );
