@@ -33,10 +33,6 @@ type Props = {
   isContractPending: boolean;
   feePlan: FeePlan | null;
   procedureScores: ProcedureScore[];
-  procedureProgress: {
-    current: number;
-    total: number;
-  };
   onChanged: () => void;
 };
 
@@ -191,7 +187,6 @@ export default function FeePaymentInfoModal({
   isContractPending,
   feePlan,
   procedureScores,
-  procedureProgress,
   onChanged,
 }: Props) {
   const [currentPlan, setCurrentPlan] = useState<FeePlan | null>(feePlan);
@@ -704,7 +699,7 @@ export default function FeePaymentInfoModal({
                 수임료 결제 정보
               </h2>
               <span className="truncate rounded-[5px] bg-secondary-10 px-2 py-1 text-[12px] font-semibold text-secondary-60 dark:bg-blue-950 dark:text-blue-300">
-                절차진행중 {procedureProgress.current}/{procedureProgress.total}
+                진행중 {paidInstallments.length} / {currentPlan.installmentCount}
               </span>
             </div>
             <div className="flex shrink-0 items-center gap-2 md:gap-4">
