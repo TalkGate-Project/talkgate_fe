@@ -259,16 +259,51 @@ export default function CustomersActions({
 
   const hasSelection = selectedIds.length > 0 || selectionMode === "all";
 
-  const deleteCount = selectionMode === "all" ? total : selectedIds.length;
+  // 모든 벌크 액션이 동일한 선택 범위를 대상으로 한다 — 페이지 한도(limit)를 넘으면
+  // 여러 페이지에 걸친 "전체 선택"이라 눈으로 다 확인하지 못한 채 실행될 위험이 커진다.
+  const bulkTargetCount = selectionMode === "all" ? total : selectedIds.length;
+  const OVER_LIMIT_CONFIRM_DELAY_SECONDS = 3;
+
+  /**
+   * 선택 범위가 현재 페이지 표시 한도를 넘을 때만(=전체선택으로 여러 페이지에 걸친 대상)
+   * "전체 N건에 적용됩니다" 경고 + 3초 카운트다운 확인을 거치게 한다. 한 페이지 안에서
+   * 눈으로 확인 가능한 선택이면 곧바로 진행한다. 직원배정/파트너배정/문자전송/일정추가/
+   * 카테고리 변경이 공유하는 단일 게이트.
+   */
+  const confirmBulkActionIfNeeded = (proceed: () => void) => {
+    if (bulkTargetCount <= limit) {
+      proceed();
+      return;
+    }
+    showConfirmModal({
+      type: "caution",
+      title: "전체 선택",
+      headline: `전체 ${bulkTargetCount.toLocaleString()}건 항목에 적용됩니다.`,
+      message: "계속 진행하시겠습니까?",
+      confirmText: "확인",
+      cancelText: "취소",
+      confirmDelaySeconds: OVER_LIMIT_CONFIRM_DELAY_SECONDS,
+      onConfirm: proceed,
+    });
+  };
+
+  const handleAssignClick = () => confirmBulkActionIfNeeded(onAssignOpen);
+  const handlePartnerAssignClick = () => confirmBulkActionIfNeeded(() => setShareModalOpen(true));
+  const handleSmsClick = () => confirmBulkActionIfNeeded(onSmsOpen);
+  const handleBulkScheduleClick = () => confirmBulkActionIfNeeded(onBulkScheduleOpen);
 
   const handleBulkDelete = () => {
     showConfirmModal({
       title: "고객 삭제",
-      headline: `선택한 ${deleteCount}명의 고객을 삭제하시겠습니까?`,
+      headline: `선택한 ${bulkTargetCount}명의 고객을 삭제하시겠습니까?`,
       message: "삭제된 고객 정보는 복구할 수 없습니다.",
       type: "warning",
       confirmText: "삭제",
       cancelText: "취소",
+      // 전체선택으로 페이지 한도를 넘는 대량 삭제일 때만 카운트다운을 더한다 — 소수 선택
+      // 삭제는 기존처럼 즉시 확인 가능해야 한다(불필요한 대기로 일상적 작업을 방해하지 않음).
+      confirmDelaySeconds:
+        bulkTargetCount > limit ? OVER_LIMIT_CONFIRM_DELAY_SECONDS : undefined,
       onConfirm: async () => {
         try {
           if (selectionMode === "all") {
@@ -300,24 +335,7 @@ export default function CustomersActions({
     });
   };
 
-  const categoryTargetCount = selectionMode === "all" ? total : selectedIds.length;
-
-  /** 한 페이지 분량을 넘게 선택했으면 적용 대상 건수를 먼저 확인받은 뒤 변경 모달을 연다 */
-  const handleCategoryClick = () => {
-    if (categoryTargetCount > limit) {
-      showConfirmModal({
-        type: "caution",
-        title: "전체 선택",
-        headline: `전체 ${categoryTargetCount.toLocaleString()}건 항목에 적용됩니다.`,
-        message: "계속 진행하시겠습니까?",
-        confirmText: "확인",
-        cancelText: "취소",
-        onConfirm: () => setCategoryModalOpen(true),
-      });
-      return;
-    }
-    setCategoryModalOpen(true);
-  };
+  const handleCategoryClick = () => confirmBulkActionIfNeeded(() => setCategoryModalOpen(true));
 
   const iconOnlyButtonClass =
     "cursor-pointer h-9 w-9 flex items-center justify-center rounded-[8px] bg-neutral-90 text-neutral-20 flex-shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed";
@@ -347,7 +365,7 @@ export default function CustomersActions({
               <button
                 type="button"
                 className={iconOnlyButtonClass}
-                onClick={onAssignOpen}
+                onClick={handleAssignClick}
                 disabled={selectedIds.length === 0 && selectionMode !== "all"}
                 aria-label="직원배정"
               >
@@ -362,7 +380,7 @@ export default function CustomersActions({
                 <button
                   type="button"
                   className={iconOnlyButtonClass}
-                  onClick={() => setShareModalOpen(true)}
+                  onClick={handlePartnerAssignClick}
                   disabled={selectedIds.length === 0 && selectionMode !== "all"}
                   aria-label="파트너배정"
                 >
@@ -376,7 +394,7 @@ export default function CustomersActions({
               <button
                 type="button"
                 className={iconOnlyButtonClass}
-                onClick={onSmsOpen}
+                onClick={handleSmsClick}
                 disabled={selectedIds.length === 0 && selectionMode !== "all"}
                 aria-label="문자전송"
               >
@@ -389,7 +407,7 @@ export default function CustomersActions({
               <button
                 type="button"
                 className={iconOnlyButtonClass}
-                onClick={onBulkScheduleOpen}
+                onClick={handleBulkScheduleClick}
                 disabled={selectedIds.length === 0 && selectionMode !== "all"}
                 aria-label="일정추가"
               >
@@ -499,7 +517,7 @@ export default function CustomersActions({
           <button
             type="button"
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
-            onClick={onAssignOpen}
+            onClick={handleAssignClick}
             disabled={selectedIds.length === 0 && selectionMode !== "all"}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -512,7 +530,7 @@ export default function CustomersActions({
             <button
               type="button"
               className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
-              onClick={() => setShareModalOpen(true)}
+              onClick={handlePartnerAssignClick}
               disabled={selectedIds.length === 0 && selectionMode !== "all"}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -524,7 +542,7 @@ export default function CustomersActions({
           <button
             type="button"
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
-            onClick={onSmsOpen}
+            onClick={handleSmsClick}
             disabled={selectedIds.length === 0 && selectionMode !== "all"}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
@@ -535,7 +553,7 @@ export default function CustomersActions({
           <button
             type="button"
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[14px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-2 hover:opacity-90 dark:hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:opacity-50"
-            onClick={onBulkScheduleOpen}
+            onClick={handleBulkScheduleClick}
             disabled={selectedIds.length === 0 && selectionMode !== "all"}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
