@@ -32,6 +32,12 @@ const MONTHS = Array.from({ length: 12 }, (_, idx) => idx);
 /** day: 일 선택 / month: 월 선택 / year: 연도 선택 */
 type DatePickerMode = "day" | "month" | "year";
 
+/**
+ * 선택된 셀 스타일. 배경이 라이트/다크 공통으로 밝은 민트라 글자색도 테마와 무관하게
+ * 어둡게 고정한다(다크모드에서 밝은 글자가 배경에 묻히는 것을 방지).
+ */
+const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+
 /** minDate가 없을 때 연도 선택 목록이 거슬러 올라가는 하한(고령 고객 생년월일까지 커버) */
 const EARLIEST_SELECTABLE_YEAR = 1920;
 /** maxDate가 없을 때 연도 선택 목록이 나아가는 기본 범위 */
@@ -368,7 +374,7 @@ export default function DatePicker(props: DatePickerProps) {
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
 									const selectedCls = isSelected
-										? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30 hover:bg-[#D6FAE8] dark:hover:bg-primary-40/30"
+										? `${SELECTED_CELL_CLS} hover:bg-[#D6FAE8]`
 										: "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
@@ -418,7 +424,7 @@ export default function DatePicker(props: DatePickerProps) {
 											isDisabled
 												? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
 												: isCurrentMonth
-													? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium cursor-pointer"
+													? `${SELECTED_CELL_CLS} font-medium cursor-pointer`
 													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
 										}`}
 									>
@@ -445,7 +451,7 @@ export default function DatePicker(props: DatePickerProps) {
 												isDisabled 
 													? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
 													: isCurrentYear 
-														? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium cursor-pointer" 
+														? `${SELECTED_CELL_CLS} font-medium cursor-pointer` 
 														: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}

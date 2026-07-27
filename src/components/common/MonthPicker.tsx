@@ -13,6 +13,9 @@ type MonthPickerProps = {
     dateFormat?: string;
 };
 
+/** 선택된 셀 스타일. 배경이 라이트/다크 공통이라 글자색도 테마와 무관하게 어둡게 고정한다(DatePicker와 동일). */
+const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+
 export default function MonthPicker(props: MonthPickerProps) {
 	const { value, onChange, placeholder = "연도 . 월", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM" } = props;
 
@@ -246,7 +249,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 										type="button"
 										onClick={() => !isDisabled && onSelectMonth(i)}
 										className={`h-10 rounded-[6px] text-[14px] flex items-center justify-center transition-colors
-                                            ${isSelected ? "bg-[#D6FAE8] dark:!text-neutral-20 dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80" : "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"}
+                                            ${isSelected ? SELECTED_CELL_CLS : "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"}
                                             ${isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
                                         `}
 										style={{ fontFamily: "var(--font-montserrat)" }}
@@ -271,7 +274,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 											onClick={() => onSelectYear(y)}
 											className={`h-8 rounded-[6px] text-[14px] flex items-center justify-center cursor-pointer ${
 												isSelected || isCurrentYear
-													? "bg-[#D6FAE8] dark:bg-primary-40/30 text-[#252525] dark:text-neutral-80 font-medium"
+													? `${SELECTED_CELL_CLS} font-medium`
 													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
