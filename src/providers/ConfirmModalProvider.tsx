@@ -22,6 +22,7 @@ type ConfirmModalState = {
   type: ConfirmModalType | undefined;
   confirmText: string;
   cancelText: string | null;
+  confirmDelaySeconds?: number;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
@@ -73,14 +74,24 @@ export default function ConfirmModalProvider({
     createInitialState()
   );
   const [confirming, setConfirming] = useState(false);
+  // null이면 카운트다운 없음(기존 동작). 양수면 매초 감소하다 0이 되면 잠금 해제.
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+  // 카운트다운이 끝나기 전까지는 확인은 물론 취소/닫기(X)/바깥 클릭도 전부 막는다.
+  const isLocked = remainingSeconds !== null && remainingSeconds > 0;
 
   const hide = useCallback(() => {
     setConfirming(false);
+    setRemainingSeconds(null);
     setState(createInitialState());
   }, []);
 
   const show = useCallback((options?: ConfirmModalCallbacks) => {
     setConfirming(false);
+    setRemainingSeconds(
+      options?.confirmDelaySeconds && options.confirmDelaySeconds > 0
+        ? options.confirmDelaySeconds
+        : null
+    );
     setState({
       ...createInitialState(),
       open: true,
@@ -94,10 +105,19 @@ export default function ConfirmModalProvider({
         options?.cancelText === undefined
           ? defaultTexts.cancelText
           : options.cancelText,
+      confirmDelaySeconds: options?.confirmDelaySeconds,
       onConfirm: options?.onConfirm,
       onCancel: options?.onCancel,
     });
   }, []);
+
+  useEffect(() => {
+    if (!state.open || remainingSeconds === null || remainingSeconds <= 0) return;
+    const timer = setTimeout(() => {
+      setRemainingSeconds((prev) => (prev !== null ? prev - 1 : prev));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [state.open, remainingSeconds]);
 
   useEffect(() => {
     const unsubscribe = subscribeConfirmModal((event) => {
@@ -111,7 +131,7 @@ export default function ConfirmModalProvider({
   }, [show, hide]);
 
   const handleConfirm = useCallback(async () => {
-    if (confirming) return;
+    if (confirming || isLocked) return;
     if (!state.onConfirm) {
       hide();
       return;
@@ -127,9 +147,12 @@ export default function ConfirmModalProvider({
       console.error("ConfirmModal onConfirm failed", err);
       setConfirming(false);
     }
-  }, [confirming, state, hide]);
+  }, [confirming, isLocked, state, hide]);
 
+  // 카운트다운 중에는 취소/닫기(X)/바깥 클릭이 전부 이 함수 하나로 들어오므로,
+  // 여기 한 곳만 막으면 세 경로 모두 막힌다.
   const handleCancel = useCallback(async () => {
+    if (isLocked) return;
     if (state.onCancel) {
       try {
         await state.onCancel();
@@ -138,7 +161,7 @@ export default function ConfirmModalProvider({
       }
     }
     hide();
-  }, [state, hide]);
+  }, [isLocked, state, hide]);
 
   const contextValue = useMemo<ConfirmModalContextValue>(
     () => ({ show, hide }),
@@ -168,8 +191,9 @@ export default function ConfirmModalProvider({
                 ) : null}
                 <button
                   type="button"
-                  className="cursor-pointer h-6 w-6"
+                  className="cursor-pointer h-6 w-6 disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={handleCancel}
+                  disabled={isLocked}
                   aria-label="close confirm modal"
                 >
                   <svg
@@ -311,23 +335,24 @@ export default function ConfirmModalProvider({
               {state.cancelText ? (
                 <button
                   type="button"
-                  className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80"
+                  className="cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] border border-neutral-30 dark:border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-neutral-80 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={handleCancel}
+                  disabled={isLocked}
                 >
                   {state.cancelText}
                 </button>
               ) : null}
               <button
                 type="button"
-                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:opacity-60 ${
+                className={`cursor-pointer flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold tracking-[-0.02em] disabled:cursor-not-allowed disabled:opacity-60 ${
                   state.type === "info"
                     ? "bg-secondary-80 dark:bg-secondary-20 text-white"
                     : "bg-neutral-90 dark:bg-neutral-90 text-neutral-40 dark:text-neutral-20"
                 }`}
                 onClick={handleConfirm}
-                disabled={confirming}
+                disabled={confirming || isLocked}
               >
-                {confirming ? "처리 중..." : state.confirmText}
+                {confirming ? "처리 중..." : isLocked ? remainingSeconds : state.confirmText}
               </button>
             </div>
           </div>

@@ -9,6 +9,12 @@ export type ConfirmModalCallbacks = {
   type?: ConfirmModalType;
   confirmText?: string;
   cancelText?: string | null;
+  /**
+   * 지정하면 확인 버튼이 이 초만큼 숫자(3,2,1…)를 보여주며 비활성화된다. 카운트다운이
+   * 끝나기 전까지는 확인 버튼뿐 아니라 취소/닫기(X)/바깥 클릭도 전부 막혀 모달을 닫을 수 없다
+   * — 대량 작업(전체 선택 등) 경고를 사용자가 실수로 그냥 지나치지 못하게 하기 위함.
+   */
+  confirmDelaySeconds?: number;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
