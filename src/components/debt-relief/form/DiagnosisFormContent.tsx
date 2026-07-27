@@ -57,6 +57,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       ? Number(customerIdParam)
       : undefined;
   const customerNameParam = searchParams.get("customerName");
+  const genderParam = searchParams.get("gender");
 
   // 실제 고객 레코드와 연동된 데이터인지 — 생성: URL로 넘어온 연결 대상, 수정: 이미 매칭된 고객.
   const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(linkedCustomerId);
@@ -67,6 +68,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     setForm((prev) => (prev.customerName ? prev : { ...prev, customerName: customerNameParam }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, customerNameParam]);
+
+  // 고객 상세 「추가하기」 진입 시 성별만 프리필한다. ageGroup/employmentType은 고객 쪽 값이
+  // 자유 텍스트(ageRange)·추정(job)이라 잘못 매핑되면 분석 결과를 조용히 틀리게 만들 수 있어
+  // 제외 — gender는 enum(male/female)-to-enum으로 무손실 매핑되는 유일한 필드.
+  useEffect(() => {
+    if (isEdit) return;
+    if (genderParam !== "male" && genderParam !== "female") return;
+    setForm((prev) => (prev.gender ? prev : { ...prev, gender: genderParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, genderParam]);
 
   // 현재 단계는 ?step= 쿼리스트링을 단일 진실 공급원으로 삼는다(1-indexed).
   // 브라우저 뒤로/앞으로 가기로 쿼리가 바뀌면 currentIndex도 함께 갱신된다.

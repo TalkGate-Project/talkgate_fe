@@ -19,6 +19,8 @@ import type { CustomerLinkedAnalysis } from "@/types/customers";
 type Props = {
   customerId: number;
   customerName: string;
+  /** "새 진단 추가" 진입 시 프리필용. male/female만 유효하고, 그 외(빈 값 등)는 프리필하지 않는다. */
+  customerGender?: string | null;
   hasAssignedMember: boolean;
   linkedAnalysis?: CustomerLinkedAnalysis | null;
 };
@@ -75,11 +77,13 @@ function LinkedAnalysisLinkIcon({ size }: { size: number }) {
 function EmptyLinkedAnalysis({
   customerId,
   customerName,
+  customerGender,
   hasAssignedMember,
   variant,
 }: {
   customerId: number;
   customerName: string;
+  customerGender?: string | null;
   hasAssignedMember: boolean;
   variant: "mobile" | "desktop";
 }) {
@@ -98,9 +102,13 @@ function EmptyLinkedAnalysis({
       return;
     }
 
-    router.push(
-      `/debt-relief/new?customerId=${customerId}&customerName=${encodeURIComponent(customerName)}`
-    );
+    const params = new URLSearchParams({ customerId: String(customerId), customerName });
+    // ageGroup/job은 고객 쪽 데이터가 자유 텍스트/추정이라 잘못 매핑되면 분석 결과를 조용히
+    // 틀리게 만들 수 있어 프리필 대상에서 제외 — gender만 enum-to-enum으로 무손실 매핑 가능.
+    if (customerGender === "male" || customerGender === "female") {
+      params.set("gender", customerGender);
+    }
+    router.push(`/debt-relief/new?${params.toString()}`);
   };
 
   return (
@@ -276,6 +284,7 @@ function DesktopLinkedAnalysisCard({
 export default function CustomerLinkedAnalysisSection({
   customerId,
   customerName,
+  customerGender,
   hasAssignedMember,
   linkedAnalysis,
 }: Props) {
@@ -307,6 +316,7 @@ export default function CustomerLinkedAnalysisSection({
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
+              customerGender={customerGender}
               hasAssignedMember={hasAssignedMember}
               variant="mobile"
             />
@@ -315,6 +325,7 @@ export default function CustomerLinkedAnalysisSection({
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
+              customerGender={customerGender}
               hasAssignedMember={hasAssignedMember}
               variant="desktop"
             />
