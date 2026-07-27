@@ -95,7 +95,8 @@
       "Bash(sed -i 's/const \\\\[mode, setMode\\\\] = useState<\"month\" | \"year\">\\(\"month\"\\);/const [mode, setMode] = useState<DatePickerMode>\\(\"day\"\\);/' src/components/common/DatePicker.tsx)",
       "Bash(sed -i '60,230s/setMode\\(\"month\"\\);/setMode\\(\"day\"\\);/' src/components/common/DatePicker.tsx)",
       "Bash(sed -i '190,320s/mode === \"month\"/mode === \"day\"/g' src/components/common/DatePicker.tsx)",
-      "Bash(sh __TRACKED_VAR__/pick_hunk.sh src/components/customers/CustomersPageContent.tsx 1 __TRACKED_VAR__/pc1.patch)"
+      "Bash(sh __TRACKED_VAR__/pick_hunk.sh src/components/customers/CustomersPageContent.tsx 1 __TRACKED_VAR__/pc1.patch)",
+      "PowerShell(git status --short; npx tsc --noEmit; if \\($?\\) { \"tsc OK\" })"
     ]
   }
 }
