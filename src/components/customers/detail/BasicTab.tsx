@@ -351,6 +351,7 @@ export default function BasicTab({
       <CustomerLinkedAnalysisSection
         customerId={customerId}
         customerName={form.name}
+        customerGender={form.gender}
         hasAssignedMember={Boolean(form.assignedMemberName?.trim())}
         linkedAnalysis={linkedAnalysis}
       />
