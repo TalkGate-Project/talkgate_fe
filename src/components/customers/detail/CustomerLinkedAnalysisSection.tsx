@@ -29,11 +29,12 @@ const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedur
   bankruptcy: "bankruptcy",
 };
 
-function formatBasicInfoMeta(basicInfo: CustomerLinkedAnalysis["basicInfo"]): string {
-  if (!basicInfo) return "";
-  const genderLabel =
-    basicInfo.gender === "male" ? "남" : basicInfo.gender === "female" ? "여" : basicInfo.gender;
-  return [basicInfo.ageGroup, genderLabel, basicInfo.employmentType].filter(Boolean).join(" · ");
+function formatBasicInfoMeta(
+  linkedAnalysis: Pick<CustomerLinkedAnalysis, "ageGroup" | "gender" | "employmentType">
+): string {
+  const { ageGroup, gender, employmentType } = linkedAnalysis;
+  const genderLabel = gender === "male" ? "남" : gender === "female" ? "여" : gender;
+  return [ageGroup, genderLabel, employmentType].filter(Boolean).join(" · ");
 }
 
 // procedureSteps는 실 API가 내려주는 절차 단계 원본이라 debtRelief.ts의 정적 단계명 추정 테이블보다
@@ -141,15 +142,16 @@ function MobileLinkedAnalysisCard({
   linkedAnalysis: CustomerLinkedAnalysis;
   onOpenResult: () => void;
 }) {
-  const procedure = linkedAnalysis.currentProcedure
-    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.currentProcedure)]
+  const procedure = linkedAnalysis.procedure
+    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.procedure)]
     : undefined;
   const { current, total, title } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
   const progressPercent = isProgressKnown ? Math.round((current / total) * 100) : 0;
+  const hasScore = linkedAnalysis.currentProcedureScore != null;
   const score = Math.min(100, Math.max(0, Math.round(linkedAnalysis.currentProcedureScore ?? 0)));
   const { amount: debtAmount, unit: debtUnit } = formatDebtManwonParts(linkedAnalysis.totalDebt);
-  const meta = formatBasicInfoMeta(linkedAnalysis.basicInfo);
+  const meta = formatBasicInfoMeta(linkedAnalysis);
 
   return (
     <div
@@ -199,12 +201,14 @@ function MobileLinkedAnalysisCard({
             </div>
           </div>
 
-          <span className="inline-flex items-end whitespace-nowrap shrink-0">
-            <span className="text-[16px] font-semibold leading-none text-neutral-90">{score}</span>
-            <span className="text-[10px] font-medium leading-none tracking-[-0.02em] text-neutral-60">
-              /100
+          {hasScore && (
+            <span className="inline-flex items-end whitespace-nowrap shrink-0">
+              <span className="text-[16px] font-semibold leading-none text-neutral-90">{score}</span>
+              <span className="text-[10px] font-medium leading-none tracking-[-0.02em] text-neutral-60">
+                /100
+              </span>
             </span>
-          </span>
+          )}
 
           <span className="ml-auto inline-flex items-end whitespace-nowrap shrink-0 opacity-80">
             <span className="text-[14px] font-bold leading-none text-black dark:text-foreground">
@@ -231,14 +235,14 @@ function DesktopLinkedAnalysisCard({
   linkedAnalysis: CustomerLinkedAnalysis;
   onOpenResult: () => void;
 }) {
-  const procedure = linkedAnalysis.currentProcedure
-    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.currentProcedure)]
+  const procedure = linkedAnalysis.procedure
+    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.procedure)]
     : undefined;
   const { current, total } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
-  // status는 백엔드 반영 전이라 응답에 없을 수 있음 — 이 카드는 currentProcedure가 있을 때만
+  // status는 백엔드 반영 전이라 응답에 없을 수 있음 — 이 카드는 procedure가 있을 때만
   // 노출되므로(추적 중인 절차가 있다는 뜻) 값이 없으면 in_progress로 간주해 칩을 채운다.
-  const status = linkedAnalysis.status ?? (linkedAnalysis.currentProcedure ? "in_progress" : undefined);
+  const status = linkedAnalysis.status ?? (linkedAnalysis.procedure ? "in_progress" : undefined);
 
   return (
     <div className="flex items-center gap-4 h-[58px] px-4 py-3 rounded-[12px] border border-[#E2E2E2] dark:border-[#444444] bg-card dark:bg-neutral-10">
@@ -246,7 +250,7 @@ function DesktopLinkedAnalysisCard({
       <div className="flex flex-col gap-0.5 min-w-0 w-[120px] shrink-0">
         <p className="text-[14px] font-bold text-neutral-90 opacity-80 truncate">{customerName}</p>
         <p className="text-[12px] font-medium text-neutral-60 opacity-80 truncate">
-          {formatBasicInfoMeta(linkedAnalysis.basicInfo)}
+          {formatBasicInfoMeta(linkedAnalysis)}
         </p>
       </div>
       <DebtAmountText manwon={linkedAnalysis.totalDebt} />
@@ -256,8 +260,8 @@ function DesktopLinkedAnalysisCard({
           <StatusBadge status={status} stepLabel={isProgressKnown ? `${current}/${total}` : undefined} />
         )}
       </div>
-      {/* feePlanSummary는 백엔드 반영 전이라 undefined일 수 있음 — FeePlanCell이 null이면 "결제 미설정"으로 안전 처리 */}
-      <FeePlanCell summary={linkedAnalysis.feePlanSummary ?? null} />
+      {/* feePlan은 백엔드 반영 전이라 undefined일 수 있음 — FeePlanCell이 null이면 "결제 미설정"으로 안전 처리 */}
+      <FeePlanCell summary={linkedAnalysis.feePlan ?? null} />
       <button
         type="button"
         onClick={onOpenResult}
@@ -283,7 +287,7 @@ export default function CustomerLinkedAnalysisSection({
 
   const openResult = () => {
     if (!linkedAnalysis) return;
-    router.push(`/debt-relief/${linkedAnalysis.analysisId}`);
+    router.push(`/debt-relief/${linkedAnalysis.id}`);
   };
 
   return (

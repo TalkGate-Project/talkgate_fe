@@ -204,33 +204,28 @@ export type AssignedPartnerItem = {
   thumbnailUrl?: string | null;
 };
 
-/** 고객 상세 - 연동된 분석(회생·파산 진단) 기본 인적사항. 값은 라벨 문자열로 내려온다(예: "30대", "프리랜서"). */
-export type CustomerLinkedAnalysisBasicInfo = {
-  gender: string;
-  ageGroup: string;
-  region: string;
-  employmentType: string;
-  dependents: number;
-  hasSpouseIncome: boolean;
-};
-
-/** 고객 상세 - 연동된 분석 데이터 정보 (Analysis/Lawyer 프로젝트에서 연결된 분석 건이 있을 때만 포함) */
+/** 고객 상세 - 연동된 분석 데이터 정보 (Analysis/Lawyer 프로젝트에서 연결된 분석 건이 있을 때만 포함)
+ * ⚠️ 실제 GET /v1/customers/{id} 응답은 basicInfo로 중첩되지 않고 ageGroup/gender/employmentType이
+ * linkedAnalysis에 바로 붙어 내려온다. currentProcedureScore·procedureSteps는 이 엔드포인트에서
+ * 아직 내려주지 않아 항상 없을 수 있다. */
 export type CustomerLinkedAnalysis = {
-  analysisId: number;
-  /** 기본 인적사항. status/feePlanSummary와 마찬가지로 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
-  basicInfo?: CustomerLinkedAnalysisBasicInfo | null;
+  /** 진단(분석) ID — /debt-relief/{id} 결과 페이지 이동에 사용 */
+  id: number;
+  gender?: string | null;
+  ageGroup?: string | null;
+  employmentType?: string | null;
   /** 총 채무액 (만원) */
   totalDebt: number;
-  currentProcedure: AnalysisProcedureType | null;
-  /** 현재 진행 절차의 성공 가능성 점수 (0~100) */
-  currentProcedureScore: number | null;
+  procedure: AnalysisProcedureType | null;
+  /** 현재 진행 절차의 성공 가능성 점수 (0~100). 백엔드 반영 전이라 응답에 없을 수 있어 옵셔널 */
+  currentProcedureScore?: number | null;
   currentProcedureStep: number | null;
-  /** 현재 진행 절차의 전체 단계 정보 */
-  procedureSteps: AnalysisProcedureStep[];
+  /** 현재 진행 절차의 전체 단계 정보. 백엔드 반영 전이라 응답에 없을 수 있어 옵셔널 */
+  procedureSteps?: AnalysisProcedureStep[];
   /** 진단 건의 전체 진행 상태. 허브 목록(DiagnosisListItem)과 동일한 필드 — 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
   status?: AnalysisStatus;
   /** 수임료 결제 요약. 결제 계획 미설정이면 null, 백엔드 반영 전이면 응답에 없을 수 있어 옵셔널 */
-  feePlanSummary?: FeePlanSummary | null;
+  feePlan?: FeePlanSummary | null;
 };
 
 export type CustomerDetail = {
