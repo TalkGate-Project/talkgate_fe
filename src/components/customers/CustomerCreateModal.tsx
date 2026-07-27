@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
-import type { CreateCustomerMessengerInfo } from "@/types/customers";
+import { ContactType, type CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
@@ -16,12 +16,32 @@ import GenderToggle from "@/components/customers/GenderToggle";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onCreated?: () => void;
+  /** 등록 성공 시 호출. Promise를 반환하면 완료될 때까지 모달이 닫히지 않는다(후속 연동 등). */
+  onCreated?: (createdCustomerId: number | null) => void | Promise<void>;
+  /** 모달을 열 때 이름 필드를 채워둘 값 */
+  initialName?: string;
+  /** 선택된 프로젝트 대신 사용할 프로젝트 ID */
+  projectId?: string;
+  /** 지정하면 헤더에 뒤로가기 버튼을 노출한다(다단계 플로우용) */
+  onBack?: () => void;
 };
 
 type MessengerAccount = {
   messenger: string;
   account: string;
+};
+
+const contactLabelToType = (label: string): ContactType => {
+  switch (label) {
+    case "휴대폰":
+      return ContactType.Phone;
+    case "집":
+      return ContactType.Home;
+    case "회사":
+      return ContactType.Office;
+    default:
+      return ContactType.Other;
+  }
 };
 
 const messengerLabelToApiCode = (label: string): string => {
@@ -44,8 +64,12 @@ export default function CustomerCreateModal({
   open,
   onClose,
   onCreated,
+  initialName,
+  projectId: projectIdOverride,
+  onBack,
 }: Props) {
-  const [projectId] = useSelectedProjectId();
+  const [selectedProjectId] = useSelectedProjectId();
+  const projectId = projectIdOverride ?? selectedProjectId;
   const [submitting, setSubmitting] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [touchedName, setTouchedName] = useState(false);
@@ -76,6 +100,22 @@ export default function CustomerCreateModal({
   const [keyword, setKeyword] = useState("");
   const [ipAddress, setIpAddress] = useState("");
   const [specialNotes, setSpecialNotes] = useState("");
+
+  // 닫힌 상태에서 열릴 때만 초기 이름을 주입한다(입력 중인 값을 덮어쓰지 않도록).
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      wasOpenRef.current = false;
+      return;
+    }
+    if (wasOpenRef.current) return;
+    wasOpenRef.current = true;
+    if (initialName !== undefined) {
+      setName(initialName);
+      setTouchedName(false);
+      setAttemptedSubmit(false);
+    }
+  }, [open, initialName]);
 
   if (!open) return null;
 
@@ -136,6 +176,7 @@ export default function CustomerCreateModal({
 
   const submitCreate = async (resolvedProjectId: string) => {
     setSubmitting(true);
+    let createdCustomerId: number | null = null;
     try {
       const messengerInfo: CreateCustomerMessengerInfo[] =
         messengerAccounts.map((acc) => ({
@@ -143,11 +184,13 @@ export default function CustomerCreateModal({
           account: acc.account,
         }));
 
-      await CustomersService.create({
+      const response = await CustomersService.create({
         projectId: resolvedProjectId,
         name: name.trim(),
         contact1: contact1.trim(),
+        contact1Type: contactLabelToType(contact1Type),
         contact2: contact2.trim() || undefined,
+        contact2Type: contact2.trim() ? contactLabelToType(contact2Type) : undefined,
         // 생년월일을 YYYY-MM-DD 형식으로 전송
         birth: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
         gender: gender || undefined,
@@ -161,10 +204,10 @@ export default function CustomerCreateModal({
         ipAddress: ipAddress || undefined,
         specialNotes: specialNotes || undefined,
       });
-      onCreated?.();
-      handleReset();
-      onClose();
-    } catch {
+      createdCustomerId = response.data?.data?.id ?? null;
+    } catch (error) {
+      console.error("Failed to create customer:", error);
+      setSubmitting(false);
       showErrorModal({
         title: "오류 발생",
         headline: "고객 등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
@@ -172,8 +215,18 @@ export default function CustomerCreateModal({
         cancelText: null,
         hideCancel: true,
       });
+      return;
+    }
+
+    // 등록 이후 이어지는 처리(예: 진단-고객 연동)가 끝날 때까지 모달을 닫지 않는다.
+    try {
+      await onCreated?.(createdCustomerId);
+    } catch (error) {
+      console.error("Post-create handler failed:", error);
     } finally {
       setSubmitting(false);
+      handleReset();
+      onClose();
     }
   };
 
@@ -274,8 +327,8 @@ export default function CustomerCreateModal({
         <div className="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-6 pb-4 shrink-0">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => !submitting && onClose()}
-              className="md:hidden cursor-pointer p-1 -ml-1"
+              onClick={() => !submitting && (onBack ?? onClose)()}
+              className={`${onBack ? "" : "md:hidden "}cursor-pointer p-1 -ml-1`}
               aria-label="뒤로가기"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -456,6 +509,7 @@ export default function CustomerCreateModal({
                     onChange={setBirthDate}
                     placeholder="생년월일을 입력하세요"
                     dateFormat="yyyy-MM-dd"
+                    maxDate={new Date()}
                     className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
                   />
                 </div>

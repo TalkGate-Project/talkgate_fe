@@ -534,7 +534,10 @@ function CustomersPageContentInner() {
       <CustomerCreateModal
         open={isCreateOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={refetch}
+        onCreated={() => {
+          // 목록 갱신을 기다리지 않고 모달을 바로 닫는다.
+          void refetch();
+        }}
       />
 
       <SmsModal
