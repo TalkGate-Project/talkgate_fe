@@ -451,6 +451,7 @@ function CustomersPageContentInner() {
             onBulkScheduleOpen={() => setBulkScheduleOpen(true)}
             onShareSuccess={() => { refetch(); clearSelection(); }}
             onDeleteSuccess={() => { refetch(); clearSelection(); }}
+            onCategoryChangeSuccess={() => { refetch(); clearSelection(); }}
             isDataProvider={project?.isDataProvider ?? false}
             showPartnerAssignButton={(project?.isDataProvider ?? false) && isAdminOrSubAdmin}
             showAssignButton={canAssignCustomer}

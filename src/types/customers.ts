@@ -583,6 +583,32 @@ export type BulkCreateSchedulesResponse = {
   };
 };
 
+// Bulk change category (여러 고객의 카테고리 일괄 변경)
+export type BulkChangeCategoryFilterConditions = BulkCreateSchedulesFilterConditions;
+
+export type BulkChangeCategoryInput = {
+  assignmentType: "ids" | "filter";
+  /** assignmentType === "ids"일 때 필수 */
+  customerIds?: number[];
+  /** assignmentType === "filter"일 때 사용 */
+  filterConditions?: BulkChangeCategoryFilterConditions;
+  /** assignmentType === "filter"일 때 예상 건수 (선택) */
+  expectedCount?: number;
+  /** null이면 카테고리 해제("없음") */
+  categoryId: number | null;
+  projectId: string; // header
+};
+
+export type BulkChangeCategoryResponse = {
+  result: true;
+  data: {
+    successCount: number;
+    failedCount: number;
+    totalCount: number;
+    failedCustomerIds: number[];
+  };
+};
+
 // Confirm customer
 export type ConfirmCustomerResponse = {
   result: true;
