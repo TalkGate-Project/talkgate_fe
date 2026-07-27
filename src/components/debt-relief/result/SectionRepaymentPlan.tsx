@@ -174,17 +174,17 @@ export default function SectionRepaymentPlan({ detail }: { detail: DiagnosisDeta
           consultedAt={detail.consultedAt}
         />
 
-        {/* 좌하: pad 32×16, 내부 간격 12. PC(lg+)는 컴팩트해진 요소에 맞춰 좌측만 44px로. */}
-        <div className="rounded-[12px] bg-neutral-10 px-5 md:px-8 lg:pl-11 py-4 flex items-center gap-6 lg:min-h-[118px]">
+        {/* 좌하: 모바일 327×99 / pad 24×21 / 금액 20px. PC(lg+)는 기존 유지(좌측 44px, 금액 28px). */}
+        <div className="rounded-[12px] bg-neutral-10 px-6 md:px-8 lg:pl-11 py-[21px] lg:py-4 flex items-center gap-6 min-h-[99px] lg:min-h-[118px]">
           <div className="flex-1 flex flex-col gap-3">
             <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 면책 채무</p>
-            <p className="font-montserrat font-bold text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+            <p className="font-montserrat font-bold text-[20px] lg:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
               약 {formatManwonComma(plan.exemptedDebtManwon)}
             </p>
           </div>
           <div className="flex-1 flex flex-col gap-3">
             <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 잔여 채무</p>
-            <p className="font-montserrat font-bold text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+            <p className="font-montserrat font-bold text-[20px] lg:text-[28px] leading-7 tracking-[-0.03em] text-neutral-70 lg:text-neutral-90">
               약 {formatManwonComma(plan.totalPaymentManwon)}
             </p>
           </div>
