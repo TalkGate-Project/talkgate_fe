@@ -17,7 +17,11 @@ export type UseAnchoredPanelOptions = {
 	panelWidth: number;
 	/** 패널이 아직 렌더되기 전 첫 계산에 쓸 높이 추정치(레이아웃 px) */
 	estimatedPanelHeight?: number;
-	/** 앵커와 패널 사이 세로 간격(px) */
+	/**
+	 * 앵커와 패널 사이 세로 간격(px). **화면 px 기준이다** — panelWidth/estimatedPanelHeight가
+	 * 레이아웃 px인 것과 다르니 주의. zoom 0.8에서도 화면상 간격은 이 값 그대로 유지된다
+	 * (2026-07-28 브라우저 실측으로 확인). 리팩터링 이전 동작과 동일하며 의도된 것이다.
+	 */
 	offsetY?: number;
 	/** 가로 정렬 기준. start=앵커 왼쪽 모서리, center=앵커 중앙 */
 	align?: "start" | "center";
