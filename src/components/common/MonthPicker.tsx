@@ -21,7 +21,7 @@ type MonthPickerProps = {
 };
 
 /** 선택된 셀 스타일. 배경이 라이트/다크 공통이라 글자색도 테마와 무관하게 어둡게 고정한다(DatePicker와 동일). */
-const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+const SELECTED_CELL_CLS = "bg-primary-10 !text-[var(--neutral-light-90)]";
 
 /** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
 const PANEL_WIDTH = 256;

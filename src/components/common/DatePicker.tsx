@@ -34,10 +34,14 @@ const MONTHS = Array.from({ length: 12 }, (_, idx) => idx);
 type DatePickerMode = "day" | "month" | "year";
 
 /**
- * 선택된 셀 스타일. 배경이 라이트/다크 공통으로 밝은 민트라 글자색도 테마와 무관하게
- * 어둡게 고정한다(다크모드에서 밝은 글자가 배경에 묻히는 것을 방지).
+ * 선택된 셀 스타일. 배경(primary-10)이 라이트/다크 공통으로 밝은 민트이므로 글자색도
+ * 테마와 무관하게 어둡게 고정한다 — 다크모드에서 밝은 글자가 배경에 묻히는 것을 방지.
+ *
+ * 글자색에 `text-neutral-90`을 쓰면 안 된다. 그 토큰은 테마에 따라 뒤집혀
+ * (globals.css의 `--neutral-90`이 다크에서 `--neutral-dark-90`이 됨) 같은 버그가 재발한다.
+ * 팔레트 원본 토큰인 `--neutral-light-90`을 직접 참조해 고정한다.
  */
-const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+const SELECTED_CELL_CLS = "bg-primary-10 !text-[var(--neutral-light-90)]";
 
 /** minDate가 없을 때 연도 선택 목록이 거슬러 올라가는 하한(고령 고객 생년월일까지 커버) */
 const EARLIEST_SELECTABLE_YEAR = 1920;
@@ -379,7 +383,7 @@ export default function DatePicker(props: DatePickerProps) {
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
 									const selectedCls = isSelected
-										? `${SELECTED_CELL_CLS} hover:bg-[#D6FAE8]`
+										? `${SELECTED_CELL_CLS} hover:bg-primary-10`
 										: "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
@@ -441,23 +445,20 @@ export default function DatePicker(props: DatePickerProps) {
 					) : (
 						<div ref={yearListRef} className="relative max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
+								{/* selectableYears가 이미 min/max로 잘려 생성되므로(위 firstSelectableYear
+								    /lastSelectableYear) 여기서 별도의 disabled 판정은 필요 없다. */}
 								{selectableYears.map((y) => {
 									const isCurrentYear = view.getFullYear() === y;
-									// Check if year is disabled based on minDate and maxDate
-									const isDisabled = (minDate ? y < minDate.getFullYear() : false) || (maxDate ? y > maxDate.getFullYear() : false);
 									return (
 										<button
 											key={y}
 											type="button"
 											data-year={y}
-											onClick={() => !isDisabled && onSelectYear(y)}
-											disabled={isDisabled || undefined}
-											className={`h-8 rounded-[6px] text-[14px] ${
-												isDisabled 
-													? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
-													: isCurrentYear 
-														? `${SELECTED_CELL_CLS} font-medium cursor-pointer` 
-														: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
+											onClick={() => onSelectYear(y)}
+											className={`h-8 rounded-[6px] text-[14px] cursor-pointer ${
+												isCurrentYear
+													? `${SELECTED_CELL_CLS} font-medium`
+													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
