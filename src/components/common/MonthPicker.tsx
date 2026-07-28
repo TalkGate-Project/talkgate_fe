@@ -1,13 +1,7 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
-
-function getBodyZoom(): number {
-	if (typeof document === "undefined") return 1;
-	const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-	const parsed = Number.parseFloat(raw);
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 
 type MonthPickerProps = {
 	value: Date | null;
@@ -25,8 +19,6 @@ const SELECTED_CELL_CLS = "bg-primary-10 !text-[var(--neutral-light-90)]";
 
 /** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
 const PANEL_WIDTH = 256;
-/** 패널이 뷰포트 좌우 끝에 닿지 않도록 두는 여백(px) */
-const VIEWPORT_EDGE_PADDING = 16;
 
 export default function MonthPicker(props: MonthPickerProps) {
 	const { value, onChange, placeholder = "연도 . 월", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM" } = props;
@@ -38,11 +30,6 @@ export default function MonthPicker(props: MonthPickerProps) {
 	const [viewYear, setViewYear] = useState<number>(initial.getFullYear());
 	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 20); // 40-year page with scroll
 
-	const rootRef = useRef<HTMLDivElement | null>(null);
-	const inputRef = useRef<HTMLInputElement | null>(null);
-	const panelRef = useRef<HTMLDivElement | null>(null);
-	const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
-
 	const closeAndReset = useCallback(() => {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
@@ -51,81 +38,16 @@ export default function MonthPicker(props: MonthPickerProps) {
 		setMode("month");
 	}, [value]);
 
-	useEffect(() => {
-		if (!open) return;
-		function onDocMouseDown(e: MouseEvent) {
-			const t = e.target as Node;
-			const inRoot = !!rootRef.current?.contains(t);
-			const inPanel = !!panelRef.current?.contains(t);
-			if (!inRoot && !inPanel) closeAndReset();
-		}
-		function onEsc(e: KeyboardEvent) {
-			if (e.key === "Escape") closeAndReset();
-		}
-		document.addEventListener("mousedown", onDocMouseDown, true);
-		document.addEventListener("keydown", onEsc, true);
-		return () => {
-			document.removeEventListener("mousedown", onDocMouseDown, true);
-			document.removeEventListener("keydown", onEsc, true);
-		};
-	}, [open, closeAndReset]);
-
-	// Anchor the panel under the input
-	useEffect(() => {
-		if (!open) return;
-		function update() {
-			const el = inputRef.current;
-			const panel = panelRef.current;
-			if (!el) return;
-			
-			const r = el.getBoundingClientRect();
-			const zoom = getBodyZoom();
-			// offsetHeight는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 좌표(getBoundingClientRect,
-			// innerHeight)와 비교하려면 zoom을 곱해 화면상 높이로 환산해야 한다.
-			const panelHeight = (panel?.offsetHeight || 300) * zoom;
-			const viewportHeight = window.innerHeight;
-
-			const spaceBelow = viewportHeight - r.bottom;
-			const spaceAbove = r.top;
-
-			// fixed 요소의 top/left는 렌더 시 zoom이 곱해지므로, 화면 좌표를 zoom으로 나눠
-			// 되돌린 값을 넣어야 인풋에 정확히 붙는다(DatePicker/TimePicker와 동일).
-			let top: number;
-			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-				top = (r.top - panelHeight - 8) / zoom;
-			} else {
-				top = (r.bottom + 8) / zoom;
-			}
-
-			// 사용처가 모두 "◀ [가운데 정렬 텍스트] ▶" 형태라 인풋보다 패널이 넓다.
-			// 좌측 정렬하면 시각적 중심이 어긋나므로 인풋 중앙에 맞추고, 뷰포트 밖으로
-			// 나가지 않게 좌우를 클램프한다(화면 계산 후 마지막에 zoom을 되돌린다).
-			const viewportWidth = window.innerWidth;
-			// PANEL_WIDTH는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 좌표와 비교하려면
-			// zoom을 곱해 화면상 폭으로 환산한다(panelHeight와 동일한 이유).
-			const visualPanelWidth = PANEL_WIDTH * zoom;
-			const centeredLeft = r.left + (r.width - visualPanelWidth) / 2;
-			const maxLeft = viewportWidth - visualPanelWidth - VIEWPORT_EDGE_PADDING;
-			const left = Math.max(VIEWPORT_EDGE_PADDING, Math.min(centeredLeft, maxLeft));
-
-			setPanelPos({
-				top,
-				left: left / zoom
-			});
-		}
-		
-		const timer = setTimeout(update, 0);
-		update();
-		
-		window.addEventListener("resize", update);
-		window.addEventListener("scroll", update, true);
-		return () => {
-			clearTimeout(timer);
-			window.removeEventListener("resize", update);
-			window.removeEventListener("scroll", update, true);
-		};
-		// mode가 바뀌면 패널 높이가 달라지므로(월/연도) 위치를 다시 계산한다.
-	}, [open, mode]);
+	// 사용처가 모두 "◀ [가운데 정렬 텍스트] ▶" 형태라 인풋(120~163px)보다 패널이 넓다.
+	// 좌측 정렬하면 시각적 중심이 어긋나므로 align="center"를 쓴다.
+	const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLInputElement>({
+		open,
+		onClose: closeAndReset,
+		panelWidth: PANEL_WIDTH,
+		estimatedPanelHeight: 300,
+		align: "center",
+		recalcKey: mode,
+	});
 
 	useEffect(() => {
 		if (!open) {
@@ -175,7 +97,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 	return (
 		<div ref={rootRef} className="relative w-full min-w-0">
 			<input
-				ref={inputRef}
+				ref={anchorRef}
 				readOnly
 				disabled={disabled}
 				onClick={openPicker}
