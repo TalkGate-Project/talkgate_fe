@@ -162,7 +162,10 @@ export default function TimePicker(props: TimePickerProps) {
       
       const r = el.getBoundingClientRect();
       const zoom = getBodyZoom();
-      const panelHeight = panel?.offsetHeight || 260;
+      // offsetHeight는 zoom이 곱해지기 전 레이아웃 px이라, 화면 좌표(innerHeight,
+      // getBoundingClientRect)와 섞어 쓰면 zoom 0.8에서 높이를 25% 크게 잡는다.
+      // 위로 띄울 때 gapY 외에 panelHeight*(1-zoom)만큼 간격이 더 벌어지던 원인.
+      const panelHeight = (panel?.offsetHeight || 260) * zoom; // 화면상 높이
       const panelWidth = 240; // Panel width in pixels
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
@@ -184,7 +187,8 @@ export default function TimePicker(props: TimePickerProps) {
       }
       
       // Calculate left position, ensuring panel doesn't overflow viewport on mobile
-      let left = r.left / zoom + (window.scrollX || 0);
+      // position:fixed는 스크롤을 따라가지 않으므로 scrollX를 더하지 않는다.
+      let left = r.left / zoom;
       const isMobile = viewportWidth < 768;
       
       if (isMobile) {
