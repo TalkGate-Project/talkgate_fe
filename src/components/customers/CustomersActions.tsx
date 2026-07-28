@@ -374,13 +374,14 @@ export default function CustomersActions({
           <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[13px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-1.5 hover:opacity-90 dark:hover:opacity-90 transition-opacity flex-shrink-0"
+              className="cursor-pointer h-[34px] w-9 sm:w-auto px-0 sm:px-3 rounded-[5px] bg-neutral-90 dark:bg-neutral-90 text-neutral-20 dark:text-neutral-25 text-[13px] font-semibold tracking-[-0.02em] inline-flex items-center justify-center gap-1.5 hover:opacity-90 dark:hover:opacity-90 transition-opacity flex-shrink-0"
               onClick={onCreateOpen}
+              aria-label="고객등록"
             >
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0" aria-hidden>
                 <path d="M18 10C18 10 14.9526 10 13 10M15.5 12.3333V7.27778M11.3333 6.11111C11.3333 7.82933 9.84095 9.22222 8 9.22222C6.15905 9.22222 4.66667 7.82933 4.66667 6.11111C4.66667 4.39289 6.15905 3 8 3C9.84095 3 11.3333 4.39289 11.3333 6.11111ZM3 16.2222C3 13.6449 5.23858 11.5556 8 11.5556C10.7614 11.5556 13 13.6449 13 16.2222V17H3V16.2222Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span>고객등록</span>
+              <span className="hidden sm:inline">고객등록</span>
             </button>
             <div className="relative flex-shrink-0" ref={actionsMenuRef}>
               <button
