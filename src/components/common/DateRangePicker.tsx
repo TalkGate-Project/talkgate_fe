@@ -24,18 +24,6 @@ export default function DateRangePicker({
   showInlineIcon = false,
   showReset = true,
 }: DateRangePickerProps) {
-  const handleStartChange = (date: Date | null) => {
-    onStartChange(date);
-    // 시작일이 종료일보다 나중이면 종료일 초기화
-    if (date && endDate && date > endDate) {
-      onEndChange(null);
-    }
-  };
-
-  const handleEndChange = (date: Date | null) => {
-    onEndChange(date);
-  };
-
   const handleReset = () => {
     onStartChange(null);
     onEndChange(null);
@@ -86,7 +74,7 @@ export default function DateRangePicker({
     <div className={`flex items-center gap-2 md:gap-3 flex-wrap md:flex-nowrap ${className}`}>
       {renderDatePicker(
         startDate,
-        handleStartChange,
+        onStartChange,
         "연도 . 월 . 일",
         undefined,
         endDate
@@ -94,7 +82,7 @@ export default function DateRangePicker({
       <span className="text-[14px] font-medium text-neutral-90 flex-shrink-0">-</span>
       {renderDatePicker(
         endDate,
-        handleEndChange,
+        onEndChange,
         "연도 . 월 . 일",
         undefined,
         undefined,

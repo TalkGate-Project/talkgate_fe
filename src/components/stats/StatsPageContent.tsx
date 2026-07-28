@@ -43,7 +43,7 @@ const BASE_TAB_ITEMS: { key: TabKey; label: string }[] = [
 
 const FEE_TAB_ITEM: { key: TabKey; label: string } = {
   key: "fee",
-  label: "회생·파산 납부 현황",
+  label: "회생·파산",
 };
 
 function findNodeById(nodes: MemberTreeNode[], id: number): MemberTreeNode | null {
@@ -667,7 +667,7 @@ function StatsPageContentInner() {
           </section>
         )}
 
-        {/* Fee Tab: 회생·파산 납부 현황 — debt-relief 프로젝트에서만 렌더 */}
+        {/* Fee Tab: 회생·파산 — debt-relief 프로젝트에서만 렌더 */}
         {active === "fee" && feeTabReady && showFeeTab && (
           <FeePaymentStatusPanel />
         )}

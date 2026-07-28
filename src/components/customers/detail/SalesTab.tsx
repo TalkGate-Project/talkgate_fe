@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { SelectField } from "./SelectField";
@@ -81,6 +81,7 @@ export default function SalesTab({
   onAddSchedule,
   onRemoveSchedule,
 }: Props) {
+  const scheduleDateInputId = useId();
   // Payment Inputs
   const [paymentDate, setPaymentDate] = useState<Date | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -535,13 +536,14 @@ export default function SalesTab({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
           {/* 날짜 */}
           <div>
-          <div className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
+          <label htmlFor={scheduleDateInputId} className="mb-2 flex items-center gap-1 text-[14px] font-medium leading-[1] tracking-[0.2px] text-neutral-60 dark:text-neutral-60">
             날짜
             <span className="text-danger-40">*</span>
-          </div>
+          </label>
             <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-2 h-[34px]">
               <div className="relative h-[34px]">
                 <DatePicker
+                  id={scheduleDateInputId}
                   value={scheduleDate}
                   onChange={(d) => {
                     setScheduleDate(d);

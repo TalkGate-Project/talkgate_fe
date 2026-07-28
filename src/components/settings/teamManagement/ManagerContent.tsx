@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import AsyncButton from "@/components/common/AsyncButton";
@@ -74,6 +75,7 @@ export default function ManagerContent({
   onCancelProfileEdit,
   isSubmittingProfile,
 }: Props) {
+  const birthDateInputId = useId();
   return (
     <div className="border border-border rounded-[12px] p-4 md:p-7 dark:bg-neutral-10">
       {/* 프로필 정보 Section */}
@@ -149,18 +151,21 @@ export default function ManagerContent({
             </div>
             {/* 생년월일 */}
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-0">
-              <span className="text-[13px] md:text-[14px] text-neutral-60 leading-[17px] md:leading-6 md:w-[100px]">
+              <label htmlFor={birthDateInputId} className="text-[13px] md:text-[14px] text-neutral-60 leading-[17px] md:leading-6 md:w-[100px]">
                 생년월일
-              </span>
+              </label>
               {profileEditMode ? (
                 <div className="relative flex-1">
                   <DatePicker
+                    id={birthDateInputId}
                     value={hrFormData.birthDate}
                     onChange={(d) =>
                       setHrFormData((prev) => ({ ...prev, birthDate: d }))
                     }
                     maxDate={new Date()}
-                    className="cursor-pointer pr-10 h-[34px] text-[13px] md:text-[14px]"
+                    dateFormat="yyyy-MM-dd"
+                    allowTextInput
+                    className="pr-10 h-[34px] text-[13px] md:text-[14px]"
                   />
                   <CalendarInlineIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
                 </div>

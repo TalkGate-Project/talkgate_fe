@@ -6,6 +6,14 @@ import { getBodyZoom } from "@/utils/zoom";
 /** 패널이 뷰포트 좌우 끝에 닿지 않도록 두는 여백(px) */
 const VIEWPORT_EDGE_PADDING = 16;
 
+/**
+ * 아래로 열었을 때 "기술적으로는 들어가지만 여유가 전혀 없이 빠듯한" 경우를 방지하는
+ * 여유 마진(화면 px). 아래 공간이 패널 높이에 이 마진만큼도 못 미치면, 위쪽에 그만큼
+ * 여유가 있는 한 위로 띄운다. 값이 여러 파일에 흩어지지 않도록 여기서만 정의하고
+ * filterFields/ColorPalettePopover 등 아직 이 훅으로 옮기지 못한 곳에서도 가져다 쓴다.
+ */
+export const FLIP_COMFORT_MARGIN = 24;
+
 export type AnchoredPanelPosition = { top: number; left: number };
 
 export type UseAnchoredPanelOptions = {
@@ -17,7 +25,11 @@ export type UseAnchoredPanelOptions = {
 	panelWidth: number;
 	/** 패널이 아직 렌더되기 전 첫 계산에 쓸 높이 추정치(레이아웃 px) */
 	estimatedPanelHeight?: number;
-	/** 앵커와 패널 사이 세로 간격(px) */
+	/**
+	 * 앵커와 패널 사이 세로 간격(px). **화면 px 기준이다** — panelWidth/estimatedPanelHeight가
+	 * 레이아웃 px인 것과 다르니 주의. zoom 0.8에서도 화면상 간격은 이 값 그대로 유지된다
+	 * (2026-07-28 브라우저 실측으로 확인). 리팩터링 이전 동작과 동일하며 의도된 것이다.
+	 */
 	offsetY?: number;
 	/** 가로 정렬 기준. start=앵커 왼쪽 모서리, center=앵커 중앙 */
 	align?: "start" | "center";
@@ -77,11 +89,12 @@ export function useAnchoredPanel<TAnchor extends HTMLElement = HTMLElement>(
 		const viewportWidth = window.innerWidth;
 		const viewportHeight = window.innerHeight;
 
-		// 아래 공간이 부족하고 위에는 충분할 때만 위로 띄운다.
+		// 아래 공간이 여유 마진(FLIP_COMFORT_MARGIN)까지 포함해 부족하고, 위에는 그만큼
+		// 충분할 때 위로 띄운다. 딱 들어맞기만 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
 		const spaceBelow = viewportHeight - rect.bottom;
 		const spaceAbove = rect.top;
-		const shouldFlipUp =
-			spaceBelow < visualPanelHeight + offsetY && spaceAbove > visualPanelHeight + offsetY;
+		const requiredSpace = visualPanelHeight + offsetY + FLIP_COMFORT_MARGIN;
+		const shouldFlipUp = spaceBelow < requiredSpace && spaceAbove > requiredSpace;
 		const top = shouldFlipUp
 			? rect.top - visualPanelHeight - offsetY
 			: rect.bottom + offsetY;
