@@ -86,11 +86,14 @@ export default function ColorPalettePopover({
 
     function updatePosition() {
       const anchorRect = currentAnchorElement.getBoundingClientRect();
-      const panelHeight = panelRef.current?.offsetHeight ?? getEstimatedPanelHeight();
-      const panelWidth = PALETTE_PANEL_WIDTH;
+      const zoom = getBodyZoom();
+      // offsetHeight와 CSS 폭 상수는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 px인
+      // getBoundingClientRect/innerWidth/innerHeight와 비교하려면 zoom을 곱해 환산한다.
+      // 자세한 규칙은 docs/ZOOM_SUBPIXEL_PLAYBOOK.md §4-4 참고.
+      const panelHeight = (panelRef.current?.offsetHeight ?? getEstimatedPanelHeight()) * zoom;
+      const panelWidth = PALETTE_PANEL_WIDTH * zoom;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const zoom = getBodyZoom();
       const gapY = 8;
       const padding = 16;
 

@@ -172,7 +172,10 @@ export function SearchableLabeledCombobox({
 
     const rect = trigger.getBoundingClientRect();
     const zoom = getBodyZoom();
-    const panelHeight = panel?.offsetHeight || 220;
+    // offsetHeight는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 px인 innerHeight·rect와
+    // 비교하려면 zoom을 곱해 환산한다(docs/ZOOM_SUBPIXEL_PLAYBOOK.md §4-4).
+    // 환산하지 않으면 위로 띄울 때 간격이 panelHeight*(1-zoom)만큼 더 벌어진다.
+    const panelHeight = (panel?.offsetHeight || 220) * zoom;
     const gap = 8;
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - rect.bottom;

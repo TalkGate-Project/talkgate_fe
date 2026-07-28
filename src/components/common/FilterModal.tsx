@@ -817,10 +817,11 @@ function CategorySelector({
                         if (next && triggerRef.current) {
                             const r = triggerRef.current.getBoundingClientRect();
                             const zoom = getBodyZoom();
-                            // Zoom을 고려하여 위치 계산
+                            // 패널이 position:fixed라 스크롤을 따라가지 않는다. scrollX/scrollY를
+                            // 더하면 스크롤된 페이지에서 그만큼 어긋난다.
                             setPanelPos({
-                                top: (r.bottom + 8) / zoom + window.scrollY,
-                                left: r.left / zoom + window.scrollX,
+                                top: (r.bottom + 8) / zoom,
+                                left: r.left / zoom,
                                 width: r.width / zoom
                             });
                         }
