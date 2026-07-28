@@ -98,6 +98,13 @@ export default function DatePicker(props: DatePickerProps) {
 	}
 
 	const closeAndReset = useCallback(() => {
+		// 패널 안(방향키/Tab으로 이동한 날짜·월·연도 셀 등)에 포커스가 있었다면, 패널이
+		// 사라지면서 포커스가 document.body로 유실되는 것을 막고 인풋으로 되돌린다.
+		// 포커스가 이미 인풋에 있었거나(Escape 직후 등) 패널 밖 다른 요소로 갈 클릭이었다면
+		// (outside click) 이 조건에 걸리지 않아 사용자가 의도한 포커스를 건드리지 않는다.
+		if (panelRef.current?.contains(document.activeElement)) {
+			anchorRef.current?.focus();
+		}
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
@@ -159,6 +166,51 @@ export default function DatePicker(props: DatePickerProps) {
 		offsetY: panelOffsetY,
 		recalcKey: mode,
 	});
+
+	// 패널이 createPortal로 document.body 끝에 붙어 있어, 자연스러운 DOM Tab 순서로는
+	// 인풋 다음이 패널이 아니라 페이지의 다른 요소로 건너뛴다. 열려 있는 동안만
+	// Tab을 가로채 패널 쪽으로 이어주고, 패널 안에서는 aria-modal 계약대로 밖으로 새지 않게 가둔다.
+	useEffect(() => {
+		if (!open) return;
+
+		function getFocusable(): HTMLElement[] {
+			const panel = panelRef.current;
+			if (!panel) return [];
+			return Array.from(panel.querySelectorAll<HTMLElement>("button:not([disabled])"));
+		}
+
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key !== "Tab") return;
+			const panel = panelRef.current;
+			if (!panel) return;
+			const items = getFocusable();
+			if (items.length === 0) return;
+			const first = items[0];
+			const last = items[items.length - 1];
+			const active = document.activeElement;
+
+			// allowTextInput 필드(생년월일 등)는 타이핑이 주 시나리오이므로, 인풋에서 Tab으로
+			// 다음 필드로 넘어가려는 흐름을 그대로 둔다 — 패널로 끌어들이지 않는다.
+			if (!allowTextInput && active === anchorRef.current && !event.shiftKey) {
+				event.preventDefault();
+				first.focus();
+				return;
+			}
+
+			if (panel.contains(active)) {
+				if (!event.shiftKey && active === last) {
+					event.preventDefault();
+					first.focus();
+				} else if (event.shiftKey && active === first) {
+					event.preventDefault();
+					anchorRef.current?.focus();
+				}
+			}
+		}
+
+		document.addEventListener("keydown", onKeyDown, true);
+		return () => document.removeEventListener("keydown", onKeyDown, true);
+	}, [open, allowTextInput, anchorRef, panelRef]);
 
 	useEffect(() => {
 		// Keep view in sync when external value changes while closed
