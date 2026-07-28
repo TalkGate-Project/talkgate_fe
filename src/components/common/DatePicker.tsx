@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { generateMonthCells } from "@/utils/calendar";
+import { BREAKPOINTS } from "@/utils/breakpoints";
 
 function getBodyZoom(): number {
 	if (typeof document === "undefined") return 1;
@@ -135,7 +136,7 @@ export default function DatePicker(props: DatePickerProps) {
 			// Calculate left position, ensuring panel doesn't overflow viewport on mobile
 			// position:fixed는 스크롤을 따라가지 않으므로 scrollX를 더하지 않는다.
 			let left = r.left / zoom;
-			const isMobile = viewportWidth < 768;
+			const isMobile = viewportWidth < BREAKPOINTS.md;
 			
 			if (isMobile) {
 				// On mobile, ensure panel doesn't go outside viewport
