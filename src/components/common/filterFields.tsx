@@ -10,17 +10,11 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
+import { getBodyZoom } from "@/utils/zoom";
 
 export type Option = { label: string; value: string | number };
 
 export type CustomerFilterOptionKey = "applicationRoutes" | "mediaCompanies" | "sites";
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(((document.body.style as { zoom?: string }).zoom ?? "") as string).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
 
 export function LabeledSelect({
   label,

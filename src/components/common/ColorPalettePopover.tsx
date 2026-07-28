@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getBodyZoom } from "@/utils/zoom";
 import {
   STATUS_COLOR_PALETTE,
   normalizeHexColor,
@@ -23,13 +24,6 @@ function getEstimatedPanelHeight(): number {
   );
 }
 
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-
-  const rawZoom = String((document.body.style as CSSStyleDeclaration & { zoom?: string }).zoom ?? "").trim();
-  const parsedZoom = Number.parseFloat(rawZoom);
-  return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
-}
 
 type Props = {
   anchorElement: HTMLElement | null;

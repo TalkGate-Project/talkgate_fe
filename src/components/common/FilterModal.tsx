@@ -18,6 +18,7 @@ import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
+import { getBodyZoom } from "@/utils/zoom";
 import {
   DateRange,
   LabeledSelect,
@@ -28,12 +29,6 @@ import {
   type Option,
 } from "@/components/common/filterFields";
 
-function getBodyZoom(): number {
-    if (typeof document === "undefined") return 1;
-    const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-    const parsed = Number.parseFloat(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
 
 export type FilterValues = {
     name?: string;
