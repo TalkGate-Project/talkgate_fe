@@ -378,7 +378,13 @@ export default function DebtReliefSmsModal({
       // md~lg 사이(태블릿 폭)에서 여백을 2rem→1rem으로 줄여 폰 미리보기 컬럼에 여유를 더 준다.
       // lg 고정폭(848px, Figma 데스크톱 스펙)은 그대로 유지 — 상한을 같이 올리면 lg 진입 시
       // 폭이 갑자기 줄어드는 점프가 생겨서 상한은 손대지 않음.
-      containerClassName="relative w-full h-full md:w-[calc(100%-1rem)] md:max-w-[848px] md:max-h-[90vh] lg:w-[848px] lg:min-w-[848px] lg:max-h-[703px] xl:max-h-[753px] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10"
+      // 높이는 고정 px 대신 뷰포트 기준으로 둬 PC 데스크톱(특히 HD 이상 해상도)에서
+      // 화면이 남는데도 본문(특히 rows=10 textarea)이 잘려 스크롤이 생기던 문제를 줄인다.
+      // lg/xl(1080px+)은 positioner의 p-4(1rem)만 여백으로 남기고 최대한 채운다 —
+      // 100vh 그대로 두면 이 padding을 무시하고 뷰포트 경계에 닿아 버려 calc로 뺀다.
+      // 또한 lg+에서는 UiScaleToggle.tsx가 body에 zoom:0.8을 걸어 vh 포함 모든 길이가 렌더 시
+      // 0.8배로 축소되므로, 그 몫만큼(/0.8) 미리 키워둬야 의도한 실제 화면 높이가 나온다.
+      containerClassName="relative w-full h-full md:w-[calc(100%-1rem)] md:max-w-[848px] md:max-h-[90vh] lg:w-[848px] lg:min-w-[848px] lg:max-h-[calc((100vh-2rem)/0.8)] xl:max-h-[calc((100vh-2rem)/0.8)] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10"
       ariaLabel="문자 전송"
       fullScreenOnMobile
     >
