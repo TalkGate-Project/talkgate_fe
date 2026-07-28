@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Panel from "@/components/common/Panel";
@@ -94,24 +95,12 @@ export default function StatsSection() {
   const missingProject = projectReady && !projectId;
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [canRenderChart, setCanRenderChart] = useState(false);
   const montserratStyle = {
     fontFamily:
       'var(--font-montserrat), "Pretendard Variable", Pretendard, ui-sans-serif, system-ui',
   };
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     setCanRenderChart(true);

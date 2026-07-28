@@ -10,7 +10,11 @@
 
 ## 1. 왜 이 이슈가 생기는가 (배경)
 
-프로젝트 전체는 데스크톱 폭 ≥ 1280px에서 UI 밀도를 위해 `<body style="zoom: 0.8">`을 적용한다.(`src/app/layout.tsx`, `src/middleware.ts`)
+프로젝트 전체는 데스크톱 폭 ≥ 1080px에서 UI 밀도를 위해 `<body style="zoom: 0.8">`을 적용한다.(`src/app/layout.tsx`, `src/middleware.ts`)
+
+> 실제 기준값은 `src/components/layout/UiScaleToggle.tsx:7`의 `MOBILE_BREAKPOINT = 1080`이며,
+> `--breakpoint-lg`(1080)와 일치한다. 같은 파일의 주석과 `CLAUDE.md`에 남아 있는 "1280px"은
+> stale이다(2026-07-28 확인).
 
 - 모든 CSS `px` 값이 `* 0.8` 로 축소되어 화면에 그려진다.
 - Chromium 계열은 `zoom`에 의한 서브픽셀 레이아웃 계산을 내부적으로 스냅/보정하여 대부분 매끄럽게 처리한다.
@@ -47,7 +51,7 @@
 ### Step 1. 재현 환경 특정
 
 1. 어떤 브라우저에서 재현되는가? (Firefox 우선 의심)
-2. 데스크톱 폭 ≥ 1280px 인가? → `zoom: 0.8` 적용 구간
+2. 데스크톱 폭 ≥ 1080px 인가? → `zoom: 0.8` 적용 구간
 3. 페이지 이동해서 예외 경로(인증 페이지 등)는 정상인가? → `zoom: 1.0` 구간은 서브픽셀 이슈가 없음
 
 ### Step 2. DevTools로 렌더 수치 확인
@@ -131,6 +135,57 @@ Tailwind 기본 spacing(`gap-2`=8, `gap-3`=12, `gap-4`=16…) 은 대부분 4의
 - `x="0.5" y="-0.5"` 같은 half-pixel 오프셋 → 툴이 테두리 hairline 맞추려고 넣은 것. 뷰박스/렌더 크기를 바꾸면 의도대로 안 맞는다. **제거하고 정수 좌표로 재작성**.
 - `transform="matrix(-1 0 0 1 18 1)"` 같은 수평 뒤집기 → 수동으로 좌표만 뒤집어 path를 재작성하면 더 단순해진다.
 
+### 4-4. 포털/플로팅 패널 좌표 계산 — 화면 px vs 레이아웃 px
+
+> 2026-07-28 추가 · DatePicker/MonthPicker/TimePicker 위치 어긋남 수정(`4af4f84`, `ae6f2f8`) 사례 기반
+
+4-1~4-3이 "렌더 결과가 정수 px인가"의 문제라면, 이건 **좌표를 어느 공간에서 재는가**의 문제다.
+서브픽셀과 무관하게 수십~수백 px 단위로 어긋나므로 증상이 훨씬 크다.
+
+`zoom: 0.8`이 걸린 body 안에서 값은 두 종류로 나뉜다.
+
+| 종류 | 해당 값 | 성질 |
+|---|---|---|
+| **화면 px** | `getBoundingClientRect()`의 top/left/width/height, `window.innerWidth/innerHeight`, `scrollX/scrollY` | 이미 zoom이 곱해진 뒤의 실제 화면 좌표 |
+| **레이아웃 px** | `offsetWidth/offsetHeight`, CSS에 쓴 상수(`w-[256px]`, `width: 240`), `style`에 넣는 `top`/`left` 값 | zoom이 곱해지기 **전**. 렌더 시 `× zoom` 된다 |
+
+**규칙 두 줄:**
+
+1. 계산은 **화면 px 공간에서 전부** 끝낸다. 레이아웃 px 값을 끌어와야 하면 `× zoom` 해서 화면 px로 바꾼 뒤 쓴다.
+2. `style`에 넣기 **직전에 한 번만** `/ zoom` 해서 레이아웃 px로 되돌린다.
+
+```ts
+const zoom = getBodyZoom();
+const r = anchor.getBoundingClientRect();           // 화면 px
+
+const panelH = (panel?.offsetHeight ?? 400) * zoom; // 레이아웃 → 화면
+const panelW = PANEL_WIDTH * zoom;                  // 레이아웃 → 화면
+
+const spaceBelow = window.innerHeight - r.bottom;   // 화면 px
+const top  = spaceBelow < panelH + gap ? r.top - panelH - gap : r.bottom + gap;
+const left = r.left + (r.width - panelW) / 2;       // 전부 화면 px
+
+setPos({ top: top / zoom, left: left / zoom });     // 마지막에 한 번만 되돌림
+```
+
+**실제로 났던 증상 3가지**
+
+- **`/ zoom` 자체를 빼먹음** → 오차가 좌표에 비례(`좌표 × (1-zoom)`). 화면 오른쪽 요소일수록 크게 밀린다. 화면 왼쪽/위쪽은 오차가 작아 멀쩡해 보이므로 **"가로만 틀렸다"고 오진하기 쉽다.**
+- **`offsetHeight`를 화면 px과 직접 비교** → 패널 높이를 `1/zoom`배(25%) 크게 잡는다. ①아래에 자리가 있는데도 위로 플립하고 ②위로 띄울 때 간격이 `panelHeight × (1-zoom)`만큼(400px 패널 기준 **80px**) 더 벌어진다.
+- **CSS 폭 상수를 화면 px과 직접 비교** → 중앙 정렬·뷰포트 클램프가 `PANEL_WIDTH × (1-zoom) / 2`만큼 어긋난다.
+
+**주의: 모바일 분기는 대체로 무증상이다.** 모바일은 `zoom: 1.0`이라 두 공간이 같아진다.
+`viewportWidth < 768` 안쪽의 클램프 코드에 위 혼동이 있어도 오차가 0이므로, 코드가 틀렸다고
+급히 고치면 오히려 실동작을 바꾼다. 데스크톱 경로에서만 검증하고 판단할 것.
+
+**체크리스트**
+
+- [ ] `getBoundingClientRect`와 `offsetHeight/offsetWidth`를 같은 식에서 비교하고 있지 않은가
+- [ ] CSS로 지정한 패널 크기 상수를 `innerWidth/innerHeight`와 직접 비교하고 있지 않은가
+- [ ] `/ zoom`이 **최종 대입 직전 한 번만** 나오는가 (중간에 섞여 있으면 십중팔구 틀림)
+- [ ] `position: fixed`인데 `scrollX/scrollY`를 더하고 있지 않은가 (fixed는 스크롤을 따라가지 않음)
+- [ ] 패널 폭을 위치 계산과 className 양쪽에 따로 적어두지 않았는가 (상수 하나로 묶고 `style`로 전달)
+
 ---
 
 ## 5. 수정 방안 우선순위
@@ -193,7 +248,7 @@ Tailwind 기본 spacing(`gap-2`=8, `gap-3`=12, `gap-4`=16…) 은 대부분 4의
 ### 테스트 시나리오
 
 QA 가이드(`TESTING_GUIDE.md`)에 아래 시나리오를 추가 권장:
-- [ ] Firefox 최신 버전 데스크톱(폭 ≥ 1280px)에서 각 페이지의 아이콘 버튼 시각 점검
+- [ ] Firefox 최신 버전 데스크톱(폭 ≥ 1080px)에서 각 페이지의 아이콘 버튼 시각 점검
 - [ ] 브라우저 기본 줌 90% / 100% / 110% 에서 레이아웃 깨짐 없음 확인
 
 ---
@@ -204,4 +259,7 @@ QA 가이드(`TESTING_GUIDE.md`)에 아래 시나리오를 추가 권장:
 - MDN `zoom`: https://developer.mozilla.org/en-US/docs/Web/CSS/zoom
 - Firefox `zoom` 표준화 이슈: Bugzilla #390936 (구현 완료, 그러나 플렉스/SVG 서브픽셀 거동은 계속 개선 중)
 - 이 프로젝트의 zoom 적용 지점: `src/app/layout.tsx:90`, `src/middleware.ts:228`
-- zoom 보정이 필요한 포털 좌표 계산 예시: `src/hooks/useEmojiPicker.ts`, `src/components/chat/ChatFilterModal.tsx`, `src/components/common/DatePicker.tsx`
+- zoom 보정이 필요한 포털 좌표 계산 예시(작성 규칙은 4-4 참고):
+  - `src/components/common/DatePicker.tsx`, `MonthPicker.tsx`, `TimePicker.tsx` — 앵커 패널 3종. 계산 방식이 셋 다 복붙이라 한 곳만 고쳐지고 갈라진 전례가 있다(2026-07-28). 공통 훅으로 추출 예정
+  - `src/components/chat/ChatFilterModal.tsx` — 단순 앵커링만 하는 최소 예시
+  - `src/hooks/useEmojiPicker.ts` — 모바일 분기에 레이아웃 px 혼용이 있으나 zoom 1.0이라 무증상

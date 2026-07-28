@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type TeamValue = string;
 
@@ -38,20 +39,11 @@ export default function MemberStatsFilterModal({
   const teamDotColors = ["var(--primary-40)", "var(--warning-20)", "var(--danger-20)", "var(--secondary-20)"];
 
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setLocalTeam(defaults.team);
   }, [defaults.team]);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {

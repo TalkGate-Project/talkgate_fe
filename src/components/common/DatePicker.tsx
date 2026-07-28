@@ -1,15 +1,9 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { format } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 import { ko } from "date-fns/locale";
 import { generateMonthCells } from "@/utils/calendar";
-
-function getBodyZoom(): number {
-	if (typeof document === "undefined") return 1;
-	const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-	const parsed = Number.parseFloat(raw);
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 
 type DatePickerProps = {
 	value: Date | null;
@@ -24,6 +18,14 @@ type DatePickerProps = {
 	panelOffsetY?: number;
 	/** 검증 실패 상태일 때 인풋 테두리를 빨간색으로 표시 */
 	invalid?: boolean;
+	/** 외부 <label htmlFor>와 연결할 때 사용하는 인풋 id */
+	id?: string;
+	/**
+	 * true면 인풋에 dateFormat 형식으로 직접 타이핑할 수 있다. 기본 false(캘린더 클릭 전용).
+	 * 생년월일처럼 먼 과거 날짜를 반복 입력하는 필드에서만 켠다 — SMS 예약·일정 생성처럼
+	 * 가까운 미래 1~2클릭 선택이 주 용도인 곳은 캘린더 온리가 더 빠르다.
+	 */
+	allowTextInput?: boolean;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -33,10 +35,17 @@ const MONTHS = Array.from({ length: 12 }, (_, idx) => idx);
 type DatePickerMode = "day" | "month" | "year";
 
 /**
- * 선택된 셀 스타일. 배경이 라이트/다크 공통으로 밝은 민트라 글자색도 테마와 무관하게
- * 어둡게 고정한다(다크모드에서 밝은 글자가 배경에 묻히는 것을 방지).
+ * 선택된 셀 스타일. 배경(primary-10)이 라이트/다크 공통으로 밝은 민트이므로 글자색도
+ * 테마와 무관하게 어둡게 고정한다 — 다크모드에서 밝은 글자가 배경에 묻히는 것을 방지.
+ *
+ * 글자색에 `text-neutral-90`을 쓰면 안 된다. 그 토큰은 테마에 따라 뒤집혀
+ * (globals.css의 `--neutral-90`이 다크에서 `--neutral-dark-90`이 됨) 같은 버그가 재발한다.
+ * 팔레트 원본 토큰인 `--neutral-light-90`을 직접 참조해 고정한다.
  */
-const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+const SELECTED_CELL_CLS = "bg-primary-10 !text-[var(--neutral-light-90)]";
+
+/** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
+const PANEL_WIDTH = 256;
 
 /** minDate가 없을 때 연도 선택 목록이 거슬러 올라가는 하한(고령 고객 생년월일까지 커버) */
 const EARLIEST_SELECTABLE_YEAR = 1920;
@@ -44,8 +53,9 @@ const EARLIEST_SELECTABLE_YEAR = 1920;
 const DEFAULT_YEARS_AHEAD = 10;
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false, id, allowTextInput = false } = props;
 
+	const panelId = useId();
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<DatePickerMode>("day");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
@@ -66,100 +76,141 @@ export default function DatePicker(props: DatePickerProps) {
 		return Array.from({ length: total }, (_, idx) => firstSelectableYear + idx);
 	}, [firstSelectableYear, lastSelectableYear]);
 
-	const rootRef = useRef<HTMLDivElement | null>(null);
-	const inputRef = useRef<HTMLInputElement | null>(null);
-	const panelRef = useRef<HTMLDivElement | null>(null);
 	const yearListRef = useRef<HTMLDivElement | null>(null);
-	const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
+
+	// allowTextInput 전용 상태. isEditingText는 "지금 사용자가 타이핑 중"을 뜻하고,
+	// typedInvalid는 blur 시점에 파싱 실패한 텍스트를 그대로 보여주기 위한 플래그다.
+	const [typedText, setTypedText] = useState("");
+	const [isEditingText, setIsEditingText] = useState(false);
+	const [typedInvalid, setTypedInvalid] = useState(false);
+
+	function isWithinAllowedRange(d: Date): boolean {
+		const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+		if (minDate) {
+			const minOnly = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+			if (dateOnly < minOnly) return false;
+		}
+		if (maxDate) {
+			const maxOnly = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+			if (dateOnly > maxOnly) return false;
+		}
+		return true;
+	}
 
 	const closeAndReset = useCallback(() => {
+		// 패널 안(방향키/Tab으로 이동한 날짜·월·연도 셀 등)에 포커스가 있었다면, 패널이
+		// 사라지면서 포커스가 document.body로 유실되는 것을 막고 인풋으로 되돌린다.
+		// 포커스가 이미 인풋에 있었거나(Escape 직후 등) 패널 밖 다른 요소로 갈 클릭이었다면
+		// (outside click) 이 조건에 걸리지 않아 사용자가 의도한 포커스를 건드리지 않는다.
+		if (panelRef.current?.contains(document.activeElement)) {
+			anchorRef.current?.focus();
+		}
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
 		setMode("day");
-	}, [value]);
+		if (allowTextInput) {
+			setIsEditingText(false);
+			setTypedInvalid(false);
+		}
+	}, [value, allowTextInput]);
 
+	// typedText는 "지금 타이핑 중"이거나 "직전 blur에서 파싱 실패"가 아닐 때만 value를 따라간다.
+	// 그 외의 경우(달력에서 선택, 외부에서 value 변경, 최초 렌더)엔 항상 정규화된 문자열로 맞춘다.
+	useEffect(() => {
+		if (!allowTextInput || isEditingText || typedInvalid) return;
+		setTypedText(value ? format(value, dateFormat, { locale: ko }) : "");
+	}, [allowTextInput, value, dateFormat, isEditingText, typedInvalid]);
+
+	function handleTypedChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const next = e.target.value;
+		setTypedText(next);
+		setTypedInvalid(false);
+
+		const trimmed = next.trim();
+		if (!trimmed) return; // 지우는 중일 수 있으니 blur 전엔 커밋하지 않는다.
+
+		const parsed = parse(trimmed, dateFormat, new Date());
+		if (isValid(parsed) && isWithinAllowedRange(parsed)) {
+			const normalized = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+			onChange(normalized);
+			// 유효한 날짜가 완성되면 달력 뷰도 그 월로 따라간다.
+			setView(new Date(normalized.getFullYear(), normalized.getMonth(), 1));
+		}
+	}
+
+	function handleTypedBlur() {
+		setIsEditingText(false);
+		const trimmed = typedText.trim();
+		if (!trimmed) {
+			onChange(null);
+			setTypedInvalid(false);
+			return;
+		}
+		const parsed = parse(trimmed, dateFormat, new Date());
+		if (isValid(parsed) && isWithinAllowedRange(parsed)) {
+			onChange(new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
+			setTypedInvalid(false);
+		} else {
+			// 파싱 실패 시 사용자가 입력한 텍스트를 그대로 두고 invalid 표시만 한다.
+			// (위 sync effect가 typedInvalid를 보고 덮어쓰지 않는다)
+			setTypedInvalid(true);
+		}
+	}
+
+	const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLInputElement>({
+		open,
+		onClose: closeAndReset,
+		panelWidth: PANEL_WIDTH,
+		estimatedPanelHeight: 400,
+		offsetY: panelOffsetY,
+		recalcKey: mode,
+	});
+
+	// 패널이 createPortal로 document.body 끝에 붙어 있어, 자연스러운 DOM Tab 순서로는
+	// 인풋 다음이 패널이 아니라 페이지의 다른 요소로 건너뛴다. 열려 있는 동안만
+	// Tab을 가로채 패널 쪽으로 이어주고, 패널 안에서는 aria-modal 계약대로 밖으로 새지 않게 가둔다.
 	useEffect(() => {
 		if (!open) return;
-		function onDocMouseDown(e: MouseEvent) {
-			const t = e.target as Node;
-			const inRoot = !!rootRef.current?.contains(t);
-			const inPanel = !!panelRef.current?.contains(t);
-			if (!inRoot && !inPanel) closeAndReset();
-		}
-		function onEsc(e: KeyboardEvent) {
-			if (e.key === "Escape") closeAndReset();
-		}
-		document.addEventListener("mousedown", onDocMouseDown, true);
-		document.addEventListener("keydown", onEsc, true);
-		return () => {
-			document.removeEventListener("mousedown", onDocMouseDown, true);
-			document.removeEventListener("keydown", onEsc, true);
-		};
-	}, [open, closeAndReset]);
 
-	// Anchor the panel under the input (floating over modals)
-	useEffect(() => {
-		if (!open) return;
-		function update() {
-			const el = inputRef.current;
+		function getFocusable(): HTMLElement[] {
 			const panel = panelRef.current;
-			if (!el) return;
-			
-			const r = el.getBoundingClientRect();
-			const zoom = getBodyZoom();
-			const panelHeight = panel?.offsetHeight || 400; // Default estimate 400px
-			const panelWidth = 256; // Panel width in pixels
-			const viewportHeight = window.innerHeight;
-			const viewportWidth = window.innerWidth;
-			const gapY = panelOffsetY;
-			const padding = 16; // Padding from viewport edge on mobile
-			
-			// Calculate if there's enough space below the input
-			const spaceBelow = viewportHeight - r.bottom;
-			const spaceAbove = r.top;
-			
-			// If not enough space below but enough space above, position above
-			let top: number;
-			if (spaceBelow < panelHeight + gapY && spaceAbove > panelHeight + gapY) {
-				// Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
-				top = (r.top - panelHeight - gapY) / zoom;
-			} else {
-				// Position below input (default) - adjust for zoom
-				top = (r.bottom + gapY) / zoom;
+			if (!panel) return [];
+			return Array.from(panel.querySelectorAll<HTMLElement>("button:not([disabled])"));
+		}
+
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key !== "Tab") return;
+			const panel = panelRef.current;
+			if (!panel) return;
+			const items = getFocusable();
+			if (items.length === 0) return;
+			const first = items[0];
+			const last = items[items.length - 1];
+			const active = document.activeElement;
+
+			// allowTextInput 필드(생년월일 등)는 타이핑이 주 시나리오이므로, 인풋에서 Tab으로
+			// 다음 필드로 넘어가려는 흐름을 그대로 둔다 — 패널로 끌어들이지 않는다.
+			if (!allowTextInput && active === anchorRef.current && !event.shiftKey) {
+				event.preventDefault();
+				first.focus();
+				return;
 			}
-			
-			// Calculate left position, ensuring panel doesn't overflow viewport on mobile
-			let left = r.left / zoom + (window.scrollX || 0);
-			const isMobile = viewportWidth < 768;
-			
-			if (isMobile) {
-				// On mobile, ensure panel doesn't go outside viewport
-				const maxLeft = (viewportWidth - panelWidth - padding) / zoom;
-				if (left > maxLeft) {
-					left = Math.max(padding / zoom, maxLeft);
+
+			if (panel.contains(active)) {
+				if (!event.shiftKey && active === last) {
+					event.preventDefault();
+					first.focus();
+				} else if (event.shiftKey && active === first) {
+					event.preventDefault();
+					anchorRef.current?.focus();
 				}
 			}
-			
-			setPanelPos({ 
-				top, 
-				left
-			});
 		}
-		
-		// Initial update after a small delay to ensure panel is rendered
-		const timer = setTimeout(update, 0);
-		update();
-		
-		window.addEventListener("resize", update);
-		window.addEventListener("scroll", update, true);
-		return () => {
-			clearTimeout(timer);
-			window.removeEventListener("resize", update);
-			window.removeEventListener("scroll", update, true);
-		};
-		// mode가 바뀌면 패널 높이가 달라지므로(일/월/연도) 위치를 다시 계산한다.
-	}, [open, panelOffsetY, mode]);
+
+		document.addEventListener("keydown", onKeyDown, true);
+		return () => document.removeEventListener("keydown", onKeyDown, true);
+	}, [open, allowTextInput, anchorRef, panelRef]);
 
 	useEffect(() => {
 		// Keep view in sync when external value changes while closed
@@ -196,6 +247,10 @@ export default function DatePicker(props: DatePickerProps) {
 		setMode("day");
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
+		if (allowTextInput) {
+			setIsEditingText(true);
+			setTypedInvalid(false);
+		}
 	}
 
 	// 연도 모드에서는 긴 연도 목록을 한 화면씩 넘긴다(휠 없이도 먼 연도로 이동 가능).
@@ -254,21 +309,33 @@ export default function DatePicker(props: DatePickerProps) {
 	return (
 		<div ref={rootRef} className="relative w-full">
 			<input
-				ref={inputRef}
-				readOnly
+				ref={anchorRef}
+				id={id}
+				readOnly={!allowTextInput}
 				disabled={disabled}
 				onClick={openPicker}
 				onFocus={openPicker}
-				value={value ? format(value, dateFormat, { locale: ko }) : ""}
+				onChange={allowTextInput ? handleTypedChange : undefined}
+				onBlur={allowTextInput ? handleTypedBlur : undefined}
+				value={allowTextInput ? typedText : (value ? format(value, dateFormat, { locale: ko }) : "")}
 				placeholder={placeholder}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
+				role="combobox"
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={panelId}
+				aria-invalid={(invalid || typedInvalid) || undefined}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 ${allowTextInput ? "cursor-text" : "cursor-pointer"} bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${(invalid || typedInvalid) ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
-					className="z-[1000] w-[256px] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
-					style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
+					id={panelId}
+					role="dialog"
+					aria-modal="true"
+					aria-label={mode === "day" ? "날짜 선택" : mode === "month" ? "월 선택" : "연도 선택"}
+					className="z-[1000] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
+					style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
 				>
 					{/* Header */}
 					<div className="flex items-center justify-between mb-4">
@@ -340,10 +407,12 @@ export default function DatePicker(props: DatePickerProps) {
 					{/* Body */}
 					{mode === "day" ? (
 						<div>
-							{/* Weekday header */}
+							{/* Weekday header. role="grid"/"gridcell" 등 완전한 그리드 시맨틱은 방향키 내비게이션과
+							    함께 넣는다 — 키보드 지원 없이 role만 붙이면 스크린리더가 그리드 탐색을
+							    기대하게 만들어 오히려 혼란스럽다. 지금은 라벨만 보강한다. */}
 							<div className="grid grid-cols-7 gap-y-2 mb-2">
 								{DAYS.map((d) => (
-									<div key={d} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080] dark:text-neutral-60">
+									<div key={d} aria-label={`${d}요일`} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080] dark:text-neutral-60">
 										{d}
 									</div>
 								))}
@@ -374,10 +443,12 @@ export default function DatePicker(props: DatePickerProps) {
 										"w-8 h-8 flex items-center justify-center rounded-full text-[14px]";
 									const textCls = inCurrent ? "text-[#252525] dark:text-neutral-80" : "text-[#B0B0B0] dark:text-neutral-60";
 									const selectedCls = isSelected
-										? `${SELECTED_CELL_CLS} hover:bg-[#D6FAE8]`
+										? `${SELECTED_CELL_CLS} hover:bg-primary-10`
 										: "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
+										const dayAriaLabel = `${format(date, "yyyy년 M월 d일 (EEEE)", { locale: ko })}${isToday ? " (오늘)" : ""}`;
+
 										return (
 											<button
 											key={date.toISOString() + inCurrent}
@@ -385,6 +456,9 @@ export default function DatePicker(props: DatePickerProps) {
 											className={`${baseCls} ${textCls} ${isDisabled ? "" : selectedCls} ${disabledCls}`}
 											onClick={() => !isDisabled && onSelectDay(date)}
 											disabled={isDisabled || undefined}
+											aria-label={dayAriaLabel}
+											aria-pressed={!!isSelected}
+											aria-current={isToday ? "date" : undefined}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{isToday && !isSelected ? (
@@ -420,6 +494,8 @@ export default function DatePicker(props: DatePickerProps) {
 										type="button"
 										onClick={() => !isDisabled && onSelectMonth(monthIndex)}
 										disabled={isDisabled || undefined}
+										aria-label={`${view.getFullYear()}년 ${monthIndex + 1}월`}
+										aria-pressed={isCurrentMonth}
 										className={`h-9 rounded-[6px] text-[14px] ${
 											isDisabled
 												? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
@@ -436,23 +512,22 @@ export default function DatePicker(props: DatePickerProps) {
 					) : (
 						<div ref={yearListRef} className="relative max-h-[240px] overflow-y-auto custom-scrollbar">
 							<div className="grid grid-cols-4 gap-2">
+								{/* selectableYears가 이미 min/max로 잘려 생성되므로(위 firstSelectableYear
+								    /lastSelectableYear) 여기서 별도의 disabled 판정은 필요 없다. */}
 								{selectableYears.map((y) => {
 									const isCurrentYear = view.getFullYear() === y;
-									// Check if year is disabled based on minDate and maxDate
-									const isDisabled = (minDate ? y < minDate.getFullYear() : false) || (maxDate ? y > maxDate.getFullYear() : false);
 									return (
 										<button
 											key={y}
 											type="button"
 											data-year={y}
-											onClick={() => !isDisabled && onSelectYear(y)}
-											disabled={isDisabled || undefined}
-											className={`h-8 rounded-[6px] text-[14px] ${
-												isDisabled 
-													? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
-													: isCurrentYear 
-														? `${SELECTED_CELL_CLS} font-medium cursor-pointer` 
-														: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30 cursor-pointer"
+											onClick={() => onSelectYear(y)}
+											aria-label={`${y}년`}
+											aria-pressed={isCurrentYear}
+											className={`h-8 rounded-[6px] text-[14px] cursor-pointer ${
+												isCurrentYear
+													? `${SELECTED_CELL_CLS} font-medium`
+													: "text-[#252525] dark:text-neutral-80 hover:bg-neutral-20 dark:hover:bg-neutral-30"
 											}`}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>

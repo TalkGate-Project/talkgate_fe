@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useId, useMemo, useState } from "react";
 import { SelectField } from "./SelectField";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -34,6 +34,7 @@ export default function BasicTab({
   showValidation,
   linkedAnalysis,
 }: Props) {
+  const birthDateInputId = useId();
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
   const [newMessengerAccount, setNewMessengerAccount] = useState("");
   const [messengerToRemoveIndex, setMessengerToRemoveIndex] = useState<number | null>(null);
@@ -208,10 +209,11 @@ export default function BasicTab({
       {/* Birth */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">생년월일</span>
+          <label htmlFor={birthDateInputId} className="text-[14px] text-[#6B7280] dark:text-neutral-60 font-medium">생년월일</label>
         </div>
         <div>
           <DatePicker
+            id={birthDateInputId}
             value={birthDate}
             onChange={(date) =>
               setForm((prev) => ({
@@ -222,6 +224,7 @@ export default function BasicTab({
             placeholder="생년월일을 입력하세요"
             dateFormat="yyyy-MM-dd"
             maxDate={new Date()}
+            allowTextInput
             className="!h-[34px] !rounded-[5px] border-[#E5E7EB] dark:border-[#444444] bg-card text-ink dark:bg-neutral-10 dark:text-ink"
           />
         </div>

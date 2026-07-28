@@ -15,6 +15,7 @@ import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyCons
 import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubscriptionModal";
 import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
+import AnalysisProgressPlayground from "./AnalysisProgressPlayground";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -28,6 +29,7 @@ const SECTIONS = [
   { id: "스피너크기별테스트", label: "스피너 크기별 테스트" },
   { id: "스피너색상별테스트", label: "스피너 색상별 테스트" },
   { id: "인라인로딩상태", label: "인라인 로딩 상태" },
+  { id: "분석진행률오버레이", label: "분석 진행률 오버레이" },
   { id: "모달테스트", label: "모달 테스트" },
   { id: "PersistentModal테스트", label: "Persistent Modal 테스트" },
   { id: "구독활성화모달테스트", label: "구독 활성화 모달 테스트" },
@@ -755,6 +757,21 @@ export default function TestPage() {
               <span className="text-neutral-60 text-sm">작은 텍스트와 함께 표시되는 스피너</span>
             </div>
           </div>
+        </section>
+
+        {/* 분석 진행률 오버레이 테스트 */}
+        <section
+          id="분석진행률오버레이"
+          ref={(el) => { sectionRefs.current["분석진행률오버레이"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold text-neutral-90">분석 진행률 오버레이</h2>
+            <div className="text-sm text-neutral-60 bg-neutral-10 px-3 py-1 rounded">
+              <span className="font-semibold text-primary-60">✓ 동일 컴포넌트 사용</span>
+            </div>
+          </div>
+          <AnalysisProgressPlayground />
         </section>
 
         {/* 모달 테스트 */}

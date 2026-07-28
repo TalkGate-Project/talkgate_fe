@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type Props = {
   page: number;
@@ -12,28 +12,9 @@ type Props = {
 };
 
 export default function Pagination({ page, totalPages, onPageChange, disabled = false, maxButtons, className = "" }: Props) {
-  const [effectiveMaxButtons, setEffectiveMaxButtons] = useState(10);
-
-  // 모바일에서는 5개, 데스크탑에서는 10개 표시
-  useEffect(() => {
-    const updateMaxButtons = () => {
-      // maxButtons prop이 명시적으로 전달된 경우 그대로 사용
-      if (maxButtons !== undefined) {
-        setEffectiveMaxButtons(maxButtons);
-        return;
-      }
-
-      // prop이 없으면 화면 크기에 따라 결정 (md 브레이크포인트: 768px)
-      const isMobile = window.innerWidth < 768;
-      setEffectiveMaxButtons(isMobile ? 5 : 10);
-    };
-
-    updateMaxButtons();
-
-    // 리사이즈 이벤트 리스너 등록
-    window.addEventListener("resize", updateMaxButtons);
-    return () => window.removeEventListener("resize", updateMaxButtons);
-  }, [maxButtons]);
+  // maxButtons prop이 있으면 그대로, 없으면 모바일 5개 / 데스크탑 10개
+  const isMobile = useIsMobile();
+  const effectiveMaxButtons = maxButtons ?? (isMobile ? 5 : 10);
 
   const safeTotal = Math.max(1, totalPages || 1);
   const clampedPage = Math.min(Math.max(1, page || 1), safeTotal);

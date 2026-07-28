@@ -1,6 +1,7 @@
 import { RefObject, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { getBadgeStyle } from "@/utils/categoryBadge";
+import { getBodyZoom } from "@/utils/zoom";
 
 type CategoryOption = {
   id: number | null;
@@ -27,13 +28,6 @@ type Props = {
   showManageButton?: boolean;
   onManageButtonClick?: () => void;
 };
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const rawZoom = String(((document.body.style as any).zoom ?? "") as string).trim();
-  const parsedZoom = Number.parseFloat(rawZoom);
-  return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
-}
 
 export default function CategoryDropdownPortal({
   open,

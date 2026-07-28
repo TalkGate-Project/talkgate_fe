@@ -1,4 +1,3 @@
-import { useState } from "react";
 import DatePicker from "./DatePicker";
 
 type DateRangePickerProps = {
@@ -25,32 +24,13 @@ export default function DateRangePicker({
   showInlineIcon = false,
   showReset = true,
 }: DateRangePickerProps) {
-  const [startKey, setStartKey] = useState(0);
-  const [endKey, setEndKey] = useState(0);
-
-  const handleStartChange = (date: Date | null) => {
-    onStartChange(date);
-    // 시작일이 종료일보다 나중이면 종료일 초기화
-    if (date && endDate && date > endDate) {
-      onEndChange(null);
-      setEndKey((k) => k + 1); // Force re-render of end picker
-    }
-  };
-
-  const handleEndChange = (date: Date | null) => {
-    onEndChange(date);
-  };
-
   const handleReset = () => {
     onStartChange(null);
     onEndChange(null);
-    setStartKey((k) => k + 1);
-    setEndKey((k) => k + 1);
     onReset?.();
   };
 
   const renderDatePicker = (
-    pickerKey: number,
     value: Date | null,
     onChange: (date: Date | null) => void,
     placeholderText: string,
@@ -60,7 +40,6 @@ export default function DateRangePicker({
   ) => (
     <div className="flex-1 min-w-0 md:w-[175px] md:flex-none relative">
       <DatePicker
-        key={pickerKey}
         value={value}
         onChange={onChange}
         placeholder={placeholderText}
@@ -94,18 +73,16 @@ export default function DateRangePicker({
   return (
     <div className={`flex items-center gap-2 md:gap-3 flex-wrap md:flex-nowrap ${className}`}>
       {renderDatePicker(
-        startKey,
         startDate,
-        handleStartChange,
+        onStartChange,
         "연도 . 월 . 일",
         undefined,
         endDate
       )}
       <span className="text-[14px] font-medium text-neutral-90 flex-shrink-0">-</span>
       {renderDatePicker(
-        endKey,
         endDate,
-        handleEndChange,
+        onEndChange,
         "연도 . 월 . 일",
         undefined,
         undefined,

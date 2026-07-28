@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useProjectType } from "@/hooks/useProjectType";
@@ -20,7 +20,9 @@ import { FORM_STEPS } from "./steps";
 import FormSidebar from "./FormSidebar";
 import MobileFormSummaryDrawer from "./MobileFormSummaryDrawer";
 import FormMobileActionBar from "./FormMobileActionBar";
-import AnalysisLoadingOverlay from "./AnalysisLoadingOverlay";
+import AnalysisLoadingOverlayHost, {
+  type AnalysisProgressHandle,
+} from "./AnalysisLoadingOverlayHost";
 import Step1BasicInfo from "./Step1BasicInfo";
 import Step2Assets from "./Step2Assets";
 import Step3Debts from "./Step3Debts";
@@ -35,6 +37,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
+  // 분석 API는 진행 신호를 주지 않아 경과시간 기반 추정 진행률을 보여준다.
+  // 진행률 상태는 오버레이 안에 가둬 두고 여기서는 완료/중단만 지시한다.
+  const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
   // 분석하기 클릭 시 담보부채무·최근 3개월/1년 내 채무액 합이 총 채무 합계를 초과한 적이 있으면
   // true로 래치. Step3Debts가 이 값과 최신 폼 상태를 함께 계산해 여전히 초과 상태일 때만 필드
   // 테두리를 빨갛게 표시하고, 값이 다시 유효해지는 즉시(재계산 결과 false) 자동으로 해제된다.
@@ -250,9 +255,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       const result = isEdit
         ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, form)
         : await DebtReliefService.createDiagnosis(projectId ?? "", form, linkedCustomerId);
+      // 진행률을 100%까지 채우고 여운을 준 뒤 이동한다. 실패 경로에서는 채우지 않는다.
+      await analysisProgressRef.current?.settle();
       router.push(`/debt-relief/${result.id}`);
     } catch (error) {
       console.error("Failed to submit diagnosis:", error);
+      analysisProgressRef.current?.abort();
       showErrorModal({
         headline: "분석 요청에 실패했습니다.",
         description: "잠시 후 다시 시도해주세요.",
@@ -293,7 +301,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   return (
     <>
-      {analyzing && <AnalysisLoadingOverlay />}
+      {/* ref가 항상 살아 있어야 하므로 조건부 렌더하지 않는다(active로만 제어). */}
+      <AnalysisLoadingOverlayHost active={analyzing} ref={analysisProgressRef} />
 
       <MobileFormSummaryDrawer
         form={form}

@@ -143,7 +143,7 @@ export default function FeeSummaryCards({
   if (isError) {
     return (
       <div className="flex h-[148px] items-center justify-center rounded-[14px] border border-dashed border-danger-20 bg-danger-10 px-6 text-[14px] text-danger-40">
-        납부 현황을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
+        결제 현황을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
       </div>
     );
   }

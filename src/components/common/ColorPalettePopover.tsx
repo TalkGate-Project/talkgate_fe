@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getBodyZoom } from "@/utils/zoom";
+import { FLIP_COMFORT_MARGIN } from "@/hooks/useAnchoredPanel";
 import {
   STATUS_COLOR_PALETTE,
   normalizeHexColor,
@@ -23,13 +25,6 @@ function getEstimatedPanelHeight(): number {
   );
 }
 
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-
-  const rawZoom = String((document.body.style as CSSStyleDeclaration & { zoom?: string }).zoom ?? "").trim();
-  const parsedZoom = Number.parseFloat(rawZoom);
-  return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
-}
 
 type Props = {
   anchorElement: HTMLElement | null;
@@ -92,18 +87,24 @@ export default function ColorPalettePopover({
 
     function updatePosition() {
       const anchorRect = currentAnchorElement.getBoundingClientRect();
-      const panelHeight = panelRef.current?.offsetHeight ?? getEstimatedPanelHeight();
-      const panelWidth = PALETTE_PANEL_WIDTH;
+      const zoom = getBodyZoom();
+      // offsetHeight와 CSS 폭 상수는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 px인
+      // getBoundingClientRect/innerWidth/innerHeight와 비교하려면 zoom을 곱해 환산한다.
+      // 자세한 규칙은 docs/ZOOM_SUBPIXEL_PLAYBOOK.md §4-4 참고.
+      const panelHeight = (panelRef.current?.offsetHeight ?? getEstimatedPanelHeight()) * zoom;
+      const panelWidth = PALETTE_PANEL_WIDTH * zoom;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const zoom = getBodyZoom();
       const gapY = 8;
       const padding = 16;
 
+      // 여유 마진까지 포함해 아래가 부족하고 위는 충분할 때만 위로 띄운다. 딱 들어맞기만
+      // 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
+      const requiredSpace = panelHeight + gapY + FLIP_COMFORT_MARGIN;
       let top = (anchorRect.bottom + gapY) / zoom;
       const shouldOpenAbove =
-        viewportHeight - anchorRect.bottom < panelHeight + gapY &&
-        anchorRect.top > panelHeight + gapY;
+        viewportHeight - anchorRect.bottom < requiredSpace &&
+        anchorRect.top > requiredSpace;
 
       if (shouldOpenAbove) {
         top = (anchorRect.top - panelHeight - gapY) / zoom;

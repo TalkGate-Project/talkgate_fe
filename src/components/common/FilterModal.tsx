@@ -18,6 +18,7 @@ import Checkbox from "@/components/common/Checkbox";
 import { sanitizeContactFilterInput } from "@/utils/format";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
+import { getBodyZoom } from "@/utils/zoom";
 import {
   DateRange,
   LabeledSelect,
@@ -28,12 +29,6 @@ import {
   type Option,
 } from "@/components/common/filterFields";
 
-function getBodyZoom(): number {
-    if (typeof document === "undefined") return 1;
-    const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-    const parsed = Number.parseFloat(raw);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
 
 export type FilterValues = {
     name?: string;
@@ -822,10 +817,11 @@ function CategorySelector({
                         if (next && triggerRef.current) {
                             const r = triggerRef.current.getBoundingClientRect();
                             const zoom = getBodyZoom();
-                            // Zoom을 고려하여 위치 계산
+                            // 패널이 position:fixed라 스크롤을 따라가지 않는다. scrollX/scrollY를
+                            // 더하면 스크롤된 페이지에서 그만큼 어긋난다.
                             setPanelPos({
-                                top: (r.bottom + 8) / zoom + window.scrollY,
-                                left: r.left / zoom + window.scrollX,
+                                top: (r.bottom + 8) / zoom,
+                                left: r.left / zoom,
                                 width: r.width / zoom
                             });
                         }

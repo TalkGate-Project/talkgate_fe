@@ -17,6 +17,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { useMyMember } from "@/hooks/useMyMember";
 import CustomerProcedureBadge from "./CustomerProcedureBadge";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
+import { getBodyZoom } from "@/utils/zoom";
 
 type CustomersTableProps = {
   customers: CustomerListItem[];
@@ -100,15 +101,6 @@ function TruncateWithTooltip({
       )}
     </span>
   );
-}
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(
-    ((document.body.style as any).zoom ?? "") as string
-  ).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
 function getCustomerKeyword(

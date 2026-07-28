@@ -3,14 +3,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { getBodyZoom } from "@/utils/zoom";
 
-function getBodyZoom(): number {
-  if (typeof window === "undefined") return 1;
-  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-  if (!raw) return 1;
-  const parsed = parseFloat(raw);
-  return Number.isNaN(parsed) ? 1 : parsed;
-}
 
 type TooltipProps = {
   content: string;

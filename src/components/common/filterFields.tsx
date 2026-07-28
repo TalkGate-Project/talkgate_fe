@@ -10,17 +10,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
+import { getBodyZoom } from "@/utils/zoom";
+import { FLIP_COMFORT_MARGIN } from "@/hooks/useAnchoredPanel";
 
 export type Option = { label: string; value: string | number };
 
 export type CustomerFilterOptionKey = "applicationRoutes" | "mediaCompanies" | "sites";
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(((document.body.style as { zoom?: string }).zoom ?? "") as string).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
 
 export function LabeledSelect({
   label,
@@ -178,14 +173,20 @@ export function SearchableLabeledCombobox({
 
     const rect = trigger.getBoundingClientRect();
     const zoom = getBodyZoom();
-    const panelHeight = panel?.offsetHeight || 220;
+    // offsetHeight는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 px인 innerHeight·rect와
+    // 비교하려면 zoom을 곱해 환산한다(docs/ZOOM_SUBPIXEL_PLAYBOOK.md §4-4).
+    // 환산하지 않으면 위로 띄울 때 간격이 panelHeight*(1-zoom)만큼 더 벌어진다.
+    const panelHeight = (panel?.offsetHeight || 220) * zoom;
     const gap = 8;
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
+    // 여유 마진까지 포함해 아래가 부족하고 위는 충분할 때만 위로 띄운다. 딱 들어맞기만
+    // 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
+    const requiredSpace = panelHeight + gap + FLIP_COMFORT_MARGIN;
 
     let top: number;
-    if (spaceBelow < panelHeight + gap && spaceAbove > panelHeight + gap) {
+    if (spaceBelow < requiredSpace && spaceAbove > requiredSpace) {
       top = (rect.top - panelHeight - gap) / zoom;
     } else {
       top = (rect.bottom + gap) / zoom;

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 
 type MonthPickerProps = {
 	value: Date | null;
@@ -14,7 +15,10 @@ type MonthPickerProps = {
 };
 
 /** 선택된 셀 스타일. 배경이 라이트/다크 공통이라 글자색도 테마와 무관하게 어둡게 고정한다(DatePicker와 동일). */
-const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+const SELECTED_CELL_CLS = "bg-primary-10 !text-[var(--neutral-light-90)]";
+
+/** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
+const PANEL_WIDTH = 256;
 
 export default function MonthPicker(props: MonthPickerProps) {
 	const { value, onChange, placeholder = "연도 . 월", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM" } = props;
@@ -26,11 +30,6 @@ export default function MonthPicker(props: MonthPickerProps) {
 	const [viewYear, setViewYear] = useState<number>(initial.getFullYear());
 	const [yearStart, setYearStart] = useState<number>(initial.getFullYear() - 20); // 40-year page with scroll
 
-	const rootRef = useRef<HTMLDivElement | null>(null);
-	const inputRef = useRef<HTMLInputElement | null>(null);
-	const panelRef = useRef<HTMLDivElement | null>(null);
-	const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
-
 	const closeAndReset = useCallback(() => {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
@@ -39,64 +38,16 @@ export default function MonthPicker(props: MonthPickerProps) {
 		setMode("month");
 	}, [value]);
 
-	useEffect(() => {
-		if (!open) return;
-		function onDocMouseDown(e: MouseEvent) {
-			const t = e.target as Node;
-			const inRoot = !!rootRef.current?.contains(t);
-			const inPanel = !!panelRef.current?.contains(t);
-			if (!inRoot && !inPanel) closeAndReset();
-		}
-		function onEsc(e: KeyboardEvent) {
-			if (e.key === "Escape") closeAndReset();
-		}
-		document.addEventListener("mousedown", onDocMouseDown, true);
-		document.addEventListener("keydown", onEsc, true);
-		return () => {
-			document.removeEventListener("mousedown", onDocMouseDown, true);
-			document.removeEventListener("keydown", onEsc, true);
-		};
-	}, [open, closeAndReset]);
-
-	// Anchor the panel under the input
-	useEffect(() => {
-		if (!open) return;
-		function update() {
-			const el = inputRef.current;
-			const panel = panelRef.current;
-			if (!el) return;
-			
-			const r = el.getBoundingClientRect();
-			const panelHeight = panel?.offsetHeight || 300;
-			const viewportHeight = window.innerHeight;
-			
-			const spaceBelow = viewportHeight - r.bottom;
-			const spaceAbove = r.top;
-			
-			let top: number;
-			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-				top = r.top - panelHeight - 8;
-			} else {
-				top = r.bottom + 8;
-			}
-			
-			setPanelPos({ 
-				top, 
-				left: r.left 
-			});
-		}
-		
-		const timer = setTimeout(update, 0);
-		update();
-		
-		window.addEventListener("resize", update);
-		window.addEventListener("scroll", update, true);
-		return () => {
-			clearTimeout(timer);
-			window.removeEventListener("resize", update);
-			window.removeEventListener("scroll", update, true);
-		};
-	}, [open]);
+	// 사용처가 모두 "◀ [가운데 정렬 텍스트] ▶" 형태라 인풋(120~163px)보다 패널이 넓다.
+	// 좌측 정렬하면 시각적 중심이 어긋나므로 align="center"를 쓴다.
+	const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLInputElement>({
+		open,
+		onClose: closeAndReset,
+		panelWidth: PANEL_WIDTH,
+		estimatedPanelHeight: 300,
+		align: "center",
+		recalcKey: mode,
+	});
 
 	useEffect(() => {
 		if (!open) {
@@ -146,7 +97,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 	return (
 		<div ref={rootRef} className="relative w-full min-w-0">
 			<input
-				ref={inputRef}
+				ref={anchorRef}
 				readOnly
 				disabled={disabled}
 				onClick={openPicker}
@@ -159,8 +110,8 @@ export default function MonthPicker(props: MonthPickerProps) {
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
-					className="z-[1000] w-[256px] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
-					style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
+					className="z-[1000] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
+					style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
 				>
 					{/* Header */}
 					<div className="flex items-center justify-between mb-4">

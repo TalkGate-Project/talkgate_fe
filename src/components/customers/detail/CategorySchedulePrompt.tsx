@@ -2,6 +2,7 @@
 
 import { RefObject, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getBodyZoom } from "@/utils/zoom";
 
 const CATEGORY_SCHEDULE_PRESETS = [
   { label: "30분 후", minutes: 30 },
@@ -19,13 +20,6 @@ function buildScheduleIsoFromNow(minutesToAdd: number): string {
   target.setMinutes(target.getMinutes() + minutesToAdd);
   target.setSeconds(0, 0);
   return target.toISOString();
-}
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const rawZoom = String(((document.body.style as any).zoom ?? "") as string).trim();
-  const parsedZoom = Number.parseFloat(rawZoom);
-  return Number.isFinite(parsedZoom) && parsedZoom > 0 ? parsedZoom : 1;
 }
 
 /** 앵커의 가장 가까운 스크롤 가능한 조상 요소를 찾는다. */

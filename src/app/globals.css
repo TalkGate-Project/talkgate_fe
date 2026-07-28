@@ -877,6 +877,26 @@ svg path:focus {
   animation: analysis-dot 1.2s ease-in-out infinite;
 }
 
+/* Debt-relief 분석 진행률 막대 광택 스윕 */
+@keyframes analysis-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@utility animate-analysis-sheen {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.5) 50%,
+    transparent 100%
+  );
+  animation: analysis-sheen 1.6s ease-in-out infinite;
+}
+
 @keyframes analyze-border-rotate {
   from {
     transform: translate(-50%, -50%) rotate(0turn);
