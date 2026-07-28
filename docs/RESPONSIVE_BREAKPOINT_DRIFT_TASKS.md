@@ -74,7 +74,28 @@ max-width:\s*1023|min-width:\s*1024` 패턴으로 재grep해서 그 사이 새�
 
 ## 3. 별도로 발견한 문서 드리프트 (버그는 아니지만 부정확함)
 
-- `CLAUDE.md`와 `docs/ZOOM_SUBPIXEL_PLAYBOOK.md`(13줄)는 "데스크톱 ≥1280px에서 zoom 0.8 적용"이라고
-  적혀 있지만, 실제 코드(`src/components/layout/UiScaleToggle.tsx:7`, `MOBILE_BREAKPOINT = 1080`)는
-  1080px 기준으로 동작한다. 1080은 우연히 `--breakpoint-lg`와 일치하므로 동작 자체는 정상이지만,
-  문서상 숫자(1280)는 stale — 두 문서 다 1080으로 정정 필요.
+- [x] **(2026-07-28 정리 완료)** `CLAUDE.md`와 `docs/ZOOM_SUBPIXEL_PLAYBOOK.md`(13줄)는
+  "데스크톱 ≥1280px에서 zoom 0.8 적용"이라고 적혀 있었지만, 실제 코드
+  (`src/components/layout/UiScaleToggle.tsx:7`, `MOBILE_BREAKPOINT = 1080`)는 1080px 기준으로
+  동작한다. 1080은 `--breakpoint-lg`와 일치하므로 동작 자체는 정상이었고, 숫자만 stale이었다.
+  두 문서 + `UiScaleToggle.tsx`의 주석 2곳(7줄, 103줄 — 상수는 1080인데 주석만 1280)을 1080으로 정정.
+
+## 4. 2026-07-28 추가 조사 — 피커 3종은 위 목록에서 누락돼 있었다
+
+날짜/월/시간 선택기(`DatePicker`, `MonthPicker`, `TimePicker`)도 동일한 768 하드코딩을 갖고 있으나
+§2 목록에 없다. 2026-07-23 조사가 `window.innerWidth` 패턴으로 grep했는데, 이 파일들은
+
+```ts
+const viewportWidth = window.innerWidth;
+...
+const isMobile = viewportWidth < 768;   // ← 변수를 거쳐서 grep에 안 걸림
+```
+
+형태라 빠졌다. **재grep 시 `innerWidth`만 보지 말고 `< 768` / `>= 768` 자체도 훑을 것.**
+
+- [ ] `src/components/common/DatePicker.tsx:134`
+- [ ] `src/components/common/TimePicker.tsx:188`
+
+영향 범위는 작다 — 768~779px 구간에서 패널의 뷰포트 클램프가 걸리지 않는 것뿐이고, 이 구간은
+모바일 레이아웃(zoom 1.0)이라 좌표 오차는 없다. 다만 §2 재발 방지 논의(공유 상수/`useIsMobile()`)의
+근거 사례로는 딱 맞다 — 같은 상수가 파일마다 흩어져 있으니 조사에서조차 누락된 것이다.
