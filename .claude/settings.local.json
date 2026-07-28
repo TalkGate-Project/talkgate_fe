@@ -99,7 +99,10 @@
       "PowerShell(git status --short; npx tsc --noEmit; if \\($?\\) { \"tsc OK\" })",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:vercel.com)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(read h *)",
+      "Bash(:)",
+      "Bash(awk '/overflow-x: clip/{print; found=1} found && /^commit /{print \"FOUNDCOMMIT:\"$0; exit}')"
     ]
   }
 }

@@ -559,7 +559,9 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
       onClose={onClose}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
-      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:max-h-[90vh] lg:w-[848px] lg:min-w-[848px] lg:max-h-[703px] xl:max-h-[753px] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10"
+      // lg+(1080px)는 UiScaleToggle.tsx가 body에 zoom:0.8을 걸어, vh 포함 모든 길이가 렌더 시
+      // 0.8배로 축소된다 — 100vh 그대로면 실제 화면의 80%만 채워 스크롤이 생기므로 /0.8로 보정.
+      containerClassName="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[848px] md:max-h-[90vh] lg:w-[848px] lg:min-w-[848px] lg:max-h-[calc((100vh-2rem)/0.8)] xl:max-h-[calc((100vh-2rem)/0.8)] overflow-hidden md:overflow-y-auto rounded-none md:rounded-[14px] bg-card dark:bg-neutral-10"
       ariaLabel="문자 전송"
       fullScreenOnMobile
     >
