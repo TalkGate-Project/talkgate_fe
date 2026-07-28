@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -47,6 +47,7 @@ const DEFAULT_YEARS_AHEAD = 10;
 export default function DatePicker(props: DatePickerProps) {
 	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false } = props;
 
+	const panelId = useId();
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<DatePickerMode>("day");
 	const initial = useMemo(() => (value ? new Date(value) : new Date()), [value]);
@@ -185,12 +186,21 @@ export default function DatePicker(props: DatePickerProps) {
 				onFocus={openPicker}
 				value={value ? format(value, dateFormat, { locale: ko }) : ""}
 				placeholder={placeholder}
+				role="combobox"
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={panelId}
+				aria-invalid={invalid || undefined}
 				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
+					id={panelId}
+					role="dialog"
+					aria-modal="true"
+					aria-label={mode === "day" ? "날짜 선택" : mode === "month" ? "월 선택" : "연도 선택"}
 					className="z-[1000] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
 					style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
 				>
@@ -264,10 +274,12 @@ export default function DatePicker(props: DatePickerProps) {
 					{/* Body */}
 					{mode === "day" ? (
 						<div>
-							{/* Weekday header */}
+							{/* Weekday header. role="grid"/"gridcell" 등 완전한 그리드 시맨틱은 방향키 내비게이션과
+							    함께 넣는다 — 키보드 지원 없이 role만 붙이면 스크린리더가 그리드 탐색을
+							    기대하게 만들어 오히려 혼란스럽다. 지금은 라벨만 보강한다. */}
 							<div className="grid grid-cols-7 gap-y-2 mb-2">
 								{DAYS.map((d) => (
-									<div key={d} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080] dark:text-neutral-60">
+									<div key={d} aria-label={`${d}요일`} className="w-8 h-8 flex items-center justify-center text-[12px] text-[#808080] dark:text-neutral-60">
 										{d}
 									</div>
 								))}
@@ -302,6 +314,8 @@ export default function DatePicker(props: DatePickerProps) {
 										: "hover:bg-neutral-20 dark:hover:bg-neutral-30";
 									const disabledCls = isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer";
 									
+										const dayAriaLabel = `${format(date, "yyyy년 M월 d일 (EEEE)", { locale: ko })}${isToday ? " (오늘)" : ""}`;
+
 										return (
 											<button
 											key={date.toISOString() + inCurrent}
@@ -309,6 +323,9 @@ export default function DatePicker(props: DatePickerProps) {
 											className={`${baseCls} ${textCls} ${isDisabled ? "" : selectedCls} ${disabledCls}`}
 											onClick={() => !isDisabled && onSelectDay(date)}
 											disabled={isDisabled || undefined}
+											aria-label={dayAriaLabel}
+											aria-pressed={!!isSelected}
+											aria-current={isToday ? "date" : undefined}
 											style={{ fontFamily: "var(--font-montserrat)" }}
 										>
 											{isToday && !isSelected ? (
@@ -344,6 +361,8 @@ export default function DatePicker(props: DatePickerProps) {
 										type="button"
 										onClick={() => !isDisabled && onSelectMonth(monthIndex)}
 										disabled={isDisabled || undefined}
+										aria-label={`${view.getFullYear()}년 ${monthIndex + 1}월`}
+										aria-pressed={isCurrentMonth}
 										className={`h-9 rounded-[6px] text-[14px] ${
 											isDisabled
 												? "opacity-30 cursor-not-allowed text-[#B0B0B0] dark:text-neutral-60"
@@ -370,6 +389,8 @@ export default function DatePicker(props: DatePickerProps) {
 											type="button"
 											data-year={y}
 											onClick={() => onSelectYear(y)}
+											aria-label={`${y}년`}
+											aria-pressed={isCurrentYear}
 											className={`h-8 rounded-[6px] text-[14px] cursor-pointer ${
 												isCurrentYear
 													? `${SELECTED_CELL_CLS} font-medium`
