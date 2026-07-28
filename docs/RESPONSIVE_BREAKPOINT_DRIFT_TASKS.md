@@ -43,6 +43,13 @@
 이 셋을 합쳐서 고객 상세 모달은 이제 <780(모바일 셸) / 780~1079(데스크톱 셸, 탭은 1열) /
 1080~(데스크톱 셸, 탭 2열 + zoom 0.8 컴팩트 모드) 3구간으로 일관되게 동작한다. `tsc --noEmit` 통과.
 
+> **[2026-07-28 전체 종료]** 아래 §2 목록과 §4에서 추가로 발견한 피커 2종까지 전부 정리 완료.
+> 숫자를 780으로 바꾸는 대신 §2 말미에서 "논의 필요"로 남겨뒀던 **공유 상수 + 훅 도입**을
+> 실제로 진행했다(`src/utils/breakpoints.ts`, `src/hooks/useIsMobile.ts`).
+> 관련 커밋: `691b5c3`(인프라 + common 4개), `a68c99c`(stats 7개), 그리고 이 문서를 갱신한 커밋
+> (attendance 1개 + hooks 1개 + 문서 마감).
+> 최종 재grep 결과 `src/` 내 브레이크포인트 하드코딩 0건.
+
 ## 2. 남은 작업 — 동일 패턴(768 하드코딩) 사용 중인 파일 9개
 
 고객 모달과 무관한 영역이라 이번 세션에서는 손대지 않음. 전부 `window.innerWidth < 768` 형태로
@@ -50,27 +57,37 @@
 같은 12px 구간에서 동일한 종류의 미세한 레이아웃 불일치가 있을 가능성이 있다 — 방문해서
 실제로 어떤 영향이 있는지부터 확인 후 780으로 교체할 것.
 
-- [ ] `src/hooks/useStatsRegistration.ts:26`
-- [ ] `src/components/attendance/AttendanceFilterModal.tsx:44`
-- [ ] `src/components/common/MemberStatsFilterModal.tsx:49`
-- [ ] `src/components/stats/AssignBarChart.tsx:67`
-- [ ] `src/components/stats/StatusBarChart.tsx:97`
-- [ ] `src/components/common/Pagination.tsx:27`
-- [ ] `src/components/stats/StatsSection.tsx:108`
-- [ ] `src/components/stats/StatsFilterModal.tsx:95`
-- [ ] `src/components/stats/PaymentBarChart.tsx:97`
-- [ ] `src/components/stats/RegistrationDetailTable.tsx:53`
-- [ ] `src/components/stats/RegistrationChart.tsx:21`
+- [x] `src/hooks/useStatsRegistration.ts:26`
+- [x] `src/components/attendance/AttendanceFilterModal.tsx:44`
+- [x] `src/components/common/MemberStatsFilterModal.tsx:49`
+- [x] `src/components/stats/AssignBarChart.tsx:67`
+- [x] `src/components/stats/StatusBarChart.tsx:97`
+- [x] `src/components/common/Pagination.tsx:27`
+- [x] `src/components/stats/StatsSection.tsx:108`
+- [x] `src/components/stats/StatsFilterModal.tsx:95`
+- [x] `src/components/stats/PaymentBarChart.tsx:97`
+- [x] `src/components/stats/RegistrationDetailTable.tsx:53`
+- [x] `src/components/stats/RegistrationChart.tsx:21`
 
 (재검색 필요 — 위 목록은 2026-07-23 조사 시점 grep 결과. 다시 착수할 때
 `window.innerWidth\s*[<>]=?\s*(640|768|1024|1280)` 및 `max-width:\s*767|min-width:\s*768|
 max-width:\s*1023|min-width:\s*1024` 패턴으로 재grep해서 그 사이 새로 추가된 곳 없는지 확인.)
 
-**재발 방지 고려사항(우선순위 낮음, 논의 필요):** 지금처럼 파일마다 768/1024를 따로 하드코딩하는
-구조 자체가 이 버그의 근본 원인이다. `globals.css`의 `--breakpoint-md`/`--breakpoint-lg` 값을
-읽어오는 공유 상수나 훅(예: `useIsMobile()`)으로 통일하면 나중에 브레이크포인트 값이 또
-바뀌어도 한 곳만 고치면 되지만, 지금은 각자 알아서 숫자를 박아넣는 구조라 매번 드리프트가
-재발할 소지가 있음. 9개 파일 정리와 별개로, 이 구조 개선 자체를 할지는 팀 판단 필요.
+**재발 방지 — 도입 완료(2026-07-28).** 파일마다 768/1024를 따로 하드코딩하는 구조 자체가
+근본 원인이었으므로, 숫자 교체가 아니라 단일 출처를 만드는 쪽으로 처리했다.
+
+- `src/utils/breakpoints.ts` — `BREAKPOINTS`(sm 375 / md 780 / lg 1080 / xl 1920).
+  `globals.css`의 `@theme inline`과 같은 값을 유지해야 한다. 경계를 정확히 맞물리는
+  media query가 필요하면 `belowBreakpointQuery("md")` → `(max-width: 779px)`.
+- `src/hooks/useIsMobile.ts` — `useIsMobile(breakpoint = "md")`.
+  11개 파일에 복붙돼 있던 8줄(`checkMobile` + resize 등록/해제)을 대체한다.
+  `resize` 대신 `matchMedia`의 `change`를 쓰므로 경계를 넘을 때만 리렌더한다.
+  SSR·최초 렌더는 `false`로 시작해 hydration 불일치를 피한다.
+
+**신규 코드 작성 시:** JS에서 화면 폭을 판정해야 하면 숫자를 직접 쓰지 말고
+`useIsMobile()`(React 컴포넌트/훅) 또는 `BREAKPOINTS.md`(이벤트 핸들러 내부 등 훅을
+쓸 수 없는 곳)를 사용한다. `DatePicker`/`TimePicker`처럼 이미 resize마다 다시 도는
+계산 함수 안에서는 훅이 리렌더만 늘리므로 상수 쪽이 맞다.
 
 ## 3. 별도로 발견한 문서 드리프트 (버그는 아니지만 부정확함)
 
@@ -93,8 +110,8 @@ const isMobile = viewportWidth < 768;   // ← 변수를 거쳐서 grep에 안 �
 
 형태라 빠졌다. **재grep 시 `innerWidth`만 보지 말고 `< 768` / `>= 768` 자체도 훑을 것.**
 
-- [ ] `src/components/common/DatePicker.tsx:134`
-- [ ] `src/components/common/TimePicker.tsx:188`
+- [x] `src/components/common/DatePicker.tsx:134`
+- [x] `src/components/common/TimePicker.tsx:188`
 
 영향 범위는 작다 — 768~779px 구간에서 패널의 뷰포트 클램프가 걸리지 않는 것뿐이고, 이 구간은
 모바일 레이아웃(zoom 1.0)이라 좌표 오차는 없다. 다만 §2 재발 방지 논의(공유 상수/`useIsMobile()`)의
