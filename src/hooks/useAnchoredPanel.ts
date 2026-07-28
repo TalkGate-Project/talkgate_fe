@@ -6,6 +6,14 @@ import { getBodyZoom } from "@/utils/zoom";
 /** 패널이 뷰포트 좌우 끝에 닿지 않도록 두는 여백(px) */
 const VIEWPORT_EDGE_PADDING = 16;
 
+/**
+ * 아래로 열었을 때 "기술적으로는 들어가지만 여유가 전혀 없이 빠듯한" 경우를 방지하는
+ * 여유 마진(화면 px). 아래 공간이 패널 높이에 이 마진만큼도 못 미치면, 위쪽에 그만큼
+ * 여유가 있는 한 위로 띄운다. 값이 여러 파일에 흩어지지 않도록 여기서만 정의하고
+ * filterFields/ColorPalettePopover 등 아직 이 훅으로 옮기지 못한 곳에서도 가져다 쓴다.
+ */
+export const FLIP_COMFORT_MARGIN = 24;
+
 export type AnchoredPanelPosition = { top: number; left: number };
 
 export type UseAnchoredPanelOptions = {
@@ -81,11 +89,12 @@ export function useAnchoredPanel<TAnchor extends HTMLElement = HTMLElement>(
 		const viewportWidth = window.innerWidth;
 		const viewportHeight = window.innerHeight;
 
-		// 아래 공간이 부족하고 위에는 충분할 때만 위로 띄운다.
+		// 아래 공간이 여유 마진(FLIP_COMFORT_MARGIN)까지 포함해 부족하고, 위에는 그만큼
+		// 충분할 때 위로 띄운다. 딱 들어맞기만 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
 		const spaceBelow = viewportHeight - rect.bottom;
 		const spaceAbove = rect.top;
-		const shouldFlipUp =
-			spaceBelow < visualPanelHeight + offsetY && spaceAbove > visualPanelHeight + offsetY;
+		const requiredSpace = visualPanelHeight + offsetY + FLIP_COMFORT_MARGIN;
+		const shouldFlipUp = spaceBelow < requiredSpace && spaceAbove > requiredSpace;
 		const top = shouldFlipUp
 			? rect.top - visualPanelHeight - offsetY
 			: rect.bottom + offsetY;

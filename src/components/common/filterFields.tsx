@@ -11,6 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import DatePicker from "@/components/common/DatePicker";
 import { getBodyZoom } from "@/utils/zoom";
+import { FLIP_COMFORT_MARGIN } from "@/hooks/useAnchoredPanel";
 
 export type Option = { label: string; value: string | number };
 
@@ -180,9 +181,12 @@ export function SearchableLabeledCombobox({
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
+    // 여유 마진까지 포함해 아래가 부족하고 위는 충분할 때만 위로 띄운다. 딱 들어맞기만
+    // 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
+    const requiredSpace = panelHeight + gap + FLIP_COMFORT_MARGIN;
 
     let top: number;
-    if (spaceBelow < panelHeight + gap && spaceAbove > panelHeight + gap) {
+    if (spaceBelow < requiredSpace && spaceAbove > requiredSpace) {
       top = (rect.top - panelHeight - gap) / zoom;
     } else {
       top = (rect.bottom + gap) / zoom;

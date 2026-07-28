@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getBodyZoom } from "@/utils/zoom";
+import { FLIP_COMFORT_MARGIN } from "@/hooks/useAnchoredPanel";
 import {
   STATUS_COLOR_PALETTE,
   normalizeHexColor,
@@ -97,10 +98,13 @@ export default function ColorPalettePopover({
       const gapY = 8;
       const padding = 16;
 
+      // 여유 마진까지 포함해 아래가 부족하고 위는 충분할 때만 위로 띄운다. 딱 들어맞기만
+      // 하는 빠듯한 배치보다 위로 올리는 편을 우선한다.
+      const requiredSpace = panelHeight + gapY + FLIP_COMFORT_MARGIN;
       let top = (anchorRect.bottom + gapY) / zoom;
       const shouldOpenAbove =
-        viewportHeight - anchorRect.bottom < panelHeight + gapY &&
-        anchorRect.top > panelHeight + gapY;
+        viewportHeight - anchorRect.bottom < requiredSpace &&
+        anchorRect.top > requiredSpace;
 
       if (shouldOpenAbove) {
         top = (anchorRect.top - panelHeight - gapY) / zoom;
