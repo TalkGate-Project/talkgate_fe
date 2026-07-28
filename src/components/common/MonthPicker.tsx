@@ -2,6 +2,13 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { format } from "date-fns";
 
+function getBodyZoom(): number {
+	if (typeof document === "undefined") return 1;
+	const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
+	const parsed = Number.parseFloat(raw);
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
 type MonthPickerProps = {
 	value: Date | null;
 	onChange: (date: Date | null) => void;
@@ -15,6 +22,11 @@ type MonthPickerProps = {
 
 /** 선택된 셀 스타일. 배경이 라이트/다크 공통이라 글자색도 테마와 무관하게 어둡게 고정한다(DatePicker와 동일). */
 const SELECTED_CELL_CLS = "bg-[#D6FAE8] !text-[#252525]";
+
+/** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
+const PANEL_WIDTH = 256;
+/** 패널이 뷰포트 좌우 끝에 닿지 않도록 두는 여백(px) */
+const VIEWPORT_EDGE_PADDING = 16;
 
 export default function MonthPicker(props: MonthPickerProps) {
 	const { value, onChange, placeholder = "연도 . 월", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM" } = props;
@@ -67,22 +79,38 @@ export default function MonthPicker(props: MonthPickerProps) {
 			if (!el) return;
 			
 			const r = el.getBoundingClientRect();
-			const panelHeight = panel?.offsetHeight || 300;
+			const zoom = getBodyZoom();
+			// offsetHeight는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 좌표(getBoundingClientRect,
+			// innerHeight)와 비교하려면 zoom을 곱해 화면상 높이로 환산해야 한다.
+			const panelHeight = (panel?.offsetHeight || 300) * zoom;
 			const viewportHeight = window.innerHeight;
-			
+
 			const spaceBelow = viewportHeight - r.bottom;
 			const spaceAbove = r.top;
-			
+
+			// fixed 요소의 top/left는 렌더 시 zoom이 곱해지므로, 화면 좌표를 zoom으로 나눠
+			// 되돌린 값을 넣어야 인풋에 정확히 붙는다(DatePicker/TimePicker와 동일).
 			let top: number;
 			if (spaceBelow < panelHeight + 8 && spaceAbove > panelHeight + 8) {
-				top = r.top - panelHeight - 8;
+				top = (r.top - panelHeight - 8) / zoom;
 			} else {
-				top = r.bottom + 8;
+				top = (r.bottom + 8) / zoom;
 			}
-			
-			setPanelPos({ 
-				top, 
-				left: r.left 
+
+			// 사용처가 모두 "◀ [가운데 정렬 텍스트] ▶" 형태라 인풋보다 패널이 넓다.
+			// 좌측 정렬하면 시각적 중심이 어긋나므로 인풋 중앙에 맞추고, 뷰포트 밖으로
+			// 나가지 않게 좌우를 클램프한다(화면 계산 후 마지막에 zoom을 되돌린다).
+			const viewportWidth = window.innerWidth;
+			// PANEL_WIDTH는 zoom이 곱해지기 전 레이아웃 px이므로, 화면 좌표와 비교하려면
+			// zoom을 곱해 화면상 폭으로 환산한다(panelHeight와 동일한 이유).
+			const visualPanelWidth = PANEL_WIDTH * zoom;
+			const centeredLeft = r.left + (r.width - visualPanelWidth) / 2;
+			const maxLeft = viewportWidth - visualPanelWidth - VIEWPORT_EDGE_PADDING;
+			const left = Math.max(VIEWPORT_EDGE_PADDING, Math.min(centeredLeft, maxLeft));
+
+			setPanelPos({
+				top,
+				left: left / zoom
 			});
 		}
 		
@@ -96,7 +124,8 @@ export default function MonthPicker(props: MonthPickerProps) {
 			window.removeEventListener("resize", update);
 			window.removeEventListener("scroll", update, true);
 		};
-	}, [open]);
+		// mode가 바뀌면 패널 높이가 달라지므로(월/연도) 위치를 다시 계산한다.
+	}, [open, mode]);
 
 	useEffect(() => {
 		if (!open) {
@@ -159,8 +188,8 @@ export default function MonthPicker(props: MonthPickerProps) {
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
-					className="z-[1000] w-[256px] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
-					style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
+					className="z-[1000] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
+					style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
 				>
 					{/* Header */}
 					<div className="flex items-center justify-between mb-4">
