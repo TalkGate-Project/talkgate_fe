@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   DIAGNOSIS_STATUS_DISTRIBUTION_ORDER,
   DIAGNOSIS_STATUS_LABEL,
@@ -174,7 +175,15 @@ export default function SummaryCards({
 
       {/* 이번 달 결제 — 안쪽 콘텐츠 ~248×96 (금액/건수 + 프로그레스 바 풀폭) */}
       <div className={CARD_CLASS}>
-        <p className={LABEL_CLASS}>이번 달 결제</p>
+        <div className="flex items-center justify-between gap-2 shrink-0">
+          <p className={LABEL_CLASS}>이번 달 결제</p>
+          <Link
+            href="/stats?tab=fee"
+            className="cursor-pointer shrink-0 text-[12px] md:text-[14px] font-medium leading-[14px] md:leading-[17px] text-neutral-50 hover:text-neutral-60 transition-colors whitespace-nowrap"
+          >
+            더보기 →
+          </Link>
+        </div>
         <div className="mt-2 md:mt-[17px] flex flex-col flex-1 min-h-0 w-full md:max-w-[248px]">
           {/* 원 단위 그대로면 자리수가 길어져 모바일에서 줄바꿈이 어색해져 만원 단위(내림)로 축약 표시.
               "/"가 줄바꿈 시 혼자 남지 않도록 "/ 총액"을 한 덩어리로 묶어서 wrap 단위로 취급 */}

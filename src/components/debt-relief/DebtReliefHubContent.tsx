@@ -14,6 +14,7 @@ import DiagnosisListTabs from "@/components/debt-relief/hub/DiagnosisListTabs";
 import DiagnosisTable from "@/components/debt-relief/hub/DiagnosisTable";
 import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobileCardList";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import RelatedNewsButton from "@/components/debt-relief/hub/RelatedNewsButton";
 import RelatedNewsDrawer from "@/components/debt-relief/hub/RelatedNewsDrawer";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -21,6 +22,9 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { DebtReliefService } from "@/services/debtRelief";
 import { useProjectType } from "@/hooks/useProjectType";
 import type { DiagnosisListItem } from "@/types/debtRelief";
+
+const NEW_DIAGNOSIS_BUTTON_CLASS =
+  "h-[34px] shrink-0 cursor-pointer whitespace-nowrap rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 transition-opacity hover:opacity-90";
 
 export default function DebtReliefHubContent() {
   const router = useRouter();
@@ -188,43 +192,38 @@ export default function DebtReliefHubContent() {
     <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0 md:gap-9">
       {/* 상단 카드: 제목 + 요약 카드 */}
       <section className="surface md:rounded-[14px] px-6 md:px-7 py-3 md:py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        <div className="flex items-center justify-between gap-4 mb-3 md:mb-6">
-          <div className="flex items-center gap-4 flex-wrap min-w-0">
-            <h1 className="text-[18px] md:text-[24px] font-bold text-foreground leading-[22px] md:leading-7 truncate">
-              회생·파산 진단 목록
-            </h1>
-            {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
-            {summary && (
-              <>
-                <span className="hidden md:block w-px h-4 bg-neutral-60" />
-                <span className="hidden md:inline text-[18px] font-medium leading-[22px] text-neutral-60">
-                  총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
-                </span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
+        {/* 모바일: 1행 제목+새진단 / 2행 관련뉴스(구분선 위). 데스크톱: 한 줄.
+            새 진단 버튼은 반응형 위치 때문에 2곳에 두되, 스타일·동작은 상수로 통일한다. */}
+        <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="flex min-w-0 items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-4">
+              <h1 className="truncate text-[18px] font-bold leading-[22px] text-foreground md:text-[24px] md:leading-7">
+                회생·파산 진단 목록
+              </h1>
+              {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
+              {summary && (
+                <>
+                  <span className="hidden h-4 w-px bg-neutral-60 md:block" />
+                  <span className="hidden text-[18px] font-medium leading-[22px] text-neutral-60 md:inline">
+                    총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
+                  </span>
+                </>
+              )}
+            </div>
             <button
               type="button"
-              aria-label="관련뉴스"
-              className="cursor-pointer w-[34px] h-[34px] md:w-auto md:px-3 rounded-[5px] border border-neutral-30 text-foreground text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:bg-neutral-10 transition-colors whitespace-nowrap flex items-center justify-center md:justify-start gap-1"
-              onClick={() => setIsNewsDrawerOpen(true)}
+              className={`${NEW_DIAGNOSIS_BUTTON_CLASS} md:hidden`}
+              onClick={() => router.push("/debt-relief/new")}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M15.8333 16.6668H4.16667C3.24619 16.6668 2.5 15.9206 2.5 15.0002L2.5 5.00016C2.5 4.07969 3.24619 3.3335 4.16667 3.3335L12.5 3.3335C13.4205 3.3335 14.1667 4.07969 14.1667 5.00016V5.8335M15.8333 16.6668C14.9129 16.6668 14.1667 15.9206 14.1667 15.0002L14.1667 5.8335M15.8333 16.6668C16.7538 16.6668 17.5 15.9206 17.5 15.0002V7.50016C17.5 6.57969 16.7538 5.8335 15.8333 5.8335L14.1667 5.8335M10.8333 3.3335L7.5 3.3335M5.83333 13.3335H10.8333M5.83333 6.66683H10.8333V10.0002H5.83333V6.66683Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              {/* 모바일은 아이콘만, md(780px)부터 문구 노출 — SectionProcedureGuide.tsx의 SmsButton과 동일 패턴 */}
-              <span className="hidden md:inline">관련뉴스</span>
+              + 새 진단 시작
             </button>
+          </div>
+
+          <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
+            <RelatedNewsButton onClick={() => setIsNewsDrawerOpen(true)} />
             <button
               type="button"
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 transition-opacity whitespace-nowrap"
+              className={`${NEW_DIAGNOSIS_BUTTON_CLASS} hidden md:inline-flex md:items-center`}
               onClick={() => router.push("/debt-relief/new")}
             >
               + 새 진단 시작
@@ -232,7 +231,7 @@ export default function DebtReliefHubContent() {
           </div>
         </div>
 
-        <div className="-mx-6 md:-mx-7 border-t border-neutral-30 mb-6" />
+        <div className="-mx-6 mb-6 border-t border-neutral-30 md:-mx-7" />
 
         <SummaryCards summary={summary} loading={summaryLoading} />
       </section>
