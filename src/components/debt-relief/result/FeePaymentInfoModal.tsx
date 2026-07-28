@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import DatePicker from "@/components/common/DatePicker";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -189,6 +189,7 @@ export default function FeePaymentInfoModal({
   procedureScores,
   onChanged,
 }: Props) {
+  const firstPaymentDateInputId = useId();
   const [currentPlan, setCurrentPlan] = useState<FeePlan | null>(feePlan);
   const [editingConditions, setEditingConditions] = useState(!feePlan);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -629,11 +630,12 @@ export default function FeePaymentInfoModal({
               </div>
 
               <div className="mt-5 md:mt-6 md:w-[175px]">
-                <label className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
+                <label htmlFor={firstPaymentDateInputId} className="block text-[14px] font-medium text-neutral-60 dark:text-[#B9B9B9]">
                   첫 회차 납부일
                 </label>
                 <div className="relative mt-2">
                   <DatePicker
+                    id={firstPaymentDateInputId}
                     value={form.firstPaymentDate}
                     onChange={(date) =>
                       setForm((previous) => ({ ...previous, firstPaymentDate: date }))

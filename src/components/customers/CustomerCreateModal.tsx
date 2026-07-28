@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MessengerBadge from "@/components/common/MessengerBadge";
@@ -68,6 +68,7 @@ export default function CustomerCreateModal({
   projectId: projectIdOverride,
   onBack,
 }: Props) {
+  const birthDateInputId = useId();
   const [selectedProjectId] = useSelectedProjectId();
   const projectId = projectIdOverride ?? selectedProjectId;
   const [submitting, setSubmitting] = useState(false);
@@ -501,10 +502,11 @@ export default function CustomerCreateModal({
 
                 {/* 생년월일 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                  <label htmlFor={birthDateInputId} className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     생년월일
                   </label>
                   <DatePicker
+                    id={birthDateInputId}
                     value={birthDate}
                     onChange={setBirthDate}
                     placeholder="생년월일을 입력하세요"

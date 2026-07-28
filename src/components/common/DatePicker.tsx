@@ -18,6 +18,8 @@ type DatePickerProps = {
 	panelOffsetY?: number;
 	/** 검증 실패 상태일 때 인풋 테두리를 빨간색으로 표시 */
 	invalid?: boolean;
+	/** 외부 <label htmlFor>와 연결할 때 사용하는 인풋 id */
+	id?: string;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -45,7 +47,7 @@ const EARLIEST_SELECTABLE_YEAR = 1920;
 const DEFAULT_YEARS_AHEAD = 10;
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false, id } = props;
 
 	const panelId = useId();
 	const [open, setOpen] = useState(false);
@@ -180,6 +182,7 @@ export default function DatePicker(props: DatePickerProps) {
 		<div ref={rootRef} className="relative w-full">
 			<input
 				ref={anchorRef}
+				id={id}
 				readOnly
 				disabled={disabled}
 				onClick={openPicker}

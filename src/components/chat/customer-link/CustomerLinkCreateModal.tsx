@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import MessengerBadge from "@/components/common/MessengerBadge";
 import DatePicker from "@/components/common/DatePicker";
 import { CustomersService } from "@/services/customers";
@@ -56,6 +56,7 @@ export default function CustomerLinkCreateModal({
   projectId,
   onLink,
 }: Props) {
+  const birthDateInputId = useId();
   const [submitting, setSubmitting] = useState(false);
 
   // 기본 정보
@@ -354,8 +355,9 @@ export default function CustomerLinkCreateModal({
 
                 {/* 생년월일 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">생년월일</label>
+                  <label htmlFor={birthDateInputId} className="block text-[14px] leading-[17px] text-neutral-60 mb-2">생년월일</label>
                   <DatePicker
+                    id={birthDateInputId}
                     value={birthDate}
                     onChange={setBirthDate}
                     placeholder="YYYY-MM-DD"
