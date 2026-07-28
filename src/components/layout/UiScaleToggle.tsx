@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 
 const COMPACT_ZOOM = 0.8;
-const MOBILE_BREAKPOINT = 1080; // 1280px 미만은 모바일/태블릿으로 간주하여 zoom 적용 안 함
+const MOBILE_BREAKPOINT = 1080; // 1080px 미만은 모바일/태블릿으로 간주하여 zoom 적용 안 함(--breakpoint-lg와 동일)
 
 type UiScaleMode = "normal" | "compact";
 
@@ -100,7 +100,7 @@ export default function UiScaleToggle({ initialZoom }: Props) {
       return;
     }
 
-    // 4. 화면 너비가 1280px 미만이면 normal 모드 강제 (모바일/중간 디바이스)
+    // 4. 화면 너비가 1080px 미만이면 normal 모드 강제 (모바일/중간 디바이스)
     if (isSmallScreen) {
       applyScale("normal");
       return;

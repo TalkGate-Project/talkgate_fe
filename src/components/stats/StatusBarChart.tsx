@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useMemo, useState, useEffect, useCallback } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList, Cell } from "recharts";
@@ -51,7 +52,7 @@ const StatusBarChart = forwardRef<StatusBarChartHandle>(function StatusBarChart(
   const waitingForProject = !projectReady;
   const hasProject = projectReady && Boolean(projectId);
   const missingProject = projectReady && !projectId;
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filter, setFilter] = useState<StatsFilterValues>(() => readStatsFilter(search, FILTER_PREFIX));
 
@@ -91,15 +92,6 @@ const StatusBarChart = forwardRef<StatusBarChartHandle>(function StatusBarChart(
     router.replace(`?${params.toString()}`);
     setFilterOpen(false);
   };
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerNoteStatusResponse>({
     queryKey: ["stats", "note-status", projectId, filter],

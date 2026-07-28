@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, LabelList } from "recharts";
 
@@ -87,19 +88,10 @@ export default function PaymentBarChart() {
   const formattedEnd = endDate ? formatDate(endDate) : defaultRange.endDate;
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [labelTooltip, setLabelTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const labelTooltipTimeoutRef = useRef<number | null>(null);
   const { data: teamsData } = useTeams(projectId);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerPaymentByTeamResponse>({
     queryKey: ["stats", "payment", "team", { projectId, startDate: formattedStart, endDate: formattedEnd }],

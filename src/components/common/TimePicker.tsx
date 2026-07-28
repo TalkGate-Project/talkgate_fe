@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
+/** 패널 너비(px). 위치 계산과 실제 렌더 폭이 어긋나지 않도록 한 곳에서만 정의한다. */
+const PANEL_WIDTH = 240;
 
 type TimePickerProps = {
   /** "HH:mm" 형식의 24시간제 문자열 (예: "09:00", "16:40") */
@@ -88,10 +85,6 @@ export default function TimePicker(props: TimePickerProps) {
   const [hour12, setHour12] = useState<number>(10);
   const [minute, setMinute] = useState<number>(0);
 
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
 
   const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
   const minutes = useMemo(
@@ -126,90 +119,19 @@ export default function TimePicker(props: TimePickerProps) {
     setOpen(false);
   }, []);
 
+  const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLInputElement>({
+    open,
+    onClose: close,
+    panelWidth: PANEL_WIDTH,
+    estimatedPanelHeight: 260,
+    offsetY: panelOffsetY,
+  });
+
   const openPicker = () => {
     if (disabled) return;
     syncFromValue();
     setOpen(true);
   };
-
-  // Close on outside click / ESC
-  useEffect(() => {
-    if (!open) return;
-    function onDocMouseDown(e: MouseEvent) {
-      const t = e.target as Node;
-      const inRoot = !!rootRef.current?.contains(t);
-      const inPanel = !!panelRef.current?.contains(t);
-      if (!inRoot && !inPanel) close();
-    }
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") close();
-    }
-    document.addEventListener("mousedown", onDocMouseDown, true);
-    document.addEventListener("keydown", onEsc, true);
-    return () => {
-      document.removeEventListener("mousedown", onDocMouseDown, true);
-      document.removeEventListener("keydown", onEsc, true);
-    };
-  }, [open, close]);
-
-  // Anchor panel near input
-  useEffect(() => {
-    if (!open) return;
-    function update() {
-      const el = inputRef.current;
-      const panel = panelRef.current;
-      if (!el) return;
-      
-      const r = el.getBoundingClientRect();
-      const zoom = getBodyZoom();
-      const panelHeight = panel?.offsetHeight || 260;
-      const panelWidth = 240; // Panel width in pixels
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-      const gapY = panelOffsetY;
-      const padding = 16; // Padding from viewport edge on mobile
-      
-      // Calculate if there's enough space below the input
-      const spaceBelow = viewportHeight - r.bottom;
-      const spaceAbove = r.top;
-      
-      // If not enough space below but enough space above, position above
-      let top: number;
-      if (spaceBelow < panelHeight + gapY && spaceAbove > panelHeight + gapY) {
-        // Position above input - adjust for zoom (fixed positioning doesn't need scroll offsets)
-        top = (r.top - panelHeight - gapY) / zoom;
-      } else {
-        // Position below input (default) - adjust for zoom
-        top = (r.bottom + gapY) / zoom;
-      }
-      
-      // Calculate left position, ensuring panel doesn't overflow viewport on mobile
-      let left = r.left / zoom + (window.scrollX || 0);
-      const isMobile = viewportWidth < 768;
-      
-      if (isMobile) {
-        // On mobile, ensure panel doesn't go outside viewport
-        const maxLeft = (viewportWidth - panelWidth - padding) / zoom;
-        if (left > maxLeft) {
-          left = Math.max(padding / zoom, maxLeft);
-        }
-      }
-      
-      setPanelPos({ 
-        top, 
-        left
-      });
-    }
-    const timer = setTimeout(update, 0);
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [open, panelOffsetY]);
 
   // 제한 활성화 시, 이미 선택된 값이 제한 시간대면 즉시 해제
   useEffect(() => {
@@ -231,7 +153,7 @@ export default function TimePicker(props: TimePickerProps) {
   return (
     <div ref={rootRef} className="relative w-full">
       <input
-        ref={inputRef}
+        ref={anchorRef}
         readOnly
         disabled={disabled}
         onClick={openPicker}
@@ -246,8 +168,8 @@ export default function TimePicker(props: TimePickerProps) {
         createPortal(
           <div
             ref={panelRef}
-            className="z-[1000] w-[240px] bg-card dark:bg-neutral-10 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_13px_61px_0px_#000000B2] p-3"
-            style={{ position: "fixed", top: panelPos.top, left: panelPos.left }}
+            className="z-[1000] bg-card dark:bg-neutral-10 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_13px_61px_0px_#000000B2] p-3"
+            style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
           >
             <div className="flex justify-between text-[12px] text-neutral-60 mb-2 px-1">
               <span>오전/오후</span>

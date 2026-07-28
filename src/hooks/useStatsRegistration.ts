@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { StatisticsService } from "@/services/statistics";
 import { formatChartDay, formatChartMonth } from "@/utils/format";
 import type { CustomerRegistrationResponse, CustomerRegistrationRecord } from "@/types/statistics";
@@ -19,17 +20,7 @@ export function useStatsRegistration(
   page: number,
   dateRange?: DateRange
 ) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
+  const isMobile = useIsMobile();
   const limit = isMobile ? APPLY_TABLE_LIMIT_MOBILE : APPLY_TABLE_LIMIT_DESKTOP;
 
   // Only use date range if both dates are provided

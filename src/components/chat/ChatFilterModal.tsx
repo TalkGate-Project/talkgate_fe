@@ -6,13 +6,7 @@ import Checkbox from "@/components/common/Checkbox";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { NO_CATEGORY_LABEL } from "@/utils/customerCategory";
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
+import { getBodyZoom } from "@/utils/zoom";
 
 export type Messenger =
   | "all"

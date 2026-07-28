@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useMemo, useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList, Cell } from "recharts";
@@ -34,7 +35,7 @@ const AssignBarChart = forwardRef<AssignBarChartHandle>(function AssignBarChart(
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoadingLeader, setIsLoadingLeader] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filter, setFilter] = useState<StatsFilterValues>(() => readStatsFilter(search, FILTER_PREFIX));
 
@@ -61,15 +62,6 @@ const AssignBarChart = forwardRef<AssignBarChartHandle>(function AssignBarChart(
     router.replace(`?${params.toString()}`);
     setFilterOpen(false);
   };
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const { data, isLoading, isError, isFetching } = useQuery<CustomerAssignmentByTeamResponse>({
     queryKey: ["stats", "assignment", "team-chart", projectId, teamFilterQuery],

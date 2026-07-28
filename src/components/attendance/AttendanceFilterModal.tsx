@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 type TeamValue = string;
 type PositionValue = 'all' | '팀장' | '팀원';
@@ -30,7 +31,7 @@ const TEAM_DOT_COLORS = ["var(--primary-40)", "var(--warning-20)", "var(--danger
 export default function AttendanceFilterModal({ open, onClose, onApply, defaults, teamOptions }: Props) {
   const [localTeam, setLocalTeam] = useState<TeamValue>(defaults.team);
   const [localPosition, setLocalPosition] = useState<PositionValue>(defaults.position);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
   const availableTeamOptions = teamOptions?.length ? teamOptions : FALLBACK_TEAM_OPTIONS;
 
@@ -38,15 +39,6 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
     setLocalTeam(defaults.team);
     setLocalPosition(defaults.position);
   }, [defaults.team, defaults.position]);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {

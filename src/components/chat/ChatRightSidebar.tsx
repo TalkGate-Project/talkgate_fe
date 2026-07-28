@@ -6,6 +6,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import Image from "next/image";
 import { isImeComposing } from "@/lib/ime";
+import { getBodyZoom } from "@/utils/zoom";
 import type {
   AiAssistantErrorKind,
   AiAssistantUiMessage,
@@ -17,13 +18,6 @@ const TOOLTIP_PADDING = 16;
 const TOOLTIP_OFFSET_RIGHT_PX = 200; // 태블릿/데스크톱에서 오른쪽으로 이동
 const MOBILE_BREAKPOINT_PX = 780; // 이 미만이면 화면 중앙 배치
 
-function getBodyZoom(): number {
-  if (typeof window === "undefined") return 1;
-  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-  if (!raw) return 1;
-  const parsed = parseFloat(raw);
-  return Number.isNaN(parsed) ? 1 : parsed;
-}
 
 type Props = {
   conversationId: number | null;

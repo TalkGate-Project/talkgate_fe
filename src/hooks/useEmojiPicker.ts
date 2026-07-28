@@ -1,13 +1,7 @@
 import { useCallback, useRef, useState } from "react";
+import { getBodyZoom } from "@/utils/zoom";
 
 const DESKTOP_BREAKPOINT = 780;
-
-function getBodyZoom(): number {
-  if (typeof document === "undefined") return 1;
-  const raw = String(((document.body.style as any).zoom ?? "") as string).trim();
-  const parsed = Number.parseFloat(raw);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-}
 
 /**
  * 이모지 피커 관련 로직을 관리하는 훅

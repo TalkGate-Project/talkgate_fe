@@ -71,7 +71,7 @@ React Query 기본 설정: `staleTime: 5분`, `gcTime: 15분`, `refetchOnWindowF
 - Tailwind CSS v4. 토큰은 `src/app/globals.css`의 `@theme inline`에 정의
 - **Semantic 클래스 우선 사용**: `text-foreground`, `text-muted-foreground`, `bg-card`, `border-border`
 - **다크모드**: `[data-theme="light"]` / `[data-theme="dark"]`
-- **UI 줌**: 데스크톱(≥1280px) `zoom: 0.8`, 모바일 `zoom: 1.0`. 미들웨어가 `x-ui-zoom` 헤더로 전달. 드롭다운/포털 위치 계산 시 zoom factor 고려 필요
+- **UI 줌**: 데스크톱(≥1080px) `zoom: 0.8`, 모바일 `zoom: 1.0`. 미들웨어가 `x-ui-zoom` 헤더로 전달. 포털/드롭다운 위치 계산 시 **화면 px(`getBoundingClientRect`, `innerWidth`)과 레이아웃 px(`offsetHeight`, CSS 상수)을 섞지 말 것** — 규칙과 체크리스트는 `docs/ZOOM_SUBPIXEL_PLAYBOOK.md` §4-4
 - 토글/설정 컴포넌트는 깜빡임 방지를 위해 초기 상태를 `false`로 시작 후 `useEffect`에서 실제 값 로드
 
 ## 코딩 규칙
