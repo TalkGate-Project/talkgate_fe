@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { createPortal } from "react-dom";
 
 import {
@@ -71,7 +72,7 @@ export default function StatsFilterModal({
   getMemberOptions,
 }: Props) {
   const [form, setForm] = useState<StatsFilterValues>(defaults);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
   const [routeOptions, setRouteOptions] = useState<Option[]>([]);
   const [mediaOptions, setMediaOptions] = useState<Option[]>([]);
@@ -90,13 +91,6 @@ export default function StatsFilterModal({
     setLoading(INITIAL_LOADING);
     setLoaded(INITIAL_LOADING);
   }, [projectId]);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {

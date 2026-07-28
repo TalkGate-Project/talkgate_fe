@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, LabelList } from "recharts";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 
@@ -14,16 +14,7 @@ type RegistrationChartProps = {
 };
 
 export default function RegistrationChart({ data, isLoading, isError, hasProject }: RegistrationChartProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  const isMobile = useIsMobile();
 
   if (!hasProject) {
     return (
