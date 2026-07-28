@@ -512,6 +512,7 @@ export default function CustomerCreateModal({
                     placeholder="생년월일을 입력하세요"
                     dateFormat="yyyy-MM-dd"
                     maxDate={new Date()}
+                    allowTextInput
                     className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
                   />
                 </div>

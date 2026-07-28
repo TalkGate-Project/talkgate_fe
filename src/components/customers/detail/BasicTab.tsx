@@ -224,6 +224,7 @@ export default function BasicTab({
             placeholder="생년월일을 입력하세요"
             dateFormat="yyyy-MM-dd"
             maxDate={new Date()}
+            allowTextInput
             className="!h-[34px] !rounded-[5px] border-[#E5E7EB] dark:border-[#444444] bg-card text-ink dark:bg-neutral-10 dark:text-ink"
           />
         </div>

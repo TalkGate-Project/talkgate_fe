@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { format } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 import { ko } from "date-fns/locale";
 import { generateMonthCells } from "@/utils/calendar";
 import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
@@ -20,6 +20,12 @@ type DatePickerProps = {
 	invalid?: boolean;
 	/** 외부 <label htmlFor>와 연결할 때 사용하는 인풋 id */
 	id?: string;
+	/**
+	 * true면 인풋에 dateFormat 형식으로 직접 타이핑할 수 있다. 기본 false(캘린더 클릭 전용).
+	 * 생년월일처럼 먼 과거 날짜를 반복 입력하는 필드에서만 켠다 — SMS 예약·일정 생성처럼
+	 * 가까운 미래 1~2클릭 선택이 주 용도인 곳은 캘린더 온리가 더 빠르다.
+	 */
+	allowTextInput?: boolean;
 };
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -47,7 +53,7 @@ const EARLIEST_SELECTABLE_YEAR = 1920;
 const DEFAULT_YEARS_AHEAD = 10;
 
 export default function DatePicker(props: DatePickerProps) {
-	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false, id } = props;
+	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false, id, allowTextInput = false } = props;
 
 	const panelId = useId();
 	const [open, setOpen] = useState(false);
@@ -72,12 +78,78 @@ export default function DatePicker(props: DatePickerProps) {
 
 	const yearListRef = useRef<HTMLDivElement | null>(null);
 
+	// allowTextInput 전용 상태. isEditingText는 "지금 사용자가 타이핑 중"을 뜻하고,
+	// typedInvalid는 blur 시점에 파싱 실패한 텍스트를 그대로 보여주기 위한 플래그다.
+	const [typedText, setTypedText] = useState("");
+	const [isEditingText, setIsEditingText] = useState(false);
+	const [typedInvalid, setTypedInvalid] = useState(false);
+
+	function isWithinAllowedRange(d: Date): boolean {
+		const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+		if (minDate) {
+			const minOnly = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+			if (dateOnly < minOnly) return false;
+		}
+		if (maxDate) {
+			const maxOnly = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+			if (dateOnly > maxOnly) return false;
+		}
+		return true;
+	}
+
 	const closeAndReset = useCallback(() => {
 		setOpen(false);
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
 		setMode("day");
-	}, [value]);
+		if (allowTextInput) {
+			setIsEditingText(false);
+			setTypedInvalid(false);
+		}
+	}, [value, allowTextInput]);
+
+	// typedText는 "지금 타이핑 중"이거나 "직전 blur에서 파싱 실패"가 아닐 때만 value를 따라간다.
+	// 그 외의 경우(달력에서 선택, 외부에서 value 변경, 최초 렌더)엔 항상 정규화된 문자열로 맞춘다.
+	useEffect(() => {
+		if (!allowTextInput || isEditingText || typedInvalid) return;
+		setTypedText(value ? format(value, dateFormat, { locale: ko }) : "");
+	}, [allowTextInput, value, dateFormat, isEditingText, typedInvalid]);
+
+	function handleTypedChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const next = e.target.value;
+		setTypedText(next);
+		setTypedInvalid(false);
+
+		const trimmed = next.trim();
+		if (!trimmed) return; // 지우는 중일 수 있으니 blur 전엔 커밋하지 않는다.
+
+		const parsed = parse(trimmed, dateFormat, new Date());
+		if (isValid(parsed) && isWithinAllowedRange(parsed)) {
+			const normalized = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+			onChange(normalized);
+			// 유효한 날짜가 완성되면 달력 뷰도 그 월로 따라간다.
+			setView(new Date(normalized.getFullYear(), normalized.getMonth(), 1));
+		}
+	}
+
+	function handleTypedBlur() {
+		setIsEditingText(false);
+		const trimmed = typedText.trim();
+		if (!trimmed) {
+			onChange(null);
+			setTypedInvalid(false);
+			return;
+		}
+		const parsed = parse(trimmed, dateFormat, new Date());
+		if (isValid(parsed) && isWithinAllowedRange(parsed)) {
+			onChange(new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
+			setTypedInvalid(false);
+		} else {
+			// 파싱 실패 시 사용자가 입력한 텍스트를 그대로 두고 invalid 표시만 한다.
+			// (위 sync effect가 typedInvalid를 보고 덮어쓰지 않는다)
+			setTypedInvalid(true);
+		}
+	}
 
 	const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLInputElement>({
 		open,
@@ -123,6 +195,10 @@ export default function DatePicker(props: DatePickerProps) {
 		setMode("day");
 		const base = value ? new Date(value) : new Date();
 		setView(new Date(base.getFullYear(), base.getMonth(), 1));
+		if (allowTextInput) {
+			setIsEditingText(true);
+			setTypedInvalid(false);
+		}
 	}
 
 	// 연도 모드에서는 긴 연도 목록을 한 화면씩 넘긴다(휠 없이도 먼 연도로 이동 가능).
@@ -183,18 +259,20 @@ export default function DatePicker(props: DatePickerProps) {
 			<input
 				ref={anchorRef}
 				id={id}
-				readOnly
+				readOnly={!allowTextInput}
 				disabled={disabled}
 				onClick={openPicker}
 				onFocus={openPicker}
-				value={value ? format(value, dateFormat, { locale: ko }) : ""}
+				onChange={allowTextInput ? handleTypedChange : undefined}
+				onBlur={allowTextInput ? handleTypedBlur : undefined}
+				value={allowTextInput ? typedText : (value ? format(value, dateFormat, { locale: ko }) : "")}
 				placeholder={placeholder}
 				role="combobox"
 				aria-haspopup="dialog"
 				aria-expanded={open}
 				aria-controls={panelId}
-				aria-invalid={invalid || undefined}
-				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 cursor-pointer bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
+				aria-invalid={(invalid || typedInvalid) || undefined}
+				className={`w-full outline-none text-[14px] leading-[17px] tracking-[-0.02em] h-[34px] rounded-[6px] border border-[#E5E7EB] dark:border-[#444444] px-3 ${allowTextInput ? "cursor-text" : "cursor-pointer"} bg-white dark:bg-neutral-20 text-[#000] dark:text-neutral-80 placeholder:text-[#808080] dark:placeholder:text-neutral-60 ${(invalid || typedInvalid) ? "!border-danger-40 dark:!border-danger-40" : ""} ${className}`}
 			/>
 
 			{open && panelPos && createPortal(
