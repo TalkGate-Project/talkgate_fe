@@ -168,7 +168,9 @@ export default function SubscribeProjectModal({
                 ? "만료된 쿠폰입니다"
                 : code === "FORBIDDEN"
                   ? "권한이 없습니다"
-                  : "쿠폰 적용 실패";
+                  : code === "DISCOUNT_COUPON_ENTERED_AS_FREE_COUPON"
+                    ? "할인쿠폰을 사용하려고 하시나요?"
+                    : "쿠폰 적용 실패";
       const description =
         code === "COUPON_ALREADY_USED"
           ? "이미 사용된 쿠폰입니다. 동일 프로젝트는 쿠폰을 1회만 사용할 수 있습니다."
@@ -180,7 +182,9 @@ export default function SubscribeProjectModal({
                 ? "사용 기간이 지난 쿠폰입니다."
                 : code === "FORBIDDEN"
                   ? "이 작업은 프로젝트 관리자만 할 수 있습니다."
-                  : "잠시 후 다시 시도해 주세요.";
+                  : code === "DISCOUNT_COUPON_ENTERED_AS_FREE_COUPON"
+                    ? "할인쿠폰은 결제화면에서 [할인쿠폰적용] 버튼을 눌러 사용할 수 있어요."
+                    : "잠시 후 다시 시도해 주세요.";
       showErrorModal({
         type: "error",
         headline,
@@ -326,7 +330,7 @@ export default function SubscribeProjectModal({
               type="button"
               onClick={handleCouponApply}
               disabled={couponApplying || !couponCode.trim()}
-              className="min-w-[72px] h-[34px] border border-neutral-30 dark:border-neutral-60 bg-white dark:bg-neutral-10 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-white hover:bg-neutral-80 dark:hover:bg-neutral-70 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-w-[72px] h-[34px] border border-neutral-30 dark:border-neutral-60 bg-white dark:bg-neutral-10 rounded-[5px] text-[14px] font-semibold tracking-[-0.02em] text-neutral-90 dark:text-white hover:bg-neutral-10 dark:hover:bg-neutral-20 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {couponApplying ? "적용 중..." : "쿠폰등록"}
             </button>
