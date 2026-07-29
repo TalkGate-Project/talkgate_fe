@@ -87,7 +87,7 @@ export default function FeePaymentStatusPanel() {
     // 법무법인 프로젝트 자체(현재 프로젝트)도 필터 대상에 포함
     if (currentProject) {
       return [
-        { value: currentProject.id, label: `${currentProject.name} (현재프로젝트)` },
+        { value: currentProject.id, label: currentProject.name },
         ...partnerOptions,
       ];
     }

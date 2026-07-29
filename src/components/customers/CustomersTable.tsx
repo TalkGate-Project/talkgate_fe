@@ -717,6 +717,7 @@ export default function CustomersTable({
                             {c.name || "-"}
                           </span>
                           <CustomerProcedureBadge
+                            isAnalysisConnected={c.isAnalysisConnected}
                             trackingProcedure={c.trackingProcedure}
                             currentProcedureStep={c.currentProcedureStep}
                             totalProcedureSteps={c.totalProcedureSteps}
@@ -975,6 +976,7 @@ export default function CustomersTable({
                                   {item.name || "-"}
                                 </span>
                                 <CustomerProcedureBadge
+                                  isAnalysisConnected={item.isAnalysisConnected}
                                   trackingProcedure={item.trackingProcedure}
                                   currentProcedureStep={item.currentProcedureStep}
                                   totalProcedureSteps={item.totalProcedureSteps}
