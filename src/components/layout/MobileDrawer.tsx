@@ -209,7 +209,7 @@ export default function MobileDrawer({ isOpen, onClose, isDarkMode, onToggleThem
     { label: "고객목록", href: "/customers", icon: <CustomerListIcon /> },
     // 회생·파산: analysis(영업) / lawyer(변호사) 프로젝트에서만 표시
     ...(debtReliefReady && showDebtReliefMenu
-      ? [{ label: "회생·파산", href: "/debt-relief", icon: <DebtReliefIcon /> }]
+      ? [{ label: "채무조정", href: "/debt-relief", icon: <DebtReliefIcon /> }]
       : []),
     { label: "통계", href: "/stats", icon: <StatsIcon /> },
     // 프로젝트가 근태 메뉴를 사용하는 경우에만 표시

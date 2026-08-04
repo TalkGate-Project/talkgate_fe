@@ -6,26 +6,21 @@ import type {
   AnalysisFinancialAssetRange,
   AnalysisInputData,
   AnalysisMonthlyIncomeRange,
-  AnalysisOverduePeriod,
   AnalysisRealEstateBreakdown,
   AnalysisVehicleValueRange,
 } from "@/types/analysis";
 import {
-  CREDITOR_COUNT_OPTIONS,
   DEBT_CAUSE_OPTIONS,
   DEBT_TYPE_OPTIONS,
   FINANCIAL_ASSET_OPTIONS,
   HOUSING_TYPE_OPTIONS,
   MONTHLY_INCOME_OPTIONS,
-  OVERDUE_PERIOD_OPTIONS,
   REAL_ESTATE_OPTIONS,
   VEHICLE_OPTIONS,
-  type CreditorCountRange,
   type DebtCause,
   type DebtType,
   type FinancialAssetRange,
   type MonthlyIncomeRange,
-  type OverduePeriod,
   type RealEstateType,
   type VehicleRange,
 } from "@/types/debtRelief";
@@ -53,14 +48,6 @@ const VEHICLE_FROM: Record<AnalysisVehicleValueRange, VehicleRange> = {
   under_500: "under_500",
   "500_to_2000": "500_2000",
   over_2000: "over_2000",
-};
-
-const OVERDUE_FROM: Record<AnalysisOverduePeriod, OverduePeriod> = {
-  none: "none",
-  under_3_months: "under_3m",
-  "3_to_6_months": "3_6m",
-  "6_to_12_months": "6_12m",
-  over_1_year: "over_1y",
 };
 
 const INCOME_FROM: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
@@ -131,12 +118,7 @@ function formatDependents(count: number | null | undefined): string {
 
 function creditorCountLabel(count: number | null | undefined): string {
   if (count == null) return "-";
-  let range: CreditorCountRange;
-  if (count <= 2) range = "1_2";
-  else if (count <= 5) range = "3_5";
-  else if (count <= 10) range = "6_10";
-  else range = "over_10";
-  return CREDITOR_COUNT_OPTIONS.find((o) => o.value === range)?.label ?? `${count}곳`;
+  return `${count}곳`;
 }
 
 function realEstateOwnershipLabel(breakdown: AnalysisRealEstateBreakdown): string {
@@ -302,13 +284,7 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
     { label: "캐피탈/저축은행", value: formatManwon(capital) },
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
     { label: "채권자 수", value: creditorCountLabel(input.creditorCount) },
-    {
-      label: "연체기간",
-      value: optionLabel(
-        OVERDUE_PERIOD_OPTIONS,
-        OVERDUE_FROM[input.overduePeriod] ?? input.overduePeriod
-      ),
-    },
+    { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
     { label: "체납이력", value: yesNo(input.hasTaxArrears) },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];

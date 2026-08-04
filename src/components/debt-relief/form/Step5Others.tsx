@@ -45,7 +45,7 @@ export default function Step5Others({ form, update, onClose }: Props) {
           (DiagnosisFormContent.tsx 참고). */}
       <div className="md:hidden flex items-center justify-between pb-3 border-b border-neutral-30">
         <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground">
-          소송 및 회생·파산 이력
+          소송 및 채무조정 이력
         </h3>
         <button
           type="button"
@@ -64,7 +64,7 @@ export default function Step5Others({ form, update, onClose }: Props) {
           </svg>
         </button>
       </div>
-      <FormSectionTitle>소송 및 회생·파산 이력</FormSectionTitle>
+      <FormSectionTitle>소송 및 채무조정 이력</FormSectionTitle>
 
       <div className="mt-3 md:mt-6 flex flex-col gap-6">
         <ToggleDetailRow

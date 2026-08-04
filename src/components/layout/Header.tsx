@@ -24,7 +24,7 @@ const BASE_NAV_ITEMS_BEFORE: { label: string; href: string }[] = [
 
 const STATS_ITEM = { label: "통계", href: "/stats" };
 const ATTENDANCE_ITEM = { label: "근태", href: "/attendance" };
-const DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
+const DEBT_RELIEF_ITEM = { label: "채무조정", href: "/debt-relief" };
 
 const COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },

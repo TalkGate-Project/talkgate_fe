@@ -21,7 +21,7 @@ const LITE_BASE_NAV_ITEMS_BEFORE: { label: string; href: string }[] = [
   { label: "고객목록", href: "/customers" },
 ];
 const LITE_STATS_ITEM = { label: "통계", href: "/stats" };
-const LITE_DEBT_RELIEF_ITEM = { label: "회생·파산", href: "/debt-relief" };
+const LITE_DEBT_RELIEF_ITEM = { label: "채무조정", href: "/debt-relief" };
 const LITE_COMMON_NAV_ITEMS: { label: string; href: string }[] = [
   { label: "공지사항", href: "/notices" },
   { label: "설정", href: "/settings" },

@@ -86,7 +86,7 @@ export default function RelatedNewsDrawer({ isOpen, onClose }: RelatedNewsDrawer
             className="fixed top-0 right-0 bottom-0 w-full max-w-[420px] bg-card z-[101] shadow-lg flex flex-col"
           >
             <div className="h-[64px] flex items-center justify-between px-6 border-b border-neutral-30 flex-shrink-0">
-              <h3 className="text-[18px] font-semibold text-foreground">회생·파산 관련 뉴스</h3>
+              <h3 className="text-[18px] font-semibold text-foreground">채무조정 관련 뉴스</h3>
               <button
                 type="button"
                 onClick={onClose}

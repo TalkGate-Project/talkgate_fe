@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ResultDetailContent from "@/components/debt-relief/result/ResultDetailContent";
 
 export const metadata: Metadata = {
-  title: "TalkGate - 회생·파산 결과",
+  title: "TalkGate - 채무조정 결과",
 };
 
 interface DebtReliefDetailPageProps {

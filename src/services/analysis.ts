@@ -14,6 +14,8 @@ import type {
   UpdateAnalysisResponse,
   ReanalyzeAnalysisInput,
   ReanalyzeAnalysisResponse,
+  UpdateAnalysisDebtsInput,
+  UpdateAnalysisDebtsResponse,
   DeleteAnalysisResponse,
   AnalysisChatHistoryResponse,
   AnalysisChatSendInput,
@@ -108,6 +110,16 @@ export const AnalysisService = {
   reanalyze(id: number, input: ReanalyzeAnalysisInput) {
     const { projectId, ...body } = input;
     return apiClient.patch<ReanalyzeAnalysisResponse>(`/v1/analysis/${id}/input`, body, {
+      headers: { "x-project-id": projectId },
+      timeoutMs: 120000,
+    });
+  },
+
+  // 채무 정보만 수정 (자체 생성 분석 건만). 허용 상태는 reanalyze와 동일.
+  // reanalyze=true면 AI 재진단까지 수행하므로 create/reanalyze와 동일하게 타임아웃을 연장한다.
+  updateDebts(id: number, input: UpdateAnalysisDebtsInput) {
+    const { projectId, ...body } = input;
+    return apiClient.patch<UpdateAnalysisDebtsResponse>(`/v1/analysis/${id}/debts`, body, {
       headers: { "x-project-id": projectId },
       timeoutMs: 120000,
     });

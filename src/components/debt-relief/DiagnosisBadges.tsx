@@ -57,11 +57,21 @@ export function StatusBadge({
   );
 }
 
-// 추천 절차 배지 색상 (피그마: 개인회생=Primary, 파산=Danger)
+// 추천 절차 배지 색상 (피그마: 개인회생=Primary, 개인파산=Danger)
 // 다크모드는 SummaryCards.tsx의 PROCEDURE_CHIP_STYLE과 동일한 값으로 통일
+// 2026-08-04 추가된 신규 4종(새출발기금·신용회복 3종)은 아직 디자인 색상이 정해지지 않아
+// 무채색 중립 스타일로 통일한다 — 기존 미정의 폴백과 같은 톤이라 "색이 아직 없는 절차"임이
+// 드러난다. 팔레트가 확정되면 절차별로 나눈다.
+const PROCEDURE_NEUTRAL_BADGE_STYLE = "bg-neutral-20 text-neutral-80 dark:bg-neutral-20/90 dark:text-neutral-90";
+
 const PROCEDURE_BADGE_STYLE: Record<RecommendedProcedure, string> = {
-  individual_rehab: "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
+  individual_rehabilitation:
+    "bg-primary-10 text-primary-80 dark:bg-primary-10/90 dark:text-primary-100",
   bankruptcy: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
+  fresh_start_fund: PROCEDURE_NEUTRAL_BADGE_STYLE,
+  speedy_debt_adjustment: PROCEDURE_NEUTRAL_BADGE_STYLE,
+  pre_workout: PROCEDURE_NEUTRAL_BADGE_STYLE,
+  personal_workout: PROCEDURE_NEUTRAL_BADGE_STYLE,
 };
 
 export function ProcedureBadge({ procedure }: { procedure: RecommendedProcedure | undefined }) {

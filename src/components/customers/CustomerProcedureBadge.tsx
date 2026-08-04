@@ -2,10 +2,15 @@ import LinkIcon from "@/components/icons/LinkIcon";
 import { normalizeProcedureType, type AnalysisProcedureType } from "@/types/analysis";
 
 // 고객목록 "이름" 옆 분석 연결 배지 짧은 라벨. debtRelief.ts의 RECOMMENDED_PROCEDURE_LABEL(전체
-// 명칭, "개인회생"/"파산")과 달리 목록 배지 전용 축약 표기("회생"/"파산").
+// 명칭, "개인회생"/"개인파산")과 달리 목록 배지 전용 축약 표기. 배지가 이름 옆에 붙고 뒤에
+// "n/m" 단계까지 이어붙어서 폭이 빠듯하다 — 4자를 넘기지 않는다.
 const PROCEDURE_SHORT_LABEL: Record<AnalysisProcedureType, string> = {
   individual_rehabilitation: "회생",
   bankruptcy: "파산",
+  fresh_start_fund: "새출발",
+  speedy_debt_adjustment: "신속조정",
+  pre_workout: "프리워크",
+  personal_workout: "개인워크",
 };
 
 type Props = {
