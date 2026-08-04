@@ -441,20 +441,11 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
   { value: "other", label: "기타" },
 ];
 
-/** 채권자 수 구간 — API creditorCount(number)로 대표값 매핑 */
-export type CreditorCountRange = "1_2" | "3_5" | "6_10" | "over_10";
-export const CREDITOR_COUNT_OPTIONS: PillOption<CreditorCountRange>[] = [
-  { value: "1_2", label: "1~2곳" },
-  { value: "3_5", label: "3~5곳" },
-  { value: "6_10", label: "6~10곳" },
-  { value: "over_10", label: "10곳 이상" },
-];
-export const CREDITOR_COUNT_TO_NUMBER: Record<CreditorCountRange, number> = {
-  "1_2": 2,
-  "3_5": 4,
-  "6_10": 8,
-  over_10: 12,
-};
+// 2026-08-04: 채권자 수는 더 이상 사용자가 직접 고르거나 화면에 노출하지 않는다.
+// 간편모드는 선택된 채무종류 배지 개수, 상세모드는 채무 항목 테이블의 행 개수를 그대로
+// 채권자 수로 써서 분석 제출 시점에만 계산해 보낸다(services/debtRelief.ts의
+// toAnalysisFormInput 참고). 두 모드 모두 이미 "채무종류 1개 이상"/"채무 항목 1개 이상"을
+// 필수값으로 검증하므로 채권자 수가 0이 되는 경우는 존재하지 않아 별도 필수값 검사도 두지 않는다.
 
 // ── 4. 소득/지출 ─────────────────────────────────────────────
 export type MonthlyIncomeRange = "under_100" | "100_200" | "200_300" | "300_400" | "over_400";
@@ -538,7 +529,6 @@ export type DiagnosisFormState = {
    * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
   overdueMonths: number | null;
   debtCauses: DebtCause[];
-  creditorCount: CreditorCountRange | null; // 채권자 수 구간
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
   // 대응(services/debtRelief.ts 참고).
@@ -586,7 +576,6 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     debts: [],
     overdueMonths: null,
     debtCauses: [],
-    creditorCount: null,
     hasTaxArrears: false,
     securedDebt: 0,
     recentDebtWithin3Months: 0,
@@ -658,7 +647,9 @@ export type DebtStatusSummary = {
   composition: DebtComposition[];
 };
 
-// 예상 변제 계획
+// 예상 변제 계획 — 절차 하나에 대한 수치. "주의사항"은 절차와 무관하게 공통이라 여기 담지
+// 않고 DiagnosisDetail.repaymentNotes로 별도 둔다(어떤 절차를 선택해도 항상 접근 가능해야
+// 하는데, 신용회복 일부 절차는 이 타입 자체가 아예 없기 때문 — 아래 주석 참고).
 export type RepaymentPlan = {
   monthlyPaymentManwon: number;
   months: number;
@@ -667,7 +658,6 @@ export type RepaymentPlan = {
   exemptedDebtManwon: number;
   /** 이자 포함 예상 면책 채무 (만원). 상세입력 모드 건에만 존재 — 없으면 병기 자체를 숨긴다 */
   exemptedDebtWithInterestManwon?: number;
-  notes: string[];
 };
 
 // 상담 포인트
@@ -781,7 +771,12 @@ export type DiagnosisDetail = {
   debtStatus: DebtStatusSummary;
   // 개인회생 추적 시에만 노출되는 "채무조정 비교" 문구 (없으면 null — 섹션 자체를 숨김)
   debtAdjustmentComparison: string | null;
-  repaymentPlan: RepaymentPlan;
+  // 절차별 예상 변제 계획 — "절차별 성공 가능성"에서 선택된 절차 기준으로 SectionRepaymentPlan이
+  // 조회한다. 신속채무조정·프리워크아웃은 백엔드가 항상 null로 내려주는 절차라 애초에 키가 없다
+  // (게이트 미통과와 별개 — 이 두 절차는 분할 변제라는 개념 자체가 없어서다).
+  repaymentPlanByProcedure: Partial<Record<RecommendedProcedure, RepaymentPlan>>;
+  // 변제 계획 섹션의 주의사항 — 절차와 무관하게 공통 표시(analysisResult.precautions).
+  repaymentNotes: string[];
   counselMents: CounselMent[];
   // 실 AI 채팅은 useDebtReliefAiChat 훅이 별도로 GET/POST /v1/analysis/{id}/chat(/stream)을
   // 통해 로드/전송한다 — 이 타입에는 대화 내역을 담지 않는다.

@@ -14,7 +14,6 @@ function getMissingDebtFieldLabels(form: DiagnosisFormState): string[] {
     // 0(연체 없음)은 유효한 입력이라 null만 미입력으로 판정한다.
     if (form.overdueMonths === null) missing.push("연체기간");
   }
-  if (!form.creditorCount) missing.push("채권자 수");
   return missing;
 }
 

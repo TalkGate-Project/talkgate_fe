@@ -294,7 +294,7 @@ export default function CustomerLinkedAnalysisSection({
 
   return (
     <div className="lg:col-span-2">
-      <div className="text-[16px] font-semibold text-neutral-90 mb-3">회생·파산 진단 정보</div>
+      <div className="text-[16px] font-semibold text-neutral-90 mb-3">채무조정 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
       {/*

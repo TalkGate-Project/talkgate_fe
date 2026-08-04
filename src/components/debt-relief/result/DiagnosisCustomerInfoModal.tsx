@@ -10,7 +10,6 @@ import type {
   AnalysisVehicleValueRange,
 } from "@/types/analysis";
 import {
-  CREDITOR_COUNT_OPTIONS,
   DEBT_CAUSE_OPTIONS,
   DEBT_TYPE_OPTIONS,
   FINANCIAL_ASSET_OPTIONS,
@@ -18,7 +17,6 @@ import {
   MONTHLY_INCOME_OPTIONS,
   REAL_ESTATE_OPTIONS,
   VEHICLE_OPTIONS,
-  type CreditorCountRange,
   type DebtCause,
   type DebtType,
   type FinancialAssetRange,
@@ -120,12 +118,7 @@ function formatDependents(count: number | null | undefined): string {
 
 function creditorCountLabel(count: number | null | undefined): string {
   if (count == null) return "-";
-  let range: CreditorCountRange;
-  if (count <= 2) range = "1_2";
-  else if (count <= 5) range = "3_5";
-  else if (count <= 10) range = "6_10";
-  else range = "over_10";
-  return CREDITOR_COUNT_OPTIONS.find((o) => o.value === range)?.label ?? `${count}곳`;
+  return `${count}곳`;
 }
 
 function realEstateOwnershipLabel(breakdown: AnalysisRealEstateBreakdown): string {

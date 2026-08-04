@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 /** 스텝 본문 섹션 제목 — 데스크톱만. 모바일은 상단 드로어 스텝명이 대신함 */
 export function FormSectionTitle({ children }: { children: ReactNode }) {
@@ -153,10 +153,12 @@ export function WonInput({
   value,
   onChange,
   placeholder = "0",
+  className = "",
 }: {
   value: number;
   onChange: (value: number) => void;
   placeholder?: string;
+  className?: string;
 }) {
   return (
     <input
@@ -167,7 +169,60 @@ export function WonInput({
         onChange(digits ? parseInt(digits, 10) : 0);
       }}
       placeholder={placeholder}
-      className={`${INPUT_CLASS} text-right`}
+      className={`${INPUT_CLASS} text-right ${className}`}
     />
+  );
+}
+
+// 금리(%) 입력 — 소수점 허용(예: 6.5). 정수부 3자리 + 소수부 2자리까지.
+// 컨트롤드 입력을 매 입력마다 숫자로 되돌리면 "6." 같은 중간 상태에서 소수점이 사라져
+// 소수 입력이 아예 불가능해지므로, 편집 중에는 원본 텍스트를 그대로 보여주다가
+// blur 시점에 value(prop)를 다시 따라가게 한다 — DatePicker의 allowTextInput과 동일한 패턴.
+const PERCENT_MAX_INTEGER_DIGITS = 3;
+const PERCENT_MAX_DECIMAL_DIGITS = 2;
+
+export function PercentInput({
+  value,
+  onChange,
+  placeholder = "0",
+  className = "",
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const [editingText, setEditingText] = useState<string | null>(null);
+  const displayValue = editingText ?? (value ? String(value) : "");
+
+  return (
+    <div className="relative">
+      <input
+        inputMode="decimal"
+        value={displayValue}
+        onChange={(e) => {
+          const raw = e.target.value.replace(/[^0-9.]/g, "");
+          const dotIndex = raw.indexOf(".");
+          const cleaned =
+            dotIndex === -1
+              ? raw
+              : raw.slice(0, dotIndex + 1) + raw.slice(dotIndex + 1).replace(/\./g, "");
+          const [intPart, decPart] = cleaned.split(".");
+          const boundedInt = intPart.slice(0, PERCENT_MAX_INTEGER_DIGITS);
+          const next =
+            decPart !== undefined
+              ? `${boundedInt}.${decPart.slice(0, PERCENT_MAX_DECIMAL_DIGITS)}`
+              : boundedInt;
+          setEditingText(next);
+          onChange(next ? parseFloat(next) || 0 : 0);
+        }}
+        onBlur={() => setEditingText(null)}
+        placeholder={placeholder}
+        className={`${INPUT_CLASS} pr-7 text-right ${className}`}
+      />
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
+        %
+      </span>
+    </div>
   );
 }

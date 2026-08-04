@@ -1,7 +1,6 @@
 import type {
   ConditionItem,
   CreateDiagnosisResult,
-  CreditorCountRange,
   DebtComposition,
   DebtType,
   DependentCount,
@@ -22,6 +21,7 @@ import type {
   ProcedureStepNoteType,
   RealEstateType,
   RecommendedProcedure,
+  RepaymentPlan,
   SendGuidanceSmsInput,
   SendGuidanceSmsResult,
   SortDirection,
@@ -30,7 +30,6 @@ import type {
 } from "@/types/debtRelief";
 import {
   AGE_GROUP_OPTIONS,
-  CREDITOR_COUNT_TO_NUMBER,
   EMPLOYMENT_TYPE_OPTIONS,
   RECOMMENDED_PROCEDURE_LABEL,
   REGION_OPTIONS,
@@ -42,6 +41,8 @@ import type {
   AnalysisDebtCause,
   AnalysisDebtItem,
   AnalysisDebtItemType,
+  AnalysisExpectedRepayment,
+  AnalysisExpectedRepaymentMap,
   AnalysisFinancialAssetRange,
   AnalysisFormInput,
   AnalysisInputData,
@@ -53,6 +54,7 @@ import type {
   AnalysisProcedureStepDetails,
   AnalysisProcedureType,
   AnalysisRealEstateBreakdown,
+  AnalysisRepaymentMethod,
   AnalysisScores,
   AnalysisSortOrder,
   AnalysisSortType,
@@ -246,6 +248,91 @@ export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDe
   return breakdown;
 }
 
+/** "YYYY-MM-DD" 문자열을 로컬 자정 Date로 파싱. `new Date(isoString)`은 UTC로 해석돼
+ * 시간대에 따라 하루 밀릴 수 있어 직접 분해해서 로컬 Date를 만든다. */
+function parseDateOnly(iso?: string): Date | null {
+  if (!iso) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+/** 대출일~만기일 개월수 차이(일자 보정 포함). 날짜가 없거나 역전되면 0. */
+function diffInMonths(loanDate?: string, maturityDate?: string): number {
+  const start = parseDateOnly(loanDate);
+  const end = parseDateOnly(maturityDate);
+  if (!start || !end) return 0;
+  let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  if (end.getDate() < start.getDate()) months -= 1;
+  return Math.max(0, months);
+}
+
+/**
+ * 상세 채무 항목 1건의 기간(대출일~만기일 개월수)·월불입·총이자·총상환을 상환방식별 표준
+ * 금융공식으로 계산한다(2026-08-04 결정 — 백엔드 재계산 API가 없어 클라이언트 계산값을 그대로
+ * 제출/표시한다). 금리(interestRate)는 연이율(%) 기준.
+ * - 원리금균등: 연금(PMT) 공식, 월불입이 매월 동일
+ * - 원금균등: 매월 원금은 동일하지만 이자는 잔액에 따라 줄어 월불입도 매달 줄어든다.
+ *   단일 "월불입" 칸에는 이자가 가장 큰 첫 회차(잔액 = 원금 전액) 기준 값을 표시한다
+ * - 만기일시: 만기에 원금+이자를 한 번에 상환 — 월중 정기 납입이 없어 월불입 0
+ * - 이자만납입: 매월 이자만 납입, 원금은 만기에 별도 상환
+ */
+export function calculateDebtItemAmortization(item: {
+  principalWon: number;
+  interestRate: number;
+  repaymentMethod: AnalysisRepaymentMethod;
+  loanDate?: string;
+  maturityDate?: string;
+}): Pick<AnalysisDebtItem, "termMonths" | "monthlyPaymentWon" | "totalInterestWon" | "totalRepaymentWon"> {
+  const termMonths = diffInMonths(item.loanDate, item.maturityDate);
+  const principal = item.principalWon;
+  const monthlyRate = item.interestRate / 100 / 12;
+
+  if (termMonths <= 0 || principal <= 0) {
+    return {
+      termMonths,
+      monthlyPaymentWon: 0,
+      totalInterestWon: 0,
+      totalRepaymentWon: principal > 0 ? principal : 0,
+    };
+  }
+
+  switch (item.repaymentMethod) {
+    case "equal_principal_and_interest": {
+      const monthlyPaymentWon =
+        monthlyRate === 0
+          ? Math.round(principal / termMonths)
+          : Math.round(
+              (principal * monthlyRate * (1 + monthlyRate) ** termMonths) /
+                ((1 + monthlyRate) ** termMonths - 1)
+            );
+      const totalRepaymentWon = monthlyPaymentWon * termMonths;
+      return {
+        termMonths,
+        monthlyPaymentWon,
+        totalInterestWon: totalRepaymentWon - principal,
+        totalRepaymentWon,
+      };
+    }
+    case "equal_principal": {
+      const monthlyPrincipal = principal / termMonths;
+      // 매월 잔액 합 = principal * (n+1) / 2 (등차수열 합) → 총이자 = 잔액합 * 월이자율
+      const totalInterestWon = Math.round(monthlyRate * principal * ((termMonths + 1) / 2));
+      const monthlyPaymentWon = Math.round(monthlyPrincipal + principal * monthlyRate);
+      return { termMonths, monthlyPaymentWon, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+    }
+    case "bullet_payment": {
+      const totalInterestWon = Math.round(principal * monthlyRate * termMonths);
+      return { termMonths, monthlyPaymentWon: 0, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+    }
+    case "interest_only": {
+      const monthlyPaymentWon = Math.round(principal * monthlyRate);
+      const totalInterestWon = monthlyPaymentWon * termMonths;
+      return { termMonths, monthlyPaymentWon, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+    }
+  }
+}
+
 const REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY: Record<RealEstateType, keyof AnalysisRealEstateBreakdown> = {
   owned: "ownedValue",
   jeonse_deposit: "jeonseDeposit",
@@ -257,22 +344,6 @@ const BREAKDOWN_KEY_TO_REAL_ESTATE_TYPE: Record<keyof AnalysisRealEstateBreakdow
   jeonseDeposit: "jeonse_deposit",
   rentalValue: "rental_income",
 };
-
-// 채권자 수는 구간 대표값(number)만 API에 남아 정확한 구간을 복원할 수 없을 수 있다
-// (예: 서버가 5~7 사이 값을 돌려주면 어느 구간에도 정확히 맞지 않는다). 자체 생성 분석은
-// 항상 CREDITOR_COUNT_TO_NUMBER의 대표값 중 하나로 보내므로 실질적으로는 발생하지 않지만,
-// 방어적으로 가장 가까운 구간으로 근사한다.
-const CREDITOR_COUNT_RANGES: { range: CreditorCountRange; representative: number }[] = (
-  Object.entries(CREDITOR_COUNT_TO_NUMBER) as [CreditorCountRange, number][]
-).map(([range, representative]) => ({ range, representative }));
-
-function creditorCountFromNumber(value: number): CreditorCountRange {
-  const exact = CREDITOR_COUNT_RANGES.find((entry) => entry.representative === value);
-  if (exact) return exact.range;
-  return CREDITOR_COUNT_RANGES.reduce((closest, entry) =>
-    Math.abs(entry.representative - value) < Math.abs(closest.representative - value) ? entry : closest
-  ).range;
-}
 
 function optionLabel<T extends string>(options: { value: T; label: string }[], value: T): string {
   return options.find((option) => option.value === value)?.label ?? "";
@@ -362,9 +433,9 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     guarantorNote: form.guarantorDetail || undefined,
     hasActiveLawsuit: form.hasOngoingLitigation,
     lawsuitNote: form.litigationDetail || undefined,
-    creditorCount: form.creditorCount
-      ? CREDITOR_COUNT_TO_NUMBER[form.creditorCount]
-      : undefined,
+    // 채권자 수는 화면에 입력 UI가 없다 — 간편모드는 선택된 채무종류 배지 개수, 상세모드는
+    // 채무 항목 테이블 행 개수를 제출 시점에 여기서만 계산해서 보낸다.
+    creditorCount: isDetailed ? form.debts.length : form.debtTypes.length,
     hasTaxArrears: form.hasTaxArrears,
     hasRecentAssetDisposal: form.hasRecentAssetDisposal,
     isOperatingBusiness: form.isOperatingBusiness,
@@ -426,7 +497,6 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     // 값이 비어 올 가능성에 대비해 0으로 폴백한다.
     overdueMonths: input.overdueMonths ?? 0,
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
-    creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     hasTaxArrears: input.hasTaxArrears ?? false,
     securedDebt: input.collateralDebt ?? 0,
     recentDebtWithin3Months: input.debtIncurredLast3Months ?? 0,
@@ -494,7 +564,9 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
 }
 
 // 절차별 점수 → 등급. 실 API에 등급 필드가 없어 클라이언트에서 임계값으로 판정한다.
-function scoreToGrade(score: number): ProcedureGrade {
+// SectionProcedureScores.tsx가 신용회복 그룹의 대표점수(하위 절차 중 최고점)에도
+// 동일 기준을 적용하기 위해 export한다 — 임계값을 바꾸려면 여기 한 곳만 고치면 된다.
+export function scoreToGrade(score: number): ProcedureGrade {
   if (score >= 70) return "good";
   if (score >= 40) return "normal";
   return "low";
@@ -638,6 +710,46 @@ function buildProcedureGuide(
   };
 }
 
+function toRepaymentPlan(repayment: AnalysisExpectedRepayment): RepaymentPlan {
+  // 금액은 모두 만원 단위로 내려온다(2026-07-20 실 응답 확인: monthlyPayment 125 ×
+  // periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
+  return {
+    monthlyPaymentManwon: repayment.monthlyPayment,
+    months: repayment.periodMonths,
+    years: Math.round((repayment.periodMonths / 12) * 10) / 10,
+    totalPaymentManwon: repayment.totalPayment,
+    exemptedDebtManwon: repayment.expectedExemption,
+    exemptedDebtWithInterestManwon: repayment.expectedExemptionWithInterest,
+  };
+}
+
+// "절차별 성공 가능성"에서 선택한 절차에 따라 예상 변제 계획 내용이 통째로 바뀌어야 해서
+// (SectionRepaymentPlan.tsx) 추적/추천 절차 하나만 고르지 않고 응답에 있는 모든 절차를
+// 맵으로 만들어 둔다. 신속채무조정·프리워크아웃은 값이 항상 null이라 애초에 결과 맵에
+// 키가 생기지 않는다 — procedureEntries가 null을 걸러내므로 별도 처리가 필요 없다.
+//
+// ⚠️ 2026-08-04 스펙 배포 전(~2026-07-24)에 생성된 기존 분석 건은 expectedRepayment가
+// 절차별 맵이 아니라 단일 AnalysisExpectedRepayment 객체 그대로다 — 당시엔 절차가 2종뿐이라
+// "추천 절차 하나에 대한 변제계획"만 있으면 충분했기 때문(2026-08-07 실 데이터로 확인,
+// analysisId 63). monthlyPayment가 최상위에 직접 있으면 이 구 형태로 판단해 recommendation
+// 절차 값으로 감싸 새 맵 형태와 통일한다.
+function buildRepaymentPlanByProcedure(
+  expectedRepayment: AnalysisExpectedRepaymentMap | AnalysisExpectedRepayment | undefined,
+  recommendedProcedure: AnalysisProcedureType
+): Partial<Record<RecommendedProcedure, RepaymentPlan>> {
+  if (!expectedRepayment) return {};
+  if (typeof (expectedRepayment as AnalysisExpectedRepayment).monthlyPayment === "number") {
+    return { [recommendedProcedure]: toRepaymentPlan(expectedRepayment as AnalysisExpectedRepayment) };
+  }
+  const result: Partial<Record<RecommendedProcedure, RepaymentPlan>> = {};
+  for (const [procedure, repayment] of procedureEntries(
+    expectedRepayment as AnalysisExpectedRepaymentMap
+  )) {
+    result[procedure] = toRepaymentPlan(repayment);
+  }
+  return result;
+}
+
 const EMPTY_PROCEDURE_GUIDE: ProcedureGuide = {
   procedureLabel: "",
   totalSteps: 0,
@@ -774,10 +886,11 @@ export const DebtReliefService = {
     }
 
     const guide = pickProcedureValue(analysis.procedureGuides, trackingProcedure);
-    // 추적 절차의 변제 계획이 없으면(자격 게이트 미통과 절차를 추적 중인 경우) AI 추천 절차로 폴백.
-    const trackedRepayment =
-      pickProcedureValue(analysis.analysisResult?.expectedRepayment, trackingProcedure) ??
-      pickProcedureValue(analysis.analysisResult?.expectedRepayment, recommendedProcedure);
+    // buildRepaymentPlanByProcedure가 구 형태(단일 객체)/신 형태(절차별 맵) 모두 처리한다.
+    const repaymentPlanByProcedure = buildRepaymentPlanByProcedure(
+      analysis.analysisResult?.expectedRepayment,
+      recommendedProcedure
+    );
     const totalDebt = inputData.totalDebt;
     // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
     // "양쪽"(보낸 영업점 + 받은 변호사) 모두에 남아, 영업점이 자기가 공유했다 반려당한 "자기 데이터"를
@@ -847,20 +960,8 @@ export const DebtReliefService = {
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
       debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
-      // 금액은 모두 만원 단위로 내려온다 (2026-07-20 실 응답 확인: monthlyPayment 125 ×
-      // periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
-      // 절차별 맵이라 화면 나머지와 동일하게 "추적 중인 절차" 기준으로 고른다.
-      repaymentPlan: trackedRepayment
-        ? {
-            monthlyPaymentManwon: trackedRepayment.monthlyPayment,
-            months: trackedRepayment.periodMonths,
-            years: Math.round((trackedRepayment.periodMonths / 12) * 10) / 10,
-            totalPaymentManwon: trackedRepayment.totalPayment,
-            exemptedDebtManwon: trackedRepayment.expectedExemption,
-            exemptedDebtWithInterestManwon: trackedRepayment.expectedExemptionWithInterest,
-            notes: analysis.analysisResult?.precautions ?? [],
-          }
-        : { monthlyPaymentManwon: 0, months: 0, years: 0, totalPaymentManwon: 0, exemptedDebtManwon: 0, notes: [] },
+      repaymentPlanByProcedure,
+      repaymentNotes: analysis.analysisResult?.precautions ?? [],
       counselMents: analysis.analysisResult
         ? [
             { category: "core", text: analysis.analysisResult.consultingScripts.keyExplanation },

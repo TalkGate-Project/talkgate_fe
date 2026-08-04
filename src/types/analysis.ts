@@ -283,35 +283,57 @@ export type AnalysisProcedureConditions = {
   riskFactors: string[];
 };
 
-// 2026-08-04 스펙 확장: 고정 2키 → 절차별 동적 맵. 자격 게이트(새출발기금)를 통과하지 못한
-// 절차는 키 자체가 없으므로 Partial로 둔다 — 6키가 항상 있다고 타입으로 보장하면 거짓말이 되고,
-// 없는 키 접근이 런타임 크래시로만 드러난다.
+// 2026-08-04 스펙 확장: 고정 2키 → 절차별 동적 맵. 신규 스펙에서는 6키가 항상 존재하되,
+// 자격 게이트(새출발기금 등)를 통과하지 못한 절차는 값이 number/object가 아니라 **null**이다
+// (2026-08-07 백엔드 확인 — "scores[procedure] === null 체크로 판정"). 구 스펙(~2026-07-24
+// 이전 생성 건)은 반대로 키 자체가 없다(Partial 경고 참고). 두 경우를 한 번에 표현하려고
+// `| null`을 더한 Partial을 쓴다 — pickProcedureValue/procedureEntries가 null도 "없음"으로
+// 처리하므로 호출부는 값의 존재 여부만 optional chaining으로 다루면 된다.
 export type AnalysisProcedureConditionsMap = Partial<
-  Record<AnalysisProcedureType, AnalysisProcedureConditions>
+  Record<AnalysisProcedureType, AnalysisProcedureConditions | null>
 >;
 
-export type AnalysisScores = Partial<Record<AnalysisProcedureType, number>>;
+export type AnalysisScores = Partial<Record<AnalysisProcedureType, number | null>>;
 
-// 응답 키는 절차 enum 값(스네이크케이스)이다 — 2026-08-04 Swagger로 확정
-// (`scores: { "individual_rehabilitation": 72, "bankruptcy": 18 }`). 과도기용 camelCase 폴백은 제거.
+// 신규 생성/재진단 응답은 절차 enum 값(스네이크케이스)을 키로 쓴다 — 2026-08-04 Swagger로 확정
+// (`scores: { "individual_rehabilitation": 72, "bankruptcy": 18 }`).
+// ⚠️ 그러나 이 스펙이 배포되기 전(~2026-07-24)에 생성된 기존 분석 건은 scores/procedureConditions가
+// 여전히 구 camelCase 고정 2키("individualRehabilitation")로 DB에 저장돼 있다 — procedureGuides처럼
+// 조회 시점에 마스터 데이터와 조인해 재계산되는 필드가 아니라 생성 당시 저장된 값을 그대로 돌려주기
+// 때문에, 백엔드가 과거 데이터를 일괄 마이그레이션하지 않는 한 계속 이 형태로 남는다
+// (2026-08-07 실 데이터로 확인 — analysisId 63, http://localhost:3000/debt-relief/63).
+// bankruptcy는 두 표기가 동일해 문제 없고, individual_rehabilitation만 구 키로도 조회를 시도한다.
+const LEGACY_PROCEDURE_KEY: Record<string, AnalysisProcedureType> = {
+  individualRehabilitation: "individual_rehabilitation",
+};
 
-/** 절차별 맵에서 특정 절차의 값을 꺼낸다. 키가 없으면 undefined(자격 게이트 미통과 등). */
+/** 절차별 맵에서 특정 절차의 값을 꺼낸다. 키가 없거나 값이 null이면 undefined
+ * (자격 게이트 미통과, 또는 애초에 해당 절차엔 개념이 없는 필드 — 예: 신속채무조정의 변제계획). */
 export function pickProcedureValue<T>(
-  map: Partial<Record<AnalysisProcedureType, T>> | null | undefined,
+  map: Partial<Record<AnalysisProcedureType, T | null>> | null | undefined,
   procedure: AnalysisProcedureType
 ): T | undefined {
-  return map?.[procedure];
+  if (!map) return undefined;
+  const direct = map[procedure];
+  if (direct != null) return direct;
+  if (procedure === "individual_rehabilitation") {
+    const legacy = (map as Record<string, T | null | undefined>).individualRehabilitation;
+    return legacy ?? undefined;
+  }
+  return undefined;
 }
 
-/** 절차별 맵을 [절차, 값] 배열로 순회. 알 수 없는 키(레거시 채무조정 등)는 버린다. */
+/** 절차별 맵을 [절차, 값] 배열로 순회. null 값과 알 수 없는 키(레거시 채무조정 등)는 버린다. */
 export function procedureEntries<T>(
-  map: Partial<Record<AnalysisProcedureType, T>> | null | undefined
+  map: Partial<Record<AnalysisProcedureType, T | null>> | null | undefined
 ): [AnalysisProcedureType, T][] {
   if (!map) return [];
   const entries: [AnalysisProcedureType, T][] = [];
-  for (const [key, value] of Object.entries(map) as [string, T | undefined][]) {
-    if (value === undefined || !isAnalysisProcedureType(key)) continue;
-    entries.push([key, value]);
+  for (const [key, value] of Object.entries(map) as [string, T | null | undefined][]) {
+    if (value == null) continue;
+    const procedure = isAnalysisProcedureType(key) ? key : LEGACY_PROCEDURE_KEY[key];
+    if (!procedure) continue;
+    entries.push([procedure, value]);
   }
   return entries;
 }
@@ -327,8 +349,11 @@ export type AnalysisExpectedRepayment = {
   expectedExemptionWithInterest?: number;
 };
 
+// ⚠️ 신속채무조정·프리워크아웃은 게이트 통과 여부와 무관하게 항상 null이다(2026-08-07 백엔드
+// 확인) — 이 두 절차는 분할 변제 개념 자체가 없어 "예상 조정 요약"으로 별도 표시하고, 변제계획
+// 수치는 렌더링하지 않는다(SectionRepaymentPlan.tsx 참고).
 export type AnalysisExpectedRepaymentMap = Partial<
-  Record<AnalysisProcedureType, AnalysisExpectedRepayment>
+  Record<AnalysisProcedureType, AnalysisExpectedRepayment | null>
 >;
 
 export type AnalysisConsultingScripts = {

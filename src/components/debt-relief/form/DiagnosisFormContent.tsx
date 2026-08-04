@@ -329,7 +329,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           isCustomerConnected={isCustomerConnected}
         />
 
-        <section className="relative flex-1 w-full surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
+        <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
           {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전).
               "기타사항" 스텝은 본문이 토글로 바로 시작해 이 절대배치 X가 어색하게 떠 보여서,
               그 스텝에서는 숨기고 Step5Others가 자체 타이틀 행에 동일 기능의 X를 대신 렌더링한다. */}
@@ -381,7 +381,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
 
           {/* 본문 — Figma 모바일: 좌우 16, 상단에서 바로 필드 시작 */}
-          <div className="flex-1 px-6 md:px-7 pt-4 md:pt-8 pb-7">{renderStep()}</div>
+          <div className="flex-1 min-w-0 px-6 md:px-7 pt-4 md:pt-8 pb-7">{renderStep()}</div>
 
           {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함 */}
           {/* Figma: 풀폭 Divider → 이전/다음 버튼 72×34 radius 5 */}
