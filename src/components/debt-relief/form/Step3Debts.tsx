@@ -1,19 +1,15 @@
 "use client";
 
 import {
-  DEBT_AMOUNT_LABELS,
   DEBT_CAUSE_OPTIONS,
-  DEBT_TYPE_OPTIONS,
-  createEmptyDebtItem,
-  type DebtType,
   type DiagnosisDerivedValues,
   type DiagnosisFormState,
 } from "@/types/debtRelief";
-import { FormField, ManwonInput, MonthsInput } from "./FormControls";
+import { FormField, ManwonInput } from "./FormControls";
 import { PillMultiSelect } from "./PillSelect";
 import { FormToggleRow } from "./FormToggle";
 import { getOverLimitDebtFields } from "./validateDiagnosisForm";
-import DebtItemsTable from "./DebtItemsTable";
+import DebtHistoryCard from "./DebtHistoryCard";
 
 type Props = {
   form: DiagnosisFormState;
@@ -24,183 +20,16 @@ type Props = {
   debtSumOverLimitChecked?: boolean;
 };
 
-function getDebtAmountFields(selectedTypes: DebtType[]): { key: DebtType; label: string }[] {
-  return DEBT_TYPE_OPTIONS.filter((option) => selectedTypes.includes(option.value)).map(
-    (option) => ({ key: option.value, label: DEBT_AMOUNT_LABELS[option.value] })
-  );
-}
-
-// ── 「채무내역」 카드 헤더 — 간편/상세 세그먼트 토글 ────────────────────────
-// 백엔드 샘플사이트 UI(docs/ANALYSIS_6_PROCEDURES_MIGRATION_TASKS.md Phase 4-3)를 기준으로
-// 카드를 구성한다. form.debtInputMode를 그대로 토글에 연결한다 — 상세모드로 전환해도
-// 간편모드 값(debtTypes/debtAmounts/overdueMonths)은 지우지 않고 유지한다(다시 간편으로
-// 돌아왔을 때 손실 없게). 제출은 모드에 맞는 필드만 검증/전송한다(validateDiagnosisForm,
-// services/debtRelief.ts의 toAnalysisFormInput 참고).
-type DebtDisplayMode = DiagnosisFormState["debtInputMode"];
-
-const DEBT_DISPLAY_MODE_SUBTITLE: Record<DebtDisplayMode, string> = {
-  simple: "종류별 잔액만 간편하게 입력",
-  detailed: "채권처·상환방식·금리까지 상세 입력 (원 단위)",
-};
-
-function DebtModeToggle({
-  value,
-  onChange,
-}: {
-  value: DebtDisplayMode;
-  onChange: (mode: DebtDisplayMode) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="채무 입력 방식"
-      className="flex items-center gap-1 shrink-0 rounded-full bg-neutral-20 p-1"
-    >
-      <button
-        type="button"
-        role="tab"
-        aria-selected={value === "simple"}
-        onClick={() => onChange("simple")}
-        className={`cursor-pointer h-7 px-4 rounded-full text-[13px] font-semibold leading-[16px] transition-colors ${
-          value === "simple"
-            ? "bg-neutral-90 text-neutral-20"
-            : "text-neutral-60 hover:text-foreground"
-        }`}
-      >
-        간편
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={value === "detailed"}
-        onClick={() => onChange("detailed")}
-        className={`cursor-pointer inline-flex items-center gap-1.5 h-7 px-4 rounded-full text-[13px] font-semibold leading-[16px] transition-colors ${
-          value === "detailed"
-            ? "bg-neutral-90 text-neutral-20"
-            : "text-neutral-60 hover:text-foreground"
-        }`}
-      >
-        상세
-      </button>
-    </div>
-  );
-}
-
 export default function Step3Debts({ form, update, derived, debtSumOverLimitChecked = false }: Props) {
-  // 상세모드로 처음 전환할 때 빈 테이블만 덩그러니 보이지 않도록 행 1개를 미리 채워준다.
-  const handleModeChange = (mode: DebtDisplayMode) => {
-    update("debtInputMode", mode);
-    if (mode === "detailed" && form.debts.length === 0) {
-      update("debts", [createEmptyDebtItem(crypto.randomUUID())]);
-    }
-  };
-
   // 값 하나만으로 총 채무를 넘는 필드가 있으면 그 필드만 표시하고, 여러 필드의 조합으로만
   // 초과하는 경우(원인을 특정할 수 없음)에는 세 필드 모두 표시한다 — getOverLimitDebtFields 참고.
   const overLimitFields = debtSumOverLimitChecked
     ? getOverLimitDebtFields(form, derived.totalDebtManwon)
     : [];
 
-  const setAmount = (type: DebtType, value: number) => {
-    update("debtAmounts", { ...form.debtAmounts, [type]: value });
-  };
-
-  const handleDebtTypesChange = (nextTypes: DebtType[]) => {
-    update("debtTypes", nextTypes);
-
-    const pruned: Partial<Record<DebtType, number>> = {};
-    nextTypes.forEach((type) => {
-      if (form.debtAmounts[type] != null) pruned[type] = form.debtAmounts[type];
-    });
-    update("debtAmounts", pruned);
-  };
-
-  const amountFields = getDebtAmountFields(form.debtTypes);
-
   return (
     <div className="flex flex-col gap-5">
-      {/* 「채무내역」 카드 — 종류별 잔액 입력(간편) / 상세 입력(예정)만 담당.
-          min-w-0: 상세모드 테이블(가로스크롤, 내용 폭 ~1580px)이 flex 조상들의 min-content
-          폭을 밀어올려 카드·section 전체가 넓어지는 걸 막는다 — 실제 스크롤은 DebtItemsTable의
-          overflow-x-auto 안에서만 일어나야 한다(DiagnosisFormContent.tsx의 section/본문 div에도
-          동일한 이유로 min-w-0을 걸어뒀다). */}
-      <div className="min-w-0 rounded-[14px] border border-neutral-30 overflow-hidden">
-        <div className="flex items-start justify-between gap-4 px-5 md:px-6 py-4 md:py-5 border-b border-neutral-30">
-          <div className="min-w-0">
-            <h3 className="text-[16px] font-bold leading-5 text-foreground">채무내역</h3>
-            <p className="mt-1.5 text-[13px] leading-4 text-neutral-60">
-              {DEBT_DISPLAY_MODE_SUBTITLE[form.debtInputMode]}
-            </p>
-          </div>
-          <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} />
-        </div>
-
-        <div className="px-5 md:px-6 py-5 md:py-6">
-          {form.debtInputMode === "detailed" ? (
-            <DebtItemsTable debts={form.debts} onChange={(debts) => update("debts", debts)} />
-          ) : (
-            <div className="flex flex-col gap-5">
-              <FormField
-                label="채무종류"
-                hint="(중복선택 가능)"
-                required
-                filled={form.debtTypes.length > 0}
-              >
-                <PillMultiSelect
-                  options={DEBT_TYPE_OPTIONS}
-                  value={form.debtTypes}
-                  onChange={handleDebtTypesChange}
-                />
-              </FormField>
-
-              {amountFields.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
-                  {amountFields.map((field) => (
-                    <FormField
-                      key={field.key}
-                      label={field.label}
-                      filled={(form.debtAmounts[field.key] ?? 0) > 0}
-                    >
-                      <ManwonInput
-                        value={form.debtAmounts[field.key] ?? 0}
-                        onChange={(value) => setAmount(field.key, value)}
-                      />
-                    </FormField>
-                  ))}
-                </div>
-              )}
-
-              {/* Figma: 금액 영역과 합계 사이 콘텐츠 폭 Divider */}
-              <div role="separator" className="h-px bg-neutral-30" />
-
-              {/* Figma: 총 채무 합계 — 모바일 h-48 px-16 / 데스크톱 h-56 px-28, radius 12, 숫자 Montserrat */}
-              <div className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 md:px-7 h-12 md:h-[56px]">
-                <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-60">
-                  총 채무 합계
-                </span>
-                <span className="flex items-end gap-1">
-                  <span className="font-montserrat font-bold text-[18px] md:text-[20px] leading-5 tracking-[-0.03em] text-neutral-90">
-                    {derived.totalDebtManwon.toLocaleString("ko-KR")}
-                  </span>
-                  <span className="text-[13px] font-semibold leading-4 text-neutral-60">만원</span>
-                </span>
-              </div>
-
-              <FormField
-                label="연체기간"
-                hint="여러 채무가 있으면 가장 긴 연체 기준으로"
-                required
-                filled={form.overdueMonths !== null}
-              >
-                <MonthsInput
-                  value={form.overdueMonths}
-                  onChange={(value) => update("overdueMonths", value)}
-                />
-              </FormField>
-            </div>
-          )}
-        </div>
-      </div>
+      <DebtHistoryCard form={form} update={update} totalDebtManwon={derived.totalDebtManwon} />
 
       {/* 카드 바깥 공통 영역 — 채무 종류별 잔액과 무관하게 입력 방식 상관없이 항상 필요한 항목.
           「채무발생 원인」은 샘플사이트 기준 두 모드가 공유하는 필드라 카드 밖에 둔다. */}
