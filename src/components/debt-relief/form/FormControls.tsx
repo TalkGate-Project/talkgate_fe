@@ -112,3 +112,62 @@ export function ManwonInput({
     </div>
   );
 }
+
+// 연체 개월 수 입력. 값이 null이면 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이라,
+// 빈 문자열은 null로 되돌려 두 상태를 구분한다 — 0을 falsy로 판정하면 연체 없는 고객이
+// 필수값 검증에 걸려 제출이 막힌다.
+const MONTHS_MAX_DIGITS = 3;
+
+export function MonthsInput({
+  value,
+  onChange,
+  placeholder = "0",
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="relative">
+      <input
+        inputMode="numeric"
+        value={value === null ? "" : String(value)}
+        onChange={(e) => {
+          const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MONTHS_MAX_DIGITS);
+          onChange(digits ? parseInt(digits, 10) : null);
+        }}
+        placeholder={placeholder}
+        className={`${INPUT_CLASS} pr-12`}
+      />
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
+        개월
+      </span>
+    </div>
+  );
+}
+
+/** 원 단위 금액 입력 — 상세 채무입력 전용(다른 금액 필드는 전부 만원 단위) */
+const WON_MAX_DIGITS = 13;
+
+export function WonInput({
+  value,
+  onChange,
+  placeholder = "0",
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  placeholder?: string;
+}) {
+  return (
+    <input
+      inputMode="numeric"
+      value={value ? value.toLocaleString("ko-KR") : ""}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, WON_MAX_DIGITS);
+        onChange(digits ? parseInt(digits, 10) : 0);
+      }}
+      placeholder={placeholder}
+      className={`${INPUT_CLASS} text-right`}
+    />
+  );
+}

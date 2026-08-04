@@ -15,7 +15,6 @@ import type {
   DebtCause,
   FinancialAssetRange,
   MonthlyIncomeRange,
-  OverduePeriod,
   ProcedureGrade,
   ProcedureGuide,
   ProcedureScore,
@@ -41,12 +40,13 @@ import { CustomersService } from "@/services/customers";
 import type {
   AnalysisDebtBreakdown,
   AnalysisDebtCause,
+  AnalysisDebtItem,
+  AnalysisDebtItemType,
   AnalysisFinancialAssetRange,
   AnalysisFormInput,
   AnalysisInputData,
   AnalysisListItem,
   AnalysisMonthlyIncomeRange,
-  AnalysisOverduePeriod,
   AnalysisProcedureConditions,
   AnalysisProcedureConditionsMap,
   AnalysisProcedureGuide,
@@ -61,7 +61,7 @@ import type {
   AnalysisVehicleValueRange,
   CreateAnalysisInput,
 } from "@/types/analysis";
-import { normalizeProcedureType } from "@/types/analysis";
+import { normalizeProcedureType, pickProcedureValue, procedureEntries } from "@/types/analysis";
 
 // sendGuidanceSms(문자 발송, 2026-07-14 연동): AnalysisService.sendSms(POST
 // /v1/analysis/{id}/send-sms)로 위임한다. 수신자는 서버가 결정(공유 시 전달받은 contact 우선,
@@ -83,16 +83,9 @@ import { normalizeProcedureType } from "@/types/analysis";
 // 이력을 삭제한다(analysis.ts:69-71 참고). DiagnosisFormContent.tsx의 handleAnalyze는 아직
 // 이걸 사용자에게 안내하는 확인 모달이 없다 — 되돌릴 수 없는 부수효과이니 추가를 검토할 것.
 
-// mock 도메인(individual_rehab)과 실 API(individual_rehabilitation)의 절차 코드값이 다르다.
-const PROCEDURE_TO_ANALYSIS: Record<RecommendedProcedure, AnalysisProcedureType> = {
-  individual_rehab: "individual_rehabilitation",
-  bankruptcy: "bankruptcy",
-};
-
-export const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
-  individual_rehabilitation: "individual_rehab",
-  bankruptcy: "bankruptcy",
-};
+// 2026-08-04: 도메인 절차 코드를 실 API enum 값으로 일원화하면서 PROCEDURE_TO_ANALYSIS /
+// PROCEDURE_FROM_ANALYSIS 양방향 매핑을 제거했다(types/debtRelief.ts의 RecommendedProcedure 주석 참고).
+// 절차 값은 이제 변환 없이 그대로 주고받는다.
 
 // 허브 정렬 필드 → GET /v1/analysis sortType. 지원되지 않는 필드는 매핑에서 제외한다.
 const SORT_FIELD_TO_ANALYSIS: Record<DiagnosisSortField, AnalysisSortType> = {
@@ -148,22 +141,6 @@ const VEHICLE_FROM_ANALYSIS: Record<AnalysisVehicleValueRange, VehicleRange> = {
   under_500: "under_500",
   "500_to_2000": "500_2000",
   over_2000: "over_2000",
-};
-
-const OVERDUE_PERIOD_TO_ANALYSIS: Record<OverduePeriod, AnalysisOverduePeriod> = {
-  none: "none",
-  under_3m: "under_3_months",
-  "3_6m": "3_to_6_months",
-  "6_12m": "6_to_12_months",
-  over_1y: "over_1_year",
-};
-
-const OVERDUE_PERIOD_FROM_ANALYSIS: Record<AnalysisOverduePeriod, OverduePeriod> = {
-  none: "none",
-  under_3_months: "under_3m",
-  "3_to_6_months": "3_6m",
-  "6_to_12_months": "6_12m",
-  over_1_year: "over_1y",
 };
 
 const MONTHLY_INCOME_TO_ANALYSIS: Record<MonthlyIncomeRange, AnalysisMonthlyIncomeRange> = {
@@ -230,6 +207,45 @@ const BREAKDOWN_KEY_TO_DEBT_TYPE: Record<keyof AnalysisDebtBreakdown, DebtType> 
   personalBorrowing: "personal_borrowing",
 };
 
+// 상세 채무 항목(debts[].debtType)은 간편모드의 폼 코드(DebtType)와 값이 다르다.
+// 상세→간편 모드 전환 시 항목별 원금을 종류별 잔액으로 합산하는 데 쓴다.
+const DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY: Record<
+  AnalysisDebtItemType,
+  keyof AnalysisDebtBreakdown
+> = {
+  bank_loan: "bankLoan",
+  card_debt: "cardDebt",
+  capital_loan: "capitalLoan",
+  private_debt: "privateDebt",
+  personal_borrowing: "personalBorrowing",
+};
+
+const WON_PER_MANWON = 10000;
+
+export function wonToManwon(won: number): number {
+  return Math.round(won / WON_PER_MANWON);
+}
+
+export function manwonToWon(manwon: number): number {
+  return manwon * WON_PER_MANWON;
+}
+
+/** 상세모드 채무 항목들을 간편모드의 종류별 잔액(만원)으로 집계 — 모드 전환/합계 표시용 */
+export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDebtBreakdown {
+  const breakdown: AnalysisDebtBreakdown = {
+    bankLoan: 0,
+    cardDebt: 0,
+    capitalLoan: 0,
+    privateDebt: 0,
+    personalBorrowing: 0,
+  };
+  for (const debt of debts) {
+    const key = DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY[debt.debtType];
+    breakdown[key] = (breakdown[key] ?? 0) + wonToManwon(debt.principalWon);
+  }
+  return breakdown;
+}
+
 const REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY: Record<RealEstateType, keyof AnalysisRealEstateBreakdown> = {
   owned: "ownedValue",
   jeonse_deposit: "jeonseDeposit",
@@ -271,13 +287,9 @@ function optionValueFromLabel<T extends string>(
   return options.find((option) => option.label === label)?.value ?? null;
 }
 
-// 실 API가 요구하는 필수값 중 폼에서 null일 수 있는 항목이 채워졌다는 전제 하에 호출한다.
-// (호출 전 반드시 validateDiagnosisForm의 getMissingRequiredFieldLabels로 검증)
-// 생성(POST /v1/analysis)과 재분석(PATCH /v1/analysis/{id}/input)이 동일한 입력 형태를
-// 쓰므로 공통 매핑만 여기서 만들고, projectId/customerId 등 나머지는 호출부에서 붙인다.
-function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
-  // 실 API는 "해당 없는 항목은 0 또는 생략"이라 안내하지만, 채무종류를 하나도 선택하지
-  // 않으면 빈 객체({})가 그대로 나가는 사례가 있어 항목별로 명시적으로 0을 채워 보낸다.
+// 간편모드 폼 상태 → debtBreakdown(만원). 실 API는 "해당 없는 항목은 0 또는 생략"이라 안내하지만,
+// 채무종류를 하나도 선택하지 않으면 빈 객체({})가 그대로 나가는 사례가 있어 항목별로 0을 채워 보낸다.
+function buildDebtBreakdown(form: DiagnosisFormState): AnalysisDebtBreakdown {
   const debtBreakdown: AnalysisDebtBreakdown = {
     bankLoan: 0,
     cardDebt: 0,
@@ -289,6 +301,16 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     const key = DEBT_TYPE_TO_BREAKDOWN_KEY[type];
     debtBreakdown[key] = (debtBreakdown[key] ?? 0) + (form.debtAmounts[type] ?? 0);
   });
+  return debtBreakdown;
+}
+
+// 실 API가 요구하는 필수값 중 폼에서 null일 수 있는 항목이 채워졌다는 전제 하에 호출한다.
+// (호출 전 반드시 validateDiagnosisForm의 getMissingRequiredFieldLabels로 검증)
+// 생성(POST /v1/analysis)과 재분석(PATCH /v1/analysis/{id}/input)이 동일한 입력 형태를
+// 쓰므로 공통 매핑만 여기서 만들고, projectId/customerId 등 나머지는 호출부에서 붙인다.
+function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
+  const isDetailed = form.debtInputMode === "detailed";
+  const debtBreakdown = buildDebtBreakdown(form);
 
   // 부동산 미보유 시에도 동일한 이유로 명시적으로 0을 채워 보낸다.
   const realEstateBreakdown: AnalysisRealEstateBreakdown = {
@@ -318,11 +340,18 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       transportCost: form.expenses.transportation,
       otherFixedCost: form.expenses.other,
     },
-    debtBreakdown,
+    // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
+    // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
+    ...(isDetailed
+      ? { debtInputMode: "detailed" as const, debts: form.debts }
+      : {
+          debtInputMode: "simple" as const,
+          debtBreakdown,
+          overdueMonths: form.overdueMonths ?? 0,
+        }),
     collateralDebt: form.securedDebt,
     debtIncurredLast3Months: form.recentDebtWithin3Months,
     debtIncurredLast1Year: form.recentDebtWithin1Year,
-    overduePeriod: OVERDUE_PERIOD_TO_ANALYSIS[form.overduePeriod!],
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
     realEstateBreakdown,
     financialAssetRange: FINANCIAL_ASSET_TO_ANALYSIS[form.financialAsset!],
@@ -338,6 +367,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       : undefined,
     hasTaxArrears: form.hasTaxArrears,
     hasRecentAssetDisposal: form.hasRecentAssetDisposal,
+    isOperatingBusiness: form.isOperatingBusiness,
     specialEligibilities: form.specialEligibility.map((item) => SPECIAL_ELIGIBILITY_TO_ANALYSIS[item]),
     additionalNotes: form.counselorMemo || undefined,
   };
@@ -387,9 +417,14 @@ function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
     financialAsset: FINANCIAL_ASSET_FROM_ANALYSIS[input.financialAssetRange] ?? null,
     vehicle: VEHICLE_FROM_ANALYSIS[input.vehicleValueRange] ?? null,
     hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? false,
+    isOperatingBusiness: input.isOperatingBusiness ?? false,
+    debtInputMode: input.debtInputMode ?? "simple",
     debtTypes,
     debtAmounts,
-    overduePeriod: OVERDUE_PERIOD_FROM_ANALYSIS[input.overduePeriod] ?? null,
+    debts: input.debts ?? [],
+    // 서버는 모드와 무관하게 항상 숫자로 내려준다. 구 데이터(버킷 enum으로 저장된 건)에서
+    // 값이 비어 올 가능성에 대비해 0으로 폴백한다.
+    overdueMonths: input.overdueMonths ?? 0,
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     hasTaxArrears: input.hasTaxArrears ?? false,
@@ -440,9 +475,7 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     totalDebtManwon: item.totalDebt,
     monthlyAvailableIncomeManwon: item.disposableIncome,
     status: item.status,
-    recommendedProcedure: item.procedure
-      ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(item.procedure)]
-      : undefined,
+    recommendedProcedure: item.procedure ? normalizeProcedureType(item.procedure) : undefined,
     feePlanSummary: item.feePlan,
     // 아직 절차 추적을 시작하지 않아 null이면 1단계로 표시
     progressStep: item.currentProcedureStep ?? 1,
@@ -460,12 +493,6 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
   };
 }
 
-// AnalysisScores/AnalysisProcedureConditionsMap/AnalysisProcedureGuidesMap이 공유하는 키 형식.
-const PROCEDURE_TO_SCORE_KEY: Record<AnalysisProcedureType, keyof AnalysisScores> = {
-  individual_rehabilitation: "individualRehabilitation",
-  bankruptcy: "bankruptcy",
-};
-
 // 절차별 점수 → 등급. 실 API에 등급 필드가 없어 클라이언트에서 임계값으로 판정한다.
 function scoreToGrade(score: number): ProcedureGrade {
   if (score >= 70) return "good";
@@ -473,15 +500,7 @@ function scoreToGrade(score: number): ProcedureGrade {
   return "low";
 }
 
-// 연체기간은 실 API에 구간(enum)만 있고 정확한 개월 수가 없어 대표값으로 근사한다.
-// (MONTHLY_INCOME_ESTIMATE와 동일한 방식)
-const OVERDUE_MONTHS_ESTIMATE: Record<AnalysisOverduePeriod, number> = {
-  none: 0,
-  under_3_months: 1,
-  "3_to_6_months": 4,
-  "6_to_12_months": 9,
-  over_1_year: 18,
-};
+// 연체기간은 2026-08-04 스펙부터 정확한 개월 수(정수)로 내려와 근사가 필요 없다.
 
 // 금융자산/차량가액은 실 API에 구간만 있어 대표값(만원)으로 근사한다.
 // (부동산은 inputData.totalRealEstateValue로 정확한 값을 받으므로 근사 불필요)
@@ -504,7 +523,7 @@ const BREAKDOWN_LABEL: Record<keyof AnalysisDebtBreakdown, string> = {
   bankLoan: "은행대출",
   cardDebt: "카드론",
   capitalLoan: "캐피탈/저축은행",
-  privateDebt: "사채",
+  privateDebt: "대부업체",
   personalBorrowing: "개인차용",
 };
 
@@ -541,32 +560,29 @@ function buildConditionAnalysis(conditions: AnalysisProcedureConditions): Condit
 
 function buildConditionAnalysisByProcedure(
   conditions: AnalysisProcedureConditionsMap
-): Record<RecommendedProcedure, ConditionItem[]> {
-  return (Object.keys(PROCEDURE_TO_SCORE_KEY) as AnalysisProcedureType[]).reduce(
-    (acc, procedure) => {
-      acc[PROCEDURE_FROM_ANALYSIS[procedure]] = buildConditionAnalysis(
-        conditions[PROCEDURE_TO_SCORE_KEY[procedure]]
-      );
-      return acc;
-    },
-    {} as Record<RecommendedProcedure, ConditionItem[]>
-  );
+): Partial<Record<RecommendedProcedure, ConditionItem[]>> {
+  const result: Partial<Record<RecommendedProcedure, ConditionItem[]>> = {};
+  for (const [procedure, condition] of procedureEntries(conditions)) {
+    result[procedure] = buildConditionAnalysis(condition);
+  }
+  return result;
 }
 
+// 응답에 포함된 절차만 카드로 만든다 — 자격 게이트를 통과하지 못한 절차(사업 미영위 시
+// 새출발기금)는 키 자체가 없다. 절차가 6종으로 늘어 순서는 추천 절차 우선 + 점수 내림차순으로 잡는다.
 function buildProcedureScores(
   scores: AnalysisScores,
   recommendation: AnalysisProcedureType
 ): ProcedureScore[] {
-  return (Object.keys(PROCEDURE_TO_SCORE_KEY) as AnalysisProcedureType[]).map((procedure) => {
-    const score = scores[PROCEDURE_TO_SCORE_KEY[procedure]];
-    return {
-      procedure: PROCEDURE_FROM_ANALYSIS[procedure],
-      label: RECOMMENDED_PROCEDURE_LABEL[PROCEDURE_FROM_ANALYSIS[procedure]],
+  return procedureEntries(scores)
+    .map(([procedure, score]) => ({
+      procedure,
+      label: RECOMMENDED_PROCEDURE_LABEL[procedure],
       score,
       grade: scoreToGrade(score),
       recommended: procedure === recommendation,
-    };
-  });
+    }))
+    .sort((a, b) => Number(b.recommended) - Number(a.recommended) || b.score - a.score);
 }
 
 // 절차 단계 상세의 caution/example/note 중 하나를 골라 안내 배지로 표시 (우선순위: 주의 > 예시 > 참고)
@@ -650,15 +666,14 @@ export const DebtReliefService = {
       statusDistribution[item.status] = item.count;
     }
 
-    const progressStepsByProcedure: Record<RecommendedProcedure, { step: number; title?: string; count: number }[]> = {
-      individual_rehab: [],
-      bankruptcy: [],
-    };
+    const progressStepsByProcedure: Partial<
+      Record<RecommendedProcedure, { step: number; title?: string; count: number }[]>
+    > = {};
     for (const procedure of data.stepProgressByProcedure ?? []) {
       // 레거시 채무조정 데이터가 여전히 집계에 섞여 내려오면(방어 코드) 개인회생 그룹에 합산한다
       // — stepId가 겹치면 건수를 더하고, 새 stepId면 추가한다.
-      const key = PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(procedure.procedure)];
-      const merged = new Map(progressStepsByProcedure[key].map((item) => [item.step, { ...item }]));
+      const key = normalizeProcedureType(procedure.procedure);
+      const merged = new Map((progressStepsByProcedure[key] ?? []).map((item) => [item.step, { ...item }]));
       for (const step of procedure.steps ?? []) {
         const existing = merged.get(step.stepId);
         if (existing) {
@@ -692,7 +707,7 @@ export const DebtReliefService = {
       projectId,
       page,
       limit,
-      procedure: procedure ? PROCEDURE_TO_ANALYSIS[procedure] : undefined,
+      procedure,
       status,
       search: keyword.trim() || undefined,
       sortType: sortField ? SORT_FIELD_TO_ANALYSIS[sortField] : undefined,
@@ -725,20 +740,23 @@ export const DebtReliefService = {
     const analysis = response.data.data;
     const inputData = analysis.inputData;
 
-    // normalizeProcedureType: 레거시 채무조정 데이터 방어 — 개인회생/파산이 아니면 개인회생으로 대체.
-    const recommendation: AnalysisProcedureType = normalizeProcedureType(
+    // normalizeProcedureType: 레거시 채무조정 등 알 수 없는 값 방어 — 유효 절차가 아니면 개인회생으로 대체.
+    const recommendedProcedure: AnalysisProcedureType = normalizeProcedureType(
       analysis.analysisResult?.recommendation ?? analysis.trackingProcedure ?? "individual_rehabilitation"
     );
-    const recommendedProcedure = PROCEDURE_FROM_ANALYSIS[recommendation];
-    const scoreKey = PROCEDURE_TO_SCORE_KEY[recommendation];
-    const successProbability = analysis.analysisResult?.scores[scoreKey] ?? 0;
-
-    // AI 추천(recommendation)과 별개로, 실제 상담사가 추적 중인 절차. 아직 추적을 시작하지
-    // 않았다면(trackingProcedure가 null) AI 추천으로 대체 표시한다.
-    const trackingProcedureCode: AnalysisProcedureType = normalizeProcedureType(
-      analysis.trackingProcedure ?? recommendation
+    // 자격 게이트를 통과하지 못한 절차는 응답 맵에 키 자체가 없다 — pickProcedureValue로 안전 조회.
+    const recommendedConditions = pickProcedureValue(
+      analysis.analysisResult?.procedureConditions,
+      recommendedProcedure
     );
-    const trackingProcedure = PROCEDURE_FROM_ANALYSIS[trackingProcedureCode];
+    const successProbability =
+      pickProcedureValue(analysis.analysisResult?.scores, recommendedProcedure) ?? 0;
+
+    // AI 추천(recommendedProcedure)과 별개로, 실제 상담사가 추적 중인 절차. 아직 추적을 시작하지
+    // 않았다면(trackingProcedure가 null) AI 추천으로 대체 표시한다.
+    const trackingProcedure: AnalysisProcedureType = normalizeProcedureType(
+      analysis.trackingProcedure ?? recommendedProcedure
+    );
 
     // 공유(납품) contact를 우선 사용. 없으면 매칭된 고객 연락처를 조회한다.
     // 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있어 실패해도 무시한다.
@@ -755,8 +773,11 @@ export const DebtReliefService = {
       }
     }
 
-    const guideKey = PROCEDURE_TO_SCORE_KEY[trackingProcedureCode];
-    const guide = analysis.procedureGuides?.[guideKey];
+    const guide = pickProcedureValue(analysis.procedureGuides, trackingProcedure);
+    // 추적 절차의 변제 계획이 없으면(자격 게이트 미통과 절차를 추적 중인 경우) AI 추천 절차로 폴백.
+    const trackedRepayment =
+      pickProcedureValue(analysis.analysisResult?.expectedRepayment, trackingProcedure) ??
+      pickProcedureValue(analysis.analysisResult?.expectedRepayment, recommendedProcedure);
     const totalDebt = inputData.totalDebt;
     // 공유(납품)받은 건 판별 — source(원본 출처) 필드로만 판단한다. deliveryStatus는 공유 연결의
     // "양쪽"(보낸 영업점 + 받은 변호사) 모두에 남아, 영업점이 자기가 공유했다 반려당한 "자기 데이터"를
@@ -804,38 +825,40 @@ export const DebtReliefService = {
       recommendation: {
         title: RECOMMENDED_PROCEDURE_LABEL[recommendedProcedure],
         description: analysis.analysisResult?.consultingScripts.firstExplanation ?? "",
-        tags: analysis.analysisResult?.procedureConditions[scoreKey].satisfied ?? [],
+        tags: recommendedConditions?.satisfied ?? [],
       },
       procedureScores: analysis.analysisResult
-        ? buildProcedureScores(analysis.analysisResult.scores, recommendation)
+        ? buildProcedureScores(analysis.analysisResult.scores, recommendedProcedure)
         : [],
-      conditionAnalysis: analysis.analysisResult
-        ? buildConditionAnalysis(analysis.analysisResult.procedureConditions[scoreKey])
-        : [],
+      conditionAnalysis: recommendedConditions ? buildConditionAnalysis(recommendedConditions) : [],
       conditionAnalysisByProcedure: analysis.analysisResult
         ? buildConditionAnalysisByProcedure(analysis.analysisResult.procedureConditions)
-        : { individual_rehab: [], bankruptcy: [] },
+        : {},
       debtStatus: {
         totalDebtManwon: totalDebt,
+        // 간편모드 건에는 이자 데이터 자체가 없어 undefined — UI에서 항목을 숨긴다.
+        totalDebtWithInterestManwon: inputData.totalDebtWithInterest,
         totalAssetManwon:
           inputData.totalRealEstateValue +
           FINANCIAL_ASSET_ESTIMATE[inputData.financialAssetRange] +
           VEHICLE_VALUE_ESTIMATE[inputData.vehicleValueRange],
         monthlyAvailableIncomeManwon: inputData.disposableIncome,
-        overdueMonths: OVERDUE_MONTHS_ESTIMATE[inputData.overduePeriod],
+        overdueMonths: inputData.overdueMonths ?? 0,
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
       debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
-      // expectedRepayment.monthlyPayment/totalPayment/expectedExemption 모두 이미 만원 단위로 내려온다
-      // (2026-07-20 실 응답 확인: monthlyPayment 125 × periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
-      repaymentPlan: analysis.analysisResult
+      // 금액은 모두 만원 단위로 내려온다 (2026-07-20 실 응답 확인: monthlyPayment 125 ×
+      // periodMonths 40 = totalPayment 5000, totalDebt와 동일 스케일).
+      // 절차별 맵이라 화면 나머지와 동일하게 "추적 중인 절차" 기준으로 고른다.
+      repaymentPlan: trackedRepayment
         ? {
-            monthlyPaymentManwon: analysis.analysisResult.expectedRepayment.monthlyPayment,
-            months: analysis.analysisResult.expectedRepayment.periodMonths,
-            years: Math.round((analysis.analysisResult.expectedRepayment.periodMonths / 12) * 10) / 10,
-            totalPaymentManwon: analysis.analysisResult.expectedRepayment.totalPayment,
-            exemptedDebtManwon: analysis.analysisResult.expectedRepayment.expectedExemption,
-            notes: analysis.analysisResult.precautions,
+            monthlyPaymentManwon: trackedRepayment.monthlyPayment,
+            months: trackedRepayment.periodMonths,
+            years: Math.round((trackedRepayment.periodMonths / 12) * 10) / 10,
+            totalPaymentManwon: trackedRepayment.totalPayment,
+            exemptedDebtManwon: trackedRepayment.expectedExemption,
+            exemptedDebtWithInterestManwon: trackedRepayment.expectedExemptionWithInterest,
+            notes: analysis.analysisResult?.precautions ?? [],
           }
         : { monthlyPaymentManwon: 0, months: 0, years: 0, totalPaymentManwon: 0, exemptedDebtManwon: 0, notes: [] },
       counselMents: analysis.analysisResult
@@ -887,7 +910,7 @@ export const DebtReliefService = {
   ): Promise<void> {
     await AnalysisService.update(Number(id), {
       projectId,
-      trackingProcedure: PROCEDURE_TO_ANALYSIS[input.trackingProcedure],
+      trackingProcedure: input.trackingProcedure,
       currentProcedureStep: input.currentProcedureStep,
     });
   },
@@ -938,6 +961,34 @@ export const DebtReliefService = {
   ): Promise<CreateDiagnosisResult> {
     const response = await AnalysisService.reanalyze(Number(id), toCreateAnalysisInput(projectId, form));
     return { id: String(response.data.data.id) };
+  },
+
+  // 결과 화면에서 채무 정보만 수정 (PATCH /v1/analysis/{id}/debts). 허용 상태는 재진단과 동일해
+  // canEditDiagnosisInfo를 그대로 재사용하면 된다.
+  // ⚠️ reanalyze=true는 되돌릴 수 없다 — 상태 초기화 + AI 채팅 이력 삭제 + 절차 추적 초기화.
+  // 호출부에서 반드시 확인 모달을 거칠 것.
+  async updateDiagnosisDebts(
+    projectId: string,
+    id: string,
+    form: DiagnosisFormState,
+    reanalyze: boolean
+  ): Promise<void> {
+    const isDetailed = form.debtInputMode === "detailed";
+    await AnalysisService.updateDebts(Number(id), {
+      projectId,
+      ...(isDetailed
+        ? { debtInputMode: "detailed" as const, debts: form.debts }
+        : {
+            debtInputMode: "simple" as const,
+            debtBreakdown: buildDebtBreakdown(form),
+            overdueMonths: form.overdueMonths ?? 0,
+          }),
+      collateralDebt: form.securedDebt,
+      debtIncurredLast3Months: form.recentDebtWithin3Months,
+      debtIncurredLast1Year: form.recentDebtWithin1Year,
+      debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
+      reanalyze,
+    });
   },
 
   // 진단 삭제 (공유받은 분석 건은 백엔드에서 거부될 수 있음)

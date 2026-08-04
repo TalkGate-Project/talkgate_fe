@@ -5,19 +5,29 @@ function Metric({
   label,
   value,
   unit,
+  note,
 }: {
   label: string;
   value: string;
   unit: string;
+  /** 값 아래 작게 붙는 보조 표기 (예: "이자 포함 시 3,100만원"). 없으면 렌더하지 않는다 */
+  note?: string;
 }) {
   return (
     <div className="flex flex-col gap-2 md:gap-[12px]">
       <p className="text-[13px] md:text-[14px] font-medium leading-[17px] text-neutral-60">{label}</p>
-      <div className="flex items-baseline gap-1">
-        <span className="font-montserrat font-bold text-[24px] md:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
-          {value}
-        </span>
-        <span className="text-[13px] md:text-[14px] font-semibold leading-[17px] text-neutral-60">{unit}</span>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-baseline gap-1">
+          <span className="font-montserrat font-bold text-[24px] md:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
+            {value}
+          </span>
+          <span className="text-[13px] md:text-[14px] font-semibold leading-[17px] text-neutral-60">{unit}</span>
+        </div>
+        {note && (
+          <p className="text-[12px] font-medium leading-[14px] text-neutral-50 whitespace-nowrap">
+            {note}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -39,10 +49,17 @@ export default function SectionDebtStatus({ detail }: { detail: DiagnosisDetail 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
         {/* 좌: 2x2 지표 */}
       <div className="grid grid-cols-2 gap-x-5 md:gap-x-[48px] gap-y-5 md:gap-y-6 min-w-0">
+          {/* 이자 포함 총채무는 채무 상세입력 모드로 생성된 건에만 내려온다 — 간편모드 건에서는
+              값 자체가 없으므로 "0"이 아니라 병기를 통째로 숨긴다. */}
           <Metric
             label="총 채무"
             value={debt.totalDebtManwon.toLocaleString("ko-KR")}
             unit="만원"
+            note={
+              debt.totalDebtWithInterestManwon != null
+                ? `이자 포함 시 ${debt.totalDebtWithInterestManwon.toLocaleString("ko-KR")}만원`
+                : undefined
+            }
           />
           <Metric
             label="총 자산"

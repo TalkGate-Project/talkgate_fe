@@ -1,6 +1,14 @@
 // 회생·파산 진단 도메인 타입
 
-import type { AnalysisInputData, AnalysisStatus } from "@/types/analysis";
+import type {
+  AnalysisDebtInputMode,
+  AnalysisDebtItem,
+  AnalysisDebtItemType,
+  AnalysisInputData,
+  AnalysisProcedureType,
+  AnalysisRepaymentMethod,
+  AnalysisStatus,
+} from "@/types/analysis";
 import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
 
 // ── 상태값 ───────────────────────────────────────────────────
@@ -54,18 +62,31 @@ export function canEditDiagnosisInfo(params: {
 
 // ── 추천 절차 ────────────────────────────────────────────────
 // 코드는 내부 분기(배지 색상/탭 필터/분포 집계)용, 라벨은 UI 표시용.
-// ⚠️ 채무조정 절차가 스키마·enum에서 완전히 제거됨(2026-07-24) — 개인회생/파산 2종만 남는다.
-export type RecommendedProcedure = "individual_rehab" | "bankruptcy";
+// 2026-08-04: 도메인 코드("individual_rehab")와 실 API 코드("individual_rehabilitation")를
+// 따로 두고 서비스 계층에서 양방향 매핑하던 이중 체계를 폐기하고 API enum 값으로 일원화했다.
+// 절차가 6종으로 늘면서 매핑 테이블·Record 타입을 절차마다 이중 관리해야 하는 비용이 커졌고,
+// 신규 절차를 API와 다르게 명명할 이유도 없다.
+export type RecommendedProcedure = AnalysisProcedureType;
 
 export const RECOMMENDED_PROCEDURE_LABEL: Record<RecommendedProcedure, string> = {
-  individual_rehab: "개인회생",
-  bankruptcy: "파산",
+  individual_rehabilitation: "개인회생",
+  bankruptcy: "개인파산",
+  fresh_start_fund: "새출발기금",
+  speedy_debt_adjustment: "신속채무조정",
+  pre_workout: "프리워크아웃",
+  personal_workout: "개인워크아웃",
 };
 
-// 탭/분포에서 반복 렌더링할 때 사용하는 순서 고정 배열
+// 탭/분포/셀렉트에서 반복 렌더링할 때 사용하는 순서 고정 배열 — 사용자에게 "선택 가능한 절차"로
+// 노출되는 목록의 단일 소스다. GET /v1/analysis의 procedure 필터와 PATCH /v1/analysis/{id}의
+// trackingProcedure가 모두 6종을 수용하는 것을 확인했다(2026-08-04 Swagger).
 export const RECOMMENDED_PROCEDURE_ORDER: RecommendedProcedure[] = [
-  "individual_rehab",
+  "individual_rehabilitation",
   "bankruptcy",
+  "fresh_start_fund",
+  "speedy_debt_adjustment",
+  "pre_workout",
+  "personal_workout",
 ];
 
 // ── 목록 아이템 ──────────────────────────────────────────────
@@ -109,14 +130,18 @@ export type DiagnosisListItem = {
   rejectionReason?: string | null;
 };
 
-export type ProcedureStepTitlesByProcedure = Record<RecommendedProcedure, readonly string[]>;
+export type ProcedureStepTitlesByProcedure = Partial<
+  Record<RecommendedProcedure, readonly string[]>
+>;
 
 // 목록 테이블 "진행단계" 셀용 폴백. 상세 API의 procedureGuides가 목록에는 없어 절차별 단계명이
 // 필요한데, 실 마스터 데이터(GET /v1/analysis/procedures, useAnalysisProcedureMaster)가 아직
 // 로딩 전이거나 실패했을 때만 이 값을 쓴다 — 정상 상황에선 마스터 데이터가 우선한다.
 // (개인회생 9단계는 기존 mock/피그마 값 — 실 API와 단계 수가 다를 수 있음을 감안한 방어값.)
+// 신규 4종(새출발기금·신용회복 3종)은 단계명을 아직 모른다 — 폴백을 비워두면
+// getProgressStepMeta가 "확인 중"으로 떨어져 목록이 깨지지 않는다.
 export const PROCEDURE_PROGRESS_STEP_TITLES: ProcedureStepTitlesByProcedure = {
-  individual_rehab: [
+  individual_rehabilitation: [
     "신청 전 상담",
     "신청서 작성 및 접수",
     "금지명령·중지명령",
@@ -178,8 +203,9 @@ export type DiagnosisHubSummary = {
     paidCount: number; // 이번 달 납부 완료 건수
   };
   statusDistribution: Record<AnalysisStatus, number>;
-  // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시)
-  progressStepsByProcedure: Record<RecommendedProcedure, DiagnosisProgressStepItem[]>;
+  // 절차별 진행단계 현황 (진행단계 카드에서 셀렉트로 전환해 표시).
+  // 서버가 집계 데이터가 있는 절차만 내려주므로 없는 절차는 키 자체가 없다.
+  progressStepsByProcedure: Partial<Record<RecommendedProcedure, DiagnosisProgressStepItem[]>>;
 };
 
 // "상태 분포" 카드 표시 순서 — 반려(rejected)도 포함해 전체 상태 분포를 보여준다.
@@ -345,7 +371,7 @@ export const DEBT_TYPE_OPTIONS: PillOption<DebtType>[] = [
   { value: "bank_loan", label: "은행대출" },
   { value: "card_loan", label: "카드론" },
   { value: "capital", label: "캐피탈/저축은행" },
-  { value: "private_loan", label: "사채" },
+  { value: "private_loan", label: "대부업체" },
   { value: "personal_borrowing", label: "개인차용" },
 ];
 
@@ -353,18 +379,51 @@ export const DEBT_AMOUNT_LABELS: Record<DebtType, string> = {
   bank_loan: "은행 대출",
   card_loan: "카드론",
   capital: "캐피탈/저축은행",
-  private_loan: "사채",
+  private_loan: "대부업체",
   personal_borrowing: "개인차용",
 };
 
-export type OverduePeriod = "none" | "under_3m" | "3_6m" | "6_12m" | "over_1y";
-export const OVERDUE_PERIOD_OPTIONS: PillOption<OverduePeriod>[] = [
-  { value: "none", label: "없음" },
-  { value: "under_3m", label: "3개월 미만" },
-  { value: "3_6m", label: "3~6개월" },
-  { value: "6_12m", label: "6~12개월" },
-  { value: "over_1y", label: "1년 이상" },
+// 2026-08-04: 연체기간이 5단계 버킷 enum에서 정확한 개월 수(정수)로 바뀌었다 —
+// OverduePeriod/OVERDUE_PERIOD_OPTIONS는 제거하고 숫자 입력(MonthsInput)을 쓴다.
+
+// ── 채무 입력 모드 (간편/상세) ──────────────────────────────
+export const REPAYMENT_METHOD_OPTIONS: PillOption<AnalysisRepaymentMethod>[] = [
+  { value: "equal_principal_and_interest", label: "원리금균등" },
+  { value: "equal_principal", label: "원금균등" },
+  { value: "bullet_payment", label: "만기일시" },
+  { value: "interest_only", label: "이자만납입" },
 ];
+
+// 상세 채무 항목의 채무종류. 간편모드의 DebtType(폼 코드)과 값이 달라(card_loan vs card_debt 등)
+// 별도 옵션으로 두고, 서비스 계층에서 DEBT_TYPE_TO_ITEM_TYPE으로 상호 변환한다.
+export const DEBT_ITEM_TYPE_OPTIONS: PillOption<AnalysisDebtItemType>[] = [
+  { value: "bank_loan", label: "은행대출" },
+  { value: "card_debt", label: "카드론" },
+  { value: "capital_loan", label: "캐피탈/저축은행" },
+  { value: "private_debt", label: "대부업체" },
+  { value: "personal_borrowing", label: "개인차용" },
+];
+
+/** 상세모드 폼 행 상태. 금액(*Won)은 API와 동일하게 원 단위로 보관한다 */
+export type DebtItemFormState = AnalysisDebtItem;
+
+export function createEmptyDebtItem(id: string): DebtItemFormState {
+  return {
+    id,
+    debtType: "bank_loan",
+    creditorName: "",
+    repaymentMethod: "equal_principal_and_interest",
+    overdueMonths: 0,
+    loanDate: "",
+    maturityDate: "",
+    principalWon: 0,
+    interestRate: 0,
+    termMonths: 0,
+    monthlyPaymentWon: 0,
+    totalInterestWon: 0,
+    totalRepaymentWon: 0,
+  };
+}
 
 export type DebtCause =
   | "business_failure"
@@ -457,6 +516,9 @@ export type DiagnosisFormState = {
   employmentType: EmploymentType | null;
   dependents: DependentCount | null;
   spouseIncome: boolean | null;
+  /** 사업 영위 여부(현재 또는 과거) — API `isOperatingBusiness`. 새출발기금 후보 게이트라
+   * false면 결과에서 새출발기금이 아예 후보에서 빠진다 */
+  isOperatingBusiness: boolean;
 
   // 2. 자산현황
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
@@ -467,9 +529,14 @@ export type DiagnosisFormState = {
   hasRecentAssetDisposal: boolean;
 
   // 3. 채무현황
-  debtTypes: DebtType[];
-  debtAmounts: Partial<Record<DebtType, number>>; // 만원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
-  overduePeriod: OverduePeriod | null;
+  /** 간편(simple) / 상세(detailed) 입력 모드. 두 모드는 서로 다른 필드 집합을 쓴다 */
+  debtInputMode: AnalysisDebtInputMode;
+  debtTypes: DebtType[]; // 간편모드 전용
+  debtAmounts: Partial<Record<DebtType, number>>; // 간편모드 전용. 만원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
+  debts: DebtItemFormState[]; // 상세모드 전용. 금액은 원 단위
+  /** 연체 개월 수. 간편모드에서만 입력받고(필수), 상세모드는 서버가 debts에서 자동 계산한다.
+   * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
+  overdueMonths: number | null;
   debtCauses: DebtCause[];
   creditorCount: CreditorCountRange | null; // 채권자 수 구간
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
@@ -507,14 +574,17 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     employmentType: null,
     dependents: null,
     spouseIncome: null,
+    isOperatingBusiness: false,
     realEstateTypes: [],
     realEstateAmounts: {},
     financialAsset: null,
     vehicle: null,
     hasRecentAssetDisposal: false,
+    debtInputMode: "simple",
     debtTypes: [],
     debtAmounts: {},
-    overduePeriod: null,
+    debts: [],
+    overdueMonths: null,
     debtCauses: [],
     creditorCount: null,
     hasTaxArrears: false,
@@ -580,6 +650,8 @@ export type DebtComposition = { label: string; amountManwon: number; percent: nu
 
 export type DebtStatusSummary = {
   totalDebtManwon: number;
+  /** 이자 포함 총채무 (만원). 채무 상세입력 모드로 생성된 건에만 존재 — 없으면 항목 자체를 숨긴다 */
+  totalDebtWithInterestManwon?: number;
   totalAssetManwon: number;
   monthlyAvailableIncomeManwon: number;
   overdueMonths: number;
@@ -593,6 +665,8 @@ export type RepaymentPlan = {
   years: number;
   totalPaymentManwon: number;
   exemptedDebtManwon: number;
+  /** 이자 포함 예상 면책 채무 (만원). 상세입력 모드 건에만 존재 — 없으면 병기 자체를 숨긴다 */
+  exemptedDebtWithInterestManwon?: number;
   notes: string[];
 };
 
@@ -701,8 +775,9 @@ export type DiagnosisDetail = {
   procedureScores: ProcedureScore[];
   // 추천 절차 기준 조건 분석 (문자 발송 템플릿 등에서 사용)
   conditionAnalysis: ConditionItem[];
-  // 절차별(개인회생/파산) 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용
-  conditionAnalysisByProcedure: Record<RecommendedProcedure, ConditionItem[]>;
+  // 절차별 조건 분석 — 결과 페이지에서 절차 선택 시 전환 표시용.
+  // 자격 게이트를 통과하지 못한 절차(예: 사업 미영위 시 새출발기금)는 키가 없다.
+  conditionAnalysisByProcedure: Partial<Record<RecommendedProcedure, ConditionItem[]>>;
   debtStatus: DebtStatusSummary;
   // 개인회생 추적 시에만 노출되는 "채무조정 비교" 문구 (없으면 null — 섹션 자체를 숨김)
   debtAdjustmentComparison: string | null;

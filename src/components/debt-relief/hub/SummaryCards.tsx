@@ -138,7 +138,7 @@ export default function SummaryCards({
   // 피그마 기본값: 개인회생. 깜빡임 방지를 위해 off에 해당하는 첫 옵션으로 시작해도 되지만
   // 절차 셀렉트는 항상 하나의 값이 필요하므로 기본 절차를 바로 둔다.
   const [selectedProcedure, setSelectedProcedure] =
-    useState<RecommendedProcedure>("individual_rehab");
+    useState<RecommendedProcedure>("individual_rehabilitation");
 
   if (loading || !summary) return <SummaryCardsSkeleton />;
 

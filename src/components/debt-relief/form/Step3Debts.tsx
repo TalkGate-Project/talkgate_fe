@@ -3,12 +3,11 @@ import {
   DEBT_AMOUNT_LABELS,
   DEBT_CAUSE_OPTIONS,
   DEBT_TYPE_OPTIONS,
-  OVERDUE_PERIOD_OPTIONS,
   type DebtType,
   type DiagnosisDerivedValues,
   type DiagnosisFormState,
 } from "@/types/debtRelief";
-import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
+import { FormField, FormSectionTitle, ManwonInput, MonthsInput } from "./FormControls";
 import { PillSelect, PillMultiSelect } from "./PillSelect";
 import { FormToggleRow } from "./FormToggle";
 import { getOverLimitDebtFields } from "./validateDiagnosisForm";
@@ -28,6 +27,23 @@ function getDebtAmountFields(selectedTypes: DebtType[]): { key: DebtType; label:
   );
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// TODO(Phase 4-3, 채무 상세입력 UI — 미착수): 이 컴포넌트는 현재 간편(simple) 모드
+// 화면만 그린다. DiagnosisFormState.debtInputMode는 항상 "simple"로 시작하고 이
+// 화면에 모드 전환 UI가 없어 사실상 고정돼 있다 — 즉 지금은 detailed 값이 만들어질
+// 경로가 없으므로 안전하게 휴면 상태다.
+//
+// 상세모드 착수 시 필요한 것 (타입·서비스 계층은 이미 준비됨, docs/
+// ANALYSIS_6_PROCEDURES_MIGRATION_TASKS.md Phase 4-3 참고):
+//   - 카드 헤더에 간편/상세 세그먼트 토글 (샘플사이트 참고)
+//   - 상세모드 진입 시 이 카드 안의 채무종류/금액그리드/합계/연체기간(52~122번 줄)을 숨기고
+//     DebtItemFormState[] 행 테이블로 교체 (types/debtRelief.ts의 DebtItemFormState,
+//     createEmptyDebtItem, DEBT_ITEM_TYPE_OPTIONS, REPAYMENT_METHOD_OPTIONS 사용)
+//   - 「채무발생 원인」(158번 줄)은 샘플사이트 기준 두 모드가 공유하며 카드 바깥에 위치
+//     — 상세모드 작업 시 이 컴포넌트 밖으로 빼내는 리팩터링 필요
+//   - 상세모드에서는 원 단위 입력(WonInput, FormControls.tsx에 준비됨)을 쓰고
+//     사이드바 등 표시부만 wonToManwon()으로 환산 (services/debtRelief.ts)
+// ════════════════════════════════════════════════════════════════════════
 export default function Step3Debts({ form, update, derived, debtSumOverLimitChecked = false }: Props) {
   // 값 하나만으로 총 채무를 넘는 필드가 있으면 그 필드만 표시하고, 여러 필드의 조합으로만
   // 초과하는 경우(원인을 특정할 수 없음)에는 세 필드 모두 표시한다 — getOverLimitDebtFields 참고.
@@ -110,11 +126,15 @@ export default function Step3Debts({ form, update, derived, debtSumOverLimitChec
             />
           </FormField>
 
-          <FormField label="연체기간" required filled={form.overduePeriod !== null}>
-            <PillSelect
-              options={OVERDUE_PERIOD_OPTIONS}
-              value={form.overduePeriod}
-              onChange={(value) => update("overduePeriod", value)}
+          <FormField
+            label="연체기간"
+            hint="여러 채무가 있으면 가장 긴 연체 기준으로"
+            required
+            filled={form.overdueMonths !== null}
+          >
+            <MonthsInput
+              value={form.overdueMonths}
+              onChange={(value) => update("overdueMonths", value)}
             />
           </FormField>
 

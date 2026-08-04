@@ -181,6 +181,12 @@ export default function SectionRepaymentPlan({ detail }: { detail: DiagnosisDeta
             <p className="font-montserrat font-bold text-[20px] lg:text-[28px] leading-7 tracking-[-0.03em] text-neutral-90">
               약 {formatManwonComma(plan.exemptedDebtManwon)}
             </p>
+            {/* 이자 포함 값은 채무 상세입력 모드 건에만 존재 — 없으면 병기 자체를 숨긴다 */}
+            {plan.exemptedDebtWithInterestManwon != null && (
+              <p className="text-[12px] font-medium leading-[14px] text-neutral-50">
+                이자 포함 시 약 {formatManwonComma(plan.exemptedDebtWithInterestManwon)}
+              </p>
+            )}
           </div>
           <div className="flex-1 flex flex-col gap-3">
             <p className="text-[14px] font-medium leading-[17px] text-neutral-60">예상 잔여 채무</p>

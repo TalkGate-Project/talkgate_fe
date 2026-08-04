@@ -4,8 +4,8 @@ import type { FeePlan, FeePlanSummary } from "@/types/analysisFeePlan";
 
 // Analysis(채무 정리 AI 진단) 도메인 타입
 // Swagger 스펙(POST/GET/PATCH/DELETE /v1/analysis 등) 기준.
-// ⚠️ src/types/debtRelief.ts의 mock 전용 RecommendedProcedure는 값이 다르다
-// ("individual_rehab" vs 여기의 "individual_rehabilitation"). 실 API 연동 시 값 매핑 필요.
+// src/types/debtRelief.ts의 RecommendedProcedure는 이 파일의 AnalysisProcedureType 별칭이다
+// (2026-08-04 일원화) — 절차 코드는 도메인/API 구분 없이 같은 값을 그대로 쓴다.
 
 export type AnalysisStatus =
   | "consulting"
@@ -15,16 +15,42 @@ export type AnalysisStatus =
   | "in_progress"
   | "suspended";
 
-export type AnalysisProcedureType = "individual_rehabilitation" | "bankruptcy";
+// 2026-08-04 스펙 확장: 새출발기금·신용회복 3종이 추가되어 2종 → 6종.
+// fresh_start_fund(새출발기금)는 자격 게이트가 있어 inputData.isOperatingBusiness가 true인
+// 케이스에서만 후보에 포함된다 — 응답의 scores/procedureConditions 등에 키 자체가 없을 수 있다.
+export type AnalysisProcedureType =
+  | "individual_rehabilitation"
+  | "bankruptcy"
+  | "fresh_start_fund"
+  | "speedy_debt_adjustment"
+  | "pre_workout"
+  | "personal_workout";
+
+// 절차를 반복 렌더링/순회할 때 쓰는 표시 순서 단일 소스.
+export const ANALYSIS_PROCEDURE_ORDER: readonly AnalysisProcedureType[] = [
+  "individual_rehabilitation",
+  "bankruptcy",
+  "fresh_start_fund",
+  "speedy_debt_adjustment",
+  "pre_workout",
+  "personal_workout",
+];
+
+const ANALYSIS_PROCEDURE_SET = new Set<string>(ANALYSIS_PROCEDURE_ORDER);
+
+export function isAnalysisProcedureType(value: unknown): value is AnalysisProcedureType {
+  return typeof value === "string" && ANALYSIS_PROCEDURE_SET.has(value);
+}
 
 // 채무조정 절차가 스키마·enum에서 완전히 제거됨(2026-07-24, 백엔드 이건하). 기존에 생성된 분석 건 중
 // 일부는 DB에 trackingProcedure/recommendation 등이 여전히 레거시 값("debt_adjustment")으로 남아있을
 // 수 있어, 이 값이 그대로 화면에 흘러들어와 라벨 조회가 undefined가 되는 걸 막기 위한 방어 코드.
-// 개인회생/파산 둘 중 하나가 아니면(레거시 채무조정 포함) 전부 개인회생으로 대체 표시한다.
+// ⚠️ 유효한 절차 값은 그대로 통과시켜야 한다 — 예전 구현처럼 "bankruptcy가 아니면 개인회생"으로
+// 판정하면 6종으로 늘어난 신규 절차가 전부 개인회생으로 뭉개진다.
 export function normalizeProcedureType(
   value: AnalysisProcedureType | string | null | undefined
 ): AnalysisProcedureType {
-  return value === "bankruptcy" ? "bankruptcy" : "individual_rehabilitation";
+  return isAnalysisProcedureType(value) ? value : "individual_rehabilitation";
 }
 
 export type AnalysisGender = "male" | "female";
@@ -41,13 +67,6 @@ export type AnalysisHousingType =
   | "jeonse"
   | "monthly_rent"
   | "living_with_family";
-
-export type AnalysisOverduePeriod =
-  | "none"
-  | "under_3_months"
-  | "3_to_6_months"
-  | "6_to_12_months"
-  | "over_1_year";
 
 export type AnalysisDebtCause =
   | "business_failure"
@@ -90,6 +109,56 @@ export type AnalysisDebtBreakdown = {
   personalBorrowing?: number;
 };
 
+// ── 채무 입력 모드 (2026-08-04 신규) ────────────────────────
+// simple: 기존과 동일하게 debtBreakdown(종류별 잔액, 만원)을 보낸다. 생략 시 기본값.
+// detailed: debts(채무 건별 상세) 배열을 보내고 debtBreakdown은 서버가 자동 집계한다.
+export type AnalysisDebtInputMode = "simple" | "detailed";
+
+// debtBreakdown의 5개 슬롯과 1:1 대응한다(저축은행 전용 슬롯은 없음 — capital_loan에 통합).
+export type AnalysisDebtItemType =
+  | "bank_loan"
+  | "card_debt"
+  | "capital_loan"
+  | "private_debt"
+  | "personal_borrowing";
+
+export type AnalysisRepaymentMethod =
+  | "equal_principal_and_interest"
+  | "equal_principal"
+  | "bullet_payment"
+  | "interest_only";
+
+// ⚠️ 금액 필드(*Won)만 원 단위다 — 이 도메인의 다른 모든 금액은 만원 단위라 혼동 주의.
+export type AnalysisDebtItem = {
+  /** 프론트에서 생성한 임의 ID (수정 시 항목 식별용) */
+  id: string;
+  debtType: AnalysisDebtItemType;
+  creditorName: string;
+  repaymentMethod: AnalysisRepaymentMethod;
+  overdueMonths: number;
+  /** YYYY-MM-DD */
+  loanDate?: string;
+  /** YYYY-MM-DD */
+  maturityDate?: string;
+  principalWon: number;
+  /** % (소수점 가능) */
+  interestRate: number;
+  termMonths: number;
+  monthlyPaymentWon: number;
+  totalInterestWon: number;
+  totalRepaymentWon: number;
+};
+
+/** 상세모드로 입력된 건에만 응답에 포함되는 서버 계산값 */
+export type AnalysisDebtDerivedSignals = {
+  maxOverdueMonths: number;
+  weightedAverageInterestRate: number;
+  /** ⚠️ 단위(0~1 비율 vs 0~100 퍼센트) 백엔드 확인 전 — 화면 표시 시 반드시 확인할 것 */
+  highInterestDebtRatio: number;
+  totalInterestWon: number;
+  totalRepaymentWon: number;
+};
+
 // 2026-07-24 스펙 갱신: 개인회생 변제기간 단축 특례 대상(중복 선택 가능, 없으면 빈 배열).
 export type AnalysisSpecialEligibility =
   | "under_29"
@@ -112,11 +181,17 @@ export type AnalysisFormInput = {
   monthlyIncomeRange: AnalysisMonthlyIncomeRange;
   housingType: AnalysisHousingType;
   fixedExpenses: AnalysisFixedExpenses;
-  debtBreakdown: AnalysisDebtBreakdown;
+  /** 생략 시 서버 기본값 "simple" */
+  debtInputMode?: AnalysisDebtInputMode;
+  /** simple 모드일 때 필수. detailed 모드에서는 서버가 debts로부터 자동 집계한다 */
+  debtBreakdown?: AnalysisDebtBreakdown;
+  /** detailed 모드일 때 필수(1건 이상). simple 모드에서는 보내지 않는다 */
+  debts?: AnalysisDebtItem[];
   collateralDebt: number; // 담보부 채무 (만원)
   debtIncurredLast3Months: number; // 최근 3개월 내 발생 채무액 (만원)
   debtIncurredLast1Year: number; // 최근 1년 내 발생 채무액 (만원)
-  overduePeriod: AnalysisOverduePeriod;
+  /** 연체 개월 수(정수). simple 모드일 때 필수 — detailed는 서버가 debts 중 최대값으로 자동 계산 */
+  overdueMonths?: number;
   debtCauses: AnalysisDebtCause[];
   realEstateBreakdown: AnalysisRealEstateBreakdown;
   financialAssetRange: AnalysisFinancialAssetRange;
@@ -130,6 +205,8 @@ export type AnalysisFormInput = {
   creditorCount?: number;
   hasTaxArrears?: boolean;
   hasRecentAssetDisposal?: boolean;
+  /** 사업 영위 여부(현재 또는 과거). 새출발기금 후보 게이트 — 필수값이라 누락 시 400 */
+  isOperatingBusiness: boolean;
   specialEligibilities: AnalysisSpecialEligibility[]; // 없으면 []
   additionalNotes?: string;
 };
@@ -153,17 +230,51 @@ export type ReanalyzeAnalysisInput = AnalysisFormInput & {
   projectId: string;
 };
 
+// PATCH /v1/analysis/{id}/debts — 결과 화면에서 채무 정보만 수정.
+// 허용 상태는 재진단(PATCH /{id}/input)과 동일(상담중/반려됨, 변호사 프로젝트는 계약대기중 포함).
+// debtInputMode만 바꿔 보내면 간편↔상세 모드 전환도 된다.
+export type UpdateAnalysisDebtsInput = {
+  projectId: string;
+  debtInputMode: AnalysisDebtInputMode;
+  /** simple일 때 필수 */
+  debtBreakdown?: AnalysisDebtBreakdown;
+  /** detailed일 때 필수(1건 이상) */
+  debts?: AnalysisDebtItem[];
+  collateralDebt: number;
+  debtIncurredLast3Months: number;
+  debtIncurredLast1Year: number;
+  /** simple일 때 필수. detailed는 서버가 debts 중 최대값으로 자동 계산 */
+  overdueMonths?: number;
+  debtCauses: AnalysisDebtCause[];
+  /** true면 저장 후 AI 재진단까지 수행한다 — 상태 초기화 + 채팅 이력 삭제 + 절차 추적 초기화라
+   * 되돌릴 수 없다. 호출 전 확인 모달 필수. false면 채무 값만 갱신되고 나머지는 유지된다. */
+  reanalyze: boolean;
+};
+
+export type UpdateAnalysisDebtsResponse = ApiSuccess<AnalysisDetail>;
+
 // ============================================
 // 분석 상세/결과
 // ============================================
 
-// 서버가 입력값으로부터 계산해 채워주는 필드 포함
+// 서버가 입력값으로부터 계산해 채워주는 필드 포함.
+// debtInputMode/overdueMonths/debtBreakdown/totalDebt는 입력 모드와 무관하게 항상 채워져 내려온다
+// (상세모드도 서버가 debts로부터 자동 집계) — 요청에서는 optional이라 여기서 필수로 좁힌다.
 export type AnalysisInputData = AnalysisFormInput & {
   estimatedMonthlyIncome: number;
   totalMonthlyExpense: number;
   disposableIncome: number;
   totalDebt: number;
   totalRealEstateValue: number;
+  debtInputMode: AnalysisDebtInputMode;
+  overdueMonths: number;
+  debtBreakdown: AnalysisDebtBreakdown;
+  /** 상세모드로 입력된 건에만 존재 — 입력한 채무 항목 원본 */
+  debts?: AnalysisDebtItem[];
+  /** 상세모드 전용 서버 계산값 */
+  debtDerivedSignals?: AnalysisDebtDerivedSignals;
+  /** 상세모드 전용 — 이자 포함 총채무 (만원) */
+  totalDebtWithInterest?: number;
 };
 
 export type AnalysisProcedureConditions = {
@@ -172,25 +283,53 @@ export type AnalysisProcedureConditions = {
   riskFactors: string[];
 };
 
-export type AnalysisProcedureConditionsMap = {
-  individualRehabilitation: AnalysisProcedureConditions;
-  bankruptcy: AnalysisProcedureConditions;
-};
+// 2026-08-04 스펙 확장: 고정 2키 → 절차별 동적 맵. 자격 게이트(새출발기금)를 통과하지 못한
+// 절차는 키 자체가 없으므로 Partial로 둔다 — 6키가 항상 있다고 타입으로 보장하면 거짓말이 되고,
+// 없는 키 접근이 런타임 크래시로만 드러난다.
+export type AnalysisProcedureConditionsMap = Partial<
+  Record<AnalysisProcedureType, AnalysisProcedureConditions>
+>;
 
-export type AnalysisScores = {
-  individualRehabilitation: number;
-  bankruptcy: number;
-};
+export type AnalysisScores = Partial<Record<AnalysisProcedureType, number>>;
 
+// 응답 키는 절차 enum 값(스네이크케이스)이다 — 2026-08-04 Swagger로 확정
+// (`scores: { "individual_rehabilitation": 72, "bankruptcy": 18 }`). 과도기용 camelCase 폴백은 제거.
+
+/** 절차별 맵에서 특정 절차의 값을 꺼낸다. 키가 없으면 undefined(자격 게이트 미통과 등). */
+export function pickProcedureValue<T>(
+  map: Partial<Record<AnalysisProcedureType, T>> | null | undefined,
+  procedure: AnalysisProcedureType
+): T | undefined {
+  return map?.[procedure];
+}
+
+/** 절차별 맵을 [절차, 값] 배열로 순회. 알 수 없는 키(레거시 채무조정 등)는 버린다. */
+export function procedureEntries<T>(
+  map: Partial<Record<AnalysisProcedureType, T>> | null | undefined
+): [AnalysisProcedureType, T][] {
+  if (!map) return [];
+  const entries: [AnalysisProcedureType, T][] = [];
+  for (const [key, value] of Object.entries(map) as [string, T | undefined][]) {
+    if (value === undefined || !isAnalysisProcedureType(key)) continue;
+    entries.push([key, value]);
+  }
+  return entries;
+}
+
+// 금액은 모두 만원 단위로 내려온다(2026-07-20 실응답 확인: monthlyPayment 125 ×
+// periodMonths 40 = totalPayment 5000 으로 totalDebt와 동일 스케일).
 export type AnalysisExpectedRepayment = {
-  /** 원(KRW) 단위 — UI 매핑 시 만원으로 변환 */
   monthlyPayment: number;
   periodMonths: number;
-  /** 원(KRW) 단위 — UI 매핑 시 만원으로 변환 */
   totalPayment: number;
-  /** 원(KRW) 단위 — UI 매핑 시 만원으로 변환 */
   expectedExemption: number;
+  /** 이자 포함 예상 면책 채무 (만원). 채무 상세입력(detailed) 모드로 생성된 건에만 존재 */
+  expectedExemptionWithInterest?: number;
 };
+
+export type AnalysisExpectedRepaymentMap = Partial<
+  Record<AnalysisProcedureType, AnalysisExpectedRepayment>
+>;
 
 export type AnalysisConsultingScripts = {
   firstExplanation: string;
@@ -203,7 +342,8 @@ export type AnalysisResult = {
   recommendation: AnalysisProcedureType;
   scores: AnalysisScores;
   procedureConditions: AnalysisProcedureConditionsMap;
-  expectedRepayment: AnalysisExpectedRepayment;
+  /** 절차별 예상 변제 계획. scores와 동일하게 후보 절차만 키로 존재한다 */
+  expectedRepayment: AnalysisExpectedRepaymentMap;
   precautions: string[];
   consultingScripts: AnalysisConsultingScripts;
   // 개인회생 선택 시에만 노출되는 "채무조정 비교" 섹션 문구. 1~3문장, **강조** 마크업 포함 가능.
@@ -241,10 +381,10 @@ export type AnalysisProcedureGuide = {
   currentStepId?: number | null; // 추적 중인 절차일 때만
 };
 
-export type AnalysisProcedureGuidesMap = {
-  individualRehabilitation: AnalysisProcedureGuide;
-  bankruptcy: AnalysisProcedureGuide;
-};
+// scores/procedureConditions와 동일하게 절차별 동적 맵. pickProcedureValue로 조회한다.
+export type AnalysisProcedureGuidesMap = Partial<
+  Record<AnalysisProcedureType, AnalysisProcedureGuide>
+>;
 
 export type AnalysisDetail = {
   id: number;
