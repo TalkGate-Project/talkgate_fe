@@ -454,7 +454,8 @@ function toCreateAnalysisInput(
 
 // toAnalysisFormInput의 역함수. 편집 진입 시 GET /v1/analysis/{id}의 inputData를 폼 상태로 되돌린다.
 // ageGroup/region/employmentType은 실 API에 라벨 문자열로 저장되어 있어 옵션 라벨 역조회로 복원한다.
-function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
+// 결과 화면 채무 상세 모달에서도 동일 변환을 쓰므로 export한다.
+export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
   const realEstateTypes: RealEstateType[] = [];
   const realEstateAmounts: Partial<Record<RealEstateType, number>> = {};
   (Object.keys(input.realEstateBreakdown) as (keyof AnalysisRealEstateBreakdown)[]).forEach((key) => {

@@ -639,7 +639,7 @@ export type DebtComposition = { label: string; amountManwon: number; percent: nu
 
 export type DebtStatusSummary = {
   totalDebtManwon: number;
-  /** 이자 포함 총채무 (만원). 채무 상세입력 모드로 생성된 건에만 존재 — 없으면 항목 자체를 숨긴다 */
+  /** 총 상환 예정·이자 포함 (만원). 채무 상세입력 모드 건에만 존재 — 없으면 "총 상환 예정" 지표 자체를 숨긴다 */
   totalDebtWithInterestManwon?: number;
   totalAssetManwon: number;
   monthlyAvailableIncomeManwon: number;

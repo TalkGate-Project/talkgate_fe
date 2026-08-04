@@ -287,7 +287,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         )}
 
         <SectionCard id="debt" compactTop>
-          <SectionDebtStatus detail={detail} />
+          <SectionDebtStatus detail={detail} projectId={projectId} onDebtApplied={refetch} />
         </SectionCard>
 
         <SectionCard id="repayment" compactTop>
