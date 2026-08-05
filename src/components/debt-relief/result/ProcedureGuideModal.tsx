@@ -129,38 +129,8 @@ function CloseIcon() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="dark:stroke-neutral-50"
       />
-    </svg>
-  );
-}
-
-function ChevronIcon({ direction }: { direction: "left" | "right" }) {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 20 20"
-      fill="none"
-      aria-hidden
-      className={direction === "left" ? "rotate-90" : "-rotate-90"}
-    >
-      <path
-        d="M15.8332 7.5L9.99984 13.3333L4.1665 7.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function WarningIcon() {
-  return (
-    <svg className="shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <path d="M7 1.5L13 12H1L7 1.5Z" fill="#EFB008" />
-      <path d="M7 5.5v3" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="7" cy="10.2" r="0.7" fill="white" />
     </svg>
   );
 }
@@ -188,115 +158,94 @@ export default function ProcedureGuideModal({ open, onClose, initialProcedure }:
   const total = PROCEDURE_GUIDE_CONTENTS.length;
   const content = PROCEDURE_GUIDE_CONTENTS[index];
   const canGoPrev = index > 0;
-  const canGoNext = index < total - 1;
+  const isLast = index === total - 1;
 
   return (
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       disableAutoContainerSizing
-      containerClassName="relative w-[92vw] max-w-[520px] md:w-[520px] max-h-[90vh] rounded-[14px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-none flex flex-col overflow-hidden"
+      containerClassName="relative w-[92vw] max-w-[440px] md:w-[440px] max-h-[90vh] rounded-[14px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-none flex flex-col overflow-hidden"
       ariaLabel="제도 안내"
     >
-      <div className="flex items-center justify-between px-6 md:px-7 pt-6 pb-4 shrink-0">
-        <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">제도 안내</h2>
+      {/* Header: 절차명 + 페이지 인디케이터 / 닫기 */}
+      <div className="flex items-center justify-between gap-3 px-7 pt-6 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <h2 className="text-[18px] font-semibold leading-[21px] text-foreground truncate">
+            {RECOMMENDED_PROCEDURE_LABEL[content.procedure]}
+          </h2>
+          <span className="shrink-0 text-[16px] font-semibold leading-[19px] text-neutral-60">
+            {index + 1}/{total}
+          </span>
+        </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="cursor-pointer grid h-6 w-6 place-items-center"
+          className="cursor-pointer grid h-6 w-6 place-items-center shrink-0"
         >
           <CloseIcon />
         </button>
       </div>
-      <div className="border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
 
-      <div className="min-w-0 flex-1 overflow-y-auto px-6 md:px-7 py-5 flex flex-col gap-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="text-[20px] font-bold leading-6 tracking-[-0.02em] text-foreground">
-            {RECOMMENDED_PROCEDURE_LABEL[content.procedure]}
-          </h3>
-          <span className="shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
-            {index + 1}/{total}
-          </span>
-        </div>
-        <p className="text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
+      <div className="min-w-0 flex-1 overflow-y-auto px-7 pt-5 pb-4 flex flex-col gap-5">
+        <p className="text-[13px] font-semibold leading-4 text-neutral-90">
           {content.summary}
         </p>
 
-        <div>
-          <p className="text-[13px] font-semibold leading-4 tracking-[-0.02em] text-foreground mb-1.5">
-            대상 / 자격
-          </p>
-          <ul className="flex flex-col gap-1">
-            {content.eligibility.map((item, itemIndex) => (
-              <li
-                key={itemIndex}
-                className="text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60"
-              >
-                · {item}
-              </li>
-            ))}
-          </ul>
+        {/* 본문 카드 */}
+        <div className="rounded-xl bg-neutral-10 dark:bg-neutral-20 px-5 py-5 flex flex-col gap-5">
+          <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-[4px]">
+              <p className="text-[14px] font-medium leading-[17px] text-neutral-60">대상/자격</p>
+              <ul className="flex flex-col">
+                {content.eligibility.map((item, itemIndex) => (
+                  <li
+                    key={itemIndex}
+                    className="text-[14px] font-medium leading-6 tracking-[-0.02em] text-neutral-80"
+                  >
+                    · {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-[4px]">
+              <p className="text-[14px] font-medium leading-[17px] text-neutral-60">핵심규칙</p>
+              <ul className="flex flex-col">
+                {content.coreRules.map((item, itemIndex) => (
+                  <li
+                    key={itemIndex}
+                    className="text-[14px] font-medium leading-6 tracking-[-0.02em] text-neutral-80"
+                  >
+                    · {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* 감면·변제 / 기간 / 주의 상세 카드 */}
+          <div className="rounded-xl border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 px-5 py-3 flex flex-col gap-[7px]">
+            <div className="flex flex-col gap-[7px]">
+              <p className="text-[13px] font-medium leading-4 text-neutral-60">감면·변제 구조</p>
+              <p className="text-[13px] font-semibold leading-4 text-neutral-90">
+                {content.reliefStructure}
+              </p>
+            </div>
+            <div className="flex flex-col gap-[7px]">
+              <p className="text-[13px] font-medium leading-4 text-neutral-60">기간</p>
+              <p className="text-[13px] font-semibold leading-4 text-neutral-90">{content.duration}</p>
+            </div>
+            <div className="flex flex-col gap-[7px]">
+              <p className="text-[13px] font-medium leading-4 text-neutral-60">주의</p>
+              <p className="text-[13px] font-semibold leading-4 text-neutral-90">{content.caution}</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <p className="text-[13px] font-semibold leading-4 tracking-[-0.02em] text-foreground mb-1.5">
-            핵심 규칙
-          </p>
-          <ul className="flex flex-col gap-1">
-            {content.coreRules.map((item, itemIndex) => (
-              <li
-                key={itemIndex}
-                className="text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60"
-              >
-                · {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <p className="text-[13px] font-semibold leading-4 tracking-[-0.02em] text-foreground mb-1.5">
-            감면·변제 구조
-          </p>
-          <p className="text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
-            {content.reliefStructure}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[13px] font-semibold leading-4 tracking-[-0.02em] text-foreground mb-1.5">
-            기간
-          </p>
-          <p className="text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
-            {content.duration}
-          </p>
-        </div>
-
-        <div className="inline-flex items-start gap-1.5 max-w-full min-h-7 px-3 py-1.5 rounded-[5px] bg-warning-10 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)]">
-          <WarningIcon />
-          <span className="text-[13px] font-medium leading-5 tracking-[-0.02em] opacity-80 text-warning-100 dark:text-warning-40">
-            {content.caution}
-          </span>
-        </div>
-      </div>
-
-      <div className="border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
-      <div className="flex items-center justify-between px-6 md:px-7 py-3.5 shrink-0">
-        <button
-          type="button"
-          onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
-          disabled={!canGoPrev}
-          className={`inline-flex items-center gap-1 h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-90 ${
-            canGoPrev ? "cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-20" : "opacity-40 cursor-not-allowed"
-          }`}
-        >
-          <ChevronIcon direction="left" />
-          이전
-        </button>
-
-        <div className="flex items-center gap-1.5">
+        {/* Pagination dots */}
+        <div className="flex items-center justify-center gap-2">
           {PROCEDURE_GUIDE_CONTENTS.map((item, itemIndex) => (
             <button
               key={item.procedure}
@@ -304,24 +253,50 @@ export default function ProcedureGuideModal({ open, onClose, initialProcedure }:
               onClick={() => setIndex(itemIndex)}
               aria-label={`${RECOMMENDED_PROCEDURE_LABEL[item.procedure]} 안내로 이동`}
               aria-current={itemIndex === index}
-              className={`h-2 rounded-full transition-all cursor-pointer ${
-                itemIndex === index ? "w-5 bg-neutral-90 dark:bg-neutral-90" : "w-2 bg-neutral-30"
+              className={`h-2 w-2 rounded-full transition-colors cursor-pointer ${
+                itemIndex === index
+                  ? "bg-neutral-90"
+                  : "bg-[#CFCFCF] dark:bg-neutral-40"
               }`}
             />
           ))}
         </div>
+      </div>
 
+      <div className="border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
+
+      {/* Footer: 이전 / 다음|닫기 — 우측 정렬 */}
+      <div className="flex items-center justify-end gap-3 px-7 py-3.5 shrink-0">
         <button
           type="button"
-          onClick={() => setIndex((prev) => Math.min(total - 1, prev + 1))}
-          disabled={!canGoNext}
-          className={`inline-flex items-center gap-1 h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-neutral-90 ${
-            canGoNext ? "cursor-pointer hover:bg-neutral-10 dark:hover:bg-neutral-20" : "opacity-40 cursor-not-allowed"
+          onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
+          disabled={!canGoPrev}
+          className={`inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] text-[14px] font-semibold leading-[17px] tracking-[-0.02em] border ${
+            canGoPrev
+              ? "cursor-pointer bg-white dark:bg-neutral-10 border-neutral-30 dark:border-[#4D4D4D] text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20"
+              : "cursor-not-allowed bg-neutral-20 border-neutral-30 text-neutral-50"
           }`}
         >
-          다음
-          <ChevronIcon direction="right" />
+          이전
         </button>
+
+        {isLast ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 hover:opacity-90"
+          >
+            닫기
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIndex((prev) => Math.min(total - 1, prev + 1))}
+            className="cursor-pointer inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] bg-neutral-90 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 hover:opacity-90"
+          >
+            다음
+          </button>
+        )}
       </div>
     </BaseModal>
   );

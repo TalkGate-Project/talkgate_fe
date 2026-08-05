@@ -456,9 +456,9 @@ export default function SectionProcedureScores({
             <button
               type="button"
               onClick={() => setGuideOpen(true)}
-              className="cursor-pointer inline-flex items-center justify-center h-[24px] px-2.5 rounded-full border border-neutral-30 bg-neutral-0 text-[12px] font-medium leading-[14px] text-neutral-60 hover:bg-neutral-10 shrink-0"
+              className="cursor-pointer inline-flex items-center justify-center h-[25px] px-2 py-1 rounded-[5px] border border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground whitespace-nowrap hover:bg-neutral-10 dark:hover:bg-neutral-20 shrink-0"
             >
-              제도 안내
+              제도안내
             </button>
           </div>
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
