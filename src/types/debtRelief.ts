@@ -813,6 +813,9 @@ export type DiagnosisDetail = {
   // 통해 로드/전송한다 — 이 타입에는 대화 내역을 담지 않는다.
   aiSuggestedQuestions: string[];
   procedureGuide: ProcedureGuide;
+  // 절차안내 드롭다운에서 추적 중이 아닌 절차도 "미리보기"로 볼 수 있도록 전 절차의 가이드를
+  // 담아둔다. 추적 중인 절차 키만 실제 currentStep이 반영되고, 나머지는 항상 진행 전(0)이다.
+  procedureGuideByProcedure: Partial<Record<RecommendedProcedure, ProcedureGuide>>;
   /** 현재 추적 절차의 단계별 변경 이력 (변경 기록이 없는 단계는 제외) */
   procedureStepHistory: ProcedureStepHistoryItem[];
   // 「고객정보」 모달용 원본 입력값. 상세 조회 시 이미 받아온 데이터라 모달에서 재조회하지 않는다.
