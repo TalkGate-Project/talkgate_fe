@@ -81,6 +81,10 @@ export type DebtHistoryCardProps = {
   update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void;
   totalDebtManwon: number;
   disabled?: boolean;
+  /** 담보/무담보 합산 카드·총 채무 합계 영역 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는
+      neutral-10 그대로 두고, 모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록
+      호출부에서 오버라이드한다. */
+  areaBackgroundClassName?: string;
 };
 
 export default function DebtHistoryCard({
@@ -88,6 +92,7 @@ export default function DebtHistoryCard({
   update,
   totalDebtManwon,
   disabled = false,
+  areaBackgroundClassName = "bg-neutral-10",
 }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
@@ -134,7 +139,11 @@ export default function DebtHistoryCard({
         className={`px-5 md:px-6 py-5 md:py-6 ${disabled ? "pointer-events-none opacity-80" : ""}`}
       >
         {form.debtInputMode === "detailed" ? (
-          <DebtItemsTable debts={form.debts} onChange={(debts) => update("debts", debts)} />
+          <DebtItemsTable
+            debts={form.debts}
+            onChange={(debts) => update("debts", debts)}
+            sumCardBackgroundClassName={areaBackgroundClassName}
+          />
         ) : (
           <div className="flex flex-col gap-5">
             <FormField
@@ -169,7 +178,9 @@ export default function DebtHistoryCard({
 
             <div role="separator" className="h-px bg-neutral-30" />
 
-            <div className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 md:px-7 h-12 md:h-[56px]">
+            <div
+              className={`flex items-center justify-between rounded-[12px] px-4 md:px-7 h-12 md:h-[56px] ${areaBackgroundClassName}`}
+            >
               <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-60">
                 총 채무 합계
               </span>

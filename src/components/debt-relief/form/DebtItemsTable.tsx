@@ -16,6 +16,9 @@ import { PercentInput, TextInput, WonInput } from "./FormControls";
 type Props = {
   debts: DebtItemFormState[];
   onChange: (debts: DebtItemFormState[]) => void;
+  /** 담보/무담보 합산 카드 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는 neutral-10 그대로 두고,
+      모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록 호출부에서 오버라이드한다. */
+  sumCardBackgroundClassName?: string;
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -149,13 +152,15 @@ function DebtSumCard({
   label,
   sums,
   highlight = false,
+  backgroundClassName = "bg-neutral-10",
 }: {
   label: string;
   sums: DebtSums;
   highlight?: boolean;
+  backgroundClassName?: string;
 }) {
   return (
-    <div className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : "bg-neutral-10"}`}>
+    <div className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : backgroundClassName}`}>
       <div className="flex items-baseline justify-between gap-2">
         <span className={`text-[14px] font-medium tracking-[0.2px] ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
           {label}
@@ -184,7 +189,11 @@ function DebtSumCard({
   );
 }
 
-export default function DebtItemsTable({ debts, onChange }: Props) {
+export default function DebtItemsTable({
+  debts,
+  onChange,
+  sumCardBackgroundClassName = "bg-neutral-10",
+}: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
   const updateItem = (id: string, patch: Partial<DebtItemFormState>) => {
@@ -360,7 +369,7 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
                 <button
                   type="button"
                   onClick={addRow}
-                  className="cursor-pointer w-full h-10 rounded-lg bg-neutral-10 inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60"
+                  className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}
                 >
                   <PlusIcon />
                   행 추가
@@ -372,8 +381,16 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
-        <DebtSumCard label="담보대출 합산" sums={collateralTotals} />
-        <DebtSumCard label="무담보대출 합산" sums={unsecuredTotals} />
+        <DebtSumCard
+          label="담보대출 합산"
+          sums={collateralTotals}
+          backgroundClassName={sumCardBackgroundClassName}
+        />
+        <DebtSumCard
+          label="무담보대출 합산"
+          sums={unsecuredTotals}
+          backgroundClassName={sumCardBackgroundClassName}
+        />
         <DebtSumCard label="총 합산" sums={totals} highlight />
       </div>
     </div>
