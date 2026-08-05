@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import type { AnalysisFreshStartFundInsolvencyReason } from "@/types/analysis";
 import {
   BUSINESS_OPERATION_STATUS_OPTIONS,
@@ -50,43 +48,14 @@ function MobileSectionTitle({ children }: { children: string }) {
  * 카드 보더 없음. 항목 간 gap 24px.
  */
 export default function Step5Others({ form, update, onClose }: Props) {
-  // "'20.4~'25.6 기간 중 영위했는지"는 API에 대응 필드가 없는 로컬 전용 상태다 — 1단계
-  // isOperatingBusiness(사업 영위 이력 전체)와 새출발기금 특례 기간이 항상 일치하진 않아서
-  // (예: 2015~2018년에만 사업했다 접은 경우 1단계는 "예"지만 이 기간엔 "아니오"), 상담사가
-  // "사업영위 해당 시 추가 확인" 박스를 볼지 말지만 이걸로 로컬 판단한다. isOperatingBusiness가
-  // true가 될 때마다 "예"로 리셋되고, 저장되지 않으므로 페이지를 새로고침하면 다시 "예"로
-  // 돌아온다 — 실제 제출 데이터(현재 사업 상태 등)는 이 값과 무관하게 그대로 유지된다.
-  const [appliesToFreshStartFundPeriod, setAppliesToFreshStartFundPeriod] = useState(true);
-  useEffect(() => {
-    if (form.isOperatingBusiness) setAppliesToFreshStartFundPeriod(true);
-  }, [form.isOperatingBusiness]);
-
-  // "예"/"아니오" 버튼은 항상 둘 다 보인다. 1단계가 "아니오"인 상태에서 "예"를 누르면 —
-  // 이 질문이 사실상 1단계 "사업 영위 이력"의 특례기간 한정 버전이라 — 1단계 값도 함께
-  // 켜야 앞뒤가 맞는다는 걸 상담사가 놓치기 쉬워, 확인 모달로 명시하고 동의 시에만 두 값을
-  // 같이 켠다. 1단계가 이미 "예"면 이 로컬 플래그만 토글하면 되니 모달 없이 바로 처리한다.
-  const freshStartFundPeriodSelectedAsYes = form.isOperatingBusiness && appliesToFreshStartFundPeriod;
-
+  // 사업 영위 이력(isOperatingBusiness)은 5단계에서만 관리한다 — 예/아니오가 API 게이트를
+  // 직접 토글하고, "예"일 때만 아래 상세 4종을 노출한다.
   const handleFreshStartFundPeriodYes = () => {
-    if (form.isOperatingBusiness) {
-      setAppliesToFreshStartFundPeriod(true);
-      return;
-    }
-    showConfirmModal({
-      headline: "사업 영위 이력을 함께 켤까요?",
-      message:
-        "1단계(기본정보)의 \"사업 영위 이력\"이 꺼져 있어요. 새출발기금 특례기간 질문에 \"예\"로 답하면 1단계 값도 함께 \"예\"로 바뀝니다.",
-      confirmText: "예로 변경",
-      onConfirm: () => {
-        update("isOperatingBusiness", true);
-        setAppliesToFreshStartFundPeriod(true);
-      },
-    });
+    update("isOperatingBusiness", true);
   };
 
   const handleFreshStartFundPeriodNo = () => {
-    if (form.isOperatingBusiness) setAppliesToFreshStartFundPeriod(false);
-    // 1단계가 이미 "아니오"면 이 질문도 사실상 "아니오"라 더 할 일이 없다.
+    update("isOperatingBusiness", false);
   };
 
   const handleSpecialEligibilityChange = (next: SpecialEligibilityType[]) => {
@@ -149,24 +118,21 @@ export default function Step5Others({ form, update, onClose }: Props) {
             &apos;20.4월 ~ &apos;25.6월 중 개인사업자·소상공인으로 사업 영위한 적 있음
             (현재 고용 형태와 무관·휴업·폐업 포함)
           </p>
-          {/* 예/아니오 버튼은 1단계 값과 무관하게 항상 둘 다 눌린다. 1단계가 "아니오"인 상태에서
-              "예"를 누르면 확인 모달을 거쳐 1단계 값도 함께 켠다(handleFreshStartFundPeriodYes) —
-              그래서 이 로컬 상태가 1단계보다 앞서 "예"가 되는 경우가 없다. */}
           <div className="flex gap-2">
             <PillButton
               label="예"
-              selected={freshStartFundPeriodSelectedAsYes}
+              selected={form.isOperatingBusiness}
               onClick={handleFreshStartFundPeriodYes}
             />
             <PillButton
               label="아니오"
-              selected={!freshStartFundPeriodSelectedAsYes}
+              selected={!form.isOperatingBusiness}
               onClick={handleFreshStartFundPeriodNo}
             />
           </div>
         </div>
 
-        {freshStartFundPeriodSelectedAsYes && (
+        {form.isOperatingBusiness && (
           <div className="rounded-[14px] border border-neutral-30 overflow-hidden">
             {/* Figma: 헤더 스트립(위쪽만 라운드)만 회색, divider 아래 본문은 흰 배경 —
                 DebtHistoryCard.tsx와 동일한 헤더/바디 분리 패턴 */}

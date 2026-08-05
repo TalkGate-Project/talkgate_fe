@@ -529,9 +529,6 @@ export type DiagnosisFormState = {
   employmentType: EmploymentType | null;
   dependents: DependentCount | null;
   spouseIncome: boolean | null;
-  /** 사업 영위 여부(현재 또는 과거) — API `isOperatingBusiness`. 새출발기금 후보 게이트라
-   * false면 결과에서 새출발기금이 아예 후보에서 빠진다 */
-  isOperatingBusiness: boolean;
 
   // 2. 자산현황
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
@@ -564,6 +561,9 @@ export type DiagnosisFormState = {
   expenses: MonthlyExpenses;
 
   // 5. 기타사항
+  /** 사업 영위 여부('20.4~'25.6 특례기간) — API `isOperatingBusiness`. 5단계에서만 입력.
+   * 새출발기금 후보 게이트라 false면 결과에서 새출발기금이 아예 후보에서 빠진다 */
+  isOperatingBusiness: boolean;
   /** 새출발기금 상세 4종 — isOperatingBusiness가 true일 때만 의미있음(제출 시 services/debtRelief.ts에서 조건부 전송) */
   businessOperationStatus: AnalysisBusinessOperationStatus | null;
   freshStartFundInsolvencyReasons: AnalysisFreshStartFundInsolvencyReason[];

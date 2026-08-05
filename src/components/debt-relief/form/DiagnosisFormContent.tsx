@@ -20,6 +20,7 @@ import { FORM_STEPS } from "./steps";
 import FormSidebar from "./FormSidebar";
 import MobileFormSummaryDrawer from "./MobileFormSummaryDrawer";
 import FormMobileActionBar from "./FormMobileActionBar";
+import FormStepNavButton from "./FormStepNavButton";
 import AnalysisLoadingOverlayHost, {
   type AnalysisProgressHandle,
 } from "./AnalysisLoadingOverlayHost";
@@ -405,40 +406,29 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           {/* 본문 — Figma 모바일: 좌우 16, 상단에서 바로 필드 시작 */}
           <div className="flex-1 min-w-0 px-6 md:px-7 pt-4 md:pt-8 pb-7">{renderStep()}</div>
 
-          {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함 */}
-          {/* Figma: 풀폭 Divider → 이전/다음 버튼 72×34 radius 5 */}
+          {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함.
+              3열 flex: 좌측 스페이서 ↔ 중앙 이전/다음 ↔ 우측 분석하기 (좌우 flex-1로 중앙 정렬 유지) */}
           <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
-          <div className="hidden md:flex items-center justify-end gap-2 px-7 pt-[13px] pb-3">
-            {!isFirst && (
+          <div className="hidden md:flex items-center px-7 pt-[13px] pb-3">
+            <div className="flex-1" aria-hidden />
+            <div className="flex items-center gap-2">
+              <FormStepNavButton direction="prev" disabled={isFirst} onClick={goBack} />
+              <FormStepNavButton direction="next" disabled={isLast} onClick={goNext} />
+            </div>
+            <div className="flex-1 flex justify-end">
               <button
                 type="button"
-                onClick={goBack}
-                className="cursor-pointer inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10"
+                onClick={handleAnalyze}
+                disabled={analyzing || !canAnalyze}
+                aria-label={analyzing ? "분석 중" : "분석하기"}
+                className="analyze-button inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               >
-                이전
+                <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                  <AnalyzeSparkleIcon />
+                </span>
+                <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
               </button>
-            )}
-            {!isLast && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="cursor-pointer inline-flex items-center justify-center w-[72px] h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90"
-              >
-                다음
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleAnalyze}
-              disabled={analyzing || !canAnalyze}
-              aria-label={analyzing ? "분석 중" : "분석하기"}
-              className="analyze-button inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-                <AnalyzeSparkleIcon />
-              </span>
-              <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
-            </button>
+            </div>
           </div>
         </section>
       </div>

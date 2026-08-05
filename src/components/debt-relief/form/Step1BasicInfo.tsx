@@ -8,7 +8,6 @@ import {
 } from "@/types/debtRelief";
 import { FormField, FormSectionTitle, TextInput } from "./FormControls";
 import { PillSelect } from "./PillSelect";
-import { FormToggleRow } from "./FormToggle";
 
 const GENDER_OPTIONS: PillOption<CustomerGender>[] = [
   { value: "male", label: "남" },
@@ -85,16 +84,6 @@ export default function Step1BasicInfo({ form, update }: Props) {
             options={SPOUSE_INCOME_OPTIONS}
             value={form.spouseIncome === null ? null : form.spouseIncome ? "yes" : "none"}
             onChange={(value) => update("spouseIncome", value === null ? null : value === "yes")}
-          />
-        </FormField>
-
-        {/* 새출발기금 후보 게이트 — false면 결과에서 새출발기금이 아예 후보에서 빠진다.
-            "현재 또는 과거"를 묻는 항목이라 고용형태와 같은 맥락에서 받는다. */}
-        <FormField label="사업 영위 이력">
-          <FormToggleRow
-            label="현재 또는 과거에 사업을 영위한 적 있음"
-            checked={form.isOperatingBusiness}
-            onChange={(checked) => update("isOperatingBusiness", checked)}
           />
         </FormField>
       </div>
