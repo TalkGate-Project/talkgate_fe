@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import ChevronLeftIcon from "@/components/common/icons/ChevronLeftIcon";
 import AnalysisLoadingOverlayHost, {
   type AnalysisProgressHandle,
 } from "@/components/debt-relief/form/AnalysisLoadingOverlayHost";
@@ -162,10 +163,29 @@ export default function DebtDetailModal({
         onClose={handleClose}
         closeOnOverlayClick={!submitting && !choiceOpen}
         overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-        containerClassName="relative w-[92vw] max-w-[1100px] max-h-[90vh] rounded-[14px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-none flex flex-col overflow-hidden"
         ariaLabel="채무 상세"
+        fullScreenOnMobile
+        disableAutoContainerSizing
+        // 모바일: 바깥 여백 없이 화면 전체를 채우는 풀스크린 모달. md+: 기존처럼 중앙에 뜨는 카드형 모달.
+        positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+        containerClassName="relative w-full h-full rounded-none md:w-[92vw] md:max-w-[1100px] md:max-h-[90vh] md:rounded-[14px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366)] dark:shadow-none flex flex-col overflow-hidden"
       >
-        <div className="flex items-center justify-between px-6 md:px-7 pt-6 pb-4 shrink-0">
+        {/* 모바일: 뒤로가기 화살표 + 타이틀 (풀스크린 페이지 헤더) */}
+        <div className="flex md:hidden items-center gap-3 px-5 pt-5 pb-4 shrink-0">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={submitting}
+            aria-label="닫기"
+            className="cursor-pointer grid h-6 w-6 place-items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeftIcon />
+          </button>
+          <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">채무 상세</h2>
+        </div>
+
+        {/* md+: 타이틀 + X 닫기 */}
+        <div className="hidden md:flex items-center justify-between px-6 md:px-7 pt-6 pb-4 shrink-0">
           <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">채무 상세</h2>
           <button
             type="button"
@@ -189,12 +209,12 @@ export default function DebtDetailModal({
           />
         </div>
 
-        <div className="flex justify-end gap-3 px-6 md:px-7 py-4 border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0">
+        <div className="flex gap-3 px-5 md:px-7 py-4 border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0 md:justify-end">
           <button
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="cursor-pointer h-[34px] px-4 rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer h-11 md:h-[34px] flex-1 md:flex-none px-4 rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             닫기
           </button>
@@ -203,7 +223,7 @@ export default function DebtDetailModal({
               type="button"
               onClick={handleApplyClick}
               disabled={submitting}
-              className="cursor-pointer h-[34px] px-4 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer h-11 md:h-[34px] flex-1 md:flex-none px-4 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               적용하기
             </button>

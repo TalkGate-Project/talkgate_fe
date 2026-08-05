@@ -380,7 +380,7 @@ export default function DebtItemsTable({
         </table>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
         <DebtSumCard
           label="담보대출 합산"
           sums={collateralTotals}

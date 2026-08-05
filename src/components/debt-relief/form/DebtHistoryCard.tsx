@@ -42,7 +42,7 @@ function DebtModeToggle({
     <div
       role="tablist"
       aria-label="채무 입력 방식"
-      className="flex h-12 w-[212px] shrink-0 items-center gap-3 rounded-[12px] bg-neutral-20 px-3 py-[8.5px]"
+      className="flex h-12 w-full md:w-[212px] shrink-0 items-center gap-3 rounded-[12px] bg-neutral-20 px-3 py-[8.5px]"
     >
       <button
         type="button"
@@ -50,7 +50,7 @@ function DebtModeToggle({
         aria-selected={value === "simple"}
         disabled={disabled}
         onClick={() => onChange("simple")}
-        className={`inline-flex h-[31px] w-[88px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "simple"
             ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
             : "font-medium text-neutral-60 hover:text-foreground"
@@ -64,7 +64,7 @@ function DebtModeToggle({
         aria-selected={value === "detailed"}
         disabled={disabled}
         onClick={() => onChange("detailed")}
-        className={`inline-flex h-[31px] w-[88px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "detailed"
             ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
             : "font-medium text-neutral-60 hover:text-foreground"
@@ -121,7 +121,7 @@ export default function DebtHistoryCard({
   return (
     // min-w-0: 상세모드 테이블(가로스크롤)이 flex 조상의 min-content 폭을 밀어올리지 않게
     <div className="min-w-0 overflow-hidden rounded-[14px] border border-neutral-30">
-      <div className="flex h-[70px] items-center justify-between gap-4 bg-neutral-10 px-5 md:px-6">
+      <div className="flex flex-col md:flex-row md:h-[70px] items-stretch md:items-center justify-between gap-3 md:gap-4 bg-neutral-10 px-5 py-4 md:py-0 md:px-6">
         <div className="min-w-0">
           <h3 className="text-[16px] font-bold leading-5 text-foreground">채무내역</h3>
           <p className="mt-1.5 text-[13px] leading-4 text-neutral-60">
