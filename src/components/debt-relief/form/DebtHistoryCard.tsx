@@ -115,8 +115,8 @@ export default function DebtHistoryCard({
 
   return (
     // min-w-0: 상세모드 테이블(가로스크롤)이 flex 조상의 min-content 폭을 밀어올리지 않게
-    <div className="min-w-0 rounded-[14px] border border-neutral-30 overflow-hidden">
-      <div className="flex items-start justify-between gap-4 px-5 md:px-6 py-4 md:py-5 border-b border-neutral-30">
+    <div className="min-w-0 rounded-t-[14px] border-t border-x border-neutral-30 overflow-hidden">
+      <div className="flex items-start justify-between gap-4 px-5 md:px-6 py-4 md:py-5">
         <div className="min-w-0">
           <h3 className="text-[16px] font-bold leading-5 text-foreground">채무내역</h3>
           <p className="mt-1.5 text-[13px] leading-4 text-neutral-60">

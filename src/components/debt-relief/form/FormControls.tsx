@@ -59,10 +59,12 @@ export function TextInput({
   value,
   onChange,
   placeholder,
+  className = "",
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  className?: string;
 }) {
   return (
     <input
@@ -70,7 +72,7 @@ export function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={INPUT_CLASS}
+      className={`${INPUT_CLASS} ${className}`}
     />
   );
 }

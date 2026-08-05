@@ -133,6 +133,8 @@ export type AnalysisDebtItem = {
   /** 프론트에서 생성한 임의 ID (수정 시 항목 식별용) */
   id: string;
   debtType: AnalysisDebtItemType;
+  /** 담보대출 여부 */
+  isCollateralLoan: boolean;
   creditorName: string;
   repaymentMethod: AnalysisRepaymentMethod;
   overdueMonths: number;
@@ -165,6 +167,22 @@ export type AnalysisSpecialEligibility =
   | "over_65"
   | "severe_disability"
   | "jeonse_fraud_victim";
+
+// 2026-08-05 스펙 추가: 새출발기금 상세 항목. isOperatingBusiness가 true일 때만 의미있는 optional
+// 필드들 — 백엔드가 isExcludedIndustryForFreshStartFund/hasPreviousFreshStartFundApplication 중
+// 하나라도 true면 새출발기금을 결과 후보에서 자동 제외한다(프론트 별도 경고 불필요).
+export type AnalysisBusinessOperationStatus =
+  | "operating"
+  | "suspended"
+  | "closed_individual"
+  | "closed_corporate";
+
+export type AnalysisFreshStartFundInsolvencyReason =
+  | "overdue_3_months"
+  | "maturity_extension_or_payment_deferral"
+  | "tax_arrears"
+  | "low_credit_score"
+  | "not_applicable";
 
 // ============================================
 // 분석 생성/수정 입력
@@ -207,6 +225,11 @@ export type AnalysisFormInput = {
   hasRecentAssetDisposal?: boolean;
   /** 사업 영위 여부(현재 또는 과거). 새출발기금 후보 게이트 — 필수값이라 누락 시 400 */
   isOperatingBusiness: boolean;
+  /** isOperatingBusiness가 true일 때만 의미있는 optional 필드 4종 */
+  businessOperationStatus?: AnalysisBusinessOperationStatus;
+  freshStartFundInsolvencyReasons?: AnalysisFreshStartFundInsolvencyReason[];
+  isExcludedIndustryForFreshStartFund?: boolean;
+  hasPreviousFreshStartFundApplication?: boolean;
   specialEligibilities: AnalysisSpecialEligibility[]; // 없으면 []
   additionalNotes?: string;
 };
@@ -371,7 +394,7 @@ export type AnalysisResult = {
   expectedRepayment: AnalysisExpectedRepaymentMap;
   precautions: string[];
   consultingScripts: AnalysisConsultingScripts;
-  // 개인회생 선택 시에만 노출되는 "채무조정 비교" 섹션 문구. 1~3문장, **강조** 마크업 포함 가능.
+  // 개인회생 선택 시에만 노출되는 "개인회생과 개인워크아웃 비교" 섹션 문구. 1~3문장, **강조** 마크업 포함 가능.
   debtAdjustmentComparison?: string | null;
 };
 

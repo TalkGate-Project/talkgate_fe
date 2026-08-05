@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import DebtHistoryCard from "@/components/debt-relief/form/DebtHistoryCard";
-import { getMissingRequiredFieldLabelsForStep } from "@/components/debt-relief/form/validateDiagnosisForm";
+import { getMissingDebtFieldLabels } from "@/components/debt-relief/form/validateDiagnosisForm";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import {
   DebtReliefService,
@@ -105,7 +105,7 @@ export default function DebtDetailModal({
   const handleApplyClick = () => {
     if (!canEdit || submitting) return;
 
-    const missing = getMissingRequiredFieldLabelsForStep(form, "debts");
+    const missing = getMissingDebtFieldLabels(form);
     if (missing.length > 0) {
       showErrorModal({
         headline: "필수 항목을 확인해 주세요.",

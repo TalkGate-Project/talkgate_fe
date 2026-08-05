@@ -13,6 +13,7 @@ import {
 } from "@/types/debtRelief";
 import { scoreToGrade } from "@/services/debtRelief";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
+import ProcedureGuideModal from "./ProcedureGuideModal";
 
 // 신용회복 3종(신속채무조정/프리워크아웃/개인워크아웃)은 API에 자체 대표 점수가 없어,
 // 결과 화면에서만 "신용회복" 카드 + 플로팅 드롭다운으로 묶어 보여준다. 화면 전용 그룹핑이라
@@ -390,6 +391,7 @@ export default function SectionProcedureScores({
   // 하위 절차는 플로팅 드롭다운으로만 보여서 그리드 높이를 밀지 않는다.
   // 기본은 닫힘 — 헤더 선택 스타일로 신용회복 그룹 선택 여부를 표시한다.
   const [creditRecoveryOpen, setCreditRecoveryOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const selectedScore = detail.procedureScores.find(
     (score) => score.procedure === selectedProcedure
@@ -447,9 +449,18 @@ export default function SectionProcedureScores({
       {/* 조건 분석 카드 */}
       <div className="min-w-0 rounded-[12px] border border-neutral-30 overflow-hidden">
         <div className="min-h-[42px] px-4 md:px-5 py-2 md:py-0 bg-neutral-10 flex flex-wrap items-center justify-between gap-2 md:gap-3">
-          <h3 className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
-            {selectedScore?.label ?? detail.recommendation.title} 조건 분석
-          </h3>
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground truncate">
+              {selectedScore?.label ?? detail.recommendation.title} 조건 분석
+            </h3>
+            <button
+              type="button"
+              onClick={() => setGuideOpen(true)}
+              className="cursor-pointer inline-flex items-center justify-center h-[24px] px-2.5 rounded-full border border-neutral-30 bg-neutral-0 text-[12px] font-medium leading-[14px] text-neutral-60 hover:bg-neutral-10 shrink-0"
+            >
+              제도 안내
+            </button>
+          </div>
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             {(["met", "caution", "risk"] as ConditionStatus[]).map((status) => (
               <span
@@ -485,6 +496,12 @@ export default function SectionProcedureScores({
           })}
         </ul>
       </div>
+
+      <ProcedureGuideModal
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        initialProcedure={selectedProcedure}
+      />
     </div>
   );
 }

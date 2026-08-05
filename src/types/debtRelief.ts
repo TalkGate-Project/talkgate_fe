@@ -1,9 +1,11 @@
 // 회생·파산 진단 도메인 타입
 
 import type {
+  AnalysisBusinessOperationStatus,
   AnalysisDebtInputMode,
   AnalysisDebtItem,
   AnalysisDebtItemType,
+  AnalysisFreshStartFundInsolvencyReason,
   AnalysisInputData,
   AnalysisProcedureType,
   AnalysisRepaymentMethod,
@@ -411,6 +413,7 @@ export function createEmptyDebtItem(id: string): DebtItemFormState {
   return {
     id,
     debtType: "bank_loan",
+    isCollateralLoan: false,
     creditorName: "",
     repaymentMethod: "equal_principal_and_interest",
     overdueMonths: 0,
@@ -497,6 +500,25 @@ export const SPECIAL_ELIGIBILITY_OPTIONS: PillOption<SpecialEligibilityType>[] =
   { value: "jeonse_fraud_victim", label: "전세사기 피해자" },
 ];
 
+// 2026-08-05: 새출발기금 상세 항목 — isOperatingBusiness가 true일 때만 노출되는 하위 4종.
+// API enum과 로컬 폼 값이 1:1로 같아 별도 FROM/TO 변환表 없이 AnalysisXxx 타입을 그대로 쓴다
+// (debtInputMode/housingType 등과 동일한 패턴).
+export const BUSINESS_OPERATION_STATUS_OPTIONS: PillOption<AnalysisBusinessOperationStatus>[] = [
+  { value: "operating", label: "영업중" },
+  { value: "suspended", label: "휴업" },
+  { value: "closed_individual", label: "폐업(개인)" },
+  { value: "closed_corporate", label: "법인 폐업" },
+];
+
+// "해당없음"은 다른 항목과 상호배타 — Step5Others.tsx의 핸들러에서 처리.
+export const FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS: PillOption<AnalysisFreshStartFundInsolvencyReason>[] = [
+  { value: "overdue_3_months", label: "3개월 이상 연체" },
+  { value: "maturity_extension_or_payment_deferral", label: "만기연장·상환유예" },
+  { value: "tax_arrears", label: "국세·지방세 체납" },
+  { value: "low_credit_score", label: "신용평점 하위" },
+  { value: "not_applicable", label: "해당없음" },
+];
+
 // ── 폼 전체 상태 ─────────────────────────────────────────────
 export type DiagnosisFormState = {
   // 1. 기본정보
@@ -542,6 +564,11 @@ export type DiagnosisFormState = {
   expenses: MonthlyExpenses;
 
   // 5. 기타사항
+  /** 새출발기금 상세 4종 — isOperatingBusiness가 true일 때만 의미있음(제출 시 services/debtRelief.ts에서 조건부 전송) */
+  businessOperationStatus: AnalysisBusinessOperationStatus | null;
+  freshStartFundInsolvencyReasons: AnalysisFreshStartFundInsolvencyReason[];
+  isExcludedIndustryForFreshStartFund: boolean;
+  hasPreviousFreshStartFundApplication: boolean;
   hasPreviousApplication: boolean;
   previousApplicationDetail: string;
   hasGuarantor: boolean;
@@ -583,6 +610,10 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     monthlyIncome: null,
     housingType: null,
     expenses: { housing: 0, food: 0, education: 0, transportation: 0, other: 0 },
+    businessOperationStatus: null,
+    freshStartFundInsolvencyReasons: [],
+    isExcludedIndustryForFreshStartFund: false,
+    hasPreviousFreshStartFundApplication: false,
     hasPreviousApplication: false,
     previousApplicationDetail: "",
     hasGuarantor: false,
@@ -769,7 +800,7 @@ export type DiagnosisDetail = {
   // 자격 게이트를 통과하지 못한 절차(예: 사업 미영위 시 새출발기금)는 키가 없다.
   conditionAnalysisByProcedure: Partial<Record<RecommendedProcedure, ConditionItem[]>>;
   debtStatus: DebtStatusSummary;
-  // 개인회생 추적 시에만 노출되는 "채무조정 비교" 문구 (없으면 null — 섹션 자체를 숨김)
+  // 개인회생 추적 시에만 노출되는 "개인회생과 개인워크아웃 비교" 문구 (없으면 null — 섹션 자체를 숨김)
   debtAdjustmentComparison: string | null;
   // 절차별 예상 변제 계획 — "절차별 성공 가능성"에서 선택된 절차 기준으로 SectionRepaymentPlan이
   // 조회한다. 신속채무조정·프리워크아웃은 백엔드가 항상 null로 내려주는 절차라 애초에 키가 없다

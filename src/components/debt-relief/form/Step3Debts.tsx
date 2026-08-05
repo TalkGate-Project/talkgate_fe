@@ -75,6 +75,7 @@ export default function Step3Debts({ form, update, derived, debtSumOverLimitChec
         <FormField
           label="채무발생 원인"
           hint="(중복선택 가능)"
+          required
           filled={form.debtCauses.length > 0}
         >
           <PillMultiSelect

@@ -4,7 +4,9 @@ import type { FormStepKey } from "./steps";
 // 채무현황 스텝의 필수값은 입력 모드에 따라 달라진다.
 // - 간편(simple): 채무종류 선택 + 연체기간 직접 입력
 // - 상세(detailed): 채무 항목 1건 이상. 연체기간은 서버가 항목별 최대값으로 자동 계산하므로 받지 않는다.
-function getMissingDebtFieldLabels(form: DiagnosisFormState): string[] {
+// 결과화면 「채무 상세」모달(DebtHistoryCard만 재사용, 채무발생 원인 UI가 없음)도 이 함수를
+// 그대로 써서 자기 화면에 없는 필드를 요구하지 않도록 한다 — 채무발생 원인은 별도로 검사한다.
+export function getMissingDebtFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
   if (form.debtInputMode === "detailed") {
     if (form.debts.length === 0) missing.push("채무 항목");
@@ -31,6 +33,7 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (!form.monthlyIncome) missing.push("월 소득 구간");
   if (!form.housingType) missing.push("주거 형태");
   missing.push(...getMissingDebtFieldLabels(form));
+  if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   if (!form.financialAsset) missing.push("금융 자산");
   if (!form.vehicle) missing.push("차량 보유");
   return missing;
@@ -58,8 +61,11 @@ export function getMissingRequiredFieldLabelsForStep(
       if (!form.vehicle) missing.push("차량 보유");
       return missing;
     }
-    case "debts":
-      return getMissingDebtFieldLabels(form);
+    case "debts": {
+      const missing = getMissingDebtFieldLabels(form);
+      if (form.debtCauses.length === 0) missing.push("채무발생 원인");
+      return missing;
+    }
     case "income": {
       const missing: string[] = [];
       if (!form.employmentType) missing.push("고용 형태");

@@ -45,9 +45,18 @@ export default function SectionDebtStatus({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">
-          채무 현황
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">
+            채무 현황
+          </h2>
+          <button
+            type="button"
+            onClick={() => setDebtDetailOpen(true)}
+            className="cursor-pointer inline-flex items-center justify-center h-7 px-2.5 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 hover:bg-neutral-10 whitespace-nowrap"
+          >
+            자세히 보기
+          </button>
+        </div>
         <div className="mt-3 border-t border-neutral-30" />
       </div>
 
@@ -89,16 +98,7 @@ export default function SectionDebtStatus({
 
         {/* 우: 채무 구성 */}
         <div className="min-w-0">
-          <div className="flex items-center justify-between gap-3 mb-[12px]">
-            <p className="text-[14px] font-medium leading-[17px] text-neutral-60">채무 구성</p>
-            <button
-              type="button"
-              onClick={() => setDebtDetailOpen(true)}
-              className="cursor-pointer inline-flex items-center justify-center h-7 px-2.5 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 hover:bg-neutral-10 whitespace-nowrap"
-            >
-              자세히 보기
-            </button>
-          </div>
+          <p className="text-[14px] font-medium leading-[17px] text-neutral-60 mb-[12px]">채무 구성</p>
           <div className="flex flex-col gap-[13px]">
             {debt.composition.map((item) => (
               <div key={item.label} className="flex items-center gap-3">
