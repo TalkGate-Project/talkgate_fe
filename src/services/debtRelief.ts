@@ -975,7 +975,10 @@ export const DebtReliefService = {
       debtStatus: {
         totalDebtManwon: totalDebt,
         // 간편모드 건에는 이자 데이터 자체가 없어 undefined — UI에서 항목을 숨긴다.
-        totalDebtWithInterestManwon: inputData.totalDebtWithInterest,
+        // 상세→간편 전환 후에도 서버가 이전 상세입력 값을 그대로 들려줄 수 있어, debtInputMode로
+        // 한 번 더 걸러 간편모드에서는 남아있는 값이 있어도 항상 무시한다.
+        totalDebtWithInterestManwon:
+          inputData.debtInputMode === "detailed" ? inputData.totalDebtWithInterest : undefined,
         totalAssetManwon:
           inputData.totalRealEstateValue +
           FINANCIAL_ASSET_ESTIMATE[inputData.financialAssetRange] +
