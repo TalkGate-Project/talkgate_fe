@@ -251,12 +251,101 @@ function ExemptionAmount({ manwon }: { manwon: number }) {
   );
 }
 
-/** 면책/잔여 금액 한 묶음 — 라벨(이자 포함/원금 기준) + 금액 */
-function ExemptionAmountBlock({ label, manwon }: { label: string; manwon: number }) {
+/** 간편입력(이자 없음) 전용 — 피그마 620×133 면책/잔여 카드 */
+function PrincipalOnlyExemptionBoxes({
+  plan,
+  remainingSubtitle,
+}: {
+  plan: RepaymentPlan;
+  remainingSubtitle: string;
+}) {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-[14px] font-medium leading-[17px] text-neutral-60">{label}</p>
-      <ExemptionAmount manwon={manwon} />
+    // sm 이상은 피그마 높이(133) 고정 — 그리드 이웃(주의사항)이 길어져도 늘어나지 않게 한다.
+    <div className="relative grid grid-cols-1 overflow-hidden rounded-[12px] bg-neutral-10 py-[22px] sm:h-[133px] sm:grid-cols-2">
+      <div className="flex min-w-0 flex-col px-5 sm:px-7">
+        <p className="text-[14px] font-semibold leading-[17px] text-neutral-90">
+          예상 면책 채무
+        </p>
+        <div className="mt-4 flex min-w-0 items-end gap-4">
+          <span className="shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+            원금기준
+          </span>
+          <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+        </div>
+        <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
+          변제 완료 후 탕감되는 금액
+        </p>
+      </div>
+
+      <div
+        className="my-4 mx-5 h-px bg-neutral-30 sm:absolute sm:left-1/2 sm:top-1/2 sm:my-0 sm:mx-0 sm:h-20 sm:w-px sm:-translate-y-1/2"
+        aria-hidden
+      />
+
+      <div className="flex min-w-0 flex-col px-5 sm:px-7">
+        <p className="text-[14px] font-semibold leading-[17px] text-neutral-90">
+          예상 잔여 채무
+        </p>
+        <div className="mt-4 flex min-w-0 items-end">
+          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+        </div>
+        {remainingSubtitle && (
+          <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
+            {remainingSubtitle}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** 상세입력(이자 있음) 전용 — 피그마 620×163 면책/잔여 카드 */
+function InterestIncludedExemptionBoxes({
+  plan,
+  remainingSubtitle,
+}: {
+  plan: RepaymentPlan;
+  remainingSubtitle: string;
+}) {
+  return (
+    <div className="self-start rounded-[12px] bg-neutral-10 px-5 py-5 sm:h-[163px] sm:px-7">
+      <div className="flex items-center justify-between gap-4">
+        <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+          예상 면책 채무
+        </p>
+        <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+          변제 완료 후 탕감되는 금액
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-0">
+        <div className="flex min-w-0 items-end gap-3 sm:ml-[35px]">
+          <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+            이자 포함
+          </span>
+          <ExemptionAmount manwon={plan.exemptedDebtWithInterestManwon!} />
+        </div>
+        <div className="flex min-w-0 items-end gap-2 sm:ml-[76px]">
+          <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+            원금 기준
+          </span>
+          <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+        </div>
+      </div>
+
+      <div className="my-4 h-px bg-neutral-30" aria-hidden />
+
+      <div className="grid items-end gap-y-3 sm:grid-cols-[80px_auto_1fr] sm:gap-x-3">
+        <p className="w-[80px] shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 잔여 채무
+        </p>
+        <ExemptionAmount manwon={plan.totalPaymentManwon} />
+        {remainingSubtitle && (
+          <p className="text-[13px] font-medium leading-4 text-neutral-50 sm:justify-self-end sm:text-right">
+            {remainingSubtitle}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -272,50 +361,11 @@ function ExemptionBoxes({
   // gap 16px로 나란히 병기. 없으면 원금 기준만 표시(2026-08 피그마).
   const hasInterest = plan.exemptedDebtWithInterestManwon != null;
 
-  return (
-    // 피그마: 좌(면책) | Divider | 우(잔여). 타이틀 상단·설명 하단 정렬.
-    // 이자 병기 시 좌측(이자+원금)이 더 넓어지므로 flex 비율을  asymmetric 하게 둔다.
-    <div className="rounded-[12px] bg-neutral-10 px-6 md:px-8 lg:pl-11 py-5 lg:py-6 flex items-stretch gap-4 sm:gap-0 min-h-[99px] lg:min-h-[118px]">
-      <div
-        className={`min-w-0 flex flex-col gap-[10px] ${
-          hasInterest ? "flex-[1.6]" : "flex-1"
-        }`}
-      >
-        <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 면책 채무</p>
-        {/* gap-x는 "이자 포함" 값이 길어질 때 옆 칸("원금 기준")과 개행되지 않도록 25px보다 좁힘 */}
-        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-          {hasInterest && (
-            <ExemptionAmountBlock
-              label="이자 포함"
-              manwon={plan.exemptedDebtWithInterestManwon!}
-            />
-          )}
-          <ExemptionAmountBlock label="원금 기준" manwon={plan.exemptedDebtManwon} />
-        </div>
-        <p className="text-[13px] font-medium leading-4 text-neutral-50 mt-auto">
-          변제 완료 후 탕감되는 금액
-        </p>
-      </div>
+  if (!hasInterest) {
+    return <PrincipalOnlyExemptionBoxes plan={plan} remainingSubtitle={remainingSubtitle} />;
+  }
 
-      {/* 피그마 Divider — 80px 세로선 */}
-      <div
-        className="hidden sm:block w-px h-20 bg-neutral-30 self-center shrink-0 mx-4 md:mx-6 lg:mx-8"
-        aria-hidden
-      />
-
-      <div className="flex-1 min-w-0 flex flex-col gap-[10px]">
-        <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 잔여 채무</p>
-        {/* 잔여 채무는 이자 포함 값이 아예 없는 항목(RepaymentPlan에 필드 자체가 없음)이라
-            항상 원금 기준 — 좌측과 같은 라벨을 붙여 여백도 채우고 정렬도 맞춘다. */}
-        <ExemptionAmountBlock label="원금 기준" manwon={plan.totalPaymentManwon} />
-        {remainingSubtitle && (
-          <p className="text-[13px] font-medium leading-4 text-neutral-50 mt-auto">
-            {remainingSubtitle}
-          </p>
-        )}
-      </div>
-    </div>
-  );
+  return <InterestIncludedExemptionBoxes plan={plan} remainingSubtitle={remainingSubtitle} />;
 }
 
 function PrecautionsList({ notes }: { notes: string[] }) {
