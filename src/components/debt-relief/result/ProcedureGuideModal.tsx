@@ -198,7 +198,7 @@ export default function ProcedureGuideModal({ open, onClose, initialProcedure }:
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-[4px]">
               <p className="text-[14px] font-medium leading-[17px] text-neutral-60">대상/자격</p>
-              <ul className="flex flex-col pl-3">
+              <ul className="flex flex-col pl-[10px]">
                 {content.eligibility.map((item, itemIndex) => (
                   <li
                     key={itemIndex}
@@ -212,7 +212,7 @@ export default function ProcedureGuideModal({ open, onClose, initialProcedure }:
 
             <div className="flex flex-col gap-[4px]">
               <p className="text-[14px] font-medium leading-[17px] text-neutral-60">핵심규칙</p>
-              <ul className="flex flex-col pl-3">
+              <ul className="flex flex-col pl-[10px]">
                 {content.coreRules.map((item, itemIndex) => (
                   <li
                     key={itemIndex}
