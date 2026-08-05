@@ -235,7 +235,7 @@ function GroupScoreHeader({
         fill="none"
         aria-hidden
         className={`shrink-0 transition-transform ${
-          open ? "rotate-180 text-neutral-100" : "-rotate-90 text-neutral-60"
+          open ? "rotate-0 text-neutral-100" : "-rotate-90 text-neutral-60"
         }`}
       >
         <path d="M5 8L0 0H10L5 8Z" fill="currentColor" />

@@ -243,7 +243,7 @@ function SummaryInfoCard({ content }: { content: BucketSummaryContent }) {
 function ExemptionAmount({ manwon }: { manwon: number }) {
   return (
     <p className="flex items-end gap-1">
-      <span className="font-montserrat font-bold text-[20px] lg:text-[28px] leading-7 tracking-[-0.03em] text-neutral-70">
+      <span className="font-montserrat text-[20px] font-bold leading-6 tracking-[-0.03em] text-neutral-70 lg:text-[28px] lg:leading-7">
         약 {manwon.toLocaleString("ko-KR")}
       </span>
       <span className="text-[14px] font-semibold leading-[17px] text-neutral-60">만원</span>
@@ -251,12 +251,178 @@ function ExemptionAmount({ manwon }: { manwon: number }) {
   );
 }
 
-/** 면책/잔여 금액 한 묶음 — 라벨(이자 포함/원금 기준) + 금액 */
-function ExemptionAmountBlock({ label, manwon }: { label: string; manwon: number }) {
+/** 간편입력(이자 없음) 전용 — 피그마 620×133 면책/잔여 카드 */
+function PrincipalOnlyExemptionBoxes({
+  plan,
+  remainingSubtitle,
+}: {
+  plan: RepaymentPlan;
+  remainingSubtitle: string;
+}) {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-[14px] font-medium leading-[17px] text-neutral-60">{label}</p>
-      <ExemptionAmount manwon={manwon} />
+    <div className="relative self-start h-[172px] overflow-hidden rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[133px] md:px-0 md:py-0">
+      {/* 모바일: 327×172 전용 배치 */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 면책 채무
+          </p>
+          <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+            변제 완료 후 탕감되는 금액
+          </p>
+        </div>
+
+        <div className="mt-3 flex h-6 items-end justify-between">
+          <span className="text-[13px] font-medium leading-4 text-neutral-60">원금 기준</span>
+          <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+        </div>
+
+        <div className="my-4 h-[2px] bg-neutral-30" aria-hidden />
+
+        <div className="flex items-center justify-between gap-3">
+          <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 잔여 채무
+          </p>
+          {remainingSubtitle && (
+            <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+              {remainingSubtitle}
+            </p>
+          )}
+        </div>
+        <div className="mt-3 flex h-6 items-end justify-end">
+          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+        </div>
+      </div>
+
+      {/* 태블릿 이상: 620×133 전용 배치 */}
+      <div className="hidden h-full grid-cols-2 md:grid">
+        <div className="flex min-w-0 flex-col px-7 py-5">
+          <p className="text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 면책 채무
+          </p>
+          <div className="mt-4 flex min-w-0 items-end gap-4">
+            <span className="shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+              원금 기준
+            </span>
+            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+          </div>
+          <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
+            변제 완료 후 탕감되는 금액
+          </p>
+        </div>
+
+        <div
+          className="absolute left-1/2 top-1/2 h-20 w-px -translate-y-1/2 bg-neutral-30"
+          aria-hidden
+        />
+
+        <div className="flex min-w-0 flex-col px-7 py-5">
+          <p className="text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 잔여 채무
+          </p>
+          <div className="mt-4 flex min-w-0 items-end">
+            <ExemptionAmount manwon={plan.totalPaymentManwon} />
+          </div>
+          {remainingSubtitle && (
+            <p className="mt-3 text-[13px] font-medium leading-4 text-neutral-50">
+              {remainingSubtitle}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 상세입력(이자 있음) 전용 — 피그마 620×163 면책/잔여 카드 */
+function InterestIncludedExemptionBoxes({
+  plan,
+  remainingSubtitle,
+}: {
+  plan: RepaymentPlan;
+  remainingSubtitle: string;
+}) {
+  return (
+    <div className="self-start h-[208px] rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[163px] md:px-7 md:py-5">
+      {/* 모바일: 327×208 전용 배치 */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 면책 채무
+          </p>
+          <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+            변제 완료 후 탕감되는 금액
+          </p>
+        </div>
+
+        <div className="mt-3 flex flex-col gap-3">
+          <div className="flex h-6 items-end justify-between">
+            <span className="text-[13px] font-medium leading-4 text-neutral-60">이자 포함</span>
+            <ExemptionAmount manwon={plan.exemptedDebtWithInterestManwon!} />
+          </div>
+          <div className="flex h-6 items-end justify-between">
+            <span className="text-[13px] font-medium leading-4 text-neutral-60">원금 기준</span>
+            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+          </div>
+        </div>
+
+        <div className="my-4 h-[2px] bg-neutral-30" aria-hidden />
+
+        <div className="flex items-center justify-between gap-3">
+          <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 잔여 채무
+          </p>
+          {remainingSubtitle && (
+            <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+              {remainingSubtitle}
+            </p>
+          )}
+        </div>
+        <div className="mt-3 flex h-6 items-end justify-end">
+          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+        </div>
+      </div>
+
+      {/* 태블릿 이상: 620×163 전용 배치 */}
+      <div className="hidden md:block">
+        <div className="flex items-center justify-between gap-4">
+          <p className="shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 면책 채무
+          </p>
+          <p className="text-right text-[13px] font-medium leading-4 text-neutral-50">
+            변제 완료 후 탕감되는 금액
+          </p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2">
+          <div className="ml-[35px] flex min-w-0 items-end gap-3">
+            <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+              이자 포함
+            </span>
+            <ExemptionAmount manwon={plan.exemptedDebtWithInterestManwon!} />
+          </div>
+          <div className="ml-[76px] flex min-w-0 items-end gap-2">
+            <span className="w-[49px] shrink-0 text-[13px] font-medium leading-4 text-neutral-60">
+              원금 기준
+            </span>
+            <ExemptionAmount manwon={plan.exemptedDebtManwon} />
+          </div>
+        </div>
+
+        <div className="my-4 h-px bg-neutral-30" aria-hidden />
+
+        <div className="grid items-end grid-cols-[80px_auto_1fr] gap-x-3">
+          <p className="w-[80px] shrink-0 text-[14px] font-semibold leading-[17px] text-neutral-90">
+            예상 잔여 채무
+          </p>
+          <ExemptionAmount manwon={plan.totalPaymentManwon} />
+          {remainingSubtitle && (
+            <p className="justify-self-end text-right text-[13px] font-medium leading-4 text-neutral-50">
+              {remainingSubtitle}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -272,50 +438,11 @@ function ExemptionBoxes({
   // gap 16px로 나란히 병기. 없으면 원금 기준만 표시(2026-08 피그마).
   const hasInterest = plan.exemptedDebtWithInterestManwon != null;
 
-  return (
-    // 피그마: 좌(면책) | Divider | 우(잔여). 타이틀 상단·설명 하단 정렬.
-    // 이자 병기 시 좌측(이자+원금)이 더 넓어지므로 flex 비율을  asymmetric 하게 둔다.
-    <div className="rounded-[12px] bg-neutral-10 px-6 md:px-8 lg:pl-11 py-5 lg:py-6 flex items-stretch gap-4 sm:gap-0 min-h-[99px] lg:min-h-[118px]">
-      <div
-        className={`min-w-0 flex flex-col gap-[10px] ${
-          hasInterest ? "flex-[1.6]" : "flex-1"
-        }`}
-      >
-        <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 면책 채무</p>
-        {/* gap-x는 "이자 포함" 값이 길어질 때 옆 칸("원금 기준")과 개행되지 않도록 25px보다 좁힘 */}
-        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-          {hasInterest && (
-            <ExemptionAmountBlock
-              label="이자 포함"
-              manwon={plan.exemptedDebtWithInterestManwon!}
-            />
-          )}
-          <ExemptionAmountBlock label="원금 기준" manwon={plan.exemptedDebtManwon} />
-        </div>
-        <p className="text-[13px] font-medium leading-4 text-neutral-50 mt-auto">
-          변제 완료 후 탕감되는 금액
-        </p>
-      </div>
+  if (!hasInterest) {
+    return <PrincipalOnlyExemptionBoxes plan={plan} remainingSubtitle={remainingSubtitle} />;
+  }
 
-      {/* 피그마 Divider — 80px 세로선 */}
-      <div
-        className="hidden sm:block w-px h-20 bg-neutral-30 self-center shrink-0 mx-4 md:mx-6 lg:mx-8"
-        aria-hidden
-      />
-
-      <div className="flex-1 min-w-0 flex flex-col gap-[10px]">
-        <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 잔여 채무</p>
-        {/* 잔여 채무는 이자 포함 값이 아예 없는 항목(RepaymentPlan에 필드 자체가 없음)이라
-            항상 원금 기준 — 좌측과 같은 라벨을 붙여 여백도 채우고 정렬도 맞춘다. */}
-        <ExemptionAmountBlock label="원금 기준" manwon={plan.totalPaymentManwon} />
-        {remainingSubtitle && (
-          <p className="text-[13px] font-medium leading-4 text-neutral-50 mt-auto">
-            {remainingSubtitle}
-          </p>
-        )}
-      </div>
-    </div>
-  );
+  return <InterestIncludedExemptionBoxes plan={plan} remainingSubtitle={remainingSubtitle} />;
 }
 
 function PrecautionsList({ notes }: { notes: string[] }) {

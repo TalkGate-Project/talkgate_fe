@@ -168,6 +168,7 @@ export default function DebtDetailModal({
             update={update}
             totalDebtManwon={totalDebtManwon}
             disabled={!canEdit || submitting}
+            areaBackgroundClassName="bg-neutral-10 dark:bg-neutral-0"
           />
         </div>
 

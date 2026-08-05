@@ -42,7 +42,7 @@ function DebtModeToggle({
     <div
       role="tablist"
       aria-label="채무 입력 방식"
-      className="flex items-center gap-1 shrink-0 rounded-full bg-neutral-20 p-1"
+      className="flex h-12 w-[212px] shrink-0 items-center gap-3 rounded-[12px] bg-neutral-20 px-3 py-[8.5px]"
     >
       <button
         type="button"
@@ -50,10 +50,10 @@ function DebtModeToggle({
         aria-selected={value === "simple"}
         disabled={disabled}
         onClick={() => onChange("simple")}
-        className={`cursor-pointer h-7 px-4 rounded-full text-[13px] font-semibold leading-[16px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`inline-flex h-[31px] w-[88px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "simple"
-            ? "bg-neutral-90 text-neutral-20"
-            : "text-neutral-60 hover:text-foreground"
+            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
+            : "font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         간편
@@ -64,10 +64,10 @@ function DebtModeToggle({
         aria-selected={value === "detailed"}
         disabled={disabled}
         onClick={() => onChange("detailed")}
-        className={`cursor-pointer inline-flex items-center gap-1.5 h-7 px-4 rounded-full text-[13px] font-semibold leading-[16px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+        className={`inline-flex h-[31px] w-[88px] cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "detailed"
-            ? "bg-neutral-90 text-neutral-20"
-            : "text-neutral-60 hover:text-foreground"
+            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
+            : "font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         상세
@@ -81,6 +81,10 @@ export type DebtHistoryCardProps = {
   update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void;
   totalDebtManwon: number;
   disabled?: boolean;
+  /** 담보/무담보 합산 카드·총 채무 합계 영역 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는
+      neutral-10 그대로 두고, 모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록
+      호출부에서 오버라이드한다. */
+  areaBackgroundClassName?: string;
 };
 
 export default function DebtHistoryCard({
@@ -88,6 +92,7 @@ export default function DebtHistoryCard({
   update,
   totalDebtManwon,
   disabled = false,
+  areaBackgroundClassName = "bg-neutral-10",
 }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
@@ -115,8 +120,8 @@ export default function DebtHistoryCard({
 
   return (
     // min-w-0: 상세모드 테이블(가로스크롤)이 flex 조상의 min-content 폭을 밀어올리지 않게
-    <div className="min-w-0 rounded-t-[14px] border-t border-x border-neutral-30 overflow-hidden">
-      <div className="flex items-start justify-between gap-4 px-5 md:px-6 py-4 md:py-5">
+    <div className="min-w-0 overflow-hidden rounded-[14px] border border-neutral-30">
+      <div className="flex h-[70px] items-center justify-between gap-4 bg-neutral-10 px-5 md:px-6">
         <div className="min-w-0">
           <h3 className="text-[16px] font-bold leading-5 text-foreground">채무내역</h3>
           <p className="mt-1.5 text-[13px] leading-4 text-neutral-60">
@@ -134,7 +139,11 @@ export default function DebtHistoryCard({
         className={`px-5 md:px-6 py-5 md:py-6 ${disabled ? "pointer-events-none opacity-80" : ""}`}
       >
         {form.debtInputMode === "detailed" ? (
-          <DebtItemsTable debts={form.debts} onChange={(debts) => update("debts", debts)} />
+          <DebtItemsTable
+            debts={form.debts}
+            onChange={(debts) => update("debts", debts)}
+            sumCardBackgroundClassName={areaBackgroundClassName}
+          />
         ) : (
           <div className="flex flex-col gap-5">
             <FormField
@@ -169,7 +178,9 @@ export default function DebtHistoryCard({
 
             <div role="separator" className="h-px bg-neutral-30" />
 
-            <div className="flex items-center justify-between bg-neutral-10 rounded-[12px] px-4 md:px-7 h-12 md:h-[56px]">
+            <div
+              className={`flex items-center justify-between rounded-[12px] px-4 md:px-7 h-12 md:h-[56px] ${areaBackgroundClassName}`}
+            >
               <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-60">
                 총 채무 합계
               </span>

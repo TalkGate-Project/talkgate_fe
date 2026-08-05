@@ -16,6 +16,9 @@ import { PercentInput, TextInput, WonInput } from "./FormControls";
 type Props = {
   debts: DebtItemFormState[];
   onChange: (debts: DebtItemFormState[]) => void;
+  /** 담보/무담보 합산 카드 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는 neutral-10 그대로 두고,
+      모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록 호출부에서 오버라이드한다. */
+  sumCardBackgroundClassName?: string;
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -92,7 +95,8 @@ const TABLE_WIDTH = COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0);
 // 자체 좌우 패딩(px-2~px-3)을 또 갖고 있어서 td 패딩과 겹쳐 헤더 라벨이 실제 값보다 왼쪽으로
 // 치우쳐 보인다. td 패딩을 줄이고 th 패딩을 늘려 그 격차를 좁힌다(완전한 픽셀 일치보단
 // "표답게 보이는" 수준으로 절충).
-const HEADER_CELL = "h-10 px-3 text-[16px] font-medium text-neutral-60 text-left whitespace-nowrap";
+const HEADER_CELL =
+  "h-10 bg-neutral-20 px-3 text-left text-[16px] font-medium text-neutral-60 whitespace-nowrap first:rounded-l-[10px] last:rounded-r-[10px]";
 const BODY_CELL = "px-1 py-2 align-middle";
 const READONLY_CELL =
   "px-3 py-2 align-middle text-right text-[14px] font-medium text-neutral-90/80 whitespace-nowrap";
@@ -148,13 +152,15 @@ function DebtSumCard({
   label,
   sums,
   highlight = false,
+  backgroundClassName = "bg-neutral-10",
 }: {
   label: string;
   sums: DebtSums;
   highlight?: boolean;
+  backgroundClassName?: string;
 }) {
   return (
-    <div className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : "bg-neutral-10"}`}>
+    <div className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : backgroundClassName}`}>
       <div className="flex items-baseline justify-between gap-2">
         <span className={`text-[14px] font-medium tracking-[0.2px] ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
           {label}
@@ -183,7 +189,11 @@ function DebtSumCard({
   );
 }
 
-export default function DebtItemsTable({ debts, onChange }: Props) {
+export default function DebtItemsTable({
+  debts,
+  onChange,
+  sumCardBackgroundClassName = "bg-neutral-10",
+}: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
   const updateItem = (id: string, patch: Partial<DebtItemFormState>) => {
@@ -222,7 +232,7 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
             ))}
           </colgroup>
           <thead>
-            <tr className="bg-neutral-20 border-b border-neutral-30">
+            <tr>
               <th className={HEADER_CELL}>채무종류</th>
               <th className={HEADER_CELL}>담보</th>
               <th className={HEADER_CELL}>채권처</th>
@@ -355,11 +365,11 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
           </tbody>
           <tfoot>
             <tr className="border-t border-neutral-30">
-              <td colSpan={14} className="p-2">
+              <td colSpan={14} className="py-2">
                 <button
                   type="button"
                   onClick={addRow}
-                  className="cursor-pointer w-full h-10 rounded-lg bg-neutral-10 inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60"
+                  className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}
                 >
                   <PlusIcon />
                   행 추가
@@ -371,8 +381,16 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
-        <DebtSumCard label="담보대출 합산" sums={collateralTotals} />
-        <DebtSumCard label="무담보대출 합산" sums={unsecuredTotals} />
+        <DebtSumCard
+          label="담보대출 합산"
+          sums={collateralTotals}
+          backgroundClassName={sumCardBackgroundClassName}
+        />
+        <DebtSumCard
+          label="무담보대출 합산"
+          sums={unsecuredTotals}
+          backgroundClassName={sumCardBackgroundClassName}
+        />
         <DebtSumCard label="총 합산" sums={totals} highlight />
       </div>
     </div>
