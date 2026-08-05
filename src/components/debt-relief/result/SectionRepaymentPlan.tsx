@@ -251,7 +251,7 @@ function ExemptionAmount({ manwon }: { manwon: number }) {
   );
 }
 
-/** 면책 금액 한 묶음 — 라벨(이자 포함/원금 기준) + 금액 */
+/** 면책/잔여 금액 한 묶음 — 라벨(이자 포함/원금 기준) + 금액 */
 function ExemptionAmountBlock({ label, manwon }: { label: string; manwon: number }) {
   return (
     <div className="flex flex-col gap-2">
@@ -269,7 +269,7 @@ function ExemptionBoxes({
   remainingSubtitle: string;
 }) {
   // 이자 포함 값은 채무 상세입력 모드 건에만 존재 — 있으면 이자 포함·원금 기준을
-  // gap 25px로 나란히 병기. 없으면 원금 기준만 표시(2026-08 피그마).
+  // gap 16px로 나란히 병기. 없으면 원금 기준만 표시(2026-08 피그마).
   const hasInterest = plan.exemptedDebtWithInterestManwon != null;
 
   return (
@@ -277,12 +277,13 @@ function ExemptionBoxes({
     // 이자 병기 시 좌측(이자+원금)이 더 넓어지므로 flex 비율을  asymmetric 하게 둔다.
     <div className="rounded-[12px] bg-neutral-10 px-6 md:px-8 lg:pl-11 py-5 lg:py-6 flex items-stretch gap-4 sm:gap-0 min-h-[99px] lg:min-h-[118px]">
       <div
-        className={`min-w-0 flex flex-col gap-[6px] ${
+        className={`min-w-0 flex flex-col gap-[10px] ${
           hasInterest ? "flex-[1.6]" : "flex-1"
         }`}
       >
         <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 면책 채무</p>
-        <div className="flex flex-wrap items-end gap-x-[25px] gap-y-3">
+        {/* gap-x는 "이자 포함" 값이 길어질 때 옆 칸("원금 기준")과 개행되지 않도록 25px보다 좁힘 */}
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
           {hasInterest && (
             <ExemptionAmountBlock
               label="이자 포함"
@@ -302,14 +303,13 @@ function ExemptionBoxes({
         aria-hidden
       />
 
-      <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
+      <div className="flex-1 min-w-0 flex flex-col gap-[10px]">
         <p className="text-[14px] font-medium leading-[17px] text-neutral-70">예상 잔여 채무</p>
-        {/* 라벨이 없어 요소가 적으므로 타이틀·설명 사이 세로 가운데에 금액을 둔다 */}
-        <div className="flex-1 flex items-center">
-          <ExemptionAmount manwon={plan.totalPaymentManwon} />
-        </div>
+        {/* 잔여 채무는 이자 포함 값이 아예 없는 항목(RepaymentPlan에 필드 자체가 없음)이라
+            항상 원금 기준 — 좌측과 같은 라벨을 붙여 여백도 채우고 정렬도 맞춘다. */}
+        <ExemptionAmountBlock label="원금 기준" manwon={plan.totalPaymentManwon} />
         {remainingSubtitle && (
-          <p className="text-[13px] font-medium leading-4 text-neutral-50">
+          <p className="text-[13px] font-medium leading-4 text-neutral-50 mt-auto">
             {remainingSubtitle}
           </p>
         )}

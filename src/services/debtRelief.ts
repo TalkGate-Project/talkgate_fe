@@ -439,6 +439,16 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     hasTaxArrears: form.hasTaxArrears,
     hasRecentAssetDisposal: form.hasRecentAssetDisposal,
     isOperatingBusiness: form.isOperatingBusiness,
+    // 새출발기금 상세 4종은 사업 영위 이력이 없으면 의미가 없어 아예 보내지 않는다(값은
+    // 폼 상태에 남겨둬 토글을 다시 켰을 때 입력값이 사라지지 않게 한다).
+    ...(form.isOperatingBusiness
+      ? {
+          businessOperationStatus: form.businessOperationStatus ?? undefined,
+          freshStartFundInsolvencyReasons: form.freshStartFundInsolvencyReasons,
+          isExcludedIndustryForFreshStartFund: form.isExcludedIndustryForFreshStartFund,
+          hasPreviousFreshStartFundApplication: form.hasPreviousFreshStartFundApplication,
+        }
+      : {}),
     specialEligibilities: form.specialEligibility.map((item) => SPECIAL_ELIGIBILITY_TO_ANALYSIS[item]),
     additionalNotes: form.counselorMemo || undefined,
   };
@@ -511,6 +521,10 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
       transportation: input.fixedExpenses.transportCost ?? 0,
       other: input.fixedExpenses.otherFixedCost ?? 0,
     },
+    businessOperationStatus: input.businessOperationStatus ?? null,
+    freshStartFundInsolvencyReasons: input.freshStartFundInsolvencyReasons ?? [],
+    isExcludedIndustryForFreshStartFund: input.isExcludedIndustryForFreshStartFund ?? false,
+    hasPreviousFreshStartFundApplication: input.hasPreviousFreshStartFundApplication ?? false,
     hasPreviousApplication: input.hasPreviousBankruptcy,
     previousApplicationDetail: input.previousBankruptcyNote ?? "",
     hasGuarantor: input.hasGuarantorRelation,

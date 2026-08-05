@@ -13,5 +13,5 @@ export const FORM_STEPS: FormStepMeta[] = [
   { key: "assets", label: "자산 현황", title: "자산 현황", description: "보유 자산의 종류와 규모를 파악합니다." },
   { key: "debts", label: "채무 현황", title: "채무 현황", description: "채무 규모와 연체 현황을 확인합니다." },
   { key: "income", label: "소득 / 지출", title: "소득 / 지출", description: "월 소득과 고정 지출을 계산합니다." },
-  { key: "others", label: "기타사항", title: "기타사항", description: "신청 이력, 소송 여부 등을 확인합니다." },
+  { key: "others", label: "기타사항", title: "기타사항", description: "새출발기금 자격, 신청 이력, 소송 여부를 확인합니다." },
 ];
