@@ -900,7 +900,17 @@ export const DebtReliefService = {
       }
     }
 
-    const guide = pickProcedureValue(analysis.procedureGuides, trackingProcedure);
+    // 절차안내 드롭다운 미리보기용 — 추적 중이 아닌 절차를 골라도 서버 재조회 없이 바로 보여줄 수
+    // 있도록 응답에 있는 모든 절차의 가이드를 맵으로 만든다. 실제로 추적 중인 절차만 currentStep을
+    // 반영하고(analysis.trackingProcedure와 일치할 때만), 나머지는 항상 진행 전(0)으로 둔다 —
+    // 미리보기가 실제 진행 상황처럼 보이면 안 되기 때문.
+    const procedureGuideByProcedure: Partial<Record<RecommendedProcedure, ProcedureGuide>> = {};
+    for (const [procedure, rawGuide] of procedureEntries(analysis.procedureGuides)) {
+      const currentStepForProcedure =
+        analysis.trackingProcedure === procedure ? analysis.currentProcedureStep : null;
+      procedureGuideByProcedure[procedure] = buildProcedureGuide(rawGuide, currentStepForProcedure);
+    }
+    const guide = procedureGuideByProcedure[trackingProcedure];
     // buildRepaymentPlanByProcedure가 구 형태(단일 객체)/신 형태(절차별 맵) 모두 처리한다.
     const repaymentPlanByProcedure = buildRepaymentPlanByProcedure(
       analysis.analysisResult?.expectedRepayment,
@@ -989,12 +999,9 @@ export const DebtReliefService = {
       // analysis.trackingProcedure가 null이면(아직 추적 시작 전) currentProcedureStep이 남아있어도
       // 무시한다 — trackingProcedureCode는 이 경우 AI 추천으로 대체 표시되는 값이라, 그 값의 단계를
       // "진행중"으로 표시하면 실제로 추적 중인 절차가 없는데도 있는 것처럼 보이게 된다.
-      procedureGuide: guide
-        ? buildProcedureGuide(
-            guide,
-            analysis.trackingProcedure != null ? analysis.currentProcedureStep : null
-          )
-        : EMPTY_PROCEDURE_GUIDE,
+      // (procedureGuideByProcedure 빌드 시 이미 반영됨 — 위 루프 참고)
+      procedureGuide: guide ?? EMPTY_PROCEDURE_GUIDE,
+      procedureGuideByProcedure,
       procedureStepHistory: (analysis.procedureStepHistory ?? []).map((item) => ({
         stepId: item.stepId,
         changedByMemberName: item.changedByMemberName,

@@ -5,6 +5,7 @@ import {
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
   type DiagnosisDetail,
+  type ProcedureGuide,
   type ProcedureStep,
   type ProcedureStepHistoryItem,
   type RecommendedProcedure,
@@ -17,6 +18,17 @@ import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkM
 import CustomerMatchModal from "./CustomerMatchModal";
 import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import { DebtReliefSmsModal, buildProcedureStepTemplate } from "./sms";
+
+// procedureGuideByProcedure에 해당 절차 키가 없을 때(방어적 폴백)만 쓰인다.
+const EMPTY_PROCEDURE_GUIDE: ProcedureGuide = {
+  procedureLabel: "",
+  totalSteps: 0,
+  currentStep: 0,
+  estimatedRemaining: "-",
+  totalPeriodHint: "-",
+  progressPercent: 0,
+  steps: [],
+};
 
 function SmsButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
   return (
@@ -85,8 +97,10 @@ function SelectCaretIcon({ open }: { open: boolean }) {
   );
 }
 
-// 추적 절차 전환 셀렉트. 진행 단계가 1단계로 초기화되는 액션이라 실제 변경 확인(모달)은
-// 호출부(onSelect)에서 처리하고, 여기서는 UI 상호작용만 담당한다.
+// 절차 미리보기 셀렉트. 여기서 고르는 것은 화면에 보여줄 절차를 바꿀 뿐 실제 추적 절차를
+// 바꾸지 않는다 — 실제 전환(진행 단계가 1단계로 초기화되는 액션)은 미리보는 절차의 1단계
+// "현재 단계로 설정" 버튼에서 확인 모달을 거쳐 이루어진다(SectionProcedureGuide 본문 참고).
+// 그래서 status(locked)와 무관하게 항상 열람 가능해야 한다.
 function ProcedureSelect({
   value,
   onSelect,
@@ -353,8 +367,10 @@ type Props = {
   // 표시 후 반드시 throw로 실패를 전파해야 한다(showErrorModal만 하고 삼키면 원복이 동작하지 않음).
   onSetCurrentStep?: (step: ProcedureStep) => Promise<void>;
   // 추적 절차 전환(PATCH /v1/analysis/{id}). 호출부에서 확인 모달 + refetch까지 책임진다.
+  // 드롭다운 선택이 아니라, 미리보는(비추적) 절차의 1단계 "현재 단계로 설정" 버튼에서 호출된다.
   onChangeTrackingProcedure?: (procedure: RecommendedProcedure) => void;
-  // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용)
+  // false면 셀렉트를 비활성 배지로 대체 (예: 변호사 프로젝트가 공유받은 건은 읽기 전용).
+  // locked(status 기반 잠금)와 달리 이 값이 false면 다른 절차 열람(미리보기)도 막는다.
   canChangeTrackingProcedure?: boolean;
   // true면 절차 확인(펼치기)은 그대로 두고, 절차 전환/문자 발송 등 실제 작업만 막는다.
   // (예: 계약 체결 전 상태 — 내용은 미리 볼 수 있어야 하지만 아직 작업 대상은 아님)
@@ -374,10 +390,23 @@ export default function SectionProcedureGuide({
   locked = false,
   stepLocked = locked,
 }: Props) {
-  const { procedureGuide: guide } = detail;
   const { member } = useMyMember();
   const { project } = useCurrentProjectDetail();
+
+  // 드롭다운에서 고른, 지금 "보고 있는" 절차 — 실제 추적 절차(detail.trackingProcedure)와 다를 수
+  // 있다. 다르면 미리보기 모드: 문자 발송은 막고, 단계 조작은 1단계 "현재 단계로 설정"만 남겨
+  // 실제 전환 트리거로 쓴다(아래 StepItem map 참고).
+  // 마운트 시엔 항상 추적 절차와 같다(부모가 trackingProcedure를 key로 써서 실제 전환 시
+  // 리마운트하므로, 여기서 별도로 동기화할 필요가 없다).
+  const [previewProcedure, setPreviewProcedure] = useState<RecommendedProcedure>(
+    detail.trackingProcedure
+  );
+  const isPreviewingTracked = previewProcedure === detail.trackingProcedure;
+  const guide = detail.procedureGuideByProcedure[previewProcedure] ?? EMPTY_PROCEDURE_GUIDE;
+
   const [currentStep, setCurrentStep] = useState(guide.currentStep);
+  // 미리보기 중인 절차가 실제 추적 절차가 아니면 진행 단계는 항상 "진행 전"으로 취급한다.
+  const displayCurrentStep = isPreviewingTracked ? currentStep : 0;
   const [expanded, setExpanded] = useState<Set<number>>(
     () => new Set([guide.currentStep])
   );
@@ -429,13 +458,13 @@ export default function SectionProcedureGuide({
   };
 
   const effectiveStatus = (step: number): "done" | "in_progress" | "pending" =>
-    step < currentStep ? "done" : step === currentStep ? "in_progress" : "pending";
+    step < displayCurrentStep ? "done" : step === displayCurrentStep ? "in_progress" : "pending";
 
   // "현재 단계로 설정"으로 currentStep이 바뀔 때마다 이전 단계까지 완료한 것으로 간주해 재계산한다.
   // (guide.progressPercent는 서버가 내려주는 최초 스냅샷 값이라 currentStep 변경을 반영하지 못해 사용하지 않는다.)
   const progressPercent =
-    guide.totalSteps > 0 ? Math.round((currentStep / guide.totalSteps) * 100) : 0;
-  const currentStepMeta = guide.steps.find((s) => s.step === currentStep);
+    guide.totalSteps > 0 ? Math.round((displayCurrentStep / guide.totalSteps) * 100) : 0;
+  const currentStepMeta = guide.steps.find((s) => s.step === displayCurrentStep);
 
   // 저장 요청이 진행 중인 동안엔 다른 "현재 단계로 설정" 클릭을 막는다 — 동시에 두 요청이
   // 나가면 실패 시 어느 시점 상태로 원복해야 할지 꼬여서(레이스) 화면이 잘못된 값에 멈출 수 있다.
@@ -490,9 +519,12 @@ export default function SectionProcedureGuide({
             절차안내
           </h2>
           <ProcedureSelect
-            value={detail.trackingProcedure}
-            onSelect={(procedure) => onChangeTrackingProcedure?.(procedure)}
-            disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure || locked}
+            value={previewProcedure}
+            onSelect={(procedure) => {
+              setPreviewProcedure(procedure);
+              setExpanded(new Set());
+            }}
+            disabled={!onChangeTrackingProcedure || !canChangeTrackingProcedure}
           />
           {guide.totalPeriodHint && guide.totalPeriodHint !== "-" && (
             <span className="hidden md:inline ml-auto text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
@@ -506,23 +538,45 @@ export default function SectionProcedureGuide({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_297px] gap-4 md:gap-6 items-start">
         {/* 모바일 Figma: 현황 카드가 위, 아코디언이 아래 — order로 토글. 데스크톱은 좌(아코디언)·우(사이드바) */}
         <div className="order-2 lg:order-1 flex flex-col gap-3 min-w-0">
-          {guide.steps.map((step) => (
-            <StepItem
-              key={step.step}
-              step={step}
-              effectiveStatus={effectiveStatus(step.step)}
-              expanded={expanded.has(step.step)}
-              onToggle={() => toggle(step.step)}
-              isCurrent={step.step === currentStep}
-              canSetCurrent={step.step > currentStep && !stepLocked && !savingStep}
-              onSetCurrent={() => handleSetCurrent(step)}
-              onSendSms={() => handleSendSms(step)}
-              smsDisabled={locked}
-              stepHistory={
-                step.stepId != null ? historyByStepId.get(step.stepId) : undefined
-              }
-            />
-          ))}
+          {guide.steps.map((step) => {
+            // 추적 절차가 아닌 다른 절차를 미리보는 중엔 1단계의 "현재 단계로 설정"만 활성화한다 —
+            // 눌렀을 때 실제로는 이 절차로 추적 절차 자체를 전환한다(확인 모달 + 1단계 초기화 경고는
+            // onChangeTrackingProcedure 호출부가 그대로 처리). 2단계 이상은 전환 없이 건너뛸 수
+            // 없으므로 계속 비활성.
+            const canSwitchViaStepOne =
+              step.step === 1 &&
+              !locked &&
+              Boolean(onChangeTrackingProcedure) &&
+              canChangeTrackingProcedure;
+
+            return (
+              <StepItem
+                key={step.step}
+                step={step}
+                effectiveStatus={effectiveStatus(step.step)}
+                expanded={expanded.has(step.step)}
+                onToggle={() => toggle(step.step)}
+                isCurrent={isPreviewingTracked && step.step === displayCurrentStep}
+                canSetCurrent={
+                  isPreviewingTracked
+                    ? step.step > displayCurrentStep && !stepLocked && !savingStep
+                    : canSwitchViaStepOne
+                }
+                onSetCurrent={() =>
+                  isPreviewingTracked
+                    ? handleSetCurrent(step)
+                    : onChangeTrackingProcedure?.(previewProcedure)
+                }
+                onSendSms={() => handleSendSms(step)}
+                smsDisabled={locked || !isPreviewingTracked}
+                stepHistory={
+                  isPreviewingTracked && step.stepId != null
+                    ? historyByStepId.get(step.stepId)
+                    : undefined
+                }
+              />
+            );
+          })}
         </div>
 
         <aside className="order-1 lg:order-2 rounded-[12px] border border-neutral-30 bg-neutral-10 overflow-hidden lg:sticky lg:top-[138px] lg:self-start lg:z-10">
@@ -534,7 +588,9 @@ export default function SectionProcedureGuide({
                   현재 단계
                 </p>
                 <p className="text-[14px] md:text-[16px] font-semibold leading-[19px] tracking-[-0.02em] text-foreground">
-                  {currentStep > 0 && currentStepMeta ? `${currentStep}단계. ${currentStepMeta.title}` : "진행 전"}
+                  {displayCurrentStep > 0 && currentStepMeta
+                    ? `${displayCurrentStep}단계. ${currentStepMeta.title}`
+                    : "진행 전"}
                 </p>
               </div>
               <div className="hidden md:block min-w-0">
@@ -559,7 +615,7 @@ export default function SectionProcedureGuide({
                   const isActive = status === "in_progress";
                   const isDone = status === "done";
                   const isPreview =
-                    step.step === currentStep || step.step === currentStep + 1;
+                    step.step === displayCurrentStep || step.step === displayCurrentStep + 1;
                   return (
                     <li
                       key={step.step}
