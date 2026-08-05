@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import AnalysisLoadingOverlayHost, {
+  type AnalysisProgressHandle,
+} from "@/components/debt-relief/form/AnalysisLoadingOverlayHost";
 import DebtHistoryCard from "@/components/debt-relief/form/DebtHistoryCard";
 import { getMissingDebtFieldLabels } from "@/components/debt-relief/form/validateDiagnosisForm";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -69,6 +72,9 @@ export default function DebtDetailModal({
   const [submittingAction, setSubmittingAction] = useState<"save" | "reanalyze" | null>(null);
   const [choiceOpen, setChoiceOpen] = useState(false);
   const submitting = submittingAction != null;
+  // 재분석 대기 중 전체 화면 로딩으로 전환 — 진행률 상태는 오버레이 안에 가둬 잦은 갱신이
+  // 이 모달 트리 전체를 리렌더하지 않게 한다(AnalysisLoadingOverlayHost 주석 참고).
+  const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
 
   const canEdit =
     projectTypeReady &&
@@ -120,13 +126,18 @@ export default function DebtDetailModal({
 
   const submitDebts = async (reanalyze: boolean) => {
     setSubmittingAction(reanalyze ? "reanalyze" : "save");
+    // 다시 분석은 전체 화면 로딩으로 넘어가므로 뒤에 겹쳐 있는 선택 모달은 먼저 닫는다.
+    if (reanalyze) setChoiceOpen(false);
     try {
       await DebtReliefService.updateDiagnosisDebts(projectId, detail.id, form, reanalyze);
+      // 진행률을 100%까지 채우고 여운을 준 뒤 화면을 되돌린다(신규/수정 폼 분석 흐름과 동일).
+      if (reanalyze) await analysisProgressRef.current?.settle();
       await onApplied();
       setChoiceOpen(false);
       onClose();
     } catch (error) {
       console.error("Failed to update diagnosis debts:", error);
+      if (reanalyze) analysisProgressRef.current?.abort();
       showErrorModal({
         headline: reanalyze
           ? "다시 분석에 실패했습니다."
@@ -141,6 +152,12 @@ export default function DebtDetailModal({
 
   return (
     <>
+      {/* ref가 항상 살아 있어야 하므로 조건부 렌더하지 않는다(active로만 제어). */}
+      <AnalysisLoadingOverlayHost
+        active={submittingAction === "reanalyze"}
+        ref={analysisProgressRef}
+      />
+
       <BaseModal
         onClose={handleClose}
         closeOnOverlayClick={!submitting && !choiceOpen}
