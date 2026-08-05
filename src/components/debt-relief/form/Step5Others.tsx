@@ -1,11 +1,14 @@
+import type { AnalysisFreshStartFundInsolvencyReason } from "@/types/analysis";
 import {
+  BUSINESS_OPERATION_STATUS_OPTIONS,
+  FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS,
   SPECIAL_ELIGIBILITY_OPTIONS,
   type DiagnosisFormState,
   type SpecialEligibilityType,
 } from "@/types/debtRelief";
 import { FormField, FormSectionTitle } from "./FormControls";
 import { FormToggleRow } from "./FormToggle";
-import { PillMultiSelect } from "./PillSelect";
+import { PillButton, PillMultiSelect, PillSelect } from "./PillSelect";
 
 // 만 29세 이하/만 65세 이상은 동시 선택 불가 — 서로의 상대값
 const AGE_EXCLUSIVE_PAIR: Partial<Record<SpecialEligibilityType, SpecialEligibilityType>> = {
@@ -26,15 +29,56 @@ const DETAIL_INPUT_CLASS =
 const TEXTAREA_CLASS =
   "w-full h-[84px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-60 focus:outline-none focus:border-neutral-50 resize-none";
 
+// FormSectionTitle(FormControls.tsx)은 "데스크톱만, 모바일은 상단 드로어 스텝명이 대신함"
+// 전제로 hidden md:block이다 — 이 스텝에 섹션이 "소송 및 채무조정 이력" 하나뿐일 때는 맞는
+// 전제였지만, 새출발기금 섹션이 추가되며 모바일에서 두 섹션의 경계가 안 보이게 됐다(바로
+// 다음 항목인 "이전 신청 이력 있음"↔"이전 개인회생/파산 신청 이력 있음"이 라벨까지 비슷해
+// 헷갈리기 쉬움). FormSectionTitle 자체(다른 스텝도 공유)는 그대로 두고, 이 스텝에서만
+// 모바일 전용 제목을 나란히 둔다.
+function MobileSectionTitle({ children }: { children: string }) {
+  return (
+    <h3 className="md:hidden text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
+      {children}
+    </h3>
+  );
+}
+
 /**
  * 기타사항 스텝 — Figma: 토글 행(라벨+스위치) + on 시 상세 인풋, 특이사항 textarea.
  * 카드 보더 없음. 항목 간 gap 24px.
  */
 export default function Step5Others({ form, update, onClose }: Props) {
+  // 사업 영위 이력(isOperatingBusiness)은 5단계에서만 관리한다 — 예/아니오가 API 게이트를
+  // 직접 토글하고, "예"일 때만 아래 상세 4종을 노출한다.
+  const handleFreshStartFundPeriodYes = () => {
+    update("isOperatingBusiness", true);
+  };
+
+  const handleFreshStartFundPeriodNo = () => {
+    update("isOperatingBusiness", false);
+  };
+
   const handleSpecialEligibilityChange = (next: SpecialEligibilityType[]) => {
     const added = next.find((item) => !form.specialEligibility.includes(item));
     const conflicting = added ? AGE_EXCLUSIVE_PAIR[added] : undefined;
     update("specialEligibility", conflicting ? next.filter((item) => item !== conflicting) : next);
+  };
+
+  // "해당없음"은 다른 부실사유와 동시 선택 불가 — 어느 한쪽을 새로 고르면 반대쪽을 모두 걷어낸다.
+  const handleInsolvencyReasonsChange = (next: AnalysisFreshStartFundInsolvencyReason[]) => {
+    const added = next.find((item) => !form.freshStartFundInsolvencyReasons.includes(item));
+    if (added === "not_applicable") {
+      update("freshStartFundInsolvencyReasons", ["not_applicable"]);
+      return;
+    }
+    if (added) {
+      update(
+        "freshStartFundInsolvencyReasons",
+        next.filter((item) => item !== "not_applicable")
+      );
+      return;
+    }
+    update("freshStartFundInsolvencyReasons", next);
   };
 
   return (
@@ -42,10 +86,11 @@ export default function Step5Others({ form, update, onClose }: Props) {
       {/* 모바일 전용 — 이 스텝은 다른 스텝과 달리 본문이 토글 목록으로 바로 시작해서, 카드
           우상단에 절대배치된 닫기(X)만 있으면 첫 항목 옆에 어색하게 떠 보인다. 타이틀 행을
           만들어 그 오른쪽 끝에 X를 두고, 카드 우상단의 절대배치 X는 이 스텝에서만 숨긴다
-          (DiagnosisFormContent.tsx 참고). */}
+          (DiagnosisFormContent.tsx 참고). 새출발기금 섹션이 추가되며 이 스텝이 더 이상 "소송
+          이력" 하나만 다루지 않아 스텝 이름(steps.ts의 "기타사항")으로 바꿨다. */}
       <div className="md:hidden flex items-center justify-between pb-3 border-b border-neutral-30">
         <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground">
-          소송 및 회생·파산 이력
+          기타사항
         </h3>
         <button
           type="button"
@@ -64,7 +109,83 @@ export default function Step5Others({ form, update, onClose }: Props) {
           </svg>
         </button>
       </div>
-      <FormSectionTitle>소송 및 회생·파산 이력</FormSectionTitle>
+
+      <MobileSectionTitle>새출발기금</MobileSectionTitle>
+      <FormSectionTitle>새출발기금</FormSectionTitle>
+      <div className="mt-3 md:mt-6 flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
+          <p className="text-[14px] font-medium leading-[17px] text-neutral-60">
+            &apos;20.4월 ~ &apos;25.6월 중 개인사업자·소상공인으로 사업 영위한 적 있음
+            (현재 고용 형태와 무관·휴업·폐업 포함)
+          </p>
+          <div className="flex gap-2">
+            <PillButton
+              label="예"
+              selected={form.isOperatingBusiness}
+              onClick={handleFreshStartFundPeriodYes}
+            />
+            <PillButton
+              label="아니오"
+              selected={!form.isOperatingBusiness}
+              onClick={handleFreshStartFundPeriodNo}
+            />
+          </div>
+        </div>
+
+        {form.isOperatingBusiness && (
+          <div className="rounded-[14px] border border-neutral-30 overflow-hidden">
+            {/* Figma: 헤더 스트립(위쪽만 라운드)만 회색, divider 아래 본문은 흰 배경 —
+                DebtHistoryCard.tsx와 동일한 헤더/바디 분리 패턴 */}
+            <div className="bg-neutral-10 px-5 py-3.5 border-b border-neutral-30">
+              <h4 className="text-[14px] font-semibold text-neutral-70">사업영위 해당 시 추가 확인</h4>
+            </div>
+            <div className="bg-card px-5 py-5 flex flex-col gap-5">
+              <FormField label="현재 사업 상태" filled={form.businessOperationStatus !== null}>
+                <PillSelect
+                  options={BUSINESS_OPERATION_STATUS_OPTIONS}
+                  value={form.businessOperationStatus}
+                  onChange={(value) => update("businessOperationStatus", value)}
+                />
+              </FormField>
+
+              <FormField
+                label="부실·부실우려 해당 여부"
+                hint="(중복선택 가능)"
+                filled={form.freshStartFundInsolvencyReasons.length > 0}
+              >
+                <PillMultiSelect
+                  options={FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS}
+                  value={form.freshStartFundInsolvencyReasons}
+                  onChange={handleInsolvencyReasonsChange}
+                />
+              </FormField>
+
+              <div className="flex flex-col gap-3">
+                <span className="text-[14px] font-medium leading-[17px] text-foreground">
+                  결격·이력 확인
+                </span>
+                <FormToggleRow
+                  label="제외 업종 해당 (부동산 임대업, 법무·회계·세무 등)"
+                  checked={form.isExcludedIndustryForFreshStartFund}
+                  onChange={(checked) => update("isExcludedIndustryForFreshStartFund", checked)}
+                  wideGap
+                />
+                <FormToggleRow
+                  label="이전 신청 이력 있음 (원칙적으로 1회만 신청 가능)"
+                  checked={form.hasPreviousFreshStartFundApplication}
+                  onChange={(checked) => update("hasPreviousFreshStartFundApplication", checked)}
+                  wideGap
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6">
+        <MobileSectionTitle>소송 및 채무조정 이력</MobileSectionTitle>
+        <FormSectionTitle>소송 및 채무조정 이력</FormSectionTitle>
+      </div>
 
       <div className="mt-3 md:mt-6 flex flex-col gap-6">
         <ToggleDetailRow

@@ -3,7 +3,9 @@ import type { PillOption } from "@/types/debtRelief";
 // Figma Ticker3
 // 모바일: h-31, px-12 py-7, gap 8 / 데스크톱: h-34, px-20 py-4, radius 30
 // 선택 = #000 흰 글자 / 미선택 = border #E2E2E2, 글자 opacity 0.8
-function PillButton({
+// PillSelect/PillMultiSelect 외에도 필드에 안 묶인 단발성 예/아니오 토글(로컬 UI 상태 등)에서
+// 재사용할 수 있게 export한다.
+export function PillButton({
   label,
   selected,
   onClick,

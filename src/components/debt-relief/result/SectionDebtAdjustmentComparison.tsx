@@ -25,7 +25,7 @@ export default function SectionDebtAdjustmentComparison({ detail }: { detail: Di
     <div className="flex flex-col gap-3">
       <div>
         <h2 className="inline-flex h-6 items-center text-[16px] font-semibold leading-none tracking-[0.2px] text-foreground">
-          채무조정 비교
+          개인회생과 개인워크아웃 비교
         </h2>
         <div className="mt-3 border-t border-neutral-30" />
       </div>

@@ -11,7 +11,7 @@ import type { FakeProgressConfig, FakeProgressStage } from "@/hooks/useFakeProgr
 const ANALYSIS_PROGRESS_STAGES: FakeProgressStage[] = [
   { from: 0, label: "입력하신 정보를 정리하고 있어요" },
   { from: 20, label: "채무 구조를 분석하고 있어요" },
-  { from: 45, label: "회생·파산 가능성을 계산하고 있어요" },
+  { from: 45, label: "채무조정 가능성을 계산하고 있어요" },
   { from: 70, label: "변제 가능성을 검토하고 있어요" },
   { from: 88, label: "결과를 정리하고 있어요" },
 ];

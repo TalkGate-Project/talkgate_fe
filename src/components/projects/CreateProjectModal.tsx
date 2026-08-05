@@ -66,8 +66,8 @@ const PROJECT_TYPE_OPTIONS: {
   },
   {
     value: "analysis",
-    label: "회생파산",
-    description: "AI 진단을 기반으로 회생·파산 상담을 지원해요",
+    label: "채무조정",
+    description: "AI 진단을 기반으로 채무조정 상담을 지원해요",
     icon: AnalysisMenuIcon,
   },
 ];

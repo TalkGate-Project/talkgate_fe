@@ -52,6 +52,27 @@ const EARLIEST_SELECTABLE_YEAR = 1920;
 /** maxDate가 없을 때 연도 선택 목록이 나아가는 기본 범위 */
 const DEFAULT_YEARS_AHEAD = 10;
 
+/**
+ * allowTextInput 타이핑 중 숫자만 뽑아 dateFormat의 구분자(". ", "-" 등)를 그대로 살려
+ * 자릿수가 채워지는 대로 재조립한다. "20220103"처럼 숫자만 입력해도, "2022-01-03"처럼
+ * 구분자를 직접 입력해도 결과는 동일하게 dateFormat 형태로 맞춰진다.
+ * yyyy/MM/dd 순서로만 동작한다 — 현재 코드베이스의 모든 dateFormat이 이 순서를 따른다.
+ */
+function formatDigitsToDatePattern(digits: string, dateFormat: string): string {
+	const yearIdx = dateFormat.indexOf("yyyy");
+	const monthIdx = dateFormat.indexOf("MM");
+	const dayIdx = dateFormat.indexOf("dd");
+	if (yearIdx === -1 || monthIdx === -1 || dayIdx === -1) return digits;
+
+	const separator1 = dateFormat.slice(yearIdx + 4, monthIdx);
+	const separator2 = dateFormat.slice(monthIdx + 2, dayIdx);
+
+	const d = digits.slice(0, 8);
+	if (d.length <= 4) return d;
+	if (d.length <= 6) return `${d.slice(0, 4)}${separator1}${d.slice(4)}`;
+	return `${d.slice(0, 4)}${separator1}${d.slice(4, 6)}${separator2}${d.slice(6, 8)}`;
+}
+
 export default function DatePicker(props: DatePickerProps) {
 	const { value, onChange, placeholder = "연도 . 월 . 일", className = "", disabled, minDate, maxDate, dateFormat = "yyyy. MM. dd", panelOffsetY = 8, invalid = false, id, allowTextInput = false } = props;
 
@@ -123,14 +144,14 @@ export default function DatePicker(props: DatePickerProps) {
 	}, [allowTextInput, value, dateFormat, isEditingText, typedInvalid]);
 
 	function handleTypedChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const next = e.target.value;
+		const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 8);
+		const next = formatDigitsToDatePattern(digitsOnly, dateFormat);
 		setTypedText(next);
 		setTypedInvalid(false);
 
-		const trimmed = next.trim();
-		if (!trimmed) return; // 지우는 중일 수 있으니 blur 전엔 커밋하지 않는다.
+		if (digitsOnly.length < 8) return; // 8자리(연4+월2+일2)가 다 채워지기 전엔 커밋하지 않는다.
 
-		const parsed = parse(trimmed, dateFormat, new Date());
+		const parsed = parse(next, dateFormat, new Date());
 		if (isValid(parsed) && isWithinAllowedRange(parsed)) {
 			const normalized = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 			onChange(normalized);

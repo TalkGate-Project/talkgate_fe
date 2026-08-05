@@ -43,7 +43,7 @@ const BASE_TAB_ITEMS: { key: TabKey; label: string }[] = [
 
 const FEE_TAB_ITEM: { key: TabKey; label: string } = {
   key: "fee",
-  label: "회생·파산",
+  label: "채무조정",
 };
 
 function findNodeById(nodes: MemberTreeNode[], id: number): MemberTreeNode | null {

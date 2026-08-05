@@ -198,7 +198,7 @@ export default function DebtReliefHubContent() {
           <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 flex-wrap items-center gap-4">
               <h1 className="truncate text-[18px] font-bold leading-[22px] text-foreground md:text-[24px] md:leading-7">
-                회생·파산 진단 목록
+                채무조정 진단 목록
               </h1>
               {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
               {summary && (

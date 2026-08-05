@@ -4,7 +4,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import DiagnosisFormContent from "@/components/debt-relief/form/DiagnosisFormContent";
 
 export const metadata: Metadata = {
-  title: "TalkGate - 회생·파산 진단 수정",
+  title: "TalkGate - 채무조정 진단 수정",
 };
 
 function LoadingFallback() {

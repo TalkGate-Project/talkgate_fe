@@ -42,6 +42,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   // 모바일·태블릿(lg 미만) "전달사항" 토글(AI 추천 영역을 덮는 팝업).
   // PC(lg+)는 항상 접이식 섹션으로 쌓아 보여준다.
   const [mobileMessagesOpen, setMobileMessagesOpen] = useState(false);
+  // "절차별 성공 가능성"에서 고른 절차 — "예상 변제 계획" 섹션이 같은 값을 보고 표시 내용을
+  // 통째로 바꿔야 해서(개인회생/새출발기금/개인워크아웃은 기존 UI, 파산은 "예상 면책 결과",
+  // 신속채무조정·프리워크아웃은 "예상 조정 요약") 두 섹션의 공통 조상인 여기서 상태를 소유한다.
+  // detail은 아래에서 로딩/에러 가드를 통과한 뒤에만 확정되므로, 훅 자체는 항상 호출하되
+  // null이면 렌더 시점에 detail.trackingProcedure로 지연 대체한다.
+  const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure | null>(null);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
   // AI 분석 추천·상담 멘트만 숨긴다. 변호사가 직접 등록한 건은 자체 분석이므로 그대로 노출한다.
@@ -154,6 +160,9 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     );
   }
 
+  // 사용자가 아직 카드를 클릭하지 않았으면 추적 중인 절차를 기본값으로 보여준다.
+  const activeProcedure = selectedProcedure ?? detail.trackingProcedure;
+
   // 영업점이 전달한 검토중 건을 변호사 프로젝트가 열었을 때만 수락/반려 배너 노출.
   // 배너는 lawyerReceivedReadOnly(읽기전용/AI추천 숨김)와는 별개 조건 — 검토중일 때만이다.
   const showReviewBanner =
@@ -212,7 +221,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               ) : null}
             </SectionCard>
             <SectionCard id="scores" compactTop joined="end">
-              <SectionProcedureScores detail={detail} />
+              <SectionProcedureScores
+                detail={detail}
+                selectedProcedure={activeProcedure}
+                onSelectProcedure={setSelectedProcedure}
+              />
             </SectionCard>
           </div>
         ) : (
@@ -257,7 +270,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             </SectionCard>
 
             <SectionCard id="scores" compactTop>
-              <SectionProcedureScores detail={detail} />
+              <SectionProcedureScores
+                detail={detail}
+                selectedProcedure={activeProcedure}
+                onSelectProcedure={setSelectedProcedure}
+              />
             </SectionCard>
           </>
         )}
@@ -270,11 +287,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         )}
 
         <SectionCard id="debt" compactTop>
-          <SectionDebtStatus detail={detail} />
+          <SectionDebtStatus detail={detail} projectId={projectId} onDebtApplied={refetch} />
         </SectionCard>
 
         <SectionCard id="repayment" compactTop>
-          <SectionRepaymentPlan detail={detail} />
+          <SectionRepaymentPlan detail={detail} selectedProcedure={activeProcedure} />
         </SectionCard>
 
         {!hideCounselMents && (

@@ -12,8 +12,7 @@ import {
 import { formatDebtManwonParts } from "@/components/debt-relief/format";
 import { useDebtReliefMenu } from "@/hooks/useDebtReliefMenu";
 import { showErrorModal } from "@/lib/errorModalEvents";
-import type { RecommendedProcedure } from "@/types/debtRelief";
-import { normalizeProcedureType, type AnalysisProcedureType } from "@/types/analysis";
+import { normalizeProcedureType } from "@/types/analysis";
 import type { CustomerLinkedAnalysis } from "@/types/customers";
 
 type Props = {
@@ -23,12 +22,6 @@ type Props = {
   customerGender?: string | null;
   hasAssignedMember: boolean;
   linkedAnalysis?: CustomerLinkedAnalysis | null;
-};
-
-// debtRelief.ts의 PROCEDURE_FROM_ANALYSIS와 동일한 매핑(모듈 비공개라 재사용 불가 — 값 2개뿐이라 로컬 복제)
-const PROCEDURE_FROM_ANALYSIS: Record<AnalysisProcedureType, RecommendedProcedure> = {
-  individual_rehabilitation: "individual_rehab",
-  bankruptcy: "bankruptcy",
 };
 
 function formatBasicInfoMeta(
@@ -151,7 +144,7 @@ function MobileLinkedAnalysisCard({
   onOpenResult: () => void;
 }) {
   const procedure = linkedAnalysis.procedure
-    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.procedure)]
+    ? normalizeProcedureType(linkedAnalysis.procedure)
     : undefined;
   const { current, total, title } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
@@ -244,7 +237,7 @@ function DesktopLinkedAnalysisCard({
   onOpenResult: () => void;
 }) {
   const procedure = linkedAnalysis.procedure
-    ? PROCEDURE_FROM_ANALYSIS[normalizeProcedureType(linkedAnalysis.procedure)]
+    ? normalizeProcedureType(linkedAnalysis.procedure)
     : undefined;
   const { current, total } = resolveProgress(linkedAnalysis);
   const isProgressKnown = total > 1;
@@ -301,7 +294,7 @@ export default function CustomerLinkedAnalysisSection({
 
   return (
     <div className="lg:col-span-2">
-      <div className="text-[16px] font-semibold text-neutral-90 mb-3">회생·파산 진단 정보</div>
+      <div className="text-[16px] font-semibold text-neutral-90 mb-3">채무조정 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
       {/*
