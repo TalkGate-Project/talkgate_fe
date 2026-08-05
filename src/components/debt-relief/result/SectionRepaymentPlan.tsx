@@ -260,7 +260,7 @@ function PrincipalOnlyExemptionBoxes({
   remainingSubtitle: string;
 }) {
   return (
-    <div className="relative self-start h-[172px] overflow-hidden rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[133px] md:px-0 md:py-0">
+    <div className="relative h-[172px] w-full overflow-hidden rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[133px] md:px-0 md:py-0">
       {/* 모바일: 327×172 전용 배치 */}
       <div className="md:hidden">
         <div className="flex items-center justify-between gap-3">
@@ -343,7 +343,7 @@ function InterestIncludedExemptionBoxes({
   remainingSubtitle: string;
 }) {
   return (
-    <div className="self-start h-[208px] rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[163px] md:px-7 md:py-5">
+    <div className="h-[208px] w-full rounded-[12px] bg-neutral-10 px-4 py-4 md:h-[163px] md:px-7 md:py-5">
       {/* 모바일: 327×208 전용 배치 */}
       <div className="md:hidden">
         <div className="flex items-center justify-between gap-3">
