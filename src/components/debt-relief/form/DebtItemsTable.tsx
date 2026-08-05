@@ -92,7 +92,8 @@ const TABLE_WIDTH = COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0);
 // 자체 좌우 패딩(px-2~px-3)을 또 갖고 있어서 td 패딩과 겹쳐 헤더 라벨이 실제 값보다 왼쪽으로
 // 치우쳐 보인다. td 패딩을 줄이고 th 패딩을 늘려 그 격차를 좁힌다(완전한 픽셀 일치보단
 // "표답게 보이는" 수준으로 절충).
-const HEADER_CELL = "h-10 px-3 text-[16px] font-medium text-neutral-60 text-left whitespace-nowrap";
+const HEADER_CELL =
+  "h-10 bg-neutral-20 px-3 text-left text-[16px] font-medium text-neutral-60 whitespace-nowrap first:rounded-l-[10px] last:rounded-r-[10px]";
 const BODY_CELL = "px-1 py-2 align-middle";
 const READONLY_CELL =
   "px-3 py-2 align-middle text-right text-[14px] font-medium text-neutral-90/80 whitespace-nowrap";
@@ -222,7 +223,7 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
             ))}
           </colgroup>
           <thead>
-            <tr className="bg-neutral-20 border-b border-neutral-30">
+            <tr>
               <th className={HEADER_CELL}>채무종류</th>
               <th className={HEADER_CELL}>담보</th>
               <th className={HEADER_CELL}>채권처</th>
@@ -355,7 +356,7 @@ export default function DebtItemsTable({ debts, onChange }: Props) {
           </tbody>
           <tfoot>
             <tr className="border-t border-neutral-30">
-              <td colSpan={14} className="p-2">
+              <td colSpan={14} className="py-2">
                 <button
                   type="button"
                   onClick={addRow}
