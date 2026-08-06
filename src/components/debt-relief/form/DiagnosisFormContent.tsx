@@ -11,6 +11,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { canEditDiagnosisInfo, type DiagnosisFormState } from "@/types/debtRelief";
 import { useDiagnosisForm } from "./useDiagnosisForm";
 import {
+  getMissingDebtItemFieldLabels,
   getMissingRequiredFieldLabels,
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
@@ -70,6 +71,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // true로 래치. Step3Debts가 이 값과 최신 폼 상태를 함께 계산해 여전히 초과 상태일 때만 필드
   // 테두리를 빨갛게 표시하고, 값이 다시 유효해지는 즉시(재계산 결과 false) 자동으로 해제된다.
   const [debtSumOverLimitChecked, setDebtSumOverLimitChecked] = useState(false);
+  // 분석하기 클릭 시 상세모드 채무 항목의 대출일·만기일·금액·금리 중 비어있는 값이 발견된 적이
+  // 있으면 true로 래치. 위 debtSumOverLimitChecked와 동일한 방식으로, 값이 채워지면 해당 셀만
+  // 즉시 해제된다.
+  const [debtItemFieldsMissingChecked, setDebtItemFieldsMissingChecked] = useState(false);
 
   const isEdit = Boolean(diagnosisId);
   const [loadingForm, setLoadingForm] = useState(isEdit);
@@ -245,6 +250,24 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
+    // canAnalyze(=isDiagnosisFormComplete)에는 일부러 포함하지 않은 검사 — 새 채무 행은
+    // 항상 이 4개가 비어있는 상태로 시작해서, 포함시키면 버튼이 계속 비활성 상태에 갇혀
+    // 클릭 자체가 막힌다. validateDiagnosisForm.ts의 getMissingDebtFieldLabels 주석 참고.
+    const missingDebtItemFields = getMissingDebtItemFieldLabels(form);
+    if (missingDebtItemFields.length > 0) {
+      setDebtItemFieldsMissingChecked(true);
+      showErrorModal({
+        type: "info",
+        title: "알림",
+        headline: "채무 항목을 확인해주세요.",
+        description: `${missingDebtItemFields.join(", ")}이(가) 비어있는 채무 항목이 있습니다.`,
+        confirmText: "채무 현황 입력",
+        hideCancel: true,
+        onConfirm: () => goToStep(2),
+      });
+      return;
+    }
+
     if (isRecentAndSecuredDebtOverTotal(form, derived.totalDebtManwon)) {
       setDebtSumOverLimitChecked(true);
       showErrorModal({
@@ -316,6 +339,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             update={update}
             derived={derived}
             debtSumOverLimitChecked={debtSumOverLimitChecked}
+            debtItemFieldsMissingChecked={debtItemFieldsMissingChecked}
           />
         );
       case "income":

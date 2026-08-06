@@ -156,11 +156,13 @@ export function WonInput({
   onChange,
   placeholder = "0",
   className = "",
+  invalid = false,
 }: {
   value: number;
   onChange: (value: number) => void;
   placeholder?: string;
   className?: string;
+  invalid?: boolean;
 }) {
   return (
     <input
@@ -171,7 +173,7 @@ export function WonInput({
         onChange(digits ? parseInt(digits, 10) : 0);
       }}
       placeholder={placeholder}
-      className={`${INPUT_CLASS} text-right ${className}`}
+      className={`${INPUT_CLASS} text-right ${className} ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
     />
   );
 }
@@ -188,11 +190,13 @@ export function PercentInput({
   onChange,
   placeholder = "0",
   className = "",
+  invalid = false,
 }: {
   value: number;
   onChange: (value: number) => void;
   placeholder?: string;
   className?: string;
+  invalid?: boolean;
 }) {
   const [editingText, setEditingText] = useState<string | null>(null);
   const displayValue = editingText ?? (value ? String(value) : "");
@@ -220,7 +224,7 @@ export function PercentInput({
         }}
         onBlur={() => setEditingText(null)}
         placeholder={placeholder}
-        className={`${INPUT_CLASS} pr-7 text-right ${className}`}
+        className={`${INPUT_CLASS} pr-7 text-right ${className} ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
         %

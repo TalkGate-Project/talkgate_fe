@@ -10,6 +10,7 @@ import {
 import { FormField, ManwonInput, MonthsInput } from "./FormControls";
 import { PillMultiSelect } from "./PillSelect";
 import DebtItemsTable from "./DebtItemsTable";
+import type { OverLimitDebtField } from "./validateDiagnosisForm";
 
 // ── 「채무내역」 카드 — 신규 폼(Step3)과 결과 화면 채무 상세 모달이 공유 ────────
 // form.debtInputMode를 그대로 토글에 연결한다 — 상세모드로 전환해도 간편모드 값
@@ -85,6 +86,12 @@ export type DebtHistoryCardProps = {
       neutral-10 그대로 두고, 모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록
       호출부에서 오버라이드한다. */
   areaBackgroundClassName?: string;
+  /** 제출을 한 번 시도해 상세모드 채무 항목의 대출일·만기일·금액·금리 중 비어있는 값이
+      발견됐으면 true. 상세모드 테이블에만 영향을 준다. */
+  showDebtItemFieldErrors?: boolean;
+  /** 담보부채무·최근 3/6개월·1년 내 채무액 중 합계 초과로 판정된 필드 (빨간 테두리 표시).
+      결과화면 채무 상세 모달은 이 검사를 하지 않아 기본값(빈 배열)을 그대로 쓴다. */
+  overLimitFields?: OverLimitDebtField[];
 };
 
 export default function DebtHistoryCard({
@@ -93,6 +100,8 @@ export default function DebtHistoryCard({
   totalDebtManwon,
   disabled = false,
   areaBackgroundClassName = "bg-neutral-10",
+  showDebtItemFieldErrors = false,
+  overLimitFields = [],
 }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
@@ -136,13 +145,14 @@ export default function DebtHistoryCard({
       </div>
 
       <div
-        className={`px-5 md:px-6 py-5 md:py-6 ${disabled ? "pointer-events-none opacity-80" : ""}`}
+        className={`flex flex-col gap-5 px-5 md:px-6 py-5 md:py-6 ${disabled ? "pointer-events-none opacity-80" : ""}`}
       >
         {form.debtInputMode === "detailed" ? (
           <DebtItemsTable
             debts={form.debts}
             onChange={(debts) => update("debts", debts)}
             sumCardBackgroundClassName={areaBackgroundClassName}
+            showFieldErrors={showDebtItemFieldErrors}
           />
         ) : (
           <div className="flex flex-col gap-5">
@@ -205,6 +215,41 @@ export default function DebtHistoryCard({
             </FormField>
           </div>
         )}
+
+        {/* 채무 종류별 잔액과 무관하게 입력 방식(간편/상세)과 상관없이 항상 필요한 항목 —
+            2026-08-06: 기존에 카드 바깥에 있던 것을 「채무내역」 카드 안으로 이동. */}
+        <div role="separator" className="h-px bg-neutral-30" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
+          <FormField label="최근 3개월 내 채무액" filled={form.recentDebtWithin3Months > 0}>
+            <ManwonInput
+              value={form.recentDebtWithin3Months}
+              onChange={(value) => update("recentDebtWithin3Months", value)}
+              invalid={overLimitFields.includes("recentDebtWithin3Months")}
+            />
+          </FormField>
+          <FormField label="최근 6개월 내 채무액" filled={form.recentDebtWithin6Months > 0}>
+            <ManwonInput
+              value={form.recentDebtWithin6Months}
+              onChange={(value) => update("recentDebtWithin6Months", value)}
+              invalid={overLimitFields.includes("recentDebtWithin6Months")}
+            />
+          </FormField>
+          <FormField label="최근 1년 내 채무액" filled={form.recentDebtWithin1Year > 0}>
+            <ManwonInput
+              value={form.recentDebtWithin1Year}
+              onChange={(value) => update("recentDebtWithin1Year", value)}
+              invalid={overLimitFields.includes("recentDebtWithin1Year")}
+            />
+          </FormField>
+          <FormField label="담보부채무" filled={form.securedDebt > 0}>
+            <ManwonInput
+              value={form.securedDebt}
+              onChange={(value) => update("securedDebt", value)}
+              invalid={overLimitFields.includes("securedDebt")}
+            />
+          </FormField>
+        </div>
       </div>
     </div>
   );

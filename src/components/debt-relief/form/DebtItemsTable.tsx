@@ -11,6 +11,7 @@ import {
   createEmptyDebtItem,
   type DebtItemFormState,
 } from "@/types/debtRelief";
+import { getMissingDebtItemFields } from "./validateDiagnosisForm";
 import { PercentInput, TextInput, WonInput } from "./FormControls";
 
 type Props = {
@@ -19,6 +20,9 @@ type Props = {
   /** 담보/무담보 합산 카드 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는 neutral-10 그대로 두고,
       모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록 호출부에서 오버라이드한다. */
   sumCardBackgroundClassName?: string;
+  /** 제출을 한 번 시도해 대출일·만기일·금액·금리 중 비어있는 값이 발견됐으면 true.
+      이후 값이 채워지면 매 렌더마다 재계산되어 해당 셀만 즉시 해제된다. */
+  showFieldErrors?: boolean;
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -49,6 +53,13 @@ const OVERDUE_MAX_DIGITS = 3;
 // 아래 공유 컨트롤(SelectField/TextInput/DatePicker/WonInput/PercentInput)의 기본 테두리는
 // 다른 화면(표 밖 폼)에서는 그대로 필요하므로, 테이블 셀에서만 이 클래스로 덮어쓴다.
 const CELL_INPUT_BORDERLESS = "!border-transparent focus:!border-neutral-30";
+
+// invalid 상태에서는 CELL_INPUT_BORDERLESS의 "!border-transparent"를 걷어내 컨트롤 자체의
+// invalid 스타일(!border-danger-40)이 가려지지 않게 한다 — 두 !important 테두리 색을
+// 동시에 주면 어느 쪽이 이기는지 클래스 순서로 보장되지 않는다.
+function cellInputClassName(invalid: boolean): string {
+  return invalid ? "" : CELL_INPUT_BORDERLESS;
+}
 
 function OverdueMonthsInput({
   value,
@@ -193,6 +204,7 @@ export default function DebtItemsTable({
   debts,
   onChange,
   sumCardBackgroundClassName = "bg-neutral-10",
+  showFieldErrors = false,
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
@@ -250,7 +262,11 @@ export default function DebtItemsTable({
             </tr>
           </thead>
           <tbody>
-            {debts.map((debt) => (
+            {debts.map((debt) => {
+              const missingFields = showFieldErrors ? getMissingDebtItemFields(debt) : [];
+              const isFieldInvalid = (field: "loanDate" | "maturityDate" | "principalWon" | "interestRate") =>
+                missingFields.includes(field);
+              return (
               <tr key={debt.id} className="border-b-[0.4px] border-neutral-30 last:border-b-0">
                 <td className={BODY_CELL}>
                   <SelectField
@@ -316,7 +332,8 @@ export default function DebtItemsTable({
                       value={parseDateOnly(debt.loanDate)}
                       onChange={(date) => updateItem(debt.id, { loanDate: formatDateOnly(date) })}
                       allowTextInput
-                      className={`pr-8 ${CELL_INPUT_BORDERLESS}`}
+                      invalid={isFieldInvalid("loanDate")}
+                      className={`pr-8 ${cellInputClassName(isFieldInvalid("loanDate"))}`}
                     />
                     <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
                   </div>
@@ -327,7 +344,8 @@ export default function DebtItemsTable({
                       value={parseDateOnly(debt.maturityDate)}
                       onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })}
                       allowTextInput
-                      className={`pr-8 ${CELL_INPUT_BORDERLESS}`}
+                      invalid={isFieldInvalid("maturityDate")}
+                      className={`pr-8 ${cellInputClassName(isFieldInvalid("maturityDate"))}`}
                     />
                     <CalendarInlineIcon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
                   </div>
@@ -336,14 +354,16 @@ export default function DebtItemsTable({
                   <WonInput
                     value={debt.principalWon}
                     onChange={(value) => updateItem(debt.id, { principalWon: value })}
-                    className={CELL_INPUT_BORDERLESS}
+                    invalid={isFieldInvalid("principalWon")}
+                    className={cellInputClassName(isFieldInvalid("principalWon"))}
                   />
                 </td>
                 <td className={BODY_CELL}>
                   <PercentInput
                     value={debt.interestRate}
                     onChange={(value) => updateItem(debt.id, { interestRate: value })}
-                    className={CELL_INPUT_BORDERLESS}
+                    invalid={isFieldInvalid("interestRate")}
+                    className={cellInputClassName(isFieldInvalid("interestRate"))}
                   />
                 </td>
                 <td className={READONLY_CELL}>{debt.termMonths ? `${debt.termMonths}개월` : "-"}</td>
@@ -361,7 +381,8 @@ export default function DebtItemsTable({
                   </button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
           <tfoot>
             <tr className="border-t border-neutral-30">

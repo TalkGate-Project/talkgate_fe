@@ -55,7 +55,9 @@ export function normalizeProcedureType(
 
 export type AnalysisGender = "male" | "female";
 
+// 2026-08-06 스펙 확장: "none"(소득 없음, 추정 0만원) 추가.
 export type AnalysisMonthlyIncomeRange =
+  | "none"
   | "under_100"
   | "100_to_200"
   | "200_to_300"
@@ -68,11 +70,15 @@ export type AnalysisHousingType =
   | "monthly_rent"
   | "living_with_family";
 
+// 2026-08-06 스펙 확장: investment_loss(투자손실)를 대체하는 gambling_or_speculative_investment_loss
+// (도박/주식/코인) 추가. investment_loss는 하위호환을 위해 값은 유지되나 선택 UI에는 노출하지 않는다
+// (src/types/debtRelief.ts의 DEBT_CAUSE_OPTIONS/DEBT_CAUSE_LABELS 참고).
 export type AnalysisDebtCause =
   | "business_failure"
   | "living_expenses"
   | "medical_expenses"
   | "investment_loss"
+  | "gambling_or_speculative_investment_loss"
   | "guarantee_damage"
   | "other";
 
@@ -207,6 +213,7 @@ export type AnalysisFormInput = {
   debts?: AnalysisDebtItem[];
   collateralDebt: number; // 담보부 채무 (만원)
   debtIncurredLast3Months: number; // 최근 3개월 내 발생 채무액 (만원)
+  debtIncurredLast6Months: number; // 최근 6개월 내 발생 채무액 (만원). 2026-08-06 스펙 추가
   debtIncurredLast1Year: number; // 최근 1년 내 발생 채무액 (만원)
   /** 연체 개월 수(정수). simple 모드일 때 필수 — detailed는 서버가 debts 중 최대값으로 자동 계산 */
   overdueMonths?: number;
@@ -265,6 +272,7 @@ export type UpdateAnalysisDebtsInput = {
   debts?: AnalysisDebtItem[];
   collateralDebt: number;
   debtIncurredLast3Months: number;
+  debtIncurredLast6Months: number;
   debtIncurredLast1Year: number;
   /** simple일 때 필수. detailed는 서버가 debts 중 최대값으로 자동 계산 */
   overdueMonths?: number;
@@ -563,8 +571,11 @@ export type AnalysisListItem = {
   customerName: string;
   employmentType?: string | null;
   region: string;
-  totalDebt: number;
-  disposableIncome: number;
+  // 2026-08-08 실 응답 확인: totalDebt/disposableIncome 둘 다 타입상 number지만 특정 목록 건에서
+  // null/undefined로 내려오는 경우가 있다(원인 미확인) — toDiagnosisListItem에서 반드시 0으로
+  // 방어해서 도메인 타입(DiagnosisListItem)으로 넘긴다. 같은 응답의 같은 위치 필드라 동일 위험군.
+  totalDebt: number | null;
+  disposableIncome: number | null;
   // 백엔드가 trackingProcedure ?? analysisResult.recommendation ?? null 로 계산해 내려주는 단일 필드.
   // "절차진행중이면 현재 추적 절차, 그 이전 단계에서는 AI 추천 절차"를 항상 정확히 반영한다.
   procedure: AnalysisProcedureType | null;
