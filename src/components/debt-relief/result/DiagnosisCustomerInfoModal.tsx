@@ -10,7 +10,7 @@ import type {
   AnalysisVehicleValueRange,
 } from "@/types/analysis";
 import {
-  DEBT_CAUSE_OPTIONS,
+  DEBT_CAUSE_LABELS,
   DEBT_TYPE_OPTIONS,
   FINANCIAL_ASSET_OPTIONS,
   HOUSING_TYPE_OPTIONS,
@@ -51,6 +51,7 @@ const VEHICLE_FROM: Record<AnalysisVehicleValueRange, VehicleRange> = {
 };
 
 const INCOME_FROM: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
+  none: "none",
   under_100: "under_100",
   "100_to_200": "100_200",
   "200_to_300": "200_300",
@@ -63,6 +64,7 @@ const DEBT_CAUSE_FROM: Record<string, DebtCause> = {
   living_expenses: "living_expenses",
   medical_expenses: "medical",
   investment_loss: "investment_loss",
+  gambling_or_speculative_investment_loss: "gambling_or_speculative_investment_loss",
   guarantee_damage: "guarantee_damage",
   other: "other",
 };
@@ -144,14 +146,14 @@ function debtTypesLabel(breakdown: AnalysisDebtBreakdown): string {
   return types.length > 0 ? types.join(", ") : "-";
 }
 
+// 선택 UI(DEBT_CAUSE_OPTIONS)에는 없는 레거시 값(investment_loss)도 읽기 전용 표시는 계속 필요해
+// DEBT_CAUSE_OPTIONS가 아니라 전체 라벨을 담은 DEBT_CAUSE_LABELS에서 찾는다.
 function debtCausesLabel(causes: string[]): string {
   if (!causes.length) return "-";
   return causes
     .map((cause) => {
       const mapped = DEBT_CAUSE_FROM[cause];
-      return mapped
-        ? DEBT_CAUSE_OPTIONS.find((o) => o.value === mapped)?.label ?? cause
-        : cause;
+      return mapped ? DEBT_CAUSE_LABELS[mapped] : cause;
     })
     .join(", ");
 }

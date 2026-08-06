@@ -7,7 +7,10 @@ import AnalysisLoadingOverlayHost, {
   type AnalysisProgressHandle,
 } from "@/components/debt-relief/form/AnalysisLoadingOverlayHost";
 import DebtHistoryCard from "@/components/debt-relief/form/DebtHistoryCard";
-import { getMissingDebtFieldLabels } from "@/components/debt-relief/form/validateDiagnosisForm";
+import {
+  getMissingDebtFieldLabels,
+  getMissingDebtItemFieldLabels,
+} from "@/components/debt-relief/form/validateDiagnosisForm";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import {
   DebtReliefService,
@@ -72,6 +75,9 @@ export default function DebtDetailModal({
   const [form, setForm] = useState<DiagnosisFormState>(createEmptyDiagnosisForm);
   const [submittingAction, setSubmittingAction] = useState<"save" | "reanalyze" | null>(null);
   const [choiceOpen, setChoiceOpen] = useState(false);
+  // 적용하기 클릭 시 채무 항목의 대출일·만기일·금액·금리 중 비어있는 값이 발견된 적이 있으면
+  // true로 래치. DebtHistoryCard가 최신 폼 상태로 매 렌더마다 재계산해 값이 채워진 셀만 즉시 해제한다.
+  const [showDebtItemFieldErrors, setShowDebtItemFieldErrors] = useState(false);
   const submitting = submittingAction != null;
   // 재분석 대기 중 전체 화면 로딩으로 전환 — 진행률 상태는 오버레이 안에 가둬 잦은 갱신이
   // 이 모달 트리 전체를 리렌더하지 않게 한다(AnalysisLoadingOverlayHost 주석 참고).
@@ -90,6 +96,7 @@ export default function DebtDetailModal({
     setForm(fromAnalysisFormInput(detail.inputData));
     setSubmittingAction(null);
     setChoiceOpen(false);
+    setShowDebtItemFieldErrors(false);
   }, [open, detail.inputData]);
 
   const update = useCallback(
@@ -112,8 +119,9 @@ export default function DebtDetailModal({
   const handleApplyClick = () => {
     if (!canEdit || submitting) return;
 
-    const missing = getMissingDebtFieldLabels(form);
+    const missing = [...getMissingDebtFieldLabels(form), ...getMissingDebtItemFieldLabels(form)];
     if (missing.length > 0) {
+      setShowDebtItemFieldErrors(true);
       showErrorModal({
         headline: "필수 항목을 확인해 주세요.",
         description: "채무 정보를 모두 입력한 뒤 다시 시도해주세요.",
@@ -206,6 +214,7 @@ export default function DebtDetailModal({
             totalDebtManwon={totalDebtManwon}
             disabled={!canEdit || submitting}
             areaBackgroundClassName="bg-neutral-10 dark:bg-neutral-0"
+            showDebtItemFieldErrors={showDebtItemFieldErrors}
           />
         </div>
 

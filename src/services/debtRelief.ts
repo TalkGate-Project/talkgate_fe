@@ -146,6 +146,7 @@ const VEHICLE_FROM_ANALYSIS: Record<AnalysisVehicleValueRange, VehicleRange> = {
 };
 
 const MONTHLY_INCOME_TO_ANALYSIS: Record<MonthlyIncomeRange, AnalysisMonthlyIncomeRange> = {
+  none: "none",
   under_100: "under_100",
   "100_200": "100_to_200",
   "200_300": "200_to_300",
@@ -154,6 +155,7 @@ const MONTHLY_INCOME_TO_ANALYSIS: Record<MonthlyIncomeRange, AnalysisMonthlyInco
 };
 
 const MONTHLY_INCOME_FROM_ANALYSIS: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
+  none: "none",
   under_100: "under_100",
   "100_to_200": "100_200",
   "200_to_300": "200_300",
@@ -166,6 +168,7 @@ const DEBT_CAUSE_TO_ANALYSIS: Record<DebtCause, AnalysisDebtCause> = {
   living_expenses: "living_expenses",
   medical: "medical_expenses",
   investment_loss: "investment_loss",
+  gambling_or_speculative_investment_loss: "gambling_or_speculative_investment_loss",
   guarantee_damage: "guarantee_damage",
   other: "other",
 };
@@ -175,6 +178,7 @@ const DEBT_CAUSE_FROM_ANALYSIS: Record<AnalysisDebtCause, DebtCause> = {
   living_expenses: "living_expenses",
   medical_expenses: "medical",
   investment_loss: "investment_loss",
+  gambling_or_speculative_investment_loss: "gambling_or_speculative_investment_loss",
   guarantee_damage: "guarantee_damage",
   other: "other",
 };
@@ -422,6 +426,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
         }),
     collateralDebt: form.securedDebt,
     debtIncurredLast3Months: form.recentDebtWithin3Months,
+    debtIncurredLast6Months: form.recentDebtWithin6Months,
     debtIncurredLast1Year: form.recentDebtWithin1Year,
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
     realEstateBreakdown,
@@ -511,6 +516,7 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     hasTaxArrears: input.hasTaxArrears ?? false,
     securedDebt: input.collateralDebt ?? 0,
     recentDebtWithin3Months: input.debtIncurredLast3Months ?? 0,
+    recentDebtWithin6Months: input.debtIncurredLast6Months ?? 0,
     recentDebtWithin1Year: input.debtIncurredLast1Year ?? 0,
     monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
     housingType: input.housingType,
@@ -557,8 +563,10 @@ function toDiagnosisListItem(item: AnalysisListItem): DiagnosisListItem {
     gender: item.gender ?? undefined,
     occupation: item.employmentType ?? undefined,
     region: item.region,
-    totalDebtManwon: item.totalDebt,
-    monthlyAvailableIncomeManwon: item.disposableIncome,
+    // totalDebt/disposableIncome이 null/undefined로 내려오는 목록 건이 있어 방어(2026-08-08 런타임
+    // 에러 확인 — disposableIncome undefined로 formatAvailableIncome이 크래시).
+    totalDebtManwon: item.totalDebt ?? 0,
+    monthlyAvailableIncomeManwon: item.disposableIncome ?? 0,
     status: item.status,
     recommendedProcedure: item.procedure ? normalizeProcedureType(item.procedure) : undefined,
     feePlanSummary: item.feePlan,
@@ -1111,6 +1119,7 @@ export const DebtReliefService = {
           }),
       collateralDebt: form.securedDebt,
       debtIncurredLast3Months: form.recentDebtWithin3Months,
+      debtIncurredLast6Months: form.recentDebtWithin6Months,
       debtIncurredLast1Year: form.recentDebtWithin1Year,
       debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
       reanalyze,
