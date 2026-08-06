@@ -85,6 +85,20 @@ const STATUS_CHIP: Record<ConditionStatus, string> = {
   risk: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
 
+// 절차별 성공 가능성 타이틀의 안내(i) 아이콘 옆에 붙는 "제도안내" 버튼의 돋보기 아이콘.
+function ProcedureGuideIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M6.66667 13.3333L9.06557 10.9344M9.06557 10.9344C9.51798 11.3868 10.143 11.6667 10.8333 11.6667C12.214 11.6667 13.3333 10.5474 13.3333 9.16667C13.3333 7.78595 12.214 6.66667 10.8333 6.66667C9.45262 6.66667 8.33333 7.78595 8.33333 9.16667C8.33333 9.85702 8.61316 10.482 9.06557 10.9344ZM17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+        className="stroke-[var(--secondary-20)] dark:stroke-blue-300"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function ConditionIcon({ status }: { status: ConditionStatus }) {
   if (status === "met") {
     return (
@@ -415,6 +429,14 @@ export default function SectionProcedureScores({
             <br />
             법원·채권자 심사 결과를 보장하지 않습니다.
           </DisclaimerInfoTooltip>
+          <button
+            type="button"
+            onClick={() => setGuideOpen(true)}
+            className="cursor-pointer inline-flex items-center gap-1 h-[28px] px-2 py-1 rounded-[5px] border border-secondary-20 dark:border-secondary-40 bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground whitespace-nowrap hover:bg-neutral-10 dark:hover:bg-neutral-20 shrink-0"
+          >
+            <ProcedureGuideIcon />
+            제도안내
+          </button>
         </div>
         <div className="mt-3 border-t border-neutral-30" />
       </div>
@@ -453,13 +475,6 @@ export default function SectionProcedureScores({
             <h3 className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground truncate">
               {selectedScore?.label ?? detail.recommendation.title} 조건 분석
             </h3>
-            <button
-              type="button"
-              onClick={() => setGuideOpen(true)}
-              className="cursor-pointer inline-flex items-center justify-center h-[25px] px-2 py-1 rounded-[5px] border border-neutral-30 bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground whitespace-nowrap hover:bg-neutral-10 dark:hover:bg-neutral-20 shrink-0"
-            >
-              제도안내
-            </button>
           </div>
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             {(["met", "caution", "risk"] as ConditionStatus[]).map((status) => (

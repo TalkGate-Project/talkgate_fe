@@ -428,20 +428,40 @@ export function createEmptyDebtItem(id: string): DebtItemFormState {
   };
 }
 
+// 2026-08-06: investment_loss(투자손실)를 gambling_or_speculative_investment_loss(도박/주식/코인)로
+// 대체. 백엔드가 하위호환을 위해 investment_loss 값 자체는 계속 허용하지만, 신규 선택 UI(아래
+// DEBT_CAUSE_OPTIONS)에는 더 이상 노출하지 않는다 — 기존 값(과거 저장된 분석 건)의 읽기 전용
+// 표시에만 DEBT_CAUSE_LABELS로 라벨을 계속 붙인다.
 export type DebtCause =
   | "business_failure"
   | "living_expenses"
   | "medical"
   | "investment_loss"
+  | "gambling_or_speculative_investment_loss"
   | "guarantee_damage"
   | "other";
+
+/** 전체 라벨(레거시 값 포함) — 읽기 전용 표시 전용. 선택 UI는 DEBT_CAUSE_OPTIONS를 쓴다. */
+export const DEBT_CAUSE_LABELS: Record<DebtCause, string> = {
+  business_failure: "사업실패",
+  living_expenses: "생활비 부족",
+  medical: "의료비",
+  investment_loss: "투자손실",
+  gambling_or_speculative_investment_loss: "도박/주식/코인",
+  guarantee_damage: "보증피해",
+  other: "기타",
+};
+
 export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
-  { value: "business_failure", label: "사업실패" },
-  { value: "living_expenses", label: "생활비 부족" },
-  { value: "medical", label: "의료비" },
-  { value: "investment_loss", label: "투자손실" },
-  { value: "guarantee_damage", label: "보증피해" },
-  { value: "other", label: "기타" },
+  { value: "business_failure", label: DEBT_CAUSE_LABELS.business_failure },
+  { value: "living_expenses", label: DEBT_CAUSE_LABELS.living_expenses },
+  { value: "medical", label: DEBT_CAUSE_LABELS.medical },
+  {
+    value: "gambling_or_speculative_investment_loss",
+    label: DEBT_CAUSE_LABELS.gambling_or_speculative_investment_loss,
+  },
+  { value: "guarantee_damage", label: DEBT_CAUSE_LABELS.guarantee_damage },
+  { value: "other", label: DEBT_CAUSE_LABELS.other },
 ];
 
 // 2026-08-04: 채권자 수는 더 이상 사용자가 직접 고르거나 화면에 노출하지 않는다.
@@ -451,8 +471,16 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
 // 필수값으로 검증하므로 채권자 수가 0이 되는 경우는 존재하지 않아 별도 필수값 검사도 두지 않는다.
 
 // ── 4. 소득/지출 ─────────────────────────────────────────────
-export type MonthlyIncomeRange = "under_100" | "100_200" | "200_300" | "300_400" | "over_400";
+// 2026-08-06 스펙 확장: "none"(소득 없음) 추가 — 가장 왼쪽 옵션.
+export type MonthlyIncomeRange =
+  | "none"
+  | "under_100"
+  | "100_200"
+  | "200_300"
+  | "300_400"
+  | "over_400";
 export const MONTHLY_INCOME_OPTIONS: PillOption<MonthlyIncomeRange>[] = [
+  { value: "none", label: "소득 없음" },
   { value: "under_100", label: "100만 이하" },
   { value: "100_200", label: "100~200만" },
   { value: "200_300", label: "200~300만" },
@@ -460,8 +488,9 @@ export const MONTHLY_INCOME_OPTIONS: PillOption<MonthlyIncomeRange>[] = [
   { value: "over_400", label: "400만 이상" },
 ];
 
-// 월 소득 구간 → 추정 대표값 (만원, 구간 중앙값 기준)
+// 월 소득 구간 → 추정 대표값 (만원, 구간 중앙값 기준). none은 추정 0만원.
 export const MONTHLY_INCOME_ESTIMATE: Record<MonthlyIncomeRange, number> = {
+  none: 0,
   under_100: 80,
   "100_200": 150,
   "200_300": 250,
@@ -553,6 +582,7 @@ export type DiagnosisFormState = {
   // 대응(services/debtRelief.ts 참고).
   securedDebt: number; // 담보부채무 (만원)
   recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (만원)
+  recentDebtWithin6Months: number; // 최근 6개월 내 채무액 (만원). 2026-08-06 스펙 추가
   recentDebtWithin1Year: number; // 최근 1년 내 채무액 (만원)
 
   // 4. 소득/지출
@@ -606,6 +636,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     hasTaxArrears: false,
     securedDebt: 0,
     recentDebtWithin3Months: 0,
+    recentDebtWithin6Months: 0,
     recentDebtWithin1Year: 0,
     monthlyIncome: null,
     housingType: null,

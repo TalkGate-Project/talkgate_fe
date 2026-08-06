@@ -5,6 +5,20 @@ import type { DebtStatusSummary, DiagnosisDetail } from "@/types/debtRelief";
 import { formatManwonComma } from "@/components/debt-relief/format";
 import DebtDetailModal from "./DebtDetailModal";
 
+// "자세히 보기" 버튼의 돋보기 아이콘.
+function DebtDetailSearchIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M6.66667 13.3333L9.06557 10.9344M9.06557 10.9344C9.51798 11.3868 10.143 11.6667 10.8333 11.6667C12.214 11.6667 13.3333 10.5474 13.3333 9.16667C13.3333 7.78595 12.214 6.66667 10.8333 6.66667C9.45262 6.66667 8.33333 7.78595 8.33333 9.16667C8.33333 9.85702 8.61316 10.482 9.06557 10.9344ZM17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+        className="stroke-[var(--secondary-20)] dark:stroke-blue-300"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function Metric({
   label,
   value,
@@ -52,8 +66,9 @@ export default function SectionDebtStatus({
           <button
             type="button"
             onClick={() => setDebtDetailOpen(true)}
-            className="cursor-pointer inline-flex items-center justify-center h-7 px-2.5 rounded-[5px] border border-neutral-30 bg-neutral-0 text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 hover:bg-neutral-10 whitespace-nowrap"
+            className="cursor-pointer inline-flex items-center gap-1 h-[28px] px-2 py-1 rounded-[5px] border border-secondary-20 dark:border-secondary-40 bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 whitespace-nowrap"
           >
+            <DebtDetailSearchIcon />
             자세히 보기
           </button>
         </div>

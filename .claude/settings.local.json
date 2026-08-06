@@ -105,7 +105,9 @@
       "Bash(awk '/overflow-x: clip/{print; found=1} found && /^commit /{print \"FOUNDCOMMIT:\"$0; exit}')",
       "PowerShell(npx eslint src/hooks/useFakeProgress.ts src/app/test/AnalysisProgressPlayground.tsx src/app/test/page.tsx src/components/debt-relief/form/AnalysisLoadingOverlay.tsx src/components/debt-relief/form/analysisProgress.ts src/components/debt-relief/form/DiagnosisFormContent.tsx)",
       "PowerShell(node -p \"const p=require\\('./package.json'\\); JSON.stringify\\({react:p.dependencies.react, next:p.dependencies.next},null,1\\)\")",
-      "Bash(grep -n \"const { value, onChange\" src/components/common/DatePicker.tsx)"
+      "Bash(grep -n \"const { value, onChange\" src/components/common/DatePicker.tsx)",
+      "Read(//c/2026/ggosoonbox/.claude/**)",
+      "Read(//c/2026/**)"
     ]
   }
 }

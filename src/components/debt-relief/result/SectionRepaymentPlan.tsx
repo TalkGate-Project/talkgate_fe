@@ -212,13 +212,22 @@ function RepaymentTimeline({
   );
 }
 
+// 2026-08-08: 가용소득이 사실상 없어 월 변제액이 0원으로 산출되는 케이스(개인회생/개인워크아웃 등)는
+// "0원"이 아니라 "산정 불가"로 표시하고, 기간·총액도 의미가 없으므로 "-"로 비운다.
 function PlanRowsPanel({ plan }: { plan: RepaymentPlan }) {
+  const isUnpayable = plan.monthlyPaymentManwon === 0;
   return (
     // pad 32×17, 행 간격 16
     <div className="rounded-[12px] border border-neutral-30 px-5 md:px-8 py-[17px] flex flex-col gap-4 lg:min-h-[118px]">
-      <PlanRow label="월 변제액" value={formatManwonComma(plan.monthlyPaymentManwon)} />
-      <PlanRow label="변제 기간" value={`${plan.months}개월 (${plan.years}년)`} />
-      <PlanRow label="총 변제액" value={formatManwonComma(plan.totalPaymentManwon)} />
+      <PlanRow
+        label="월 변제액"
+        value={isUnpayable ? "산정 불가" : formatManwonComma(plan.monthlyPaymentManwon)}
+      />
+      <PlanRow label="변제 기간" value={isUnpayable ? "-" : `${plan.months}개월 (${plan.years}년)`} />
+      <PlanRow
+        label="총 변제액"
+        value={isUnpayable ? "-" : formatManwonComma(plan.totalPaymentManwon)}
+      />
     </div>
   );
 }
@@ -495,14 +504,20 @@ export default function SectionRepaymentPlan({
       {kind === "full" && plan ? (
         // 피그마: 열 간격 28px, 행 간격 16px / 셀 620×118 — 그래프(타임라인)가 있는 절차만
         // 2x2 그리드(3행 패널+타임라인 / 면책·잔여 박스+주의사항)를 그대로 유지한다.
+        // 월 변제액이 0원(가용소득 사실상 없음)이면 타임라인·면책/잔여 박스는 보여줄 수치가 없으므로
+        // 아예 그리지 않는다 — PlanRowsPanel(산정 불가 표시)과 주의사항만 남는다.
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-x-[28px] lg:gap-y-4">
           <PlanRowsPanel plan={plan} />
-          <RepaymentTimeline
-            months={plan.months}
-            monthlyPaymentManwon={plan.monthlyPaymentManwon}
-            consultedAt={detail.consultedAt}
-          />
-          <ExemptionBoxes plan={plan} remainingSubtitle={REMAINING_DEBT_SUBTITLE.full} />
+          {plan.monthlyPaymentManwon > 0 && (
+            <RepaymentTimeline
+              months={plan.months}
+              monthlyPaymentManwon={plan.monthlyPaymentManwon}
+              consultedAt={detail.consultedAt}
+            />
+          )}
+          {plan.monthlyPaymentManwon > 0 && (
+            <ExemptionBoxes plan={plan} remainingSubtitle={REMAINING_DEBT_SUBTITLE.full} />
+          )}
           <PrecautionsList notes={detail.repaymentNotes} />
         </div>
       ) : (
