@@ -588,7 +588,8 @@ export type DiagnosisFormState = {
   debtCauses: DebtCause[];
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
-  // 대응(services/debtRelief.ts 참고).
+  // 대응(services/debtRelief.ts 참고). 간편모드 전용 — 상세모드에서는 입력받지 않고 제출 시 0으로
+  // 고정한다(API 스펙상 optional이 아니라 값 자체는 항상 보내야 함).
   securedDebt: number; // 담보부채무 (만원)
   recentDebtWithin3Months: number; // 최근 3개월 내 채무액 (만원)
   recentDebtWithin6Months: number; // 최근 6개월 내 채무액 (만원). 2026-08-06 스펙 추가

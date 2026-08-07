@@ -229,40 +229,45 @@ export default function DebtHistoryCard({
           </div>
         )}
 
-        {/* 채무 종류별 잔액과 무관하게 입력 방식(간편/상세)과 상관없이 항상 필요한 항목 —
-            2026-08-06: 기존에 카드 바깥에 있던 것을 「채무내역」 카드 안으로 이동. */}
-        <div role="separator" className="h-px bg-neutral-30" />
+        {/* 간편모드 전용 항목 — 최근 3/6개월·1년 내 채무액, 담보부채무는 상세모드(채무 항목
+            테이블)에서는 입력받지 않는다. 2026-08-06: 기존에 카드 바깥에 있던 것을
+            「채무내역」 카드 안으로 이동. */}
+        {form.debtInputMode !== "detailed" && (
+          <>
+            <div role="separator" className="h-px bg-neutral-30" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
-          <FormField label="최근 3개월 내 채무액" filled={form.recentDebtWithin3Months > 0}>
-            <ManwonInput
-              value={form.recentDebtWithin3Months}
-              onChange={(value) => update("recentDebtWithin3Months", value)}
-              invalid={overLimitFields.includes("recentDebtWithin3Months")}
-            />
-          </FormField>
-          <FormField label="최근 6개월 내 채무액" filled={form.recentDebtWithin6Months > 0}>
-            <ManwonInput
-              value={form.recentDebtWithin6Months}
-              onChange={(value) => update("recentDebtWithin6Months", value)}
-              invalid={overLimitFields.includes("recentDebtWithin6Months")}
-            />
-          </FormField>
-          <FormField label="최근 1년 내 채무액" filled={form.recentDebtWithin1Year > 0}>
-            <ManwonInput
-              value={form.recentDebtWithin1Year}
-              onChange={(value) => update("recentDebtWithin1Year", value)}
-              invalid={overLimitFields.includes("recentDebtWithin1Year")}
-            />
-          </FormField>
-          <FormField label="담보부채무" filled={form.securedDebt > 0}>
-            <ManwonInput
-              value={form.securedDebt}
-              onChange={(value) => update("securedDebt", value)}
-              invalid={overLimitFields.includes("securedDebt")}
-            />
-          </FormField>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-4 md:gap-y-5">
+              <FormField label="최근 3개월 내 채무액" filled={form.recentDebtWithin3Months > 0}>
+                <ManwonInput
+                  value={form.recentDebtWithin3Months}
+                  onChange={(value) => update("recentDebtWithin3Months", value)}
+                  invalid={overLimitFields.includes("recentDebtWithin3Months")}
+                />
+              </FormField>
+              <FormField label="최근 6개월 내 채무액" filled={form.recentDebtWithin6Months > 0}>
+                <ManwonInput
+                  value={form.recentDebtWithin6Months}
+                  onChange={(value) => update("recentDebtWithin6Months", value)}
+                  invalid={overLimitFields.includes("recentDebtWithin6Months")}
+                />
+              </FormField>
+              <FormField label="최근 1년 내 채무액" filled={form.recentDebtWithin1Year > 0}>
+                <ManwonInput
+                  value={form.recentDebtWithin1Year}
+                  onChange={(value) => update("recentDebtWithin1Year", value)}
+                  invalid={overLimitFields.includes("recentDebtWithin1Year")}
+                />
+              </FormField>
+              <FormField label="담보부채무" filled={form.securedDebt > 0}>
+                <ManwonInput
+                  value={form.securedDebt}
+                  onChange={(value) => update("securedDebt", value)}
+                  invalid={overLimitFields.includes("securedDebt")}
+                />
+              </FormField>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

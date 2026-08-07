@@ -277,11 +277,16 @@ function buildSections(input: AnalysisInputData) {
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
   ];
 
+  // 3/6개월·1년 내 채무액, 담보부채무는 간편모드 전용 필드라 상세모드 건에서는 표시하지 않는다.
   const debtRightRows: DisplayRow[] = [
-    { label: "3개월 내 채무액", value: formatManwon(input.debtIncurredLast3Months) },
-    { label: "6개월 내 채무액", value: formatManwon(input.debtIncurredLast6Months) },
-    { label: "1년 내 채무액", value: formatManwon(input.debtIncurredLast1Year) },
-    { label: "담보부채무", value: formatManwon(input.collateralDebt) },
+    ...(input.debtInputMode === "detailed"
+      ? []
+      : [
+          { label: "3개월 내 채무액", value: formatManwon(input.debtIncurredLast3Months) },
+          { label: "6개월 내 채무액", value: formatManwon(input.debtIncurredLast6Months) },
+          { label: "1년 내 채무액", value: formatManwon(input.debtIncurredLast1Year) },
+          { label: "담보부채무", value: formatManwon(input.collateralDebt) },
+        ]),
     { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];

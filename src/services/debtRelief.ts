@@ -388,10 +388,12 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
           debtBreakdown,
           overdueMonths: form.overdueMonths ?? 0,
         }),
-    collateralDebt: form.securedDebt,
-    debtIncurredLast3Months: form.recentDebtWithin3Months,
-    debtIncurredLast6Months: form.recentDebtWithin6Months,
-    debtIncurredLast1Year: form.recentDebtWithin1Year,
+    // 간편모드 전용 필드 — API는 모드와 무관하게 항상 값을 요구하므로(optional 아님) 상세모드에서는
+    // 폼에 남아있는 과거 간편모드 값을 보내지 않고 0으로 고정한다.
+    collateralDebt: isDetailed ? 0 : form.securedDebt,
+    debtIncurredLast3Months: isDetailed ? 0 : form.recentDebtWithin3Months,
+    debtIncurredLast6Months: isDetailed ? 0 : form.recentDebtWithin6Months,
+    debtIncurredLast1Year: isDetailed ? 0 : form.recentDebtWithin1Year,
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
     realEstateBreakdown,
     financialAssetValue: form.financialAssetValue ?? 0,
@@ -1070,10 +1072,11 @@ export const DebtReliefService = {
             debtBreakdown: buildDebtBreakdown(form),
             overdueMonths: form.overdueMonths ?? 0,
           }),
-      collateralDebt: form.securedDebt,
-      debtIncurredLast3Months: form.recentDebtWithin3Months,
-      debtIncurredLast6Months: form.recentDebtWithin6Months,
-      debtIncurredLast1Year: form.recentDebtWithin1Year,
+      // 간편모드 전용 필드 — toAnalysisFormInput과 동일하게 상세모드에서는 0으로 고정.
+      collateralDebt: isDetailed ? 0 : form.securedDebt,
+      debtIncurredLast3Months: isDetailed ? 0 : form.recentDebtWithin3Months,
+      debtIncurredLast6Months: isDetailed ? 0 : form.recentDebtWithin6Months,
+      debtIncurredLast1Year: isDetailed ? 0 : form.recentDebtWithin1Year,
       debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
       reanalyze,
     });
