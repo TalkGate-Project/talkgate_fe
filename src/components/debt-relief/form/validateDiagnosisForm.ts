@@ -70,11 +70,13 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (!form.housingType) missing.push("주거 형태");
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
+  if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
+  if (form.financialAssetValue === null) missing.push("금융 자산");
+  if (form.vehicleValue === null) missing.push("차량 보유");
   missing.push(...getMissingDebtFieldLabels(form));
-  // 채권자 수(간편모드 전용)는 DebtHistoryCard 밖(Step3Debts)에서 입력받는 필드라 채무발생
-  // 원인과 같은 방식으로 여기서 별도 검사한다 — getMissingDebtFieldLabels에 넣으면 이 함수를
-  // 공유하는 결과화면 「채무 상세」 모달(DebtDetailModal, creditorCount 입력 UI 없음)까지
-  // 막혀버린다.
+  // 채권자 수(간편모드 전용)는 채무발생 원인과 같은 방식으로 여기서 별도 검사한다 —
+  // getMissingDebtFieldLabels에 넣으면 이 함수를 공유하는 결과화면 「채무 상세」 모달
+  // (DebtDetailModal, creditorCount 입력 UI 없음)까지 막혀버린다.
   if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   return missing;
@@ -94,9 +96,14 @@ export function getMissingRequiredFieldLabelsForStep(
       if (!form.region) missing.push("거주 지역");
       return missing;
     }
-    case "assets":
-      // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분한다. 스텝 필수 검사는 없음.
-      return [];
+    case "assets": {
+      const missing: string[] = [];
+      if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
+      // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분해 null만 미입력으로 판정한다.
+      if (form.financialAssetValue === null) missing.push("금융 자산");
+      if (form.vehicleValue === null) missing.push("차량 보유");
+      return missing;
+    }
     case "debts": {
       const missing = getMissingDebtFieldLabels(form);
       if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
