@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatDetailDate } from "./utils";
+import { formatConsultationNoteDateTime } from "./utils";
 import { CustomerCategoryHistoryItem, CustomerDetail } from "@/types/customers";
 import { getBadgeStyle } from "@/utils/categoryBadge";
 import { useMyMember } from "@/hooks/useMyMember";
@@ -239,7 +239,7 @@ export default function ConsultationTab({
                     </span>
                     <div className="text-neutral-60 dark:text-neutral-60 flex gap-x-3 items-center justify-end">
                       <span className="text-right">
-                        {formatDetailDate(noteItem.createdAt)}
+                        {formatConsultationNoteDateTime(noteItem.createdAt)}
                       </span>
                       <button
                         className="cursor-pointer w-5 h-5 grid place-items-center rounded-full bg-black dark:bg-neutral-80 text-white dark:text-neutral-0"
