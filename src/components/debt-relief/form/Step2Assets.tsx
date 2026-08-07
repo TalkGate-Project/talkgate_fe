@@ -1,14 +1,14 @@
 import {
-  FINANCIAL_ASSET_OPTIONS,
+  FINANCIAL_ASSET_QUICK_PRESETS,
   REAL_ESTATE_OPTIONS,
   REAL_ESTATE_SELECT_OPTIONS,
-  VEHICLE_OPTIONS,
+  VEHICLE_VALUE_QUICK_PRESETS,
   type DiagnosisFormState,
   type RealEstateSelectValue,
   type RealEstateType,
 } from "@/types/debtRelief";
-import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
-import { PillSelect, PillMultiSelect } from "./PillSelect";
+import { FormField, FormSectionTitle, ManwonInput, ManwonQuickInput } from "./FormControls";
+import { PillMultiSelect } from "./PillSelect";
 import FormToggle from "./FormToggle";
 
 type Props = {
@@ -45,6 +45,7 @@ export default function Step2Assets({ form, update }: Props) {
     }
 
     update("realEstateTypes", selectedTypes);
+    update("realEstateStatusConfirmed", true);
 
     if (selectedTypes.length === 0) {
       update("realEstateAmounts", {});
@@ -72,7 +73,8 @@ export default function Step2Assets({ form, update }: Props) {
         <FormField
           label="부동산 보유 여부"
           hint="(중복선택 가능)"
-          filled={form.realEstateTypes.length > 0}
+          required
+          filled={form.realEstateStatusConfirmed}
         >
           <PillMultiSelect
             options={REAL_ESTATE_SELECT_OPTIONS}
@@ -99,22 +101,22 @@ export default function Step2Assets({ form, update }: Props) {
         )}
 
         <FormField
-          label="금융 자산 (예적금 + 주식 등)"
+          label="금융 자산 (예·적금 + 주식 등)"
           required
-          filled={form.financialAsset !== null}
+          filled={form.financialAssetValue !== null}
         >
-          <PillSelect
-            options={FINANCIAL_ASSET_OPTIONS}
-            value={form.financialAsset}
-            onChange={(value) => update("financialAsset", value)}
+          <ManwonQuickInput
+            value={form.financialAssetValue}
+            onChange={(value) => update("financialAssetValue", value)}
+            presets={FINANCIAL_ASSET_QUICK_PRESETS}
           />
         </FormField>
 
-        <FormField label="차량 보유" required filled={form.vehicle !== null}>
-          <PillSelect
-            options={VEHICLE_OPTIONS}
-            value={form.vehicle}
-            onChange={(value) => update("vehicle", value)}
+        <FormField label="차량 보유" required filled={form.vehicleValue !== null}>
+          <ManwonQuickInput
+            value={form.vehicleValue}
+            onChange={(value) => update("vehicleValue", value)}
+            presets={VEHICLE_VALUE_QUICK_PRESETS}
           />
         </FormField>
 

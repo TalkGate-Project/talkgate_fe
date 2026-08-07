@@ -928,8 +928,9 @@ export default function ResultHeader({
       <DiagnosisCustomerInfoModal
         open={customerInfoOpen}
         onClose={() => setCustomerInfoOpen(false)}
-        inputData={detail.inputData}
-        contact={detail.contact}
+        detail={detail}
+        projectId={projectId}
+        onDebtApplied={onCustomerMatchChange}
       />
       {projectId && (showOwnerActions || showAssigneeProfile) && (
         <FeePaymentInfoModal

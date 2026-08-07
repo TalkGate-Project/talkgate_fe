@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CREDITOR_COUNT_OPTIONS,
   DEBT_AMOUNT_LABELS,
   DEBT_TYPE_OPTIONS,
   createEmptyDebtItem,
@@ -8,7 +9,7 @@ import {
   type DiagnosisFormState,
 } from "@/types/debtRelief";
 import { FormField, ManwonInput, MonthsInput } from "./FormControls";
-import { PillMultiSelect } from "./PillSelect";
+import { PillMultiSelect, PillSelect } from "./PillSelect";
 import DebtItemsTable from "./DebtItemsTable";
 import type { OverLimitDebtField } from "./validateDiagnosisForm";
 
@@ -39,6 +40,8 @@ function DebtModeToggle({
   onChange: (mode: DebtDisplayMode) => void;
   disabled?: boolean;
 }) {
+  // 세그먼트 탭 다크모드 — DiagnosisListTabs / ChatLeftSidebar / SalesRanking과 동일:
+  // 트랙 bg-neutral-20, 선택 bg-card + text-foreground (하드코딩 bg-white 금지)
   return (
     <div
       role="tablist"
@@ -53,8 +56,8 @@ function DebtModeToggle({
         onClick={() => onChange("simple")}
         className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "simple"
-            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
-            : "font-medium text-neutral-60 hover:text-foreground"
+            ? "bg-card font-bold text-foreground"
+            : "bg-transparent font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         간편
@@ -67,8 +70,8 @@ function DebtModeToggle({
         onClick={() => onChange("detailed")}
         className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "detailed"
-            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
-            : "font-medium text-neutral-60 hover:text-foreground"
+            ? "bg-card font-bold text-foreground"
+            : "bg-transparent font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         상세
@@ -211,6 +214,16 @@ export default function DebtHistoryCard({
               <MonthsInput
                 value={form.overdueMonths}
                 onChange={(value) => update("overdueMonths", value)}
+              />
+            </FormField>
+
+            {/* 2026-08-07: 채무내역 카드 바깥(Step3Debts)에 있던 걸 카드 안으로 이동.
+                상세모드는 채무 항목 테이블 행 개수를 그대로 쓰므로 노출하지 않는다. */}
+            <FormField label="채권자 수" required filled={form.creditorCount !== null}>
+              <PillSelect
+                options={CREDITOR_COUNT_OPTIONS}
+                value={form.creditorCount}
+                onChange={(value) => update("creditorCount", value)}
               />
             </FormField>
           </div>

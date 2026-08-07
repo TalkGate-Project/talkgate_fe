@@ -3,11 +3,11 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   createEmptyDiagnosisForm,
-  MONTHLY_INCOME_ESTIMATE,
+  resolveCourtMinimumLivingCostWon,
   type DiagnosisDerivedValues,
   type DiagnosisFormState,
 } from "@/types/debtRelief";
-import { wonToManwon } from "@/services/debtRelief";
+import { manwonToWon, resolveHouseholdSize, wonToManwon } from "@/services/debtRelief";
 
 export function useDiagnosisForm() {
   const [form, setForm] = useState<DiagnosisFormState>(createEmptyDiagnosisForm);
@@ -33,19 +33,27 @@ export function useDiagnosisForm() {
       }
     }
 
-    const estimatedMonthlyIncomeManwon = form.monthlyIncome
-      ? MONTHLY_INCOME_ESTIMATE[form.monthlyIncome]
-      : 0;
-    const totalExpenseManwon = Object.values(form.expenses).reduce(
-      (sum, value) => sum + (value || 0),
-      0
-    );
-    const monthlyAvailableIncomeManwon = estimatedMonthlyIncomeManwon - totalExpenseManwon;
+    // 법원 인정 기준 월 가용소득 = 월소득 − 가구원수별 법원 인정 최저생계비 − 추가 인정 고정지출
+    // (서버 disposableIncome과 동일 공식 — 2026-08-07 스펙). 원 단위로 계산 후 만원으로 환산해
+    // 중간 반올림 오차를 줄인다.
+    // 부양가족을 아직 선택하지 않았으면(null) 아무것도 확정되지 않은 상태이므로, 가구원 1인
+    // 기준값을 임의로 가정해 마이너스로 보여주지 않고 최저생계비를 0으로 둔다. "없음"을
+    // 명시적으로 선택하면(dependents="0") 그때부터 가구원 1인 기준 실제 값을 반영한다.
+    const householdSize = resolveHouseholdSize(form.dependents);
+    const minimumLivingCostWon =
+      form.dependents === null ? 0 : resolveCourtMinimumLivingCostWon(householdSize);
+    const minimumLivingCostManwon = wonToManwon(minimumLivingCostWon);
+    const monthlyAvailableIncomeWon =
+      manwonToWon(form.monthlyIncome ?? 0) -
+      minimumLivingCostWon -
+      manwonToWon(form.additionalFixedExpense);
+    const monthlyAvailableIncomeManwon = wonToManwon(monthlyAvailableIncomeWon);
 
     return {
       totalDebtManwon,
-      estimatedMonthlyIncomeManwon,
-      totalExpenseManwon,
+      monthlyIncomeManwon: form.monthlyIncome ?? 0,
+      minimumLivingCostManwon,
+      householdSize,
       monthlyAvailableIncomeManwon,
     };
   }, [form]);

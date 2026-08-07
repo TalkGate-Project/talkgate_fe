@@ -325,6 +325,15 @@ export const DEPENDENT_OPTIONS: PillOption<DependentCount>[] = [
   { value: "4_plus", label: "4명 이상" },
 ];
 
+// 2026-08-07 디자인 변경: 부양가족/배우자 소득은 UI상 기본정보(Step1)가 아닌 소득/지출(Step4)
+// 섹션에서 입력받는다(법정 생계비 계산에 쓰이는 가구원수와 같은 화면에 있는 게 자연스러워서).
+// 데이터 모델(DiagnosisFormState.spouseIncome)은 boolean이라 별도 타입만 여기 둔다.
+export type SpouseIncomeOption = "none" | "yes";
+export const SPOUSE_INCOME_OPTIONS: PillOption<SpouseIncomeOption>[] = [
+  { value: "none", label: "없음" },
+  { value: "yes", label: "있음" },
+];
+
 // ── 2. 자산현황 ──────────────────────────────────────────────
 // ⚠️ 실 API가 단일 카테고리(realEstateType)에서 항목별 시가 breakdown으로 바뀌어(2026-07-10),
 // 채무종류처럼 중복선택 + 종류별 금액 입력으로 구조를 맞춘다.
@@ -343,22 +352,12 @@ export const REAL_ESTATE_SELECT_OPTIONS: PillOption<RealEstateSelectValue>[] = [
   ...REAL_ESTATE_OPTIONS,
 ];
 
-export type FinancialAssetRange = "none" | "under_500" | "500_2000" | "2000_5000" | "over_5000";
-export const FINANCIAL_ASSET_OPTIONS: PillOption<FinancialAssetRange>[] = [
-  { value: "none", label: "없음" },
-  { value: "under_500", label: "500만 미만" },
-  { value: "500_2000", label: "500만~2천만" },
-  { value: "2000_5000", label: "2천만~5천만" },
-  { value: "over_5000", label: "5천만 이상" },
-];
-
-export type VehicleRange = "none" | "under_500" | "500_2000" | "over_2000";
-export const VEHICLE_OPTIONS: PillOption<VehicleRange>[] = [
-  { value: "none", label: "없음" },
-  { value: "under_500", label: "500만 미만" },
-  { value: "500_2000", label: "500만~2천만" },
-  { value: "over_2000", label: "2천만 이상" },
-];
+// 2026-08-07 스펙: 구간 선택형(FinancialAssetRange/VehicleRange) 폐지, 만원 단위 직접 입력으로 변경.
+// DiagnosisFormState.financialAssetValue/vehicleValue(number) 참고.
+/** 금융 자산 퀵버튼 프리셋(만원) — 구 구간 경계(없음/500/2천/5천) 기준 */
+export const FINANCIAL_ASSET_QUICK_PRESETS = [0, 500, 1000, 2000, 5000] as const;
+/** 차량 보유 가액 퀵버튼 프리셋(만원) */
+export const VEHICLE_VALUE_QUICK_PRESETS = [0, 500, 1000, 2000, 5000] as const;
 
 // ── 3. 채무현황 ──────────────────────────────────────────────
 // 실 API(debtBreakdown.capitalLoan)가 캐피탈/저축은행을 슬롯 하나로만 받아, 원본이 어느 쪽이었는지
@@ -464,39 +463,31 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
   { value: "other", label: DEBT_CAUSE_LABELS.other },
 ];
 
-// 2026-08-04: 채권자 수는 더 이상 사용자가 직접 고르거나 화면에 노출하지 않는다.
-// 간편모드는 선택된 채무종류 배지 개수, 상세모드는 채무 항목 테이블의 행 개수를 그대로
-// 채권자 수로 써서 분석 제출 시점에만 계산해 보낸다(services/debtRelief.ts의
-// toAnalysisFormInput 참고). 두 모드 모두 이미 "채무종류 1개 이상"/"채무 항목 1개 이상"을
-// 필수값으로 검증하므로 채권자 수가 0이 되는 경우는 존재하지 않아 별도 필수값 검사도 두지 않는다.
+// 2026-08-07 피드백: 간편모드의 채권자 수를 다시 상담사가 직접 고르는 구간 선택으로 되돌린다 —
+// 채무종류 배지 개수(최대 5개)를 그대로 쓰면 실제 채권사 수와 크게 어긋나는 경우가 많았기 때문.
+// API creditorCount는 여전히 number라 대표값으로 매핑해 보낸다(services/debtRelief.ts의
+// toAnalysisFormInput/creditorCountFromNumber 참고). 상세모드는 채무 항목 테이블 행 개수를
+// 그대로 쓰는 자동 계산을 유지 — 항목별로 실제 입력하니 배지 선택 대비 부정확할 이유가 없다.
+/** 채권자 수 구간(간편모드 전용) — API creditorCount(number)로 대표값 매핑 */
+export type CreditorCountRange = "1_2" | "3_5" | "6_10" | "over_10";
+export const CREDITOR_COUNT_OPTIONS: PillOption<CreditorCountRange>[] = [
+  { value: "1_2", label: "1~2곳" },
+  { value: "3_5", label: "3~5곳" },
+  { value: "6_10", label: "6~10곳" },
+  { value: "over_10", label: "10곳 이상" },
+];
+export const CREDITOR_COUNT_TO_NUMBER: Record<CreditorCountRange, number> = {
+  "1_2": 2,
+  "3_5": 4,
+  "6_10": 8,
+  over_10: 12,
+};
 
 // ── 4. 소득/지출 ─────────────────────────────────────────────
-// 2026-08-06 스펙 확장: "none"(소득 없음) 추가 — 가장 왼쪽 옵션.
-export type MonthlyIncomeRange =
-  | "none"
-  | "under_100"
-  | "100_200"
-  | "200_300"
-  | "300_400"
-  | "over_400";
-export const MONTHLY_INCOME_OPTIONS: PillOption<MonthlyIncomeRange>[] = [
-  { value: "none", label: "소득 없음" },
-  { value: "under_100", label: "100만 이하" },
-  { value: "100_200", label: "100~200만" },
-  { value: "200_300", label: "200~300만" },
-  { value: "300_400", label: "300~400만" },
-  { value: "over_400", label: "400만 이상" },
-];
-
-// 월 소득 구간 → 추정 대표값 (만원, 구간 중앙값 기준). none은 추정 0만원.
-export const MONTHLY_INCOME_ESTIMATE: Record<MonthlyIncomeRange, number> = {
-  none: 0,
-  under_100: 80,
-  "100_200": 150,
-  "200_300": 250,
-  "300_400": 350,
-  over_400: 450,
-};
+// 2026-08-07 스펙: 구간 선택형(MonthlyIncomeRange) 폐지, 만원 단위 실수령액 직접 입력으로 변경.
+// DiagnosisFormState.monthlyIncome(number) 참고.
+/** 월 소득 퀵버튼 프리셋(만원) — 구 구간 경계(0/100/200/300/400) 기준 */
+export const MONTHLY_INCOME_QUICK_PRESETS = [0, 100, 200, 300, 400] as const;
 
 export type HousingType = "owned" | "jeonse" | "monthly_rent" | "living_with_family";
 export const HOUSING_TYPE_OPTIONS: PillOption<HousingType>[] = [
@@ -506,13 +497,23 @@ export const HOUSING_TYPE_OPTIONS: PillOption<HousingType>[] = [
   { value: "living_with_family", label: "가족과 거주" },
 ];
 
-export type MonthlyExpenses = {
-  housing: number; // 주거비
-  food: number; // 식비
-  education: number; // 교육비
-  transportation: number; // 교통비
-  other: number; // 기타 고정지출
+// ── 법원 인정 최저생계비 (2026-08-07 스펙 신규) ─────────────────
+// disposableIncome(월 가용소득) 계산 방식이 "실제 가계부 기준"에서 "법원 인정 기준"으로
+// 바뀌면서 도입된 테이블(원 단위). 가구원수 = 부양가족수 + 1 (최소 1, 최대 6).
+// 서버가 동일 공식으로 계산하므로 프론트 실시간 미리보기(useDiagnosisForm)도 그대로 쓴다.
+export const COURT_MINIMUM_LIVING_COST_WON: Record<number, number> = {
+  1: 1538543,
+  2: 2519575,
+  3: 3215422,
+  4: 3896843,
+  5: 4534031,
+  6: 5133571,
 };
+
+export function resolveCourtMinimumLivingCostWon(householdSize: number): number {
+  const clamped = Math.min(6, Math.max(1, householdSize));
+  return COURT_MINIMUM_LIVING_COST_WON[clamped];
+}
 
 // ── 5. 기타사항 ──────────────────────────────────────────────
 // 2026-07-24 피드백: 특례 대상 — 중복선택 가능(단, 만 29세 이하/만 65세 이상은 동시 선택 불가,
@@ -561,9 +562,14 @@ export type DiagnosisFormState = {
 
   // 2. 자산현황
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
+  /** "없음" 선택도 realEstateTypes=[]로 저장되어 미선택과 구분이 안 되므로, 필수 검증용으로
+   * 사용자가 이 필드를 한 번이라도 명시적으로 조작했는지 별도로 추적한다. */
+  realEstateStatusConfirmed: boolean;
   realEstateAmounts: Partial<Record<RealEstateType, number>>; // 만원, 선택된 종류만
-  financialAsset: FinancialAssetRange | null;
-  vehicle: VehicleRange | null;
+  /** 만원 단위(예·적금+주식 등 합계). null=미선택, 0=미보유(명시) */
+  financialAssetValue: number | null;
+  /** 만원 단위. null=미선택, 0=미보유(명시) */
+  vehicleValue: number | null;
   /** 최근 2년 내 부동산·차량 등 재산 처분 이력 — API `hasRecentAssetDisposal` */
   hasRecentAssetDisposal: boolean;
 
@@ -576,6 +582,9 @@ export type DiagnosisFormState = {
   /** 연체 개월 수. 간편모드에서만 입력받고(필수), 상세모드는 서버가 debts에서 자동 계산한다.
    * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
   overdueMonths: number | null;
+  /** 채권자 수 구간. 간편모드에서만 입력받고(필수) API 대표값(number)으로 매핑해 보낸다.
+   * 상세모드는 채무 항목 테이블 행 개수를 그대로 써서 이 값을 무시한다. */
+  creditorCount: CreditorCountRange | null;
   debtCauses: DebtCause[];
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
@@ -586,9 +595,12 @@ export type DiagnosisFormState = {
   recentDebtWithin1Year: number; // 최근 1년 내 채무액 (만원)
 
   // 4. 소득/지출
-  monthlyIncome: MonthlyIncomeRange | null;
+  /** 만원 단위 세후 실수령액. null=미선택, 0=소득 없음(명시) */
+  monthlyIncome: number | null;
   housingType: HousingType | null;
-  expenses: MonthlyExpenses;
+  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(만원). 해당 없으면 0
+   * (2026-08-07 스펙 — 주거비/식비/교육비/교통비/기타 5개 필드 폐지) */
+  additionalFixedExpense: number;
 
   // 5. 기타사항
   /** 사업 영위 여부('20.4~'25.6 특례기간) — API `isOperatingBusiness`. 5단계에서만 입력.
@@ -623,15 +635,17 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     spouseIncome: null,
     isOperatingBusiness: false,
     realEstateTypes: [],
+    realEstateStatusConfirmed: false,
     realEstateAmounts: {},
-    financialAsset: null,
-    vehicle: null,
+    financialAssetValue: null,
+    vehicleValue: null,
     hasRecentAssetDisposal: false,
     debtInputMode: "simple",
     debtTypes: [],
     debtAmounts: {},
     debts: [],
     overdueMonths: null,
+    creditorCount: null,
     debtCauses: [],
     hasTaxArrears: false,
     securedDebt: 0,
@@ -640,7 +654,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     recentDebtWithin1Year: 0,
     monthlyIncome: null,
     housingType: null,
-    expenses: { housing: 0, food: 0, education: 0, transportation: 0, other: 0 },
+    additionalFixedExpense: 0,
     businessOperationStatus: null,
     freshStartFundInsolvencyReasons: [],
     isExcludedIndustryForFreshStartFund: false,
@@ -659,9 +673,11 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
 // 폼에서 파생되는 요약 값 (좌측 사이드바 · 소득/지출 계산)
 export type DiagnosisDerivedValues = {
   totalDebtManwon: number; // 선택한 채무 금액 합
-  estimatedMonthlyIncomeManwon: number; // 월 소득 구간 대표값
-  totalExpenseManwon: number; // 월 고정지출 합
-  monthlyAvailableIncomeManwon: number; // 추정소득 − 총지출
+  monthlyIncomeManwon: number; // 입력한 월 소득 그대로(2026-08-07 스펙부터 "추정치"가 아님)
+  minimumLivingCostManwon: number; // 가구원수별 법원 인정 최저생계비
+  householdSize: number; // 부양가족수 + 1. 법정 생계비 카드의 "가구원 n인 기준" 표시에 사용
+  // 월소득 − 법원 인정 최저생계비 − additionalFixedExpense (법원 인정 기준, 서버 disposableIncome과 동일 공식)
+  monthlyAvailableIncomeManwon: number;
 };
 
 export type CreateDiagnosisResult = { id: string };

@@ -9,7 +9,8 @@ type Props = {
 
 /**
  * 진단 폼 스텝 이전/다음 — pill(38×36) + chevron.
- * 비활성: fill #F8F8F8 · chevron #D0D0D0 / 활성: fill 없음(흰) · chevron #B0B0B0
+ * 비활성: bg-neutral-10 · chevron muted / 활성: bg-card · chevron neutral-50
+ * border는 SVG stroke가 아니라 CSS로 그려 overflow에 잘리지 않게 하고, 다크모드는 토큰을 따른다.
  */
 export default function FormStepNavButton({
   direction,
@@ -25,38 +26,28 @@ export default function FormStepNavButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className={`inline-flex shrink-0 ${
-        disabled ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+      className={`inline-flex h-9 w-[38px] shrink-0 items-center justify-center rounded-full border border-neutral-20 transition-opacity dark:!border-neutral-40 ${
+        disabled
+          ? "cursor-not-allowed bg-neutral-10 text-neutral-40 dark:text-neutral-50"
+          : "cursor-pointer bg-card text-neutral-50 hover:opacity-80 dark:text-neutral-60"
       }`}
     >
-      <svg width="38" height="36" viewBox="0 0 38 36" fill="none" aria-hidden>
-        <rect
-          x="0.5"
-          y="0.5"
-          width="37"
-          height="35"
-          rx="17.5"
-          fill={disabled ? "#F8F8F8" : "white"}
-          stroke="#E2E2E2"
-          className={disabled ? "dark:fill-neutral-20" : "dark:fill-neutral-10"}
-        />
+      <svg width="14" height="16" viewBox="0 0 14 16" fill="none" aria-hidden className="overflow-visible">
         {direction === "prev" ? (
           <path
-            d="M22 25L15 18L22 11"
-            stroke={disabled ? "#D0D0D0" : "#B0B0B0"}
+            d="M9.5 14.5L2.5 8L9.5 1.5"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={disabled ? "dark:stroke-neutral-50" : "dark:stroke-neutral-60"}
           />
         ) : (
           <path
-            d="M16 25L23 18L16 11"
-            stroke={disabled ? "#D0D0D0" : "#B0B0B0"}
+            d="M4.5 14.5L11.5 8L4.5 1.5"
+            stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={disabled ? "dark:stroke-neutral-50" : "dark:stroke-neutral-60"}
           />
         )}
       </svg>

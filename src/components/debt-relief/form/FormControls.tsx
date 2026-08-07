@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { PillButton } from "./PillSelect";
 
 /** 스텝 본문 섹션 제목 — 데스크톱만. 모바일은 상단 드로어 스텝명이 대신함 */
 export function FormSectionTitle({ children }: { children: ReactNode }) {
@@ -55,6 +56,14 @@ export function FormField({
 const INPUT_CLASS =
   "w-full h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
 
+/** ManwonQuickInput 전용 — w-full을 빼서 고정 폭이 Tailwind 충돌로 무시되지 않게 한다 */
+const QUICK_INPUT_CLASS =
+  "h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-neutral-10 text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
+
+/** ManwonInput의 suffixOutside 모드 전용 — 위와 같은 이유로 w-full을 뺀다 */
+const MANWON_INPUT_COMPACT_CLASS =
+  "h-[34px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-50 focus:outline-none focus:border-neutral-50";
+
 export function TextInput({
   value,
   onChange,
@@ -88,6 +97,7 @@ export function ManwonInput({
   onChange,
   placeholder = "0",
   invalid = false,
+  suffixOutside = false,
 }: {
   value: number;
   onChange: (value: number) => void;
@@ -95,22 +105,88 @@ export function ManwonInput({
   // true면 border를 danger 색으로 표시 (예: 제출 시점에 발견된 채무 금액 합계 초과).
   // 호출부에서 값이 다시 유효해지는 순간 false로 넘겨주면 즉시 해제된다.
   invalid?: boolean;
+  /** true면 "만원"을 input 안이 아니라 바깥 오른쪽에 별도 배치하고 input 폭을 좁힌다 —
+   * 값 자릿수가 크지 않은 걸 아는 필드(예: 추가 필수지출)에서 input이 불필요하게 넓어
+   * 보이는 걸 막는다. */
+  suffixOutside?: boolean;
 }) {
+  const inputEl = (
+    <input
+      inputMode="numeric"
+      value={value ? value.toLocaleString("ko-KR") : ""}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
+        onChange(digits ? parseInt(digits, 10) : 0);
+      }}
+      placeholder={placeholder}
+      className={
+        suffixOutside
+          ? `${MANWON_INPUT_COMPACT_CLASS} w-[76px] text-right ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`
+          : `${INPUT_CLASS} pr-12 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`
+      }
+    />
+  );
+
+  if (suffixOutside) {
+    return (
+      <div className="flex items-center gap-2">
+        {inputEl}
+        <span className="shrink-0 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">만원</span>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
-      <input
-        inputMode="numeric"
-        value={value ? value.toLocaleString("ko-KR") : ""}
-        onChange={(e) => {
-          const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
-          onChange(digits ? parseInt(digits, 10) : 0);
-        }}
-        placeholder={placeholder}
-        className={`${INPUT_CLASS} pr-12 ${invalid ? "!border-danger-40 dark:!border-danger-40" : ""}`}
-      />
+      {inputEl}
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-medium tracking-[-0.02em] text-neutral-60 pointer-events-none">
         만원
       </span>
+    </div>
+  );
+}
+
+/** 직접 입력 + 퀵버튼 프리셋. 월 소득/금융 자산/차량 보유용.
+ * null=미선택(퀵버튼 미선택·입력 비움). 0은 "없음"을 명시한 유효값이라 0 버튼이 선택된다. */
+export function ManwonQuickInput({
+  value,
+  onChange,
+  presets,
+  placeholder = "0",
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+  presets: readonly number[];
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
+        <input
+          inputMode="numeric"
+          value={value === null ? "" : value.toLocaleString("ko-KR")}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/[^0-9]/g, "").slice(0, MANWON_MAX_DIGITS);
+            onChange(digits ? parseInt(digits, 10) : null);
+          }}
+          placeholder={placeholder}
+          className={`${QUICK_INPUT_CLASS} w-[148px] md:w-[180px] text-right`}
+          aria-label="금액(만원)"
+        />
+        <span className="shrink-0 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">
+          만원
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {presets.map((preset) => (
+          <PillButton
+            key={preset}
+            label={preset.toLocaleString("ko-KR")}
+            selected={value === preset}
+            onClick={() => onChange(value === preset ? null : preset)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
