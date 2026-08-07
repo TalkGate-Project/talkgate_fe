@@ -71,6 +71,11 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
   missing.push(...getMissingDebtFieldLabels(form));
+  // 채권자 수(간편모드 전용)는 DebtHistoryCard 밖(Step3Debts)에서 입력받는 필드라 채무발생
+  // 원인과 같은 방식으로 여기서 별도 검사한다 — getMissingDebtFieldLabels에 넣으면 이 함수를
+  // 공유하는 결과화면 「채무 상세」 모달(DebtDetailModal, creditorCount 입력 UI 없음)까지
+  // 막혀버린다.
+  if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   return missing;
 }
@@ -94,6 +99,7 @@ export function getMissingRequiredFieldLabelsForStep(
       return [];
     case "debts": {
       const missing = getMissingDebtFieldLabels(form);
+      if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
       if (form.debtCauses.length === 0) missing.push("채무발생 원인");
       return missing;
     }
