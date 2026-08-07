@@ -1,63 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type {
   AnalysisDebtBreakdown,
-  AnalysisFinancialAssetRange,
+  AnalysisFreshStartFundInsolvencyReason,
   AnalysisInputData,
-  AnalysisMonthlyIncomeRange,
   AnalysisRealEstateBreakdown,
-  AnalysisVehicleValueRange,
 } from "@/types/analysis";
 import {
+  BUSINESS_OPERATION_STATUS_OPTIONS,
   DEBT_CAUSE_LABELS,
   DEBT_TYPE_OPTIONS,
-  FINANCIAL_ASSET_OPTIONS,
+  FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS,
   HOUSING_TYPE_OPTIONS,
-  MONTHLY_INCOME_OPTIONS,
   REAL_ESTATE_OPTIONS,
-  VEHICLE_OPTIONS,
+  resolveCourtMinimumLivingCostWon,
   type DebtCause,
   type DebtType,
-  type FinancialAssetRange,
-  type MonthlyIncomeRange,
+  type DiagnosisDetail,
   type RealEstateType,
-  type VehicleRange,
 } from "@/types/debtRelief";
-import { formatContactForDisplay } from "@/utils/format";
+import { wonToManwon } from "@/services/debtRelief";
+import DebtDetailModal from "./DebtDetailModal";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  inputData: AnalysisInputData;
-  contact: string | null;
+  detail: DiagnosisDetail;
+  projectId: string | null;
+  /** 「자세히 보기」로 연 채무 상세 모달에서 값 저장/재분석에 성공했을 때 상위 상세 데이터 새로고침 */
+  onDebtApplied: () => void | Promise<void>;
 };
 
 type DisplayRow = { label: string; value: string; emphasize?: boolean };
-
-const FINANCIAL_ASSET_FROM: Record<AnalysisFinancialAssetRange, FinancialAssetRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_to_2000": "500_2000",
-  "2000_to_5000": "2000_5000",
-  over_5000: "over_5000",
-};
-
-const VEHICLE_FROM: Record<AnalysisVehicleValueRange, VehicleRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_to_2000": "500_2000",
-  over_2000: "over_2000",
-};
-
-const INCOME_FROM: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
-  none: "none",
-  under_100: "under_100",
-  "100_to_200": "100_200",
-  "200_to_300": "200_300",
-  "300_to_400": "300_400",
-  over_400: "over_400",
-};
 
 const DEBT_CAUSE_FROM: Record<string, DebtCause> = {
   business_failure: "business_failure",
@@ -111,16 +86,17 @@ function formatSignedManwon(value: number | null | undefined): string {
   return `${sign}${Math.abs(value).toLocaleString("ko-KR")}만원`;
 }
 
+/** 법정 생계비처럼 월소득에서 차감되는 항목 표시용 — Figma가 "-" 부호를 붙여 보여준다. */
+function formatDeductedManwon(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "-";
+  return `-${value.toLocaleString("ko-KR")}만원`;
+}
+
 function formatDependents(count: number | null | undefined): string {
   if (count == null) return "-";
   if (count <= 0) return "없음";
   if (count >= 4) return "4명 이상";
   return `${count}명`;
-}
-
-function creditorCountLabel(count: number | null | undefined): string {
-  if (count == null) return "-";
-  return `${count}곳`;
 }
 
 function realEstateOwnershipLabel(breakdown: AnalysisRealEstateBreakdown): string {
@@ -158,6 +134,15 @@ function debtCausesLabel(causes: string[]): string {
     .join(", ");
 }
 
+function freshStartFundInsolvencyReasonsLabel(
+  reasons: AnalysisFreshStartFundInsolvencyReason[] | null | undefined
+): string {
+  if (!reasons || reasons.length === 0) return "-";
+  return reasons
+    .map((reason) => FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS.find((o) => o.value === reason)?.label ?? reason)
+    .join(", ");
+}
+
 function BackIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -181,6 +166,20 @@ function CloseIcon() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// "자세히 보기" 버튼의 돋보기 아이콘 — SectionDebtStatus.tsx의 동일 버튼과 통일.
+function DebtDetailSearchIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M6.66667 13.3333L9.06557 10.9344M9.06557 10.9344C9.51798 11.3868 10.143 11.6667 10.8333 11.6667C12.214 11.6667 13.3333 10.5474 13.3333 9.16667C13.3333 7.78595 12.214 6.66667 10.8333 6.66667C9.45262 6.66667 8.33333 7.78595 8.33333 9.16667C8.33333 9.85702 8.61316 10.482 9.06557 10.9344ZM17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
+        className="stroke-[var(--secondary-20)] dark:stroke-blue-300"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -210,29 +209,33 @@ function InfoSection({
   rows,
   className = "",
   columns,
+  titleAction,
 }: {
   title: string;
   rows: DisplayRow[];
   className?: string;
-  /** PC에서 소득/지출 내부 2열용 */
+  /** 태블릿·PC에서 내부 2열로 나눠 보여줄 항목 (행이 많은 섹션용) */
   columns?: { left: DisplayRow[]; right: DisplayRow[] };
+  /** 타이틀 옆에 붙는 버튼 등 — 채무현황의 「자세히 보기」 */
+  titleAction?: ReactNode;
 }) {
   return (
     <section
       className={`rounded-[12px] border border-neutral-30 bg-card overflow-hidden flex flex-col min-h-0 ${className}`}
     >
-      <h3 className="px-4 py-2.5 text-[14px] font-semibold text-foreground border-b border-neutral-30 shrink-0">
+      <h3 className="px-4 py-2.5 flex items-center gap-2 text-[14px] font-semibold text-foreground border-b border-neutral-30 shrink-0">
         {title}
+        {titleAction}
       </h3>
       <div className="px-4 py-3 flex-1">
         {columns ? (
           <>
-            {/* PC: 내부 2열 / 태블릿·모바일: 1열(rows 순서) */}
-            <div className="hidden min-[1201px]:grid min-[1201px]:grid-cols-2 gap-x-8">
+            {/* 모바일: 1열(rows 순서) / 태블릿·PC: 내부 2열 */}
+            <div className="hidden min-[709px]:grid min-[709px]:grid-cols-2 gap-x-8">
               <InfoRows rows={columns.left} />
               <InfoRows rows={columns.right} />
             </div>
-            <div className="min-[1201px]:hidden">
+            <div className="min-[709px]:hidden">
               <InfoRows rows={rows} />
             </div>
           </>
@@ -244,8 +247,10 @@ function InfoSection({
   );
 }
 
-function buildSections(input: AnalysisInputData, contact: string | null | undefined) {
-  const phone = contact ? formatContactForDisplay(contact) : "-";
+// 2026-08-08 디자인 개편: 휴대폰번호·부양가족/배우자소득(→소득/지출로 이동)·자가 소유 시가는
+// 새 시안(태블릿·PC 모두 확인)에 더 이상 없어 뺐다 — 휴대폰번호를 이 모달에 표시하지 않게 되면서
+// buildSections도 contact 인자 없이 inputData만으로 계산한다.
+function buildSections(input: AnalysisInputData) {
   const bank = input.debtBreakdown.bankLoan ?? 0;
   const card = input.debtBreakdown.cardDebt ?? 0;
   const capital = input.debtBreakdown.capitalLoan ?? 0;
@@ -254,58 +259,63 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
     { label: "고객명", value: input.customerName || "-" },
     { label: "성별", value: input.gender === "female" ? "여" : input.gender === "male" ? "남" : "-" },
     { label: "연령대", value: input.ageGroup || "-" },
-    { label: "휴대폰번호", value: phone },
-    { label: "부양가족", value: formatDependents(input.dependents) },
-    { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
+    { label: "거주지역", value: input.region || "-" },
   ];
 
   const assetRows: DisplayRow[] = [
     { label: "부동산 보유여부", value: realEstateOwnershipLabel(input.realEstateBreakdown) },
-    { label: "자가 소유 시가", value: formatManwon(input.totalRealEstateValue) },
-    {
-      label: "금융자산",
-      value: optionLabel(
-        FINANCIAL_ASSET_OPTIONS,
-        FINANCIAL_ASSET_FROM[input.financialAssetRange] ?? input.financialAssetRange
-      ),
-    },
-    {
-      label: "차량 보유",
-      value: optionLabel(
-        VEHICLE_OPTIONS,
-        VEHICLE_FROM[input.vehicleValueRange] ?? input.vehicleValueRange
-      ),
-    },
+    { label: "금융자산", value: formatManwon(input.financialAssetValue) },
+    { label: "차량 보유", value: formatManwon(input.vehicleValue) },
     { label: "재산처분이력", value: yesNo(input.hasRecentAssetDisposal) },
   ];
 
-  const debtRows: DisplayRow[] = [
+  const debtLeftRows: DisplayRow[] = [
     { label: "채무종류", value: debtTypesLabel(input.debtBreakdown) },
     { label: "은행대출", value: formatManwon(bank) },
     { label: "카드론", value: formatManwon(card) },
     { label: "캐피탈/저축은행", value: formatManwon(capital) },
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
-    { label: "채권자 수", value: creditorCountLabel(input.creditorCount) },
+  ];
+
+  const debtRightRows: DisplayRow[] = [
+    { label: "3개월 내 채무액", value: formatManwon(input.debtIncurredLast3Months) },
+    { label: "6개월 내 채무액", value: formatManwon(input.debtIncurredLast6Months) },
+    { label: "1년 내 채무액", value: formatManwon(input.debtIncurredLast1Year) },
+    { label: "담보부채무", value: formatManwon(input.collateralDebt) },
     { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
-    { label: "체납이력", value: yesNo(input.hasTaxArrears) },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];
 
+  const debtRows: DisplayRow[] = [...debtLeftRows, ...debtRightRows];
+
+  // 법원 인정 최저생계비 — 가구원수(부양가족수+1, 최소1 최대6) 기준. disposableIncome이 이 값과
+  // additionalFixedExpense를 월소득에서 뺀 값이라(2026-08-07 스펙) 여기서도 동일 공식으로 표시한다.
+  // ⚠️ DB 마이그레이션 비용 문제로 백필되지 않은 레거시 건(monthlyIncome이 응답에 아예 없음)은
+  // disposableIncome이 옛 공식("월소득 − 실제 지출 합계")으로 계산돼 있어, 여기서 새 공식으로
+  // 최저생계비를 계산해 보여주면 옆의 월 가용소득과 앞뒤가 안 맞는 숫자가 나란히 표시된다 —
+  // 차라리 "-"로 비워 잘못된 확신을 주지 않는다(types/analysis.ts AnalysisInputData 주석 참고).
+  const isLegacyIncomeData = input.monthlyIncome == null;
+  const minimumLivingCostManwon = isLegacyIncomeData
+    ? null
+    : wonToManwon(resolveCourtMinimumLivingCostWon((input.dependents ?? 0) + 1));
+
+  // 좌: 폼 입력값 그대로(고용형태~배우자소득) / 우: 월 가용소득 계산 breakdown — Step4IncomeExpense
+  // 폼의 "입력 필드"와 "월 가용 소득" 계산 박스, 두 블록을 그대로 옮겨온 구성.
   const incomeLeftRows: DisplayRow[] = [
-    {
-      label: "월 소득 (세후)",
-      value: optionLabel(
-        MONTHLY_INCOME_OPTIONS,
-        INCOME_FROM[input.monthlyIncomeRange] ?? input.monthlyIncomeRange
-      ),
-    },
     { label: "고용형태", value: input.employmentType || "-" },
+    { label: "월 소득 (세후)", value: formatManwon(input.monthlyIncome) },
+    { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
+    { label: "부양가족", value: formatDependents(input.dependents) },
+    { label: "배우자 소득", value: yesNo(input.hasSpouseIncome) },
+  ];
+
+  const incomeRightRows: DisplayRow[] = [
+    { label: "월 소득", value: formatManwon(input.monthlyIncome) },
+    { label: "법정 생계비", value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostManwon) },
     {
-      label: "주거형태",
-      value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType),
+      label: "추가 필수지출",
+      value: isLegacyIncomeData ? "-" : formatManwon(input.additionalFixedExpense),
     },
-    { label: "주거비", value: formatManwon(input.fixedExpenses.housingCost) },
-    { label: "식비", value: formatManwon(input.fixedExpenses.foodCost) },
     {
       label: "월 가용소득",
       value: formatSignedManwon(input.disposableIncome),
@@ -313,25 +323,21 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
     },
   ];
 
-  const incomeRightRows: DisplayRow[] = [
-    { label: "교육비", value: formatManwon(input.fixedExpenses.educationCost) },
-    { label: "교통비", value: formatManwon(input.fixedExpenses.transportCost) },
-    { label: "기타 고정지출", value: formatManwon(input.fixedExpenses.otherFixedCost) },
+  const incomeRows: DisplayRow[] = [...incomeLeftRows, ...incomeRightRows];
+
+  // 좌: 새출발기금(사업 영위 여부가 true일 때만 상세 4종이 실제로 채워짐) / 우: 소송·채무조정 이력
+  const otherLeftRows: DisplayRow[] = [
+    { label: "새출발기금", value: yesNo(input.isOperatingBusiness) },
+    { label: "현재 사업 상태", value: optionLabel(BUSINESS_OPERATION_STATUS_OPTIONS, input.businessOperationStatus) },
     {
-      label: "총 지출",
-      value: formatSignedManwon(-(input.totalMonthlyExpense ?? 0)),
-      emphasize: true,
+      label: "부실·부실우려 여부",
+      value: freshStartFundInsolvencyReasonsLabel(input.freshStartFundInsolvencyReasons),
     },
+    { label: "제외 업종 포함", value: yesNo(input.isExcludedIndustryForFreshStartFund) },
+    { label: "이전신청 이력 있음", value: yesNo(input.hasPreviousFreshStartFundApplication) },
   ];
 
-  // 1열(모바일·태블릿)에서는 지출 항목을 가용소득 앞에 모아 자연스럽게 읽히도록 함
-  const incomeRows: DisplayRow[] = [
-    ...incomeLeftRows.slice(0, -1),
-    ...incomeRightRows,
-    incomeLeftRows[incomeLeftRows.length - 1],
-  ];
-
-  const otherRows: DisplayRow[] = [
+  const otherRightRows: DisplayRow[] = [
     {
       label: "개인회생/파산이력",
       value: input.hasPreviousBankruptcy
@@ -359,28 +365,37 @@ function buildSections(input: AnalysisInputData, contact: string | null | undefi
     { label: "특이사항", value: input.additionalNotes?.trim() || "-" },
   ];
 
+  const otherRows: DisplayRow[] = [...otherLeftRows, ...otherRightRows];
+
   return {
     customerRows,
     assetRows,
     debtRows,
+    debtLeftRows,
+    debtRightRows,
     incomeRows,
     incomeLeftRows,
     incomeRightRows,
     otherRows,
+    otherLeftRows,
+    otherRightRows,
   };
 }
 
 /**
  * 진단 상세 「고객정보」 모달.
- * 상세 페이지 진입 시 이미 조회된 inputData + contact를 그대로 사용합니다.
+ * 상세 페이지 진입 시 이미 조회된 detail(inputData/contact 포함)을 그대로 사용합니다.
  * (별도 API 재조회 없음 — /v1/customers 도 호출하지 않습니다.)
  */
 export default function DiagnosisCustomerInfoModal({
   open,
   onClose,
-  inputData,
-  contact,
+  detail,
+  projectId,
+  onDebtApplied,
 }: Props) {
+  const [debtDetailOpen, setDebtDetailOpen] = useState(false);
+
   useEffect(() => {
     if (!open) return;
     const handleKey = (event: KeyboardEvent) => {
@@ -392,10 +407,11 @@ export default function DiagnosisCustomerInfoModal({
 
   if (!open) return null;
 
+  const inputData = detail.inputData;
   const summaryLabel = [inputData.customerName, inputData.ageGroup, inputData.employmentType]
     .filter(Boolean)
     .join(" · ");
-  const sections = buildSections(inputData, contact);
+  const sections = buildSections(inputData);
 
   return (
     <>
@@ -460,44 +476,43 @@ export default function DiagnosisCustomerInfoModal({
             className={[
               "grid gap-6",
               "grid-cols-1",
-              // 태블릿: 2열 — 고객|자산 / 채무|기타 / 소득|빈칸
+              // 태블릿: 2열 — 고객정보|자산현황이 한 행을 채우고, 채무현황·소득지출·기타사항은
+              // 각각 2열을 모두 차지하며(항목이 많아 내부 2단 구성) 아래로 쌓인다.
               "min-[709px]:max-[1200px]:grid-cols-2",
-              // PC: 3열 — 상단 고객|자산|채무 / 하단 소득(2) | 기타
-              "min-[1201px]:grid-cols-3",
+              // PC: 4열 — 고객정보(1)+자산현황(1)+채무현황(2)이 한 행, 소득지출(2)+기타사항(2)이
+              // 다음 행을 각각 정확히 채운다.
+              "min-[1201px]:grid-cols-4",
             ].join(" ")}
           >
-            <InfoSection
-              title="고객 정보"
-              rows={sections.customerRows}
-              className="order-1"
-            />
-            <InfoSection
-              title="자산현황"
-              rows={sections.assetRows}
-              className="order-2"
-            />
+            <InfoSection title="고객 정보" rows={sections.customerRows} />
+            <InfoSection title="자산현황" rows={sections.assetRows} />
             <InfoSection
               title="채무현황"
               rows={sections.debtRows}
-              className="order-3"
+              columns={{ left: sections.debtLeftRows, right: sections.debtRightRows }}
+              className="min-[709px]:col-span-2"
+              titleAction={
+                <button
+                  type="button"
+                  onClick={() => setDebtDetailOpen(true)}
+                  className="cursor-pointer inline-flex items-center gap-1 h-[24px] px-2 rounded-[5px] border border-secondary-20 dark:border-secondary-40 bg-white dark:bg-neutral-10 text-[12px] font-semibold leading-[15px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 whitespace-nowrap"
+                >
+                  <DebtDetailSearchIcon />
+                  자세히 보기
+                </button>
+              }
             />
-            {/*
-              모바일·PC: 소득 → 기타
-              태블릿: 기타 → 소득 (order로 전환)
-            */}
             <InfoSection
               title="소득/지출"
               rows={sections.incomeRows}
-              columns={{
-                left: sections.incomeLeftRows,
-                right: sections.incomeRightRows,
-              }}
-              className="order-4 min-[709px]:max-[1200px]:order-5 min-[1201px]:order-4 min-[1201px]:col-span-2"
+              columns={{ left: sections.incomeLeftRows, right: sections.incomeRightRows }}
+              className="min-[709px]:col-span-2"
             />
             <InfoSection
               title="기타사항"
               rows={sections.otherRows}
-              className="order-5 min-[709px]:max-[1200px]:order-4 min-[1201px]:order-5"
+              columns={{ left: sections.otherLeftRows, right: sections.otherRightRows }}
+              className="min-[709px]:col-span-2"
             />
           </div>
         </div>
@@ -512,6 +527,16 @@ export default function DiagnosisCustomerInfoModal({
           </button>
         </div>
       </div>
+
+      {projectId && (
+        <DebtDetailModal
+          open={debtDetailOpen}
+          onClose={() => setDebtDetailOpen(false)}
+          detail={detail}
+          projectId={projectId}
+          onApplied={onDebtApplied}
+        />
+      )}
     </>
   );
 }

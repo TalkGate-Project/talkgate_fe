@@ -3,11 +3,11 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   createEmptyDiagnosisForm,
-  MONTHLY_INCOME_ESTIMATE,
+  resolveCourtMinimumLivingCostWon,
   type DiagnosisDerivedValues,
   type DiagnosisFormState,
 } from "@/types/debtRelief";
-import { wonToManwon } from "@/services/debtRelief";
+import { manwonToWon, resolveHouseholdSize, wonToManwon } from "@/services/debtRelief";
 
 export function useDiagnosisForm() {
   const [form, setForm] = useState<DiagnosisFormState>(createEmptyDiagnosisForm);
@@ -33,19 +33,23 @@ export function useDiagnosisForm() {
       }
     }
 
-    const estimatedMonthlyIncomeManwon = form.monthlyIncome
-      ? MONTHLY_INCOME_ESTIMATE[form.monthlyIncome]
-      : 0;
-    const totalExpenseManwon = Object.values(form.expenses).reduce(
-      (sum, value) => sum + (value || 0),
-      0
-    );
-    const monthlyAvailableIncomeManwon = estimatedMonthlyIncomeManwon - totalExpenseManwon;
+    // 법원 인정 기준 월 가용소득 = 월소득 − 가구원수별 법원 인정 최저생계비 − 추가 인정 고정지출
+    // (서버 disposableIncome과 동일 공식 — 2026-08-07 스펙). 원 단위로 계산 후 만원으로 환산해
+    // 중간 반올림 오차를 줄인다.
+    const householdSize = resolveHouseholdSize(form.dependents);
+    const minimumLivingCostWon = resolveCourtMinimumLivingCostWon(householdSize);
+    const minimumLivingCostManwon = wonToManwon(minimumLivingCostWon);
+    const monthlyAvailableIncomeWon =
+      manwonToWon(form.monthlyIncome ?? 0) -
+      minimumLivingCostWon -
+      manwonToWon(form.additionalFixedExpense);
+    const monthlyAvailableIncomeManwon = wonToManwon(monthlyAvailableIncomeWon);
 
     return {
       totalDebtManwon,
-      estimatedMonthlyIncomeManwon,
-      totalExpenseManwon,
+      monthlyIncomeManwon: form.monthlyIncome ?? 0,
+      minimumLivingCostManwon,
+      householdSize,
       monthlyAvailableIncomeManwon,
     };
   }, [form]);

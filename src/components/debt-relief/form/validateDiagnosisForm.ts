@@ -67,14 +67,11 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (!form.ageGroup) missing.push("연령대");
   if (!form.region) missing.push("거주 지역");
   if (!form.employmentType) missing.push("고용 형태");
+  if (!form.housingType) missing.push("주거 형태");
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
-  if (!form.monthlyIncome) missing.push("월 소득 구간");
-  if (!form.housingType) missing.push("주거 형태");
   missing.push(...getMissingDebtFieldLabels(form));
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
-  if (!form.financialAsset) missing.push("금융 자산");
-  if (!form.vehicle) missing.push("차량 보유");
   return missing;
 }
 
@@ -90,26 +87,24 @@ export function getMissingRequiredFieldLabelsForStep(
       if (!form.gender) missing.push("성별");
       if (!form.ageGroup) missing.push("연령대");
       if (!form.region) missing.push("거주 지역");
-      if (form.dependents === null) missing.push("부양가족");
-      if (form.spouseIncome === null) missing.push("배우자 소득");
       return missing;
     }
-    case "assets": {
-      const missing: string[] = [];
-      if (!form.financialAsset) missing.push("금융 자산");
-      if (!form.vehicle) missing.push("차량 보유");
-      return missing;
-    }
+    case "assets":
+      // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분한다. 스텝 필수 검사는 없음.
+      return [];
     case "debts": {
       const missing = getMissingDebtFieldLabels(form);
       if (form.debtCauses.length === 0) missing.push("채무발생 원인");
       return missing;
     }
     case "income": {
+      // 2026-08-07: 부양가족/배우자 소득 UI가 기본정보(Step1)에서 이 스텝으로 이동
+      // (법정 생계비 계산의 가구원수 입력과 같은 화면에 두는 게 자연스러워서).
       const missing: string[] = [];
       if (!form.employmentType) missing.push("고용 형태");
-      if (!form.monthlyIncome) missing.push("월 소득 구간");
       if (!form.housingType) missing.push("주거 형태");
+      if (form.dependents === null) missing.push("부양가족");
+      if (form.spouseIncome === null) missing.push("배우자 소득");
       return missing;
     }
     case "others":

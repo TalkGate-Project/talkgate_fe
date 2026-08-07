@@ -1,6 +1,5 @@
 import {
   AGE_GROUP_OPTIONS,
-  DEPENDENT_OPTIONS,
   REGION_OPTIONS,
   type CustomerGender,
   type DiagnosisFormState,
@@ -12,11 +11,6 @@ import { PillSelect } from "./PillSelect";
 const GENDER_OPTIONS: PillOption<CustomerGender>[] = [
   { value: "male", label: "남" },
   { value: "female", label: "여" },
-];
-
-const SPOUSE_INCOME_OPTIONS: PillOption<"none" | "yes">[] = [
-  { value: "none", label: "없음" },
-  { value: "yes", label: "있음" },
 ];
 
 type Props = {
@@ -68,22 +62,6 @@ export default function Step1BasicInfo({ form, update }: Props) {
             value={form.region}
             onChange={(value) => update("region", value)}
             className="md:grid md:grid-cols-[repeat(6,max-content)] lg:grid-cols-[repeat(9,max-content)]"
-          />
-        </FormField>
-
-        <FormField label="부양가족" required filled={form.dependents !== null}>
-          <PillSelect
-            options={DEPENDENT_OPTIONS}
-            value={form.dependents}
-            onChange={(value) => update("dependents", value)}
-          />
-        </FormField>
-
-        <FormField label="배우자 소득" required filled={form.spouseIncome !== null}>
-          <PillSelect
-            options={SPOUSE_INCOME_OPTIONS}
-            value={form.spouseIncome === null ? null : form.spouseIncome ? "yes" : "none"}
-            onChange={(value) => update("spouseIncome", value === null ? null : value === "yes")}
           />
         </FormField>
       </div>

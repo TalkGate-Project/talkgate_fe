@@ -46,8 +46,8 @@ export default function FormFinancialSummary({
     <div className={`rounded-[12px] px-4 py-4 flex flex-col gap-3 ${className}`}>
       <SummaryRow label="총 채무" value={formatManwon(derived.totalDebtManwon)} unit="만원" />
       <SummaryRow
-        label="월 소득(추정)"
-        value={formatManwon(derived.estimatedMonthlyIncomeManwon)}
+        label="월 소득"
+        value={formatManwon(derived.monthlyIncomeManwon)}
         unit="만원"
       />
       <SummaryRow
