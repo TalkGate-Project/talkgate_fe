@@ -45,6 +45,7 @@ export default function Step2Assets({ form, update }: Props) {
     }
 
     update("realEstateTypes", selectedTypes);
+    update("realEstateStatusConfirmed", true);
 
     if (selectedTypes.length === 0) {
       update("realEstateAmounts", {});
@@ -72,7 +73,8 @@ export default function Step2Assets({ form, update }: Props) {
         <FormField
           label="부동산 보유 여부"
           hint="(중복선택 가능)"
-          filled={form.realEstateTypes.length > 0}
+          required
+          filled={form.realEstateStatusConfirmed}
         >
           <PillMultiSelect
             options={REAL_ESTATE_SELECT_OPTIONS}
@@ -100,6 +102,7 @@ export default function Step2Assets({ form, update }: Props) {
 
         <FormField
           label="금융 자산 (예·적금 + 주식 등)"
+          required
           filled={form.financialAssetValue !== null}
         >
           <ManwonQuickInput
@@ -109,7 +112,7 @@ export default function Step2Assets({ form, update }: Props) {
           />
         </FormField>
 
-        <FormField label="차량 보유" filled={form.vehicleValue !== null}>
+        <FormField label="차량 보유" required filled={form.vehicleValue !== null}>
           <ManwonQuickInput
             value={form.vehicleValue}
             onChange={(value) => update("vehicleValue", value)}

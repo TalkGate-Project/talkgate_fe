@@ -562,6 +562,9 @@ export type DiagnosisFormState = {
 
   // 2. 자산현황
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
+  /** "없음" 선택도 realEstateTypes=[]로 저장되어 미선택과 구분이 안 되므로, 필수 검증용으로
+   * 사용자가 이 필드를 한 번이라도 명시적으로 조작했는지 별도로 추적한다. */
+  realEstateStatusConfirmed: boolean;
   realEstateAmounts: Partial<Record<RealEstateType, number>>; // 만원, 선택된 종류만
   /** 만원 단위(예·적금+주식 등 합계). null=미선택, 0=미보유(명시) */
   financialAssetValue: number | null;
@@ -632,6 +635,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     spouseIncome: null,
     isOperatingBusiness: false,
     realEstateTypes: [],
+    realEstateStatusConfirmed: false,
     realEstateAmounts: {},
     financialAssetValue: null,
     vehicleValue: null,

@@ -468,6 +468,8 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     dependents: DEPENDENTS_FROM_ANALYSIS[input.dependents] ?? null,
     spouseIncome: input.hasSpouseIncome,
     realEstateTypes,
+    // 기존에 저장된 분석은 이 필드가 생기기 전에 제출된 것이므로 이미 답변된 것으로 간주한다.
+    realEstateStatusConfirmed: true,
     realEstateAmounts,
     financialAssetValue: input.financialAssetValue ?? 0,
     vehicleValue: input.vehicleValue ?? 0,

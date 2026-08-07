@@ -22,7 +22,6 @@ function signedManwon(value: number): string {
 }
 
 export default function Step4IncomeExpense({ form, update, derived }: Props) {
-  const availableSign = derived.monthlyAvailableIncomeManwon >= 0 ? "+" : "";
   const availableAmount = Math.abs(derived.monthlyAvailableIncomeManwon).toLocaleString("ko-KR");
   const availableNegative = derived.monthlyAvailableIncomeManwon < 0;
 
@@ -74,7 +73,10 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
           />
         </FormField>
 
-        {/* 월 가용 소득 계산 — Figma: 보더 박스, 1·2행 투명 / 3행만 Light-10, 행 h-40 */}
+        {/* 월 가용 소득 계산 — Figma: 보더 박스, 1·2행 투명 / 3행만 Light-10, 행 h-40.
+            부양가족을 아직 선택하지 않았으면 법정 생계비를 0으로 둔다 — 가구원 1인 기준
+            실제값(-154만원)을 임의로 가정해 보여주면 아무것도 고르지 않았는데 마이너스가
+            나오는 것처럼 보인다. "없음"을 명시적으로 선택하면 그때부터 실제 값을 반영한다. */}
         <div>
           <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground mb-3">
             월 가용 소득 (법원 인정 기준)
@@ -96,7 +98,8 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
                 </span>
               </span>
               <span className="shrink-0 text-[14px] font-semibold leading-4 tracking-[0.2px] text-neutral-60">
-                -{derived.minimumLivingCostManwon.toLocaleString("ko-KR")}만원
+                {derived.minimumLivingCostManwon > 0 ? "-" : ""}
+                {derived.minimumLivingCostManwon.toLocaleString("ko-KR")}만원
               </span>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 min-h-10 py-2 border-b border-neutral-30">
@@ -123,7 +126,7 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
               </span>
               <span className="flex items-end gap-1">
                 <span className="font-montserrat font-bold text-[20px] leading-5 tracking-[-0.03em] text-neutral-90">
-                  {availableNegative ? "-" : availableSign}
+                  {availableNegative ? "-" : ""}
                   {availableAmount}
                 </span>
                 <span className="text-[13px] font-semibold leading-4 text-neutral-60">만원</span>

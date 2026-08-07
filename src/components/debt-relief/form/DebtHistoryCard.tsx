@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CREDITOR_COUNT_OPTIONS,
   DEBT_AMOUNT_LABELS,
   DEBT_TYPE_OPTIONS,
   createEmptyDebtItem,
@@ -8,7 +9,7 @@ import {
   type DiagnosisFormState,
 } from "@/types/debtRelief";
 import { FormField, ManwonInput, MonthsInput } from "./FormControls";
-import { PillMultiSelect } from "./PillSelect";
+import { PillMultiSelect, PillSelect } from "./PillSelect";
 import DebtItemsTable from "./DebtItemsTable";
 import type { OverLimitDebtField } from "./validateDiagnosisForm";
 
@@ -213,6 +214,16 @@ export default function DebtHistoryCard({
               <MonthsInput
                 value={form.overdueMonths}
                 onChange={(value) => update("overdueMonths", value)}
+              />
+            </FormField>
+
+            {/* 2026-08-07: 채무내역 카드 바깥(Step3Debts)에 있던 걸 카드 안으로 이동.
+                상세모드는 채무 항목 테이블 행 개수를 그대로 쓰므로 노출하지 않는다. */}
+            <FormField label="채권자 수" required filled={form.creditorCount !== null}>
+              <PillSelect
+                options={CREDITOR_COUNT_OPTIONS}
+                value={form.creditorCount}
+                onChange={(value) => update("creditorCount", value)}
               />
             </FormField>
           </div>
