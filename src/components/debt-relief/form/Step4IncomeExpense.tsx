@@ -122,11 +122,7 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
                 월 가용 소득
               </span>
               <span className="flex items-end gap-1">
-                <span
-                  className={`font-montserrat font-bold text-[20px] leading-5 tracking-[-0.03em] ${
-                    availableNegative ? "text-danger-40" : "text-neutral-90"
-                  }`}
-                >
+                <span className="font-montserrat font-bold text-[20px] leading-5 tracking-[-0.03em] text-neutral-90">
                   {availableNegative ? "-" : availableSign}
                   {availableAmount}
                 </span>
