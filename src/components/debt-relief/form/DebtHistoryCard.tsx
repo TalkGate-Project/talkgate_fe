@@ -39,6 +39,8 @@ function DebtModeToggle({
   onChange: (mode: DebtDisplayMode) => void;
   disabled?: boolean;
 }) {
+  // 세그먼트 탭 다크모드 — DiagnosisListTabs / ChatLeftSidebar / SalesRanking과 동일:
+  // 트랙 bg-neutral-20, 선택 bg-card + text-foreground (하드코딩 bg-white 금지)
   return (
     <div
       role="tablist"
@@ -53,8 +55,8 @@ function DebtModeToggle({
         onClick={() => onChange("simple")}
         className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "simple"
-            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
-            : "font-medium text-neutral-60 hover:text-foreground"
+            ? "bg-card font-bold text-foreground"
+            : "bg-transparent font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         간편
@@ -67,8 +69,8 @@ function DebtModeToggle({
         onClick={() => onChange("detailed")}
         className={`inline-flex h-[31px] flex-1 md:w-[88px] md:flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-[16px] leading-[19px] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
           value === "detailed"
-            ? "bg-white font-bold text-neutral-90 shadow-sm dark:bg-neutral-10"
-            : "font-medium text-neutral-60 hover:text-foreground"
+            ? "bg-card font-bold text-foreground"
+            : "bg-transparent font-medium text-neutral-60 hover:text-foreground"
         }`}
       >
         상세

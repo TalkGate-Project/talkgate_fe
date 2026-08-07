@@ -12,8 +12,6 @@ import type {
   DiagnosisListResult,
   DiagnosisSortField,
   DebtCause,
-  FinancialAssetRange,
-  MonthlyIncomeRange,
   ProcedureGrade,
   ProcedureGuide,
   ProcedureScore,
@@ -26,7 +24,6 @@ import type {
   SendGuidanceSmsResult,
   SortDirection,
   SpecialEligibilityType,
-  VehicleRange,
 } from "@/types/debtRelief";
 import {
   AGE_GROUP_OPTIONS,
@@ -43,11 +40,9 @@ import type {
   AnalysisDebtItemType,
   AnalysisExpectedRepayment,
   AnalysisExpectedRepaymentMap,
-  AnalysisFinancialAssetRange,
   AnalysisFormInput,
   AnalysisInputData,
   AnalysisListItem,
-  AnalysisMonthlyIncomeRange,
   AnalysisProcedureConditions,
   AnalysisProcedureConditionsMap,
   AnalysisProcedureGuide,
@@ -60,7 +55,6 @@ import type {
   AnalysisSortType,
   AnalysisSpecialEligibility,
   AnalysisStatus,
-  AnalysisVehicleValueRange,
   CreateAnalysisInput,
 } from "@/types/analysis";
 import { normalizeProcedureType, pickProcedureValue, procedureEntries } from "@/types/analysis";
@@ -115,53 +109,11 @@ const DEPENDENTS_FROM_ANALYSIS: Record<number, DependentCount> = {
   4: "4_plus",
 };
 
-const FINANCIAL_ASSET_TO_ANALYSIS: Record<FinancialAssetRange, AnalysisFinancialAssetRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_2000": "500_to_2000",
-  "2000_5000": "2000_to_5000",
-  over_5000: "over_5000",
-};
-
-const FINANCIAL_ASSET_FROM_ANALYSIS: Record<AnalysisFinancialAssetRange, FinancialAssetRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_to_2000": "500_2000",
-  "2000_to_5000": "2000_5000",
-  over_5000: "over_5000",
-};
-
-const VEHICLE_TO_ANALYSIS: Record<VehicleRange, AnalysisVehicleValueRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_2000": "500_to_2000",
-  over_2000: "over_2000",
-};
-
-const VEHICLE_FROM_ANALYSIS: Record<AnalysisVehicleValueRange, VehicleRange> = {
-  none: "none",
-  under_500: "under_500",
-  "500_to_2000": "500_2000",
-  over_2000: "over_2000",
-};
-
-const MONTHLY_INCOME_TO_ANALYSIS: Record<MonthlyIncomeRange, AnalysisMonthlyIncomeRange> = {
-  none: "none",
-  under_100: "under_100",
-  "100_200": "100_to_200",
-  "200_300": "200_to_300",
-  "300_400": "300_to_400",
-  over_400: "over_400",
-};
-
-const MONTHLY_INCOME_FROM_ANALYSIS: Record<AnalysisMonthlyIncomeRange, MonthlyIncomeRange> = {
-  none: "none",
-  under_100: "under_100",
-  "100_to_200": "100_200",
-  "200_to_300": "200_300",
-  "300_to_400": "300_400",
-  over_400: "over_400",
-};
+/** 부양가족수 → 가구원수(부양가족수 + 1). disposableIncome 미리보기(useDiagnosisForm)의
+ * 법원 인정 최저생계비 조회에 사용 — resolveCourtMinimumLivingCostWon에 그대로 넘기면 된다. */
+export function resolveHouseholdSize(dependents: DependentCount | null): number {
+  return (dependents ? DEPENDENTS_TO_ANALYSIS[dependents] : 0) + 1;
+}
 
 const DEBT_CAUSE_TO_ANALYSIS: Record<DebtCause, AnalysisDebtCause> = {
   business_failure: "business_failure",
@@ -406,15 +358,9 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     employmentType: optionLabel(EMPLOYMENT_TYPE_OPTIONS, form.employmentType!),
     dependents: DEPENDENTS_TO_ANALYSIS[form.dependents!],
     hasSpouseIncome: Boolean(form.spouseIncome),
-    monthlyIncomeRange: MONTHLY_INCOME_TO_ANALYSIS[form.monthlyIncome!],
+    monthlyIncome: form.monthlyIncome ?? 0,
     housingType: form.housingType!,
-    fixedExpenses: {
-      housingCost: form.expenses.housing,
-      foodCost: form.expenses.food,
-      educationCost: form.expenses.education,
-      transportCost: form.expenses.transportation,
-      otherFixedCost: form.expenses.other,
-    },
+    additionalFixedExpense: form.additionalFixedExpense,
     // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
     // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
     ...(isDetailed
@@ -430,8 +376,8 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     debtIncurredLast1Year: form.recentDebtWithin1Year,
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
     realEstateBreakdown,
-    financialAssetRange: FINANCIAL_ASSET_TO_ANALYSIS[form.financialAsset!],
-    vehicleValueRange: VEHICLE_TO_ANALYSIS[form.vehicle!],
+    financialAssetValue: form.financialAssetValue ?? 0,
+    vehicleValue: form.vehicleValue ?? 0,
     hasPreviousBankruptcy: form.hasPreviousApplication,
     previousBankruptcyNote: form.previousApplicationDetail || undefined,
     hasGuarantorRelation: form.hasGuarantor,
@@ -501,8 +447,8 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     spouseIncome: input.hasSpouseIncome,
     realEstateTypes,
     realEstateAmounts,
-    financialAsset: FINANCIAL_ASSET_FROM_ANALYSIS[input.financialAssetRange] ?? null,
-    vehicle: VEHICLE_FROM_ANALYSIS[input.vehicleValueRange] ?? null,
+    financialAssetValue: input.financialAssetValue ?? 0,
+    vehicleValue: input.vehicleValue ?? 0,
     hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? false,
     isOperatingBusiness: input.isOperatingBusiness ?? false,
     debtInputMode: input.debtInputMode ?? "simple",
@@ -518,15 +464,9 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     recentDebtWithin3Months: input.debtIncurredLast3Months ?? 0,
     recentDebtWithin6Months: input.debtIncurredLast6Months ?? 0,
     recentDebtWithin1Year: input.debtIncurredLast1Year ?? 0,
-    monthlyIncome: MONTHLY_INCOME_FROM_ANALYSIS[input.monthlyIncomeRange] ?? null,
+    monthlyIncome: input.monthlyIncome ?? 0,
     housingType: input.housingType,
-    expenses: {
-      housing: input.fixedExpenses.housingCost ?? 0,
-      food: input.fixedExpenses.foodCost ?? 0,
-      education: input.fixedExpenses.educationCost ?? 0,
-      transportation: input.fixedExpenses.transportCost ?? 0,
-      other: input.fixedExpenses.otherFixedCost ?? 0,
-    },
+    additionalFixedExpense: input.additionalFixedExpense ?? 0,
     businessOperationStatus: input.businessOperationStatus ?? null,
     freshStartFundInsolvencyReasons: input.freshStartFundInsolvencyReasons ?? [],
     isExcludedIndustryForFreshStartFund: input.isExcludedIndustryForFreshStartFund ?? false,
@@ -596,23 +536,8 @@ export function scoreToGrade(score: number): ProcedureGrade {
 }
 
 // 연체기간은 2026-08-04 스펙부터 정확한 개월 수(정수)로 내려와 근사가 필요 없다.
-
-// 금융자산/차량가액은 실 API에 구간만 있어 대표값(만원)으로 근사한다.
-// (부동산은 inputData.totalRealEstateValue로 정확한 값을 받으므로 근사 불필요)
-const FINANCIAL_ASSET_ESTIMATE: Record<AnalysisFinancialAssetRange, number> = {
-  none: 0,
-  under_500: 250,
-  "500_to_2000": 1250,
-  "2000_to_5000": 3500,
-  over_5000: 6000,
-};
-
-const VEHICLE_VALUE_ESTIMATE: Record<AnalysisVehicleValueRange, number> = {
-  none: 0,
-  under_500: 250,
-  "500_to_2000": 1250,
-  over_2000: 2500,
-};
+// 금융자산/차량가액도 2026-08-07 스펙부터 구간이 아니라 실제 금액(만원)으로 내려와 근사가 필요 없다
+// (부동산은 이전부터 inputData.totalRealEstateValue로 정확한 값을 받았음).
 
 const BREAKDOWN_LABEL: Record<keyof AnalysisDebtBreakdown, string> = {
   bankLoan: "은행대출",
@@ -987,10 +912,13 @@ export const DebtReliefService = {
         // 한 번 더 걸러 간편모드에서는 남아있는 값이 있어도 항상 무시한다.
         totalDebtWithInterestManwon:
           inputData.debtInputMode === "detailed" ? inputData.totalDebtWithInterest : undefined,
+        // 레거시(마이그레이션 안 된) 분석 건은 financialAssetValue/vehicleValue가 응답에 없을 수
+        // 있다 — 폴백 없이 더하면 NaN이 되어 "NaN만원"으로 표시된다(types/analysis.ts
+        // AnalysisInputData 주석 참고).
         totalAssetManwon:
           inputData.totalRealEstateValue +
-          FINANCIAL_ASSET_ESTIMATE[inputData.financialAssetRange] +
-          VEHICLE_VALUE_ESTIMATE[inputData.vehicleValueRange],
+          (inputData.financialAssetValue ?? 0) +
+          (inputData.vehicleValue ?? 0),
         monthlyAvailableIncomeManwon: inputData.disposableIncome,
         overdueMonths: inputData.overdueMonths ?? 0,
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),

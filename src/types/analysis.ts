@@ -55,15 +55,6 @@ export function normalizeProcedureType(
 
 export type AnalysisGender = "male" | "female";
 
-// 2026-08-06 스펙 확장: "none"(소득 없음, 추정 0만원) 추가.
-export type AnalysisMonthlyIncomeRange =
-  | "none"
-  | "under_100"
-  | "100_to_200"
-  | "200_to_300"
-  | "300_to_400"
-  | "over_400";
-
 export type AnalysisHousingType =
   | "owned"
   | "jeonse"
@@ -88,23 +79,6 @@ export type AnalysisRealEstateBreakdown = {
   ownedValue?: number; // 자가 소유 부동산 시가 (만원)
   jeonseDeposit?: number; // 전세 보증금 (만원)
   rentalValue?: number; // 임대 수익용 부동산 시가 (만원)
-};
-
-export type AnalysisFinancialAssetRange =
-  | "none"
-  | "under_500"
-  | "500_to_2000"
-  | "2000_to_5000"
-  | "over_5000";
-
-export type AnalysisVehicleValueRange = "none" | "under_500" | "500_to_2000" | "over_2000";
-
-export type AnalysisFixedExpenses = {
-  housingCost?: number;
-  foodCost?: number;
-  educationCost?: number;
-  transportCost?: number;
-  otherFixedCost?: number;
 };
 
 export type AnalysisDebtBreakdown = {
@@ -202,9 +176,13 @@ export type AnalysisFormInput = {
   employmentType: string;
   dependents: number;
   hasSpouseIncome: boolean;
-  monthlyIncomeRange: AnalysisMonthlyIncomeRange;
+  /** 만원 단위 실제 세후 실수령액. 소득 없으면 0(2026-08-07 스펙 — 구간 선택 폐지) */
+  monthlyIncome: number;
   housingType: AnalysisHousingType;
-  fixedExpenses: AnalysisFixedExpenses;
+  /** 법원 인정 최저생계비를 넘어서 추가로 인정받아야 할 금액(만원). 일반 식비·교통비 등은
+   * 최저생계비 개념에 이미 포함되어 더 이상 받지 않는다(2026-08-07 스펙 — fixedExpenses 폐지).
+   * 해당 없으면 0. */
+  additionalFixedExpense: number;
   /** 생략 시 서버 기본값 "simple" */
   debtInputMode?: AnalysisDebtInputMode;
   /** simple 모드일 때 필수. detailed 모드에서는 서버가 debts로부터 자동 집계한다 */
@@ -219,8 +197,10 @@ export type AnalysisFormInput = {
   overdueMonths?: number;
   debtCauses: AnalysisDebtCause[];
   realEstateBreakdown: AnalysisRealEstateBreakdown;
-  financialAssetRange: AnalysisFinancialAssetRange;
-  vehicleValueRange: AnalysisVehicleValueRange;
+  /** 만원 단위 실제 금액(예·적금+주식 등 합계). 없으면 0(2026-08-07 스펙 — 구간 선택 폐지) */
+  financialAssetValue: number;
+  /** 만원 단위 실제 금액. 미보유 시 0(2026-08-07 스펙 — 구간 선택 폐지) */
+  vehicleValue: number;
   hasPreviousBankruptcy: boolean;
   previousBankruptcyNote?: string;
   hasGuarantorRelation: boolean;
@@ -291,9 +271,25 @@ export type UpdateAnalysisDebtsResponse = ApiSuccess<AnalysisDetail>;
 // 서버가 입력값으로부터 계산해 채워주는 필드 포함.
 // debtInputMode/overdueMonths/debtBreakdown/totalDebt는 입력 모드와 무관하게 항상 채워져 내려온다
 // (상세모드도 서버가 debts로부터 자동 집계) — 요청에서는 optional이라 여기서 필수로 좁힌다.
-export type AnalysisInputData = AnalysisFormInput & {
-  estimatedMonthlyIncome: number;
-  totalMonthlyExpense: number;
+//
+// ⚠️ 2026-08-07 스펙(monthlyIncome/additionalFixedExpense/financialAssetValue/vehicleValue) 배포
+// 시점에 DB 마이그레이션 비용 문제로 기존(레거시) 분석 건은 백필되지 않기로 확정됨(2026-08-07
+// 사용자 확인) — 신규 생성 건은 항상 채워지지만, 그 이전에 생성된 건은 이 네 필드가 응답에서
+// 아예 빠질 수 있다. AnalysisFormInput은 "우리가 보내는 값"이라 항상 필수지만, 여기 응답
+// 타입에서는 이 네 필드만 optional로 좁혀 호출부가 컴파일 타임에 폴백(`?? 0`)을 빠뜨리지
+// 않도록 강제한다(services/debtRelief.ts의 fromAnalysisFormInput·getDiagnosisDetail 참고).
+export type AnalysisInputData = Omit<
+  AnalysisFormInput,
+  "monthlyIncome" | "additionalFixedExpense" | "financialAssetValue" | "vehicleValue"
+> & {
+  monthlyIncome?: number;
+  additionalFixedExpense?: number;
+  financialAssetValue?: number;
+  vehicleValue?: number;
+  // 필드명·타입은 그대로지만 계산 방식이 바뀌었다(조용한 Breaking Change) — 이전 "월소득 − 실제
+  // 월 고정지출 합계"(가계부 기준)에서 이후 "월소득 − 가구원수별 법원 인정 최저생계비 −
+  // additionalFixedExpense"(법원 인정 기준)로 변경. estimatedMonthlyIncome/totalMonthlyExpense는
+  // 서버 응답에서 사라졌다. 레거시 건은 예전 공식으로 계산된 값이 그대로 내려온다(재계산 안 됨).
   disposableIncome: number;
   totalDebt: number;
   totalRealEstateValue: number;
