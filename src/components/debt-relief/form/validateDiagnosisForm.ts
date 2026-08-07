@@ -126,11 +126,14 @@ export function getMissingRequiredFieldLabelsForStep(
   }
 }
 
-/** 담보부채무·최근 3개월/6개월/1년 내 채무액 합이 총 채무 합계(채무종류별 금액 합)를 넘는지 검사 */
+/** 담보부채무·최근 3개월/6개월/1년 내 채무액 합이 총 채무 합계(채무종류별 금액 합)를 넘는지 검사.
+ * 이 4개 필드는 간편모드 전용이라 상세모드에서는 검사하지 않는다(폼에 남아있는 과거 간편모드
+ * 값 때문에 상세모드에서 오탐이 뜨는 걸 방지). */
 export function isRecentAndSecuredDebtOverTotal(
   form: DiagnosisFormState,
   totalDebtManwon: number
 ): boolean {
+  if (form.debtInputMode === "detailed") return false;
   const sum =
     form.securedDebt +
     form.recentDebtWithin3Months +
