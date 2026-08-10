@@ -208,6 +208,10 @@ export default function DebtItemsTable({
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
+  // DatePicker의 연도 선택 목록 기본 범위는 현재+10년까지라 장기 대출(20~30년 이상 만기)이
+  // 캘린더로 선택되지 않는다. 만기일은 현재+50년까지 넉넉히 열어준다.
+  const maxMaturityDate = new Date(new Date().getFullYear() + 50, 11, 31);
+
   const updateItem = (id: string, patch: Partial<DebtItemFormState>) => {
     onChange(
       debts.map((debt) => {
@@ -344,6 +348,7 @@ export default function DebtItemsTable({
                       value={parseDateOnly(debt.maturityDate)}
                       onChange={(date) => updateItem(debt.id, { maturityDate: formatDateOnly(date) })}
                       allowTextInput
+                      maxDate={maxMaturityDate}
                       invalid={isFieldInvalid("maturityDate")}
                       className={`pr-8 ${cellInputClassName(isFieldInvalid("maturityDate"))}`}
                     />
