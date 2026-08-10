@@ -51,7 +51,6 @@ export default function SectionDebtStatus({
   onDebtApplied?: () => void | Promise<void>;
 }) {
   const debt: DebtStatusSummary = detail.debtStatus;
-  const availableSign = debt.monthlyAvailableIncomeManwon >= 0 ? "+" : "";
   // 상세입력 모드 건에만 이자 포함 총채무가 내려온다 — 간편모드면 "총 상환 예정" 칸 자체를 숨긴다.
   const hasInterest = debt.totalDebtWithInterestManwon != null;
   const [debtDetailOpen, setDebtDetailOpen] = useState(false);
@@ -106,7 +105,7 @@ export default function SectionDebtStatus({
           />
           <Metric
             label="월 가용 소득"
-            value={`${availableSign}${debt.monthlyAvailableIncomeManwon.toLocaleString("ko-KR")}`}
+            value={debt.monthlyAvailableIncomeManwon.toLocaleString("ko-KR")}
             unit="만원"
           />
         </div>

@@ -76,7 +76,8 @@ export default function DebtApplyChoiceModal({
         </div>
 
         <p className="px-7 pb-6 text-[14px] leading-5 font-medium text-neutral-70">
-          다시 분석하면 추천 절차·변제 계획이 갱신되고, 값만 저장하면 채무 구성만 반영됩니다.
+          다시 분석하면 추천 절차·변제 계획이 갱신되지만, 진행 상태·절차가 1단계로 초기화되고 AI
+          상담 채팅 이력이 삭제되며 되돌릴 수 없습니다. 값만 저장하면 채무 구성만 반영됩니다.
         </p>
 
         <div className="w-full h-px border-t border-neutral-30 shrink-0" />

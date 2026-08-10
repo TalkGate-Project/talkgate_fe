@@ -80,12 +80,6 @@ function formatManwon(value: number | null | undefined): string {
   return `${value.toLocaleString("ko-KR")}만원`;
 }
 
-function formatSignedManwon(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "-";
-  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
-  return `${sign}${Math.abs(value).toLocaleString("ko-KR")}만원`;
-}
-
 /** 법정 생계비처럼 월소득에서 차감되는 항목 표시용 — Figma가 "-" 부호를 붙여 보여준다. */
 function formatDeductedManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
@@ -323,7 +317,7 @@ function buildSections(input: AnalysisInputData) {
     },
     {
       label: "월 가용소득",
-      value: formatSignedManwon(input.disposableIncome),
+      value: formatManwon(input.disposableIncome),
       emphasize: true,
     },
   ];
