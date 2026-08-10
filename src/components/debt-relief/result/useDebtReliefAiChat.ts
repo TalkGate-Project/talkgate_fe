@@ -119,6 +119,12 @@ export function useDebtReliefAiChat(analysisId: string | null, projectId: string
         );
         return true;
       } catch (error) {
+        // 언마운트 시 abortRef.current.abort()로 의도적으로 취소된 요청은 실패가 아니므로
+        // "답변을 가져오지 못했습니다" 상태로 덮어쓰지 않는다.
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return false;
+        }
+
         console.error("Failed to stream AI chat message:", error);
         setMessages((prev) =>
           prev.map((message) =>
