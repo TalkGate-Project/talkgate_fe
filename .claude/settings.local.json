@@ -107,7 +107,10 @@
       "PowerShell(node -p \"const p=require\\('./package.json'\\); JSON.stringify\\({react:p.dependencies.react, next:p.dependencies.next},null,1\\)\")",
       "Bash(grep -n \"const { value, onChange\" src/components/common/DatePicker.tsx)",
       "Read(//c/2026/ggosoonbox/.claude/**)",
-      "Read(//c/2026/**)"
+      "Read(//c/2026/**)",
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Bash(powershell -Command \"\\(Get-Content -Raw src\\\\components\\\\debt-relief\\\\result\\\\DiagnosisCustomerInfoModal.tsx\\) -replace 'min-\\\\[709px\\\\]:max-\\\\[1200px\\\\]:col-span-2 min-\\\\[1201px\\\\]:col-span-2', 'min-[709px]:col-span-2' | Set-Content -NoNewline -Encoding utf8 src\\\\components\\\\debt-relief\\\\result\\\\DiagnosisCustomerInfoModal.tsx\")",
+      "Bash(echo \"TSC:$?\")"
     ]
   }
 }
