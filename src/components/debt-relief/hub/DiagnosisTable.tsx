@@ -279,7 +279,7 @@ export default function DiagnosisTable({
                       <div className="flex h-full items-center">
                         {item.isShared ? (
                           <span
-                            className="inline-flex h-[22px] max-w-[160px] items-center justify-center rounded-[24px] border border-neutral-20 px-2 py-0.5"
+                            className="inline-flex h-[22px] max-w-[160px] items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5"
                             title={item.lawyerProjectName?.trim() || "공유됨"}
                             onClick={(e) => e.stopPropagation()}
                           >
