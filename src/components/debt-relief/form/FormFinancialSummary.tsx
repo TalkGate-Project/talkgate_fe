@@ -1,8 +1,7 @@
 import type { DiagnosisDerivedValues } from "@/types/debtRelief";
 
-function formatManwon(value: number, withSign = false): string {
-  const sign = withSign && value >= 0 ? "+" : "";
-  return `${sign}${value.toLocaleString("ko-KR")}`;
+function formatManwon(value: number): string {
+  return value.toLocaleString("ko-KR");
 }
 
 function SummaryRow({
@@ -52,7 +51,7 @@ export default function FormFinancialSummary({
       />
       <SummaryRow
         label="월 가용소득"
-        value={formatManwon(derived.monthlyAvailableIncomeManwon, true)}
+        value={formatManwon(derived.monthlyAvailableIncomeManwon)}
         unit="만원"
         highlight={derived.monthlyAvailableIncomeManwon < 0 ? "danger" : "default"}
       />
