@@ -25,9 +25,15 @@ export default function Step2Assets({ form, update }: Props) {
     update("realEstateAmounts", { ...form.realEstateAmounts, [type]: value });
   };
 
-  // 빈 배열(=없음)일 때도 UI에서는 "없음"이 선택된 것처럼 보이게 한다.
+  // 빈 배열(=없음)이어도 아직 한 번도 선택하지 않은 상태(미확인)라면 "없음"을 미리 선택된
+  // 것처럼 보여주면 안 된다 — 실제로는 미확인(필수값 누락)인데 "없음"이 이미 검게 선택된
+  // 것처럼 보여서, 클릭해도 먼저 해제된 뒤 한 번 더 눌러야 체크되는 버그가 있었다.
   const realEstateSelectValue: RealEstateSelectValue[] =
-    form.realEstateTypes.length === 0 ? ["none"] : form.realEstateTypes;
+    form.realEstateTypes.length === 0
+      ? form.realEstateStatusConfirmed
+        ? ["none"]
+        : []
+      : form.realEstateTypes;
 
   const handleRealEstateChange = (next: RealEstateSelectValue[]) => {
     const wasNone = form.realEstateTypes.length === 0;
