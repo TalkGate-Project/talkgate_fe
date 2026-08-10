@@ -50,7 +50,7 @@ const PANEL_WIDTH = 256;
 /** minDate가 없을 때 연도 선택 목록이 거슬러 올라가는 하한(고령 고객 생년월일까지 커버) */
 const EARLIEST_SELECTABLE_YEAR = 1920;
 /** maxDate가 없을 때 연도 선택 목록이 나아가는 기본 범위 */
-const DEFAULT_YEARS_AHEAD = 10;
+const DEFAULT_YEARS_AHEAD = 30;
 
 /**
  * allowTextInput 타이핑 중 숫자만 뽑아 dateFormat의 구분자(". ", "-" 등)를 그대로 살려
