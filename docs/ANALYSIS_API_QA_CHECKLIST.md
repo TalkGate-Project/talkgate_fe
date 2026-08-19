@@ -166,6 +166,27 @@ Statistics / Analysis Partner)와 현재 코드를 대조해 연동 현황을 �
     계약대기중(박준호 id 3, "결제정보" 버튼 → 기존 수임료 결제 정보 모달 정상) · 중단됨(김서연 id 2,
     "중단됨" 카드) 전부 크래시 없이 정상 렌더링되는 것까지 브라우저로 확인. `git stash`로 확인한 결과
     이번 세션의 진행단계 배너 작업과는 무관한 기존 버그였음.
+14. **(0순위, 비즈니스 로직 결함 — 재현 완료)** "자체진행"(상담중 → 계약대기중 직접 전환)이 항상
+    400으로 실패함. `DebtReliefService.updateDiagnosisStatus`(`debtRelief.ts:991`)가
+    `AnalysisService.update`(PATCH `/v1/analysis/{id}`)에 `{ status }`를 실어 보내는데, 실제 백엔드는
+    이 엔드포인트에서 `status` 필드를 아예 받지 않음 — 직접 재현한 응답은
+    `{"code":"BAD_REQUEST","message":"status: property status should not exist"}`. 즉 PATCH
+    `/v1/analysis/{id}`는 `trackingProcedure`/`currentProcedureStep` 전용이고(§1 표에도 그렇게
+    기재돼 있었음), `status` 전이를 받는 별도 엔드포인트가 없어 "자체진행" 기능 자체가 구현 불가능한
+    상태. UI는 CLAUDE.md 규칙대로 서버 메시지 노출 없이 "진행 상태를 변경하지 못했습니다" 일반
+    오류만 보여줌(그 부분은 정상). 대조로, 같은 화면의 "수락"(검토중 → 계약대기중, `AnalysisService.accept`
+    사용)은 정상 동작 확인함 — 상담중 → 검토중 → 수락 경로로 실제 전이 성공. 백엔드에 자체진행용
+    상태 전이 엔드포인트 신설이 필요하거나, 자체진행 UX를 다른 방식(예: 결제정보 입력 자체가 전이를
+    트리거하는 fee-plan 생성 플로우로 우회)으로 재설계해야 함 — 프론트 단독으로는 고칠 수 없음.
+15. ~~새 분석 진행 단계 배너(`AnalysisProgressBanner.tsx`)의 완료 단계 체크 아이콘이 다크모드에서 안
+    보이던 건~~ — **수정 완료(2026-08-19)**. `ProgressSteps`의 `isComplete` 원 배경이 `text-neutral-90`인데,
+    `--neutral-90`은 라이트모드 `#252525`(짙은 배경 위 흰 체크 — 대비 확보)와 달리 다크모드에서는
+    `#f5f5f5`(거의 흰색)로 뒤집혀, 흰색 체크 stroke가 흰색에 가까운 배경과 겹쳐 사실상 안 보이고
+    빈 원처럼 보였음. `text-neutral-90` → `text-success`로 교체 — `--success`(`--primary-80`,
+    `#00b55b`)는 라이트/다크 양쪽에서 동일한 고정값이라 테마 반전 문제가 없고, 완료 표시라는 의미와도
+    자연스럽게 맞음. 라이트/다크 양쪽 스크린샷으로 체크 아이콘이 선명하게 보이는 것까지 확인
+    (같은 절차진행중 건, id 3). 참고: 라이트모드에서도 기존 검정 원 대신 초록 원으로 바뀌는
+    시각적 변화가 있음 — 의도된 부수 효과.
 
 ---
 
