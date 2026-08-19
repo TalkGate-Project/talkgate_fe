@@ -1,33 +1,12 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
 
 // 툴팁 박스와 화면 가장자리 사이 최소 여백
 const VIEWPORT_EDGE_MARGIN = 12;
 // 기본 위치(앵커 대비) — 화면 안에 들어오면 이 값 그대로 사용
 const BASE_OFFSET_PX = 18;
-
-function InfoCircleIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-      className="block"
-    >
-      <path
-        d="M12 16V12M12 8H12.01M21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12Z"
-        stroke="#B0B0B0"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function canHover(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(hover: hover)").matches;
@@ -119,7 +98,7 @@ export default function DisclaimerInfoTooltip({
         aria-label={label}
         aria-expanded={open}
         aria-describedby={open ? tooltipId : undefined}
-        className="inline-flex items-center justify-center rounded-full leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-40"
+        className="inline-flex items-center justify-center rounded-full text-neutral-50 leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-40"
         style={{ width: iconSize, height: iconSize }}
         onClick={() => {
           if (canHover()) return;
