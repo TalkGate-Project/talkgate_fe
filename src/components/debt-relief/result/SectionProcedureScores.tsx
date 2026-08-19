@@ -13,7 +13,6 @@ import {
 } from "@/types/debtRelief";
 import { scoreToGrade } from "@/services/debtRelief";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
-import ProcedureGuideModal from "./ProcedureGuideModal";
 
 // 신용회복 3종(신속채무조정/프리워크아웃/개인워크아웃)은 API에 자체 대표 점수가 없어,
 // 결과 화면에서만 "신용회복" 카드 + 플로팅 드롭다운으로 묶어 보여준다. 화면 전용 그룹핑이라
@@ -84,20 +83,6 @@ const STATUS_CHIP: Record<ConditionStatus, string> = {
   caution: "bg-warning-10 text-warning-60 dark:bg-warning-10/90 dark:text-warning-80",
   risk: "bg-danger-10 text-danger-40 dark:bg-danger-10/90 dark:text-danger-80",
 };
-
-// 절차별 성공 가능성 타이틀의 안내(i) 아이콘 옆에 붙는 "제도안내" 버튼의 돋보기 아이콘.
-function ProcedureGuideIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <path
-        d="M6.66667 13.3333L9.06557 10.9344M9.06557 10.9344C9.51798 11.3868 10.143 11.6667 10.8333 11.6667C12.214 11.6667 13.3333 10.5474 13.3333 9.16667C13.3333 7.78595 12.214 6.66667 10.8333 6.66667C9.45262 6.66667 8.33333 7.78595 8.33333 9.16667C8.33333 9.85702 8.61316 10.482 9.06557 10.9344ZM17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z"
-        className="stroke-[var(--secondary-20)] dark:stroke-blue-300"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 function ConditionIcon({ status }: { status: ConditionStatus }) {
   if (status === "met") {
@@ -405,7 +390,6 @@ export default function SectionProcedureScores({
   // 하위 절차는 플로팅 드롭다운으로만 보여서 그리드 높이를 밀지 않는다.
   // 기본은 닫힘 — 헤더 선택 스타일로 신용회복 그룹 선택 여부를 표시한다.
   const [creditRecoveryOpen, setCreditRecoveryOpen] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
 
   const selectedScore = detail.procedureScores.find(
     (score) => score.procedure === selectedProcedure
@@ -429,14 +413,6 @@ export default function SectionProcedureScores({
             <br />
             법원·채권자 심사 결과를 보장하지 않습니다.
           </DisclaimerInfoTooltip>
-          <button
-            type="button"
-            onClick={() => setGuideOpen(true)}
-            className="cursor-pointer inline-flex items-center gap-1 h-[28px] px-2 py-1 rounded-[5px] border border-secondary-20 dark:border-secondary-40 bg-white dark:bg-neutral-10 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground whitespace-nowrap hover:bg-neutral-10 dark:hover:bg-neutral-20 shrink-0"
-          >
-            <ProcedureGuideIcon />
-            제도안내
-          </button>
         </div>
         <div className="mt-3 border-t border-neutral-30" />
       </div>
@@ -511,12 +487,6 @@ export default function SectionProcedureScores({
           })}
         </ul>
       </div>
-
-      <ProcedureGuideModal
-        open={guideOpen}
-        onClose={() => setGuideOpen(false)}
-        initialProcedure={selectedProcedure}
-      />
     </div>
   );
 }
