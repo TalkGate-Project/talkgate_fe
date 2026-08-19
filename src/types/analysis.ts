@@ -81,6 +81,20 @@ export type AnalysisRealEstateBreakdown = {
   rentalValue?: number; // 임대 수익용 부동산 시가 (만원)
 };
 
+export type AnalysisAssetCategory =
+  | "house"
+  | "land"
+  | "jeonse_deposit"
+  | "vehicle"
+  | "financial_asset";
+
+export type AnalysisAsset = {
+  id: string;
+  category: AnalysisAssetCategory;
+  marketValue: number;
+  description?: string;
+};
+
 export type AnalysisDebtBreakdown = {
   bankLoan?: number;
   cardDebt?: number;
@@ -113,22 +127,22 @@ export type AnalysisDebtItem = {
   /** 프론트에서 생성한 임의 ID (수정 시 항목 식별용) */
   id: string;
   debtType: AnalysisDebtItemType;
-  /** 담보대출 여부 */
-  isCollateralLoan: boolean;
+  /** 연결된 담보 자산 ID. 무담보 채무는 생략한다. */
+  collateralAssetId?: string;
   creditorName: string;
-  repaymentMethod: AnalysisRepaymentMethod;
+  repaymentMethod?: AnalysisRepaymentMethod;
   overdueMonths: number;
   /** YYYY-MM-DD */
   loanDate?: string;
   /** YYYY-MM-DD */
   maturityDate?: string;
-  principalWon: number;
+  currentBalanceWon: number;
   /** % (소수점 가능) */
-  interestRate: number;
-  termMonths: number;
-  monthlyPaymentWon: number;
-  totalInterestWon: number;
-  totalRepaymentWon: number;
+  interestRate?: number;
+  remainingMonths?: number;
+  monthlyPaymentWon?: number;
+  remainingInterestWon?: number;
+  totalRepaymentWon?: number;
 };
 
 /** 상세모드로 입력된 건에만 응답에 포함되는 서버 계산값 */
@@ -137,8 +151,27 @@ export type AnalysisDebtDerivedSignals = {
   weightedAverageInterestRate: number;
   /** ⚠️ 단위(0~1 비율 vs 0~100 퍼센트) 백엔드 확인 전 — 화면 표시 시 반드시 확인할 것 */
   highInterestDebtRatio: number;
-  totalInterestWon: number;
-  totalRepaymentWon: number;
+  remainingInterestWon: number;
+};
+
+export type AnalysisCollateralBreakdown = {
+  assetDetails: Array<{
+    category: AnalysisAssetCategory;
+    description?: string | null;
+    marketValue: number;
+    collateralDebt: number;
+    securedRecoverable: number;
+    netValue: number;
+  }>;
+  totalAssetValue: number;
+  liquidationValue: number;
+  collateralDebt: number;
+  securedRecoverableDebt: number;
+  securedShortfallDebt: number;
+  unsecuredDebt: number;
+  dischargeableDebt: number;
+  unpairedCollateralDebt: number;
+  pairingSource: "paired" | "estimated";
 };
 
 // 2026-07-24 스펙 갱신: 개인회생 변제기간 단축 특례 대상(중복 선택 가능, 없으면 빈 배열).
@@ -185,22 +218,10 @@ export type AnalysisFormInput = {
   additionalFixedExpense: number;
   /** 생략 시 서버 기본값 "simple" */
   debtInputMode?: AnalysisDebtInputMode;
-  /** simple 모드일 때 필수. detailed 모드에서는 서버가 debts로부터 자동 집계한다 */
-  debtBreakdown?: AnalysisDebtBreakdown;
-  /** detailed 모드일 때 필수(1건 이상). simple 모드에서는 보내지 않는다 */
-  debts?: AnalysisDebtItem[];
-  collateralDebt: number; // 담보부 채무 (만원)
-  debtIncurredLast3Months: number; // 최근 3개월 내 발생 채무액 (만원)
-  debtIncurredLast6Months: number; // 최근 6개월 내 발생 채무액 (만원). 2026-08-06 스펙 추가
-  debtIncurredLast1Year: number; // 최근 1년 내 발생 채무액 (만원)
-  /** 연체 개월 수(정수). simple 모드일 때 필수 — detailed는 서버가 debts 중 최대값으로 자동 계산 */
-  overdueMonths?: number;
+  /** 두 모드 모두 필수. simple은 상환 조건 필드를 생략할 수 있다. */
+  debts: AnalysisDebtItem[];
   debtCauses: AnalysisDebtCause[];
-  realEstateBreakdown: AnalysisRealEstateBreakdown;
-  /** 만원 단위 실제 금액(예·적금+주식 등 합계). 없으면 0(2026-08-07 스펙 — 구간 선택 폐지) */
-  financialAssetValue: number;
-  /** 만원 단위 실제 금액. 미보유 시 0(2026-08-07 스펙 — 구간 선택 폐지) */
-  vehicleValue: number;
+  assets: AnalysisAsset[];
   hasPreviousBankruptcy: boolean;
   previousBankruptcyNote?: string;
   hasGuarantorRelation: boolean;
@@ -246,16 +267,8 @@ export type ReanalyzeAnalysisInput = AnalysisFormInput & {
 export type UpdateAnalysisDebtsInput = {
   projectId: string;
   debtInputMode: AnalysisDebtInputMode;
-  /** simple일 때 필수 */
-  debtBreakdown?: AnalysisDebtBreakdown;
-  /** detailed일 때 필수(1건 이상) */
-  debts?: AnalysisDebtItem[];
-  collateralDebt: number;
-  debtIncurredLast3Months: number;
-  debtIncurredLast6Months: number;
-  debtIncurredLast1Year: number;
-  /** simple일 때 필수. detailed는 서버가 debts 중 최대값으로 자동 계산 */
-  overdueMonths?: number;
+  debts: AnalysisDebtItem[];
+  assets: AnalysisAsset[];
   debtCauses: AnalysisDebtCause[];
   /** true면 저장 후 AI 재진단까지 수행한다 — 상태 초기화 + 채팅 이력 삭제 + 절차 추적 초기화라
    * 되돌릴 수 없다. 호출 전 확인 모달 필수. false면 채무 값만 갱신되고 나머지는 유지된다. */
@@ -280,28 +293,31 @@ export type UpdateAnalysisDebtsResponse = ApiSuccess<AnalysisDetail>;
 // 않도록 강제한다(services/debtRelief.ts의 fromAnalysisFormInput·getDiagnosisDetail 참고).
 export type AnalysisInputData = Omit<
   AnalysisFormInput,
-  "monthlyIncome" | "additionalFixedExpense" | "financialAssetValue" | "vehicleValue"
+  "monthlyIncome" | "additionalFixedExpense" | "assets" | "debts"
 > & {
   monthlyIncome?: number;
   additionalFixedExpense?: number;
-  financialAssetValue?: number;
-  vehicleValue?: number;
+  assets: AnalysisAsset[];
+  debts: AnalysisDebtItem[];
   // 필드명·타입은 그대로지만 계산 방식이 바뀌었다(조용한 Breaking Change) — 이전 "월소득 − 실제
   // 월 고정지출 합계"(가계부 기준)에서 이후 "월소득 − 가구원수별 법원 인정 최저생계비 −
   // additionalFixedExpense"(법원 인정 기준)로 변경. estimatedMonthlyIncome/totalMonthlyExpense는
   // 서버 응답에서 사라졌다. 레거시 건은 예전 공식으로 계산된 값이 그대로 내려온다(재계산 안 됨).
   disposableIncome: number;
   totalDebt: number;
-  totalRealEstateValue: number;
+  totalRealEstateValue?: number;
   debtInputMode: AnalysisDebtInputMode;
   overdueMonths: number;
   debtBreakdown: AnalysisDebtBreakdown;
-  /** 상세모드로 입력된 건에만 존재 — 입력한 채무 항목 원본 */
-  debts?: AnalysisDebtItem[];
   /** 상세모드 전용 서버 계산값 */
   debtDerivedSignals?: AnalysisDebtDerivedSignals;
   /** 상세모드 전용 — 이자 포함 총채무 (만원) */
   totalDebtWithInterest?: number;
+  collateralBreakdown?: AnalysisCollateralBreakdown;
+  /** 구 레코드 읽기 호환 전용. 신규 요청에는 사용하지 않는다. */
+  realEstateBreakdown?: AnalysisRealEstateBreakdown;
+  financialAssetValue?: number;
+  vehicleValue?: number;
 };
 
 export type AnalysisProcedureConditions = {
@@ -447,6 +463,7 @@ export type AnalysisDetail = {
   trackingProcedure: AnalysisProcedureType | null;
   currentProcedureStep: number | null;
   inputData: AnalysisInputData;
+  collateralBreakdown?: AnalysisCollateralBreakdown;
   analysisResult: AnalysisResult | null;
   procedureGuides: AnalysisProcedureGuidesMap | null;
   isShared: boolean; // 공유(납품)받은 분석 건 여부
@@ -484,6 +501,7 @@ export type AnalysisDetail = {
 /** 분석 건 액션(공유/반려/수락/수임료 입력·수정·중단·환불) 메시지 히스토리 항목 */
 export type AnalysisMessageDto = {
   type: "share" | "reject" | "accept" | "fee_create" | "fee_update" | "fee_stop" | "fee_refund";
+  referenceId?: number | null;
   memberName: string;
   projectId: number;
   projectName?: string | null;

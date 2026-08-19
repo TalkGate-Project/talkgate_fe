@@ -25,7 +25,7 @@ export function useDiagnosisForm() {
     let totalDebtManwon = 0;
     if (form.debtInputMode === "detailed") {
       totalDebtManwon = wonToManwon(
-        form.debts.reduce((sum, debt) => sum + (debt.principalWon || 0), 0)
+        form.debts.reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0)
       );
     } else {
       for (const type of form.debtTypes) {

@@ -2,6 +2,9 @@
 
 import type {
   AnalysisBusinessOperationStatus,
+  AnalysisAsset,
+  AnalysisAssetCategory,
+  AnalysisCollateralBreakdown,
   AnalysisDebtInputMode,
   AnalysisDebtItem,
   AnalysisDebtItemType,
@@ -53,13 +56,15 @@ export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus
 export function canEditDiagnosisInfo(params: {
   status: AnalysisStatus;
   isReceivedShare: boolean;
-  isAnalysisProject: boolean;
+  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
 }): boolean {
   if (params.isReceivedShare) return false;
-  const baseEditable = params.status === "consulting" || params.status === "rejected";
-  if (params.isAnalysisProject) return baseEditable;
-  // 변호사 자체 생성건(공유받지 않은 건) — 계약대기중도 허용
-  return baseEditable || params.status === "contract_pending";
+  if (params.deliveryStatus === "delivered") return false;
+  return (
+    params.status === "consulting" ||
+    params.status === "rejected" ||
+    params.status === "contract_pending"
+  );
 }
 
 // ── 추천 절차 ────────────────────────────────────────────────
@@ -408,21 +413,34 @@ export const DEBT_ITEM_TYPE_OPTIONS: PillOption<AnalysisDebtItemType>[] = [
 /** 상세모드 폼 행 상태. 금액(*Won)은 API와 동일하게 원 단위로 보관한다 */
 export type DebtItemFormState = AnalysisDebtItem;
 
+export type AssetItemFormState = AnalysisAsset;
+
+export const ASSET_CATEGORY_OPTIONS: PillOption<AnalysisAssetCategory>[] = [
+  { value: "house", label: "주택" },
+  { value: "land", label: "토지" },
+  { value: "jeonse_deposit", label: "전세보증금" },
+  { value: "vehicle", label: "자동차" },
+  { value: "financial_asset", label: "금융자산" },
+];
+
+export function createEmptyAssetItem(id: string): AssetItemFormState {
+  return { id, category: "house", marketValue: 0, description: "" };
+}
+
 export function createEmptyDebtItem(id: string): DebtItemFormState {
   return {
     id,
     debtType: "bank_loan",
-    isCollateralLoan: false,
     creditorName: "",
     repaymentMethod: "equal_principal_and_interest",
     overdueMonths: 0,
     loanDate: "",
     maturityDate: "",
-    principalWon: 0,
-    interestRate: 0,
-    termMonths: 0,
+    currentBalanceWon: 0,
+    interestRate: undefined,
+    remainingMonths: 0,
     monthlyPaymentWon: 0,
-    totalInterestWon: 0,
+    remainingInterestWon: 0,
     totalRepaymentWon: 0,
   };
 }
@@ -561,6 +579,7 @@ export type DiagnosisFormState = {
   spouseIncome: boolean | null;
 
   // 2. 자산현황
+  assets: AssetItemFormState[];
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
   /** "없음" 선택도 realEstateTypes=[]로 저장되어 미선택과 구분이 안 되므로, 필수 검증용으로
    * 사용자가 이 필드를 한 번이라도 명시적으로 조작했는지 별도로 추적한다. */
@@ -579,6 +598,8 @@ export type DiagnosisFormState = {
   debtTypes: DebtType[]; // 간편모드 전용
   debtAmounts: Partial<Record<DebtType, number>>; // 간편모드 전용. 만원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
   debts: DebtItemFormState[]; // 상세모드 전용. 금액은 원 단위
+  /** 자산 현황에서 생성된 담보대출 행 ID. API에는 보내지 않는 화면 간 출처 추적 상태다. */
+  assetOriginDebtIds: string[];
   /** 연체 개월 수. 간편모드에서만 입력받고(필수), 상세모드는 서버가 debts에서 자동 계산한다.
    * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
   overdueMonths: number | null;
@@ -636,6 +657,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     spouseIncome: null,
     isOperatingBusiness: false,
     realEstateTypes: [],
+    assets: [],
     realEstateStatusConfirmed: false,
     realEstateAmounts: {},
     financialAssetValue: null,
@@ -645,6 +667,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     debtTypes: [],
     debtAmounts: {},
     debts: [],
+    assetOriginDebtIds: [],
     overdueMonths: null,
     creditorCount: null,
     debtCauses: [],
@@ -848,6 +871,7 @@ export type DiagnosisDetail = {
   // 자격 게이트를 통과하지 못한 절차(예: 사업 미영위 시 새출발기금)는 키가 없다.
   conditionAnalysisByProcedure: Partial<Record<RecommendedProcedure, ConditionItem[]>>;
   debtStatus: DebtStatusSummary;
+  collateralBreakdown?: AnalysisCollateralBreakdown;
   // 개인회생 추적 시에만 노출되는 "개인회생과 개인워크아웃 비교" 문구 (없으면 null — 섹션 자체를 숨김)
   debtAdjustmentComparison: string | null;
   // 절차별 예상 변제 계획 — "절차별 성공 가능성"에서 선택된 절차 기준으로 SectionRepaymentPlan이

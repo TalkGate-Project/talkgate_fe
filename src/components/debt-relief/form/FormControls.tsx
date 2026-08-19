@@ -268,14 +268,14 @@ export function PercentInput({
   className = "",
   invalid = false,
 }: {
-  value: number;
-  onChange: (value: number) => void;
+  value: number | null | undefined;
+  onChange: (value: number | null) => void;
   placeholder?: string;
   className?: string;
   invalid?: boolean;
 }) {
   const [editingText, setEditingText] = useState<string | null>(null);
-  const displayValue = editingText ?? (value ? String(value) : "");
+  const displayValue = editingText ?? (value == null ? "" : String(value));
 
   return (
     <div className="relative">
@@ -296,7 +296,7 @@ export function PercentInput({
               ? `${boundedInt}.${decPart.slice(0, PERCENT_MAX_DECIMAL_DIGITS)}`
               : boundedInt;
           setEditingText(next);
-          onChange(next ? parseFloat(next) || 0 : 0);
+          onChange(next ? parseFloat(next) || 0 : null);
         }}
         onBlur={() => setEditingText(null)}
         placeholder={placeholder}
