@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { useProjectType } from "@/hooks/useProjectType";
 import { DebtReliefService } from "@/services/debtRelief";
+import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -93,6 +94,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 수정 모드: 불러온 진단이 실제 고객 레코드와 매칭되어 있는지. 생성 모드에서는 아래
   // linkedCustomerId(고객 상세 「추가하기」 진입)로 대체 판단한다.
   const [existingCustomerId, setExistingCustomerId] = useState<number | null>(null);
+  const [linkedCustomerSummary, setLinkedCustomerSummary] = useState<{
+    id: number;
+    name: string;
+    contact: string;
+  } | null>(null);
 
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
@@ -113,9 +119,35 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   >(null);
   const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(selectedCustomerId);
 
+  const loadLinkedCustomerSummary = useCallback(
+    async (customerId: number) => {
+      if (!projectId) return null;
+      try {
+        const response = await CustomersService.detail(String(customerId)).withProject(projectId);
+        const customer = response.data.data;
+        setLinkedCustomerSummary({ id: customer.id, name: customer.name, contact: customer.contact1 });
+        return customer;
+      } catch (error) {
+        console.error("Failed to load linked customer summary:", error);
+        return null;
+      }
+    },
+    [projectId]
+  );
+
   useEffect(() => {
     if (!isEdit && initialLinkedCustomerId) setSelectedCustomerId(initialLinkedCustomerId);
   }, [isEdit, initialLinkedCustomerId]);
+
+  useEffect(() => {
+    const linkedCustomerId = isEdit ? existingCustomerId : selectedCustomerId;
+    if (!linkedCustomerId) {
+      setLinkedCustomerSummary(null);
+      return;
+    }
+    if (linkedCustomerSummary?.id === linkedCustomerId) return;
+    void loadLinkedCustomerSummary(linkedCustomerId);
+  }, [isEdit, existingCustomerId, selectedCustomerId, linkedCustomerSummary?.id, loadLinkedCustomerSummary]);
 
   const applySelectedCustomer = useCallback(
     async (customerId: number, fallbackName?: string) => {
@@ -123,10 +155,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       if (fallbackName) {
         setForm((prev) => ({ ...prev, customerName: fallbackName }));
       }
-      if (!projectId) return;
-      try {
-        const response = await CustomersService.detail(String(customerId)).withProject(projectId);
-        const customer = response.data.data;
+      const customer = await loadLinkedCustomerSummary(customerId);
+      if (customer) {
         setForm((prev) => ({
           ...prev,
           customerName: customer.name || prev.customerName,
@@ -135,19 +165,60 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               ? customer.gender
               : prev.gender,
         }));
-      } catch (error) {
-        console.error("Failed to load selected customer detail:", error);
       }
     },
-    [projectId, setForm]
+    [loadLinkedCustomerSummary, setForm]
+  );
+
+  const replaceAnalysisCustomer = useCallback(
+    async (customerId: number) => {
+      if (!isEdit || !diagnosisId || !projectId) return;
+      const previousCustomerId = existingCustomerId;
+
+      if (previousCustomerId === customerId) {
+        await loadLinkedCustomerSummary(customerId);
+        return;
+      }
+
+      if (previousCustomerId !== null) {
+        await AnalysisService.unmatchCustomer(Number(diagnosisId), projectId);
+      }
+
+      try {
+        await AnalysisService.matchCustomer(Number(diagnosisId), { projectId, customerId });
+      } catch (error) {
+        if (previousCustomerId !== null) {
+          try {
+            await AnalysisService.matchCustomer(Number(diagnosisId), {
+              projectId,
+              customerId: previousCustomerId,
+            });
+          } catch (rollbackError) {
+            console.error("Failed to restore previous customer match:", rollbackError);
+            setExistingCustomerId(null);
+            setLinkedCustomerSummary(null);
+          }
+        }
+        throw error;
+      }
+
+      setExistingCustomerId(customerId);
+      await loadLinkedCustomerSummary(customerId);
+    },
+    [isEdit, diagnosisId, projectId, existingCustomerId, loadLinkedCustomerSummary]
   );
 
   const handleExistingCustomerSelected = useCallback(
     async (customer: ConnectableCustomer) => {
-      await applySelectedCustomer(customer.id, customer.name);
+      if (isEdit) {
+        await replaceAnalysisCustomer(customer.id);
+      } else {
+        setLinkedCustomerSummary({ id: customer.id, name: customer.name, contact: customer.contact1 });
+        await applySelectedCustomer(customer.id, customer.name);
+      }
       setCustomerLinkStep(null);
     },
-    [applySelectedCustomer]
+    [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
   );
 
   const handleCustomerCreated = useCallback(
@@ -159,11 +230,53 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         });
         return;
       }
-      await applySelectedCustomer(customerId);
+      if (isEdit) {
+        try {
+          await replaceAnalysisCustomer(customerId);
+        } catch (error) {
+          console.error("Failed to link created customer to analysis:", error);
+          showErrorModal({
+            headline: "고객은 등록되었지만 연결에 실패했습니다.",
+            description: "기존 고객 연동에서 등록된 고객을 다시 선택해주세요.",
+          });
+          return;
+        }
+      } else {
+        await applySelectedCustomer(customerId);
+      }
       setCustomerLinkStep(null);
     },
-    [applySelectedCustomer]
+    [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
   );
+
+  const handleCustomerUnlink = useCallback(() => {
+    if (!isCustomerConnected) return;
+
+    showConfirmModal({
+      headline: "고객 연결을 해제할까요?",
+      message: "연결을 해제해도 입력한 분석 정보는 유지됩니다.",
+      type: "warning",
+      confirmText: "해제",
+      onConfirm: async () => {
+        try {
+          if (isEdit) {
+            if (!diagnosisId || !projectId) return;
+            await AnalysisService.unmatchCustomer(Number(diagnosisId), projectId);
+            setExistingCustomerId(null);
+          } else {
+            setSelectedCustomerId(undefined);
+          }
+          setLinkedCustomerSummary(null);
+        } catch (error) {
+          console.error("Failed to unlink customer from analysis:", error);
+          showErrorModal({
+            headline: "연결 해제에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+          });
+        }
+      },
+    });
+  }, [isCustomerConnected, isEdit, diagnosisId, projectId]);
 
   // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
   useEffect(() => {
@@ -462,8 +575,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         analyzing={analyzing}
         analyzeDisabled={!canAnalyze || incompleteSteps.length > 0}
         isCustomerConnected={isCustomerConnected}
-        onCustomerLink={!isEdit ? () => setCustomerLinkStep("mode") : undefined}
-        onCustomerUnlink={!isEdit ? () => setSelectedCustomerId(undefined) : undefined}
+        linkedCustomerName={linkedCustomerSummary?.name}
+        linkedCustomerContact={linkedCustomerSummary?.contact}
+        onCustomerLink={() => setCustomerLinkStep("mode")}
+        onCustomerUnlink={handleCustomerUnlink}
       />
 
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
@@ -474,8 +589,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           currentIndex={currentIndex}
           onSelectStep={goToStep}
           isCustomerConnected={isCustomerConnected}
-          onCustomerLink={!isEdit ? () => setCustomerLinkStep("mode") : undefined}
-          onCustomerUnlink={!isEdit ? () => setSelectedCustomerId(undefined) : undefined}
+          linkedCustomerName={linkedCustomerSummary?.name}
+          linkedCustomerContact={linkedCustomerSummary?.contact}
+          onCustomerLink={() => setCustomerLinkStep("mode")}
+          onCustomerUnlink={handleCustomerUnlink}
         />
 
         <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
@@ -583,7 +700,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onConfirm={handleDebtSelectionConfirm}
       />
 
-      {!isEdit && projectId && (
+      {projectId && (
         <>
           <CustomerLinkModeModal
             open={customerLinkStep === "mode"}
