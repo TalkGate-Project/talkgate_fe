@@ -287,7 +287,7 @@ export default function DiagnosisTable({
                               {item.lawyerProjectName?.trim() || "공유됨"}
                             </span>
                           </span>
-                        ) : (
+                        ) : item.status === "reviewing" || item.status === "suspended" ? null : (
                           <button
                             type="button"
                             onClick={(e) => {
