@@ -300,7 +300,7 @@ export default function ChatMainView({
                 {widthMode !== "swapped" && (
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center leading-[24px] gap-2">
-                      <span className="text-[18px] md:text-[20px] font-bold text-ink truncate">
+                      <span className="text-[18px] md:text-[20px] font-semibold text-ink truncate">
                         {activeConversation.name}
                       </span>
                       <div className="shrink-0 w-5 h-5">

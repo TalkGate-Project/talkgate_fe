@@ -5,20 +5,18 @@ import type {
   AnalysisDebtBreakdown,
   AnalysisFreshStartFundInsolvencyReason,
   AnalysisInputData,
-  AnalysisRealEstateBreakdown,
 } from "@/types/analysis";
 import {
   BUSINESS_OPERATION_STATUS_OPTIONS,
+  ASSET_CATEGORY_OPTIONS,
   DEBT_CAUSE_LABELS,
   DEBT_TYPE_OPTIONS,
   FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS,
   HOUSING_TYPE_OPTIONS,
-  REAL_ESTATE_OPTIONS,
   resolveCourtMinimumLivingCostWon,
   type DebtCause,
   type DebtType,
   type DiagnosisDetail,
-  type RealEstateType,
 } from "@/types/debtRelief";
 import { wonToManwon } from "@/services/debtRelief";
 import DebtDetailModal from "./DebtDetailModal";
@@ -32,7 +30,7 @@ type Props = {
   onDebtApplied: () => void | Promise<void>;
 };
 
-type DisplayRow = { label: string; value: string; emphasize?: boolean };
+export type DisplayRow = { label: string; value: string; emphasize?: boolean };
 
 const DEBT_CAUSE_FROM: Record<string, DebtCause> = {
   business_failure: "business_failure",
@@ -50,12 +48,6 @@ const BREAKDOWN_TO_DEBT: Record<keyof AnalysisDebtBreakdown, DebtType> = {
   capitalLoan: "capital",
   privateDebt: "private_loan",
   personalBorrowing: "personal_borrowing",
-};
-
-const BREAKDOWN_TO_REAL_ESTATE: Record<keyof AnalysisRealEstateBreakdown, RealEstateType> = {
-  ownedValue: "owned",
-  jeonseDeposit: "jeonse_deposit",
-  rentalValue: "rental_income",
 };
 
 function optionLabel<T extends string>(
@@ -91,19 +83,6 @@ function formatDependents(count: number | null | undefined): string {
   if (count <= 0) return "없음";
   if (count >= 4) return "4명 이상";
   return `${count}명`;
-}
-
-function realEstateOwnershipLabel(breakdown: AnalysisRealEstateBreakdown): string {
-  const owned = (Object.keys(breakdown) as (keyof AnalysisRealEstateBreakdown)[]).filter(
-    (key) => (breakdown[key] ?? 0) > 0
-  );
-  if (owned.length === 0) return "없음";
-  return owned
-    .map((key) => {
-      const type = BREAKDOWN_TO_REAL_ESTATE[key];
-      return REAL_ESTATE_OPTIONS.find((o) => o.value === type)?.label ?? key;
-    })
-    .join(", ");
 }
 
 function debtTypesLabel(breakdown: AnalysisDebtBreakdown): string {
@@ -244,10 +223,20 @@ function InfoSection({
 // 2026-08-08 디자인 개편: 휴대폰번호·부양가족/배우자소득(→소득/지출로 이동)·자가 소유 시가는
 // 새 시안(태블릿·PC 모두 확인)에 더 이상 없어 뺐다 — 휴대폰번호를 이 모달에 표시하지 않게 되면서
 // buildSections도 contact 인자 없이 inputData만으로 계산한다.
-function buildSections(input: AnalysisInputData) {
-  const bank = input.debtBreakdown.bankLoan ?? 0;
-  const card = input.debtBreakdown.cardDebt ?? 0;
-  const capital = input.debtBreakdown.capitalLoan ?? 0;
+// AnalysisPrintDocument(인쇄 전용 레이아웃)도 동일한 5개 그룹·계산식을 재사용한다 —
+// 특히 법원 인정 최저생계비·레거시 소득 데이터 판정은 이 모달이 유일한 소스라 중복 구현하면
+// 인쇄물과 화면이 어긋날 수 있다.
+export function buildSections(input: AnalysisInputData) {
+  // 응답 타입은 assets/debts/debtBreakdown을 필수로 선언하지만, 이 필드들이 추가되기 전에
+  // 생성된 레거시 건은 백엔드가 실제로 값을 내려주지 않는다(위 monthlyIncome류와 같은 부류의
+  // "조용한 스펙 변경" — 타입만 보고 항상 배열이라 가정하면 그 건들에서 크래시난다).
+  const assets = input.assets ?? [];
+  const debts = input.debts ?? [];
+  const debtBreakdown = input.debtBreakdown ?? {};
+
+  const bank = debtBreakdown.bankLoan ?? 0;
+  const card = debtBreakdown.cardDebt ?? 0;
+  const capital = debtBreakdown.capitalLoan ?? 0;
 
   const customerRows: DisplayRow[] = [
     { label: "고객명", value: input.customerName || "-" },
@@ -257,30 +246,23 @@ function buildSections(input: AnalysisInputData) {
   ];
 
   const assetRows: DisplayRow[] = [
-    { label: "부동산 보유여부", value: realEstateOwnershipLabel(input.realEstateBreakdown) },
-    { label: "금융자산", value: formatManwon(input.financialAssetValue) },
-    { label: "차량 보유", value: formatManwon(input.vehicleValue) },
+    { label: "보유 자산", value: assets.length ? assets.map((asset) => `${optionLabel(ASSET_CATEGORY_OPTIONS, asset.category)} ${formatManwon(asset.marketValue)}`).join(", ") : "없음" },
+    { label: "자산 시가 합계", value: formatManwon(assets.reduce((sum, asset) => sum + asset.marketValue, 0)) },
     { label: "재산처분이력", value: yesNo(input.hasRecentAssetDisposal) },
   ];
 
   const debtLeftRows: DisplayRow[] = [
-    { label: "채무종류", value: debtTypesLabel(input.debtBreakdown) },
+    { label: "채무종류", value: debtTypesLabel(debtBreakdown) },
     { label: "은행대출", value: formatManwon(bank) },
     { label: "카드론", value: formatManwon(card) },
     { label: "캐피탈/저축은행", value: formatManwon(capital) },
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
   ];
 
-  // 3/6개월·1년 내 채무액, 담보부채무는 간편모드 전용 필드라 상세모드 건에서는 표시하지 않는다.
+  const collateralDebtManwon = wonToManwon(debts.filter((debt) => debt.collateralAssetId).reduce((sum, debt) => sum + debt.currentBalanceWon, 0));
   const debtRightRows: DisplayRow[] = [
-    ...(input.debtInputMode === "detailed"
-      ? []
-      : [
-          { label: "3개월 내 채무액", value: formatManwon(input.debtIncurredLast3Months) },
-          { label: "6개월 내 채무액", value: formatManwon(input.debtIncurredLast6Months) },
-          { label: "1년 내 채무액", value: formatManwon(input.debtIncurredLast1Year) },
-          { label: "담보부채무", value: formatManwon(input.collateralDebt) },
-        ]),
+    { label: "채무 건수", value: `${debts.length}건` },
+    { label: "담보부채무", value: formatManwon(collateralDebtManwon) },
     { label: "연체기간", value: `${input.overdueMonths ?? 0}개월` },
     { label: "채무발생원인", value: debtCausesLabel(input.debtCauses ?? []) },
   ];

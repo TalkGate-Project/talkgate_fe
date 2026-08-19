@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
+import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
+import Tooltip from "@/components/common/Tooltip";
 import { SelectField } from "@/components/customers/detail/SelectField";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { calculateDebtItemAmortization } from "@/services/debtRelief";
@@ -9,6 +12,7 @@ import {
   DEBT_ITEM_TYPE_OPTIONS,
   REPAYMENT_METHOD_OPTIONS,
   createEmptyDebtItem,
+  type AssetItemFormState,
   type DebtItemFormState,
 } from "@/types/debtRelief";
 import { getMissingDebtItemFields } from "./validateDiagnosisForm";
@@ -16,6 +20,8 @@ import { PercentInput, TextInput, WonInput } from "./FormControls";
 
 type Props = {
   debts: DebtItemFormState[];
+  assets: AssetItemFormState[];
+  mode: "simple" | "detailed";
   onChange: (debts: DebtItemFormState[]) => void;
   /** 담보/무담보 합산 카드 배경. 기본(신규 폼)은 카드 배경(neutral-0)과 대비되는 neutral-10 그대로 두고,
       모달처럼 컨테이너 자체가 이미 neutral-10인 곳에서는 묻히지 않도록 호출부에서 오버라이드한다. */
@@ -23,6 +29,14 @@ type Props = {
   /** 제출을 한 번 시도해 대출일·만기일·금액·금리 중 비어있는 값이 발견됐으면 true.
       이후 값이 채워지면 매 렌더마다 재계산되어 해당 셀만 즉시 해제된다. */
   showFieldErrors?: boolean;
+  /** 자산 카드 안에서 새 행을 만들 때 해당 자산을 담보로 자동 연결한다. */
+  defaultCollateralAssetId?: string;
+  /** 담보/무담보/전체 합계 카드 표시 여부. 자산별 담보 표에서는 숨긴다. */
+  showSummaryCards?: boolean;
+  /** 자산 현황용 축약 표: 채무종류·채권처·연체·현재 잔액만 표시한다. */
+  assetCollateralOnly?: boolean;
+  /** 채무 현황에서 삭제할 수 없고 회색 배경으로 구분할 행 ID. */
+  lockedDebtIds?: readonly string[];
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -100,8 +114,6 @@ const COLUMN_WIDTHS = [
   132, // 총상환
   48, // 삭제
 ];
-const TABLE_WIDTH = COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0);
-
 // 헤더는 텍스트만이라 th 패딩이 그대로 시작 위치가 되지만, 바디 셀은 그 안의 input/select가
 // 자체 좌우 패딩(px-2~px-3)을 또 갖고 있어서 td 패딩과 겹쳐 헤더 라벨이 실제 값보다 왼쪽으로
 // 치우쳐 보인다. td 패딩을 줄이고 th 패딩을 늘려 그 격차를 좁힌다(완전한 픽셀 일치보단
@@ -141,21 +153,21 @@ function RemoveRowIcon({ className = "" }: { className?: string }) {
 }
 
 type DebtSums = {
-  principalWon: number;
+  currentBalanceWon: number;
   monthlyPaymentWon: number;
-  totalInterestWon: number;
+  remainingInterestWon: number;
   totalRepaymentWon: number;
 };
 
 function sumDebtItems(items: DebtItemFormState[]): DebtSums {
   return items.reduce(
     (acc, debt) => ({
-      principalWon: acc.principalWon + debt.principalWon,
-      monthlyPaymentWon: acc.monthlyPaymentWon + debt.monthlyPaymentWon,
-      totalInterestWon: acc.totalInterestWon + debt.totalInterestWon,
-      totalRepaymentWon: acc.totalRepaymentWon + debt.totalRepaymentWon,
+      currentBalanceWon: acc.currentBalanceWon + debt.currentBalanceWon,
+      monthlyPaymentWon: acc.monthlyPaymentWon + (debt.monthlyPaymentWon ?? 0),
+      remainingInterestWon: acc.remainingInterestWon + (debt.remainingInterestWon ?? 0),
+      totalRepaymentWon: acc.totalRepaymentWon + (debt.totalRepaymentWon ?? 0),
     }),
-    { principalWon: 0, monthlyPaymentWon: 0, totalInterestWon: 0, totalRepaymentWon: 0 }
+    { currentBalanceWon: 0, monthlyPaymentWon: 0, remainingInterestWon: 0, totalRepaymentWon: 0 }
   );
 }
 
@@ -181,7 +193,7 @@ function DebtSumCard({
             highlight ? "text-neutral-20" : "text-foreground"
           }`}
         >
-          {formatWon(sums.principalWon)}
+          {formatWon(sums.currentBalanceWon)}
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
@@ -191,9 +203,9 @@ function DebtSumCard({
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">총이자</span>
+        <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">잔여이자</span>
         <span className={`text-[14px] font-medium tracking-[0.2px] text-right whitespace-nowrap ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
-          {formatWon(sums.totalInterestWon)}
+          {formatWon(sums.remainingInterestWon)}
         </span>
       </div>
     </div>
@@ -202,9 +214,15 @@ function DebtSumCard({
 
 export default function DebtItemsTable({
   debts,
+  assets,
+  mode,
   onChange,
   sumCardBackgroundClassName = "bg-neutral-10",
   showFieldErrors = false,
+  defaultCollateralAssetId,
+  showSummaryCards = true,
+  assetCollateralOnly = false,
+  lockedDebtIds = [],
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
@@ -223,7 +241,13 @@ export default function DebtItemsTable({
   };
 
   const addRow = () => {
-    onChange([...debts, createEmptyDebtItem(crypto.randomUUID())]);
+    onChange([
+      ...debts,
+      {
+        ...createEmptyDebtItem(crypto.randomUUID()),
+        collateralAssetId: defaultCollateralAssetId,
+      },
+    ]);
   };
 
   const removeRow = (id: string) => {
@@ -231,36 +255,136 @@ export default function DebtItemsTable({
   };
 
   const totals = sumDebtItems(debts);
-  const collateralTotals = sumDebtItems(debts.filter((debt) => debt.isCollateralLoan));
-  const unsecuredTotals = sumDebtItems(debts.filter((debt) => !debt.isCollateralLoan));
+  const collateralTotals = sumDebtItems(debts.filter((debt) => debt.collateralAssetId));
+  const unsecuredTotals = sumDebtItems(debts.filter((debt) => !debt.collateralAssetId));
+  const summaryCards = showSummaryCards ? (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
+      <DebtSumCard label="담보대출 합산" sums={collateralTotals} backgroundClassName={sumCardBackgroundClassName} />
+      <DebtSumCard label="무담보대출 합산" sums={unsecuredTotals} backgroundClassName={sumCardBackgroundClassName} />
+      <DebtSumCard label="총 합산" sums={totals} highlight />
+    </div>
+  ) : null;
+
+  if (assetCollateralOnly && mode === "simple") {
+    const assetColumnWidths = [180, 220, 150, 220, 48];
+    const assetTableWidth = assetColumnWidths.reduce((sum, width) => sum + width, 0);
+    return (
+      <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+        <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
+          <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
+            <colgroup>{assetColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
+            <thead><tr>
+              <th className={HEADER_CELL}>채무종류</th>
+              <th className={HEADER_CELL}>채권처</th>
+              <th className={`${HEADER_CELL} text-right`}>연체(개월)</th>
+              <th className={`${HEADER_CELL} text-right`}>현재 잔액 (원)</th>
+              <th className={HEADER_CELL} aria-label="삭제" />
+            </tr></thead>
+            <tbody>{debts.map((debt) => <tr key={debt.id} className="border-b-[0.4px] border-neutral-30 last:border-b-0">
+              <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
+              <td className={BODY_CELL}><TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" className={CELL_INPUT_BORDERLESS} /></td>
+              <td className={BODY_CELL}><OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} /></td>
+              <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
+              <td className={`${BODY_CELL} text-center`}><button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button></td>
+            </tr>)}</tbody>
+            <tfoot><tr className="border-t border-neutral-30"><td colSpan={5} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "simple") {
+    const simpleColumnWidths = [150, 100, 200, 140, 210, 48];
+    const simpleTableWidth = simpleColumnWidths.reduce((sum, width) => sum + width, 0);
+    return (
+      <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+        <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
+          <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
+            <colgroup>{simpleColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
+            <thead><tr>
+              <th className={HEADER_CELL}>채무종류</th>
+              <th className={HEADER_CELL}>담보</th>
+              <th className={HEADER_CELL}>채권처</th>
+              <th className={`${HEADER_CELL} text-right`}>연체(개월)</th>
+              <th className={`${HEADER_CELL} text-right`}>현재 잔액 (원)</th>
+              <th className={HEADER_CELL} aria-label="삭제" />
+            </tr></thead>
+            <tbody>{debts.map((debt) => {
+              const locked = lockedDebtIds.includes(debt.id);
+              return <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
+                <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
+                <td className={`${BODY_CELL} px-3 text-[14px] font-medium text-neutral-90/80`}>
+                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                    {locked && debt.collateralAssetId && <Image src="/images/debt-relief/assets/home-icon.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />}
+                    {debt.collateralAssetId ? "담보" : "무담보"}
+                  </span>
+                </td>
+                <td className={BODY_CELL}><TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" className={CELL_INPUT_BORDERLESS} /></td>
+                <td className={BODY_CELL}><OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} /></td>
+                <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
+                <td className={`${BODY_CELL} text-center`}>{!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button>}</td>
+              </tr>;
+            })}</tbody>
+            <tfoot><tr className="border-t border-neutral-30"><td colSpan={6} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
+          </table>
+        </div>
+        {summaryCards}
+      </div>
+    );
+  }
+
+  const hideCollateralAssetColumn = assetCollateralOnly && Boolean(defaultCollateralAssetId);
+  const detailedColumnWidths = hideCollateralAssetColumn
+    ? COLUMN_WIDTHS.filter((_, index) => index !== 1)
+    : COLUMN_WIDTHS;
+  const detailedTableWidth = detailedColumnWidths.reduce((sum, width) => sum + width, 0);
 
   return (
     <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
       <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
         <table
           className="border-collapse table-fixed"
-          style={{ width: TABLE_WIDTH, minWidth: TABLE_WIDTH }}
+          style={{ width: detailedTableWidth, minWidth: detailedTableWidth }}
           aria-label="채무 상세 내역"
         >
           <colgroup>
-            {COLUMN_WIDTHS.map((width, index) => (
+            {detailedColumnWidths.map((width, index) => (
               <col key={index} style={{ width }} />
             ))}
           </colgroup>
           <thead>
             <tr>
               <th className={HEADER_CELL}>채무종류</th>
-              <th className={HEADER_CELL}>담보</th>
+              {!hideCollateralAssetColumn && <th className={HEADER_CELL}>담보 자산</th>}
               <th className={HEADER_CELL}>채권처</th>
               <th className={HEADER_CELL}>상환방식</th>
               <th className={HEADER_CELL}>연체(개월)</th>
               <th className={HEADER_CELL}>대출일</th>
               <th className={HEADER_CELL}>만기일</th>
-              <th className={`${HEADER_CELL} text-right`}>금액 (원)</th>
+              <th className={`${HEADER_CELL} text-right`}>
+                <span className="inline-flex items-center justify-end gap-[5px]">
+                  현재 잔액 (원)
+                  <Tooltip
+                    content="오늘 기준으로 남은 원금을 적어주세요."
+                    position="bottom"
+                    delay={0.1}
+                    gap={10}
+                  >
+                    <button
+                      type="button"
+                      aria-label="현재 잔액 입력 안내"
+                      className="inline-flex h-[20px] w-[20px] cursor-help items-center justify-center text-neutral-50 hover:text-neutral-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40"
+                    >
+                      <InfoCircleIcon size={15} />
+                    </button>
+                  </Tooltip>
+                </span>
+              </th>
               <th className={`${HEADER_CELL} text-right`}>금리(%)</th>
-              <th className={`${HEADER_CELL} text-right`}>기간</th>
+              <th className={`${HEADER_CELL} text-right`}>남은 기간</th>
               <th className={`${HEADER_CELL} text-right`}>월불입</th>
-              <th className={`${HEADER_CELL} text-right`}>총이자</th>
+              <th className={`${HEADER_CELL} text-right`}>잔여이자</th>
               <th className={`${HEADER_CELL} text-right`}>총상환</th>
               <th className={HEADER_CELL} aria-label="삭제" />
             </tr>
@@ -268,10 +392,10 @@ export default function DebtItemsTable({
           <tbody>
             {debts.map((debt) => {
               const missingFields = showFieldErrors ? getMissingDebtItemFields(debt) : [];
-              const isFieldInvalid = (field: "loanDate" | "maturityDate" | "principalWon" | "interestRate") =>
+              const isFieldInvalid = (field: "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate") =>
                 missingFields.includes(field);
               return (
-              <tr key={debt.id} className="border-b-[0.4px] border-neutral-30 last:border-b-0">
+              <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${lockedDebtIds.includes(debt.id) ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
                 <td className={BODY_CELL}>
                   <SelectField
                     className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
@@ -287,18 +411,17 @@ export default function DebtItemsTable({
                     ))}
                   </SelectField>
                 </td>
-                <td className={BODY_CELL}>
+                {!hideCollateralAssetColumn && <td className={BODY_CELL}>
                   <SelectField
                     className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                    value={debt.isCollateralLoan ? "true" : "false"}
-                    onChange={(e) =>
-                      updateItem(debt.id, { isCollateralLoan: e.target.value === "true" })
-                    }
+                    value={debt.collateralAssetId ?? ""}
+                    disabled={lockedDebtIds.includes(debt.id)}
+                    onChange={(e) => updateItem(debt.id, { collateralAssetId: e.target.value || undefined })}
                   >
-                    <option value="false">무담보</option>
-                    <option value="true">담보</option>
+                    <option value="">무담보</option>
+                    {assets.filter((asset) => asset.category !== "financial_asset").map((asset) => <option key={asset.id} value={asset.id}>{asset.description || asset.category}</option>)}
                   </SelectField>
-                </td>
+                </td>}
                 <td className={BODY_CELL}>
                   <TextInput
                     value={debt.creditorName}
@@ -310,7 +433,7 @@ export default function DebtItemsTable({
                 <td className={BODY_CELL}>
                   <SelectField
                     className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                    value={debt.repaymentMethod}
+                    value={debt.repaymentMethod ?? "equal_principal_and_interest"}
                     onChange={(e) =>
                       updateItem(debt.id, {
                         repaymentMethod: e.target.value as DebtItemFormState["repaymentMethod"],
@@ -357,33 +480,26 @@ export default function DebtItemsTable({
                 </td>
                 <td className={BODY_CELL}>
                   <WonInput
-                    value={debt.principalWon}
-                    onChange={(value) => updateItem(debt.id, { principalWon: value })}
-                    invalid={isFieldInvalid("principalWon")}
-                    className={cellInputClassName(isFieldInvalid("principalWon"))}
+                    value={debt.currentBalanceWon}
+                    onChange={(value) => updateItem(debt.id, { currentBalanceWon: value })}
+                    invalid={isFieldInvalid("currentBalanceWon")}
+                    className={cellInputClassName(isFieldInvalid("currentBalanceWon"))}
                   />
                 </td>
                 <td className={BODY_CELL}>
                   <PercentInput
                     value={debt.interestRate}
-                    onChange={(value) => updateItem(debt.id, { interestRate: value })}
+                    onChange={(value) => updateItem(debt.id, { interestRate: value ?? undefined })}
                     invalid={isFieldInvalid("interestRate")}
                     className={cellInputClassName(isFieldInvalid("interestRate"))}
                   />
                 </td>
-                <td className={READONLY_CELL}>{debt.termMonths ? `${debt.termMonths}개월` : "-"}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.monthlyPaymentWon)}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.totalInterestWon)}</td>
-                <td className={READONLY_CELL}>{formatWon(debt.totalRepaymentWon)}</td>
+                <td className={READONLY_CELL}>{debt.remainingMonths ? `${debt.remainingMonths}개월` : "-"}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.monthlyPaymentWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.remainingInterestWon ?? 0)}</td>
+                <td className={READONLY_CELL}>{formatWon(debt.totalRepaymentWon ?? debt.currentBalanceWon)}</td>
                 <td className={`${BODY_CELL} text-center`}>
-                  <button
-                    type="button"
-                    onClick={() => removeRow(debt.id)}
-                    aria-label="행 삭제"
-                    className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-70"
-                  >
-                    <RemoveRowIcon />
-                  </button>
+                  {!lockedDebtIds.includes(debt.id) && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex items-center justify-center w-6 h-6 hover:opacity-70"><RemoveRowIcon /></button>}
                 </td>
               </tr>
               );
@@ -391,7 +507,7 @@ export default function DebtItemsTable({
           </tbody>
           <tfoot>
             <tr className="border-t border-neutral-30">
-              <td colSpan={14} className="py-2">
+              <td colSpan={hideCollateralAssetColumn ? 13 : 14} className="py-2">
                 <button
                   type="button"
                   onClick={addRow}
@@ -406,19 +522,7 @@ export default function DebtItemsTable({
         </table>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
-        <DebtSumCard
-          label="담보대출 합산"
-          sums={collateralTotals}
-          backgroundClassName={sumCardBackgroundClassName}
-        />
-        <DebtSumCard
-          label="무담보대출 합산"
-          sums={unsecuredTotals}
-          backgroundClassName={sumCardBackgroundClassName}
-        />
-        <DebtSumCard label="총 합산" sums={totals} highlight />
-      </div>
+      {summaryCards}
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import type { DiagnosisMessage, DiagnosisMessageType } from "@/types/debtRelief";
 import { formatDateTimeDisplay } from "@/components/debt-relief/format";
 
-const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
+// AnalysisPrintDocument(인쇄 전용 레이아웃)의 「전달 이력」도 이 라벨을 그대로 재사용한다.
+export const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
   share: "공유",
   reject: "반려",
   accept: "수락",

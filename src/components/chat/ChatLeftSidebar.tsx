@@ -221,20 +221,22 @@ export default function ChatLeftSidebar({
     <div className="w-full md:max-w-[286px] h-full">
       <div className="w-full md:w-[286px] h-full bg-card dark:bg-neutral-0 rounded-[14px] md:rounded-[14px] rounded-t-none md:rounded-t-[14px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none overflow-hidden flex flex-col">
         <div className="px-4 md:px-7 pt-4 md:pt-[26px] pb-3 md:pb-[18px] flex items-center justify-between shrink-0">
-          <h2 className="text-[16px] font-bold text-neutral-90">상담채팅</h2>
+          <h2 className="text-[24px] leading-[1.2] tracking-[-0.04em] font-bold text-neutral-90">
+            상담채팅
+          </h2>
           <div className="flex items-center gap-2">
             {/* Filter */}
             <LocalIconTooltip label="필터 설정" position="bottom">
               <button
                 aria-label="filter"
-                className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[6px] border border-neutral-30"
+                className="cursor-pointer w-[26px] h-[26px] grid place-items-center rounded-[5px] border border-neutral-30"
                 onClick={() => setFilterOpen(true)}
               >
                 <FilterIcon size={16} />
               </button>
             </LocalIconTooltip>
             {/* Segmented toggle: list | album */}
-            <div className="w-[51px] h-[26px] rounded-[6px] border border-border overflow-hidden flex">
+            <div className="w-[49px] h-[24px] rounded-[5px] border border-border overflow-hidden flex">
               <button
                 aria-label="list-view"
                 onClick={() => setViewMode("list")}
@@ -264,32 +266,32 @@ export default function ChatLeftSidebar({
         />
         {/* Tabs */}
         <div className="px-4 md:px-5">
-          <div className="grid grid-cols-3 gap-2 bg-neutral-20 dark:bg-neutral-20 rounded-[12px] px-2 md:px-3 py-2">
+          <div className="flex items-center gap-3 bg-neutral-20 dark:bg-neutral-20 rounded-[8px] px-2 md:px-3 py-2">
             <button
-              className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
+              className={`cursor-pointer flex-1 py-1.5 rounded-[5px] text-[14px] transition-colors ${
                 statusFilter === "all"
                   ? "bg-card text-neutral-90 font-bold"
-                  : "text-neutral-60"
+                  : "text-neutral-60 font-medium"
               }`}
               onClick={() => setStatusFilter("all")}
             >
               전체
             </button>
             <button
-              className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
+              className={`cursor-pointer flex-1 py-1.5 rounded-[5px] text-[14px] transition-colors ${
                 statusFilter === "active"
                   ? "bg-card text-neutral-90 font-bold"
-                  : "text-neutral-60"
+                  : "text-neutral-60 font-medium"
               }`}
               onClick={() => setStatusFilter("active")}
             >
               상담중
             </button>
             <button
-              className={`cursor-pointer h-[34px] rounded-[8px] text-[16px] ${
+              className={`cursor-pointer flex-1 py-1.5 rounded-[5px] text-[14px] transition-colors ${
                 statusFilter === "closed"
                   ? "bg-card text-neutral-90 font-bold"
-                  : "text-neutral-60"
+                  : "text-neutral-60 font-medium"
               }`}
               onClick={() => setStatusFilter("closed")}
             >
@@ -297,7 +299,7 @@ export default function ChatLeftSidebar({
             </button>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex items-center px-1 h-[18px] rounded-[5px] bg-primary-10 dark:bg-[rgba(214,250,232,0.2)] text-primary-80 dark:text-primary-80 dark:opacity-80 text-[12px]">
+            <span className="inline-flex items-center px-1 h-[18px] rounded-[5px] bg-primary-10 dark:bg-[rgba(214,250,232,0.2)] text-primary-80 opacity-80 text-[12px]">
               총 {filteredConversations.length}건
             </span>
             <button
@@ -305,7 +307,7 @@ export default function ChatLeftSidebar({
               className={`cursor-pointer inline-flex items-center px-1 h-[18px] rounded-[5px] text-[12px] transition-colors ${
                 unreadOnly
                   ? "bg-primary-60 text-white dark:text-neutral-0 font-medium"
-                  : "bg-neutral-20 dark:bg-neutral-30 text-neutral-70 dark:text-neutral-70 dark:opacity-80 hover:bg-neutral-30"
+                  : "bg-neutral-30 text-neutral-70 opacity-80 hover:opacity-100"
               }`}
             >
               미읽음{" "}

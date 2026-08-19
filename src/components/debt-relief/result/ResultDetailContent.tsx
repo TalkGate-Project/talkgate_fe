@@ -31,6 +31,7 @@ import SectionCounselMents from "./SectionCounselMents";
 import SectionProcedureGuide from "./SectionProcedureGuide";
 import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
+import AnalysisPrintDocument from "./AnalysisPrintDocument";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
@@ -326,6 +327,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           isShared={detail.isShared}
         />
       </div>
+      <AnalysisPrintDocument
+        detail={detail}
+        projectId={projectId}
+        selectedProcedure={activeProcedure}
+      />
     </>
   );
 }

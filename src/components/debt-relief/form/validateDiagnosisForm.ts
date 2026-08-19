@@ -1,14 +1,21 @@
 import type { DebtItemFormState, DiagnosisFormState } from "@/types/debtRelief";
 import type { FormStepKey } from "./steps";
 
-export type MissingDebtItemField = "loanDate" | "maturityDate" | "principalWon" | "interestRate";
+export type MissingDebtItemField = "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate";
 
 const MISSING_DEBT_ITEM_FIELD_LABELS: Record<MissingDebtItemField, string> = {
   loanDate: "대출일",
   maturityDate: "만기일",
-  principalWon: "금액",
+  currentBalanceWon: "현재 잔액",
   interestRate: "금리",
 };
+
+function isValidDateOnly(value: string | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
 
 /**
  * 상세모드 채무 항목 1건에서 비어있는 필드를 반환한다.
@@ -16,10 +23,19 @@ const MISSING_DEBT_ITEM_FIELD_LABELS: Record<MissingDebtItemField, string> = {
  */
 export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtItemField[] {
   const missing: MissingDebtItemField[] = [];
-  if (!debt.loanDate) missing.push("loanDate");
-  if (!debt.maturityDate) missing.push("maturityDate");
-  if (!debt.principalWon) missing.push("principalWon");
-  if (!debt.interestRate) missing.push("interestRate");
+  const today = new Date();
+  const todayText = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const loanDate = debt.loanDate ?? "";
+  const maturityDate = debt.maturityDate ?? "";
+  const validLoanDate = isValidDateOnly(loanDate);
+  const validMaturityDate = isValidDateOnly(maturityDate);
+  if (!validLoanDate || loanDate > todayText) missing.push("loanDate");
+  if (!validMaturityDate || maturityDate <= todayText || (validLoanDate && maturityDate <= loanDate)) {
+    missing.push("maturityDate");
+  }
+  if (!debt.currentBalanceWon) missing.push("currentBalanceWon");
+  // 0% 무이자 대출은 유효하다. undefined만 미입력으로 구분한다.
+  if (debt.interestRate == null) missing.push("interestRate");
   return missing;
 }
 
@@ -37,14 +53,9 @@ export function getMissingDebtItemFields(debt: DebtItemFormState): MissingDebtIt
 // canAnalyze 통과 후 별도로 검사해 모달+빨간 테두리를 띄운다(담보부채무 초과 검사와 동일한 방식).
 export function getMissingDebtFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
-  if (form.debtInputMode === "detailed") {
-    if (form.debts.length === 0) missing.push("채무 항목");
-    if (form.debts.some((debt) => !debt.creditorName.trim())) missing.push("채권처");
-  } else {
-    if (form.debtTypes.length === 0) missing.push("채무종류");
-    // 0(연체 없음)은 유효한 입력이라 null만 미입력으로 판정한다.
-    if (form.overdueMonths === null) missing.push("연체기간");
-  }
+  if (form.debts.length === 0) missing.push("채무 항목");
+  if (form.debts.some((debt) => !debt.creditorName.trim())) missing.push("채권처");
+  if (form.debts.some((debt) => !debt.currentBalanceWon)) missing.push("현재 잔액");
   return missing;
 }
 
@@ -71,13 +82,11 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
   if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
-  if (form.financialAssetValue === null) missing.push("금융 자산");
-  if (form.vehicleValue === null) missing.push("차량 보유");
   missing.push(...getMissingDebtFieldLabels(form));
   // 채권자 수(간편모드 전용)는 채무발생 원인과 같은 방식으로 여기서 별도 검사한다 —
   // getMissingDebtFieldLabels에 넣으면 이 함수를 공유하는 결과화면 「채무 상세」 모달
   // (DebtDetailModal, creditorCount 입력 UI 없음)까지 막혀버린다.
-  if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
+  if (!form.creditorCount) missing.push("채권자 수");
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   return missing;
 }
@@ -100,13 +109,11 @@ export function getMissingRequiredFieldLabelsForStep(
       const missing: string[] = [];
       if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
       // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분해 null만 미입력으로 판정한다.
-      if (form.financialAssetValue === null) missing.push("금융 자산");
-      if (form.vehicleValue === null) missing.push("차량 보유");
       return missing;
     }
     case "debts": {
       const missing = getMissingDebtFieldLabels(form);
-      if (form.debtInputMode !== "detailed" && !form.creditorCount) missing.push("채권자 수");
+      if (!form.creditorCount) missing.push("채권자 수");
       if (form.debtCauses.length === 0) missing.push("채무발생 원인");
       return missing;
     }

@@ -50,7 +50,7 @@ function CloseIcon() {
 
 function computeTotalDebtManwon(form: DiagnosisFormState): number {
   if (form.debtInputMode === "detailed") {
-    return wonToManwon(form.debts.reduce((sum, debt) => sum + (debt.principalWon || 0), 0));
+    return wonToManwon(form.debts.reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0));
   }
   let total = 0;
   for (const type of form.debtTypes) {
@@ -71,7 +71,7 @@ export default function DebtDetailModal({
   projectId,
   onApplied,
 }: Props) {
-  const { isAnalysis, ready: projectTypeReady } = useProjectType();
+  const { ready: projectTypeReady } = useProjectType();
   const [form, setForm] = useState<DiagnosisFormState>(createEmptyDiagnosisForm);
   const [submittingAction, setSubmittingAction] = useState<"save" | "reanalyze" | null>(null);
   const [choiceOpen, setChoiceOpen] = useState(false);
@@ -88,7 +88,7 @@ export default function DebtDetailModal({
     canEditDiagnosisInfo({
       status: detail.status,
       isReceivedShare: detail.isReceivedShare,
-      isAnalysisProject: isAnalysis,
+      deliveryStatus: detail.deliveryStatus,
     });
 
   useEffect(() => {

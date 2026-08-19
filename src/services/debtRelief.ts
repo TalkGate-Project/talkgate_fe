@@ -151,14 +151,6 @@ const SPECIAL_ELIGIBILITY_FROM_ANALYSIS: Record<AnalysisSpecialEligibility, Spec
   jeonse_fraud_victim: "jeonse_fraud_victim",
 };
 
-const DEBT_TYPE_TO_BREAKDOWN_KEY: Record<DebtType, keyof AnalysisDebtBreakdown> = {
-  bank_loan: "bankLoan",
-  card_loan: "cardDebt",
-  capital: "capitalLoan",
-  private_loan: "privateDebt",
-  personal_borrowing: "personalBorrowing",
-};
-
 const BREAKDOWN_KEY_TO_DEBT_TYPE: Record<keyof AnalysisDebtBreakdown, DebtType> = {
   bankLoan: "bank_loan",
   cardDebt: "card_loan",
@@ -201,7 +193,7 @@ export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDe
   };
   for (const debt of debts) {
     const key = DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY[debt.debtType];
-    breakdown[key] = (breakdown[key] ?? 0) + wonToManwon(debt.principalWon);
+    breakdown[key] = (breakdown[key] ?? 0) + wonToManwon(debt.currentBalanceWon);
   }
   return breakdown;
 }
@@ -215,20 +207,25 @@ function parseDateOnly(iso?: string): Date | null {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
-/** 대출일~만기일 개월수 차이(일자 보정 포함). 날짜가 없거나 역전되면 0. */
-function diffInMonths(loanDate?: string, maturityDate?: string): number {
-  const start = parseDateOnly(loanDate);
+function remainingMonthsUntil(maturityDate?: string): number {
   const end = parseDateOnly(maturityDate);
-  if (!start || !end) return 0;
+  if (!end) return 0;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  if (end <= start) return 0;
+
   let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-  if (end.getDate() < start.getDate()) months -= 1;
-  return Math.max(0, months);
+  // 상환 회차는 완전히 지난 개월 수가 아니라 앞으로 도래할 납입 횟수다. 따라서 한 달보다
+  // 적게 남아도 1회차이며, 월 기준일을 넘긴 나머지 일수는 다음 회차로 올림한다.
+  if (end.getDate() > start.getDate()) months += 1;
+  return Math.max(1, months);
 }
 
 /**
- * 상세 채무 항목 1건의 기간(대출일~만기일 개월수)·월불입·총이자·총상환을 상환방식별 표준
- * 금융공식으로 계산한다(2026-08-04 결정 — 백엔드 재계산 API가 없어 클라이언트 계산값을 그대로
- * 제출/표시한다). 금리(interestRate)는 연이율(%) 기준.
+ * 상세 채무 항목 1건의 오늘~만기일 잔여 개월 수·월불입·잔여이자·총상환을 현재 잔액 기준의
+ * 금융공식으로 계산한다. 백엔드 재계산 API가 없어 클라이언트 계산값을 그대로 제출/표시한다.
+ * 금리(interestRate)는 연이율(%) 기준이며, 과거 대출일은 계산에 사용하지 않는다.
  * - 원리금균등: 연금(PMT) 공식, 월불입이 매월 동일
  * - 원금균등: 매월 원금은 동일하지만 이자는 잔액에 따라 줄어 월불입도 매달 줄어든다.
  *   단일 "월불입" 칸에는 이자가 가장 큰 첫 회차(잔액 = 원금 전액) 기준 값을 표시한다
@@ -236,66 +233,61 @@ function diffInMonths(loanDate?: string, maturityDate?: string): number {
  * - 이자만납입: 매월 이자만 납입, 원금은 만기에 별도 상환
  */
 export function calculateDebtItemAmortization(item: {
-  principalWon: number;
-  interestRate: number;
-  repaymentMethod: AnalysisRepaymentMethod;
+  currentBalanceWon: number;
+  interestRate?: number;
+  repaymentMethod?: AnalysisRepaymentMethod;
   loanDate?: string;
   maturityDate?: string;
-}): Pick<AnalysisDebtItem, "termMonths" | "monthlyPaymentWon" | "totalInterestWon" | "totalRepaymentWon"> {
-  const termMonths = diffInMonths(item.loanDate, item.maturityDate);
-  const principal = item.principalWon;
-  const monthlyRate = item.interestRate / 100 / 12;
+}): Pick<AnalysisDebtItem, "remainingMonths" | "monthlyPaymentWon" | "remainingInterestWon" | "totalRepaymentWon"> {
+  const remainingMonths = remainingMonthsUntil(item.maturityDate);
+  const principal = item.currentBalanceWon;
+  const monthlyRate = (item.interestRate ?? 0) / 100 / 12;
 
-  if (termMonths <= 0 || principal <= 0) {
+  if (remainingMonths <= 0 || principal <= 0 || !item.repaymentMethod) {
     return {
-      termMonths,
+      remainingMonths,
       monthlyPaymentWon: 0,
-      totalInterestWon: 0,
+      remainingInterestWon: 0,
       totalRepaymentWon: principal > 0 ? principal : 0,
     };
   }
 
   switch (item.repaymentMethod) {
     case "equal_principal_and_interest": {
-      const monthlyPaymentWon =
+      const exactMonthlyPayment =
         monthlyRate === 0
-          ? Math.round(principal / termMonths)
-          : Math.round(
-              (principal * monthlyRate * (1 + monthlyRate) ** termMonths) /
-                ((1 + monthlyRate) ** termMonths - 1)
-            );
-      const totalRepaymentWon = monthlyPaymentWon * termMonths;
+          ? principal / remainingMonths
+          : (principal * monthlyRate * (1 + monthlyRate) ** remainingMonths) /
+            ((1 + monthlyRate) ** remainingMonths - 1);
+      const monthlyPaymentWon = Math.round(exactMonthlyPayment);
+      // 표시용 월불입을 먼저 반올림해 개월 수만큼 곱하면 중간 반올림 오차가 누적된다.
+      // 총액은 정확한 PMT에서 마지막에 한 번만 반올림하고 마지막 회차에서 차액을 조정한다.
+      const totalRepaymentWon = Math.round(exactMonthlyPayment * remainingMonths);
       return {
-        termMonths,
+        remainingMonths,
         monthlyPaymentWon,
-        totalInterestWon: totalRepaymentWon - principal,
+        remainingInterestWon: Math.max(0, totalRepaymentWon - principal),
         totalRepaymentWon,
       };
     }
     case "equal_principal": {
-      const monthlyPrincipal = principal / termMonths;
+      const monthlyPrincipal = principal / remainingMonths;
       // 매월 잔액 합 = principal * (n+1) / 2 (등차수열 합) → 총이자 = 잔액합 * 월이자율
-      const totalInterestWon = Math.round(monthlyRate * principal * ((termMonths + 1) / 2));
+      const remainingInterestWon = Math.round(monthlyRate * principal * ((remainingMonths + 1) / 2));
       const monthlyPaymentWon = Math.round(monthlyPrincipal + principal * monthlyRate);
-      return { termMonths, monthlyPaymentWon, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+      return { remainingMonths, monthlyPaymentWon, remainingInterestWon, totalRepaymentWon: principal + remainingInterestWon };
     }
     case "bullet_payment": {
-      const totalInterestWon = Math.round(principal * monthlyRate * termMonths);
-      return { termMonths, monthlyPaymentWon: 0, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+      const remainingInterestWon = Math.round(principal * monthlyRate * remainingMonths);
+      return { remainingMonths, monthlyPaymentWon: 0, remainingInterestWon, totalRepaymentWon: principal + remainingInterestWon };
     }
     case "interest_only": {
       const monthlyPaymentWon = Math.round(principal * monthlyRate);
-      const totalInterestWon = monthlyPaymentWon * termMonths;
-      return { termMonths, monthlyPaymentWon, totalInterestWon, totalRepaymentWon: principal + totalInterestWon };
+      const remainingInterestWon = Math.round(principal * monthlyRate * remainingMonths);
+      return { remainingMonths, monthlyPaymentWon, remainingInterestWon, totalRepaymentWon: principal + remainingInterestWon };
     }
   }
 }
-
-const REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY: Record<RealEstateType, keyof AnalysisRealEstateBreakdown> = {
-  owned: "ownedValue",
-  jeonse_deposit: "jeonseDeposit",
-  rental_income: "rentalValue",
-};
 
 const BREAKDOWN_KEY_TO_REAL_ESTATE_TYPE: Record<keyof AnalysisRealEstateBreakdown, RealEstateType> = {
   ownedValue: "owned",
@@ -332,41 +324,12 @@ function optionValueFromLabel<T extends string>(
   return options.find((option) => option.label === label)?.value ?? null;
 }
 
-// 간편모드 폼 상태 → debtBreakdown(만원). 실 API는 "해당 없는 항목은 0 또는 생략"이라 안내하지만,
-// 채무종류를 하나도 선택하지 않으면 빈 객체({})가 그대로 나가는 사례가 있어 항목별로 0을 채워 보낸다.
-function buildDebtBreakdown(form: DiagnosisFormState): AnalysisDebtBreakdown {
-  const debtBreakdown: AnalysisDebtBreakdown = {
-    bankLoan: 0,
-    cardDebt: 0,
-    capitalLoan: 0,
-    privateDebt: 0,
-    personalBorrowing: 0,
-  };
-  form.debtTypes.forEach((type) => {
-    const key = DEBT_TYPE_TO_BREAKDOWN_KEY[type];
-    debtBreakdown[key] = (debtBreakdown[key] ?? 0) + (form.debtAmounts[type] ?? 0);
-  });
-  return debtBreakdown;
-}
-
 // 실 API가 요구하는 필수값 중 폼에서 null일 수 있는 항목이 채워졌다는 전제 하에 호출한다.
 // (호출 전 반드시 validateDiagnosisForm의 getMissingRequiredFieldLabels로 검증)
 // 생성(POST /v1/analysis)과 재분석(PATCH /v1/analysis/{id}/input)이 동일한 입력 형태를
 // 쓰므로 공통 매핑만 여기서 만들고, projectId/customerId 등 나머지는 호출부에서 붙인다.
 function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
   const isDetailed = form.debtInputMode === "detailed";
-  const debtBreakdown = buildDebtBreakdown(form);
-
-  // 부동산 미보유 시에도 동일한 이유로 명시적으로 0을 채워 보낸다.
-  const realEstateBreakdown: AnalysisRealEstateBreakdown = {
-    ownedValue: 0,
-    jeonseDeposit: 0,
-    rentalValue: 0,
-  };
-  form.realEstateTypes.forEach((type) => {
-    const key = REAL_ESTATE_TYPE_TO_BREAKDOWN_KEY[type];
-    realEstateBreakdown[key] = (realEstateBreakdown[key] ?? 0) + (form.realEstateAmounts[type] ?? 0);
-  });
 
   return {
     customerName: form.customerName.trim(),
@@ -381,23 +344,22 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     additionalFixedExpense: form.additionalFixedExpense,
     // 상세모드에서는 debts가 원본이고 debtBreakdown/overdueMonths는 서버가 자동 집계한다.
     // 굳이 같이 보내면 두 값이 어긋났을 때 어느 쪽이 진실인지 모호해지므로 보내지 않는다.
-    ...(isDetailed
-      ? { debtInputMode: "detailed" as const, debts: form.debts }
-      : {
-          debtInputMode: "simple" as const,
-          debtBreakdown,
-          overdueMonths: form.overdueMonths ?? 0,
-        }),
-    // 간편모드 전용 필드 — API는 모드와 무관하게 항상 값을 요구하므로(optional 아님) 상세모드에서는
-    // 폼에 남아있는 과거 간편모드 값을 보내지 않고 0으로 고정한다.
-    collateralDebt: isDetailed ? 0 : form.securedDebt,
-    debtIncurredLast3Months: isDetailed ? 0 : form.recentDebtWithin3Months,
-    debtIncurredLast6Months: isDetailed ? 0 : form.recentDebtWithin6Months,
-    debtIncurredLast1Year: isDetailed ? 0 : form.recentDebtWithin1Year,
+    debtInputMode: form.debtInputMode,
+    debts: form.debts.map((debt) => isDetailed ? {
+      ...debt,
+      ...calculateDebtItemAmortization(debt),
+    } : {
+      id: debt.id,
+      debtType: debt.debtType,
+      creditorName: debt.creditorName,
+      overdueMonths: debt.overdueMonths,
+      currentBalanceWon: debt.currentBalanceWon,
+      ...(debt.collateralAssetId ? { collateralAssetId: debt.collateralAssetId } : {}),
+      ...(debt.loanDate ? { loanDate: debt.loanDate } : {}),
+      ...(debt.maturityDate ? { maturityDate: debt.maturityDate } : {}),
+    }),
     debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
-    realEstateBreakdown,
-    financialAssetValue: form.financialAssetValue ?? 0,
-    vehicleValue: form.vehicleValue ?? 0,
+    assets: form.assets,
     hasPreviousBankruptcy: form.hasPreviousApplication,
     previousBankruptcyNote: form.previousApplicationDetail || undefined,
     hasGuarantorRelation: form.hasGuarantor,
@@ -443,8 +405,9 @@ function toCreateAnalysisInput(
 export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormState {
   const realEstateTypes: RealEstateType[] = [];
   const realEstateAmounts: Partial<Record<RealEstateType, number>> = {};
-  (Object.keys(input.realEstateBreakdown) as (keyof AnalysisRealEstateBreakdown)[]).forEach((key) => {
-    const amount = input.realEstateBreakdown[key];
+  const legacyRealEstateBreakdown = input.realEstateBreakdown ?? {};
+  (Object.keys(legacyRealEstateBreakdown) as (keyof AnalysisRealEstateBreakdown)[]).forEach((key) => {
+    const amount = legacyRealEstateBreakdown[key];
     if (!amount) return;
     const type = BREAKDOWN_KEY_TO_REAL_ESTATE_TYPE[key];
     realEstateTypes.push(type);
@@ -461,6 +424,13 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     debtAmounts[type] = amount;
   });
 
+  const debtInputMode = input.debtInputMode ?? "simple";
+  const debts = (input.debts ?? []).map((debt) =>
+    debtInputMode === "detailed"
+      ? { ...debt, ...calculateDebtItemAmortization(debt) }
+      : debt
+  );
+
   return {
     customerName: input.customerName,
     gender: input.gender,
@@ -469,6 +439,7 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     employmentType: optionValueFromLabel(EMPLOYMENT_TYPE_OPTIONS, input.employmentType),
     dependents: DEPENDENTS_FROM_ANALYSIS[input.dependents] ?? null,
     spouseIncome: input.hasSpouseIncome,
+    assets: input.assets ?? [],
     realEstateTypes,
     // 기존에 저장된 분석은 이 필드가 생기기 전에 제출된 것이므로 이미 답변된 것으로 간주한다.
     realEstateStatusConfirmed: true,
@@ -477,20 +448,23 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     vehicleValue: input.vehicleValue ?? 0,
     hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? false,
     isOperatingBusiness: input.isOperatingBusiness ?? false,
-    debtInputMode: input.debtInputMode ?? "simple",
+    debtInputMode,
     debtTypes,
     debtAmounts,
-    debts: input.debts ?? [],
+    debts,
+    // 서버에는 출처 필드가 없으므로, 자산과 연결된 기존 담보대출은 자산 현황에서 생성된
+    // 행으로 복원한다. 신규 폼에서는 생성 시점에 정확한 ID를 별도로 추적한다.
+    assetOriginDebtIds: debts.filter((debt) => debt.collateralAssetId).map((debt) => debt.id),
     // 서버는 모드와 무관하게 항상 숫자로 내려준다. 구 데이터(버킷 enum으로 저장된 건)에서
     // 값이 비어 올 가능성에 대비해 0으로 폴백한다.
     overdueMonths: input.overdueMonths ?? 0,
     creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     hasTaxArrears: input.hasTaxArrears ?? false,
-    securedDebt: input.collateralDebt ?? 0,
-    recentDebtWithin3Months: input.debtIncurredLast3Months ?? 0,
-    recentDebtWithin6Months: input.debtIncurredLast6Months ?? 0,
-    recentDebtWithin1Year: input.debtIncurredLast1Year ?? 0,
+    securedDebt: 0,
+    recentDebtWithin3Months: 0,
+    recentDebtWithin6Months: 0,
+    recentDebtWithin1Year: 0,
     monthlyIncome: input.monthlyIncome ?? 0,
     housingType: input.housingType,
     additionalFixedExpense: input.additionalFixedExpense ?? 0,
@@ -943,13 +917,13 @@ export const DebtReliefService = {
         // 있다 — 폴백 없이 더하면 NaN이 되어 "NaN만원"으로 표시된다(types/analysis.ts
         // AnalysisInputData 주석 참고).
         totalAssetManwon:
-          inputData.totalRealEstateValue +
-          (inputData.financialAssetValue ?? 0) +
-          (inputData.vehicleValue ?? 0),
+          analysis.collateralBreakdown?.liquidationValue ??
+          inputData.assets.reduce((sum, asset) => sum + asset.marketValue, 0),
         monthlyAvailableIncomeManwon: inputData.disposableIncome,
         overdueMonths: inputData.overdueMonths ?? 0,
         composition: buildDebtComposition(inputData.debtBreakdown, totalDebt),
       },
+      collateralBreakdown: analysis.collateralBreakdown,
       debtAdjustmentComparison: analysis.analysisResult?.debtAdjustmentComparison ?? null,
       repaymentPlanByProcedure,
       repaymentNotes: analysis.analysisResult?.precautions ?? [],
@@ -1023,6 +997,7 @@ export const DebtReliefService = {
     customerId: number | null;
     status: AnalysisStatus;
     isReceivedShare: boolean;
+    deliveryStatus: "delivered" | "revoked" | "rejected" | null;
   }> {
     const response = await AnalysisService.detail(Number(id), projectId);
     const detail = response.data.data;
@@ -1030,6 +1005,7 @@ export const DebtReliefService = {
       form: fromAnalysisFormInput(detail.inputData),
       customerId: detail.customerId,
       status: detail.status,
+      deliveryStatus: detail.deliveryStatus ?? null,
       // 공유(납품)받은 건은 자체 소유가 아니므로 편집(재분석) 대상이 아니다 — 반려 상태로 status 게이트를
       // 통과하더라도 URL 직접 진입까지 막기 위해 함께 내려준다. deliveryStatus는 공유 양쪽(영업점/변호사)
       // 모두에 남아 방향 판별이 안 되므로, 받은 쪽에만 존재하는 source 필드로만 판단한다(매핑부 주석 참고).
@@ -1062,21 +1038,11 @@ export const DebtReliefService = {
     form: DiagnosisFormState,
     reanalyze: boolean
   ): Promise<void> {
-    const isDetailed = form.debtInputMode === "detailed";
     await AnalysisService.updateDebts(Number(id), {
       projectId,
-      ...(isDetailed
-        ? { debtInputMode: "detailed" as const, debts: form.debts }
-        : {
-            debtInputMode: "simple" as const,
-            debtBreakdown: buildDebtBreakdown(form),
-            overdueMonths: form.overdueMonths ?? 0,
-          }),
-      // 간편모드 전용 필드 — toAnalysisFormInput과 동일하게 상세모드에서는 0으로 고정.
-      collateralDebt: isDetailed ? 0 : form.securedDebt,
-      debtIncurredLast3Months: isDetailed ? 0 : form.recentDebtWithin3Months,
-      debtIncurredLast6Months: isDetailed ? 0 : form.recentDebtWithin6Months,
-      debtIncurredLast1Year: isDetailed ? 0 : form.recentDebtWithin1Year,
+      debtInputMode: form.debtInputMode,
+      debts: toAnalysisFormInput(form).debts,
+      assets: form.assets,
       debtCauses: form.debtCauses.map((cause) => DEBT_CAUSE_TO_ANALYSIS[cause]),
       reanalyze,
     });

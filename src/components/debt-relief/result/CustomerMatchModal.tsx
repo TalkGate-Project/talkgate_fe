@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnalysisService } from "@/services/analysis";
+import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import Pagination from "@/components/common/Pagination";
@@ -13,12 +14,16 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onBack?: () => void;
-  analysisId: string;
+  /** 상세 화면에서는 분석 ID로 즉시 매칭하고, 신규 화면에서는 생략해 선택만 한다. */
+  analysisId?: string;
   projectId: string;
   /** 진단 원본 입력 성명. 연동 대상 고객명과 다르면 확인 모달로 한 번 더 확인한다. */
   analysisCustomerName?: string;
-  onMatched: () => void;
+  onMatched?: () => void;
+  onSelected?: (customer: ConnectableCustomer) => void | Promise<void>;
 };
+
+type SelectableCustomer = ConnectableCustomer & { isAnalysisConnected?: boolean };
 
 const PAGE_LIMIT = 5;
 
@@ -68,11 +73,12 @@ export default function CustomerMatchModal({
   projectId,
   analysisCustomerName,
   onMatched,
+  onSelected,
 }: Props) {
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [page, setPage] = useState(1);
-  const [customers, setCustomers] = useState<ConnectableCustomer[]>([]);
+  const [customers, setCustomers] = useState<SelectableCustomer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [matchingId, setMatchingId] = useState<number | null>(null);
@@ -91,14 +97,26 @@ export default function CustomerMatchModal({
     let cancelled = false;
     setLoading(true);
 
-    AnalysisService.connectableCustomers(Number(analysisId), projectId, {
-      search: debouncedKeyword.trim() || undefined,
-      page,
-      limit: PAGE_LIMIT,
-    })
+    const request = analysisId
+      ? AnalysisService.connectableCustomers(Number(analysisId), projectId, {
+          search: debouncedKeyword.trim() || undefined,
+          page,
+          limit: PAGE_LIMIT,
+        }).then((response) => response.data.data)
+      : CustomersService.list({
+          projectId,
+          keyword: debouncedKeyword.trim() || undefined,
+          page,
+          limit: PAGE_LIMIT,
+        }).then((response) => ({
+          customers: response.data.data.customers,
+          total: response.data.data.total,
+        }));
+
+    request
       .then((response) => {
         if (cancelled) return;
-        const data = response.data.data;
+        const data = response;
         setCustomers(data.customers);
         setTotal(data.total);
       })
@@ -142,8 +160,15 @@ export default function CustomerMatchModal({
   const performMatch = async (customerId: number) => {
     setMatchingId(customerId);
     try {
-      await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
-      onMatched();
+      const selectedCustomer = customers.find((customer) => customer.id === customerId);
+      if (!selectedCustomer) return;
+      if (!analysisId && selectedCustomer.isAnalysisConnected) return;
+      if (analysisId) {
+        await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
+        onMatched?.();
+      } else {
+        await onSelected?.(selectedCustomer);
+      }
       onClose();
     } catch (error: unknown) {
       console.error("Failed to match customer:", error);
@@ -154,10 +179,7 @@ export default function CustomerMatchModal({
           description: "새로고침 후 다시 시도해주세요.",
         });
       } else {
-        showErrorModal({
-          headline: "고객 연결에 실패했습니다.",
-          description: "잠시 후 다시 시도해주세요.",
-        });
+        showErrorModal({ headline: "고객 연결에 실패했습니다.", description: "잠시 후 다시 시도해주세요." });
       }
     } finally {
       setMatchingId(null);
@@ -210,7 +232,9 @@ export default function CustomerMatchModal({
                 고객연동
               </h2>
               <p className="mt-3 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
-                현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다.
+                {analysisId
+                  ? "현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다."
+                  : "등록된 고객 중 이번 분석에 연결할 고객을 선택해주세요."}
               </p>
             </div>
             <button
@@ -309,11 +333,15 @@ export default function CustomerMatchModal({
                         <td className="h-[59px] px-3 align-middle text-center">
                           <button
                             type="button"
-                            disabled={matchingId === customer.id}
+                            disabled={matchingId === customer.id || customer.isAnalysisConnected}
                             onClick={() => handleMatch(customer.id)}
                             className="cursor-pointer inline-flex items-center justify-center h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {matchingId === customer.id ? "..." : "연동"}
+                            {matchingId === customer.id
+                              ? "..."
+                              : customer.isAnalysisConnected
+                                ? "연동됨"
+                                : "연동"}
                           </button>
                         </td>
                       </tr>
@@ -360,11 +388,15 @@ export default function CustomerMatchModal({
                       </div>
                       <button
                         type="button"
-                        disabled={matchingId === customer.id}
+                        disabled={matchingId === customer.id || customer.isAnalysisConnected}
                         onClick={() => handleMatch(customer.id)}
                         className="cursor-pointer shrink-0 h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {matchingId === customer.id ? "..." : "연동"}
+                        {matchingId === customer.id
+                          ? "..."
+                          : customer.isAnalysisConnected
+                            ? "연동됨"
+                            : "연동"}
                       </button>
                     </div>
                     <div className="mt-3 pt-3 border-t border-neutral-30 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-neutral-60">

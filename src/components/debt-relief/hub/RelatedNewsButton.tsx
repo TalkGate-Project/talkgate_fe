@@ -117,7 +117,7 @@ export default function RelatedNewsButton({ onClick }: RelatedNewsButtonProps) {
       type="button"
       aria-label="관련뉴스"
       onClick={onClick}
-      className="cursor-pointer flex h-[34px] w-full min-w-0 items-center justify-center gap-2.5 rounded-[5px] border border-neutral-30 px-3 text-foreground transition-colors hover:bg-neutral-10 md:w-[368px] md:shrink-0"
+      className="cursor-pointer flex h-[34px] min-w-0 flex-1 items-center justify-center gap-2.5 rounded-[5px] border border-neutral-30 px-3 text-foreground transition-colors hover:bg-neutral-10 md:w-[368px] md:flex-none md:shrink-0"
     >
       <NewspaperIcon />
       <span className="inline-flex h-5 shrink-0 items-center text-[14px] font-semibold leading-none tracking-[-0.02em] text-foreground">

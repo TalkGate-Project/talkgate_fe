@@ -1,66 +1,62 @@
 # 분석(Analysis) API 변경 대응 작업 계획
 
 백엔드 전달 가이드(절차 6종 확장 / 채무 상세입력 / 채무 수정 API) 반영을 위한 프론트 작업 문서.
-작성 2026-08-04 / 1차 개정 2026-08-04 (Swagger 스펙·샘플사이트 UI·의사결정 반영).
+작성 2026-08-04 / 최근 갱신 2026-08-19 (최근 커밋 및 현재 작업 트리 반영).
 
 ---
 
-## 진행 현황 (2026-08-04)
+## 진행 현황 (2026-08-19)
 
-백엔드가 신규 스펙을 배포하고 Swagger가 갱신되어, **Phase 1~3 전체와 Phase 4의 타입·서비스 계층,
-Phase 5의 서비스 계층까지 완료**했다. 남은 건 채무 상세입력 폼 UI와 채무 수정 모달 UI뿐이다.
+> 이 절은 현재 상태의 단일 기준이다. 아래 Phase별 본문은 2026-08-04 당시의 구현 계획과
+> 의사결정 근거를 보존한 기록이므로, 남아 있는 `[ ]`를 현재 미완료 상태로 해석하지 않는다.
 
-검증: `npx tsc --noEmit` 통과 / `npx eslint src/` **0 errors** (경고 68건은 전부 기존 무관 항목).
+검토 범위: 최근 커밋 15건 + 현재 작업 트리 28개 수정 파일과 신규 컴포넌트.
+검증: 2026-08-19 기준 `npx tsc --noEmit` 통과 / `npx eslint src/` 0 errors, 68 warnings.
+경고 수는 이전 기록과 동일하며, 브라우저 회귀 QA는 아직 실행하지 않았다.
 
-### 완료
+2026-08-19 추가 점검:
+- 로컬 개발 서버 기동 및 `/` 컴파일·307 리다이렉트 응답 확인
+- 변경 핵심 파일 4개 대상 ESLint 통과, 전체 `git diff --check` 통과
+- `npm run build` 프로덕션 빌드 통과(32개 정적 페이지 생성, 기존 ESLint 경고만 출력)
+- 상환방식 4종 계산식을 정적 대조하고, `interest_only` 총 잔여이자가 월 이자 반올림 오차를
+  누적하던 문제를 최종 합계에서 한 번만 반올림하도록 수정
+- 인앱 브라우저 연결이 플러그인 신뢰 경로 오류로 시작되지 않아, 로그인 이후 UI 회귀 QA는 미실행
 
-**Phase 1 — 절차 6종 확장**
-- `AnalysisProcedureType` 6종 + `isAnalysisProcedureType` / `ANALYSIS_PROCEDURE_ORDER` 신설
-- `normalizeProcedureType` 재작성 (Set 판정 — 신규 4종이 개인회생으로 뭉개지던 문제 해소)
-- **D-1 통일**: `PROCEDURE_TO_ANALYSIS` / `PROCEDURE_FROM_ANALYSIS` / `PROCEDURE_TO_SCORE_KEY`
-  3개 매핑 테이블 제거 + `CustomerLinkedAnalysisSection`의 중복 사본 제거
-- 라벨·배지·축약표기·기본값 6키화 (**D-2 무채색** 적용), `RECOMMENDED_PROCEDURE_ORDER` 6종 개방
+### 완료된 기반 작업
 
-**Phase 2 — 동적 맵**
-- `scores`/`procedureConditions`/`procedureGuides`/`expectedRepayment` → `Partial<Record<…>>`
-- `pickProcedureValue` / `procedureEntries` 헬퍼로 조회·순회 일원화
-- `buildProcedureScores`는 추천 우선 + 점수 내림차순 정렬 (6종 대응)
-- `procedureConditions[key].satisfied` 런타임 크래시 후보 제거
-- `expectedRepayment`는 **추적 절차 기준**으로 고르고, 없으면 AI 추천 절차로 폴백
+- [x] Phase 1 — 분석 절차 6종 확장 및 절차 코드 단일화
+- [x] Phase 2 — 점수·조건·가이드·예상변제 동적 맵 대응
+- [x] Phase 3 — `overdueMonths` / `isOperatingBusiness` 신규 스펙 대응
+- [x] Phase 4 — 간편/상세 채무 입력 UI, 상세 N행 테이블, 단위 변환 및 이자 포함 결과 표시
+- [x] Phase 5 서비스 계층 — 채무 수정 API 함수와 120초 타임아웃
+- [x] 간편모드 전용 필드의 상세모드 노출 문제 수정 및 수동 검증 기록
+- [x] 날짜 피커 연도 범위, 재분석 경고, 월 가용소득 표시, 부동산 자동선택 등 후속 결함 수정
 
-**Phase 3 — overdueMonths / isOperatingBusiness**
-- `AnalysisOverduePeriod` / `OverduePeriod` / `OVERDUE_PERIOD_OPTIONS` /
-  `OVERDUE_PERIOD_TO·FROM_ANALYSIS` / `OVERDUE_MONTHS_ESTIMATE` 전부 제거
-- `DiagnosisFormState.overdueMonths: number | null` — **0(연체 없음)과 null(미입력)을 구분**
-- `FormControls`에 `MonthsInput` 신설, `Step3Debts` 연체기간을 숫자 입력으로 교체
-  (샘플사이트 문구 "여러 채무가 있으면 가장 긴 연체 기준으로"를 hint로 유지)
-- `validateDiagnosisForm`을 모드별 분기(`getMissingDebtFieldLabels`)로 재구성
-- `isOperatingBusiness` 폼 필드 + **Step1 기본정보에 토글** 추가, 양방향 매핑 연결
-- `DiagnosisCustomerInfoModal` 연체기간 표시를 `N개월` 직접 표기로 교체
+### 현재 작업 트리에 반영된 최신 작업
 
-**Phase 4 — 채무 입력 모드 / 이자 포함 (타입·서비스 계층)**
-- `AnalysisDebtInputMode` / `AnalysisDebtItemType` / `AnalysisRepaymentMethod` /
-  `AnalysisDebtItem` / `AnalysisDebtDerivedSignals` 타입 정의
-- `DiagnosisFormState`에 `debtInputMode` / `debts` 추가, `createEmptyDebtItem` 헬퍼
-- 단위 변환 헬퍼 `wonToManwon` / `manwonToWon` / `aggregateDebtsToBreakdown` 단일화
-- `toAnalysisFormInput`이 모드별로 배타적인 필드만 전송
-  (상세모드에서는 `debtBreakdown`/`overdueMonths`를 보내지 않는다 — 서버 자동 집계와 어긋나면 모호해지므로)
-- `useDiagnosisForm`의 총 채무 합계가 모드별로 계산 (상세는 `principalWon` 합 → 만원)
-- 이자 포함 병기: `SectionDebtStatus`(총 채무), `SectionRepaymentPlan`(예상 면책 채무).
-  **값이 없으면 항목 자체를 숨긴다** (간편모드 건에서 "0" 표시 금지)
-
-**Phase 5 — 채무 수정 API (서비스 계층만)**
-- `UpdateAnalysisDebtsInput` 타입 + `AnalysisService.updateDebts` (`timeoutMs: 120000`)
-- `DebtReliefService.updateDiagnosisDebts(projectId, id, form, reanalyze)`
+- [x] 신규 API 모델로 재정렬: 간편/상세 모두 `debts[]` 사용, 자산은 `assets[]` 사용
+- [x] 채무 항목을 `currentBalanceWon`·선택형 상환조건·담보자산 연결 구조로 변경
+- [x] 자산 N행 입력 UI와 자산-담보대출 연결, `collateralBreakdown` 결과 매핑 추가
+- [x] 잔여 개월·월 납입·잔여 이자 계산을 오늘~만기일 기준으로 수정하고 중간 반올림 누적 제거
+- [x] 분석 필수정보 누락/변경 없음 안내 모달 및 누락 단계 바로가기 추가
+- [x] 신규 분석에서 기존 고객 연결·신규 고객 등록·연결 해제 플로우 추가
+- [x] 전달 상태 기준 수정 권한 판정 및 검토중/중단 건 공유 차단
+- [x] 허브 전체/반려 탭과 새 진단 버튼 레이아웃 개편
+- [x] 결과 인쇄용 문서 컴포넌트와 인쇄 스타일 추가
 
 ### 남은 작업
 
-| 항목 | 상태 |
-|---|---|
-| Phase 4-3 채무 상세입력 폼 UI — 카드 구조·간편/상세 토글 | **완료(2026-08-04)** — `Step3Debts.tsx`를 「채무내역」 카드로 감싸고 헤더에 간편/상세 세그먼트 토글 추가, 「채무발생 원인」 등 모드무관 필드는 카드 밖 공통 영역으로 이동. 채권자 수도 같은 이유로 공통 영역으로 옮김(연체기간만 카드 내부 유지 — 상세모드에서 행별 자동계산으로 대체될 필드라서) |
-| Phase 4-3 채무 상세입력 — 실제 상세입력 테이블(N행 편집) | **완료(2026-08-04)** — `DebtItemsTable.tsx` 신설(12열 가로스크롤 테이블 + 행 추가/삭제 + 합계 행), 토글이 `form.debtInputMode`에 직접 연결됨. 기간/월불입/총이자/총상환은 `services/debtRelief.ts`의 `calculateDebtItemAmortization`이 상환방식별 표준 금융공식으로 클라이언트 계산해 그대로 폼에 저장(제출값 = 화면 표시값). 기간은 대출일~만기일 개월수 차이. 모바일은 가로스크롤만 적용(카드형 폴백 없음) — 브라우저에서 원리금균등 150,000,000원/6.5%/84개월 케이스로 월불입 2,227,415원 재현 확인 |
-| Phase 5-2 채무 수정 모달 UI | **보류** — D-4 디자인 대기 |
-| `debtDerivedSignals` 화면 표시 | 보류 — 화면 정의 없음 + 단위(Q-E) 미확인 |
+- [x] 현재 작업 트리 전체 `npx eslint src/` 실행 — 0 errors, 68 warnings(이전 기록과 동일)
+- [ ] 신규 `debts[]` / `assets[]` 요청·응답을 실제 백엔드와 대조
+- [ ] 신규·수정 분석: 간편/상세 전환, 필수정보 모달, 고객 연결 플로우 브라우저 QA
+- [ ] 자산 추가·삭제 시 연결 담보대출 동기화 및 `collateralBreakdown` 결과값 QA
+- [x] 잔여 이자 계산 4개 상환방식 정적 검토 및 이자만 납입 누적 반올림 오차 수정
+- [ ] 만기 경계값(오늘/과거/미입력)과 계산 결과 화면 브라우저 QA
+- [ ] 결과 인쇄: 라이트/다크, 페이지 나눔, 긴 콘텐츠, 브라우저별 출력 확인
+- [ ] 허브 전체/반려 탭, 검토중·중단 건 공유 차단, 모바일 레이아웃 회귀 QA
+- [ ] Phase 5-2 채무 수정 전용 모달 UI — 디자인 확정 후 진행
+- [ ] `debtDerivedSignals` 화면 표시 — 화면 정의와 단위 확정 후 진행
+- [ ] 기존 수동 QA 잔여 항목은 `docs/ANALYSIS_API_QA_CHECKLIST.md`에서 계속 관리
 
 ---
 

@@ -16,6 +16,7 @@ import DiagnosisMobileCardList from "@/components/debt-relief/hub/DiagnosisMobil
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import RelatedNewsButton from "@/components/debt-relief/hub/RelatedNewsButton";
 import RelatedNewsDrawer from "@/components/debt-relief/hub/RelatedNewsDrawer";
+import ProcedureGuideButton from "@/components/debt-relief/hub/ProcedureGuideButton";
 import Pagination from "@/components/common/Pagination";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
@@ -74,6 +75,9 @@ export default function DebtReliefHubContent() {
   const hasActiveFilter = Boolean(procedure) || Boolean(status);
   const selectedItems = items.filter((item) => selectedIds.has(item.id));
   const hasSharedSelected = selectedItems.some((item) => item.isShared);
+  const hasUnshareableStatusSelected = selectedItems.some(
+    (item) => item.status === "reviewing" || item.status === "suspended"
+  );
 
   const handleResetFilters = () => {
     selectProcedure(undefined);
@@ -99,12 +103,13 @@ export default function DebtReliefHubContent() {
   const clearSelection = () => setSelectedIds(new Set());
 
   const handleShareSelected = () => {
-    if (!hasSelection || hasSharedSelected) return;
+    if (!hasSelection || hasSharedSelected || hasUnshareableStatusSelected) return;
     setShareTargetIds(Array.from(selectedIds));
     setShareLockedPartner(null);
   };
 
   const handleShareItem = (item: DiagnosisListItem) => {
+    if (item.status === "reviewing" || item.status === "suspended") return;
     setShareTargetIds([item.id]);
     setShareLockedPartner(
       item.partnerId != null && item.lawyerProjectId != null
@@ -189,45 +194,29 @@ export default function DebtReliefHubContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0 md:gap-9">
+    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0">
       {/* 상단 카드: 제목 + 요약 카드 */}
       <section className="surface md:rounded-[14px] px-6 md:px-7 py-3 md:py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        {/* 모바일: 1행 제목+새진단 / 2행 관련뉴스(구분선 위). 데스크톱: 한 줄.
-            새 진단 버튼은 반응형 위치 때문에 2곳에 두되, 스타일·동작은 상수로 통일한다. */}
+        {/* 모바일: 1행 제목 / 2행 관련뉴스(구분선 위). 데스크톱: 한 줄. */}
         <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between md:gap-4">
-          <div className="flex min-w-0 items-center justify-between gap-4">
-            <div className="flex min-w-0 flex-wrap items-center gap-4">
-              <h1 className="truncate text-[18px] font-bold leading-[22px] text-foreground md:text-[24px] md:leading-7">
-                채무조정 진단 목록
-              </h1>
-              {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
-              {summary && (
-                <>
-                  <span className="hidden h-4 w-px bg-neutral-60 md:block" />
-                  <span className="hidden text-[18px] font-medium leading-[22px] text-neutral-60 md:inline">
-                    총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
-                  </span>
-                </>
-              )}
-            </div>
-            <button
-              type="button"
-              className={`${NEW_DIAGNOSIS_BUTTON_CLASS} md:hidden`}
-              onClick={() => router.push("/debt-relief/new")}
-            >
-              + 새 진단 시작
-            </button>
+          <div className="flex min-w-0 flex-wrap items-center gap-4">
+            <h1 className="truncate text-[18px] font-bold leading-[22px] text-foreground md:text-[24px] md:leading-7">
+              채무조정 진단 목록
+            </h1>
+            {/* 모바일에서는 총 건수를 아래 요약 카드로 대체하므로 인라인 요약 텍스트는 데스크톱에서만 노출 */}
+            {summary && (
+              <>
+                <span className="hidden h-4 w-px bg-neutral-60 md:block" />
+                <span className="hidden text-[18px] font-medium leading-[22px] text-neutral-60 md:inline">
+                  총 {summary.totalAnalysisCount}건 · 이번 달 {summary.thisMonthCount}건 상담
+                </span>
+              </>
+            )}
           </div>
 
           <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
+            <ProcedureGuideButton onClick={() => router.push("/debt-relief/procedure-guide")} />
             <RelatedNewsButton onClick={() => setIsNewsDrawerOpen(true)} />
-            <button
-              type="button"
-              className={`${NEW_DIAGNOSIS_BUTTON_CLASS} hidden md:inline-flex md:items-center`}
-              onClick={() => router.push("/debt-relief/new")}
-            >
-              + 새 진단 시작
-            </button>
           </div>
         </div>
 
@@ -236,20 +225,37 @@ export default function DebtReliefHubContent() {
         <SummaryCards summary={summary} loading={summaryLoading} />
       </section>
 
-      {/* 하단 카드: 검색 + 테이블 + 페이지네이션 */}
-      <section className="surface md:rounded-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      {/* 새 진단 시작 버튼 + 전체/반려 탭(데스크톱): 상단 카드와 하단 카드(검색+테이블) 사이에 배치.
+          탭이 하단 카드 좌상단에 여백 없이 딱 붙어야 해서 이 행은 왼쪽 패딩이 없다(오른쪽만 pr-4/md:pr-7).
+          데스크톱은 이 행 자체를 53px(13px 여백 + 탭 40px)로 고정하고 탭만 self-end로 하단에 붙여,
+          margin이 아니라 박스 자체 높이 안에서 정렬되도록 해서 버튼이 그 53px 안에서 진짜 세로 중앙에 오게 한다. */}
+      <div className="mt-[13px] md:mt-0 flex items-center justify-end md:h-[53px] md:justify-between pr-4 md:pr-7">
+        <div className="hidden md:flex md:self-end">
+          <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="card" />
+        </div>
+        <button
+          type="button"
+          className={NEW_DIAGNOSIS_BUTTON_CLASS}
+          onClick={() => router.push("/debt-relief/new")}
+        >
+          + 새 진단 시작
+        </button>
+      </div>
+
+      {/* 하단 카드: 검색 + 테이블 + 페이지네이션. 탭이 좌상단에 맞닿으므로 top-left만 각지게 둔다. */}
+      <section className="surface md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
         {/* 모바일: 상단 요약 카드와 탭 사이 구분선 — 컨테이너 좌우 패딩(px-4) 무시하고 풀폭으로 확장.
             위: 이전 섹션의 pb-3(12px)+이 섹션의 pt-6(24px)=36px, 아래: mb-6(24px)+탭 래퍼 없음 →
             카드 하단~탭 상단 전체 48px 간격의 정중앙(24px/24px)에 오도록 -mt-3로 12px 끌어올림 */}
         <div className="-mx-4 md:hidden border-t border-neutral-30 -mt-3 mb-6" />
 
-        {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 */}
-        <div className="mb-3 md:hidden">
-          <DiagnosisListTabs value={listTab} onChange={selectListTab} />
+        {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 2등분 브라우저탭 스타일 */}
+        <div className="mb-4 md:hidden">
+          <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="pill" />
         </div>
 
         <div className="flex flex-col gap-3 mb-5">
-          {/* 1행: 필터·검색·(데스크톱)초기화/총건수 | 우측 끝: 액션 + 전체/반려 탭(데스크톱만) */}
+          {/* 1행: 필터·검색·(데스크톱)초기화/총건수 | 우측 끝: 액션 */}
           <div className="flex items-center gap-2">
             <DiagnosisFilterTrigger
               procedure={procedure}
@@ -286,12 +292,9 @@ export default function DebtReliefHubContent() {
                 onDelete={handleDeleteSelected}
                 onShare={handleShareSelected}
                 showShareAction={projectTypeReady && isAnalysis && listTab === "all"}
-                shareDisabled={hasSharedSelected}
+                shareDisabled={hasSharedSelected || hasUnshareableStatusSelected}
                 onLimitChange={setLimit}
               />
-              <div className="hidden md:block">
-                <DiagnosisListTabs value={listTab} onChange={selectListTab} />
-              </div>
             </div>
           </div>
           <DiagnosisFilterAppliedChips

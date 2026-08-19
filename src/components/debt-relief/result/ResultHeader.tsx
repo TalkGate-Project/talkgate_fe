@@ -275,6 +275,14 @@ const MOBILE_ACTIONS_ITEM =
 const MOBILE_ACTIONS_ITEM_LINKED =
   "cursor-pointer flex h-12 w-full items-center gap-2 bg-white pl-[19px] pr-[18px] py-3 text-left text-[#2563EB] dark:bg-card dark:text-blue-300 hover:bg-neutral-10 transition-colors";
 
+function DownloadIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M9 2.75v8.5m0 0 3.25-3.25M9 11.25 5.75 8M3 14.75h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
@@ -324,6 +332,7 @@ function MobileActionsMenu({
   onEdit,
   onPaymentInfo,
   onShare,
+  onDownload,
 }: {
   open: boolean;
   isShared: boolean;
@@ -335,6 +344,7 @@ function MobileActionsMenu({
   onEdit: () => void;
   onPaymentInfo: () => void;
   onShare: () => void;
+  onDownload: () => void;
 }) {
   if (!open) return null;
 
@@ -371,6 +381,10 @@ function MobileActionsMenu({
       <button type="button" role="menuitem" onClick={onPaymentInfo} className={MOBILE_ACTIONS_ITEM}>
         <PaymentCardIcon />
         결제정보
+      </button>
+      <button type="button" role="menuitem" onClick={onDownload} className={MOBILE_ACTIONS_ITEM}>
+        <DownloadIcon />
+        다운로드
       </button>
       {canShare && (
         <button
@@ -489,7 +503,11 @@ export default function ResultHeader({
   const showOwnerActions =
     projectTypeReady && (isAnalysis || (isLawyer && !detail.isReceivedShare));
   // 공유하기(납품)는 영업점→변호사 방향 기능이므로 영업점 전용 — 변호사 자체 등록 건에는 노출하지 않는다.
-  const canShare = projectTypeReady && isAnalysis;
+  const canShare =
+    projectTypeReady &&
+    isAnalysis &&
+    detail.status !== "reviewing" &&
+    detail.status !== "suspended";
   // 담당직원(출처) 프로필은 공유받은 변호사 건에서만 — 자체 등록 건은 출처가 없어 표시하지 않는다.
   const showAssigneeProfile = projectTypeReady && isLawyer && detail.isReceivedShare;
   // 계약대기중인데 결제정보가 아직 없으면 절차 진행이 시작되지 않은 상태 — 결제정보 입력을 유도한다.
@@ -511,10 +529,16 @@ export default function ResultHeader({
     setShareOpen(true);
   };
 
+
   const handleOpenPaymentInfo = () => {
     setPaymentNudgeDismissed(true);
     setActionsMenuOpen(false);
     setPaymentInfoOpen(true);
+  };
+
+  const handleDownload = () => {
+    setActionsMenuOpen(false);
+    window.print();
   };
 
   const handleDismissPaymentNudge = () => {
@@ -551,7 +575,7 @@ export default function ResultHeader({
       !canEditDiagnosisInfo({
         status: detail.status,
         isReceivedShare: detail.isReceivedShare,
-        isAnalysisProject: isAnalysis,
+        deliveryStatus: detail.deliveryStatus,
       })
     ) {
       showErrorModal({
@@ -733,6 +757,7 @@ export default function ResultHeader({
                   onEdit={handleEdit}
                   onPaymentInfo={handleOpenPaymentInfo}
                   onShare={handleShareClick}
+                  onDownload={handleDownload}
                 />
                 <div ref={mobileLinkedMenuRef}>
                   <LinkedCustomerMenu
@@ -744,6 +769,14 @@ export default function ResultHeader({
               </div>
             ) : showAssigneeProfile ? (
               <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  aria-label="다운로드"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                >
+                  <DownloadIcon />
+                </button>
                 <div className="relative flex items-center">
                   <button
                     type="button"
@@ -759,7 +792,16 @@ export default function ResultHeader({
                 </div>
                 {assigneeProfile}
               </div>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                onClick={handleDownload}
+                aria-label="다운로드"
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              >
+                <DownloadIcon />
+              </button>
+            )}
           </div>
         </div>
 
@@ -869,6 +911,10 @@ export default function ResultHeader({
               </button>
               {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
             </div>
+            <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+              <DownloadIcon />
+              <span className="leading-none">다운로드</span>
+            </button>
             {canShare && (
               <button
                 type="button"
@@ -885,6 +931,10 @@ export default function ResultHeader({
           </div>
         ) : showAssigneeProfile ? (
           <div className="flex items-center justify-end gap-4 shrink-0">
+            <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+              <DownloadIcon />
+              <span className="leading-none">다운로드</span>
+            </button>
             <div className="relative">
               <button type="button" className={ACTION_BTN} onClick={handleOpenPaymentInfo}>
                 <PaymentCardIcon />
@@ -894,7 +944,12 @@ export default function ResultHeader({
             </div>
             {assigneeProfile}
           </div>
-        ) : null}
+        ) : (
+          <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+            <DownloadIcon />
+            <span className="leading-none">다운로드</span>
+          </button>
+        )}
       </div>
 
       {projectId && showOwnerActions && (
