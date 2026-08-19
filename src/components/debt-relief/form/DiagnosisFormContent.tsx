@@ -32,6 +32,7 @@ import Step3Debts from "./Step3Debts";
 import Step4IncomeExpense from "./Step4IncomeExpense";
 import Step5Others from "./Step5Others";
 import AnalysisRequiredFieldsModal from "./AnalysisRequiredFieldsModal";
+import AnalysisDebtSelectionModal from "./AnalysisDebtSelectionModal";
 import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
 import CustomerMatchModal from "@/components/debt-relief/result/CustomerMatchModal";
 import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
@@ -72,6 +73,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
   const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
+  const [debtSelectionModalOpen, setDebtSelectionModalOpen] = useState(false);
   // 분석 API는 진행 신호를 주지 않아 경과시간 기반 추정 진행률을 보여준다.
   // 진행률 상태는 오버레이 안에 가둬 두고 여기서는 완료/중단만 지시한다.
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
@@ -359,28 +361,47 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
+    setDebtSelectionModalOpen(true);
+  };
+
+  const continueAnalyze = async (analysisForm: DiagnosisFormState) => {
     // 재분석(수정 모드)은 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는
-    // 되돌릴 수 없는 부수효과가 있어 확인을 먼저 받는다. 신규 생성은 잃을 기존 상태가 없어 대상 아님.
+    // 되돌릴 수 없는 부수효과가 있어 채무 선택 후 확인을 한 번 더 받는다.
     if (isEdit) {
       showConfirmModal({
         headline: "다시 분석할까요?",
         message: "다시 분석하면 진행 상태·절차가 1단계로 초기화되고 AI 상담 채팅 이력이 삭제됩니다.",
         type: "warning",
         confirmText: "다시 분석",
-        onConfirm: submitAnalyze,
+        onConfirm: () => submitAnalyze(analysisForm),
       });
       return;
     }
 
-    await submitAnalyze();
+    await submitAnalyze(analysisForm);
   };
 
-  const submitAnalyze = async () => {
+  const handleDebtSelectionConfirm = (selectedDebtIds: string[]) => {
+    const selectedDebtIdSet = new Set(selectedDebtIds);
+    const analysisForm: DiagnosisFormState = {
+      ...form,
+      debts: form.debts.map((debt) => ({
+        ...debt,
+        isExcludedFromAnalysis: !selectedDebtIdSet.has(debt.id),
+      })),
+    };
+
+    setForm(analysisForm);
+    setDebtSelectionModalOpen(false);
+    void continueAnalyze(analysisForm);
+  };
+
+  const submitAnalyze = async (analysisForm: DiagnosisFormState = form) => {
     setAnalyzing(true);
     try {
       const result = isEdit
-        ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, form)
-        : await DebtReliefService.createDiagnosis(projectId ?? "", form, selectedCustomerId);
+        ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, analysisForm)
+        : await DebtReliefService.createDiagnosis(projectId ?? "", analysisForm, selectedCustomerId);
       // 진행률을 100%까지 채우고 여운을 준 뒤 이동한다. 실패 경로에서는 채우지 않는다.
       await analysisProgressRef.current?.settle();
       router.push(`/debt-relief/${result.id}`);
@@ -554,6 +575,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           setRequiredFieldsModalOpen(false);
           goToStep(index);
         }}
+      />
+      <AnalysisDebtSelectionModal
+        open={debtSelectionModalOpen}
+        debts={form.debts}
+        onClose={() => setDebtSelectionModalOpen(false)}
+        onConfirm={handleDebtSelectionConfirm}
       />
 
       {!isEdit && projectId && (

@@ -143,6 +143,8 @@ export type AnalysisDebtItem = {
   monthlyPaymentWon?: number;
   remainingInterestWon?: number;
   totalRepaymentWon?: number;
+  /** true면 채무는 저장하되 총채무·청산가치·면책액·AI 진단 계산에서 제외한다. */
+  isExcludedFromAnalysis?: boolean;
 };
 
 /** 상세모드로 입력된 건에만 응답에 포함되는 서버 계산값 */
