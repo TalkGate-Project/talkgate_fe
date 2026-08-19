@@ -44,7 +44,10 @@ export function formatDateTimeDisplay(iso: string): string {
 }
 
 // 만원 → "3억 1천만원" 형태가 아닌 콤마 표기 "31,000만원"
-export function formatManwonComma(manwon: number): string {
+// 담보 채무 분석 등 일부 인쇄용 항목은 API가 null을 내려줄 수 있어(타입 선언은 number지만 실제로는
+// nullable) 방어적으로 처리 — formatWon과 동일하게 "-"로 표기한다.
+export function formatManwonComma(manwon: number | null | undefined): string {
+  if (manwon == null) return "-";
   return `${manwon.toLocaleString("ko-KR")}만원`;
 }
 

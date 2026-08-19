@@ -11,6 +11,7 @@ type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
   onDecided: () => void;
+  hidePrompt?: boolean;
 };
 
 const ACTION_BTN_BASE =
@@ -18,7 +19,7 @@ const ACTION_BTN_BASE =
 
 // 영업점이 전달(공유)한 분석 건이 검토중 상태일 때, 변호사 프로젝트에서 수락/반려를 요청하는 배너.
 // 피그마: 검토중 + deliveryStatus === "delivered"일 때만 노출.
-export default function AnalysisReviewBanner({ detail, projectId, onDecided }: Props) {
+export default function AnalysisReviewBanner({ detail, projectId, onDecided, hidePrompt = false }: Props) {
   const [decisionMode, setDecisionMode] = useState<"accept" | "reject" | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [procedureSelectOpen, setProcedureSelectOpen] = useState(false);
@@ -95,7 +96,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 min-h-[72px] rounded-[12px] border border-neutral-30 bg-card shadow-[0px_3px_4px_rgba(9,30,86,0.1)] dark:shadow-none px-5 md:px-12 py-4 md:py-0">
+      <div className={hidePrompt ? "hidden" : "flex flex-col md:flex-row md:items-center md:justify-between gap-3 min-h-[72px] rounded-[12px] border border-neutral-30 bg-card shadow-[0px_3px_4px_rgba(9,30,86,0.1)] dark:shadow-none px-5 md:px-12 py-4 md:py-0"}>
         <div>
           <p className="text-[14px] font-bold leading-[17px] tracking-[-0.02em] text-black dark:text-foreground">
             분석 데이터 검토 요청
@@ -106,6 +107,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button
+            id="analysis-review-reject"
             type="button"
             onClick={() => setDecisionMode("reject")}
             disabled={submitting}
@@ -114,6 +116,7 @@ export default function AnalysisReviewBanner({ detail, projectId, onDecided }: P
             반려
           </button>
           <button
+            id="analysis-review-accept"
             type="button"
             onClick={() => setDecisionMode("accept")}
             disabled={submitting}

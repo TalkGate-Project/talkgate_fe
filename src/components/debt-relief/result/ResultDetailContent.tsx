@@ -18,6 +18,10 @@ import {
 } from "@/types/debtRelief";
 import ResultAnchorNav, { type AnchorSection } from "./ResultAnchorNav";
 import AnalysisReviewBanner from "./AnalysisReviewBanner";
+import AnalysisProgressBanner from "./AnalysisProgressBanner";
+import AnalysisProgressChoiceModal from "./AnalysisProgressChoiceModal";
+import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import FeePaymentInfoModal from "./FeePaymentInfoModal";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
@@ -49,6 +53,10 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   // detail은 아래에서 로딩/에러 가드를 통과한 뒤에만 확정되므로, 훅 자체는 항상 호출하되
   // null이면 렌더 시점에 detail.trackingProcedure로 지연 대체한다.
   const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure | null>(null);
+  const [statusSubmitting, setStatusSubmitting] = useState(false);
+  const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
+  const [progressShareOpen, setProgressShareOpen] = useState(false);
+  const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
   // AI 분석 추천·상담 멘트만 숨긴다. 변호사가 직접 등록한 건은 자체 분석이므로 그대로 노출한다.
@@ -173,6 +181,52 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     detail.status === "reviewing" &&
     detail.deliveryStatus === "delivered";
 
+  const handleSelfProceed = async () => {
+    if (!projectId || statusSubmitting) return;
+    setStatusSubmitting(true);
+    try {
+      await DebtReliefService.updateDiagnosisStatus(projectId, diagnosisId, "contract_pending");
+      setProgressChoiceOpen(false);
+      refetch();
+    } catch (error) {
+      console.error("Failed to update analysis status:", error);
+      showErrorModal({
+        headline: "진행 상태를 변경하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setStatusSubmitting(false);
+    }
+  };
+
+  const clickReviewAction = (action: "reject" | "accept") => {
+    document.getElementById(`analysis-review-${action}`)?.click();
+  };
+
+  const progressActions = (() => {
+    if (detail.status === "consulting" || detail.status === "rejected") {
+      return [
+        {
+          label: detail.status === "rejected" ? "다시진행" : "진행하기",
+          onClick: () => setProgressChoiceOpen(true),
+        },
+      ];
+    }
+    if (detail.status === "reviewing" && showReviewBanner) {
+      return [
+        { label: "거절", onClick: () => clickReviewAction("reject"), variant: "danger" as const },
+        { label: "수락", onClick: () => clickReviewAction("accept") },
+      ];
+    }
+    if (detail.status === "contract_pending") {
+      return [{ label: "결제정보", onClick: () => setProgressPaymentOpen(true) }];
+    }
+    if (detail.status === "in_progress") {
+      return [{ label: "절차안내", onClick: () => scrollTo("guide") }];
+    }
+    return [];
+  })();
+
   const sections: AnchorSection[] = [
     { id: "overview", label: RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure] },
     { id: "scores", label: "절차별 성공 가능성" },
@@ -194,9 +248,16 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
         </div>
 
+        <div className="px-6 pt-4 md:px-0 md:pt-0">
+          <AnalysisProgressBanner
+            status={detail.status}
+            actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+          />
+        </div>
+
         {showReviewBanner && (
-          <div className="px-6 md:px-0 pt-4 md:pt-0">
-            <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} />
+          <div id="analysis-review-actions" className="px-6 md:px-0 pt-4 md:pt-0">
+            <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
           </div>
         )}
 
@@ -332,6 +393,47 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         projectId={projectId}
         selectedProcedure={activeProcedure}
       />
+      <AnalysisProgressChoiceModal
+        open={progressChoiceOpen}
+        onClose={() => setProgressChoiceOpen(false)}
+        onSelfProceed={handleSelfProceed}
+        onShare={() => {
+          setProgressChoiceOpen(false);
+          setProgressShareOpen(true);
+        }}
+        submitting={statusSubmitting}
+      />
+      {projectId ? (
+        <>
+          <AnalysisShareModal
+            open={progressShareOpen}
+            onClose={() => setProgressShareOpen(false)}
+            onSuccess={refetch}
+            projectId={projectId}
+            analysisIds={[detail.id]}
+            customerName={detail.customerName}
+            initialContact={detail.customerId != null ? detail.phone : ""}
+            lockedPartner={
+              detail.partnerId != null && detail.lawyerProjectId != null
+                ? {
+                    id: detail.partnerId,
+                    projectName: detail.lawyerProjectName?.trim() || "프로젝트",
+                  }
+                : null
+            }
+          />
+          <FeePaymentInfoModal
+            open={progressPaymentOpen}
+            onClose={() => setProgressPaymentOpen(false)}
+            analysisId={Number(detail.id)}
+            projectId={projectId}
+            isContractPending={detail.status === "contract_pending"}
+            feePlan={detail.feePlan}
+            procedureScores={detail.procedureScores}
+            onChanged={refetch}
+          />
+        </>
+      ) : null}
     </>
   );
 }
