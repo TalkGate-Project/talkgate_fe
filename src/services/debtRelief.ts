@@ -354,6 +354,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       creditorName: debt.creditorName,
       overdueMonths: debt.overdueMonths,
       currentBalanceWon: debt.currentBalanceWon,
+      ...(debt.isExcludedFromAnalysis ? { isExcludedFromAnalysis: true } : {}),
       ...(debt.collateralAssetId ? { collateralAssetId: debt.collateralAssetId } : {}),
       ...(debt.loanDate ? { loanDate: debt.loanDate } : {}),
       ...(debt.maturityDate ? { maturityDate: debt.maturityDate } : {}),
@@ -986,6 +987,14 @@ export const DebtReliefService = {
   // 공유받은 분석 건 반려 (변호사 프로젝트). 검토중 상태의 건만 가능 — 성공 시 반려됨으로 전환.
   async rejectSharedAnalysis(projectId: string, id: string, message?: string): Promise<void> {
     await AnalysisService.reject(Number(id), { projectId, ...(message ? { message } : {}) });
+  },
+
+  async updateDiagnosisStatus(
+    projectId: string,
+    id: string,
+    status: AnalysisStatus
+  ): Promise<void> {
+    await AnalysisService.update(Number(id), { projectId, status });
   },
 
   // 편집(정보 수정) 진입 시 폼에 채울 원본 입력값 조회.
