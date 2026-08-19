@@ -13,6 +13,7 @@ import { useDiagnosisForm } from "./useDiagnosisForm";
 import {
   getMissingDebtItemFieldLabels,
   getMissingRequiredFieldLabels,
+  getMissingRequiredFieldLabelsForStep,
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
   isRecentAndSecuredDebtOverTotal,
@@ -30,6 +31,12 @@ import Step2Assets from "./Step2Assets";
 import Step3Debts from "./Step3Debts";
 import Step4IncomeExpense from "./Step4IncomeExpense";
 import Step5Others from "./Step5Others";
+import AnalysisRequiredFieldsModal from "./AnalysisRequiredFieldsModal";
+import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
+import CustomerMatchModal from "@/components/debt-relief/result/CustomerMatchModal";
+import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
+import { CustomersService } from "@/services/customers";
+import type { ConnectableCustomer } from "@/types/analysis";
 
 function AnalyzeSparkleIcon() {
   return (
@@ -64,6 +71,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
+  const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
   // 분석 API는 진행 신호를 주지 않아 경과시간 기반 추정 진행률을 보여준다.
   // 진행률 상태는 오버레이 안에 가둬 두고 여기서는 완료/중단만 지시한다.
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
@@ -87,7 +95,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
   const customerIdParam = searchParams.get("customerId");
-  const linkedCustomerId =
+  const initialLinkedCustomerId =
     !isEdit && customerIdParam && Number.isFinite(Number(customerIdParam))
       ? Number(customerIdParam)
       : undefined;
@@ -95,7 +103,65 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const genderParam = searchParams.get("gender");
 
   // 실제 고객 레코드와 연동된 데이터인지 — 생성: URL로 넘어온 연결 대상, 수정: 이미 매칭된 고객.
-  const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(linkedCustomerId);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>(
+    initialLinkedCustomerId
+  );
+  const [customerLinkStep, setCustomerLinkStep] = useState<
+    null | "mode" | "existing" | "create"
+  >(null);
+  const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(selectedCustomerId);
+
+  useEffect(() => {
+    if (!isEdit && initialLinkedCustomerId) setSelectedCustomerId(initialLinkedCustomerId);
+  }, [isEdit, initialLinkedCustomerId]);
+
+  const applySelectedCustomer = useCallback(
+    async (customerId: number, fallbackName?: string) => {
+      setSelectedCustomerId(customerId);
+      if (fallbackName) {
+        setForm((prev) => ({ ...prev, customerName: fallbackName }));
+      }
+      if (!projectId) return;
+      try {
+        const response = await CustomersService.detail(String(customerId)).withProject(projectId);
+        const customer = response.data.data;
+        setForm((prev) => ({
+          ...prev,
+          customerName: customer.name || prev.customerName,
+          gender:
+            customer.gender === "male" || customer.gender === "female"
+              ? customer.gender
+              : prev.gender,
+        }));
+      } catch (error) {
+        console.error("Failed to load selected customer detail:", error);
+      }
+    },
+    [projectId, setForm]
+  );
+
+  const handleExistingCustomerSelected = useCallback(
+    async (customer: ConnectableCustomer) => {
+      await applySelectedCustomer(customer.id, customer.name);
+      setCustomerLinkStep(null);
+    },
+    [applySelectedCustomer]
+  );
+
+  const handleCustomerCreated = useCallback(
+    async (customerId: number | null) => {
+      if (!customerId) {
+        showErrorModal({
+          headline: "고객은 등록되었지만 연결 정보를 확인하지 못했습니다.",
+          description: "기존 고객 연동에서 등록된 고객을 선택해주세요.",
+        });
+        return;
+      }
+      await applySelectedCustomer(customerId);
+      setCustomerLinkStep(null);
+    },
+    [applySelectedCustomer]
+  );
 
   // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
   useEffect(() => {
@@ -144,7 +210,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     let redirecting = false;
     setLoadingForm(true);
     DebtReliefService.getDiagnosisForm(projectId, diagnosisId)
-      .then(({ form: data, customerId, status, isReceivedShare }) => {
+      .then(({ form: data, customerId, status, isReceivedShare, deliveryStatus }) => {
         if (cancelled) return;
         // 공유(납품)받은 건은 자체 소유 데이터가 아니므로 편집(재분석) 불가 — 반려 상태로 status 게이트를
         // 통과하더라도 여기서 막는다(원본 영업 데이터를 변호사 프로젝트가 되돌려 재분석하면 안 된다).
@@ -161,7 +227,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         }
         // 편집 가능 상태 판정은 canEditDiagnosisInfo로 통일(버튼 게이트와 동일). 영업점은 상담중/반려,
         // 변호사 자체 생성건은 계약대기중까지 허용. status만 검사하던 URL 우회 구멍을 막는다.
-        if (!canEditDiagnosisInfo({ status, isReceivedShare, isAnalysisProject: isAnalysis })) {
+        if (!canEditDiagnosisInfo({ status, isReceivedShare, deliveryStatus })) {
           redirecting = true;
           showErrorModal({
             type: "info",
@@ -200,6 +266,13 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return true;
   }, [form, isEdit, baselineForm]);
 
+  const incompleteSteps = useMemo(() => FORM_STEPS.flatMap((formStep, index) => {
+    const missingFields = getMissingRequiredFieldLabelsForStep(form, formStep.key);
+    if (formStep.key === "debts") missingFields.push(...getMissingDebtItemFieldLabels(form));
+    const uniqueMissingFields = [...new Set(missingFields)];
+    return uniqueMissingFields.length > 0 ? [{ index, label: formStep.label, missingFields: uniqueMissingFields }] : [];
+  }), [form]);
+
   const step = FORM_STEPS[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === FORM_STEPS.length - 1;
@@ -226,7 +299,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   };
 
   const handleAnalyze = async () => {
-    if (analyzing || !canAnalyze) return;
+    if (analyzing) return;
+    if (!canAnalyze || incompleteSteps.length > 0) {
+      setRequiredFieldsModalOpen(true);
+      return;
+    }
 
     if (!Number.isFinite(derived.totalDebtManwon) || derived.totalDebtManwon <= 0) {
       showErrorModal({
@@ -260,7 +337,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         type: "info",
         title: "알림",
         headline: "채무 항목을 확인해주세요.",
-        description: `${missingDebtItemFields.join(", ")}이(가) 비어있는 채무 항목이 있습니다.`,
+        description: `${missingDebtItemFields.join(", ")}이(가) 입력되지 않았거나 올바르지 않은 채무 항목이 있습니다.`,
         confirmText: "채무 현황 입력",
         hideCancel: true,
         onConfirm: () => goToStep(2),
@@ -303,7 +380,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     try {
       const result = isEdit
         ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, form)
-        : await DebtReliefService.createDiagnosis(projectId ?? "", form, linkedCustomerId);
+        : await DebtReliefService.createDiagnosis(projectId ?? "", form, selectedCustomerId);
       // 진행률을 100%까지 채우고 여운을 준 뒤 이동한다. 실패 경로에서는 채우지 않는다.
       await analysisProgressRef.current?.settle();
       router.push(`/debt-relief/${result.id}`);
@@ -362,8 +439,10 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onSelectStep={goToStep}
         onAnalyze={handleAnalyze}
         analyzing={analyzing}
-        analyzeDisabled={!canAnalyze}
+        analyzeDisabled={!canAnalyze || incompleteSteps.length > 0}
         isCustomerConnected={isCustomerConnected}
+        onCustomerLink={!isEdit ? () => setCustomerLinkStep("mode") : undefined}
+        onCustomerUnlink={!isEdit ? () => setSelectedCustomerId(undefined) : undefined}
       />
 
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
@@ -374,6 +453,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           currentIndex={currentIndex}
           onSelectStep={goToStep}
           isCustomerConnected={isCustomerConnected}
+          onCustomerLink={!isEdit ? () => setCustomerLinkStep("mode") : undefined}
+          onCustomerUnlink={!isEdit ? () => setSelectedCustomerId(undefined) : undefined}
         />
 
         <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
@@ -441,16 +522,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             </div>
             <div className="flex-1 flex justify-end">
               <button
-                type="button"
-                onClick={handleAnalyze}
-                disabled={analyzing || !canAnalyze}
-                aria-label={analyzing ? "분석 중" : "분석하기"}
-                className="analyze-button inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-                  <AnalyzeSparkleIcon />
-                </span>
-                <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
+                  type="button"
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  aria-label={analyzing ? "분석 중" : "분석하기"}
+                  className={`analyze-button ${canAnalyze && incompleteSteps.length === 0 ? "analyze-button-ready" : ""} inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                    <AnalyzeSparkleIcon />
+                  </span>
+                  <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
               </button>
             </div>
           </div>
@@ -463,6 +544,44 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onBack={goBack}
         onNext={goNext}
       />
+
+      <AnalysisRequiredFieldsModal
+        open={requiredFieldsModalOpen}
+        steps={incompleteSteps}
+        unchanged={isEdit && incompleteSteps.length === 0 && !isDiagnosisFormDirty(form, baselineForm)}
+        onClose={() => setRequiredFieldsModalOpen(false)}
+        onSelectStep={(index) => {
+          setRequiredFieldsModalOpen(false);
+          goToStep(index);
+        }}
+      />
+
+      {!isEdit && projectId && (
+        <>
+          <CustomerLinkModeModal
+            open={customerLinkStep === "mode"}
+            onClose={() => setCustomerLinkStep(null)}
+            onSelect={setCustomerLinkStep}
+            existingDescription="이미 등록된 고객을 이번 분석에 연결합니다."
+          />
+          <CustomerMatchModal
+            open={customerLinkStep === "existing"}
+            onClose={() => setCustomerLinkStep(null)}
+            onBack={() => setCustomerLinkStep("mode")}
+            projectId={projectId}
+            analysisCustomerName={form.customerName}
+            onSelected={handleExistingCustomerSelected}
+          />
+          <CustomerCreateModal
+            open={customerLinkStep === "create"}
+            onClose={() => setCustomerLinkStep(null)}
+            onBack={() => setCustomerLinkStep("mode")}
+            initialName={form.customerName}
+            projectId={projectId}
+            onCreated={handleCustomerCreated}
+          />
+        </>
+      )}
     </>
   );
 }

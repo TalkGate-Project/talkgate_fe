@@ -995,30 +995,27 @@ svg path:focus {
   background: var(--card);
 }
 
-/* hover 루프 애니메이션은 마우스/트랙패드에서만 — 터치 sticky hover 방지 */
-@media (hover: hover) and (pointer: fine) {
-  .analyze-button:not(:disabled):hover::before {
-    opacity: 1;
-    animation: analyze-border-rotate 1.6s linear infinite;
+.analyze-button-ready:not(:disabled)::before {
+  opacity: 1;
+  animation: analyze-border-rotate 1.6s linear infinite;
+}
+
+.analyze-button-ready:not(:disabled) .analyze-sparkle-start {
+  animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
+}
+
+.analyze-button-ready:not(:disabled) .analyze-sparkle-end {
+  animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analyze-button-ready:not(:disabled)::before {
+    animation: none;
   }
 
-  .analyze-button:not(:disabled):hover .analyze-sparkle-start {
-    animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
-  }
-
-  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
-    animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .analyze-button:not(:disabled):hover::before {
-      animation: none;
-    }
-
-    .analyze-button:not(:disabled):hover .analyze-sparkle-start,
-    .analyze-button:not(:disabled):hover .analyze-sparkle-end {
-      animation: none;
-    }
+  .analyze-button-ready:not(:disabled) .analyze-sparkle-start,
+  .analyze-button-ready:not(:disabled) .analyze-sparkle-end {
+    animation: none;
   }
 }
 

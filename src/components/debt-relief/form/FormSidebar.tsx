@@ -12,6 +12,8 @@ type Props = {
   onSelectStep: (index: number) => void;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
+  onCustomerLink?: () => void;
+  onCustomerUnlink?: () => void;
 };
 
 /** Figma: 구분선은 사이드바(286px) 좌우 끝까지 — 콘텐츠 패딩(28px)을 무시하고 bleed */
@@ -31,11 +33,17 @@ export default function FormSidebar({
   currentIndex,
   onSelectStep,
   isCustomerConnected = false,
+  onCustomerLink,
+  onCustomerUnlink,
 }: Props) {
   return (
     <aside className="hidden md:flex md:w-[286px] shrink-0 flex-col surface md:rounded-[14px] pt-6 pb-8 px-[28px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-      {/* 고객 요약 — 등록 단계에서는 고객 연결을 하지 않는 워크플로로 바뀌어 연결 버튼 제거 */}
-      <FormCustomerSummary form={form} isCustomerConnected={isCustomerConnected} />
+      <FormCustomerSummary
+        form={form}
+        isCustomerConnected={isCustomerConnected}
+        onCustomerLink={onCustomerLink}
+        onCustomerUnlink={onCustomerUnlink}
+      />
 
       {/* Figma: 고객 블록 아래 24px → 풀폭 Divider */}
       <FullBleedDivider className="mt-6" />
