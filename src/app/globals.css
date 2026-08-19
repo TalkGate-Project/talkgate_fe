@@ -88,6 +88,8 @@
   /* Customer link modal gradients (default to light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, #F0F5FF 0%, #F4F6F5 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, #FFF3F3 0%, #F4F6F5 102.03%);
   
   /* Team leader highlight background (default to light mode) */
   --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
@@ -127,6 +129,8 @@
   /* Customer link modal gradients (light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, #F0F5FF 0%, #F4F6F5 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, #FFF3F3 0%, #F4F6F5 102.03%);
   
   /* Team leader highlight background (light mode) */
   --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
@@ -166,6 +170,8 @@
   /* Customer link modal gradients (dark mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, rgba(0, 181, 91, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.16) 0%, rgba(30, 30, 30, 0.88) 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, rgba(216, 50, 50, 0.16) 0%, rgba(30, 30, 30, 0.88) 102.03%);
   
   /* Team leader highlight background (dark mode) */
   --team-leader-highlight-bg: #111111;

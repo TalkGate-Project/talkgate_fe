@@ -60,6 +60,8 @@ type Props = {
   analyzeDisabled?: boolean;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
+  linkedCustomerName?: string;
+  linkedCustomerContact?: string;
   onCustomerLink?: () => void;
   onCustomerUnlink?: () => void;
 };
@@ -79,6 +81,8 @@ export default function MobileFormSummaryDrawer({
   analyzing,
   analyzeDisabled = false,
   isCustomerConnected = false,
+  linkedCustomerName,
+  linkedCustomerContact,
   onCustomerLink,
   onCustomerUnlink,
 }: Props) {
@@ -139,6 +143,8 @@ export default function MobileFormSummaryDrawer({
           <FormCustomerSummary
             form={form}
             isCustomerConnected={isCustomerConnected}
+            linkedCustomerName={linkedCustomerName}
+            linkedCustomerContact={linkedCustomerContact}
             onCustomerLink={onCustomerLink}
             onCustomerUnlink={onCustomerUnlink}
           />

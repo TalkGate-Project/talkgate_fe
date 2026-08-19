@@ -7,11 +7,7 @@ type Props = {
   "aria-label"?: string;
 };
 
-/**
- * 진단 폼 스텝 이전/다음 — pill(38×36) + chevron.
- * 비활성: bg-neutral-10 · chevron muted / 활성: bg-card · chevron neutral-50
- * border는 SVG stroke가 아니라 CSS로 그려 overflow에 잘리지 않게 하고, 다크모드는 토큰을 따른다.
- */
+/** Figma 기준 진단 폼 스텝 이동 버튼 — 68×34, chevron 20px + 이전/다음 텍스트. */
 export default function FormStepNavButton({
   direction,
   disabled = false,
@@ -26,31 +22,42 @@ export default function FormStepNavButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className={`inline-flex h-9 w-[38px] shrink-0 items-center justify-center rounded-full border border-neutral-20 transition-opacity dark:!border-neutral-40 ${
+      className={`inline-flex h-[34px] w-[68px] shrink-0 items-center justify-center gap-1 rounded-[5px] border p-1.5 transition-colors ${
         disabled
-          ? "cursor-not-allowed bg-neutral-10 text-neutral-40 dark:text-neutral-50"
-          : "cursor-pointer bg-card text-neutral-50 hover:opacity-80 dark:text-neutral-60"
+          ? "cursor-not-allowed border-neutral-30 bg-neutral-10"
+          : "cursor-pointer border-neutral-30 bg-card hover:bg-neutral-10"
       }`}
     >
-      <svg width="14" height="16" viewBox="0 0 14 16" fill="none" aria-hidden className="overflow-visible">
-        {direction === "prev" ? (
-          <path
-            d="M9.5 14.5L2.5 8L9.5 1.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : (
-          <path
-            d="M4.5 14.5L11.5 8L4.5 1.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
-      </svg>
+      {direction === "prev" && <ChevronIcon direction={direction} disabled={disabled} />}
+      <span
+        className={`text-[14px] font-medium leading-[17px] ${
+          disabled ? "text-neutral-50 opacity-80" : "text-foreground/80"
+        }`}
+      >
+        {label}
+      </span>
+      {direction === "next" && <ChevronIcon direction={direction} disabled={disabled} />}
     </button>
+  );
+}
+
+function ChevronIcon({ direction, disabled }: { direction: Direction; disabled: boolean }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden
+      className={`shrink-0 ${disabled ? "text-neutral-50" : "text-neutral-80"}`}
+    >
+      <path
+        d={direction === "prev" ? "M12.5 4.5L7 10L12.5 15.5" : "M7.5 4.5L13 10L7.5 15.5"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

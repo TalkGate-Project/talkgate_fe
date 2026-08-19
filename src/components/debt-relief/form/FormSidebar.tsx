@@ -12,6 +12,8 @@ type Props = {
   onSelectStep: (index: number) => void;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
+  linkedCustomerName?: string;
+  linkedCustomerContact?: string;
   onCustomerLink?: () => void;
   onCustomerUnlink?: () => void;
 };
@@ -33,14 +35,18 @@ export default function FormSidebar({
   currentIndex,
   onSelectStep,
   isCustomerConnected = false,
+  linkedCustomerName,
+  linkedCustomerContact,
   onCustomerLink,
   onCustomerUnlink,
 }: Props) {
   return (
-    <aside className="hidden md:flex md:w-[286px] shrink-0 flex-col surface md:rounded-[14px] pt-6 pb-8 px-[28px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <aside className="hidden md:flex md:w-[286px] shrink-0 flex-col surface md:rounded-[14px] pt-4 pb-8 px-[28px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       <FormCustomerSummary
         form={form}
         isCustomerConnected={isCustomerConnected}
+        linkedCustomerName={linkedCustomerName}
+        linkedCustomerContact={linkedCustomerContact}
         onCustomerLink={onCustomerLink}
         onCustomerUnlink={onCustomerUnlink}
       />
