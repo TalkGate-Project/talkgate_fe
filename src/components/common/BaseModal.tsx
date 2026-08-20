@@ -126,7 +126,17 @@ export default function BaseModal({
         // 오버레이 전체를 덮고 있어서 e.target은 실제로는 거의 항상 positioner이지 오버레이
         // 자신(e.currentTarget)이 아니다 — 예전의 "e.target === e.currentTarget" 체크는 그래서
         // 배경 클릭 시 사실상 항상 거짓이었다(모든 BaseModal 사용처에 있던 기존 버그).
-        if (closeOnOverlayClick && !containerRef.current?.contains(e.target as Node)) {
+        //
+        // DatePicker/MonthPicker/TimePicker 등 useAnchoredPanel 기반 팝오버는 위치 계산을 위해
+        // document.body에 별도로 포털링된다 — DOM상으로는 containerRef의 자손이 아니라서 그
+        // 안을 클릭해도 이 체크에 걸려 모달이 함께 닫혔다. [data-anchored-panel]로 표시된
+        // 팝오버 내부 클릭은 containerRef 안 클릭과 동일하게 취급해 제외한다.
+        const target = e.target as HTMLElement;
+        if (
+          closeOnOverlayClick &&
+          !containerRef.current?.contains(target) &&
+          !target.closest?.("[data-anchored-panel]")
+        ) {
           onClose();
         }
       }}

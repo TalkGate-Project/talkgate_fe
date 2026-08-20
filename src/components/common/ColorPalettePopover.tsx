@@ -138,6 +138,7 @@ export default function ColorPalettePopover({
   return createPortal(
     <div
       ref={panelRef}
+      data-anchored-panel
       className="fixed z-[1000] w-[140px] rounded-[5px] bg-card shadow-[0px_8px_12px_rgba(9,30,66,0.1)] p-4"
       style={{ top: position.top, left: position.left }}
     >
