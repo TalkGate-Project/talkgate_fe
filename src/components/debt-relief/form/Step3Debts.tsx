@@ -47,8 +47,7 @@ export default function Step3Debts({
       />
 
       {/* 카드 바깥 공통 영역 — 채무 종류별 잔액과 무관하게 입력 방식 상관없이 항상 필요한 항목.
-          「채무발생 원인」은 샘플사이트 기준 두 모드가 공유하는 필드라 카드 밖에 둔다.
-          「채권자 수」는 2026-08-07부터 DebtHistoryCard(채무내역) 안으로 이동했다. */}
+          「채무발생 원인」은 샘플사이트 기준 두 모드가 공유하는 필드라 카드 밖에 둔다. */}
       <div className="flex flex-col gap-5">
         <FormField label="체납이력">
           <FormToggleRow

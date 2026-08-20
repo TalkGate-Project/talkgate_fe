@@ -83,10 +83,6 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.spouseIncome === null) missing.push("배우자 소득");
   if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
   missing.push(...getMissingDebtFieldLabels(form));
-  // 채권자 수(간편모드 전용)는 채무발생 원인과 같은 방식으로 여기서 별도 검사한다 —
-  // getMissingDebtFieldLabels에 넣으면 이 함수를 공유하는 결과화면 「채무 상세」 모달
-  // (DebtDetailModal, creditorCount 입력 UI 없음)까지 막혀버린다.
-  if (!form.creditorCount) missing.push("채권자 수");
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   return missing;
 }
@@ -113,7 +109,6 @@ export function getMissingRequiredFieldLabelsForStep(
     }
     case "debts": {
       const missing = getMissingDebtFieldLabels(form);
-      if (!form.creditorCount) missing.push("채권자 수");
       if (form.debtCauses.length === 0) missing.push("채무발생 원인");
       return missing;
     }
