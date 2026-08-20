@@ -184,8 +184,13 @@ export function isDiagnosisFormComplete(form: DiagnosisFormState): boolean {
   return getMissingRequiredFieldLabels(form).length === 0;
 }
 
+// 좌측 네비게이터 체크(v) 표시 전용. getMissingRequiredFieldLabelsForStep는 "다음" 버튼 게이트와
+// 공유하는 함수라 상세모드 채무 항목 필드(대출일·만기일·금리)를 일부러 검사하지 않는데(48-53줄 주석 참고),
+// 체크리스트는 실제 완료 여부를 보여줘야 하므로 debts 스텝에서만 그 필드들도 함께 확인한다.
 export function isDiagnosisStepComplete(form: DiagnosisFormState, stepKey: FormStepKey): boolean {
-  return getMissingRequiredFieldLabelsForStep(form, stepKey).length === 0;
+  if (getMissingRequiredFieldLabelsForStep(form, stepKey).length > 0) return false;
+  if (stepKey === "debts") return getMissingDebtItemFieldLabels(form).length === 0;
+  return true;
 }
 
 /** 수정 모드: 불러온 원본과 현재 폼이 다른지. */
