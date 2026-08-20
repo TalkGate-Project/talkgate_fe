@@ -17,6 +17,8 @@ type Props = {
   onBack?: () => void;
   /** 상세 화면에서는 분석 ID로 즉시 매칭하고, 신규 화면에서는 생략해 선택만 한다. */
   analysisId?: string;
+  /** false면 전용 목록만 조회하고 실제 교체/연동 처리는 onSelected에 위임한다. */
+  matchImmediately?: boolean;
   projectId: string;
   /** 진단 원본 입력 성명. 연동 대상 고객명과 다르면 확인 모달로 한 번 더 확인한다. */
   analysisCustomerName?: string;
@@ -71,6 +73,7 @@ export default function CustomerMatchModal({
   onClose,
   onBack,
   analysisId,
+  matchImmediately = true,
   projectId,
   analysisCustomerName,
   onMatched,
@@ -155,7 +158,7 @@ export default function CustomerMatchModal({
       const selectedCustomer = customers.find((customer) => customer.id === customerId);
       if (!selectedCustomer) return;
       if (!analysisId && selectedCustomer.isAnalysisConnected) return;
-      if (analysisId) {
+      if (analysisId && matchImmediately) {
         await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
         onMatched?.();
       } else {
