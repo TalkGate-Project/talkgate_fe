@@ -5,8 +5,16 @@
     "summary": {
       "operator": "법원",
       "duration": "42~54개월",
-      "principalAdjustment": "원금 30~70% 감면",
-      "interestReduction": "이자 100% 면제"
+      "principalAdjustment": {
+        "fullText": "원금 30~70% 감면",
+        "emphasis": "30~70%",
+        "qualifier": "감면 가능"
+      },
+      "interestReduction": {
+        "fullText": "이자 100% 면제",
+        "emphasis": "100%",
+        "qualifier": "면제 가능"
+      }
     },
     "target": "지속적 소득이 있으나 현재 채무 상환이 불가능한 개인",
     "incomeRequired": true,
@@ -147,8 +155,16 @@
     "summary": {
       "operator": "법원",
       "duration": "6~18개월",
-      "principalAdjustment": "원금 전액 면제",
-      "interestReduction": "이자 전액 면제"
+      "principalAdjustment": {
+        "fullText": "원금 전액 면제",
+        "emphasis": "전액",
+        "qualifier": "면제 가능"
+      },
+      "interestReduction": {
+        "fullText": "이자 전액 면제",
+        "emphasis": "전액",
+        "qualifier": "면제 가능"
+      }
     },
     "target": "지급불능 상태로 소득으로는 채무 상환이 불가능한 개인",
     "incomeRequired": false,
@@ -244,8 +260,16 @@
     "summary": {
       "operator": "캠코 (한국자산관리공사)",
       "duration": "접수 후 3~6개월",
-      "principalAdjustment": "최대 60~80% 원금 감면",
-      "interestReduction": "이자 전액 또는 일부 면제"
+      "principalAdjustment": {
+        "fullText": "최대 60~80% 원금 감면",
+        "emphasis": "최대 60~80%",
+        "qualifier": "감면 가능"
+      },
+      "interestReduction": {
+        "fullText": "이자 전액 또는 일부 면제",
+        "emphasis": "전액 또는 일부",
+        "qualifier": "면제 가능"
+      }
     },
     "target": "코로나19 등 경기 악화로 피해를 입은 소상공인·자영업자",
     "incomeRequired": false,
@@ -345,8 +369,15 @@
     "summary": {
       "operator": "신용회복위원회",
       "duration": "접수 후 1~2개월",
-      "principalAdjustment": "원금 감면 없음",
-      "interestReduction": "이자율 인하 위주"
+      "principalAdjustment": {
+        "fullText": "원금 감면 없음",
+        "emphasis": "감면 없음"
+      },
+      "interestReduction": {
+        "fullText": "이자율 인하 위주",
+        "emphasis": "이자율 인하",
+        "qualifier": "위주"
+      }
     },
     "target": "연체가 없거나 30일 이내 단기 연체 중인 채무자",
     "incomeRequired": true,
@@ -422,8 +453,15 @@
     "summary": {
       "operator": "신용회복위원회",
       "duration": "접수 후 1~2개월",
-      "principalAdjustment": "원금 감면 없음",
-      "interestReduction": "이자율 인하 위주"
+      "principalAdjustment": {
+        "fullText": "원금 감면 없음",
+        "emphasis": "감면 없음"
+      },
+      "interestReduction": {
+        "fullText": "이자율 인하 위주",
+        "emphasis": "이자율 인하",
+        "qualifier": "위주"
+      }
     },
     "target": "31~89일 단기 연체 중인 채무자 (장기연체 전환 예방)",
     "incomeRequired": true,
@@ -499,8 +537,15 @@
     "summary": {
       "operator": "신용회복위원회",
       "duration": "접수 후 2~3개월",
-      "principalAdjustment": "원금 일부 감면 가능",
-      "interestReduction": "이자 감면"
+      "principalAdjustment": {
+        "fullText": "원금 일부 감면 가능",
+        "emphasis": "일부",
+        "qualifier": "감면 가능"
+      },
+      "interestReduction": {
+        "fullText": "이자 감면",
+        "emphasis": "감면 가능"
+      }
     },
     "target": "90일 이상 장기연체 중인 개인 채무자",
     "incomeRequired": true,
