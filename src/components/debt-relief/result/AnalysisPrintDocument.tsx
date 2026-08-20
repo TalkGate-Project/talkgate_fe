@@ -8,7 +8,6 @@ import {
   PROCEDURE_GRADE_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
-  type ConditionItem,
   type ConditionStatus,
   type CounselMentCategory,
   type DiagnosisDetail,
@@ -201,8 +200,12 @@ export default function AnalysisPrintDocument({
       RECOMMENDED_PROCEDURE_ORDER.indexOf(a.procedure) -
       RECOMMENDED_PROCEDURE_ORDER.indexOf(b.procedure)
   );
-  const conditionAnalysis: ConditionItem[] =
-    detail.conditionAnalysisByProcedure[selectedProcedure] ?? detail.conditionAnalysis ?? [];
+  const procedureConditionAnalyses = procedureScores.map((score) => ({
+    score,
+    conditions:
+      detail.conditionAnalysisByProcedure[score.procedure] ??
+      (score.procedure === selectedProcedure ? detail.conditionAnalysis ?? [] : []),
+  }));
   const debtComposition = detail.debtStatus.composition ?? [];
   const repaymentKind = resolveSectionKind(selectedProcedure);
   const repaymentTitle = REPAYMENT_SECTION_TITLE[repaymentKind];
@@ -324,7 +327,7 @@ export default function AnalysisPrintDocument({
             </thead>
             <tbody>
               {procedureScores.map((score) => (
-                <tr key={score.procedure} className={score.procedure === selectedProcedure ? "print-row-selected" : undefined}>
+                <tr key={score.procedure}>
                   <td>{score.label}</td>
                   <td className="print-num">{score.score}/100</td>
                   <td>{PROCEDURE_GRADE_LABEL[score.grade]}</td>
@@ -334,18 +337,36 @@ export default function AnalysisPrintDocument({
             </tbody>
           </table>
 
-          {conditionAnalysis.length > 0 && (
-            <InfoBlock title={`${RECOMMENDED_PROCEDURE_LABEL[selectedProcedure]} 조건 분석`}>
-              <ul className="print-condition-list">
-                {conditionAnalysis.map((item, index) => (
-                  <li key={index} className={CONDITION_TEXT_CLASS[item.status]}>
-                    <span className="print-condition-tag">{CONDITION_STATUS_LABEL[item.status]}</span>
-                    {item.text}
-                  </li>
-                ))}
-              </ul>
-            </InfoBlock>
-          )}
+          <div className="print-procedure-condition-list">
+            {procedureConditionAnalyses.map(({ score, conditions }) => {
+              const isSelected = score.procedure === selectedProcedure;
+
+              return (
+                <section
+                  key={score.procedure}
+                  className={`print-procedure-condition${
+                    isSelected ? " print-procedure-condition-selected" : ""
+                  }`}
+                >
+                  <h3>{score.label} 조건 분석</h3>
+                  {conditions.length > 0 ? (
+                    <ul className="print-condition-list">
+                      {conditions.map((item, index) => (
+                        <li key={index} className={CONDITION_TEXT_CLASS[item.status]}>
+                          <span className="print-condition-tag">
+                            {CONDITION_STATUS_LABEL[item.status]}
+                          </span>
+                          {item.text}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="print-condition-empty">조건 분석 정보가 없습니다.</p>
+                  )}
+                </section>
+              );
+            })}
+          </div>
         </PrintSection>
 
         {detail.debtAdjustmentComparison && (
@@ -864,10 +885,6 @@ export default function AnalysisPrintDocument({
             text-align: right;
             font-variant-numeric: tabular-nums;
           }
-          .print-row-selected {
-            background: #eff6ff;
-          }
-
           .print-recommendation-title {
             margin: 0 0 4px;
             font-size: 15pt;
@@ -877,6 +894,36 @@ export default function AnalysisPrintDocument({
             margin: 6px 0;
             white-space: pre-wrap;
             font-size: 9.3pt;
+          }
+
+          .print-procedure-condition-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 12px;
+          }
+          .print-procedure-condition {
+            padding: 9px 11px;
+            border: 1.5px solid transparent;
+            border-radius: 6px;
+            break-inside: avoid;
+          }
+          .print-procedure-condition h3 {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 9.5pt;
+            font-weight: 700;
+          }
+          .print-procedure-condition-selected {
+            border-color: var(--ink);
+          }
+          .print-procedure-condition-selected h3 {
+            color: var(--ink);
+          }
+          .print-condition-empty {
+            margin: 0;
+            color: var(--muted);
+            font-size: 8.8pt;
           }
 
           .print-condition-list {

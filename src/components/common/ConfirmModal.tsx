@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "./BaseModal";
+
 type ConfirmModalProps = {
   open: boolean;
   title: string;
@@ -30,27 +32,26 @@ export default function ConfirmModal({
     onConfirm();
   };
 
+  const handleClose = () => {
+    if (!loading) onCancel();
+  };
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]"
-        onClick={() => {
-          if (!loading) onCancel();
-        }}
-      />
-      <div
-        className="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
-        role="dialog"
-        aria-modal="true"
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!loading}
+      zIndexClassName="z-[200]"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel={title}
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
+    >
         <div className="px-8 py-6">
           <div className="flex items-center justify-between">
             <h2 className="text-[20px] font-semibold text-ink dark:text-neutral-90">{title}</h2>
             <button
               type="button"
-              onClick={() => {
-                if (!loading) onCancel();
-              }}
+              onClick={handleClose}
               disabled={loading}
               aria-label="close modal"
               className="cursor-pointer h-6 w-6"
@@ -118,7 +119,6 @@ export default function ConfirmModal({
             {loading ? "확인 중..." : confirmText}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -13,6 +13,7 @@ import {
   type ConfirmModalCallbacks,
   type ConfirmModalType,
 } from "@/lib/confirmModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 type ConfirmModalState = {
   open: boolean;
@@ -172,12 +173,15 @@ export default function ConfirmModalProvider({
     <ConfirmModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
-            onClick={handleCancel}
-          />
-          <div className="relative w-[calc(100%-2rem)] max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10">
+        <BaseModal
+          onClose={handleCancel}
+          closeOnOverlayClick={!isLocked}
+          zIndexClassName="z-[150]"
+          overlayClassName="bg-black/35 dark:bg-[#000000CC]"
+          ariaLabel={state.title || "확인"}
+          disableAutoContainerSizing
+          containerClassName="relative w-[calc(100%-2rem)] max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10"
+        >
             <div className="px-7 pt-6 pb-[30px]">
               <div
                 className={`flex items-start ${
@@ -355,8 +359,7 @@ export default function ConfirmModalProvider({
                 {confirming ? "처리 중..." : isLocked ? remainingSeconds : state.confirmText}
               </button>
             </div>
-          </div>
-        </div>
+        </BaseModal>
       ) : null}
     </ConfirmModalContext.Provider>
   );

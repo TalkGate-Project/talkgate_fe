@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 type BaseModalProps = {
   onClose: () => void;
   children: React.ReactNode;
+  /** 기본 z-[100] 위에 다른 전역 모달(에러/공지 등)이 겹쳐야 할 때만 지정 — 대부분은 기본값 사용. */
+  zIndexClassName?: string;
   overlayClassName?: string;
   containerClassName?: string;
   positionerClassName?: string;
@@ -47,6 +49,7 @@ function unlockBodyScroll() {
 export default function BaseModal({
   onClose,
   children,
+  zIndexClassName = "z-[100]",
   overlayClassName = "",
   containerClassName = "",
   positionerClassName = "",
@@ -114,13 +117,18 @@ export default function BaseModal({
 
   const modal = (
     <div
-      className={`fixed inset-0 z-[100] ${overlayClassName}`}
+      className={`fixed inset-0 ${zIndexClassName} ${overlayClassName}`}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
       onMouseDown={(e) => {
-        // only close when clicking real overlay (not children)
-        if (closeOnOverlayClick && e.target === e.currentTarget) onClose();
+        // 카드(containerRef) 바깥을 클릭했을 때만 닫는다. positioner(중앙 정렬용 flex 래퍼)가
+        // 오버레이 전체를 덮고 있어서 e.target은 실제로는 거의 항상 positioner이지 오버레이
+        // 자신(e.currentTarget)이 아니다 — 예전의 "e.target === e.currentTarget" 체크는 그래서
+        // 배경 클릭 시 사실상 항상 거짓이었다(모든 BaseModal 사용처에 있던 기존 버그).
+        if (closeOnOverlayClick && !containerRef.current?.contains(e.target as Node)) {
+          onClose();
+        }
       }}
     >
       <div
