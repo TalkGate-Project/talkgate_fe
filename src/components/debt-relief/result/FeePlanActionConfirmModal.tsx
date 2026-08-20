@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import BaseModal from "@/components/common/BaseModal";
 
 export type FeePlanAction = "refund" | "stop";
 
@@ -60,23 +61,20 @@ export default function FeePlanActionConfirmModal({
   if (!open) return null;
 
   const copy = ACTION_COPY[action];
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-[110]"
-        onClick={() => !submitting && onClose()}
-        aria-hidden
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="fee-plan-action-confirm-title"
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!submitting}
+      zIndexClassName="z-[120]"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel={copy.title}
+      disableAutoContainerSizing
+      containerClassName="w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         <div className="flex items-center justify-between px-7 pt-6 pb-[30px] shrink-0">
           <h2
             id="fee-plan-action-confirm-title"
@@ -86,7 +84,7 @@ export default function FeePlanActionConfirmModal({
           </h2>
           <button
             type="button"
-            onClick={() => !submitting && onClose()}
+            onClick={handleClose}
             aria-label="닫기"
             className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-50 hover:opacity-70"
           >
@@ -136,7 +134,6 @@ export default function FeePlanActionConfirmModal({
             {submitting ? "처리 중..." : copy.confirmLabel}
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

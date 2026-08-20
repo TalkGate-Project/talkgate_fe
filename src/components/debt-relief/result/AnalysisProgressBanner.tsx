@@ -34,6 +34,29 @@ function CheckIcon() {
   );
 }
 
+function ExceptionalStatusLabel({ status }: { status: "rejected" | "suspended" }) {
+  const isRejected = status === "rejected";
+
+  return (
+    <div
+      className={`flex items-center gap-2 text-[16px] font-medium leading-5 ${
+        isRejected ? "text-danger-40" : "text-neutral-60"
+      }`}
+    >
+      <svg className="size-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <circle cx="10" cy="10" r="10" fill="currentColor" />
+        <path
+          d="M10 5.25v6.25M10 14.75h.01"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+      <span>{isRejected ? "반려됨" : "중단됨"}</span>
+    </div>
+  );
+}
+
 function resolveCurrentStep(status: AnalysisStatus) {
   const matchedIndex = STEPS.findIndex((step) => step.status === status);
   if (matchedIndex >= 0) return matchedIndex;
@@ -122,7 +145,7 @@ export default function AnalysisProgressBanner({
     rejected: "진행이 반려된 고객입니다. 반려 사유를 확인하고 내용을 보완해주세요.",
     contract_pending: "결제 정보를 입력해주세요.",
     in_progress: "진행중인 절차를 추적하고 일정을 계획할 수 있어요.",
-    suspended: "중단된 고객입니다.",
+    suspended: "진행이 중단된 고객입니다.",
   };
   const isExceptionalStatus = status === "rejected" || status === "suspended";
 
@@ -144,9 +167,7 @@ export default function AnalysisProgressBanner({
       >
         <div className="flex h-[58px] items-center justify-center border-b border-neutral-30">
           {isExceptionalStatus ? (
-            <strong className="text-[16px] font-semibold leading-5 text-foreground">
-              {status === "rejected" ? "반려됨" : "중단됨"}
-            </strong>
+            <ExceptionalStatusLabel status={status} />
           ) : (
             <ProgressSteps currentStep={currentStep} compact />
           )}
@@ -164,9 +185,7 @@ export default function AnalysisProgressBanner({
         className="hidden min-h-[72px] items-center justify-between rounded-[12px] border border-neutral-30 bg-card px-[22px] shadow-[0_3px_4px_rgba(9,30,66,0.1)] dark:shadow-none md:flex"
       >
         {isExceptionalStatus ? (
-          <strong className="text-[16px] font-semibold leading-5 text-foreground">
-            {status === "rejected" ? "반려됨" : "중단됨"}
-          </strong>
+          <ExceptionalStatusLabel status={status} />
         ) : (
           <ProgressSteps currentStep={currentStep} />
         )}

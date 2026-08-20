@@ -296,9 +296,9 @@ function StepItem({
               <div
                 className={`mt-3 inline-flex items-start gap-1.5 max-w-full min-h-7 px-3 py-1.5 rounded-[5px] ${
                   step.noteType === "warning"
-                    ? "bg-warning-10 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)]"
+                    ? "bg-procedure-warning-note"
                     : step.noteType === "info"
-                    ? "bg-secondary-10 dark:bg-[rgb(var(--color-blue-600-rgb)/0.3)]"
+                    ? "bg-procedure-info-note"
                     : "bg-neutral-10"
                 }`}
               >

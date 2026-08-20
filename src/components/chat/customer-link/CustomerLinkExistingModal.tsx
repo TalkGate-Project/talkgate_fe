@@ -3,18 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConversationsService } from "@/services/conversations";
 import Pagination from "@/components/common/Pagination";
+import BaseModal from "@/components/common/BaseModal";
 import type { UnconnectedCustomer } from "@/types/conversations";
-
-// Simple scroll lock for fullscreen modals
-function lockBodyScroll() {
-  document.documentElement.style.overflow = "hidden";
-  document.body.style.overflow = "hidden";
-}
-
-function unlockBodyScroll() {
-  document.documentElement.style.overflow = "";
-  document.body.style.overflow = "";
-}
 
 type Props = {
   open: boolean;
@@ -84,22 +74,6 @@ export default function CustomerLinkExistingModal({
     fetchCustomers(1, "");
   }, [open, fetchCustomers]);
 
-  useEffect(() => {
-    if (open) {
-      lockBodyScroll();
-      const handleKey = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && !linking) {
-          onClose();
-        }
-      };
-      window.addEventListener("keydown", handleKey);
-      return () => {
-        window.removeEventListener("keydown", handleKey);
-        unlockBodyScroll();
-      };
-    }
-  }, [open, linking, onClose]);
-
   const totalPages = useMemo(() => {
     if (total === 0) return 1;
     return Math.max(1, Math.ceil(total / PAGE_LIMIT));
@@ -130,11 +104,20 @@ export default function CustomerLinkExistingModal({
 
   const canPrev = page > 1;
   const canNext = page < totalPages;
+  const handleClose = () => {
+    if (!linking) onClose();
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/30 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
-        <div className="w-full h-full md:w-[848px] md:h-auto md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none">
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="고객연동"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[848px] md:h-auto md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none"
+    >
           {/* Header with back button */}
           <div className="flex items-center gap-3 px-4 md:px-6 pt-4 md:pt-6 pb-3 shrink-0 border-b border-[#E2E2E266]">
             <button
@@ -162,7 +145,7 @@ export default function CustomerLinkExistingModal({
             </h2>
             <button
               aria-label="close"
-              onClick={() => !linking && onClose()}
+              onClick={handleClose}
               className="cursor-pointer w-6 h-6 grid place-items-center"
             >
             <svg
@@ -402,8 +385,6 @@ export default function CustomerLinkExistingModal({
             </div>
           )}
         </div>
-        </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

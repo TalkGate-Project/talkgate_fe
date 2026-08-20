@@ -5,6 +5,7 @@ import { CustomersBulkService } from "@/services/customersBulk";
 import { getSelectedProjectId } from "@/lib/project";
 import { CustomerBulkImportErrorType, type BulkJobDetail, type BulkJobFailure } from "@/types/customersBulk";
 import { formatDateTimeWithSpaces, formatDateTimeCompact } from "@/utils/datetime";
+import BaseModal from "@/components/common/BaseModal";
 
 interface FailureDetailModalProps {
   isOpen: boolean;
@@ -103,9 +104,15 @@ export default function FailureDetailModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 dark:bg-[#000000CC] flex items-center justify-center">
-      {/* Modal - 모바일: 전체 화면, 데스크탑: 고정 너비 */}
-      <div className="relative w-full h-full md:w-[848px] md:h-auto md:max-h-[668px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col">
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="실패 내역 상세보기"
+      positionerClassName="min-h-full flex items-center justify-center"
+      disableAutoContainerSizing
+      containerClassName="relative w-full h-full md:w-[848px] md:h-auto md:max-h-[668px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-4 md:px-7 h-[64px] md:h-auto md:pt-6 md:pb-[30px] flex-shrink-0">
           <div className="flex items-center gap-2 md:gap-0">
@@ -227,7 +234,6 @@ export default function FailureDetailModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

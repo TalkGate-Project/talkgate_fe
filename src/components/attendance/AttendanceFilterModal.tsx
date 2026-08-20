@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import BaseModal from "@/components/common/BaseModal";
 
 type TeamValue = string;
 type PositionValue = 'all' | '팀장' | '팀원';
@@ -40,25 +40,18 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
     setLocalPosition(defaults.position);
   }, [defaults.team, defaults.position]);
 
-  useEffect(() => {
-    function onEsc(e: KeyboardEvent) {
-      if (!open) return;
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onEsc);
-    return () => window.removeEventListener("keydown", onEsc);
-  }, [open, onClose]);
+  if (!open) return null;
 
-  if (!open || typeof document === "undefined") return null;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      <div
-        className="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[480px] md:h-auto md:max-h-[90vh]"
-        style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}
-      >
-        <div className="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col">
+  return (
+    <BaseModal
+      onClose={onClose}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="필터설정"
+      disableAutoContainerSizing
+      positionerClassName="absolute inset-0 md:left-1/2 md:top-1/2 md:inset-auto md:w-[480px] md:h-auto md:max-h-[90vh]"
+      positionerStyle={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}
+      containerClassName="relative w-full h-full md:h-auto bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col"
+    >
         {/* Header */}
         <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
@@ -159,9 +152,6 @@ export default function AttendanceFilterModal({ open, onClose, onApply, defaults
             적용완료
           </button>
         </div>
-        </div>
-      </div>
-    </div>,
-    document.body
+    </BaseModal>
   );
 }

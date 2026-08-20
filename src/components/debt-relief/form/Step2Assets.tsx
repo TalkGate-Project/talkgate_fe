@@ -9,14 +9,14 @@ import { DebtModeToggle } from "./DebtHistoryCard";
 
 type Props = { form: DiagnosisFormState; update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void };
 const ASSET_ICON: Record<AssetItemFormState["category"], string> = {
-  house: "/images/debt-relief/assets/home-icon.png", land: "/images/debt-relief/assets/land-icon.png",
-  jeonse_deposit: "/images/debt-relief/assets/home-icon-2.png", vehicle: "/images/debt-relief/assets/car-icon.png",
-  financial_asset: "/images/debt-relief/assets/wallet-icon.png",
+  house: "/images/debt-relief/assets/home-icon@4x.png", land: "/images/debt-relief/assets/land-icon@4x.png",
+  jeonse_deposit: "/images/debt-relief/assets/home-icon-2@4x.png", vehicle: "/images/debt-relief/assets/car-icon@4x.png",
+  financial_asset: "/images/debt-relief/assets/wallet-icon@4x.png",
 };
 
 function PlusIcon() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3.33v9.34M3.33 8h9.34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
 function RemoveIcon() { return <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
-function AssetIcon({ category }: { category: AssetItemFormState["category"] }) { return <Image src={ASSET_ICON[category]} alt="" width={20} height={20} className="h-5 w-5 object-contain" />; }
+function AssetIcon({ category }: { category: AssetItemFormState["category"] }) { return <Image src={ASSET_ICON[category]} alt="" width={80} height={80} unoptimized className="h-5 w-5 object-contain" />; }
 
 export default function Step2Assets({ form, update }: Props) {
   const setAssets = (assets: AssetItemFormState[]) => {
@@ -34,7 +34,14 @@ export default function Step2Assets({ form, update }: Props) {
     const nextIds = new Set(debts.map((debt) => debt.id));
     update("assetOriginDebtIds", [...form.assetOriginDebtIds.filter((id) => !previousIds.has(id)), ...nextIds]);
   };
-  const addAsset = (category: AssetItemFormState["category"]) => setAssets([...form.assets, { ...createEmptyAssetItem(crypto.randomUUID()), category }]);
+  const toggleAsset = (category: AssetItemFormState["category"]) => {
+    const existing = form.assets.find((asset) => asset.category === category);
+    if (existing) {
+      setAssets(form.assets.filter((asset) => asset.id !== existing.id));
+      return;
+    }
+    setAssets([...form.assets, { ...createEmptyAssetItem(crypto.randomUUID()), category }]);
+  };
   const totalAssetValue = form.assets.reduce((sum, asset) => sum + asset.marketValue, 0);
 
   return <div>
@@ -42,12 +49,12 @@ export default function Step2Assets({ form, update }: Props) {
     <div className="mt-4 md:mt-5 flex flex-wrap gap-2" role="list" aria-label="자산 종류 추가">
       {ASSET_CATEGORY_OPTIONS.map((option) => {
         const hasAsset = form.assets.some((asset) => asset.category === option.value);
-        return <button key={option.value} type="button" onClick={() => addAsset(option.value)} aria-label={`${option.label} 자산 추가`} className={`inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-full border px-4 text-[14px] font-medium transition-colors ${hasAsset ? "border-neutral-90 bg-neutral-90 text-neutral-0" : "border-neutral-30 bg-card text-foreground hover:border-neutral-50"}`}><AssetIcon category={option.value} />{option.label}</button>;
+        return <button key={option.value} type="button" onClick={() => toggleAsset(option.value)} aria-pressed={hasAsset} aria-label={`${option.label} 자산 ${hasAsset ? "제거" : "추가"}`} className={`inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-full border px-4 text-[14px] font-medium transition-colors ${hasAsset ? "border-neutral-90 bg-neutral-90 text-neutral-0" : "border-neutral-30 bg-card text-foreground hover:border-neutral-50"}`}><AssetIcon category={option.value} />{option.label}</button>;
       })}
     </div>
 
     <div className="mt-5 flex flex-col gap-5">
-      {form.assets.length === 0 && <button type="button" onClick={() => addAsset("house")} className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed border-neutral-30 text-[14px] font-medium text-neutral-50 hover:border-neutral-50 hover:text-neutral-60"><PlusIcon />위 자산 종류를 선택해 보유 자산을 추가해주세요.</button>}
+      {form.assets.length === 0 && <button type="button" onClick={() => toggleAsset("house")} className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-[14px] border border-dashed border-neutral-30 text-[14px] font-medium text-neutral-50 hover:border-neutral-50 hover:text-neutral-60"><PlusIcon />위 자산 종류를 선택해 보유 자산을 추가해주세요.</button>}
       {form.assets.map((asset) => {
         const category = ASSET_CATEGORY_OPTIONS.find((option) => option.value === asset.category);
         const collateralDebts = form.debts.filter((debt) => debt.collateralAssetId === asset.id);

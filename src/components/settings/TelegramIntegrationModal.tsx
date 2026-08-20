@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 interface TelegramIntegrationModalProps {
   isOpen: boolean;
@@ -46,15 +47,15 @@ export default function TelegramIntegrationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
-      {/* Dim overlay */}
-      <div
-        className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]"
-        onClick={handleClose}
-      />
-
-      {/* Modal container */}
-      <div className="relative w-full h-full md:w-[848px] md:h-auto bg-card dark:bg-neutral-10 md:rounded-[14px] flex flex-col">
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="텔레그램 봇 연동"
+      positionerClassName="md:flex md:items-center md:justify-center"
+      disableAutoContainerSizing
+      containerClassName="relative w-full h-full md:w-[848px] md:h-auto bg-card dark:bg-neutral-10 md:rounded-[14px] flex flex-col"
+    >
         {/* Header */}
         <div className="h-[64px] flex items-center px-4 md:px-7 md:border-b md:border-neutral-30 dark:border-neutral-30">
           <button
@@ -152,7 +153,6 @@ export default function TelegramIntegrationModal({
             {isSaving ? "연동 중..." : "연동"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

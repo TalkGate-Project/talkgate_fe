@@ -9,6 +9,7 @@ export const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
   share: "공유",
   reject: "반려",
   accept: "수락",
+  self_proceed: "자체 진행",
   fee_create: "결제",
   fee_update: "결제",
   fee_stop: "중단",

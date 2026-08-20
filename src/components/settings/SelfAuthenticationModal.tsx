@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "@/components/common/BaseModal";
+
 interface SelfAuthenticationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,17 +37,14 @@ export default function SelfAuthenticationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div 
-        className="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4"
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="본인인증"
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-5">
           <h2 className="text-[18px] font-bold text-ink dark:text-neutral-80 leading-[1.4]">
@@ -118,7 +117,6 @@ export default function SelfAuthenticationModal({
             확인
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

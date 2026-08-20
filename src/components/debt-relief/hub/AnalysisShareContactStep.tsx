@@ -118,11 +118,7 @@ export default function AnalysisShareContactStep({
   const formDisabled = submitting || prefillLoading;
 
   return (
-    <div
-      className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:right-auto md:w-[480px] md:-translate-x-1/2 w-[calc(100%-2rem)] min-h-[446px] max-h-[80vh] bg-card dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col overflow-hidden"
-      style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 px-6 pt-5 pb-4 shrink-0">
         <button
           type="button"

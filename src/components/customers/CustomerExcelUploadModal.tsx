@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AssetsService } from "@/services/assets";
 import { CustomersBulkService } from "@/services/customersBulk";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import BaseModal from "@/components/common/BaseModal";
 
 const ACCEPTED_TYPES = ".xlsx,.xls,.csv";
 
@@ -181,14 +182,15 @@ export default function CustomerExcelUploadModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
-        aria-hidden
-      />
-      <div
-        className="relative bg-white dark:bg-neutral-10 md:rounded-[14px] md:w-[440px] w-full max-h-[90vh] md:max-h-[600px] flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="엑셀 업로드"
+      disableAutoContainerSizing
+      containerClassName="bg-white dark:bg-neutral-10 md:rounded-[14px] md:w-[440px] w-full max-h-[90vh] md:max-h-[600px] flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
+    >
         {/* 헤더 - font-weight 600, 18px, line-height 21px */}
         <div className="flex items-center px-6 pt-6 pb-0">
           <h2 className="text-[18px] font-semibold leading-[21px] text-[#000000] dark:text-foreground">
@@ -389,7 +391,6 @@ export default function CustomerExcelUploadModal({
             {submitting ? "등록 중..." : "등록하기"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

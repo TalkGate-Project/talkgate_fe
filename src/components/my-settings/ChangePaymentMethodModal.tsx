@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { BillingService } from "@/services/billing";
+import BaseModal from "@/components/common/BaseModal";
 import type { BillingTermsType } from "@/types/billing";
 
 interface ChangePaymentMethodModalProps {
@@ -363,16 +364,14 @@ export default function ChangePaymentMethodModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center md:items-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
-
-      {/* Modal */}
-      <div
-        className="relative w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel={isRegisterMode ? "결제수단 등록" : "결제수단 변경"}
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-7 pb-4 md:pb-6">
           <button
@@ -703,8 +702,7 @@ export default function ChangePaymentMethodModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

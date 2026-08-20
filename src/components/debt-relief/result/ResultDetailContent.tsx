@@ -43,7 +43,7 @@ const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "gu
 export default function ResultDetailContent({ diagnosisId }: { diagnosisId: string }) {
   const { detail, loading, refetch } = useDiagnosisDetail(diagnosisId);
   const [projectId] = useSelectedProjectId();
-  const { isLawyer, ready: projectTypeReady } = useProjectType();
+  const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const [activeId, setActiveId] = useState("overview");
   // 모바일·태블릿(lg 미만) "전달사항" 토글(AI 추천 영역을 덮는 팝업).
   // PC(lg+)는 항상 접이식 섹션으로 쌓아 보여준다.
@@ -190,13 +190,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     if (!projectId || statusSubmitting) return;
     setStatusSubmitting(true);
     try {
-      await DebtReliefService.updateDiagnosisStatus(projectId, diagnosisId, "contract_pending");
+      await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId);
       setProgressChoiceOpen(false);
       refetch();
     } catch (error) {
-      console.error("Failed to update analysis status:", error);
+      console.error("Failed to self-progress analysis:", error);
       showErrorModal({
-        headline: "진행 상태를 변경하지 못했습니다.",
+        headline: "자체 진행을 시작하지 못했습니다.",
         description: "잠시 후 다시 시도해주세요.",
       });
     } finally {
@@ -209,7 +209,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   };
 
   const progressActions = (() => {
-    if (detail.status === "consulting" || detail.status === "rejected") {
+    if (
+      projectTypeReady &&
+      isAnalysis &&
+      (detail.status === "consulting" || detail.status === "rejected")
+    ) {
       return [
         {
           label: detail.status === "rejected" ? "다시진행" : "진행하기",

@@ -4,6 +4,7 @@ import { useState } from "react";
 import EyeOnIcon from "@/components/common/icons/EyeOnIcon";
 import EyeOffIcon from "@/components/common/icons/EyeOffIcon";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import BaseModal from "@/components/common/BaseModal";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -86,17 +87,14 @@ export default function ChangePasswordModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
-
-      {/* Modal */}
-      <div 
-        className="relative w-full max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4 md:mx-0"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-      >
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="비밀번호 변경"
+      disableAutoContainerSizing
+      containerClassName="relative w-full max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4 md:mx-0 drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -247,8 +245,7 @@ export default function ChangePasswordModal({
             비밀번호 변경
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

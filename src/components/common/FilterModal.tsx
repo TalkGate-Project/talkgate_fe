@@ -9,6 +9,7 @@ import {
   useMemo,
 } from "react";
 import { createPortal } from "react-dom";
+import BaseModal from "@/components/common/BaseModal";
 import type { CustomerNoteCategory } from "@/types/customerNoteCategories";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { ProjectPartnersService } from "@/services/projectPartners";
@@ -327,15 +328,6 @@ export default function FilterModal({
         return `${y}-${m}-${d}`;
     };
 
-    useEffect(() => {
-        function onEsc(e: KeyboardEvent) {
-            if (!open) return;
-            if (e.key === "Escape") onClose();
-        }
-        window.addEventListener("keydown", onEsc);
-        return () => window.removeEventListener("keydown", onEsc);
-    }, [open, onClose]);
-
     if (!open) return null;
 
     /**
@@ -345,13 +337,15 @@ export default function FilterModal({
      */
 
     return (
-        <div className="fixed inset-0 z-[100]">
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-
-            {/* Modal container (centered) */}
-            <div className="absolute inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-[960px] md:h-auto md:max-h-[90vh] lg:w-[848px] lg:max-w-[848px]" style={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}>
-                <div className="relative w-full h-full md:h-auto md:max-h-[90vh] bg-white dark:bg-neutral-10 md:rounded-[14px] md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none flex flex-col overflow-hidden">
+        <BaseModal
+            onClose={onClose}
+            overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+            ariaLabel="필터추가"
+            disableAutoContainerSizing
+            positionerClassName="absolute inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-[960px] md:h-auto md:max-h-[90vh] lg:w-[848px] lg:max-w-[848px]"
+            positionerStyle={{ transform: !isMobile ? 'translate(-50%, -50%)' : 'none' }}
+            containerClassName="relative w-full h-full md:h-auto md:max-h-[90vh] bg-white dark:bg-neutral-10 md:rounded-[14px] md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none flex flex-col overflow-hidden"
+        >
                     {/* Header */}
                     <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2">
@@ -713,9 +707,7 @@ export default function FilterModal({
                         <button className="cursor-pointer w-[60px] md:w-[60px] h-[40px] md:h-[34px] rounded-[5px] border border-[#E2E2E2] dark:border-[#444444] text-[14px] font-semibold tracking-[-0.02em] text-[#000] dark:text-neutral-80 bg-white dark:bg-neutral-20 hover:bg-neutral-10 dark:hover:bg-neutral-30" onClick={() => { const resetValues = {}; setForm(resetValues); if (onReset) onReset(); else onApply(resetValues, { categories: [] }); }}>초기화</button>
                         <button className="cursor-pointer w-[72px] md:w-[72px] h-[40px] md:h-[34px] rounded-[5px] bg-[#252525] dark:bg-neutral-80 text-[#D0D0D0] dark:text-neutral-10 text-[14px] font-semibold tracking-[-0.02em] hover:bg-[#353535] dark:hover:bg-neutral-70" onClick={() => onApply(form, { categories: [] })}>확인</button>
                     </div>
-                </div>
-            </div>
-        </div>
+        </BaseModal>
     );
 }
 

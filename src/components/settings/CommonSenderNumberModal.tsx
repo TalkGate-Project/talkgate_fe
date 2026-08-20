@@ -5,6 +5,7 @@ import { AssetsService } from "@/services/assets";
 import { SmsService } from "@/services/sms";
 import { showErrorModal } from "@/lib/errorModalEvents";
 import { formatPhoneInput, getPhoneFormatCursorPosition } from "@/utils/format";
+import BaseModal from "@/components/common/BaseModal";
 
 interface CommonSenderNumberModalProps {
   isOpen: boolean;
@@ -177,12 +178,15 @@ export default function CommonSenderNumberModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative w-full h-full md:w-[600px] md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] md:max-h-[90vh] flex flex-col overflow-hidden">
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="공통 발신번호 추가"
+      positionerClassName="md:flex md:items-center md:justify-center"
+      disableAutoContainerSizing
+      containerClassName="relative w-full h-full md:w-[600px] md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] md:max-h-[90vh] flex flex-col overflow-hidden"
+    >
         {/* Header */}
         <div className="h-[64px] flex items-center px-4 md:px-7 md:border-b md:border-neutral-30 dark:md:border-neutral-30 flex-shrink-0">
           <button
@@ -450,7 +454,6 @@ export default function CommonSenderNumberModal({
             {isSubmitting ? "등록 중..." : "등록"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -6,6 +6,7 @@ import { AnalysisPartnersService } from "@/services/analysisPartners";
 import { CustomersService } from "@/services/customers";
 import type { AnalysisPartner } from "@/types/analysisPartners";
 import type { BulkDeliverAnalysisItem } from "@/types/analysis";
+import BaseModal from "@/components/common/BaseModal";
 import Pagination from "@/components/common/Pagination";
 import RadioButton from "@/components/customers/sms/RadioButton";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
@@ -456,15 +457,21 @@ export default function AnalysisShareModal({
         : ""
       : (currentMeta?.initialContact ?? "");
   const stepInitialReferenceNote = currentDraft?.referenceNote ?? "";
+  const containerClassName =
+    step === "contact"
+      ? "w-full md:w-[480px] min-h-[446px] max-h-[80vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      : "w-full md:w-[480px] max-h-[90vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]";
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40"
-        onClick={() => !submitting && requestClose()}
-        aria-hidden
-      />
-
+      <BaseModal
+        onClose={requestClose}
+        closeOnOverlayClick={!submitting}
+        overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+        ariaLabel={step === "contact" ? customerNameTitle : "분석결과 공유하기"}
+        disableAutoContainerSizing
+        containerClassName={containerClassName}
+      >
       {step === "contact" ? (
         <AnalysisShareContactStep
           key={currentAnalysisId}
@@ -480,11 +487,7 @@ export default function AnalysisShareModal({
           onSubmit={handleContactSubmit}
         />
       ) : (
-        <div
-          className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:right-auto md:w-[480px] md:-translate-x-1/2 w-[calc(100%-2rem)] max-h-[90vh] bg-card dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col overflow-hidden"
-          style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <>
           <div className="flex items-center justify-between px-7 pt-6 pb-4 shrink-0">
             <h2 className="text-[18px] font-semibold text-foreground">
               분석결과 공유하기 ({analysisIds.length}건)
@@ -574,8 +577,9 @@ export default function AnalysisShareModal({
               공유하기
             </button>
           </div>
-        </div>
+        </>
       )}
+      </BaseModal>
 
       <AnalysisShareConfirmModal
         open={pendingConfirm != null}

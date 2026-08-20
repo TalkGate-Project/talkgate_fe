@@ -1,8 +1,6 @@
 "use client";
 
-import { CREDITOR_COUNT_OPTIONS, createEmptyDebtItem, type DiagnosisFormState } from "@/types/debtRelief";
-import { FormField } from "./FormControls";
-import { PillSelect } from "./PillSelect";
+import { createEmptyDebtItem, type DiagnosisFormState } from "@/types/debtRelief";
 import DebtItemsTable from "./DebtItemsTable";
 import type { OverLimitDebtField } from "./validateDiagnosisForm";
 
@@ -42,9 +40,6 @@ export default function DebtHistoryCard({ form, update, disabled = false, areaBa
     </div>
     <div className={`flex flex-col gap-5 px-5 md:px-6 py-5 ${disabled ? "pointer-events-none opacity-80" : ""}`}>
       <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} />
-      <FormField label="채권자 수" required filled={form.creditorCount !== null}>
-        <PillSelect options={CREDITOR_COUNT_OPTIONS} value={form.creditorCount} onChange={(value) => update("creditorCount", value)} />
-      </FormField>
     </div>
   </div>;
 }

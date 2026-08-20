@@ -7,6 +7,7 @@ import { showErrorModal } from "@/lib/errorModalEvents";
 import { LANDING_URLS } from "@/lib/constants";
 import { SubscriptionService } from "@/services/subscription";
 import { formatCouponCodeForDisplay } from "@/utils/format";
+import BaseModal from "@/components/common/BaseModal";
 
 type Project = {
   id: string;
@@ -226,21 +227,20 @@ export default function SubscribeProjectModal({
     },
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* 배경 오버레이 */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => !submitting && onClose()}
-      />
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
-      {/* 모달 컨테이너 */}
-      <div
-        className="relative w-[440px] h-[526px] md:h-[675px] rounded-[14px] max-md:w-full max-md:max-w-[344px] max-md:h-auto max-md:min-h-[500px] max-md:max-h-[calc(100dvh-32px)] max-md:rounded-[12px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.36)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-      >
+  return (
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!submitting}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 backdrop-blur-sm"
+      ariaLabel="구독 안내"
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] h-[526px] md:h-[675px] rounded-[14px] max-md:w-full max-md:max-w-[344px] max-md:h-auto max-md:min-h-[500px] max-md:max-h-[calc(100dvh-32px)] max-md:rounded-[12px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.36)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* 헤더 이미지 영역 */}
         <div className="relative w-full h-[155px] max-md:h-[136px] rounded-t-[14px] max-md:rounded-t-[12px] overflow-hidden shrink-0">
           {/* 배경 패턴 (추상적인 기하학적 도형) */}
@@ -360,7 +360,6 @@ export default function SubscribeProjectModal({
             </svg>
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import BaseModal from "@/components/common/BaseModal";
 
 type Props = {
   open: boolean;
@@ -11,40 +11,24 @@ type Props = {
 };
 
 export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProceed, onShare, submitting = false }: Props) {
-  const dialogRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    dialogRef.current?.focus();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting) onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, open, submitting]);
-
   if (!open) return null;
+
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
   return (
     // 요청 실패 피드백은 공용 오류 모달(z-280)이 이 선택 화면 위에 표시한다.
-    <div className="fixed inset-0 z-[270] flex items-center justify-center px-4">
-      <div
-        className="absolute inset-0 bg-black/30 dark:bg-black/80"
-        onClick={() => {
-          if (!submitting) onClose();
-        }}
-        aria-hidden="true"
-      />
-      <section
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="progress-choice-title"
-        aria-describedby="progress-choice-description"
-        tabIndex={-1}
-        className="relative max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-[14px] bg-card px-4 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.366)] outline-none dark:shadow-[0_13px_61px_rgba(0,0,0,0.55)] md:h-[295px] md:px-7"
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!submitting}
+      zIndexClassName="z-[270]"
+      overlayClassName="bg-black/30 dark:bg-black/80"
+      ariaLabel="진행방법 선택"
+      positionerClassName="min-h-full flex items-center justify-center px-4"
+      disableAutoContainerSizing
+      containerClassName="relative max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-[14px] bg-card px-4 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.366)] outline-none dark:shadow-[0_13px_61px_rgba(0,0,0,0.55)] md:h-[295px] md:px-7"
+    >
         <button
           type="button"
           onClick={onClose}
@@ -78,7 +62,7 @@ export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProce
               </svg>
             </span>
             <span className="mt-3 block text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-secondary-40">자체진행</span>
-            <span className="mt-2 block text-[14px] font-normal leading-[17px] tracking-[0.2px] text-neutral-60">검토중을 건너뛰고 계약<br />대기중으로 바로 이동</span>
+            <span className="mt-2 block text-[14px] font-normal leading-[17px] tracking-[0.2px] text-neutral-60">법무법인 공유 없이<br />자체적으로 절차 진행</span>
           </button>
 
           <button
@@ -98,7 +82,6 @@ export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProce
             <span className="mt-2 block text-[14px] font-normal leading-[17px] tracking-[0.2px] text-neutral-60">법무법인으로 공유하는<br />기존 프로세스</span>
           </button>
         </div>
-      </section>
-    </div>
+    </BaseModal>
   );
 }

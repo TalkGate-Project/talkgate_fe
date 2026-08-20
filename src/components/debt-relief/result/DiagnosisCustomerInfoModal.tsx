@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type {
   AnalysisCollateralBreakdown,
   AnalysisDebtBreakdown,
@@ -23,6 +23,7 @@ import {
   type DiagnosisDetail,
 } from "@/types/debtRelief";
 import { wonToManwon } from "@/services/debtRelief";
+import BaseModal from "@/components/common/BaseModal";
 import DebtDetailModal from "./DebtDetailModal";
 
 type Props = {
@@ -647,15 +648,6 @@ export default function DiagnosisCustomerInfoModal({
 }: Props) {
   const [debtDetailOpen, setDebtDetailOpen] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [open, onClose]);
-
   if (!open) return null;
 
   const inputData = detail.inputData;
@@ -669,24 +661,17 @@ export default function DiagnosisCustomerInfoModal({
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="diagnosis-customer-info-title"
-        className={[
-          "fixed left-4 right-4 top-1/2 z-50 flex h-[1342px] max-h-[90vh] -translate-y-1/2 flex-col overflow-hidden",
-          "w-[calc(100%-2rem)]",
+      <BaseModal
+        onClose={onClose}
+        ariaLabel="고객정보"
+        overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+        disableAutoContainerSizing
+        containerClassName={[
+          "flex h-[1342px] max-h-[90vh] w-full flex-col overflow-hidden",
           "bg-card dark:bg-neutral-10 rounded-[14px]",
-          "min-[709px]:left-1/2 min-[709px]:right-auto min-[709px]:-translate-x-1/2",
-          "min-[709px]:w-[calc(100%-2rem)] min-[709px]:max-w-[1062px]",
+          "drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]",
+          "min-[709px]:max-w-[1062px]",
         ].join(" ")}
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex h-[76px] shrink-0 items-center gap-4 border-b border-neutral-30 px-5 min-[1024px]:px-7">
           <button
@@ -799,7 +784,7 @@ export default function DiagnosisCustomerInfoModal({
             확인
           </button>
         </div>
-      </div>
+      </BaseModal>
 
       {projectId && (
         <DebtDetailModal

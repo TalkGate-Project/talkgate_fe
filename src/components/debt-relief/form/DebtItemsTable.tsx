@@ -316,7 +316,7 @@ export default function DebtItemsTable({
                 <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
                 <td className={`${BODY_CELL} px-3 text-[14px] font-medium text-neutral-90/80`}>
                   <span className="inline-flex items-center gap-2 whitespace-nowrap">
-                    {locked && debt.collateralAssetId && <Image src="/images/debt-relief/assets/home-icon.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />}
+                    {locked && debt.collateralAssetId && <Image src="/images/debt-relief/assets/home-icon@4x.png" alt="" width={80} height={80} unoptimized className="h-5 w-5 object-contain" />}
                     {debt.collateralAssetId ? "담보" : "무담보"}
                   </span>
                 </td>

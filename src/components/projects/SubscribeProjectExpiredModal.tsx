@@ -5,6 +5,7 @@ import type { MemberRole } from "@/types/members";
 import { useMyMember } from "@/hooks/useMyMember";
 import { LANDING_URLS } from "@/lib/constants";
 import subscribeProjUpper from "@/assets/images/projects/subscribe_proj_upper.webp";
+import BaseModal from "@/components/common/BaseModal";
 
 type Project = {
   id: number;
@@ -47,20 +48,14 @@ export default function SubscribeProjectExpiredModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* 배경 오버레이 */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* 모달 컨테이너: 모바일 전체 화면, 데스크톱 고정 크기 */}
-      <div
-        className="relative w-[440px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden max-md:overflow-y-auto"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 backdrop-blur-sm"
+      ariaLabel="구독 기간이 만료되었어요."
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* 헤더 이미지 영역 */}
         <div className="relative w-full h-[155px] rounded-t-[14px] overflow-hidden flex-shrink-0">
           {/* 배경 패턴 (추상적인 기하학적 도형) */}
@@ -140,7 +135,6 @@ export default function SubscribeProjectExpiredModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { TeamMember } from "@/types/teams";
+import BaseModal from "@/components/common/BaseModal";
 
 interface TeamMoveConfirmModalProps {
   source: TeamMember;
@@ -23,10 +24,20 @@ export default function TeamMoveConfirmModal({
     ? `${currentParent.name} (${currentParent.department})`
     : "루트";
   const targetLocationLabel = `${target.name} (${target.department})`;
+  const handleClose = () => {
+    if (!isPending) onCancel();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-card rounded-[12px] md:rounded-[16px] shadow-xl w-full max-w-[500px] p-4 md:p-6">
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/40"
+      ariaLabel="조직 이동 확인"
+      disableAutoContainerSizing
+      containerClassName="bg-card rounded-[12px] md:rounded-[16px] shadow-xl w-full max-w-[500px] p-4 md:p-6"
+    >
         <h2 className="text-[16px] md:text-[18px] font-bold text-foreground mb-4">조직 이동 확인</h2>
         <div className="rounded-[12px] bg-neutral-10 px-3 md:px-4 py-4 md:py-5 mb-4 md:mb-5 flex flex-col gap-3 md:gap-4">
           <div className="min-w-0">
@@ -96,7 +107,6 @@ export default function TeamMoveConfirmModal({
             {isPending ? "이동 중..." : "조직이동"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

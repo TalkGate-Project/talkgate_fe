@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 interface TwoFactorSetupModalProps {
   isOpen: boolean;
@@ -64,19 +65,14 @@ export default function TwoFactorSetupModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center md:items-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div 
-        className="relative bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] w-full h-full md:h-auto md:max-w-[848px] md:max-h-[90vh] overflow-y-auto flex flex-col"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="2단계 인증 (2FA)"
+      disableAutoContainerSizing
+      containerClassName="relative bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] w-full h-full md:h-auto md:max-w-[848px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-4 md:px-7 py-4 md:py-6">
           <div className="flex items-center gap-3">
@@ -237,7 +233,6 @@ export default function TwoFactorSetupModal({
             {loading ? "인증 중..." : "인증완료"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

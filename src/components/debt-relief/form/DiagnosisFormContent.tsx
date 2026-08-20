@@ -712,6 +712,8 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             open={customerLinkStep === "existing"}
             onClose={() => setCustomerLinkStep(null)}
             onBack={() => setCustomerLinkStep("mode")}
+            analysisId={isEdit ? diagnosisId : undefined}
+            matchImmediately={!isEdit}
             projectId={projectId}
             analysisCustomerName={form.customerName}
             onSelected={handleExistingCustomerSelected}

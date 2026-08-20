@@ -7,17 +7,7 @@ import { CustomersService } from "@/services/customers";
 import type { CreateCustomerMessengerInfo } from "@/types/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
-
-// Simple scroll lock for fullscreen modals
-function lockBodyScroll() {
-  document.documentElement.style.overflow = "hidden";
-  document.body.style.overflow = "hidden";
-}
-
-function unlockBodyScroll() {
-  document.documentElement.style.overflow = "";
-  document.body.style.overflow = "";
-}
+import BaseModal from "@/components/common/BaseModal";
 
 type Props = {
   open: boolean;
@@ -107,22 +97,6 @@ export default function CustomerLinkCreateModal({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      lockBodyScroll();
-      const handleKey = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && !submitting) {
-          onClose();
-        }
-      };
-      window.addEventListener("keydown", handleKey);
-      return () => {
-        window.removeEventListener("keydown", handleKey);
-        unlockBodyScroll();
-      };
-    }
-  }, [open, submitting, onClose]);
-
   const handleAddMessenger = () => {
     if (!currentMessengerAccount.trim()) return;
     setMessengerAccounts((prev) => [...prev, { messenger: currentMessengerType, account: currentMessengerAccount.trim() }]);
@@ -190,10 +164,20 @@ export default function CustomerLinkCreateModal({
 
   if (!open) return null;
 
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] bg-black/30 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
-        <div className="w-full h-full md:w-[848px] md:h-[523px] md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none">
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="고객등록"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[848px] md:h-[523px] md:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none"
+    >
           {/* Header with back button */}
           <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-6 pb-3 md:pb-4 shrink-0 border-b border-neutral-30 dark:border-neutral-30">
             <button
@@ -219,7 +203,7 @@ export default function CustomerLinkCreateModal({
             <h2 className="text-[18px] font-semibold leading-[21px] text-neutral-90 absolute left-1/2 -translate-x-1/2">고객등록</h2>
             <button
               aria-label="close"
-              onClick={() => !submitting && onClose()}
+              onClick={handleClose}
               className="w-6 h-6 grid place-items-center text-neutral-50 hover:text-neutral-90 transition-colors"
             >
             <svg
@@ -572,8 +556,6 @@ export default function CustomerLinkCreateModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
-    </div>
+    </BaseModal>
   );
 }

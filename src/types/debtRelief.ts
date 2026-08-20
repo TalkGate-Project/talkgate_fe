@@ -481,26 +481,6 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
   { value: "other", label: DEBT_CAUSE_LABELS.other },
 ];
 
-// 2026-08-07 피드백: 간편모드의 채권자 수를 다시 상담사가 직접 고르는 구간 선택으로 되돌린다 —
-// 채무종류 배지 개수(최대 5개)를 그대로 쓰면 실제 채권사 수와 크게 어긋나는 경우가 많았기 때문.
-// API creditorCount는 여전히 number라 대표값으로 매핑해 보낸다(services/debtRelief.ts의
-// toAnalysisFormInput/creditorCountFromNumber 참고). 상세모드는 채무 항목 테이블 행 개수를
-// 그대로 쓰는 자동 계산을 유지 — 항목별로 실제 입력하니 배지 선택 대비 부정확할 이유가 없다.
-/** 채권자 수 구간(간편모드 전용) — API creditorCount(number)로 대표값 매핑 */
-export type CreditorCountRange = "1_2" | "3_5" | "6_10" | "over_10";
-export const CREDITOR_COUNT_OPTIONS: PillOption<CreditorCountRange>[] = [
-  { value: "1_2", label: "1~2곳" },
-  { value: "3_5", label: "3~5곳" },
-  { value: "6_10", label: "6~10곳" },
-  { value: "over_10", label: "10곳 이상" },
-];
-export const CREDITOR_COUNT_TO_NUMBER: Record<CreditorCountRange, number> = {
-  "1_2": 2,
-  "3_5": 4,
-  "6_10": 8,
-  over_10: 12,
-};
-
 // ── 4. 소득/지출 ─────────────────────────────────────────────
 // 2026-08-07 스펙: 구간 선택형(MonthlyIncomeRange) 폐지, 만원 단위 실수령액 직접 입력으로 변경.
 // DiagnosisFormState.monthlyIncome(number) 참고.
@@ -603,9 +583,6 @@ export type DiagnosisFormState = {
   /** 연체 개월 수. 간편모드에서만 입력받고(필수), 상세모드는 서버가 debts에서 자동 계산한다.
    * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
   overdueMonths: number | null;
-  /** 채권자 수 구간. 간편모드에서만 입력받고(필수) API 대표값(number)으로 매핑해 보낸다.
-   * 상세모드는 채무 항목 테이블 행 개수를 그대로 써서 이 값을 무시한다. */
-  creditorCount: CreditorCountRange | null;
   debtCauses: DebtCause[];
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
@@ -669,7 +646,6 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     debts: [],
     assetOriginDebtIds: [],
     overdueMonths: null,
-    creditorCount: null,
     debtCauses: [],
     hasTaxArrears: false,
     securedDebt: 0,
@@ -811,6 +787,7 @@ export type DiagnosisMessageType =
   | "share"
   | "reject"
   | "accept"
+  | "self_proceed"
   | "fee_create"
   | "fee_update"
   | "fee_stop"

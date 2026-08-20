@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 interface InstagramIntegrationModalProps {
   isOpen: boolean;
@@ -50,9 +51,14 @@ export default function InstagramIntegrationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
-      <div className="relative w-[848px] bg-white dark:bg-neutral-10 rounded-[14px]">
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="인스타그램 연동"
+      disableAutoContainerSizing
+      containerClassName="relative w-[848px] bg-white dark:bg-neutral-10 rounded-[14px]"
+    >
         <button
           className="absolute top-6 right-6 w-6 h-6 grid place-items-center hover:opacity-70 transition-opacity"
           aria-label="close"
@@ -126,8 +132,7 @@ export default function InstagramIntegrationModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

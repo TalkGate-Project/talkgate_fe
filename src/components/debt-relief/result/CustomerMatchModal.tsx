@@ -5,6 +5,7 @@ import { AnalysisService } from "@/services/analysis";
 import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 import Pagination from "@/components/common/Pagination";
 import { formatContactForDisplay } from "@/utils/format";
 import { formatDateTime } from "@/utils/datetime";
@@ -16,6 +17,8 @@ type Props = {
   onBack?: () => void;
   /** 상세 화면에서는 분석 ID로 즉시 매칭하고, 신규 화면에서는 생략해 선택만 한다. */
   analysisId?: string;
+  /** false면 전용 목록만 조회하고 실제 교체/연동 처리는 onSelected에 위임한다. */
+  matchImmediately?: boolean;
   projectId: string;
   /** 진단 원본 입력 성명. 연동 대상 고객명과 다르면 확인 모달로 한 번 더 확인한다. */
   analysisCustomerName?: string;
@@ -70,6 +73,7 @@ export default function CustomerMatchModal({
   onClose,
   onBack,
   analysisId,
+  matchImmediately = true,
   projectId,
   analysisCustomerName,
   onMatched,
@@ -148,22 +152,13 @@ export default function CustomerMatchModal({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !matchingId) onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [open, matchingId, onClose]);
-
   const performMatch = async (customerId: number) => {
     setMatchingId(customerId);
     try {
       const selectedCustomer = customers.find((customer) => customer.id === customerId);
       if (!selectedCustomer) return;
       if (!analysisId && selectedCustomer.isAnalysisConnected) return;
-      if (analysisId) {
+      if (analysisId && matchImmediately) {
         await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
         onMatched?.();
       } else {
@@ -212,17 +207,21 @@ export default function CustomerMatchModal({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
   const handleCancel = onBack ?? onClose;
+  const handleClose = () => {
+    if (!matchingId) onClose();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
-        <div
-          className="w-full h-full md:w-[848px] md:h-[625px] md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
-          onClick={(event) => event.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="customer-match-modal-title"
-        >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="고객연동"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[848px] md:h-[625px] md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
+    >
           <div className="flex items-start justify-between gap-4 px-4 md:px-7 pt-5 md:pt-6 shrink-0">
             <div className="min-w-0">
               <h2
@@ -436,8 +435,6 @@ export default function CustomerMatchModal({
               취소
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

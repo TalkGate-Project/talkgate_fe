@@ -2,6 +2,7 @@
 
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import BaseModal from "@/components/common/BaseModal";
 import Checkbox from "@/components/common/Checkbox";
 import { useCustomerNoteCategories } from "@/hooks/useCustomerNoteCategories";
 import { getBadgeStyle } from "@/utils/categoryBadge";
@@ -98,13 +99,13 @@ export default function ChatFilterModal({
 
 
   return (
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      {/* 모바일: 전체 너비, 데스크탑: 고정 너비 */}
-      <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] md:w-[440px] max-h-[90vh] overflow-y-auto"
-      >
-        <div className="relative w-full bg-neutral-0 dark:bg-neutral-10 rounded-[14px]">
+    <BaseModal
+      onClose={onClose}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="필터설정"
+      disableAutoContainerSizing
+      containerClassName="relative w-[calc(100%-32px)] md:w-[440px] max-h-[90vh] overflow-y-auto rounded-[14px] bg-neutral-0 dark:bg-neutral-10"
+    >
           {/* Header */}
           <div className="px-4 md:px-7 pt-4 md:pt-6 pb-4 md:pb-[30px] flex items-center justify-between">
             <h2 className="text-[18px] leading-[21px] font-semibold text-neutral-90">
@@ -373,8 +374,6 @@ export default function ChatFilterModal({
               적용완료
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -44,6 +44,7 @@
   --secondary-60: #2563eb;
   --secondary-80: #0037b3;
   --secondary-100: #002987;
+  --secondary-100-rgb: 0 41 135;
 
   --warning-10: #fff5d5;
   --warning-20: #ffde81;
@@ -51,6 +52,7 @@
   --warning-60: #976400;
   --warning-80: #724b00;
   --warning-100: #4d2900;
+  --warning-100-rgb: 77 41 0;
 
   --danger-10: #ffebeb;
   --danger-20: #fc9595;
@@ -84,6 +86,8 @@
   --warning: var(--warning-60);
   --danger: var(--danger-60);
   --color-surface-10: var(--neutral-10);
+  --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
+  --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
   
   /* Customer link modal gradients (default to light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
@@ -121,6 +125,8 @@
   --warning: var(--warning-60);
   --danger: var(--danger-60);
   --color-surface-10: var(--neutral-light-10);
+  --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
+  --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
   
   /* Notification unread background (light mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.3);
@@ -162,6 +168,8 @@
   --warning: var(--warning-40);
   --danger: var(--danger-40);
   --color-surface-10: var(--neutral-dark-20);
+  --procedure-warning-note-background: rgb(77 41 0 / 0.3);
+  --procedure-info-note-background: rgb(0 41 135 / 0.3);
   
   /* Notification unread background (dark mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.1);
@@ -444,6 +452,8 @@ body {
 /* Surfaces and shape */
 @utility surface { @apply bg-card text-foreground; }
 @utility surface-muted { background-color: var(--color-surface-10); }
+@utility bg-procedure-warning-note { background-color: var(--procedure-warning-note-background); }
+@utility bg-procedure-info-note { background-color: var(--procedure-info-note-background); }
 @utility rounded-card { border-radius: var(--radius-card); }
 
 /* Neutral scale utilities */

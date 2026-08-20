@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "@/components/common/BaseModal";
+
 interface ApiKeyRegenerateModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,15 +21,15 @@ export default function ApiKeyRegenerateModal({
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40" onClick={onClose} />
-
-      {/* Modal */}
-      <div
-        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[440px] md:h-auto md:max-h-[90vh] bg-card dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="API 키 재발급"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[440px] md:h-auto md:max-h-[90vh] bg-card dark:bg-neutral-10 md:rounded-[14px] flex flex-col"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-4 md:px-7 pt-4 md:pt-6 pb-3 md:pb-4 flex-shrink-0">
           <h2 className="text-[18px] md:text-[18px] font-semibold text-foreground dark:text-neutral-80 leading-[21px]">
@@ -127,7 +129,6 @@ export default function ApiKeyRegenerateModal({
             API 키 재발급
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

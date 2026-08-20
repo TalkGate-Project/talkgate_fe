@@ -29,16 +29,16 @@ function TipIcon() {
 
 const NOTE_STYLE: Record<ProcedureGuideNoteType, { box: string; text: string }> = {
   warning: {
-    box: "bg-warning-10/50 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)]",
+    box: "bg-procedure-warning-note",
     text: "text-warning-100 dark:text-warning-40",
   },
   info: {
-    box: "bg-secondary-10/50 dark:bg-[rgb(var(--color-blue-600-rgb)/0.3)]",
+    box: "bg-procedure-info-note",
     text: "text-secondary-100 dark:text-secondary-20",
   },
   tip: {
     box: "bg-primary-10/50 dark:bg-[rgb(var(--color-green-100-rgb)/0.18)]",
-    text: "text-primary-100 dark:text-primary-10",
+    text: "text-primary-80",
   },
 };
 
@@ -92,7 +92,7 @@ export function ProcedureSummary({ detail }: { detail: ProcedureGuideDetail }) {
           <p className="text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-neutral-60">
             {card.label}
           </p>
-          <p className="mt-3 text-[16px] font-semibold leading-5 tracking-[-0.02em] text-foreground md:text-[24px] md:leading-[29px]">
+          <p className="mt-3 text-[20px] font-bold leading-6 tracking-[-0.02em] text-foreground">
             {card.value}
           </p>
         </div>
@@ -162,7 +162,7 @@ function WarningsSection({ detail }: { detail: ProcedureGuideDetail }) {
       <SectionHeading>주의사항</SectionHeading>
       <ul className="mt-4 flex flex-col gap-3">
         {detail.warnings.map((warning) => (
-          <li key={warning} className="flex min-h-12 items-center gap-3 rounded-[12px] bg-warning-10/50 px-5 py-3 text-warning-100 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)] dark:text-warning-40">
+          <li key={warning} className="flex min-h-12 items-center gap-3 rounded-[12px] bg-procedure-warning-note px-5 py-3 text-warning-100 dark:text-warning-40">
             <WarningIcon />
             <span className="text-[14px] font-medium leading-5 tracking-[-0.02em] opacity-80">{warning}</span>
           </li>
@@ -221,7 +221,7 @@ export default function ProcedureDetailView({ detail }: { detail: ProcedureGuide
         <SectionHeading>신청대상</SectionHeading>
         <p className="mt-4 text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-80">{detail.target}</p>
         <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-7">
-          <EligibilityPanel title="적용가능" titleClassName="text-primary-100" items={detail.eligibleApplicable} />
+          <EligibilityPanel title="적용가능" titleClassName="text-primary-80" items={detail.eligibleApplicable} />
           <EligibilityPanel title="제외 또는 주의" titleClassName="text-danger-40" items={detail.eligibleExcluded} />
         </div>
       </SectionCard>

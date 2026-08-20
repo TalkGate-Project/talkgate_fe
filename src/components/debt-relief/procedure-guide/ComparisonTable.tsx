@@ -30,7 +30,7 @@ export default function ComparisonTable({ details, onSelectProcedure }: Comparis
                 <button
                   type="button"
                   onClick={() => onSelectProcedure(item.key)}
-                  className="cursor-pointer rounded-[4px] px-1 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-40"
+                  className="cursor-pointer rounded-[4px] px-1 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-80"
                 >
                   {item.tabLabel}
                 </button>

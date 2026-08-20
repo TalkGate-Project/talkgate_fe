@@ -6,6 +6,7 @@ import { ProjectsService } from "@/services/projects";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import BaseModal from "@/components/common/BaseModal";
 import type { Project } from "@/types/projects";
 
 type Props = {
@@ -128,20 +129,19 @@ export default function PartnerRegisterModal({
 
   if (!isOpen) return null;
 
+  const handleOverlayClose = () => {
+    if (!submitLoading && !lookupLoading) handleClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/30 dark:bg-black/50"
-        onClick={() => !submitLoading && !lookupLoading && handleClose()}
-      />
-      <div
-        className="relative w-[440px] mx-4 bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
-        // style={{
-        //   filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        //   boxShadow: "0px 13px 61px rgba(169, 169, 169, 0.366013)",
-        // }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleOverlayClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-black/50"
+      ariaLabel="파트너 등록"
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] mx-4 bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
+    >
         {/* 헤더 */}
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
           <h2 className="text-[18px] font-semibold leading-[21px] text-black dark:text-white">
@@ -268,7 +268,6 @@ export default function PartnerRegisterModal({
             {submitLoading ? "등록 중..." : "확인"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
