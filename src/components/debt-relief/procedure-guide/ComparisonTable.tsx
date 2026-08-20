@@ -12,8 +12,11 @@ export default function ComparisonTable({ details, onSelectProcedure }: Comparis
   const highlightedRows = new Set([0, 2, 5]);
 
   return (
-    <div className="scrollbar-hide overflow-x-auto rounded-[12px] border border-neutral-30">
-      <table className="w-full min-w-[1266px] table-fixed border-collapse text-left" aria-label="채무조정 제도 비교">
+    <div className="table-horizontal-scroll overflow-x-auto rounded-[12px] border border-neutral-30">
+      <table
+        className="w-full min-w-[1266px] table-fixed border-collapse text-left lg:min-w-0"
+        aria-label="채무조정 제도 비교"
+      >
         <colgroup>
           <col className="w-[121px]" />
           {details.map((item) => (
