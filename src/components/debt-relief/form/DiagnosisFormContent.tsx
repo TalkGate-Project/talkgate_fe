@@ -597,8 +597,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
         <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
           {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전).
-              "기타사항" 스텝은 본문이 토글로 바로 시작해 이 절대배치 X가 어색하게 떠 보여서,
-              그 스텝에서는 숨기고 Step5Others가 자체 타이틀 행에 동일 기능의 X를 대신 렌더링한다. */}
+              "기타사항" 스텝은 Step5Others의 첫 실제 섹션인 "새출발기금" 제목 행에 X를 배치한다. */}
           {step.key !== "others" && (
             <button
               type="button"

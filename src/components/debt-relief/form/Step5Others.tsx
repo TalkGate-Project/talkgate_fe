@@ -35,11 +35,31 @@ const TEXTAREA_CLASS =
 // 다음 항목인 "이전 신청 이력 있음"↔"이전 개인회생/파산 신청 이력 있음"이 라벨까지 비슷해
 // 헷갈리기 쉬움). FormSectionTitle 자체(다른 스텝도 공유)는 그대로 두고, 이 스텝에서만
 // 모바일 전용 제목을 나란히 둔다.
-function MobileSectionTitle({ children }: { children: string }) {
+function MobileSectionTitle({ children, onClose }: { children: string; onClose?: () => void }) {
   return (
-    <h3 className="md:hidden text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
-      {children}
-    </h3>
+    <div className="md:hidden flex items-center justify-between gap-3 border-b border-neutral-30 pb-3">
+      <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground">
+        {children}
+      </h3>
+      {onClose ? (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center text-foreground hover:opacity-70"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path
+              d="M6 18L18 6M6 6L18 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -83,34 +103,9 @@ export default function Step5Others({ form, update, onClose }: Props) {
 
   return (
     <div>
-      {/* 모바일 전용 — 이 스텝은 다른 스텝과 달리 본문이 토글 목록으로 바로 시작해서, 카드
-          우상단에 절대배치된 닫기(X)만 있으면 첫 항목 옆에 어색하게 떠 보인다. 타이틀 행을
-          만들어 그 오른쪽 끝에 X를 두고, 카드 우상단의 절대배치 X는 이 스텝에서만 숨긴다
-          (DiagnosisFormContent.tsx 참고). 새출발기금 섹션이 추가되며 이 스텝이 더 이상 "소송
-          이력" 하나만 다루지 않아 스텝 이름(steps.ts의 "기타사항")으로 바꿨다. */}
-      <div className="md:hidden flex items-center justify-between pb-3 border-b border-neutral-30">
-        <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground">
-          기타사항
-        </h3>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="닫기"
-          className="cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70 shrink-0"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path
-              d="M6 18L18 6M6 6L18 18"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <MobileSectionTitle>새출발기금</MobileSectionTitle>
+      {/* 모바일 상단 드로어가 이미 스텝명 "기타사항"을 보여주므로 본문은 실제 첫 섹션부터 시작한다.
+          카드 우상단에 따로 떠 있던 닫기 버튼은 첫 섹션 제목 행에 배치한다. */}
+      <MobileSectionTitle onClose={onClose}>새출발기금</MobileSectionTitle>
       <FormSectionTitle>새출발기금</FormSectionTitle>
       <div className="mt-3 md:mt-6 flex flex-col gap-5">
         <div className="flex flex-col gap-3">
