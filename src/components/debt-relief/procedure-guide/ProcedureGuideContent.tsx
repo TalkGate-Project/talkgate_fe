@@ -107,7 +107,7 @@ export default function ProcedureGuideContent() {
           <button
             type="button"
             onClick={() => router.push("/debt-relief")}
-            className="-ml-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-[8px] text-foreground transition-colors hover:bg-neutral-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-40"
+            className="-ml-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-[8px] text-foreground transition-colors hover:bg-neutral-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-80"
             aria-label="채무조정으로 돌아가기"
           >
             <BackIcon />
@@ -135,7 +135,7 @@ export default function ProcedureGuideContent() {
             onClick={() => selectTab("all")}
             className={`relative shrink-0 cursor-pointer whitespace-nowrap px-4 text-[14px] leading-[17px] transition-colors md:px-5 ${
               activeTab === "all"
-                ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-40"
+                ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80"
                 : "font-medium text-neutral-60 hover:text-foreground"
             }`}
           >
@@ -150,7 +150,7 @@ export default function ProcedureGuideContent() {
               onClick={() => selectTab(item.key)}
               className={`relative shrink-0 cursor-pointer whitespace-nowrap px-4 text-[14px] leading-[17px] transition-colors md:px-5 ${
                 activeTab === item.key
-                  ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-40"
+                  ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80"
                   : "font-medium text-neutral-60 hover:text-foreground"
               }`}
             >
