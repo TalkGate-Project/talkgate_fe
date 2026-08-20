@@ -75,6 +75,34 @@
    필수정보 모달(440px, `sm:` 브레이크포인트)은 `computed width 440px` 정확히 일치해서 대조군으로 확인함 — `md:`
    variant 컴파일에 국한된 문제로 보이나 정확한 원인은 이번 세션에서 못 밝힘. 별도 디버깅 세션 필요.
 
+4. **(0순위, 비즈니스 로직 결함 — 재현·수정 완료, 2026-08-19)** 상세모드 채무 항목의 대출일·만기일·금리를
+   한 번도 입력하지 않아도 좌측 네비게이터 "3. 채무현황"에 완료 체크(v)가 표시되던 버그.
+   재현: `/debt-relief/{id}/edit?step=3`에서 간편모드로 입력해둔 채무를 상세 탭으로 전환(대출일/만기일/금리
+   미입력) → 네비게이터 3번에 v 표시. 원인: `FormStepChecklist.tsx`의 체크(v) 판정이 쓰는
+   `isDiagnosisStepComplete`가 `getMissingRequiredFieldLabelsForStep("debts")`를 그대로 재사용하는데, 그
+   함수가 부르는 `getMissingDebtFieldLabels`는 "분석하기" 버튼이 새 빈 행 때문에 영구 비활성화되는 걸 막으려고
+   대출일·만기일·금리를 의도적으로 검사 안 함(코드 주석 참고) — 그런데 같은 함수가 체크리스트에도 쓰이면서
+   간편→상세 전환 시 채권처·현재잔액만 채워진 상태에서도 완료로 오판정됨. `isDiagnosisStepComplete`에서 debts
+   스텝일 때만 `getMissingDebtItemFieldLabels`(상세모드 전용, 대출일/만기일/금리)도 함께 검사하도록 수정.
+   "다음"/"이전" 버튼 게이트(`getMissingRequiredFieldLabelsForStep` 직접 호출부)와 "분석하기"
+   버튼(`canAnalyze`)은 사용자 요청대로 그대로 두고, 체크리스트 표시만 정확해지도록 스코프를 좁힘 —
+   미완성 상태에서도 스텝 이동은 계속 가능하고, 최종 검증은 기존대로 분석하기 클릭 시 이루어짐. `npx tsc
+   --noEmit` 통과 확인, 브라우저 재현 검증은 미수행.
+
+5. **(1순위, UI/네트워크 비효율 — 재현·원인 확인·수정 완료, 2026-08-20)** 분석 상세 페이지 진입 시
+   `GET /v1/analysis/{id}/chat`이 중복 호출됨(브라우저 자동화 재현 시 dev 기준 4회).
+   `SectionCounselMents.tsx`와 상시 마운트되는(다운로드 버튼 클릭 여부와 무관) 인쇄용 숨김
+   문서 `AnalysisPrintDocument.tsx`가 각자 독립적으로 `useDebtReliefAiChat(detail.id,
+   projectId)`를 호출해서 같은 히스토리를 두 번 fetch함 — 이건 프로덕션에서도 그대로 재현됨(2회).
+   dev 배수(최대 4회)는 `next.config.ts`에 `reactStrictMode` 미설정 시 App Router가 기본 활성화하는
+   Strict Mode의 effect 더블 실행 때문(dev 전용, 빌드엔 영향 없음, 미수정).
+   수정: `useDebtReliefAiChat.ts`의 히스토리 조회 책임을 새 훅 `useDebtReliefChatHistory`로 분리해
+   `ResultDetailContent`에서 한 번만 호출하고, 결과(`DebtReliefChatHistory`)를 `SectionCounselMents`에는
+   `chatHistory` prop으로, `AnalysisPrintDocument`에는 이미 조회된 `chatMessages` 배열로 내려줌.
+   `useDebtReliefAiChat`은 `history.loaded`가 처음 true가 될 때 한 번만 로컬 상태에 반영하도록 해
+   전송 중/스트리밍 중인 메시지가 덮어써지지 않게 함. `npx tsc --noEmit` / `npx eslint` 통과 확인,
+   브라우저 재현 검증은 미수행.
+
 ## 종료 기준
 
 - 🔴 항목 전부 통과

@@ -2,7 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type {
+  AnalysisCollateralBreakdown,
   AnalysisDebtBreakdown,
+  AnalysisDebtItem,
   AnalysisFreshStartFundInsolvencyReason,
   AnalysisInputData,
 } from "@/types/analysis";
@@ -10,9 +12,11 @@ import {
   BUSINESS_OPERATION_STATUS_OPTIONS,
   ASSET_CATEGORY_OPTIONS,
   DEBT_CAUSE_LABELS,
+  DEBT_ITEM_TYPE_OPTIONS,
   DEBT_TYPE_OPTIONS,
   FRESH_START_FUND_INSOLVENCY_REASON_OPTIONS,
   HOUSING_TYPE_OPTIONS,
+  REPAYMENT_METHOD_OPTIONS,
   resolveCourtMinimumLivingCostWon,
   type DebtCause,
   type DebtType,
@@ -31,6 +35,30 @@ type Props = {
 };
 
 export type DisplayRow = { label: string; value: string; emphasize?: boolean };
+
+export type RichDisplayRow = {
+  key: string;
+  label: string;
+  title: string;
+  description?: string;
+};
+
+export type SummaryLine = {
+  label: string;
+  value?: string;
+  emphasizeLabel?: boolean;
+};
+
+export type CustomerInfoViewModel = {
+  customerRows: DisplayRow[];
+  assetRows: RichDisplayRow[];
+  incomeRows: DisplayRow[];
+  debtRows: RichDisplayRow[];
+  debtTotalRows: DisplayRow[];
+  businessLines: SummaryLine[];
+  otherCheckLines: SummaryLine[];
+  counselorMemo: string;
+};
 
 const DEBT_CAUSE_FROM: Record<string, DebtCause> = {
   business_failure: "business_failure",
@@ -70,6 +98,20 @@ function yesNo(value: boolean | null | undefined): string {
 function formatManwon(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "-";
   return `${value.toLocaleString("ko-KR")}만원`;
+}
+
+function formatWon(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "-";
+  return `${Math.round(value).toLocaleString("ko-KR")}원`;
+}
+
+function formatManwonAsWon(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return "-";
+  return formatWon(value * 10_000);
+}
+
+function formatDate(value: string | null | undefined): string {
+  return value ? value.replaceAll("-", ".") : "-";
 }
 
 /** 법정 생계비처럼 월소득에서 차감되는 항목 표시용 — Figma가 "-" 부호를 붙여 보여준다. */
@@ -158,18 +200,25 @@ function DebtDetailSearchIcon() {
   );
 }
 
-function InfoRows({ rows }: { rows: DisplayRow[] }) {
+type ContentRow = {
+  key: string;
+  label: string;
+  content: ReactNode;
+};
+
+function ContentRows({ rows }: { rows: ContentRow[] }) {
   return (
-    <dl className="flex flex-col gap-2.5">
+    <dl className="flex flex-col gap-3">
       {rows.map((row) => (
-        <div key={row.label} className="flex items-start gap-3 min-w-0">
-          <dt className="w-[108px] shrink-0 text-[13px] text-neutral-60 leading-5">{row.label}</dt>
-          <dd
-            className={`min-w-0 flex-1 text-[13px] leading-5 break-words whitespace-pre-line ${
-              row.emphasize ? "font-semibold text-foreground" : "font-medium text-foreground"
-            }`}
-          >
-            {row.value || "-"}
+        <div
+          key={row.key}
+          className="grid min-w-0 grid-cols-[96px_minmax(0,1fr)] items-start gap-6"
+        >
+          <dt className="text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+            {row.label}
+          </dt>
+          <dd className="min-w-0 break-words text-[14px] font-medium leading-5 tracking-[-0.02em] text-foreground">
+            {row.content}
           </dd>
         </div>
       ))}
@@ -177,46 +226,104 @@ function InfoRows({ rows }: { rows: DisplayRow[] }) {
   );
 }
 
+function InfoRows({ rows }: { rows: DisplayRow[] }) {
+  return (
+    <ContentRows
+      rows={rows.map((row, index) => ({
+        key: `${row.label}-${index}`,
+        label: row.label,
+        content: (
+          <span className={`whitespace-pre-line ${row.emphasize ? "font-bold" : ""}`}>
+            {row.value || "-"}
+          </span>
+        ),
+      }))}
+    />
+  );
+}
+
 function InfoSection({
   title,
-  rows,
+  children,
   className = "",
-  columns,
   titleAction,
 }: {
   title: string;
-  rows: DisplayRow[];
+  children: ReactNode;
   className?: string;
-  /** 태블릿·PC에서 내부 2열로 나눠 보여줄 항목 (행이 많은 섹션용) */
-  columns?: { left: DisplayRow[]; right: DisplayRow[] };
   /** 타이틀 옆에 붙는 버튼 등 — 채무현황의 「자세히 보기」 */
   titleAction?: ReactNode;
 }) {
   return (
     <section
-      className={`rounded-[12px] border border-neutral-30 bg-card overflow-hidden flex flex-col min-h-0 ${className}`}
+      className={`flex min-h-0 flex-col rounded-[12px] border border-neutral-30 bg-neutral-10 dark:bg-neutral-0 ${className}`}
     >
-      <h3 className="px-4 py-2.5 flex items-center gap-2 text-[14px] font-semibold text-foreground border-b border-neutral-30 shrink-0">
-        {title}
+      <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-4">
+        <h3 className="text-[16px] font-bold leading-[19px] tracking-[0.2px] text-foreground">
+          {title}
+        </h3>
         {titleAction}
-      </h3>
-      <div className="px-4 py-3 flex-1">
-        {columns ? (
-          <>
-            {/* 모바일: 1열(rows 순서) / 태블릿·PC: 내부 2열 */}
-            <div className="hidden min-[709px]:grid min-[709px]:grid-cols-2 gap-x-8">
-              <InfoRows rows={columns.left} />
-              <InfoRows rows={columns.right} />
-            </div>
-            <div className="min-[709px]:hidden">
-              <InfoRows rows={rows} />
-            </div>
-          </>
-        ) : (
-          <InfoRows rows={rows} />
-        )}
+      </div>
+      <div className="min-h-0 flex-1 px-5 pb-5 pt-3">
+        {children}
       </div>
     </section>
+  );
+}
+
+function RichInfoRows({ rows }: { rows: RichDisplayRow[] }) {
+  return (
+    <ContentRows
+      rows={rows.map((row) => ({
+        key: row.key,
+        label: row.label,
+        content: (
+          <div>
+            <p className="font-bold">{row.title}</p>
+            {row.description ? (
+              <p className="font-normal text-neutral-80">{row.description}</p>
+            ) : null}
+          </div>
+        ),
+      }))}
+    />
+  );
+}
+
+function buildDebtDescription(debt: AnalysisDebtItem): string {
+  const details = [
+    debt.collateralAssetId ? "담보대출" : "무담보대출",
+    optionLabel(DEBT_ITEM_TYPE_OPTIONS, debt.debtType),
+    debt.creditorName?.trim() || null,
+    debt.repaymentMethod
+      ? `${optionLabel(REPAYMENT_METHOD_OPTIONS, debt.repaymentMethod)}상환`
+      : null,
+    debt.remainingMonths != null ? `상환기간 ${debt.remainingMonths}개월` : null,
+    `연체 ${debt.overdueMonths ?? 0}개월`,
+    debt.loanDate ? `대출일 ${formatDate(debt.loanDate)}` : null,
+    debt.maturityDate ? `만기일 ${formatDate(debt.maturityDate)}` : null,
+    `현재 잔액 ${formatWon(debt.currentBalanceWon)}`,
+    debt.interestRate != null ? `금리 ${debt.interestRate}%` : null,
+    debt.isExcludedFromAnalysis ? "분석 제외" : null,
+  ].filter((value): value is string => Boolean(value));
+
+  return details.join(", ");
+}
+
+function SummaryLines({
+  lines,
+}: {
+  lines: SummaryLine[];
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {lines.map((line, index) => (
+        <p key={`${line.label}-${index}`}>
+          <span className={line.emphasizeLabel === false ? "" : "font-bold"}>{line.label}</span>
+          {line.value ? ` - ${line.value}` : ""}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -306,6 +413,24 @@ export function buildSections(input: AnalysisInputData) {
 
   const incomeRows: DisplayRow[] = [...incomeLeftRows, ...incomeRightRows];
 
+  const incomeSummaryRows: DisplayRow[] = [
+    { label: "월소득 (세후)", value: formatManwon(input.monthlyIncome) },
+    { label: "주거형태", value: optionLabel(HOUSING_TYPE_OPTIONS, input.housingType) },
+    {
+      label: "법정 생계비",
+      value: isLegacyIncomeData ? "-" : formatDeductedManwon(minimumLivingCostManwon),
+    },
+    {
+      label: "추가 필수지출",
+      value: isLegacyIncomeData ? "-" : formatManwon(input.additionalFixedExpense),
+    },
+    {
+      label: "월 가용소득",
+      value: formatManwon(input.disposableIncome),
+      emphasize: true,
+    },
+  ];
+
   // 좌: 새출발기금(사업 영위 여부가 true일 때만 상세 4종이 실제로 채워짐) / 우: 소송·채무조정 이력
   const otherLeftRows: DisplayRow[] = [
     { label: "새출발기금", value: yesNo(input.isOperatingBusiness) },
@@ -357,9 +482,154 @@ export function buildSections(input: AnalysisInputData) {
     incomeRows,
     incomeLeftRows,
     incomeRightRows,
+    incomeSummaryRows,
     otherRows,
     otherLeftRows,
     otherRightRows,
+  };
+}
+
+/** 화면 모달과 인쇄 문서가 같은 최신 고객정보 구성과 계산값을 사용하도록 만드는 단일 뷰 모델. */
+export function buildCustomerInfoViewModel(
+  input: AnalysisInputData,
+  collateralBreakdown?: AnalysisCollateralBreakdown
+): CustomerInfoViewModel {
+  const sections = buildSections(input);
+  const assets = input.assets ?? [];
+  const debts = input.debts ?? [];
+  const assetById = new Map(assets.map((asset) => [asset.id, asset]));
+
+  const assetRows: RichDisplayRow[] = assets.length
+    ? assets.map((asset, index) => ({
+        key: asset.id || `${asset.category}-${index}`,
+        label: optionLabel(ASSET_CATEGORY_OPTIONS, asset.category),
+        title: formatManwon(asset.marketValue),
+        description: asset.description?.trim() || undefined,
+      }))
+    : [{ key: "no-assets", label: "보유 자산", title: "없음" }];
+
+  let debtRows: RichDisplayRow[];
+  if (debts.length > 0) {
+    debtRows = debts.map((debt, index) => {
+      const collateralAsset = debt.collateralAssetId
+        ? assetById.get(debt.collateralAssetId)
+        : undefined;
+      return {
+        key: debt.id || `debt-${index}`,
+        label: index === 0 ? "채무내역" : "",
+        title: collateralAsset
+          ? `${optionLabel(ASSET_CATEGORY_OPTIONS, collateralAsset.category)} 담보`
+          : optionLabel(DEBT_ITEM_TYPE_OPTIONS, debt.debtType),
+        description: buildDebtDescription(debt),
+      };
+    });
+  } else {
+    debtRows = (Object.keys(input.debtBreakdown ?? {}) as (keyof AnalysisDebtBreakdown)[])
+      .filter((key) => (input.debtBreakdown?.[key] ?? 0) > 0)
+      .map((key, index) => {
+        const debtType = BREAKDOWN_TO_DEBT[key];
+        return {
+          key,
+          label: index === 0 ? "채무내역" : "",
+          title: DEBT_TYPE_OPTIONS.find((option) => option.value === debtType)?.label ?? key,
+          description: formatManwon(input.debtBreakdown[key]),
+        };
+      });
+    if (debtRows.length === 0) {
+      debtRows = [{ key: "no-debts", label: "채무내역", title: "없음" }];
+    }
+  }
+
+  const includedDebts = debts.filter((debt) => !debt.isExcludedFromAnalysis);
+  const collateralDebtWon = includedDebts
+    .filter((debt) => Boolean(debt.collateralAssetId))
+    .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
+  const unsecuredDebtWon = includedDebts
+    .filter((debt) => !debt.collateralAssetId)
+    .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
+  const hasDetailedDebtAmounts = debts.length > 0;
+
+  const debtTotalRows: DisplayRow[] = [
+    {
+      label: "담보대출합산",
+      value: hasDetailedDebtAmounts
+        ? formatWon(collateralDebtWon)
+        : collateralBreakdown
+          ? formatManwonAsWon(collateralBreakdown.collateralDebt)
+          : "-",
+    },
+    {
+      label: "무담보대출 합산",
+      value: hasDetailedDebtAmounts
+        ? formatWon(unsecuredDebtWon)
+        : collateralBreakdown
+          ? formatManwonAsWon(collateralBreakdown.unsecuredDebt)
+          : "-",
+    },
+    {
+      label: "총 합산",
+      value: formatManwonAsWon(input.totalDebt),
+      emphasize: true,
+    },
+  ];
+
+  const businessHistory = input.isOperatingBusiness ? "있음" : "없음";
+  const exclusionStatus =
+    input.isExcludedIndustryForFreshStartFund == null
+      ? "제외업종 여부 -"
+      : input.isExcludedIndustryForFreshStartFund
+        ? "제외업종 해당"
+        : "제외업종 해당 없음";
+  const previousFundApplicationStatus =
+    input.hasPreviousFreshStartFundApplication == null
+      ? "이전 신청 이력 -"
+      : input.hasPreviousFreshStartFundApplication
+        ? "이전 신청 이력 있음"
+        : "이전 신청 이력 없음";
+
+  const businessLines: SummaryLine[] = [
+    {
+      label: `’20.4월 ~ ’25.6월 중 개인사업자·소상공인으로 사업 영위한 적 ${businessHistory}`,
+      emphasizeLabel: false,
+    },
+    {
+      label: "현재 사업 상태",
+      value: optionLabel(BUSINESS_OPERATION_STATUS_OPTIONS, input.businessOperationStatus),
+    },
+    {
+      label: "부실·부실우려 해당 여부",
+      value: freshStartFundInsolvencyReasonsLabel(input.freshStartFundInsolvencyReasons),
+    },
+    {
+      label: "결격·이력 확인",
+      value: `${exclusionStatus}, ${previousFundApplicationStatus}`,
+    },
+  ];
+
+  const otherCheckLines: SummaryLine[] = [
+    {
+      label: `이전 개인회생 / 파산 신청 이력 ${input.hasPreviousBankruptcy ? "있음" : "없음"}`,
+      value: input.hasPreviousBankruptcy ? input.previousBankruptcyNote?.trim() || undefined : undefined,
+    },
+    {
+      label: `보증인 / 연대보증 관계 ${input.hasGuarantorRelation ? "있음" : "없음"}`,
+      value: input.hasGuarantorRelation ? input.guarantorNote?.trim() || undefined : undefined,
+    },
+    {
+      label: `현재 진행 중인 소송 / 압류 ${input.hasActiveLawsuit ? "있음" : "없음"}`,
+      value: input.hasActiveLawsuit ? input.lawsuitNote?.trim() || undefined : undefined,
+    },
+  ];
+
+  return {
+    customerRows: sections.customerRows,
+    assetRows,
+    incomeRows: sections.incomeSummaryRows,
+    debtRows,
+    debtTotalRows,
+    businessLines,
+    otherCheckLines,
+    counselorMemo: input.additionalNotes?.trim() || "-",
   };
 }
 
@@ -392,7 +662,10 @@ export default function DiagnosisCustomerInfoModal({
   const summaryLabel = [inputData.customerName, inputData.ageGroup, inputData.employmentType]
     .filter(Boolean)
     .join(" · ");
-  const sections = buildSections(inputData);
+  const viewModel = buildCustomerInfoViewModel(
+    inputData,
+    detail.collateralBreakdown ?? inputData.collateralBreakdown
+  );
 
   return (
     <>
@@ -406,36 +679,34 @@ export default function DiagnosisCustomerInfoModal({
         aria-modal="true"
         aria-labelledby="diagnosis-customer-info-title"
         className={[
-          "fixed left-4 right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col overflow-hidden",
-          "w-[calc(100%-2rem)] max-h-[90vh]",
+          "fixed left-4 right-4 top-1/2 z-50 flex h-[1342px] max-h-[90vh] -translate-y-1/2 flex-col overflow-hidden",
+          "w-[calc(100%-2rem)]",
           "bg-card dark:bg-neutral-10 rounded-[14px]",
-          // 태블릿 709~1200 / PC 1201+
           "min-[709px]:left-1/2 min-[709px]:right-auto min-[709px]:-translate-x-1/2",
-          "min-[709px]:max-[1200px]:w-[708px]",
-          "min-[1201px]:w-[1046px]",
+          "min-[709px]:w-[calc(100%-2rem)] min-[709px]:max-w-[1062px]",
         ].join(" ")}
         style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 px-5 pt-5 pb-4 shrink-0">
+        <div className="flex h-[76px] shrink-0 items-center gap-4 border-b border-neutral-30 px-5 min-[1024px]:px-7">
           <button
             type="button"
             onClick={onClose}
             aria-label="뒤로가기"
-            className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-60 hover:opacity-70 shrink-0"
+            className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center text-foreground hover:opacity-70"
           >
             <BackIcon />
           </button>
           <h2
             id="diagnosis-customer-info-title"
-            className="text-[18px] font-semibold text-foreground shrink-0"
+            className="shrink-0 text-[20px] font-bold leading-6 text-foreground min-[1024px]:text-[24px]"
           >
             고객정보
           </h2>
           {summaryLabel ? (
             <>
-              <span className="w-px h-4 bg-neutral-40 shrink-0" aria-hidden />
-              <p className="flex-1 min-w-0 text-[14px] font-medium text-neutral-60 truncate">
+              <span className="h-4 w-px shrink-0 bg-neutral-60" aria-hidden />
+              <p className="min-w-0 flex-1 truncate text-[14px] font-medium leading-5 text-neutral-60 min-[1024px]:text-[18px]">
                 {summaryLabel}
               </p>
             </>
@@ -446,63 +717,84 @@ export default function DiagnosisCustomerInfoModal({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-60 hover:opacity-70 shrink-0"
+            className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center text-foreground hover:opacity-70"
           >
             <CloseIcon />
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-5">
-          <div
-            className={[
-              "grid gap-6",
-              "grid-cols-1",
-              // 태블릿: 2열 — 고객정보|자산현황이 한 행을 채우고, 채무현황·소득지출·기타사항은
-              // 각각 2열을 모두 차지하며(항목이 많아 내부 2단 구성) 아래로 쌓인다.
-              "min-[709px]:max-[1200px]:grid-cols-2",
-              // PC: 4열 — 고객정보(1)+자산현황(1)+채무현황(2)이 한 행, 소득지출(2)+기타사항(2)이
-              // 다음 행을 각각 정확히 채운다.
-              "min-[1201px]:grid-cols-4",
-            ].join(" ")}
-          >
-            <InfoSection title="고객 정보" rows={sections.customerRows} />
-            <InfoSection title="자산현황" rows={sections.assetRows} />
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[30px] pt-5 min-[1024px]:px-7">
+          <div className="grid grid-cols-1 gap-5 min-[1024px]:grid-cols-[314px_minmax(0,672px)]">
+            <InfoSection title="고객 정보" className="min-[1024px]:min-h-[372px]">
+              <InfoRows rows={viewModel.customerRows} />
+            </InfoSection>
+
+            <InfoSection title="자산현황" className="min-[1024px]:min-h-[372px]">
+              <RichInfoRows rows={viewModel.assetRows} />
+            </InfoSection>
+
+            <InfoSection title="소득 / 지출" className="min-[1024px]:min-h-[372px]">
+              <InfoRows rows={viewModel.incomeRows} />
+            </InfoSection>
+
             <InfoSection
               title="채무현황"
-              rows={sections.debtRows}
-              columns={{ left: sections.debtLeftRows, right: sections.debtRightRows }}
-              className="min-[709px]:col-span-2"
+              className="min-[1024px]:min-h-[372px]"
               titleAction={
                 <button
                   type="button"
                   onClick={() => setDebtDetailOpen(true)}
-                  className="cursor-pointer inline-flex items-center gap-1 h-[24px] px-2 rounded-[5px] border border-secondary-20 dark:border-secondary-40 bg-white dark:bg-neutral-10 text-[12px] font-semibold leading-[15px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 whitespace-nowrap"
+                  className="inline-flex h-7 cursor-pointer items-center gap-1 whitespace-nowrap rounded-[5px] border border-secondary-20 bg-white px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 dark:border-secondary-40 dark:bg-neutral-10 dark:hover:bg-neutral-20"
                 >
                   <DebtDetailSearchIcon />
                   자세히 보기
                 </button>
               }
-            />
-            <InfoSection
-              title="소득/지출"
-              rows={sections.incomeRows}
-              columns={{ left: sections.incomeLeftRows, right: sections.incomeRightRows }}
-              className="min-[709px]:col-span-2"
-            />
+            >
+              <div className="flex h-full flex-col gap-3">
+                <RichInfoRows rows={viewModel.debtRows} />
+                <div className="mt-auto pt-1">
+                  <InfoRows rows={viewModel.debtTotalRows} />
+                </div>
+              </div>
+            </InfoSection>
+
             <InfoSection
               title="기타사항"
-              rows={sections.otherRows}
-              columns={{ left: sections.otherLeftRows, right: sections.otherRightRows }}
-              className="min-[709px]:col-span-2"
-            />
+              className="min-[1024px]:col-span-2 min-[1024px]:min-h-[372px]"
+            >
+              <ContentRows
+                rows={[
+                  {
+                    key: "fresh-start-fund",
+                    label: "새출발기금",
+                    content: <SummaryLines lines={viewModel.businessLines} />,
+                  },
+                  {
+                    key: "other-checks",
+                    label: "기타 확인 사항",
+                    content: <SummaryLines lines={viewModel.otherCheckLines} />,
+                  },
+                  {
+                    key: "counselor-memo",
+                    label: "상담사 메모",
+                    content: (
+                      <p className="whitespace-pre-line font-normal text-neutral-80">
+                        {viewModel.counselorMemo}
+                      </p>
+                    ),
+                  },
+                ]}
+              />
+            </InfoSection>
           </div>
         </div>
 
-        <div className="border-t border-neutral-30 px-5 py-4 flex justify-end shrink-0">
+        <div className="flex h-[59px] shrink-0 items-center justify-end border-t border-neutral-30 px-5 min-[1024px]:px-7">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold hover:opacity-90"
+            className="h-[34px] w-[72px] cursor-pointer rounded-[5px] bg-neutral-90 text-[14px] font-semibold text-neutral-20 hover:opacity-90"
           >
             확인
           </button>

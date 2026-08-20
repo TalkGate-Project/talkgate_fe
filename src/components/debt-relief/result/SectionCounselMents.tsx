@@ -6,7 +6,7 @@ import {
   type CounselMentCategory,
   type DiagnosisDetail,
 } from "@/types/debtRelief";
-import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
+import { useDebtReliefAiChat, type DebtReliefChatHistory } from "./useDebtReliefAiChat";
 import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 import CopyIconButton from "@/components/common/CopyIconButton";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
@@ -60,14 +60,16 @@ const DEFAULT_AI_SUGGESTED_QUESTIONS = [
 export default function SectionCounselMents({
   detail,
   projectId,
+  chatHistory,
 }: {
   detail: DiagnosisDetail;
   projectId: string | null;
+  chatHistory: DebtReliefChatHistory;
 }) {
   const [activeTab, setActiveTab] = useState<CounselMentCategory | "all">("all");
   const [input, setInput] = useState("");
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const { messages, sending, sendMessage } = useDebtReliefAiChat(detail.id, projectId);
+  const { messages, sending, sendMessage } = useDebtReliefAiChat(detail.id, projectId, chatHistory);
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
