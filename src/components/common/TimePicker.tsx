@@ -168,6 +168,7 @@ export default function TimePicker(props: TimePickerProps) {
         createPortal(
           <div
             ref={panelRef}
+            data-anchored-panel
             className="z-[1000] bg-card dark:bg-neutral-10 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_13px_61px_0px_#000000B2] p-3"
             style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
           >

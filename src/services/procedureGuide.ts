@@ -26,14 +26,23 @@ export interface ProcedureGuideConditionItem {
   value: string;
 }
 
+export interface ProcedureGuideSummaryEffect {
+  /** 비교표처럼 한 문장으로 표시할 때 사용하는 전체 문구 */
+  fullText: string;
+  /** 요약 카드에서 가장 먼저 읽혀야 하는 핵심 수치·효과 */
+  emphasis: string;
+  /** 핵심값을 단정적으로 보이지 않게 보완하는 조건·효과 문구 */
+  qualifier?: string;
+}
+
 export interface ProcedureGuideDetail {
   key: RecommendedProcedure;
   tabLabel: string;
   summary: {
     operator: string;
     duration: string;
-    principalAdjustment: string;
-    interestReduction: string;
+    principalAdjustment: ProcedureGuideSummaryEffect;
+    interestReduction: ProcedureGuideSummaryEffect;
   };
   target: string;
   incomeRequired: boolean;
@@ -65,8 +74,8 @@ export const PROCEDURE_GUIDE_COMPARISON_ROWS: {
 }[] = [
   { label: "운영 기관", getValue: (item) => item.summary.operator },
   { label: "소요 기간", getValue: (item) => item.summary.duration },
-  { label: "원금 조정", getValue: (item) => item.summary.principalAdjustment },
-  { label: "이자 감면", getValue: (item) => item.summary.interestReduction },
+  { label: "원금 조정", getValue: (item) => item.summary.principalAdjustment.fullText },
+  { label: "이자 감면", getValue: (item) => item.summary.interestReduction.fullText },
   { label: "소득 요건", getValue: (item) => (item.incomeRequired ? "필요" : "불필요"), isIncomeRow: true },
   { label: "절차 단계 수", getValue: (item) => `${item.steps.length}단계` },
   { label: "대상자", getValue: (item) => item.target },

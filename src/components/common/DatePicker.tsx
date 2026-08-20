@@ -351,6 +351,7 @@ export default function DatePicker(props: DatePickerProps) {
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
+					data-anchored-panel
 					id={panelId}
 					role="dialog"
 					aria-modal="true"

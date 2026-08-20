@@ -234,6 +234,7 @@ export function SearchableLabeledCombobox({
       ? createPortal(
           <div
             ref={panelRef}
+            data-anchored-panel
             className="z-[1000] bg-white dark:bg-neutral-20 border border-[#E2E2E2] dark:border-[#444444] rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.4)]"
             style={{
               position: "fixed",

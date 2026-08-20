@@ -81,22 +81,54 @@ export function ProcedureSummary({ detail }: { detail: ProcedureGuideDetail }) {
   const cards = [
     { label: "운영기관", value: detail.summary.operator },
     { label: "소요기간", value: detail.summary.duration },
-    { label: "원금조정", value: detail.summary.principalAdjustment },
-    { label: "이자 감면", value: detail.summary.interestReduction },
+    {
+      label: "원금 조정",
+      value: detail.summary.principalAdjustment.emphasis,
+      qualifier: detail.summary.principalAdjustment.qualifier,
+      isEffect: true,
+    },
+    {
+      label: "이자 감면",
+      value: detail.summary.interestReduction.emphasis,
+      qualifier: detail.summary.interestReduction.qualifier,
+      isEffect: true,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 px-[clamp(16px,6.4vw,24px)] pb-0 pt-5 md:grid-cols-4 md:gap-5 md:px-6 md:py-7">
-      {cards.map((card) => (
-        <div key={card.label} className="flex min-h-[77px] flex-col justify-center rounded-[8px] bg-neutral-10 px-4 py-4 dark:bg-neutral-20 md:min-h-[113px] md:rounded-[12px] md:px-7 md:py-5">
-          <p className="text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-neutral-60">
-            {card.label}
-          </p>
-          <p className="mt-2 text-[16px] font-bold leading-[19px] tracking-[-0.04em] text-foreground md:mt-3 md:text-[20px] md:leading-6 md:tracking-[-0.02em]">
-            {card.value}
-          </p>
-        </div>
-      ))}
+    <div className="px-[clamp(16px,6.4vw,24px)] pb-0 pt-5 md:px-6 md:py-7">
+      <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="flex min-h-[77px] min-w-0 flex-col justify-center rounded-[8px] bg-neutral-10 px-4 py-4 dark:bg-neutral-20 md:min-h-[113px] md:rounded-[12px] md:px-7 md:py-5"
+          >
+            <p className="text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-neutral-60">
+              {card.label}
+            </p>
+            <p
+              className={`mt-2 break-keep font-bold text-foreground md:mt-3 ${
+                card.isEffect
+                  ? "text-[20px] leading-6 tracking-[-0.02em] md:text-[24px] md:leading-7"
+                  : "text-[16px] leading-[19px] tracking-[-0.04em] md:text-[20px] md:leading-6 md:tracking-[-0.02em]"
+              }`}
+            >
+              {card.value}
+            </p>
+            {card.qualifier ? (
+              <p className="mt-1 break-keep text-[13px] font-semibold leading-4 tracking-[-0.02em] text-neutral-60">
+                {card.qualifier}
+              </p>
+            ) : null}
+          </div>
+        ))}
+      </div>
+      <div className="mt-4">
+        <NoteBadge
+          type="info"
+          text="표시된 조정·감면 범위는 일반적인 안내이며, 실제 결과는 신청인의 상황과 심사 및 변제계획 이행 결과에 따라 달라질 수 있어요."
+        />
+      </div>
     </div>
   );
 }

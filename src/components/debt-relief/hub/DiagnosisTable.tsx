@@ -141,7 +141,7 @@ export default function DiagnosisTable({
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
 
   return (
-    <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
+    <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
       <table className="w-full min-w-[960px] border-separate border-spacing-y-0">
         <thead>
           <tr>
