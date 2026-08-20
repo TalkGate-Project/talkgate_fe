@@ -183,7 +183,7 @@ export default function CommonSenderNumberModal({
       zIndexClassName="z-50"
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       ariaLabel="공통 발신번호 추가"
-      positionerClassName="md:flex md:items-center md:justify-center"
+      positionerClassName="md:min-h-full md:flex md:items-center md:justify-center"
       disableAutoContainerSizing
       containerClassName="relative w-full h-full md:w-[600px] md:h-auto bg-white dark:bg-neutral-10 md:rounded-[14px] md:max-h-[90vh] flex flex-col overflow-hidden"
     >

@@ -52,7 +52,7 @@ export default function TelegramIntegrationModal({
       zIndexClassName="z-50"
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       ariaLabel="텔레그램 봇 연동"
-      positionerClassName="md:flex md:items-center md:justify-center"
+      positionerClassName="md:min-h-full md:flex md:items-center md:justify-center"
       disableAutoContainerSizing
       containerClassName="relative w-full h-full md:w-[848px] md:h-auto bg-card dark:bg-neutral-10 md:rounded-[14px] flex flex-col"
     >
