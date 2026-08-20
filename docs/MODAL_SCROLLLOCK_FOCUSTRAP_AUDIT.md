@@ -145,8 +145,20 @@ PrivacyConsignmentModal, ServiceDeleteModal(BaseModal 래핑 확인)
 내부에서 판단하므로 그대로 재사용 가능했음. 부작용: 지금까지 처리되지 않던 Escape 키가 이 두 곳에서도
 같은 핸들러를 타게 됨(흔들림 or 닫힘) — 회귀가 아니라 의도한 동작과 일치하는 부수 개선.
 
-`npx tsc --noEmit` / `npx eslint` 통과 확인. 브라우저 재현 검증(삭제확인/에러/시스템공지 각 1회씩
-스크롤락·포커스트랩·Esc 동작 확인)은 미수행 — 4개 모두 앱 전체에서 쓰이는 만큼 병합 전 권장.
+`npx tsc --noEmit` / `npx eslint` 통과 확인. 브라우저 검증(Claude in Chrome, `/test` 페이지) 완료:
+스크롤락(`overflow:hidden` 적용), 포커스트랩(X→취소→확인→X 순환), Escape로 닫기/PersistentModal은
+Escape에도 안 닫힘, z-index(150/280 실측 확인) 모두 정상.
+
+**검증 중 발견한 별도 버그(수정 완료)**: `BaseModal`의 오버레이 바깥 클릭 시 닫기가 **기존 25개
+사용처 전체에서 이미 깨져 있었다.** `onMouseDown`이 `e.target === e.currentTarget`로 판정했는데,
+가운데 정렬용 `positioner` div가 오버레이 전체를 덮고 있어서 배경의 어느 지점을 클릭해도 실제
+`e.target`은 항상 positioner이지 오버레이 자신이 될 수 없었다 — 즉 `closeOnOverlayClick`이 이름과
+달리 사실상 한 번도 동작한 적이 없었다. 이관 전 `ConfirmModal`/`ConfirmModalProvider`는 별도의
+`absolute inset-0` 배경 div가 직접 클릭을 받는 구조라 배경 클릭이 실제로 닫혔었기 때문에, 이번
+이관이 고치지 않았다면 오히려 이 둘에서는 회귀가 됐을 것 — `containerRef.current?.contains(e.target)`
+기반 판정으로 교체해 기존 25개 + 이번에 이관한 4개 모두에서 배경 클릭이 정상 동작하도록 수정.
+`ErrorFeedbackModalProvider`(persistent)와 `PersistentModalProvider`는 배경 클릭 시 닫지 않고
+흔들리기만 하는 기존 동작을 Claude in Chrome으로 재확인(다이얼로그 유지, `animate-shake` 클래스 적용).
 
 ### 우선순위 2 — 회생파산(debt-relief) 도메인, 현재 활발히 개발 중인 영역
 

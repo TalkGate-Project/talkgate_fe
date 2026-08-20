@@ -122,8 +122,13 @@ export default function BaseModal({
       aria-modal="true"
       aria-label={ariaLabel}
       onMouseDown={(e) => {
-        // only close when clicking real overlay (not children)
-        if (closeOnOverlayClick && e.target === e.currentTarget) onClose();
+        // 카드(containerRef) 바깥을 클릭했을 때만 닫는다. positioner(중앙 정렬용 flex 래퍼)가
+        // 오버레이 전체를 덮고 있어서 e.target은 실제로는 거의 항상 positioner이지 오버레이
+        // 자신(e.currentTarget)이 아니다 — 예전의 "e.target === e.currentTarget" 체크는 그래서
+        // 배경 클릭 시 사실상 항상 거짓이었다(모든 BaseModal 사용처에 있던 기존 버그).
+        if (closeOnOverlayClick && !containerRef.current?.contains(e.target as Node)) {
+          onClose();
+        }
       }}
     >
       <div
