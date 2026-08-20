@@ -27,7 +27,8 @@ export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProce
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4">
+    // 요청 실패 피드백은 공용 오류 모달(z-280)이 이 선택 화면 위에 표시한다.
+    <div className="fixed inset-0 z-[270] flex items-center justify-center px-4">
       <div
         className="absolute inset-0 bg-black/30 dark:bg-black/80"
         onClick={() => {

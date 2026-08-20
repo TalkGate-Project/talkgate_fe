@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
-  ASSET_CATEGORY_OPTIONS,
   COUNSEL_MENT_TABS,
   CONDITION_STATUS_LABEL,
-  DEBT_ITEM_TYPE_OPTIONS,
   DIAGNOSIS_STATUS_LABEL,
   PROCEDURE_GRADE_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
@@ -17,11 +15,14 @@ import {
   type ProcedureStep,
   type RecommendedProcedure,
 } from "@/types/debtRelief";
-import type { AnalysisAsset, AnalysisAssetCategory, AnalysisDebtItemType } from "@/types/analysis";
 import { formatDateTimeDisplay, formatManwonComma } from "@/components/debt-relief/format";
-import { wonToManwon } from "@/services/debtRelief";
 import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
-import { buildSections, type DisplayRow } from "./DiagnosisCustomerInfoModal";
+import {
+  buildCustomerInfoViewModel,
+  type DisplayRow,
+  type RichDisplayRow,
+  type SummaryLine,
+} from "./DiagnosisCustomerInfoModal";
 import {
   BUCKET_SUMMARY,
   REMAINING_DEBT_SUBTITLE,
@@ -33,20 +34,6 @@ import {
   resolveSectionKind,
 } from "./SectionRepaymentPlan";
 import { TYPE_LABEL as MESSAGE_TYPE_LABEL } from "./SectionDeliveryMessages";
-
-function optionLabel<T extends string>(options: { value: T; label: string }[], value: T): string {
-  return options.find((option) => option.value === value)?.label ?? value;
-}
-
-function formatWon(won: number | null | undefined): string {
-  if (won == null) return "-";
-  return formatManwonComma(wonToManwon(won));
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return "-";
-  return value.replaceAll("-", ".");
-}
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -123,6 +110,67 @@ function InfoBlock({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
+function PrintCustomerInfoRows({ rows }: { rows: DisplayRow[] }) {
+  return (
+    <dl className="print-customer-info-rows">
+      {rows.map((row, index) => (
+        <div key={`${row.label}-${index}`}>
+          <dt>{row.label}</dt>
+          <dd className={row.emphasize ? "print-customer-emphasize" : undefined}>
+            {row.value || "-"}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function PrintRichInfoRows({ rows }: { rows: RichDisplayRow[] }) {
+  return (
+    <dl className="print-customer-info-rows print-customer-rich-rows">
+      {rows.map((row) => (
+        <div key={row.key}>
+          <dt>{row.label}</dt>
+          <dd>
+            <strong>{row.title}</strong>
+            {row.description ? <p>{row.description}</p> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function PrintSummaryLines({ lines }: { lines: SummaryLine[] }) {
+  return (
+    <div className="print-customer-summary-lines">
+      {lines.map((line, index) => (
+        <p key={`${line.label}-${index}`}>
+          <span className={line.emphasizeLabel === false ? undefined : "print-customer-line-label"}>
+            {line.label}
+          </span>
+          {line.value ? ` - ${line.value}` : ""}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function PrintCustomerInfoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="print-customer-info-card">
+      <h3>{title}</h3>
+      {children}
+    </section>
+  );
+}
+
 export default function AnalysisPrintDocument({
   detail,
   projectId,
@@ -144,10 +192,10 @@ export default function AnalysisPrintDocument({
   }, []);
 
   const input = detail.inputData;
-  const debts = input.debts ?? [];
-  const assets = input.assets ?? [];
-  const assetById = new Map<string, AnalysisAsset>(assets.map((asset) => [asset.id, asset]));
-  const infoSections = buildSections(input);
+  const customerInfo = buildCustomerInfoViewModel(
+    input,
+    detail.collateralBreakdown ?? input.collateralBreakdown
+  );
 
   const procedureScores = [...(detail.procedureScores ?? [])].sort(
     (a, b) =>
@@ -157,8 +205,6 @@ export default function AnalysisPrintDocument({
   const conditionAnalysis: ConditionItem[] =
     detail.conditionAnalysisByProcedure[selectedProcedure] ?? detail.conditionAnalysis ?? [];
   const debtComposition = detail.debtStatus.composition ?? [];
-  const collateralBreakdown = detail.collateralBreakdown;
-
   const repaymentKind = resolveSectionKind(selectedProcedure);
   const repaymentTitle = REPAYMENT_SECTION_TITLE[repaymentKind];
   const plan = detail.repaymentPlanByProcedure[selectedProcedure];
@@ -218,133 +264,45 @@ export default function AnalysisPrintDocument({
         </header>
 
         <PrintSection number={sectionNumber++} title="고객 정보">
-          <div className="print-info-block-grid">
-            <InfoBlock title="기본정보">
-              <InfoTable rows={infoSections.customerRows} />
-            </InfoBlock>
-            <InfoBlock title="자산현황">
-              <InfoTable rows={infoSections.assetRows} />
-            </InfoBlock>
+          <div className="print-customer-info-layout">
+            <div className="print-customer-info-pair">
+              <PrintCustomerInfoCard title="고객 정보">
+                <PrintCustomerInfoRows rows={customerInfo.customerRows} />
+              </PrintCustomerInfoCard>
+              <PrintCustomerInfoCard title="자산현황">
+                <PrintRichInfoRows rows={customerInfo.assetRows} />
+              </PrintCustomerInfoCard>
+            </div>
+
+            <div className="print-customer-info-pair">
+              <PrintCustomerInfoCard title="소득 / 지출">
+                <PrintCustomerInfoRows rows={customerInfo.incomeRows} />
+              </PrintCustomerInfoCard>
+              <PrintCustomerInfoCard title="채무현황">
+                <div className="print-customer-debt-card-content">
+                  <PrintRichInfoRows rows={customerInfo.debtRows} />
+                  <PrintCustomerInfoRows rows={customerInfo.debtTotalRows} />
+                </div>
+              </PrintCustomerInfoCard>
+            </div>
+
+            <PrintCustomerInfoCard title="기타사항">
+              <dl className="print-customer-info-rows print-customer-other-rows">
+                <div>
+                  <dt>새출발기금</dt>
+                  <dd><PrintSummaryLines lines={customerInfo.businessLines} /></dd>
+                </div>
+                <div>
+                  <dt>기타 확인 사항</dt>
+                  <dd><PrintSummaryLines lines={customerInfo.otherCheckLines} /></dd>
+                </div>
+                <div>
+                  <dt>상담사 메모</dt>
+                  <dd className="print-customer-memo">{customerInfo.counselorMemo}</dd>
+                </div>
+              </dl>
+            </PrintCustomerInfoCard>
           </div>
-          <InfoBlock title="채무현황">
-            <InfoTable
-              rows={infoSections.debtRows}
-              columns={{ left: infoSections.debtLeftRows, right: infoSections.debtRightRows }}
-            />
-          </InfoBlock>
-          <InfoBlock title="소득·지출">
-            <InfoTable
-              rows={infoSections.incomeRows}
-              columns={{ left: infoSections.incomeLeftRows, right: infoSections.incomeRightRows }}
-            />
-          </InfoBlock>
-          <InfoBlock title="기타사항">
-            <InfoTable
-              rows={infoSections.otherRows}
-              columns={{ left: infoSections.otherLeftRows, right: infoSections.otherRightRows }}
-            />
-          </InfoBlock>
-
-          {assets.length > 0 && (
-            <InfoBlock title="자산 상세">
-              <table className="print-data-table">
-                <thead>
-                  <tr>
-                    <th>구분</th>
-                    <th>시가</th>
-                    <th>설명</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assets.map((asset) => (
-                    <tr key={asset.id}>
-                      <td>{optionLabel<AnalysisAssetCategory>(ASSET_CATEGORY_OPTIONS, asset.category)}</td>
-                      <td className="print-num">{formatManwonComma(asset.marketValue)}</td>
-                      <td>{asset.description?.trim() || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </InfoBlock>
-          )}
-
-          {debts.length > 0 && (
-            <InfoBlock title="채무 상세">
-              <table className="print-data-table">
-                <thead>
-                  <tr>
-                    <th>채권처</th>
-                    <th>채무종류</th>
-                    <th>담보자산</th>
-                    <th>현재잔액</th>
-                    <th>연체(개월)</th>
-                    <th>만기일</th>
-                    <th>잔여이자</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {debts.map((debt) => {
-                    const collateral = debt.collateralAssetId ? assetById.get(debt.collateralAssetId) : undefined;
-                    return (
-                      <tr key={debt.id}>
-                        <td>{debt.creditorName || "-"}</td>
-                        <td>{optionLabel<AnalysisDebtItemType>(DEBT_ITEM_TYPE_OPTIONS, debt.debtType)}</td>
-                        <td>
-                          {collateral
-                            ? optionLabel<AnalysisAssetCategory>(ASSET_CATEGORY_OPTIONS, collateral.category)
-                            : "무담보"}
-                        </td>
-                        <td className="print-num">{formatWon(debt.currentBalanceWon)}</td>
-                        <td className="print-num">{debt.overdueMonths ?? 0}</td>
-                        <td>{formatDate(debt.maturityDate)}</td>
-                        <td className="print-num">{formatWon(debt.remainingInterestWon)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </InfoBlock>
-          )}
-
-          {collateralBreakdown && (
-            <InfoBlock title="담보 채무 분석">
-              <table className="print-data-table">
-                <thead>
-                  <tr>
-                    <th>담보자산</th>
-                    <th>시가</th>
-                    <th>담보채무</th>
-                    <th>회수가능액</th>
-                    <th>순가치</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(collateralBreakdown.assetDetails ?? []).map((item, index) => (
-                    <tr key={`${item.category}-${index}`}>
-                      <td>
-                        {optionLabel<AnalysisAssetCategory>(ASSET_CATEGORY_OPTIONS, item.category)}
-                        {item.description ? ` · ${item.description}` : ""}
-                      </td>
-                      <td className="print-num">{formatManwonComma(item.marketValue)}</td>
-                      <td className="print-num">{formatManwonComma(item.collateralDebt)}</td>
-                      <td className="print-num">{formatManwonComma(item.securedRecoverable)}</td>
-                      <td className="print-num">{formatManwonComma(item.netValue)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <InfoTable
-                rows={[
-                  { label: "청산가치", value: formatManwonComma(collateralBreakdown.liquidationValue) },
-                  { label: "담보채무 합계", value: formatManwonComma(collateralBreakdown.collateralDebt) },
-                  { label: "담보 회수가능액", value: formatManwonComma(collateralBreakdown.securedRecoverableDebt) },
-                  { label: "담보 부족채무", value: formatManwonComma(collateralBreakdown.securedShortfallDebt) },
-                  { label: "무담보채무", value: formatManwonComma(collateralBreakdown.unsecuredDebt) },
-                  { label: "면책가능채무", value: formatManwonComma(collateralBreakdown.dischargeableDebt), emphasize: true },
-                ]}
-              />
-            </InfoBlock>
-          )}
         </PrintSection>
 
         <PrintSection number={sectionNumber++} title="AI 분석 추천">
@@ -754,6 +712,104 @@ export default function AnalysisPrintDocument({
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0 16px;
+          }
+          .print-customer-info-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .print-customer-info-pair {
+            display: grid;
+            grid-template-columns: minmax(0, 314fr) minmax(0, 672fr);
+            gap: 12px;
+            break-inside: avoid;
+          }
+          .print-customer-info-card {
+            min-height: 220px;
+            padding: 12px 14px 14px;
+            border: 1px solid #e2e2e2;
+            border-radius: 8px;
+            background: #f8f8f8;
+            break-inside: avoid;
+          }
+          .print-customer-info-layout > .print-customer-info-card {
+            min-height: 210px;
+          }
+          .print-customer-info-card > h3 {
+            margin: 0 0 10px;
+            color: var(--ink);
+            font-size: 10pt;
+            font-weight: 800;
+          }
+          .print-customer-info-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin: 0;
+          }
+          .print-customer-info-rows > div {
+            display: grid;
+            grid-template-columns: 78px minmax(0, 1fr);
+            gap: 10px;
+            break-inside: avoid;
+          }
+          .print-customer-info-rows dt,
+          .print-customer-info-rows dd {
+            margin: 0;
+            font-size: 8.5pt;
+            line-height: 1.45;
+          }
+          .print-customer-info-rows dt {
+            color: var(--muted);
+            font-weight: 500;
+          }
+          .print-customer-info-rows dd {
+            color: var(--ink);
+            font-weight: 600;
+            overflow-wrap: anywhere;
+            white-space: pre-line;
+          }
+          .print-customer-rich-rows dd strong {
+            display: block;
+            font-weight: 800;
+          }
+          .print-customer-rich-rows dd p {
+            margin: 0;
+            color: #474747;
+            font-weight: 400;
+          }
+          .print-customer-emphasize {
+            font-weight: 800 !important;
+          }
+          .print-customer-debt-card-content {
+            display: flex;
+            min-height: 180px;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .print-customer-debt-card-content > .print-customer-info-rows:last-child {
+            margin-top: auto;
+          }
+          .print-customer-other-rows {
+            gap: 10px;
+          }
+          .print-customer-other-rows > div {
+            grid-template-columns: 92px minmax(0, 1fr);
+          }
+          .print-customer-summary-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          }
+          .print-customer-summary-lines p {
+            margin: 0;
+          }
+          .print-customer-line-label {
+            font-weight: 800;
+          }
+          .print-customer-memo {
+            color: #474747 !important;
+            font-weight: 400 !important;
           }
           .print-info-table {
             width: 100%;
