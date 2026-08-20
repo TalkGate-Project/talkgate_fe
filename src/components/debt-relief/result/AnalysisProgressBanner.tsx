@@ -123,7 +123,7 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`cursor-pointer inline-flex h-[34px] min-w-[56px] items-center justify-center rounded-[5px] px-2 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 md:min-w-[72px] md:px-3 ${
+      className={`cursor-pointer inline-flex h-[34px] min-w-[72px] items-center justify-center rounded-[5px] px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
         variant === "danger"
           ? "border border-danger-40 bg-card text-danger-40"
           : "bg-neutral-90 text-neutral-20"
@@ -163,9 +163,11 @@ export default function AnalysisProgressBanner({
     <>
       <section
         aria-label="분석 진행 단계"
-        className="md:hidden h-[122px] overflow-hidden rounded-[12px] border border-neutral-30 bg-neutral-10 dark:bg-card"
+        className={`md:hidden h-[122px] overflow-hidden rounded-[12px] border border-neutral-30 ${
+          isExceptionalStatus ? "bg-card" : "bg-neutral-10 dark:bg-card"
+        }`}
       >
-        <div className="flex h-[58px] items-center justify-center border-b border-neutral-30">
+        <div className="flex h-[58px] items-center justify-center border-b border-neutral-30/50">
           {isExceptionalStatus ? (
             <ExceptionalStatusLabel status={status} />
           ) : (
@@ -182,18 +184,41 @@ export default function AnalysisProgressBanner({
 
       <section
         aria-label="분석 진행 단계"
-        className="hidden min-h-[72px] items-center justify-between rounded-[12px] border border-neutral-30 bg-card px-[22px] shadow-[0_3px_4px_rgba(9,30,66,0.1)] dark:shadow-none md:flex"
+        className="hidden min-h-[104px] flex-col justify-center gap-3 rounded-[12px] border border-neutral-30 bg-card px-[22px] py-4 shadow-[0_3px_4px_rgba(9,30,66,0.1)] dark:shadow-none md:flex lg:hidden"
+      >
+        <div className="min-w-0">
+          {isExceptionalStatus ? (
+            <ExceptionalStatusLabel status={status} />
+          ) : (
+            <ProgressSteps currentStep={currentStep} />
+          )}
+        </div>
+        <div className="flex min-w-0 items-center justify-between gap-5">
+          <p className="min-w-0 flex-1 break-keep text-[13px] font-normal leading-4 tracking-[-0.02em] text-neutral-60">
+            {description[status]}
+          </p>
+          {actionButtons.length > 0 ? (
+            <div className="flex shrink-0 items-center gap-2">{actionButtons}</div>
+          ) : null}
+        </div>
+      </section>
+
+      <section
+        aria-label="분석 진행 단계"
+        className="hidden min-h-[72px] items-center justify-between rounded-[12px] border border-neutral-30 bg-card px-[22px] shadow-[0_3px_4px_rgba(9,30,66,0.1)] dark:shadow-none lg:flex"
       >
         {isExceptionalStatus ? (
           <ExceptionalStatusLabel status={status} />
         ) : (
           <ProgressSteps currentStep={currentStep} />
         )}
-        <div className="flex shrink-0 items-center justify-end gap-5">
-          <p className="text-[13px] font-normal leading-4 tracking-[-0.02em] text-neutral-60">
+        <div className="flex min-w-0 items-center justify-end gap-5">
+          <p className="min-w-0 break-keep text-[13px] font-normal leading-4 tracking-[-0.02em] text-neutral-60">
             {description[status]}
           </p>
-          {actionButtons}
+          {actionButtons.length > 0 ? (
+            <div className="flex shrink-0 items-center gap-5">{actionButtons}</div>
+          ) : null}
         </div>
       </section>
     </>
