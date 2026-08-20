@@ -16,7 +16,7 @@ import {
   type RecommendedProcedure,
 } from "@/types/debtRelief";
 import { formatDateTimeDisplay, formatManwonComma } from "@/components/debt-relief/format";
-import { useDebtReliefAiChat } from "./useDebtReliefAiChat";
+import type { DebtReliefChatUiMessage } from "./useDebtReliefAiChat";
 import {
   buildCustomerInfoViewModel,
   type DisplayRow,
@@ -173,14 +173,13 @@ function PrintCustomerInfoCard({
 
 export default function AnalysisPrintDocument({
   detail,
-  projectId,
   selectedProcedure,
+  chatMessages,
 }: {
   detail: DiagnosisDetail;
-  projectId: string | null;
   selectedProcedure: RecommendedProcedure;
+  chatMessages: DebtReliefChatUiMessage[];
 }) {
-  const { messages: chatMessages } = useDebtReliefAiChat(detail.id, projectId);
 
   // 실제로 인쇄 버튼을 눌러 브라우저 인쇄 창이 뜨는 시점의 시각으로 갱신한다 — 마운트 시각을
   // 그대로 쓰면 열어둔 채 한참 있다가 인쇄했을 때 "인쇄일시"가 실제와 어긋난다.

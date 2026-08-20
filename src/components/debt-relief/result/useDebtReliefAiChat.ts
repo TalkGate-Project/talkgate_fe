@@ -28,13 +28,23 @@ function toUiMessage(message: AnalysisChatMessage): DebtReliefChatUiMessage {
   };
 }
 
-// GET /v1/analysis/{id}/chat + POST /v1/analysis/{id}/chat/stream 연동.
-// analysisId/projectId가 갖춰지면 히스토리를 불러오고, sendMessage로 SSE 스트리밍 응답을 받는다.
-export function useDebtReliefAiChat(analysisId: string | null, projectId: string | null) {
+export type DebtReliefChatHistory = {
+  messages: DebtReliefChatUiMessage[];
+  loading: boolean;
+  /** 히스토리 조회가 (성공/실패와 무관하게) 한 번이라도 끝났는지. analysisId/projectId가 없으면 계속 false. */
+  loaded: boolean;
+};
+
+// GET /v1/analysis/{id}/chat 히스토리 조회 전용 훅. 분석 상세 화면에서 채팅 UI(SectionCounselMents)와
+// 인쇄용 숨김 문서(AnalysisPrintDocument)가 동시에 마운트돼 있어 각자 이 API를 부르면 중복 호출이 나므로,
+// 상위(ResultDetailContent)에서 한 번만 호출해 두 곳에 결과를 내려준다.
+export function useDebtReliefChatHistory(
+  analysisId: string | null,
+  projectId: string | null
+): DebtReliefChatHistory {
   const [messages, setMessages] = useState<DebtReliefChatUiMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!analysisId || !projectId) return;
@@ -55,13 +65,39 @@ export function useDebtReliefAiChat(analysisId: string | null, projectId: string
         console.error("Failed to load AI chat history:", error);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+        setLoading(false);
+        setLoaded(true);
       });
 
     return () => {
       cancelled = true;
     };
   }, [analysisId, projectId]);
+
+  return { messages, loading, loaded };
+}
+
+// POST /v1/analysis/{id}/chat/stream 연동. 히스토리는 useDebtReliefChatHistory로 상위에서 받아와
+// history로 전달받고, sendMessage로 SSE 스트리밍 응답을 받아 그 위에 이어붙인다.
+export function useDebtReliefAiChat(
+  analysisId: string | null,
+  projectId: string | null,
+  history: DebtReliefChatHistory
+) {
+  const [messages, setMessages] = useState<DebtReliefChatUiMessage[]>(history.messages);
+  const [sending, setSending] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const syncedAnalysisIdRef = useRef<string | null>(null);
+
+  // history.loaded가 처음 true가 되는 시점(analysisId당 1회)에만 히스토리를 반영한다.
+  // 매 렌더마다 반영하면 전송 중인/스트리밍 중인 로컬 메시지가 덮어써진다.
+  useEffect(() => {
+    if (!history.loaded) return;
+    if (syncedAnalysisIdRef.current === analysisId) return;
+    syncedAnalysisIdRef.current = analysisId;
+    setMessages(history.messages);
+  }, [analysisId, history.loaded, history.messages]);
 
   useEffect(() => {
     return () => {
@@ -142,5 +178,5 @@ export function useDebtReliefAiChat(analysisId: string | null, projectId: string
     [analysisId, projectId, sending]
   );
 
-  return { messages, loading, sending, sendMessage };
+  return { messages, loading: history.loading, sending, sendMessage };
 }

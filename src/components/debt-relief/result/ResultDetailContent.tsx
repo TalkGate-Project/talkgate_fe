@@ -36,6 +36,7 @@ import SectionProcedureGuide from "./SectionProcedureGuide";
 import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
 import AnalysisPrintDocument from "./AnalysisPrintDocument";
+import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
@@ -57,6 +58,10 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
   const [progressShareOpen, setProgressShareOpen] = useState(false);
   const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
+  // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
+  // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
+  // 조회해 두 곳에 내려준다.
+  const chatHistory = useDebtReliefChatHistory(detail?.id ?? null, projectId);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
   // AI 분석 추천·상담 멘트만 숨긴다. 변호사가 직접 등록한 건은 자체 분석이므로 그대로 노출한다.
@@ -358,7 +363,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
 
         {!hideCounselMents && (
           <SectionCard id="ments" compactTop>
-            <SectionCounselMents detail={detail} projectId={projectId} />
+            <SectionCounselMents detail={detail} projectId={projectId} chatHistory={chatHistory} />
           </SectionCard>
         )}
 
@@ -390,8 +395,8 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       </div>
       <AnalysisPrintDocument
         detail={detail}
-        projectId={projectId}
         selectedProcedure={activeProcedure}
+        chatMessages={chatHistory.messages}
       />
       <AnalysisProgressChoiceModal
         open={progressChoiceOpen}
