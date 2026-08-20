@@ -62,7 +62,7 @@ export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProce
               </svg>
             </span>
             <span className="mt-3 block text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-secondary-40">자체진행</span>
-            <span className="mt-2 block text-[14px] font-normal leading-[17px] tracking-[0.2px] text-neutral-60">검토중을 건너뛰고 계약<br />대기중으로 바로 이동</span>
+            <span className="mt-2 block text-[14px] font-normal leading-[17px] tracking-[0.2px] text-neutral-60">법무법인 공유 없이<br />자체적으로 절차 진행</span>
           </button>
 
           <button

@@ -251,9 +251,14 @@ export type CreateAnalysisInput = AnalysisFormInput & {
 
 export type UpdateAnalysisInput = {
   projectId: string;
-  status?: AnalysisStatus;
   trackingProcedure?: AnalysisProcedureType;
   currentProcedureStep?: number;
+};
+
+/** POST /v1/analysis/{id}/self-progress — 영업점의 상담중/반려됨 분석을 자체 진행 */
+export type SelfProgressAnalysisInput = {
+  projectId: string;
+  message?: string;
 };
 
 // PATCH /v1/analysis/{id}/input — 입력값 수정 + AI 재진단. customerId는 없음(고객 매칭은
@@ -502,7 +507,15 @@ export type AnalysisDetail = {
 
 /** 분석 건 액션(공유/반려/수락/수임료 입력·수정·중단·환불) 메시지 히스토리 항목 */
 export type AnalysisMessageDto = {
-  type: "share" | "reject" | "accept" | "fee_create" | "fee_update" | "fee_stop" | "fee_refund";
+  type:
+    | "share"
+    | "reject"
+    | "accept"
+    | "self_proceed"
+    | "fee_create"
+    | "fee_update"
+    | "fee_stop"
+    | "fee_refund";
   referenceId?: number | null;
   memberName: string;
   projectId: number;
@@ -574,6 +587,7 @@ export type AnalysisSendSmsResponse = ApiSuccess<AnalysisSendSmsResult>;
 export type CreateAnalysisResponse = ApiSuccess<AnalysisDetail>;
 export type AnalysisDetailResponse = ApiSuccess<AnalysisDetail>;
 export type UpdateAnalysisResponse = ApiSuccess<AnalysisDetail>;
+export type SelfProgressAnalysisResponse = ApiSuccess<AnalysisDetail>;
 export type ReanalyzeAnalysisResponse = ApiSuccess<AnalysisDetail>;
 export type DeleteAnalysisResponse = ApiSuccess<Record<string, never>>;
 

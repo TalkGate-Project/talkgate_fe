@@ -811,6 +811,7 @@ export type DiagnosisMessageType =
   | "share"
   | "reject"
   | "accept"
+  | "self_proceed"
   | "fee_create"
   | "fee_update"
   | "fee_stop"

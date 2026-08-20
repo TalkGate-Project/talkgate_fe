@@ -989,12 +989,13 @@ export const DebtReliefService = {
     await AnalysisService.reject(Number(id), { projectId, ...(message ? { message } : {}) });
   },
 
-  async updateDiagnosisStatus(
-    projectId: string,
-    id: string,
-    status: AnalysisStatus
-  ): Promise<void> {
-    await AnalysisService.update(Number(id), { projectId, status });
+  // 영업점의 상담중/반려됨 분석을 법무법인 공유 없이 자체 진행한다. 전환될 상태는
+  // 수임료 계획 유무에 따라 서버가 결정하므로 PATCH로 상태를 직접 지정하지 않는다.
+  async selfProgressAnalysis(projectId: string, id: string, message?: string): Promise<void> {
+    await AnalysisService.selfProgress(Number(id), {
+      projectId,
+      ...(message ? { message } : {}),
+    });
   },
 
   // 편집(정보 수정) 진입 시 폼에 채울 원본 입력값 조회.
