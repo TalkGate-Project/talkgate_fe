@@ -7,7 +7,6 @@ import {
   canEditDiagnosisInfo,
   type DiagnosisDetail,
 } from "@/types/debtRelief";
-import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -653,19 +652,6 @@ export default function ResultHeader({
     .filter(Boolean)
     .join(" · ");
 
-  const inProgressStepLabel =
-    detail.status === "in_progress" && detail.procedureGuide.totalSteps > 1
-      ? `${detail.procedureGuide.currentStep}/${detail.procedureGuide.totalSteps}`
-      : undefined;
-
-  const statusBadge = (
-    <StatusBadge
-      status={detail.status}
-      rejectionReason={detail.rejectionReason}
-      stepLabel={inProgressStepLabel}
-    />
-  );
-
   const customerInfoButton = (
     <button
       type="button"
@@ -691,8 +677,8 @@ export default function ResultHeader({
 
   return (
     <>
-      {/* 모바일·태블릿(lg 미만): 1줄(뒤로+제목+상태[+공유처칩] | ⋮ 액션메뉴),
-          2줄(고객메타+⋯ | 전달사항 토글).
+      {/* 모바일·태블릿(lg 미만): 1줄(뒤로+제목 | 공유처·담당직원+액션),
+          300px 이하는 보조행(공유처·담당직원), 마지막 행(고객메타+⋯ | 전달사항 토글).
           영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합.
           태블릿(md~lg)도 PC 버튼 세트가 겹쳐 보여 이 컴팩트 레이아웃을 lg까지 확장. */}
       <div className="flex lg:hidden flex-col pt-1.5">
@@ -714,16 +700,18 @@ export default function ResultHeader({
                 />
               </svg>
             </button>
-            <h1 className="text-[18px] font-semibold leading-[21px] text-black dark:text-neutral-90 truncate min-w-0">
+            <h1 className="min-w-0 flex-1 truncate text-[18px] font-semibold leading-[21px] text-black dark:text-neutral-90">
               {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
             </h1>
-            <div className="shrink-0">{statusBadge}</div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {detail.isShared ? (
-              <span className="inline-flex h-[22px] items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5 whitespace-nowrap">
-                <span className="text-[12px] font-semibold leading-[17px] text-neutral-60">
+              <span
+                title={shareLabel}
+                className="hidden h-[22px] min-w-0 max-w-[220px] items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5 min-[301px]:inline-flex"
+              >
+                <span className="min-w-0 truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
                   {shareLabel}
                 </span>
               </span>
@@ -768,7 +756,7 @@ export default function ResultHeader({
                 </div>
               </div>
             ) : showAssigneeProfile ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 <button
                   type="button"
                   onClick={handleDownload}
@@ -790,7 +778,7 @@ export default function ResultHeader({
                     <PaymentInfoNudgeBubble align="end" onDismiss={handleDismissPaymentNudge} />
                   )}
                 </div>
-                {assigneeProfile}
+                <div className="hidden min-w-0 min-[301px]:block">{assigneeProfile}</div>
               </div>
             ) : (
               <button
@@ -804,6 +792,24 @@ export default function ResultHeader({
             )}
           </div>
         </div>
+
+        {detail.isShared || showAssigneeProfile ? (
+          <div className="hidden min-w-0 flex-col items-start gap-2 pb-2 max-[300px]:flex">
+            {detail.isShared ? (
+              <span
+                title={shareLabel}
+                className="inline-flex h-[22px] max-w-full items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5"
+              >
+                <span className="min-w-0 truncate whitespace-nowrap text-[12px] font-semibold leading-[17px] text-neutral-60">
+                  {shareLabel}
+                </span>
+              </span>
+            ) : null}
+            {showAssigneeProfile ? (
+              <div className="min-w-0 max-w-full">{assigneeProfile}</div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="-mx-6 border-t border-neutral-30" />
 
@@ -858,7 +864,6 @@ export default function ResultHeader({
           <h1 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">
             {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
           </h1>
-          {statusBadge}
           <span className="w-px h-4 bg-neutral-60 shrink-0" aria-hidden />
           <span className="text-[18px] font-medium leading-5 text-neutral-60 truncate min-w-0">
             {customerSummaryLabel}

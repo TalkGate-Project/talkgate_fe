@@ -257,7 +257,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
         </div>
 
-        <div className="px-6 pt-4 md:px-0 md:pt-0">
+        <div className="hidden md:block">
           <AnalysisProgressBanner
             status={detail.status}
             actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
@@ -265,7 +265,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         </div>
 
         {showReviewBanner && (
-          <div id="analysis-review-actions" className="px-6 md:px-0 pt-4 md:pt-0">
+          <div id="analysis-review-actions">
             <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
           </div>
         )}
@@ -282,6 +282,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               className="max-md:!pt-0"
             >
               <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <div className="mt-3 md:hidden">
+                <AnalysisProgressBanner
+                  status={detail.status}
+                  actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+                />
+              </div>
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
@@ -318,6 +324,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
                 messagesOpen={mobileMessagesOpen}
                 onToggleMessages={() => setMobileMessagesOpen((previous) => !previous)}
               />
+              <div className="mt-3 md:hidden">
+                <AnalysisProgressBanner
+                  status={detail.status}
+                  actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+                />
+              </div>
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
