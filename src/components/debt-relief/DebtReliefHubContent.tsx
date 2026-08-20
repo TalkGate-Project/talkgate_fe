@@ -227,9 +227,10 @@ export default function DebtReliefHubContent() {
 
       {/* 새 진단 시작 버튼 + 전체/반려 탭(데스크톱): 상단 카드와 하단 카드(검색+테이블) 사이에 배치.
           탭이 하단 카드 좌상단에 여백 없이 딱 붙어야 해서 이 행은 왼쪽 패딩이 없다(오른쪽만 pr-4/md:pr-7).
+          모바일은 48px 높이 안에서 34px 버튼을 세로 중앙 정렬해 위·아래 여백을 균등하게 둔다.
           데스크톱은 이 행 자체를 53px(13px 여백 + 탭 40px)로 고정하고 탭만 self-end로 하단에 붙여,
           margin이 아니라 박스 자체 높이 안에서 정렬되도록 해서 버튼이 그 53px 안에서 진짜 세로 중앙에 오게 한다. */}
-      <div className="mt-[13px] md:mt-0 flex items-center justify-end md:h-[53px] md:justify-between pr-4 md:pr-7">
+      <div className="flex h-12 items-center justify-end md:h-[53px] md:justify-between pr-4 md:pr-7">
         <div className="hidden md:flex md:self-end">
           <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="card" />
         </div>
