@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 interface TwoFactorDisableModalProps {
   isOpen: boolean;
@@ -74,14 +75,14 @@ export default function TwoFactorDisableModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-0">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-
-      {/* Modal - 모바일: 전체 너비, 데스크톱: 440px 고정 */}
-      <div 
-        className="relative bg-white dark:bg-neutral-10 rounded-[14px] w-full max-w-[440px] md:w-[440px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="2FA 연결해제"
+      disableAutoContainerSizing
+      containerClassName="relative bg-white dark:bg-neutral-10 rounded-[14px] w-full max-w-[440px] md:w-[440px] shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-6 pb-3 md:px-8 md:pt-8 md:pb-4">
           <h2 className="text-[16px] md:text-[18px] font-semibold text-black dark:text-foreground leading-[21px]">
@@ -209,7 +210,6 @@ export default function TwoFactorDisableModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

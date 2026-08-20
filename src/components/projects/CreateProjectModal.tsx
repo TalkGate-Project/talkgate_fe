@@ -7,6 +7,7 @@ import { ProjectsService } from "@/services/projects";
 import pleaseDragImg from "@/assets/images/projects/please_drag.webp";
 import pleaseDragDarkImg from "@/assets/images/projects/please_drag_dark.webp";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 import type { Project, ProjectType } from "@/types/projects";
 
 type Props = {
@@ -284,11 +285,21 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
     handleSubmit({ skipSubdomain: true });
   };
 
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center md:bg-black/50 md:dark:bg-[#000000CC]">
-      {/* 모바일: 전체 화면, 데스크톱: 모달 오버레이 */}
-      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC] md:block hidden" />
-      <div className="relative bg-card dark:bg-neutral-10 md:rounded-[14px] md:w-[848px] md:h-[731px] w-full h-full md:max-h-[731px] flex flex-col">
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-50"
+      overlayClassName="md:bg-black/50 dark:md:bg-[#000000CC]"
+      ariaLabel="새 프로젝트 생성"
+      positionerClassName="min-h-full flex items-center justify-center"
+      disableAutoContainerSizing
+      containerClassName="relative bg-card dark:bg-neutral-10 md:rounded-[14px] md:w-[848px] md:h-[731px] w-full h-full md:max-h-[731px] flex flex-col"
+    >
         {/* 헤더 */}
         <div className="flex items-center px-4 md:px-7 pt-4 md:pt-0 mb-[18px] md:mb-0">
           {/* 모바일: 뒤로가기 버튼 */}
@@ -591,7 +602,6 @@ export default function CreateProjectModal({ onClose, onCreated }: Props) {
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

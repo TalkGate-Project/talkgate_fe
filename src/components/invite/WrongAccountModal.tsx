@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "@/components/common/BaseModal";
+
 type WrongAccountModalProps = {
   loggedInEmail: string | null;
   inviteEmail: string | null;
@@ -31,12 +33,14 @@ export function WrongAccountModal({
 
   const providerName = getProviderName(socialProvider);
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
-        onClick={onCancel}
-      />
-      <div className="relative w-[500px] rounded-[14px] bg-white dark:bg-neutral-10">
+    <BaseModal
+      onClose={onCancel}
+      zIndexClassName="z-[150]"
+      overlayClassName="bg-black/35 dark:bg-[#000000CC]"
+      ariaLabel="현재 다른 계정으로 로그인되어 있어 진행할 수 없어요."
+      disableAutoContainerSizing
+      containerClassName="relative w-[500px] rounded-[14px] bg-white dark:bg-neutral-10"
+    >
         <div className="px-8 pt-7 pb-6">
           {/* 경고 아이콘 */}
           <div className="mt-6 flex justify-center">
@@ -103,8 +107,7 @@ export function WrongAccountModal({
             로그아웃
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }
 

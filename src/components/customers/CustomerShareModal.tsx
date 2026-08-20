@@ -8,6 +8,7 @@ import type { CopyToPartnerFilterConditions } from "@/types/customers";
 import Pagination from "@/components/common/Pagination";
 import Checkbox from "@/components/common/Checkbox";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import BaseModal from "@/components/common/BaseModal";
 
 interface CustomerShareModalProps {
   isOpen: boolean;
@@ -204,19 +205,14 @@ export default function CustomerShareModal({
   if (!isOpen) return null;
 
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40"
-        onClick={onClose}
-        aria-hidden
-      />
-      <div
-        className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:right-auto md:w-[500px] md:-translate-x-1/2 w-[calc(100%-2rem)] max-h-[90vh] bg-white dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col overflow-hidden"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="파트너 배정하기"
+      disableAutoContainerSizing
+      containerClassName="w-[calc(100%-2rem)] md:w-[500px] max-h-[90vh] bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0">
           <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[21px]">
             파트너 배정하기
@@ -329,7 +325,6 @@ export default function CustomerShareModal({
             {submitting ? "처리 중..." : "확인"}
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

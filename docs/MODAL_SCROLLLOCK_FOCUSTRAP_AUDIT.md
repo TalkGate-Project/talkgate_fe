@@ -160,50 +160,121 @@ Escape에도 안 닫힘, z-index(150/280 실측 확인) 모두 정상.
 `ErrorFeedbackModalProvider`(persistent)와 `PersistentModalProvider`는 배경 클릭 시 닫지 않고
 흔들리기만 하는 기존 동작을 Claude in Chrome으로 재확인(다이얼로그 유지, `animate-shake` 클래스 적용).
 
-### 우선순위 2 — 회생파산(debt-relief) 도메인, 현재 활발히 개발 중인 영역
+### 우선순위 2 — 회생파산(debt-relief) 도메인, 현재 활발히 개발 중인 영역 (완료, 2026-08-20)
 
 이번 조사의 출발점(`DiagnosisCustomerInfoModal`)과 같은 화면군. 지금 이 브랜치가 건드리고 있는
 영역이라 QA 동선과 겹쳐 회귀 확인이 쉽다.
 
-- [ ] `debt-relief/result/DiagnosisCustomerInfoModal.tsx` (버그 최초 재현 지점)
-- [ ] `debt-relief/result/AnalysisProgressChoiceModal.tsx`
-- [ ] `debt-relief/result/CustomerMatchModal.tsx`
-- [ ] `debt-relief/result/DebtApplyChoiceModal.tsx`
-- [ ] `debt-relief/result/FeePlanActionConfirmModal.tsx`
-- [ ] `debt-relief/hub/AnalysisShareModal.tsx`
-- [ ] `debt-relief/hub/AnalysisShareConfirmModal.tsx`
+- [x] `debt-relief/result/DiagnosisCustomerInfoModal.tsx` (버그 최초 재현 지점)
+- [x] `debt-relief/result/AnalysisProgressChoiceModal.tsx`
+- [x] `debt-relief/result/CustomerMatchModal.tsx`
+- [x] `debt-relief/result/DebtApplyChoiceModal.tsx`
+- [x] `debt-relief/result/FeePlanActionConfirmModal.tsx`
+- [x] `debt-relief/hub/AnalysisShareModal.tsx`
+- [x] `debt-relief/hub/AnalysisShareConfirmModal.tsx`
 
-### 우선순위 3 — 고객관리(customers) · 채팅(chat), 매일 쓰는 핵심 업무 화면
+**이관 메모**:
+- 전부 `disableAutoContainerSizing` + `containerClassName`으로 기존 카드 폭/높이를 그대로 유지하는
+  방식(우선순위 1과 동일 패턴). `fixed left-1/2 top-1/2 -translate-x/y-1/2`류 절대중앙정렬은
+  `BaseModal`의 기본 positioner(`flex items-center justify-center`)가 동일 효과를 내므로 별도
+  `positionerClassName` 없이 제거. `AnalysisProgressChoiceModal`/`CustomerMatchModal`처럼 좌우
+  패딩만 있고 상하 패딩이 없던 레이아웃은 `positionerClassName`을 직접 지정해 기존 여백을 보존.
+- `submitting`/`matchingId` 등 처리 중 상태에서 닫기를 막던 기존 로직은 `onClose`에 넘기는
+  `handleClose` 래퍼(`if (!submitting) onClose()`)로 유지하고 `closeOnOverlayClick`도 동일 조건으로
+  연결 — 우선순위 1의 persistent 모달과 같은 패턴.
+- `CustomerMatchModal`은 원래 배경 클릭 시 닫히는 기능 자체가 없었음(오버레이에 onClick 핸들러
+  없음) — `closeOnOverlayClick={false}`로 명시해 동작 변경 없이 이관.
+- `AnalysisShareModal` + `AnalysisShareContactStep`: 두 스텝(파트너 선택 / 연락처 입력)이 오버레이
+  하나를 공유하는 구조라, `AnalysisShareContactStep`의 자체 `fixed` 래퍼(위치·크기·그림자)를 걷어내고
+  `flex h-full flex-col`만 남긴 뒤 크기·포지셔닝 책임을 부모 `AnalysisShareModal`의
+  `containerClassName`(스텝별 분기)으로 옮김.
+- `DiagnosisCustomerInfoModal`(부모) + `DebtDetailModal`(자식, 이미 BaseModal 사용 중)처럼 중첩
+  모달이 있는 조합, 그리고 `AnalysisShareModal`(부모) + `AnalysisShareConfirmModal`(자식)은 둘 다
+  `zIndexClassName`을 지정하지 않고 기본값(`z-[100]`)을 공유 — 자식이 나중에 mount되어 DOM상 뒤에
+  portal이 붙으므로 항상 위에 뜬다(기존 25개 BaseModal 사용처의 중첩 모달 조합과 동일한 검증된
+  패턴). `AnalysisProgressChoiceModal`(z-[270])처럼 전역 에러 모달(z-280)과의 관계가 이미 정해져
+  있던 파일은 기존 z-index를 그대로 보존.
+- `npx tsc --noEmit` / `npx eslint`(대상 8개 파일) 통과 확인. 브라우저 검증은 미실시(사용자 요청 시
+  별도 진행).
 
-- [ ] `common/FilterModal.tsx` (고객 목록 필터 — 리스트 화면에서 매우 빈번)
-- [ ] `customers/CustomerExcelUploadModal.tsx`
-- [ ] `customers/CustomerShareModal.tsx`
-- [ ] `common/InviteMemberModal.tsx` / `common/DeleteMemberModal.tsx`
-- [ ] `chat/customer-link/CustomerLinkCreateModal.tsx` / `CustomerLinkExistingModal.tsx` /
+### 우선순위 3 — 고객관리(customers) · 채팅(chat), 매일 쓰는 핵심 업무 화면 (완료, 2026-08-20)
+
+- [x] `common/FilterModal.tsx` (고객 목록 필터 — 리스트 화면에서 매우 빈번)
+- [x] `customers/CustomerExcelUploadModal.tsx`
+- [x] `customers/CustomerShareModal.tsx`
+- [x] `common/InviteMemberModal.tsx` / `common/DeleteMemberModal.tsx`
+- [x] `chat/customer-link/CustomerLinkCreateModal.tsx` / `CustomerLinkExistingModal.tsx` /
       `CustomerLinkModeModal.tsx`
-- [ ] `chat/ChatFilterModal.tsx`
+- [x] `chat/ChatFilterModal.tsx`
 
-### 우선순위 4 — 설정(settings) · 내설정(my-settings) · 프로젝트, 상대적 저빈도
+**이관 메모**:
+- 패턴은 우선순위 1·2와 동일: `disableAutoContainerSizing` + `containerClassName`으로 기존 카드
+  크기 보존, `fixed left/top -translate` 절대중앙정렬은 `BaseModal` 기본 positioner로 대체.
+- `FilterModal.tsx`/`ChatFilterModal.tsx`는 내부 콤보박스·카테고리 드롭다운이 각자
+  `createPortal(..., document.body)`로 독립 포털을 쓰던 부분(파트너 검색, API 키, 카테고리 다건
+  선택)은 그대로 유지 — `BaseModal` 이관과 무관하게 정상 동작.
+- `CustomerLinkExistingModal.tsx`/`CustomerLinkCreateModal.tsx`는 카운터 없는 자체
+  `lockBodyScroll`/`unlockBodyScroll`(`document.documentElement`/`body.style.overflow` 직접 조작)을
+  갖고 있어 다른 모달과 동시에 열리면 스크롤락 카운터가 꼬일 수 있었던 잠재 결함 — `BaseModal`의
+  카운터 기반 락으로 교체하며 자연히 해소.
+- 배경 클릭 시 닫히지 않던 기존 동작(`CustomerMatchModal`류와 동일 패턴 — `CustomerLinkExistingModal`,
+  `CustomerLinkCreateModal`, `CustomerExcelUploadModal`)은 `closeOnOverlayClick={false}`로 명시해
+  유지. `submitting`/`linking` 처리 중 닫기 방지 로직은 `handleClose` 래퍼로 유지.
+- `npx tsc --noEmit` / `npx eslint`(대상 9개 파일) 통과 확인(사전에 존재하던 미사용 변수 경고 5건은
+  이번 변경과 무관). 브라우저 검증은 미실시.
+
+### 우선순위 4 — 설정(settings) · 내설정(my-settings) · 프로젝트, 상대적 저빈도 (완료, 2026-08-20)
 
 한 번 설정하면 자주 재방문하지 않는 화면들. 스크롤 버그 자체는 동일하게 존재하지만 사용자가
 마주칠 확률이 낮다.
 
-- [ ] `settings/InstagramIntegrationModal.tsx`, `LineIntegrationModal.tsx`,
+- [x] `settings/InstagramIntegrationModal.tsx`, `LineIntegrationModal.tsx`,
       `TelegramIntegrationModal.tsx`, `SelfAuthenticationModal.tsx`, `PartnerRegisterModal.tsx`,
       `CommonSenderNumberModal.tsx`, `sms-history/SmsHistoryFilterModal.tsx`
-- [ ] `settings/customer-api/ApiKeyCreateModal.tsx`, `ApiKeyLinkModal.tsx`, `ApiKeyRegenerateModal.tsx`
-- [ ] `settings/teamManagement/TeamMoveConfirmModal.tsx`, `TeamMemberInfoModal.tsx`
-- [ ] `my-settings/ChangePasswordModal.tsx`, `ChangePaymentMethodModal.tsx`,
+- [x] `settings/customer-api/ApiKeyCreateModal.tsx`, `ApiKeyLinkModal.tsx`, `ApiKeyRegenerateModal.tsx`
+- [x] `settings/teamManagement/TeamMoveConfirmModal.tsx`, `TeamMemberInfoModal.tsx`
+- [x] `my-settings/ChangePasswordModal.tsx`, `ChangePaymentMethodModal.tsx`,
       `TwoFactorSetupModal.tsx`, `TwoFactorDisableModal.tsx`
-- [ ] `projects/CreateProjectModal.tsx`, `SubscribeProjectModal.tsx`,
+- [x] `projects/CreateProjectModal.tsx`, `SubscribeProjectModal.tsx`,
       `SubscribeProjectExpiredModal.tsx`, `ProjectPrivacyConsentModal.tsx`
 
-### 우선순위 5 — 통계/근태, 드문 플로우
+**이관 메모**:
+- 20개 전부 우선순위 1~3과 동일한 `disableAutoContainerSizing` + `containerClassName` 패턴.
+  모바일 전체화면/데스크톱 중앙정렬(`md:flex md:items-center md:justify-center` 류) 구조는
+  `positionerClassName`으로 그대로 이식.
+- `TeamMemberInfoModal.tsx`는 로딩/에러/정상 3개 분기가 각자 `createPortal(..., document.body)`를
+  직접 호출하던 중복 구조였음 — `BaseModal`이 포털을 대신 처리하므로 `createPortal` import와
+  수동 호출 3곳을 전부 제거.
+- `CustomerLinkExistingModal`/`CustomerLinkCreateModal`과 마찬가지로 이번에도 카운터 없는 자체
+  `document.body.style.overflow` 스크롤락을 쓰던 곳(`ProjectPrivacyConsentModal.tsx`)이 있어
+  `BaseModal`의 카운터 기반 락으로 교체.
+- `ProjectPrivacyConsentModal.tsx`(프로젝트 최초 진입 시 강제 개인정보 위탁 동의 게이트)는
+  배경 클릭·Escape로 닫히면 안 되는 의도적 논클로저블 모달 — `onClose={() => {}}` +
+  `closeOnOverlayClick={false}`로 이관하고, 기존 capture 단계 `stopPropagation` Escape 차단
+  로직은 그대로 유지(스크롤락 부분만 제거). capture 단계가 `BaseModal`의 bubble 단계 Escape
+  핸들러보다 먼저 실행돼 이벤트 전파를 막으므로 이중 방어가 유지됨.
+- `npx tsc --noEmit` / `npx eslint`(대상 20개 파일) 통과 확인(사전에 존재하던 미사용 변수 경고
+  5건은 이번 변경과 무관). 브라우저 검증은 미실시.
 
-- [ ] `stats/StatsFilterModal.tsx`, `common/MemberStatsFilterModal.tsx`,
+이로써 자체구현 모달 46개 전수 이관(우선순위 1~4) 완료. 남은 건 우선순위 5(통계/근태 등 6개)뿐.
+
+### 우선순위 5 — 통계/근태, 드문 플로우 (완료, 2026-08-20)
+
+- [x] `stats/StatsFilterModal.tsx`, `common/MemberStatsFilterModal.tsx`,
       `attendance/AttendanceFilterModal.tsx`
-- [ ] `dashboard/PartnerRequestModal.tsx`, `invite/WrongAccountModal.tsx`,
+- [x] `dashboard/PartnerRequestModal.tsx`, `invite/WrongAccountModal.tsx`,
       `common/FailureDetailModal.tsx`
+
+**이관 메모**:
+- `StatsFilterModal`/`MemberStatsFilterModal`/`AttendanceFilterModal` 3개는 동일한 구조
+  (`useIsMobile()` 훅으로 계산한 `translate(-50%,-50%)` 인라인 스타일 + 수동 `createPortal`) —
+  우선순위 3의 `FilterModal.tsx`와 같은 패턴이라 `positionerClassName` + `positionerStyle`로
+  동일하게 이관. 자체 Escape `useEffect`와 수동 `createPortal` 호출 모두 제거(`BaseModal`이 대체).
+- `WrongAccountModal.tsx`는 `open` prop이 아예 없는(부모가 마운트 자체로 열림/닫힘 제어) 컴포넌트라
+  `TeamMoveConfirmModal.tsx`와 동일한 패턴으로 `onCancel`을 `BaseModal`의 `onClose`에 직결.
+- `npx tsc --noEmit` / `npx eslint`(대상 6개 파일) 통과 확인, 경고 0건. 브라우저 검증은 미실시.
+
+전체 46개 자체구현 모달 전수 이관(우선순위 1~5) 완료.
 
 ## 4. 부가 관찰 (스크롤락/포커스트랩과 별개, 참고용)
 
