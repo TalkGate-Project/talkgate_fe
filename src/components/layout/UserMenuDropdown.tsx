@@ -37,7 +37,7 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   
   // 직원 정보의 이름을 우선 사용, 없으면 user.name 사용
-  const displayName = member?.name || user?.name || "김직원";
+  const displayName = member?.name || user?.name || "";
   const roleLabel = member?.role ? ROLE_LABELS[member.role] : null;
   const shouldShowTeamName = member?.role !== "admin" && member?.role !== "subAdmin";
   const isAdminBadge = member?.role === "admin" || member?.role === "subAdmin";
@@ -85,9 +85,11 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
             </div>
           ) : (
             <div className="w-12 h-12 rounded-full bg-neutral-60 flex-shrink-0 flex items-center justify-center">
-              <span className="text-white text-[18px] font-semibold tracking-[-0.02em]">
-                {user?.name ? user.name.charAt(0) : "김"}
-              </span>
+              {user?.name && (
+                <span className="text-white text-[18px] font-semibold tracking-[-0.02em]">
+                  {user.name.charAt(0)}
+                </span>
+              )}
             </div>
           )}
 
@@ -97,9 +99,11 @@ export default function UserMenuDropdown({ user, variant = "full", onClose, isDa
               <>
                 {/* 첫째 줄: 이름 | 역할 | 팀명 */}
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="truncate text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
-                    {displayName}
-                  </div>
+                  {displayName && (
+                    <div className="truncate text-[16px] font-semibold leading-[20px] text-foreground tracking-[0.2px]">
+                      {displayName}
+                    </div>
+                  )}
                   {roleLabel && (
                     <span
                       className={`inline-flex h-[22px] flex-shrink-0 items-center justify-center rounded-[30px] px-3 text-[12px] font-medium leading-[14px] opacity-80 ${

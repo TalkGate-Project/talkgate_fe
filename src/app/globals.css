@@ -980,6 +980,90 @@ svg path:focus {
   animation: copy-success-pop 0.2s ease-out;
 }
 
+@keyframes section-title-arrival-text {
+  0%,
+  62% {
+    color: var(--section-title-arrival-color);
+  }
+  100% {
+    color: var(--foreground);
+  }
+}
+
+@keyframes section-title-arrival-underline {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  22%,
+  62% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes section-title-arrival-reduced {
+  0%,
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes section-title-arrival-text-reduced {
+  0%,
+  99% {
+    color: var(--section-title-arrival-color);
+  }
+  100% {
+    color: var(--foreground);
+  }
+}
+
+.animate-section-title-arrival {
+  --section-title-arrival-color: var(--primary-80);
+  position: relative;
+  animation: section-title-arrival-text 0.78s ease-out;
+}
+
+.animate-section-title-arrival::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--primary-60);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: section-title-arrival-underline 0.78s ease-out;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .animate-section-title-arrival {
+  --section-title-arrival-color: var(--primary-40);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-section-title-arrival {
+    animation: section-title-arrival-text-reduced 0.78s step-end forwards;
+  }
+
+  .animate-section-title-arrival::after {
+    opacity: 1;
+    transform: scaleX(1);
+    animation: section-title-arrival-reduced 0.78s step-end forwards;
+  }
+}
+
 .analyze-button {
   position: relative;
   isolation: isolate;

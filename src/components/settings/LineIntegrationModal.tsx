@@ -121,7 +121,7 @@ export default function LineIntegrationModal({
       zIndexClassName="z-50"
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       ariaLabel="라인 공식 계정 연동"
-      positionerClassName="md:flex md:items-center md:justify-center"
+      positionerClassName="md:min-h-full md:flex md:items-center md:justify-center"
       disableAutoContainerSizing
       containerClassName="relative bg-card dark:bg-neutral-10 w-full h-full md:w-[848px] md:h-auto md:rounded-[14px] md:max-h-[90vh] flex flex-col"
     >
