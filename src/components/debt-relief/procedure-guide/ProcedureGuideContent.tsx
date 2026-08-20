@@ -103,21 +103,21 @@ export default function ProcedureGuideContent() {
           activeTab === "all" ? "md:min-h-[835px]" : ""
         }`}
       >
-        <header className="flex min-h-[76px] items-center gap-3 border-b border-neutral-30 px-4 py-4 md:gap-4 md:px-7">
+        <header className="flex h-[55px] items-center gap-2 border-b-0 border-neutral-30 px-[clamp(16px,6.4vw,24px)] py-0 md:h-auto md:min-h-[76px] md:gap-4 md:border-b md:px-7 md:py-4">
           <button
             type="button"
             onClick={() => router.push("/debt-relief")}
-            className="-ml-1 grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-[8px] text-foreground transition-colors hover:bg-neutral-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-80"
+            className="grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-[6px] text-foreground transition-colors hover:bg-neutral-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-80 md:-ml-1 md:h-8 md:w-8 md:rounded-[8px]"
             aria-label="채무조정으로 돌아가기"
           >
             <BackIcon />
           </button>
           <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-center md:gap-3">
-            <h1 className="shrink-0 text-[20px] font-bold leading-6 tracking-[-0.02em] text-foreground md:text-[24px] md:leading-[29px]">
+            <h1 className="shrink-0 text-[18px] font-semibold leading-[21px] text-foreground md:text-[24px] md:font-bold md:leading-[29px] md:tracking-[-0.02em]">
               채무조정 제도 안내
             </h1>
             <span className="hidden h-4 w-px bg-neutral-40 md:block" aria-hidden />
-            <p className="truncate text-[13px] font-medium leading-4 tracking-[-0.02em] text-neutral-60 md:text-[18px] md:leading-[22px]">
+            <p className="hidden truncate text-[18px] font-medium leading-[22px] tracking-[-0.02em] text-neutral-60 md:block">
               6가지 채무조정 제도의 절차·조건·효과를 확인하세요.
             </p>
           </div>
@@ -126,16 +126,16 @@ export default function ProcedureGuideContent() {
         <div
           role="tablist"
           aria-label="채무조정 제도"
-          className="scrollbar-hide flex h-12 items-stretch overflow-x-auto px-1 shadow-[0_8px_12px_rgba(9,30,66,0.08)] md:px-0"
+          className="scrollbar-hide flex h-[34px] items-stretch gap-6 overflow-x-auto border-b border-neutral-30 px-[clamp(16px,6.4vw,24px)] shadow-none md:h-12 md:gap-0 md:border-b-0 md:px-0 md:shadow-[0_8px_12px_rgba(9,30,66,0.08)]"
         >
           <button
             type="button"
             role="tab"
             aria-selected={activeTab === "all"}
             onClick={() => selectTab("all")}
-            className={`relative shrink-0 cursor-pointer whitespace-nowrap px-4 text-[14px] leading-[17px] transition-colors md:px-5 ${
+            className={`relative shrink-0 cursor-pointer whitespace-nowrap px-0 text-[16px] leading-[19px] tracking-[0.2px] transition-colors md:px-5 md:text-[14px] md:leading-[17px] md:tracking-normal ${
               activeTab === "all"
-                ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80"
+                ? "font-semibold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80 md:font-bold"
                 : "font-medium text-neutral-60 hover:text-foreground"
             }`}
           >
@@ -148,9 +148,9 @@ export default function ProcedureGuideContent() {
               role="tab"
               aria-selected={activeTab === item.key}
               onClick={() => selectTab(item.key)}
-              className={`relative shrink-0 cursor-pointer whitespace-nowrap px-4 text-[14px] leading-[17px] transition-colors md:px-5 ${
+              className={`relative shrink-0 cursor-pointer whitespace-nowrap px-0 text-[16px] leading-[19px] tracking-[0.2px] transition-colors md:px-5 md:text-[14px] md:leading-[17px] md:tracking-normal ${
                 activeTab === item.key
-                  ? "font-bold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80"
+                  ? "font-semibold text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary-80 md:font-bold"
                   : "font-medium text-neutral-60 hover:text-foreground"
               }`}
             >

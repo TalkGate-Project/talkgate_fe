@@ -60,7 +60,7 @@ function NoteBadge({ type, text }: { type: ProcedureGuideNoteType; text: string 
 
 function SectionCard({ children }: { children: React.ReactNode }) {
   return (
-    <section className="surface px-4 py-6 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <section className="surface px-[clamp(16px,6.4vw,24px)] py-0 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       {children}
     </section>
   );
@@ -68,7 +68,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
 
 function SectionHeading({ children, aside }: { children: React.ReactNode; aside?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-neutral-30 pb-4">
+    <div className="flex items-center justify-between gap-4 border-b border-neutral-30 pb-3 md:pb-4">
       <h2 className="text-[16px] font-semibold leading-5 tracking-[-0.02em] text-foreground">
         {children}
       </h2>
@@ -86,13 +86,13 @@ export function ProcedureSummary({ detail }: { detail: ProcedureGuideDetail }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 px-4 py-7 md:grid-cols-4 md:gap-5 md:px-6">
+    <div className="grid grid-cols-2 gap-4 px-[clamp(16px,6.4vw,24px)] pb-0 pt-5 md:grid-cols-4 md:gap-5 md:px-6 md:py-7">
       {cards.map((card) => (
-        <div key={card.label} className="flex min-h-[106px] flex-col justify-center rounded-[12px] bg-neutral-10 px-4 py-5 dark:bg-neutral-20 md:min-h-[113px] md:px-7">
+        <div key={card.label} className="flex min-h-[77px] flex-col justify-center rounded-[8px] bg-neutral-10 px-4 py-4 dark:bg-neutral-20 md:min-h-[113px] md:rounded-[12px] md:px-7 md:py-5">
           <p className="text-[14px] font-medium leading-[17px] tracking-[-0.02em] text-neutral-60">
             {card.label}
           </p>
-          <p className="mt-3 text-[20px] font-bold leading-6 tracking-[-0.02em] text-foreground">
+          <p className="mt-2 text-[16px] font-bold leading-[19px] tracking-[-0.04em] text-foreground md:mt-3 md:text-[20px] md:leading-6 md:tracking-[-0.02em]">
             {card.value}
           </p>
         </div>
@@ -103,13 +103,13 @@ export function ProcedureSummary({ detail }: { detail: ProcedureGuideDetail }) {
 
 function EligibilityPanel({ title, titleClassName, items }: { title: string; titleClassName: string; items: ProcedureGuideDetail["eligibleApplicable"] }) {
   return (
-    <div className="min-h-[348px] rounded-[12px] bg-neutral-10 px-5 py-5 dark:bg-neutral-20 md:px-7">
+    <div className="rounded-[12px] bg-neutral-10 px-4 py-4 dark:bg-neutral-20 md:min-h-[348px] md:px-7 md:py-5">
       <h3 className={`text-[16px] font-semibold leading-5 tracking-[-0.02em] ${titleClassName}`}>{title}</h3>
-      <ul className="mt-4 flex flex-col gap-4">
+      <ul className="mt-4 flex flex-col gap-5 md:gap-4">
         {items.map((item) => (
           <li key={item.label}>
             <p className="text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-80">{item.label}</p>
-            <p className="mt-1 text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">{item.desc}</p>
+            <p className="mt-1 text-[13px] font-medium leading-4 tracking-[-0.04em] text-neutral-60 md:leading-5 md:tracking-[-0.02em]">{item.desc}</p>
           </li>
         ))}
       </ul>
@@ -219,8 +219,8 @@ export default function ProcedureDetailView({ detail }: { detail: ProcedureGuide
     <div className="flex flex-col gap-5 md:gap-9">
       <SectionCard>
         <SectionHeading>신청대상</SectionHeading>
-        <p className="mt-4 text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-80">{detail.target}</p>
-        <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-7">
+        <p className="mt-3 text-[14px] font-medium leading-5 tracking-[-0.02em] text-neutral-80 md:mt-4 md:text-[13px]">{detail.target}</p>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-7">
           <EligibilityPanel title="적용가능" titleClassName="text-primary-80" items={detail.eligibleApplicable} />
           <EligibilityPanel title="제외 또는 주의" titleClassName="text-danger-40" items={detail.eligibleExcluded} />
         </div>
