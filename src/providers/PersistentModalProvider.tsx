@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import BaseModal from "@/components/common/BaseModal";
 
 export type PersistentModalType = "default" | "system" | "talkgate";
 
@@ -152,16 +153,17 @@ export default function PersistentModalProvider({
     <PersistentModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-5 md:p-0">
-          <div
-            className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
-            onClick={handleBackdropClick}
-          />
-          <div
-            className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 transition-transform duration-500 ${
-              shake ? "animate-shake" : ""
-            }`}
-          >
+        <BaseModal
+          onClose={handleBackdropClick}
+          zIndexClassName="z-[150]"
+          overlayClassName="bg-black/35 dark:bg-[#000000CC]"
+          positionerClassName="min-h-full flex items-center justify-center p-5 md:p-0"
+          ariaLabel={state.title || "알림"}
+          disableAutoContainerSizing
+          containerClassName={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 transition-transform duration-500 ${
+            shake ? "animate-shake" : ""
+          }`}
+        >
             <div className="px-7 pt-6 pb-10">
               <div className="flex items-start justify-between">
                 <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-80">
@@ -299,8 +301,7 @@ export default function PersistentModalProvider({
                 {confirming ? "확인 중..." : state.confirmText}
               </button>
             </div>
-          </div>
-        </div>
+        </BaseModal>
       ) : null}
     </PersistentModalContext.Provider>
   );

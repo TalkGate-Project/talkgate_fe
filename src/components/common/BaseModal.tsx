@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 type BaseModalProps = {
   onClose: () => void;
   children: React.ReactNode;
+  /** 기본 z-[100] 위에 다른 전역 모달(에러/공지 등)이 겹쳐야 할 때만 지정 — 대부분은 기본값 사용. */
+  zIndexClassName?: string;
   overlayClassName?: string;
   containerClassName?: string;
   positionerClassName?: string;
@@ -47,6 +49,7 @@ function unlockBodyScroll() {
 export default function BaseModal({
   onClose,
   children,
+  zIndexClassName = "z-[100]",
   overlayClassName = "",
   containerClassName = "",
   positionerClassName = "",
@@ -114,7 +117,7 @@ export default function BaseModal({
 
   const modal = (
     <div
-      className={`fixed inset-0 z-[100] ${overlayClassName}`}
+      className={`fixed inset-0 ${zIndexClassName} ${overlayClassName}`}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
