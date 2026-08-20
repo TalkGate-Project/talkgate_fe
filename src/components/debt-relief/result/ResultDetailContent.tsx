@@ -264,12 +264,6 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           />
         </div>
 
-        {showReviewBanner && (
-          <div id="analysis-review-actions">
-            <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
-          </div>
-        )}
-
         {/* 헤더 + (데스크톱) 탭 바 + AI 분석 추천 (같은 카드).
             변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}
         {hideAiRecommendation ? (
@@ -409,6 +403,11 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           isShared={detail.isShared}
         />
       </div>
+      {/* hidePrompt 상태의 검토 컴포넌트는 버튼·모달 컨트롤러 역할만 한다. 메인 flex 안에
+          두면 높이 0인 wrapper도 md:gap-9의 독립 항목이 되어 배너와 헤더 사이에 gap이 두 번 생긴다. */}
+      {showReviewBanner ? (
+        <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
+      ) : null}
       <AnalysisPrintDocument
         detail={detail}
         selectedProcedure={activeProcedure}
