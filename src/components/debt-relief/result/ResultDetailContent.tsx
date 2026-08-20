@@ -37,6 +37,7 @@ import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
 import AnalysisPrintDocument from "./AnalysisPrintDocument";
 import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
+import { getBodyZoom } from "@/utils/zoom";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
@@ -58,6 +59,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
   const [progressShareOpen, setProgressShareOpen] = useState(false);
   const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
+  const [guideTitleArrivalKey, setGuideTitleArrivalKey] = useState(0);
   // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
   // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
   // 조회해 두 곳에 내려준다.
@@ -148,14 +150,25 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   }, [detail, sectionIds]);
 
   // behavior:"smooth"(scrollIntoView든 scrollTo든 동일)는 body에 zoom:0.8이 걸린 상태(데스크톱
-  // ≥1280px, CLAUDE.md 줌 정책)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
+  // ≥1080px)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
   // 있어 애니메이션 없는 즉시 이동으로 우회한다(zoom과 무관하게 항상 동작 확인됨).
   const scrollTo = (id: string) => {
     setActiveId(id);
     const element = document.getElementById(id);
     if (!element) return;
-    const top = element.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top, behavior: "auto" });
+
+    // scrollTo는 scroll-margin을 반영하지 않으므로 CSS에 선언된 여백을 직접 적용한다.
+    // getBoundingClientRect/scrollY는 화면 px, scrollMarginTop은 레이아웃 px이므로 zoom을 곱해 맞춘다.
+    const scrollMarginTop = Number.parseFloat(window.getComputedStyle(element).scrollMarginTop) || 0;
+    const top =
+      element.getBoundingClientRect().top +
+      window.scrollY -
+      scrollMarginTop * getBodyZoom();
+    window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+
+    if (id === "guide") {
+      setGuideTitleArrivalKey((previous) => previous + 1);
+    }
   };
 
   if (loading) {
@@ -385,6 +398,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             key={detail.trackingProcedure}
             detail={detail}
             projectId={projectId}
+            titleArrivalKey={guideTitleArrivalKey}
             onCustomerMatchChange={refetch}
             onSetCurrentStep={handleSetCurrentStep}
             onChangeTrackingProcedure={handleChangeTrackingProcedure}
