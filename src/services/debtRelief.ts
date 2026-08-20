@@ -1,7 +1,6 @@
 import type {
   ConditionItem,
   CreateDiagnosisResult,
-  CreditorCountRange,
   DebtComposition,
   DebtType,
   DependentCount,
@@ -28,7 +27,6 @@ import type {
 } from "@/types/debtRelief";
 import {
   AGE_GROUP_OPTIONS,
-  CREDITOR_COUNT_TO_NUMBER,
   EMPLOYMENT_TYPE_OPTIONS,
   RECOMMENDED_PROCEDURE_LABEL,
   REGION_OPTIONS,
@@ -299,22 +297,6 @@ function optionLabel<T extends string>(options: { value: T; label: string }[], v
   return options.find((option) => option.value === value)?.label ?? "";
 }
 
-// 채권자 수는 구간 대표값(number)만 API에 남아 정확한 구간을 복원할 수 없을 수 있다
-// (예: 서버가 5~7 사이 값을 돌려주면 어느 구간에도 정확히 맞지 않는다). 자체 생성 분석은
-// 항상 CREDITOR_COUNT_TO_NUMBER의 대표값 중 하나로 보내므로 실질적으로는 발생하지 않지만,
-// 방어적으로 가장 가까운 구간으로 근사한다.
-const CREDITOR_COUNT_RANGES: { range: CreditorCountRange; representative: number }[] = (
-  Object.entries(CREDITOR_COUNT_TO_NUMBER) as [CreditorCountRange, number][]
-).map(([range, representative]) => ({ range, representative }));
-
-function creditorCountFromNumber(value: number): CreditorCountRange {
-  const exact = CREDITOR_COUNT_RANGES.find((entry) => entry.representative === value);
-  if (exact) return exact.range;
-  return CREDITOR_COUNT_RANGES.reduce((closest, entry) =>
-    Math.abs(entry.representative - value) < Math.abs(closest.representative - value) ? entry : closest
-  ).range;
-}
-
 // optionLabel의 역함수. 서버가 우리가 보낸 라벨을 그대로 echo한다는 전제(2026-07-14 기준
 // 확인됨) 하에 라벨 → 코드로 되돌린다. 못 찾으면 null(폼에서 미선택 상태로 취급).
 function optionValueFromLabel<T extends string>(
@@ -367,13 +349,6 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     guarantorNote: form.guarantorDetail || undefined,
     hasActiveLawsuit: form.hasOngoingLitigation,
     lawsuitNote: form.litigationDetail || undefined,
-    // 간편모드는 상담사가 직접 고른 구간의 대표값을, 상세모드는 채무 항목 테이블 행 개수를
-    // 그대로 보낸다(상세모드는 항목별로 실제 입력하므로 배지 선택이 필요 없다).
-    creditorCount: isDetailed
-      ? form.debts.length
-      : form.creditorCount
-        ? CREDITOR_COUNT_TO_NUMBER[form.creditorCount]
-        : undefined,
     hasTaxArrears: form.hasTaxArrears,
     hasRecentAssetDisposal: form.hasRecentAssetDisposal,
     isOperatingBusiness: form.isOperatingBusiness,
@@ -459,7 +434,6 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     // 서버는 모드와 무관하게 항상 숫자로 내려준다. 구 데이터(버킷 enum으로 저장된 건)에서
     // 값이 비어 올 가능성에 대비해 0으로 폴백한다.
     overdueMonths: input.overdueMonths ?? 0,
-    creditorCount: input.creditorCount != null ? creditorCountFromNumber(input.creditorCount) : null,
     debtCauses: input.debtCauses.map((cause) => DEBT_CAUSE_FROM_ANALYSIS[cause]),
     hasTaxArrears: input.hasTaxArrears ?? false,
     securedDebt: 0,

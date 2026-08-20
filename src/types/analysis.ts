@@ -230,7 +230,6 @@ export type AnalysisFormInput = {
   guarantorNote?: string;
   hasActiveLawsuit: boolean;
   lawsuitNote?: string;
-  creditorCount?: number;
   hasTaxArrears?: boolean;
   hasRecentAssetDisposal?: boolean;
   /** 사업 영위 여부(현재 또는 과거). 새출발기금 후보 게이트 — 필수값이라 누락 시 400 */
