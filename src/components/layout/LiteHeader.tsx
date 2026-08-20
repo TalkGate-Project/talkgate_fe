@@ -183,9 +183,11 @@ export default function LiteHeader() {
                 />
               ) : (
                 <div className="w-full h-full bg-[#808080] grid place-items-center">
-                  <span className="text-white text-[14px] font-semibold tracking-[-0.02em]">
-                    {user?.name ? user.name.charAt(0) : "김"}
-                  </span>
+                  {user?.name && (
+                    <span className="text-white text-[14px] font-semibold tracking-[-0.02em]">
+                      {user.name.charAt(0)}
+                    </span>
+                  )}
                 </div>
               )}
             </button>
