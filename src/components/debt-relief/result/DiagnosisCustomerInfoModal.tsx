@@ -282,7 +282,7 @@ function RichInfoRows({ rows }: { rows: RichDisplayRow[] }) {
           <div>
             <p className="font-bold">{row.title}</p>
             {row.description ? (
-              <p className="font-normal text-neutral-80">{row.description}</p>
+              <p className="whitespace-pre-line font-normal text-neutral-80">{row.description}</p>
             ) : null}
           </div>
         ),
@@ -501,12 +501,21 @@ export function buildCustomerInfoViewModel(
   const assetById = new Map(assets.map((asset) => [asset.id, asset]));
 
   const assetRows: RichDisplayRow[] = assets.length
-    ? assets.map((asset, index) => ({
-        key: asset.id || `${asset.category}-${index}`,
-        label: optionLabel(ASSET_CATEGORY_OPTIONS, asset.category),
-        title: formatManwon(asset.marketValue),
-        description: asset.description?.trim() || undefined,
-      }))
+    ? assets.map((asset, index) => {
+        // 이 자산을 담보로 잡은 채무가 있으면 채무내역과 동일한 상세(은행/상환방식/기간/연체/
+        // 대출일/만기일/잔액/금리)를 여기에도 노출한다 — 채무내역에만 있고 자산현황엔 없어서
+        // 후자가 텅 비어 보이던 문제. 담보 채무가 없을 때만 자산 자체의 자유 메모로 대체한다.
+        const securedDebts = debts.filter((debt) => debt.collateralAssetId === asset.id);
+        const description = securedDebts.length
+          ? securedDebts.map((debt) => buildDebtDescription(debt)).join("\n")
+          : asset.description?.trim() || undefined;
+        return {
+          key: asset.id || `${asset.category}-${index}`,
+          label: optionLabel(ASSET_CATEGORY_OPTIONS, asset.category),
+          title: formatManwon(asset.marketValue),
+          description,
+        };
+      })
     : [{ key: "no-assets", label: "보유 자산", title: "없음" }];
 
   let debtRows: RichDisplayRow[];
