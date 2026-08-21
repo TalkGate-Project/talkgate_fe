@@ -4,6 +4,7 @@ import type { AnalysisStatus } from "@/types/analysis";
 
 type Props = {
   status: AnalysisStatus;
+  isLawyerProject?: boolean;
   actions?: Array<{
     label: string;
     onClick: () => void;
@@ -136,13 +137,16 @@ function ActionButton({
 
 export default function AnalysisProgressBanner({
   status,
+  isLawyerProject = false,
   actions = [],
 }: Props) {
   const currentStep = resolveCurrentStep(status);
   const description: Record<AnalysisStatus, string> = {
     consulting: "분석 결과를 공유하여 검토를 요청하거나 자체 진행을 선택할 수 있어요.",
     reviewing: "분석 내용을 확인하고 수락 또는 거절을 선택해 주세요.",
-    rejected: "진행이 반려된 고객입니다. 반려 사유를 확인하고 내용을 보완해주세요.",
+    rejected: isLawyerProject
+      ? "반려되었습니다."
+      : "진행이 반려된 고객입니다. 반려 사유를 확인하고 내용을 보완해주세요.",
     contract_pending: "결제 정보를 입력해주세요.",
     in_progress: "진행중인 절차를 추적하고 일정을 계획할 수 있어요.",
     suspended: "진행이 중단된 고객입니다.",
