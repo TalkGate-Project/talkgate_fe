@@ -259,6 +259,7 @@ export default function CategorySchedulePrompt({
       <div className="fixed inset-x-0 bottom-0 z-[210] pointer-events-none">
         <div
           ref={promptRef}
+          data-anchored-panel
           className="pointer-events-auto rounded-t-[12px] bg-card dark:bg-neutral-10 shadow-[0px_-3px_12px_4px_rgba(9,30,66,0.1)] pb-[env(safe-area-inset-bottom)]"
         >
           {card}
@@ -271,6 +272,7 @@ export default function CategorySchedulePrompt({
   return createPortal(
     <div
       ref={promptRef}
+      data-anchored-panel
       className="fixed z-[210] rounded-[5px] bg-card dark:bg-neutral-10 shadow-[-3px_5px_12px_4px_rgba(9,30,66,0.1)] overflow-hidden transition-opacity"
       style={{
         top: position!.top,
