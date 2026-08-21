@@ -14,7 +14,7 @@ function RemoveIcon() { return <svg width="20" height="20" viewBox="0 0 20 20" f
 
 export default function Step2Assets({ form, update }: Props) {
   const setAssets = (assets: AssetItemFormState[]) => {
-    const assetIds = new Set(assets.filter((asset) => asset.category !== "financial_asset").map((asset) => asset.id));
+    const assetIds = new Set(assets.map((asset) => asset.id));
     const removedCollateralDebtIds = new Set(form.debts.filter((debt) => debt.collateralAssetId && !assetIds.has(debt.collateralAssetId)).map((debt) => debt.id));
     update("assets", assets);
     update("debts", form.debts.map((debt) => debt.collateralAssetId && !assetIds.has(debt.collateralAssetId) ? { ...debt, collateralAssetId: undefined } : debt));
@@ -53,10 +53,9 @@ export default function Step2Assets({ form, update }: Props) {
         const category = ASSET_CATEGORY_OPTIONS.find((option) => option.value === asset.category);
         const collateralDebts = form.debts.filter((debt) => debt.collateralAssetId === asset.id);
         const collateralValueWon = collateralDebts.reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
-        const canHaveCollateral = asset.category !== "financial_asset";
         const setCollateralEnabled = (enabled: boolean) => {
           if (enabled) {
-            const debt = { ...createEmptyDebtItem(crypto.randomUUID()), collateralAssetId: asset.id };
+            const debt = { ...createEmptyDebtItem(crypto.randomUUID()), isCollateralLoan: true, collateralAssetId: asset.id };
             update("debts", [...form.debts, debt]);
             update("assetOriginDebtIds", [...form.assetOriginDebtIds, debt.id]);
             return;
@@ -70,7 +69,7 @@ export default function Step2Assets({ form, update }: Props) {
             <div className="w-[152px] shrink-0"><ManwonInput value={asset.marketValue} onChange={(marketValue) => updateAsset(asset.id, { marketValue })} /></div>
             <button type="button" onClick={() => setAssets(form.assets.filter((item) => item.id !== asset.id))} aria-label={`${category?.label} 삭제`} className="grid h-8 w-8 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><RemoveIcon /></button>
           </div>
-          {canHaveCollateral && <>
+          <>
             <div className="flex min-h-12 items-center justify-between gap-3 border-t border-neutral-30 px-5 md:px-6">
               <span className="text-[14px] font-semibold text-neutral-90">담보대출</span>
               <div className="flex shrink-0 items-center gap-4">
@@ -89,7 +88,7 @@ export default function Step2Assets({ form, update }: Props) {
                 assetCollateralOnly
               />
             </div>}
-          </>}
+          </>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-30 bg-neutral-10 px-5 py-3 text-[14px] md:px-6"><span className="font-medium text-neutral-60">시가 {asset.marketValue.toLocaleString("ko-KR")} - 담보 {Math.round(collateralValueWon / 10_000).toLocaleString("ko-KR")}</span><strong className="text-[16px] text-foreground">순 자산 {(asset.marketValue - Math.round(collateralValueWon / 10_000)).toLocaleString("ko-KR")}만원</strong></div>
         </section>;
       })}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import Checkbox from "@/components/common/Checkbox";
 import { DEBT_ITEM_TYPE_OPTIONS, type DebtItemFormState } from "@/types/debtRelief";
+import { isDebtCollateralLoan } from "@/types/analysis";
 
 type Props = { open: boolean; debts: DebtItemFormState[]; onClose: () => void; onConfirm: (selectedDebtIds: string[]) => void };
 const debtTypeLabels = new Map(DEBT_ITEM_TYPE_OPTIONS.map((option) => [option.value, option.label]));
@@ -55,7 +56,7 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
                 <Checkbox checked={selectedDebtIdSet.has(debt.id)} onChange={(checked) => toggleDebt(debt.id, checked)} size={24} ariaLabel={`${creditorLabel} 선택`} />
                 <span className="ml-[17px] min-w-0 flex-1">
                   <span className="block truncate text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">{creditorLabel} ({typeLabel})</span>
-                  <span className="mt-1 block text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">{debt.collateralAssetId ? "담보부" : "무담보"}<span className="ml-4">{debt.overdueMonths === 0 ? "연체 없음" : `연체 ${debt.overdueMonths}개월`}</span></span>
+                  <span className="mt-1 block text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">{isDebtCollateralLoan(debt) ? "담보부" : "무담보"}<span className="ml-4">{debt.overdueMonths === 0 ? "연체 없음" : `연체 ${debt.overdueMonths}개월`}</span></span>
                 </span>
                 <span className="ml-4 shrink-0 whitespace-nowrap text-right text-[16px] font-bold leading-[19px] tracking-[0.2px] text-foreground">{formatWon(debt.currentBalanceWon)}</span>
               </label>

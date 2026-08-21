@@ -57,7 +57,12 @@ import type {
   AnalysisStatus,
   CreateAnalysisInput,
 } from "@/types/analysis";
-import { normalizeProcedureType, pickProcedureValue, procedureEntries } from "@/types/analysis";
+import {
+  isDebtCollateralLoan,
+  normalizeProcedureType,
+  pickProcedureValue,
+  procedureEntries,
+} from "@/types/analysis";
 
 // sendGuidanceSms(문자 발송, 2026-07-14 연동): AnalysisService.sendSms(POST
 // /v1/analysis/{id}/send-sms)로 위임한다. 수신자는 서버가 결정(공유 시 전달받은 contact 우선,
@@ -329,6 +334,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     debtInputMode: form.debtInputMode,
     debts: form.debts.map((debt) => isDetailed ? {
       ...debt,
+      isCollateralLoan: isDebtCollateralLoan(debt),
       ...calculateDebtItemAmortization(debt),
     } : {
       id: debt.id,
@@ -336,6 +342,7 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
       creditorName: debt.creditorName,
       overdueMonths: debt.overdueMonths,
       currentBalanceWon: debt.currentBalanceWon,
+      isCollateralLoan: isDebtCollateralLoan(debt),
       ...(debt.isExcludedFromAnalysis ? { isExcludedFromAnalysis: true } : {}),
       ...(debt.collateralAssetId ? { collateralAssetId: debt.collateralAssetId } : {}),
       ...(debt.loanDate ? { loanDate: debt.loanDate } : {}),
@@ -401,11 +408,15 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
   });
 
   const debtInputMode = input.debtInputMode ?? "simple";
-  const debts = (input.debts ?? []).map((debt) =>
-    debtInputMode === "detailed"
-      ? { ...debt, ...calculateDebtItemAmortization(debt) }
-      : debt
-  );
+  const debts = (input.debts ?? []).map((debt) => {
+    const normalizedDebt = {
+      ...debt,
+      isCollateralLoan: isDebtCollateralLoan(debt),
+    };
+    return debtInputMode === "detailed"
+      ? { ...normalizedDebt, ...calculateDebtItemAmortization(normalizedDebt) }
+      : normalizedDebt;
+  });
 
   return {
     customerName: input.customerName,
