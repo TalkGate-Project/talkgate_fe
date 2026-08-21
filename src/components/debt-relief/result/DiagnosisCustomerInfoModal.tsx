@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type {
-  AnalysisCollateralBreakdown,
-  AnalysisDebtBreakdown,
-  AnalysisDebtItem,
-  AnalysisFreshStartFundInsolvencyReason,
-  AnalysisInputData,
+import {
+  isDebtCollateralLoan,
+  type AnalysisCollateralBreakdown,
+  type AnalysisDebtBreakdown,
+  type AnalysisDebtItem,
+  type AnalysisFreshStartFundInsolvencyReason,
+  type AnalysisInputData,
 } from "@/types/analysis";
 import {
   BUSINESS_OPERATION_STATUS_OPTIONS,
@@ -293,7 +294,7 @@ function RichInfoRows({ rows }: { rows: RichDisplayRow[] }) {
 
 function buildDebtDescription(debt: AnalysisDebtItem): string {
   const details = [
-    debt.collateralAssetId ? "담보대출" : "무담보대출",
+    isDebtCollateralLoan(debt) ? "담보대출" : "무담보대출",
     optionLabel(DEBT_ITEM_TYPE_OPTIONS, debt.debtType),
     debt.creditorName?.trim() || null,
     debt.repaymentMethod
@@ -367,7 +368,7 @@ export function buildSections(input: AnalysisInputData) {
     { label: "총 채무합계", value: formatManwon(input.totalDebt), emphasize: true },
   ];
 
-  const collateralDebtManwon = wonToManwon(debts.filter((debt) => debt.collateralAssetId).reduce((sum, debt) => sum + debt.currentBalanceWon, 0));
+  const collateralDebtManwon = wonToManwon(debts.filter(isDebtCollateralLoan).reduce((sum, debt) => sum + debt.currentBalanceWon, 0));
   const debtRightRows: DisplayRow[] = [
     { label: "채무 건수", value: `${debts.length}건` },
     { label: "담보부채무", value: formatManwon(collateralDebtManwon) },
@@ -552,10 +553,10 @@ export function buildCustomerInfoViewModel(
 
   const includedDebts = debts.filter((debt) => !debt.isExcludedFromAnalysis);
   const collateralDebtWon = includedDebts
-    .filter((debt) => Boolean(debt.collateralAssetId))
+    .filter(isDebtCollateralLoan)
     .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const unsecuredDebtWon = includedDebts
-    .filter((debt) => !debt.collateralAssetId)
+    .filter((debt) => !isDebtCollateralLoan(debt))
     .reduce((sum, debt) => sum + debt.currentBalanceWon, 0);
   const hasDetailedDebtAmounts = debts.length > 0;
 

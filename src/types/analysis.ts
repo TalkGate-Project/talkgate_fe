@@ -127,8 +127,10 @@ export type AnalysisDebtItem = {
   /** 프론트에서 생성한 임의 ID (수정 시 항목 식별용) */
   id: string;
   debtType: AnalysisDebtItemType;
-  /** 연결된 담보 자산 ID. 무담보 채무는 생략한다. */
-  collateralAssetId?: string;
+  /** 담보부 채무 여부. 레거시 응답에서 생략되면 collateralAssetId 유무로 판정한다. */
+  isCollateralLoan?: boolean;
+  /** 연결된 담보 자산 ID. 미연결 담보 또는 무담보 채무는 생략한다. */
+  collateralAssetId?: string | null;
   creditorName: string;
   repaymentMethod?: AnalysisRepaymentMethod;
   overdueMonths: number;
@@ -146,6 +148,12 @@ export type AnalysisDebtItem = {
   /** true면 채무는 저장하되 총채무·청산가치·면책액·AI 진단 계산에서 제외한다. */
   isExcludedFromAnalysis?: boolean;
 };
+
+export function isDebtCollateralLoan(
+  debt: Pick<AnalysisDebtItem, "isCollateralLoan" | "collateralAssetId">
+): boolean {
+  return debt.isCollateralLoan ?? Boolean(debt.collateralAssetId);
+}
 
 /** 상세모드로 입력된 건에만 응답에 포함되는 서버 계산값 */
 export type AnalysisDebtDerivedSignals = {

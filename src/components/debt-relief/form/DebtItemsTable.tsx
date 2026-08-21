@@ -8,7 +8,6 @@ import { SelectField } from "@/components/customers/detail/SelectField";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { calculateDebtItemAmortization } from "@/services/debtRelief";
 import {
-  ASSET_CATEGORY_OPTIONS,
   DEBT_ITEM_TYPE_OPTIONS,
   REPAYMENT_METHOD_OPTIONS,
   createEmptyDebtItem,
@@ -18,10 +17,7 @@ import {
 import { getMissingDebtItemFields } from "./validateDiagnosisForm";
 import { PercentInput, TextInput, WonInput } from "./FormControls";
 import { AssetIcon } from "./assetIcons";
-
-function assetCategoryLabel(category: AssetItemFormState["category"]): string {
-  return ASSET_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ?? category;
-}
+import { isDebtCollateralLoan } from "@/types/analysis";
 
 type Props = {
   debts: DebtItemFormState[];
@@ -250,6 +246,7 @@ export default function DebtItemsTable({
       ...debts,
       {
         ...createEmptyDebtItem(crypto.randomUUID()),
+        isCollateralLoan: Boolean(defaultCollateralAssetId),
         collateralAssetId: defaultCollateralAssetId,
       },
     ]);
@@ -260,8 +257,8 @@ export default function DebtItemsTable({
   };
 
   const totals = sumDebtItems(debts);
-  const collateralTotals = sumDebtItems(debts.filter((debt) => debt.collateralAssetId));
-  const unsecuredTotals = sumDebtItems(debts.filter((debt) => !debt.collateralAssetId));
+  const collateralTotals = sumDebtItems(debts.filter(isDebtCollateralLoan));
+  const unsecuredTotals = sumDebtItems(debts.filter((debt) => !isDebtCollateralLoan(debt)));
   const summaryCards = showSummaryCards ? (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
       <DebtSumCard label="담보대출 합산" sums={collateralTotals} backgroundClassName={sumCardBackgroundClassName} />
@@ -322,14 +319,25 @@ export default function DebtItemsTable({
                 : undefined;
               return <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
                 <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
-                <td className={`${BODY_CELL} px-3 text-[14px] font-medium text-neutral-90/80`}>
-                  {/* 높이 없는 inline-flex는 td의 vertical-align:middle과 어긋나 위로 쏠려 보였다
-                      (img가 섞인 atomic inline box라 베이스라인 기준 정렬됨) — 상세모드의 잠긴 행
-                      배지처럼 h-[34px]로 고정해 다른 셀과 같은 기준으로 중앙정렬되게 함. */}
-                  <span className="flex h-[34px] items-center gap-2 whitespace-nowrap">
-                    {locked && collateralAsset && <AssetIcon category={collateralAsset.category} />}
-                    {debt.collateralAssetId ? "담보" : "무담보"}
-                  </span>
+                <td className={`${BODY_CELL} text-[14px] font-medium text-neutral-90/80`}>
+                  {locked ? (
+                    <span className="flex h-[34px] items-center gap-2 px-3 whitespace-nowrap">
+                      {collateralAsset && <AssetIcon category={collateralAsset.category} />}
+                      담보
+                    </span>
+                  ) : (
+                    <SelectField
+                      className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
+                      value={isDebtCollateralLoan(debt) ? "secured" : "unsecured"}
+                      onChange={(event) => updateItem(debt.id, {
+                        isCollateralLoan: event.target.value === "secured",
+                        collateralAssetId: undefined,
+                      })}
+                    >
+                      <option value="secured">담보</option>
+                      <option value="unsecured">무담보</option>
+                    </SelectField>
+                  )}
                 </td>
                 <td className={BODY_CELL}><TextInput value={debt.creditorName} onChange={(creditorName) => updateItem(debt.id, { creditorName })} placeholder="채권처" className={CELL_INPUT_BORDERLESS} /></td>
                 <td className={BODY_CELL}><OverdueMonthsInput value={debt.overdueMonths} onChange={(overdueMonths) => updateItem(debt.id, { overdueMonths })} /></td>
@@ -367,7 +375,7 @@ export default function DebtItemsTable({
           <thead>
             <tr>
               <th className={HEADER_CELL}>채무종류</th>
-              {!hideCollateralAssetColumn && <th className={HEADER_CELL}>담보 자산</th>}
+              {!hideCollateralAssetColumn && <th className={HEADER_CELL}>담보</th>}
               <th className={HEADER_CELL}>채권처</th>
               <th className={HEADER_CELL}>상환방식</th>
               <th className={HEADER_CELL}>연체(개월)</th>
@@ -430,16 +438,19 @@ export default function DebtItemsTable({
                   {locked ? (
                     <span className="inline-flex h-[34px] items-center gap-2 px-3 text-[13px] font-medium text-neutral-90/80 whitespace-nowrap">
                       {collateralAsset && <AssetIcon category={collateralAsset.category} />}
-                      {debt.collateralAssetId ? "담보" : "무담보"}
+                      담보
                     </span>
                   ) : (
                     <SelectField
                       className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                      value={debt.collateralAssetId ?? ""}
-                      onChange={(e) => updateItem(debt.id, { collateralAssetId: e.target.value || undefined })}
+                      value={isDebtCollateralLoan(debt) ? "secured" : "unsecured"}
+                      onChange={(event) => updateItem(debt.id, {
+                        isCollateralLoan: event.target.value === "secured",
+                        collateralAssetId: undefined,
+                      })}
                     >
-                      <option value="">무담보</option>
-                      {assets.filter((asset) => asset.category !== "financial_asset").map((asset) => <option key={asset.id} value={asset.id}>{asset.description || assetCategoryLabel(asset.category)}</option>)}
+                      <option value="secured">담보</option>
+                      <option value="unsecured">무담보</option>
                     </SelectField>
                   )}
                 </td>}
