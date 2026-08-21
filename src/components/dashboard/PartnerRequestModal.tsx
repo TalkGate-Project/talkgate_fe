@@ -5,6 +5,7 @@ import Image from "next/image";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
 import { ProjectPartnersService } from "@/services/projectPartners";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import BaseModal from "@/components/common/BaseModal";
 
 interface PartnerRequestModalProps {
   isOpen: boolean;
@@ -76,21 +77,14 @@ export default function PartnerRequestModal({
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40" 
-        onClick={handleClose} 
-      />
-
-      {/* Modal */}
-      <div
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="프로젝트 요청"
+      disableAutoContainerSizing
+      containerClassName="w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0">
           <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[21px]">
@@ -199,7 +193,6 @@ export default function PartnerRequestModal({
             수락
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

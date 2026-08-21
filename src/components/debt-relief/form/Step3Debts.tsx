@@ -37,7 +37,11 @@ export default function Step3Debts({
     : [];
 
   return (
-    <div className="flex flex-col gap-5">
+    // 모바일에서 이 스텝만 첫 요소가 테두리 있는 카드(DebtHistoryCard)라, 폼 카드 우상단에
+    // absolute로 떠 있는 X 버튼(top-[8px] h-6, 하단 32px)과 카드 상단 테두리가 겹쳐 보였다.
+    // 다른 스텝은 첫 요소가 일반 텍스트/타이틀이라 겹치지 않아 문제없었음 — 전체 상단 여백을
+    // 늘리는 대신 이 스텝에서만 살짝 밀어내 Figma의 "다른 스텝은 상단에서 바로 시작" 의도를 유지.
+    <div className="mt-6 flex flex-col gap-5 md:mt-0">
       <DebtHistoryCard
         form={form}
         update={update}
@@ -47,8 +51,7 @@ export default function Step3Debts({
       />
 
       {/* 카드 바깥 공통 영역 — 채무 종류별 잔액과 무관하게 입력 방식 상관없이 항상 필요한 항목.
-          「채무발생 원인」은 샘플사이트 기준 두 모드가 공유하는 필드라 카드 밖에 둔다.
-          「채권자 수」는 2026-08-07부터 DebtHistoryCard(채무내역) 안으로 이동했다. */}
+          「채무발생 원인」은 샘플사이트 기준 두 모드가 공유하는 필드라 카드 밖에 둔다. */}
       <div className="flex flex-col gap-5">
         <FormField label="체납이력">
           <FormToggleRow

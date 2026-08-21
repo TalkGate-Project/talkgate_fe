@@ -13,6 +13,7 @@ import {
   type ErrorModalCallbacks,
   type FeedbackModalType,
 } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 type ErrorModalState = {
   open: boolean;
@@ -205,17 +206,16 @@ export default function ErrorFeedbackModalProvider({
     <ErrorModalContext.Provider value={contextValue}>
       {children}
       {state.open ? (
-        <div className="fixed inset-0 z-[280] flex items-center justify-center p-5 md:p-0">
-          <div
-            className="absolute inset-0 bg-black/35 dark:bg-[#000000CC]"
-            onClick={handleOverlayClick}
-          />
-          <div
-            className={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${state.persistent && shakeActive ? "animate-shake" : ""
-              }`}
-            onClick={(e) => e.stopPropagation()}
-            onAnimationEnd={() => setShakeActive(false)}
-          >
+        <BaseModal
+          onClose={handleOverlayClick}
+          zIndexClassName="z-[280]"
+          overlayClassName="bg-black/35 dark:bg-[#000000CC]"
+          positionerClassName="min-h-full flex items-center justify-center p-5 md:p-0"
+          ariaLabel={state.title || "알림"}
+          disableAutoContainerSizing
+          containerClassName={`relative w-full max-w-[440px] rounded-[14px] bg-white dark:bg-neutral-10 ${state.persistent && shakeActive ? "animate-shake" : ""
+            }`}
+        >
             <div className="px-7 pt-6 pb-[30px]">
               <div
                 className={`flex items-start ${state.title ? "justify-between" : "justify-end"
@@ -352,8 +352,7 @@ export default function ErrorFeedbackModalProvider({
                 {confirming ? "확인 중..." : state.confirmText}
               </button>
             </div>
-          </div>
-        </div>
+        </BaseModal>
       ) : null}
     </ErrorModalContext.Provider>
   );

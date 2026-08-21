@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MessengerIntegrationService } from "@/services/messengerIntegration";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 
 interface LineIntegrationModalProps {
   isOpen: boolean;
@@ -115,12 +116,15 @@ export default function LineIntegrationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={handleClose} />
-
-      {/* Modal */}
-      <div className="relative bg-card dark:bg-neutral-10 w-full h-full md:w-[848px] md:h-auto md:rounded-[14px] md:max-h-[90vh] flex flex-col">
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="라인 공식 계정 연동"
+      positionerClassName="md:min-h-full md:flex md:items-center md:justify-center"
+      disableAutoContainerSizing
+      containerClassName="relative bg-card dark:bg-neutral-10 w-full h-full md:w-[848px] md:h-auto md:rounded-[14px] md:max-h-[90vh] flex flex-col"
+    >
         {/* 헤더 */}
         <div className="h-[64px] flex items-center px-4 md:px-7 md:border-b md:border-neutral-30/40 dark:border-neutral-30/40">
           <button
@@ -386,7 +390,6 @@ export default function LineIntegrationModal({
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

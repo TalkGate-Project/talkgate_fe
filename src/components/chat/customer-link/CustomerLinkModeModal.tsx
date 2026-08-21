@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "@/components/common/BaseModal";
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -17,10 +19,14 @@ export default function CustomerLinkModeModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[calc(100%-32px)] md:w-[440px] max-w-[440px] -translate-x-1/2 -translate-y-1/2 max-h-[90vh] overflow-y-auto">
-        <div className="relative w-full rounded-[16px] bg-neutral-0 dark:bg-neutral-10 px-4 md:px-7 py-4 md:py-6">
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-[120]"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="고객 연동 방식 선택"
+      disableAutoContainerSizing
+      containerClassName="relative w-[calc(100%-32px)] md:w-[440px] max-w-[440px] max-h-[90vh] overflow-y-auto rounded-[16px] bg-neutral-0 dark:bg-neutral-10 px-4 md:px-7 py-4 md:py-6"
+    >
           <button
             aria-label="close"
             onClick={onClose}
@@ -204,8 +210,6 @@ export default function CustomerLinkModeModal({
               </div>
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

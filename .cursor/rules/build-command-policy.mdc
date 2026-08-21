@@ -1,0 +1,11 @@
+---
+description: Prevent independent production builds from conflicting with an external build process
+alwaysApply: true
+---
+
+# Build Command Policy
+
+- Do not run `npm run build` or another production build command as routine verification.
+- Run a production build only when the user explicitly asks for it in the current conversation.
+- Prefer targeted validation such as `npm run type-check` and ESLint for changed files.
+- Do not infer build permission from requests to implement, fix, verify, or finish a feature.

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useCreateProjectPrivacyConsent } from "@/hooks/useProjectPrivacyConsent";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 import {
   PROJECT_PRIVACY_TERMS_BODY,
   PROJECT_PRIVACY_TERMS_TITLE,
@@ -23,11 +24,10 @@ export default function ProjectPrivacyConsentModal({
   const [agreed, setAgreed] = useState(false);
   const { mutateAsync, isPending } = useCreateProjectPrivacyConsent();
 
-  // 모달 동안 body 스크롤 락 + ESC 차단 (임의 종료 불가)
+  // ESC 차단 (임의 종료 불가) — 스크롤 락은 BaseModal이 담당.
+  // capture 단계에서 stopPropagation하므로 BaseModal 자체의 Escape 핸들러(bubble 단계)까지
+  // 이벤트가 도달하지 않아 onClose가 호출되지 않는다.
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     const blockEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -37,7 +37,6 @@ export default function ProjectPrivacyConsentModal({
     window.addEventListener("keydown", blockEsc, true);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", blockEsc, true);
     };
   }, []);
@@ -58,19 +57,15 @@ export default function ProjectPrivacyConsentModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      {/* 배경 오버레이: 클릭해도 닫히지 않음 (다크모드에서는 blur 미사용) */}
-      <div
-        className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]"
-        aria-hidden
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="project-privacy-consent-title"
-        className="relative w-full max-w-[848px] h-[70dvh] md:h-auto md:max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
-      >
+    <BaseModal
+      onClose={() => {}}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-[60]"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="개인정보 처리 위탁 계약 동의"
+      disableAutoContainerSizing
+      containerClassName="relative w-full max-w-[848px] h-[70dvh] md:h-auto md:max-h-[calc(100dvh-32px)] rounded-[14px] bg-card dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] dark:shadow-none flex flex-col overflow-hidden"
+    >
         {/* 헤더 */}
         <div className="px-4 md:px-7 pt-5 md:pt-6">
           <h2
@@ -168,7 +163,6 @@ export default function ProjectPrivacyConsentModal({
             {isPending ? "처리 중..." : "확인"}
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

@@ -56,10 +56,14 @@ type Props = {
   onSelectStep: (index: number) => void;
   onAnalyze: () => void;
   analyzing: boolean;
-  /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 분석하기 비활성 */
+  /** 필수값 미충족(생성) / 변경 없음(수정)이면 true — 버튼은 유지하고 활성 효과만 숨김 */
   analyzeDisabled?: boolean;
   /** 실제 고객 레코드와 연동된 데이터면 이름 옆에 연동 아이콘을 붙인다. */
   isCustomerConnected?: boolean;
+  linkedCustomerName?: string;
+  linkedCustomerContact?: string;
+  onCustomerLink?: () => void;
+  onCustomerUnlink?: () => void;
 };
 
 // 전역 헤더 54px + 하단 FormMobileActionBar(~58px, safe-area 포함)를 제외한 높이.
@@ -77,10 +81,13 @@ export default function MobileFormSummaryDrawer({
   analyzing,
   analyzeDisabled = false,
   isCustomerConnected = false,
+  linkedCustomerName,
+  linkedCustomerContact,
+  onCustomerLink,
+  onCustomerUnlink,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const step = steps[currentIndex];
-  const disabled = analyzing || analyzeDisabled;
 
   const handleSelectStep = (index: number) => {
     onSelectStep(index);
@@ -104,16 +111,16 @@ export default function MobileFormSummaryDrawer({
           </h2>
           {/* Figma: 92×34, radius 5, drop-shadow, 사이드바와 동일 analyze-button */}
           <button
-            type="button"
-            onClick={onAnalyze}
-            disabled={disabled}
-            aria-label={analyzing ? "분석 중" : "분석하기"}
-            className="analyze-button shrink-0 inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-              <MobileAnalyzeSparkleIcon />
-            </span>
-            <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
+              type="button"
+              onClick={onAnalyze}
+              disabled={analyzing}
+              aria-label={analyzing ? "분석 중" : "분석하기"}
+              className={`analyze-button ${!analyzeDisabled ? "analyze-button-ready" : ""} shrink-0 inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                <MobileAnalyzeSparkleIcon />
+              </span>
+              <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
           </button>
         </div>
 
@@ -133,7 +140,14 @@ export default function MobileFormSummaryDrawer({
 
       {expanded && (
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-neutral-10 px-6 pt-3 pb-5 flex flex-col gap-4">
-          <FormCustomerSummary form={form} isCustomerConnected={isCustomerConnected} />
+          <FormCustomerSummary
+            form={form}
+            isCustomerConnected={isCustomerConnected}
+            linkedCustomerName={linkedCustomerName}
+            linkedCustomerContact={linkedCustomerContact}
+            onCustomerLink={onCustomerLink}
+            onCustomerUnlink={onCustomerUnlink}
+          />
           <FormFinancialSummary derived={derived} className="bg-card" />
           <FormStepChecklist
             steps={steps}

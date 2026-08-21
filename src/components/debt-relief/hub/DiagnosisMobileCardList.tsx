@@ -139,7 +139,7 @@ export default function DiagnosisMobileCardList({
                       {item.lawyerProjectName || "공유된 프로젝트"}
                     </span>
                   </span>
-                ) : (
+                ) : item.status === "reviewing" || item.status === "suspended" ? null : (
                   <button
                     type="button"
                     onClick={(e) => {

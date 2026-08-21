@@ -44,6 +44,7 @@
   --secondary-60: #2563eb;
   --secondary-80: #0037b3;
   --secondary-100: #002987;
+  --secondary-100-rgb: 0 41 135;
 
   --warning-10: #fff5d5;
   --warning-20: #ffde81;
@@ -51,6 +52,7 @@
   --warning-60: #976400;
   --warning-80: #724b00;
   --warning-100: #4d2900;
+  --warning-100-rgb: 77 41 0;
 
   --danger-10: #ffebeb;
   --danger-20: #fc9595;
@@ -84,10 +86,14 @@
   --warning: var(--warning-60);
   --danger: var(--danger-60);
   --color-surface-10: var(--neutral-10);
+  --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
+  --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
   
   /* Customer link modal gradients (default to light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, #F0F5FF 0%, #F4F6F5 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, #FFF3F3 0%, #F4F6F5 102.03%);
   
   /* Team leader highlight background (default to light mode) */
   --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
@@ -119,6 +125,8 @@
   --warning: var(--warning-60);
   --danger: var(--danger-60);
   --color-surface-10: var(--neutral-light-10);
+  --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
+  --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
   
   /* Notification unread background (light mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.3);
@@ -127,6 +135,8 @@
   /* Customer link modal gradients (light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, #F0F5FF 0%, #F4F6F5 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, #FFF3F3 0%, #F4F6F5 102.03%);
   
   /* Team leader highlight background (light mode) */
   --team-leader-highlight-bg: linear-gradient(0deg, rgba(214, 250, 232, 0.3), rgba(214, 250, 232, 0.3)),
@@ -158,6 +168,8 @@
   --warning: var(--warning-40);
   --danger: var(--danger-40);
   --color-surface-10: var(--neutral-dark-20);
+  --procedure-warning-note-background: rgb(77 41 0 / 0.3);
+  --procedure-info-note-background: rgb(0 41 135 / 0.3);
   
   /* Notification unread background (dark mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.1);
@@ -166,6 +178,8 @@
   /* Customer link modal gradients (dark mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, rgba(0, 181, 91, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.12) 0%, rgba(30, 30, 30, 0.85) 102.03%);
+  --progress-choice-self-gradient: linear-gradient(74.9deg, rgba(77, 130, 243, 0.16) 0%, rgba(30, 30, 30, 0.88) 102.03%);
+  --progress-choice-share-gradient: linear-gradient(74.9deg, rgba(216, 50, 50, 0.16) 0%, rgba(30, 30, 30, 0.88) 102.03%);
   
   /* Team leader highlight background (dark mode) */
   --team-leader-highlight-bg: #111111;
@@ -438,6 +452,8 @@ body {
 /* Surfaces and shape */
 @utility surface { @apply bg-card text-foreground; }
 @utility surface-muted { background-color: var(--color-surface-10); }
+@utility bg-procedure-warning-note { background-color: var(--procedure-warning-note-background); }
+@utility bg-procedure-info-note { background-color: var(--procedure-info-note-background); }
 @utility rounded-card { border-radius: var(--radius-card); }
 
 /* Neutral scale utilities */
@@ -807,6 +823,28 @@ svg path:focus {
   display: none;
 }
 
+/* 태블릿 폭에서 잘리는 표(비교표·목록표)용 스크롤바. 기본 전역 스크롤바(6px, 투명 트랙)는
+   초과 폭이 작을 때 눈에 잘 안 띄어서, 트랙을 항상 보이게 하고 두께를 키워 "더 볼 내용이
+   있다"는 신호를 준다. */
+.table-horizontal-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: var(--neutral-50) var(--neutral-20);
+}
+.table-horizontal-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.table-horizontal-scroll::-webkit-scrollbar-track {
+  background: var(--neutral-20);
+  border-radius: 4px;
+}
+.table-horizontal-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--neutral-50);
+  border-radius: 4px;
+}
+.table-horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--neutral-60);
+}
+
 /* Shake animation for persistent modal */
 @keyframes shake {
   0%,
@@ -942,6 +980,90 @@ svg path:focus {
   animation: copy-success-pop 0.2s ease-out;
 }
 
+@keyframes section-title-arrival-text {
+  0%,
+  62% {
+    color: var(--section-title-arrival-color);
+  }
+  100% {
+    color: var(--foreground);
+  }
+}
+
+@keyframes section-title-arrival-underline {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  22%,
+  62% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes section-title-arrival-reduced {
+  0%,
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes section-title-arrival-text-reduced {
+  0%,
+  99% {
+    color: var(--section-title-arrival-color);
+  }
+  100% {
+    color: var(--foreground);
+  }
+}
+
+.animate-section-title-arrival {
+  --section-title-arrival-color: var(--primary-80);
+  position: relative;
+  animation: section-title-arrival-text 0.78s ease-out;
+}
+
+.animate-section-title-arrival::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--primary-60);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: section-title-arrival-underline 0.78s ease-out;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .animate-section-title-arrival {
+  --section-title-arrival-color: var(--primary-40);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-section-title-arrival {
+    animation: section-title-arrival-text-reduced 0.78s step-end forwards;
+  }
+
+  .animate-section-title-arrival::after {
+    opacity: 1;
+    transform: scaleX(1);
+    animation: section-title-arrival-reduced 0.78s step-end forwards;
+  }
+}
+
 .analyze-button {
   position: relative;
   isolation: isolate;
@@ -995,30 +1117,27 @@ svg path:focus {
   background: var(--card);
 }
 
-/* hover 루프 애니메이션은 마우스/트랙패드에서만 — 터치 sticky hover 방지 */
-@media (hover: hover) and (pointer: fine) {
-  .analyze-button:not(:disabled):hover::before {
-    opacity: 1;
-    animation: analyze-border-rotate 1.6s linear infinite;
+.analyze-button-ready:not(:disabled)::before {
+  opacity: 1;
+  animation: analyze-border-rotate 1.6s linear infinite;
+}
+
+.analyze-button-ready:not(:disabled) .analyze-sparkle-start {
+  animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
+}
+
+.analyze-button-ready:not(:disabled) .analyze-sparkle-end {
+  animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analyze-button-ready:not(:disabled)::before {
+    animation: none;
   }
 
-  .analyze-button:not(:disabled):hover .analyze-sparkle-start {
-    animation: analyze-sparkle-start-color 1.6s ease-in-out infinite;
-  }
-
-  .analyze-button:not(:disabled):hover .analyze-sparkle-end {
-    animation: analyze-sparkle-end-color 1.6s ease-in-out infinite;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .analyze-button:not(:disabled):hover::before {
-      animation: none;
-    }
-
-    .analyze-button:not(:disabled):hover .analyze-sparkle-start,
-    .analyze-button:not(:disabled):hover .analyze-sparkle-end {
-      animation: none;
-    }
+  .analyze-button-ready:not(:disabled) .analyze-sparkle-start,
+  .analyze-button-ready:not(:disabled) .analyze-sparkle-end {
+    animation: none;
   }
 }
 

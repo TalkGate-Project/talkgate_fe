@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BaseModal from "@/components/common/BaseModal";
 
 interface ApiKeyCreateModalProps {
   isOpen: boolean;
@@ -40,18 +41,15 @@ export default function ApiKeyCreateModal({
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-40" onClick={handleClose} />
-
-      {/* Modal */}
-      <div
-        className="fixed inset-0 md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full h-full md:w-[440px] md:h-[224px] bg-white dark:bg-neutral-10 md:rounded-[14px] z-50 flex flex-col"
-        style={{
-          filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="API 키 생성"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[440px] md:h-[224px] bg-white dark:bg-neutral-10 md:rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0 relative">
           <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-80 leading-[21px]">
@@ -122,7 +120,6 @@ export default function ApiKeyCreateModal({
             생성하기
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
+import BaseModal from "@/components/common/BaseModal";
 import Pagination from "@/components/common/Pagination";
 import { formatContactForDisplay } from "@/utils/format";
 import { formatDateTime } from "@/utils/datetime";
@@ -13,12 +14,18 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onBack?: () => void;
-  analysisId: string;
+  /** 상세 화면에서는 분석 ID로 즉시 매칭하고, 신규 화면에서는 생략해 선택만 한다. */
+  analysisId?: string;
+  /** false면 전용 목록만 조회하고 실제 교체/연동 처리는 onSelected에 위임한다. */
+  matchImmediately?: boolean;
   projectId: string;
   /** 진단 원본 입력 성명. 연동 대상 고객명과 다르면 확인 모달로 한 번 더 확인한다. */
   analysisCustomerName?: string;
-  onMatched: () => void;
+  onMatched?: () => void;
+  onSelected?: (customer: ConnectableCustomer) => void | Promise<void>;
 };
+
+type SelectableCustomer = ConnectableCustomer & { isAnalysisConnected?: boolean };
 
 const PAGE_LIMIT = 5;
 
@@ -53,7 +60,12 @@ function SearchIcon() {
 }
 
 function getTeamName(customer: ConnectableCustomer): string {
-  return customer.assignedTeamName || customer.assignedMember?.team?.name || "-";
+  return (
+    customer.assignedTeamName ||
+    customer.assignedMember?.teamName ||
+    customer.assignedMember?.team?.name ||
+    "-"
+  );
 }
 
 function getAssigneeName(customer: ConnectableCustomer): string {
@@ -65,14 +77,16 @@ export default function CustomerMatchModal({
   onClose,
   onBack,
   analysisId,
+  matchImmediately = true,
   projectId,
   analysisCustomerName,
   onMatched,
+  onSelected,
 }: Props) {
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [page, setPage] = useState(1);
-  const [customers, setCustomers] = useState<ConnectableCustomer[]>([]);
+  const [customers, setCustomers] = useState<SelectableCustomer[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [matchingId, setMatchingId] = useState<number | null>(null);
@@ -91,14 +105,19 @@ export default function CustomerMatchModal({
     let cancelled = false;
     setLoading(true);
 
-    AnalysisService.connectableCustomers(Number(analysisId), projectId, {
+    // analysisId가 있으면(상세/수정) 해당 분석 담당자 기준, 없으면(신규 작성 중) 요청 멤버 기준으로
+    // 서버가 알아서 매칭 가능 고객을 골라준다 — 신규/상세 화면 모두 같은 엔드포인트를 쓴다.
+    const request = AnalysisService.connectableCustomersV2(projectId, {
+      analysisId: analysisId ? Number(analysisId) : undefined,
       search: debouncedKeyword.trim() || undefined,
       page,
       limit: PAGE_LIMIT,
-    })
+    }).then((response) => response.data.data);
+
+    request
       .then((response) => {
         if (cancelled) return;
-        const data = response.data.data;
+        const data = response;
         setCustomers(data.customers);
         setTotal(data.total);
       })
@@ -130,20 +149,18 @@ export default function CustomerMatchModal({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !matchingId) onClose();
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [open, matchingId, onClose]);
-
   const performMatch = async (customerId: number) => {
     setMatchingId(customerId);
     try {
-      await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
-      onMatched();
+      const selectedCustomer = customers.find((customer) => customer.id === customerId);
+      if (!selectedCustomer) return;
+      if (!analysisId && selectedCustomer.isAnalysisConnected) return;
+      if (analysisId && matchImmediately) {
+        await AnalysisService.matchCustomer(Number(analysisId), { projectId, customerId });
+        onMatched?.();
+      } else {
+        await onSelected?.(selectedCustomer);
+      }
       onClose();
     } catch (error: unknown) {
       console.error("Failed to match customer:", error);
@@ -154,10 +171,7 @@ export default function CustomerMatchModal({
           description: "새로고침 후 다시 시도해주세요.",
         });
       } else {
-        showErrorModal({
-          headline: "고객 연결에 실패했습니다.",
-          description: "잠시 후 다시 시도해주세요.",
-        });
+        showErrorModal({ headline: "고객 연결에 실패했습니다.", description: "잠시 후 다시 시도해주세요." });
       }
     } finally {
       setMatchingId(null);
@@ -190,17 +204,21 @@ export default function CustomerMatchModal({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
   const handleCancel = onBack ?? onClose;
+  const handleClose = () => {
+    if (!matchingId) onClose();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 dark:bg-[#000000CC]">
-      <div className="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4">
-        <div
-          className="w-full h-full md:w-[848px] md:h-[625px] md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
-          onClick={(event) => event.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="customer-match-modal-title"
-        >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={false}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="고객연동"
+      positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[848px] md:h-[625px] md:max-h-[90vh] rounded-t-[14px] md:rounded-[14px] bg-neutral-0 dark:bg-neutral-10 flex flex-col shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none"
+    >
           <div className="flex items-start justify-between gap-4 px-4 md:px-7 pt-5 md:pt-6 shrink-0">
             <div className="min-w-0">
               <h2
@@ -210,7 +228,9 @@ export default function CustomerMatchModal({
                 고객연동
               </h2>
               <p className="mt-3 text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
-                현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다.
+                {analysisId
+                  ? "현재 자신에게 할당된 고객 중 아직 연동이 안된 고객 목록입니다."
+                  : "등록된 고객 중 이번 분석에 연결할 고객을 선택해주세요."}
               </p>
             </div>
             <button
@@ -309,11 +329,15 @@ export default function CustomerMatchModal({
                         <td className="h-[59px] px-3 align-middle text-center">
                           <button
                             type="button"
-                            disabled={matchingId === customer.id}
+                            disabled={matchingId === customer.id || customer.isAnalysisConnected}
                             onClick={() => handleMatch(customer.id)}
                             className="cursor-pointer inline-flex items-center justify-center h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {matchingId === customer.id ? "..." : "연동"}
+                            {matchingId === customer.id
+                              ? "..."
+                              : customer.isAnalysisConnected
+                                ? "연동됨"
+                                : "연동"}
                           </button>
                         </td>
                       </tr>
@@ -360,11 +384,15 @@ export default function CustomerMatchModal({
                       </div>
                       <button
                         type="button"
-                        disabled={matchingId === customer.id}
+                        disabled={matchingId === customer.id || customer.isAnalysisConnected}
                         onClick={() => handleMatch(customer.id)}
                         className="cursor-pointer shrink-0 h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {matchingId === customer.id ? "..." : "연동"}
+                        {matchingId === customer.id
+                          ? "..."
+                          : customer.isAnalysisConnected
+                            ? "연동됨"
+                            : "연동"}
                       </button>
                     </div>
                     <div className="mt-3 pt-3 border-t border-neutral-30 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-neutral-60">
@@ -404,8 +432,6 @@ export default function CustomerMatchModal({
               취소
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

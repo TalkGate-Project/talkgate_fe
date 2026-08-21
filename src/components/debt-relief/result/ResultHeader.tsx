@@ -7,7 +7,6 @@ import {
   canEditDiagnosisInfo,
   type DiagnosisDetail,
 } from "@/types/debtRelief";
-import { StatusBadge } from "@/components/debt-relief/DiagnosisBadges";
 import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
@@ -21,6 +20,7 @@ import CustomerCreateMatchModal from "./CustomerCreateMatchModal";
 import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
 import LinkIcon from "@/components/icons/LinkIcon";
+import { isMobileDeviceNavigator } from "@/lib/device";
 
 function EditIcon() {
   const maskId = useId();
@@ -275,6 +275,14 @@ const MOBILE_ACTIONS_ITEM =
 const MOBILE_ACTIONS_ITEM_LINKED =
   "cursor-pointer flex h-12 w-full items-center gap-2 bg-white pl-[19px] pr-[18px] py-3 text-left text-[#2563EB] dark:bg-card dark:text-blue-300 hover:bg-neutral-10 transition-colors";
 
+function DownloadIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M9 2.75v8.5m0 0 3.25-3.25M9 11.25 5.75 8M3 14.75h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 type Props = {
   detail: DiagnosisDetail;
   projectId: string | null;
@@ -324,6 +332,7 @@ function MobileActionsMenu({
   onEdit,
   onPaymentInfo,
   onShare,
+  onDownload,
 }: {
   open: boolean;
   isShared: boolean;
@@ -335,6 +344,7 @@ function MobileActionsMenu({
   onEdit: () => void;
   onPaymentInfo: () => void;
   onShare: () => void;
+  onDownload: () => void;
 }) {
   if (!open) return null;
 
@@ -371,6 +381,10 @@ function MobileActionsMenu({
       <button type="button" role="menuitem" onClick={onPaymentInfo} className={MOBILE_ACTIONS_ITEM}>
         <PaymentCardIcon />
         결제정보
+      </button>
+      <button type="button" role="menuitem" onClick={onDownload} className={MOBILE_ACTIONS_ITEM}>
+        <DownloadIcon />
+        다운로드
       </button>
       {canShare && (
         <button
@@ -489,7 +503,11 @@ export default function ResultHeader({
   const showOwnerActions =
     projectTypeReady && (isAnalysis || (isLawyer && !detail.isReceivedShare));
   // 공유하기(납품)는 영업점→변호사 방향 기능이므로 영업점 전용 — 변호사 자체 등록 건에는 노출하지 않는다.
-  const canShare = projectTypeReady && isAnalysis;
+  const canShare =
+    projectTypeReady &&
+    isAnalysis &&
+    detail.status !== "reviewing" &&
+    detail.status !== "suspended";
   // 담당직원(출처) 프로필은 공유받은 변호사 건에서만 — 자체 등록 건은 출처가 없어 표시하지 않는다.
   const showAssigneeProfile = projectTypeReady && isLawyer && detail.isReceivedShare;
   // 계약대기중인데 결제정보가 아직 없으면 절차 진행이 시작되지 않은 상태 — 결제정보 입력을 유도한다.
@@ -511,10 +529,47 @@ export default function ResultHeader({
     setShareOpen(true);
   };
 
+
   const handleOpenPaymentInfo = () => {
     setPaymentNudgeDismissed(true);
     setActionsMenuOpen(false);
     setPaymentInfoOpen(true);
+  };
+
+  const handleDownload = async () => {
+    setActionsMenuOpen(false);
+
+    if (!isMobileDeviceNavigator(window.navigator)) {
+      window.print();
+      return;
+    }
+
+    if (typeof window.navigator.share !== "function") {
+      // Web Share API를 제공하지 않는 모바일 브라우저에서는 기존 인쇄 기능을 fallback으로 유지한다.
+      window.print();
+      return;
+    }
+
+    try {
+      await window.navigator.share({
+        title: `${detail.customerName} 고객 채무조정 진단 결과`,
+        text: "톡게이트 채무조정 진단 결과를 공유합니다.",
+        url: window.location.href,
+      });
+    } catch (error) {
+      const errorName =
+        error && typeof error === "object" && "name" in error
+          ? String((error as { name?: unknown }).name)
+          : "";
+      // 사용자가 네이티브 공유 UI를 닫은 것은 정상적인 취소이므로 오류로 안내하지 않는다.
+      if (errorName === "AbortError") return;
+
+      console.error("Failed to share analysis result:", error);
+      showErrorModal({
+        headline: "분석 결과를 공유하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    }
   };
 
   const handleDismissPaymentNudge = () => {
@@ -551,7 +606,7 @@ export default function ResultHeader({
       !canEditDiagnosisInfo({
         status: detail.status,
         isReceivedShare: detail.isReceivedShare,
-        isAnalysisProject: isAnalysis,
+        deliveryStatus: detail.deliveryStatus,
       })
     ) {
       showErrorModal({
@@ -629,19 +684,6 @@ export default function ResultHeader({
     .filter(Boolean)
     .join(" · ");
 
-  const inProgressStepLabel =
-    detail.status === "in_progress" && detail.procedureGuide.totalSteps > 1
-      ? `${detail.procedureGuide.currentStep}/${detail.procedureGuide.totalSteps}`
-      : undefined;
-
-  const statusBadge = (
-    <StatusBadge
-      status={detail.status}
-      rejectionReason={detail.rejectionReason}
-      stepLabel={inProgressStepLabel}
-    />
-  );
-
   const customerInfoButton = (
     <button
       type="button"
@@ -667,8 +709,8 @@ export default function ResultHeader({
 
   return (
     <>
-      {/* 모바일·태블릿(lg 미만): 1줄(뒤로+제목+상태[+공유처칩] | ⋮ 액션메뉴),
-          2줄(고객메타+⋯ | 전달사항 토글).
+      {/* 모바일·태블릿(lg 미만): 1줄(뒤로+제목 | 공유처·담당직원+액션),
+          300px 이하는 보조행(공유처·담당직원), 마지막 행(고객메타+⋯ | 전달사항 토글).
           영업점 액션(연동·수정·결제·공유)은 ⋮ 플로팅으로 통합.
           태블릿(md~lg)도 PC 버튼 세트가 겹쳐 보여 이 컴팩트 레이아웃을 lg까지 확장. */}
       <div className="flex lg:hidden flex-col pt-1.5">
@@ -690,16 +732,18 @@ export default function ResultHeader({
                 />
               </svg>
             </button>
-            <h1 className="text-[18px] font-semibold leading-[21px] text-black dark:text-neutral-90 truncate min-w-0">
+            <h1 className="min-w-0 flex-1 truncate text-[18px] font-semibold leading-[21px] text-black dark:text-neutral-90">
               {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
             </h1>
-            <div className="shrink-0">{statusBadge}</div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {detail.isShared ? (
-              <span className="inline-flex h-[22px] items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5 whitespace-nowrap">
-                <span className="text-[12px] font-semibold leading-[17px] text-neutral-60">
+              <span
+                title={shareLabel}
+                className="hidden h-[22px] min-w-0 max-w-[220px] items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5 min-[301px]:inline-flex"
+              >
+                <span className="min-w-0 truncate text-[12px] font-semibold leading-[17px] text-neutral-60">
                   {shareLabel}
                 </span>
               </span>
@@ -733,6 +777,7 @@ export default function ResultHeader({
                   onEdit={handleEdit}
                   onPaymentInfo={handleOpenPaymentInfo}
                   onShare={handleShareClick}
+                  onDownload={handleDownload}
                 />
                 <div ref={mobileLinkedMenuRef}>
                   <LinkedCustomerMenu
@@ -743,7 +788,15 @@ export default function ResultHeader({
                 </div>
               </div>
             ) : showAssigneeProfile ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  aria-label="다운로드"
+                  className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+                >
+                  <DownloadIcon />
+                </button>
                 <div className="relative flex items-center">
                   <button
                     type="button"
@@ -757,11 +810,38 @@ export default function ResultHeader({
                     <PaymentInfoNudgeBubble align="end" onDismiss={handleDismissPaymentNudge} />
                   )}
                 </div>
-                {assigneeProfile}
+                <div className="hidden min-w-0 min-[301px]:block">{assigneeProfile}</div>
               </div>
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                onClick={handleDownload}
+                aria-label="다운로드"
+                className="cursor-pointer w-9 h-9 grid place-items-center rounded-[8px] border border-neutral-30 text-foreground hover:bg-neutral-10"
+              >
+                <DownloadIcon />
+              </button>
+            )}
           </div>
         </div>
+
+        {detail.isShared || showAssigneeProfile ? (
+          <div className="hidden min-w-0 flex-col items-start gap-2 pb-2 max-[300px]:flex">
+            {detail.isShared ? (
+              <span
+                title={shareLabel}
+                className="inline-flex h-[22px] max-w-full items-center justify-center rounded-[24px] border border-neutral-30 px-2 py-0.5"
+              >
+                <span className="min-w-0 truncate whitespace-nowrap text-[12px] font-semibold leading-[17px] text-neutral-60">
+                  {shareLabel}
+                </span>
+              </span>
+            ) : null}
+            {showAssigneeProfile ? (
+              <div className="min-w-0 max-w-full">{assigneeProfile}</div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="-mx-6 border-t border-neutral-30" />
 
@@ -816,7 +896,6 @@ export default function ResultHeader({
           <h1 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">
             {RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure]}
           </h1>
-          {statusBadge}
           <span className="w-px h-4 bg-neutral-60 shrink-0" aria-hidden />
           <span className="text-[18px] font-medium leading-5 text-neutral-60 truncate min-w-0">
             {customerSummaryLabel}
@@ -869,6 +948,10 @@ export default function ResultHeader({
               </button>
               {showPaymentNudge && <PaymentInfoNudgeBubble onDismiss={handleDismissPaymentNudge} />}
             </div>
+            <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+              <DownloadIcon />
+              <span className="leading-none">다운로드</span>
+            </button>
             {canShare && (
               <button
                 type="button"
@@ -885,6 +968,10 @@ export default function ResultHeader({
           </div>
         ) : showAssigneeProfile ? (
           <div className="flex items-center justify-end gap-4 shrink-0">
+            <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+              <DownloadIcon />
+              <span className="leading-none">다운로드</span>
+            </button>
             <div className="relative">
               <button type="button" className={ACTION_BTN} onClick={handleOpenPaymentInfo}>
                 <PaymentCardIcon />
@@ -894,7 +981,12 @@ export default function ResultHeader({
             </div>
             {assigneeProfile}
           </div>
-        ) : null}
+        ) : (
+          <button type="button" className={ACTION_BTN} onClick={handleDownload}>
+            <DownloadIcon />
+            <span className="leading-none">다운로드</span>
+          </button>
+        )}
       </div>
 
       {projectId && showOwnerActions && (

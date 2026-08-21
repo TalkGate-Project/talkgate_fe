@@ -1,5 +1,7 @@
 "use client";
 
+import BaseModal from "@/components/common/BaseModal";
+
 type Props = {
   open: boolean;
   /** null이면 대기, 'save'/'reanalyze'면 해당 경로 진행 중 */
@@ -40,23 +42,20 @@ export default function DebtApplyChoiceModal({
   if (!open) return null;
 
   const submitting = submittingAction != null;
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-[110]"
-        onClick={() => !submitting && onClose()}
-        aria-hidden
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="debt-apply-choice-title"
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!submitting}
+      zIndexClassName="z-[120]"
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="수정된 채무를 어떻게 할까요?"
+      disableAutoContainerSizing
+      containerClassName="w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         <div className="flex items-center justify-between px-7 pt-6 pb-4 shrink-0">
           <h2
             id="debt-apply-choice-title"
@@ -66,7 +65,7 @@ export default function DebtApplyChoiceModal({
           </h2>
           <button
             type="button"
-            onClick={() => !submitting && onClose()}
+            onClick={handleClose}
             aria-label="닫기"
             disabled={submitting}
             className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-50 hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -108,7 +107,6 @@ export default function DebtApplyChoiceModal({
             {submittingAction === "reanalyze" ? "분석 중..." : "다시 분석"}
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

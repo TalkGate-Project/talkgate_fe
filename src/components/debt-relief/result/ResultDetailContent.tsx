@@ -18,6 +18,11 @@ import {
 } from "@/types/debtRelief";
 import ResultAnchorNav, { type AnchorSection } from "./ResultAnchorNav";
 import AnalysisReviewBanner from "./AnalysisReviewBanner";
+import AnalysisProgressBanner from "./AnalysisProgressBanner";
+import AnalysisProgressChoiceModal from "./AnalysisProgressChoiceModal";
+import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
+import FeePaymentInfoModal from "./FeePaymentInfoModal";
+import ProcedureSelectModal from "./ProcedureSelectModal";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
@@ -31,13 +36,16 @@ import SectionCounselMents from "./SectionCounselMents";
 import SectionProcedureGuide from "./SectionProcedureGuide";
 import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
+import AnalysisPrintDocument from "./AnalysisPrintDocument";
+import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
+import { getBodyZoom } from "@/utils/zoom";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
 export default function ResultDetailContent({ diagnosisId }: { diagnosisId: string }) {
   const { detail, loading, refetch } = useDiagnosisDetail(diagnosisId);
   const [projectId] = useSelectedProjectId();
-  const { isLawyer, ready: projectTypeReady } = useProjectType();
+  const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const [activeId, setActiveId] = useState("overview");
   // 모바일·태블릿(lg 미만) "전달사항" 토글(AI 추천 영역을 덮는 팝업).
   // PC(lg+)는 항상 접이식 섹션으로 쌓아 보여준다.
@@ -48,6 +56,19 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   // detail은 아래에서 로딩/에러 가드를 통과한 뒤에만 확정되므로, 훅 자체는 항상 호출하되
   // null이면 렌더 시점에 detail.trackingProcedure로 지연 대체한다.
   const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure | null>(null);
+  const [statusSubmitting, setStatusSubmitting] = useState(false);
+  const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
+  const [progressShareOpen, setProgressShareOpen] = useState(false);
+  const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
+  // 자체진행 선택 직후 띄우는 절차 선택 모달 — FeePaymentInfoModal/AnalysisReviewBanner의
+  // 수락 흐름과 동일한 패턴이지만 결제정보가 아직 없는 시점(consulting/rejected)에서 트리거된다.
+  const [selfProceedProcedureOpen, setSelfProceedProcedureOpen] = useState(false);
+  const [selfProceedProcedureSubmitting, setSelfProceedProcedureSubmitting] = useState(false);
+  const [guideTitleArrivalKey, setGuideTitleArrivalKey] = useState(0);
+  // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
+  // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
+  // 조회해 두 곳에 내려준다.
+  const chatHistory = useDebtReliefChatHistory(detail?.id ?? null, projectId);
 
   // 변호사 프로젝트에서 공유받은(납품받은) 분석 건은 상담사가 직접 관리할 대상이 아니므로
   // AI 분석 추천·상담 멘트만 숨긴다. 변호사가 직접 등록한 건은 자체 분석이므로 그대로 노출한다.
@@ -134,14 +155,25 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   }, [detail, sectionIds]);
 
   // behavior:"smooth"(scrollIntoView든 scrollTo든 동일)는 body에 zoom:0.8이 걸린 상태(데스크톱
-  // ≥1280px, CLAUDE.md 줌 정책)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
+  // ≥1080px)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
   // 있어 애니메이션 없는 즉시 이동으로 우회한다(zoom과 무관하게 항상 동작 확인됨).
   const scrollTo = (id: string) => {
     setActiveId(id);
     const element = document.getElementById(id);
     if (!element) return;
-    const top = element.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top, behavior: "auto" });
+
+    // scrollTo는 scroll-margin을 반영하지 않으므로 CSS에 선언된 여백을 직접 적용한다.
+    // getBoundingClientRect/scrollY는 화면 px, scrollMarginTop은 레이아웃 px이므로 zoom을 곱해 맞춘다.
+    const scrollMarginTop = Number.parseFloat(window.getComputedStyle(element).scrollMarginTop) || 0;
+    const top =
+      element.getBoundingClientRect().top +
+      window.scrollY -
+      scrollMarginTop * getBodyZoom();
+    window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+
+    if (id === "guide") {
+      setGuideTitleArrivalKey((previous) => previous + 1);
+    }
   };
 
   if (loading) {
@@ -172,6 +204,95 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     detail.status === "reviewing" &&
     detail.deliveryStatus === "delivered";
 
+  // AnalysisReviewBanner의 수락 흐름과 동일한 파생값 — 추천 점수가 없으면(procedureScores 없음)
+  // 절차 선택 모달 자체를 건너뛴다.
+  const defaultProcedure =
+    detail.procedureScores.find((score) => score.recommended)?.procedure ??
+    detail.procedureScores[0]?.procedure;
+
+  const handleSelfProceed = async () => {
+    if (!projectId || statusSubmitting) return;
+    setStatusSubmitting(true);
+    try {
+      await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId);
+      setProgressChoiceOpen(false);
+      // 자체진행을 선택한 직후 바로 추적할 절차를 고르게 한다 — "진행방법 선택"에서
+      // 자체진행을 고르면 절차 선택까지 이어지는 게 원래 의도한 플로우. refetch는 절차 선택
+      // 모달이 열려있는 동안은 미루고, 모달이 닫힐 때(선택 완료/취소) 호출한다.
+      if (defaultProcedure) {
+        setSelfProceedProcedureOpen(true);
+      } else {
+        refetch();
+      }
+    } catch (error) {
+      console.error("Failed to self-progress analysis:", error);
+      showErrorModal({
+        headline: "자체 진행을 시작하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setStatusSubmitting(false);
+    }
+  };
+
+  const closeSelfProceedProcedureSelect = () => {
+    if (selfProceedProcedureSubmitting) return;
+    setSelfProceedProcedureOpen(false);
+    refetch();
+  };
+
+  const handleConfirmSelfProceedProcedure = async (procedure: RecommendedProcedure) => {
+    if (!projectId) return;
+    setSelfProceedProcedureSubmitting(true);
+    try {
+      await DebtReliefService.updateProcedureProgress(projectId, diagnosisId, {
+        trackingProcedure: procedure,
+      });
+      setSelfProceedProcedureOpen(false);
+      refetch();
+    } catch (error) {
+      console.error("Failed to set tracking procedure after self-proceed:", error);
+      showErrorModal({
+        headline: "진행 절차를 설정하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setSelfProceedProcedureSubmitting(false);
+    }
+  };
+
+  const clickReviewAction = (action: "reject" | "accept") => {
+    document.getElementById(`analysis-review-${action}`)?.click();
+  };
+
+  const progressActions = (() => {
+    if (
+      projectTypeReady &&
+      isAnalysis &&
+      (detail.status === "consulting" || detail.status === "rejected")
+    ) {
+      return [
+        {
+          label: detail.status === "rejected" ? "다시진행" : "진행하기",
+          onClick: () => setProgressChoiceOpen(true),
+        },
+      ];
+    }
+    if (detail.status === "reviewing" && showReviewBanner) {
+      return [
+        { label: "거절", onClick: () => clickReviewAction("reject"), variant: "danger" as const },
+        { label: "수락", onClick: () => clickReviewAction("accept") },
+      ];
+    }
+    if (detail.status === "contract_pending") {
+      return [{ label: "결제정보", onClick: () => setProgressPaymentOpen(true) }];
+    }
+    if (detail.status === "in_progress") {
+      return [{ label: "절차안내", onClick: () => scrollTo("guide") }];
+    }
+    return [];
+  })();
+
   const sections: AnchorSection[] = [
     { id: "overview", label: RECOMMENDED_PROCEDURE_LABEL[detail.trackingProcedure] },
     { id: "scores", label: "절차별 성공 가능성" },
@@ -193,11 +314,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
         </div>
 
-        {showReviewBanner && (
-          <div className="px-6 md:px-0 pt-4 md:pt-0">
-            <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} />
-          </div>
-        )}
+        <div className="hidden md:block">
+          <AnalysisProgressBanner
+            status={detail.status}
+            actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+          />
+        </div>
 
         {/* 헤더 + (데스크톱) 탭 바 + AI 분석 추천 (같은 카드).
             변호사 공유 건은 AI 분석 추천을 숨기고 overview·scores를 하나의 카드처럼 붙인다. */}
@@ -211,6 +333,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               className="max-md:!pt-0"
             >
               <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <div className="mt-3 md:hidden">
+                <AnalysisProgressBanner
+                  status={detail.status}
+                  actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+                />
+              </div>
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
@@ -247,6 +375,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
                 messagesOpen={mobileMessagesOpen}
                 onToggleMessages={() => setMobileMessagesOpen((previous) => !previous)}
               />
+              <div className="mt-3 md:hidden">
+                <AnalysisProgressBanner
+                  status={detail.status}
+                  actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
+                />
+              </div>
               <div className="hidden md:block mt-0">
                 <ResultAnchorNav sections={sections} activeId={activeId} onNavigate={scrollTo} />
               </div>
@@ -296,7 +430,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
 
         {!hideCounselMents && (
           <SectionCard id="ments" compactTop>
-            <SectionCounselMents detail={detail} projectId={projectId} />
+            <SectionCounselMents detail={detail} projectId={projectId} chatHistory={chatHistory} />
           </SectionCard>
         )}
 
@@ -308,6 +442,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
             key={detail.trackingProcedure}
             detail={detail}
             projectId={projectId}
+            titleArrivalKey={guideTitleArrivalKey}
             onCustomerMatchChange={refetch}
             onSetCurrentStep={handleSetCurrentStep}
             onChangeTrackingProcedure={handleChangeTrackingProcedure}
@@ -326,6 +461,68 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           isShared={detail.isShared}
         />
       </div>
+      {/* hidePrompt 상태의 검토 컴포넌트는 버튼·모달 컨트롤러 역할만 한다. 메인 flex 안에
+          두면 높이 0인 wrapper도 md:gap-9의 독립 항목이 되어 배너와 헤더 사이에 gap이 두 번 생긴다. */}
+      {showReviewBanner ? (
+        <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
+      ) : null}
+      <AnalysisPrintDocument
+        detail={detail}
+        selectedProcedure={activeProcedure}
+        chatMessages={chatHistory.messages}
+      />
+      <AnalysisProgressChoiceModal
+        open={progressChoiceOpen}
+        onClose={() => setProgressChoiceOpen(false)}
+        onSelfProceed={handleSelfProceed}
+        onShare={() => {
+          setProgressChoiceOpen(false);
+          setProgressShareOpen(true);
+        }}
+        submitting={statusSubmitting}
+      />
+      {defaultProcedure ? (
+        <ProcedureSelectModal
+          open={selfProceedProcedureOpen}
+          onClose={closeSelfProceedProcedureSelect}
+          onConfirm={handleConfirmSelfProceedProcedure}
+          procedureScores={detail.procedureScores}
+          defaultProcedure={defaultProcedure}
+          submitting={selfProceedProcedureSubmitting}
+          description="자체진행할 절차를 선택해 주세요. 선택한 절차로 진행 단계가 시작됩니다."
+        />
+      ) : null}
+      {projectId ? (
+        <>
+          <AnalysisShareModal
+            open={progressShareOpen}
+            onClose={() => setProgressShareOpen(false)}
+            onSuccess={refetch}
+            projectId={projectId}
+            analysisIds={[detail.id]}
+            customerName={detail.customerName}
+            initialContact={detail.customerId != null ? detail.phone : ""}
+            lockedPartner={
+              detail.partnerId != null && detail.lawyerProjectId != null
+                ? {
+                    id: detail.partnerId,
+                    projectName: detail.lawyerProjectName?.trim() || "프로젝트",
+                  }
+                : null
+            }
+          />
+          <FeePaymentInfoModal
+            open={progressPaymentOpen}
+            onClose={() => setProgressPaymentOpen(false)}
+            analysisId={Number(detail.id)}
+            projectId={projectId}
+            isContractPending={detail.status === "contract_pending"}
+            feePlan={detail.feePlan}
+            procedureScores={detail.procedureScores}
+            onChanged={refetch}
+          />
+        </>
+      ) : null}
     </>
   );
 }

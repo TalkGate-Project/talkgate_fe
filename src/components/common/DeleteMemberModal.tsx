@@ -1,6 +1,7 @@
 "use client";
 
 import type { MemberListItem } from "@/types/members";
+import BaseModal from "@/components/common/BaseModal";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "총관리자",
@@ -38,12 +39,14 @@ export default function DeleteMemberModal({
   const roleLabel = member.role ? ROLE_LABELS[member.role] || member.role : "-";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC] cursor-pointer" onClick={handleClose} />
-
-      {/* Modal */}
-      <div className="relative w-[440px] bg-white dark:bg-neutral-10 rounded-[14px]">
+    <BaseModal
+      onClose={handleClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="멤버 삭제"
+      disableAutoContainerSizing
+      containerClassName="relative w-[440px] bg-white dark:bg-neutral-10 rounded-[14px]"
+    >
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -146,7 +149,6 @@ export default function DeleteMemberModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   );
 }

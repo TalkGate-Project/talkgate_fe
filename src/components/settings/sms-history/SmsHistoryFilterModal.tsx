@@ -1,6 +1,7 @@
 "use client";
 
 import type { SmsStatus, SmsMessageType } from "@/types/sms";
+import BaseModal from "@/components/common/BaseModal";
 import {
   MESSAGE_TYPE_OPTIONS,
   STATUS_OPTIONS,
@@ -38,15 +39,14 @@ export default function SmsHistoryFilterModal({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* 모달 배경 오버레이 */}
-      <div
-        className="fixed inset-0 bg-black/30 dark:bg-[#000000CC] z-40"
-        onClick={onClose}
-      />
-      
-      {/* 모달 */}
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[306px] bg-card dark:bg-neutral-10 rounded-[14px] z-50 flex flex-col">
+    <BaseModal
+      onClose={onClose}
+      zIndexClassName="z-50"
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="필터설정"
+      disableAutoContainerSizing
+      containerClassName="w-[380px] h-[306px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col"
+    >
         {/* 모달 헤더 */}
         <div className="flex items-center justify-between px-6 pt-6 pb-[30px]">
           <h3 className="text-[18px] font-semibold text-ink dark:text-neutral-80">필터설정</h3>
@@ -165,7 +165,6 @@ export default function SmsHistoryFilterModal({
             적용완료
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }

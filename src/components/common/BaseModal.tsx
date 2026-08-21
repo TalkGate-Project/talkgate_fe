@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 type BaseModalProps = {
   onClose: () => void;
   children: React.ReactNode;
+  /** 기본 z-[100] 위에 다른 전역 모달(에러/공지 등)이 겹쳐야 할 때만 지정 — 대부분은 기본값 사용. */
+  zIndexClassName?: string;
   overlayClassName?: string;
   containerClassName?: string;
   positionerClassName?: string;
@@ -24,6 +26,18 @@ const getCounter = () => {
   window.__tgModalCounter = window.__tgModalCounter || { value: 0 };
   // @ts-expect-error - Accessing modal counter from window object
   return window.__tgModalCounter as { value: number };
+};
+
+// 중첩된 BaseModal 각각이 독립적으로 window keydown을 구독하면 Escape/Tab 한 번에 스택 전체가
+// 반응한다(모두 같은 window에 붙어있어 이벤트가 버블링을 거치지 않고 전부에게 전달됨) — 마운트
+// 순서를 스택으로 추적해 최상단(가장 나중에 열린) 모달만 반응하도록 제한한다.
+let modalIdSeq = 0;
+const getModalStack = () => {
+  if (typeof window === "undefined") return { ids: [] } as { ids: string[] };
+  // @ts-expect-error - Attaching modal stack to window object for global state
+  window.__tgModalStack = window.__tgModalStack || { ids: [] };
+  // @ts-expect-error - Accessing modal stack from window object
+  return window.__tgModalStack as { ids: string[] };
 };
 
 function lockBodyScroll() {
@@ -47,6 +61,7 @@ function unlockBodyScroll() {
 export default function BaseModal({
   onClose,
   children,
+  zIndexClassName = "z-[100]",
   overlayClassName = "",
   containerClassName = "",
   positionerClassName = "",
@@ -58,12 +73,22 @@ export default function BaseModal({
   disableScrollLock = false,
 }: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const modalIdRef = useRef<string>("");
+  if (!modalIdRef.current) {
+    modalIdRef.current = `modal-${++modalIdSeq}`;
+  }
 
   useEffect(() => {
     if (!disableScrollLock) {
       lockBodyScroll();
     }
+    const stack = getModalStack();
+    stack.ids.push(modalIdRef.current);
+
+    const isTopmost = () => stack.ids[stack.ids.length - 1] === modalIdRef.current;
+
     const handleKey = (e: KeyboardEvent) => {
+      if (!isTopmost()) return;
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
         // very small focus trap
@@ -92,6 +117,8 @@ export default function BaseModal({
     window.addEventListener("keydown", handleKey);
     return () => {
       window.removeEventListener("keydown", handleKey);
+      const idx = stack.ids.lastIndexOf(modalIdRef.current);
+      if (idx !== -1) stack.ids.splice(idx, 1);
       if (!disableScrollLock) {
         unlockBodyScroll();
       }
@@ -114,13 +141,28 @@ export default function BaseModal({
 
   const modal = (
     <div
-      className={`fixed inset-0 z-[100] ${overlayClassName}`}
+      className={`fixed inset-0 ${zIndexClassName} ${overlayClassName}`}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
       onMouseDown={(e) => {
-        // only close when clicking real overlay (not children)
-        if (closeOnOverlayClick && e.target === e.currentTarget) onClose();
+        // 카드(containerRef) 바깥을 클릭했을 때만 닫는다. positioner(중앙 정렬용 flex 래퍼)가
+        // 오버레이 전체를 덮고 있어서 e.target은 실제로는 거의 항상 positioner이지 오버레이
+        // 자신(e.currentTarget)이 아니다 — 예전의 "e.target === e.currentTarget" 체크는 그래서
+        // 배경 클릭 시 사실상 항상 거짓이었다(모든 BaseModal 사용처에 있던 기존 버그).
+        //
+        // DatePicker/MonthPicker/TimePicker 등 useAnchoredPanel 기반 팝오버는 위치 계산을 위해
+        // document.body에 별도로 포털링된다 — DOM상으로는 containerRef의 자손이 아니라서 그
+        // 안을 클릭해도 이 체크에 걸려 모달이 함께 닫혔다. [data-anchored-panel]로 표시된
+        // 팝오버 내부 클릭은 containerRef 안 클릭과 동일하게 취급해 제외한다.
+        const target = e.target as HTMLElement;
+        if (
+          closeOnOverlayClick &&
+          !containerRef.current?.contains(target) &&
+          !target.closest?.("[data-anchored-panel]")
+        ) {
+          onClose();
+        }
       }}
     >
       <div

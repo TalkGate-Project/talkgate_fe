@@ -3,16 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
+import { useMyMember } from "@/hooks/useMyMember";
 import { useProjectType } from "@/hooks/useProjectType";
 import { DebtReliefService } from "@/services/debtRelief";
+import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { canEditDiagnosisInfo, type DiagnosisFormState } from "@/types/debtRelief";
+import {
+  canEditDiagnosisInfo,
+  createEmptyDiagnosisForm,
+  type DiagnosisFormState,
+} from "@/types/debtRelief";
 import { useDiagnosisForm } from "./useDiagnosisForm";
+import { useAnalysisDraft } from "./useAnalysisDraft";
 import {
   getMissingDebtItemFieldLabels,
   getMissingRequiredFieldLabels,
+  getMissingRequiredFieldLabelsForStep,
   isDiagnosisFormComplete,
   isDiagnosisFormDirty,
   isRecentAndSecuredDebtOverTotal,
@@ -30,6 +38,14 @@ import Step2Assets from "./Step2Assets";
 import Step3Debts from "./Step3Debts";
 import Step4IncomeExpense from "./Step4IncomeExpense";
 import Step5Others from "./Step5Others";
+import AnalysisRequiredFieldsModal from "./AnalysisRequiredFieldsModal";
+import AnalysisDebtSelectionModal from "./AnalysisDebtSelectionModal";
+import AnalysisDraftRestoreModal from "./AnalysisDraftRestoreModal";
+import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
+import CustomerMatchModal from "@/components/debt-relief/result/CustomerMatchModal";
+import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
+import { CustomersService } from "@/services/customers";
+import type { ConnectableCustomer } from "@/types/analysis";
 
 function AnalyzeSparkleIcon() {
   return (
@@ -61,9 +77,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [projectId, ready] = useSelectedProjectId();
+  const { member, loading: memberLoading } = useMyMember(projectId);
   const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
+  const [requiredFieldsModalOpen, setRequiredFieldsModalOpen] = useState(false);
+  const [debtSelectionModalOpen, setDebtSelectionModalOpen] = useState(false);
   // 분석 API는 진행 신호를 주지 않아 경과시간 기반 추정 진행률을 보여준다.
   // 진행률 상태는 오버레이 안에 가둬 두고 여기서는 완료/중단만 지시한다.
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
@@ -83,11 +102,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   // 수정 모드: 불러온 진단이 실제 고객 레코드와 매칭되어 있는지. 생성 모드에서는 아래
   // linkedCustomerId(고객 상세 「추가하기」 진입)로 대체 판단한다.
   const [existingCustomerId, setExistingCustomerId] = useState<number | null>(null);
+  const [linkedCustomerSummary, setLinkedCustomerSummary] = useState<{
+    id: number;
+    name: string;
+    contact: string;
+  } | null>(null);
 
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
   const customerIdParam = searchParams.get("customerId");
-  const linkedCustomerId =
+  const initialLinkedCustomerId =
     !isEdit && customerIdParam && Number.isFinite(Number(customerIdParam))
       ? Number(customerIdParam)
       : undefined;
@@ -95,24 +119,11 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const genderParam = searchParams.get("gender");
 
   // 실제 고객 레코드와 연동된 데이터인지 — 생성: URL로 넘어온 연결 대상, 수정: 이미 매칭된 고객.
-  const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(linkedCustomerId);
-
-  // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
-  useEffect(() => {
-    if (isEdit || !customerNameParam) return;
-    setForm((prev) => (prev.customerName ? prev : { ...prev, customerName: customerNameParam }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, customerNameParam]);
-
-  // 고객 상세 「추가하기」 진입 시 성별만 프리필한다. ageGroup/employmentType은 고객 쪽 값이
-  // 자유 텍스트(ageRange)·추정(job)이라 잘못 매핑되면 분석 결과를 조용히 틀리게 만들 수 있어
-  // 제외 — gender는 enum(male/female)-to-enum으로 무손실 매핑되는 유일한 필드.
-  useEffect(() => {
-    if (isEdit) return;
-    if (genderParam !== "male" && genderParam !== "female") return;
-    setForm((prev) => (prev.gender ? prev : { ...prev, gender: genderParam }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, genderParam]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
+  const [customerLinkStep, setCustomerLinkStep] = useState<
+    null | "mode" | "existing" | "create"
+  >(null);
+  const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(selectedCustomerId);
 
   // 현재 단계는 ?step= 쿼리스트링을 단일 진실 공급원으로 삼는다(1-indexed).
   // 브라우저 뒤로/앞으로 가기로 쿼리가 바뀌면 currentIndex도 함께 갱신된다.
@@ -121,6 +132,229 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     Number.isInteger(stepParam) && stepParam >= 1 && stepParam <= FORM_STEPS.length
       ? stepParam - 1
       : 0;
+
+  const {
+    state: analysisDraftState,
+    activateWithoutDraft,
+    restoreDraft,
+    startFresh,
+    finalizeDraft,
+  } = useAnalysisDraft({
+    enabled: !isEdit,
+    identityReady: ready && !memberLoading,
+    projectId,
+    memberId: member?.id ?? null,
+    form,
+    selectedCustomerId: selectedCustomerId ?? null,
+    step: currentIndex + 1,
+  });
+  const analysisDraftReady =
+    isEdit || analysisDraftState.status === "active" || analysisDraftState.status === "disabled";
+  const restoredAnalysisDraft =
+    analysisDraftState.status === "active" && analysisDraftState.restored;
+
+  useEffect(() => {
+    if (analysisDraftState.status === "empty") activateWithoutDraft();
+  }, [analysisDraftState.status, activateWithoutDraft]);
+
+  const loadLinkedCustomerSummary = useCallback(
+    async (customerId: number) => {
+      if (!projectId) return null;
+      try {
+        const response = await CustomersService.detail(String(customerId)).withProject(projectId);
+        const customer = response.data.data;
+        setLinkedCustomerSummary({ id: customer.id, name: customer.name, contact: customer.contact1 });
+        return customer;
+      } catch (error) {
+        console.error("Failed to load linked customer summary:", error);
+        const status =
+          error && typeof error === "object" && "status" in error
+            ? Number((error as { status?: unknown }).status)
+            : undefined;
+        if (!isEdit && restoredAnalysisDraft && (status === 403 || status === 404)) {
+          setSelectedCustomerId((current) => (current === customerId ? undefined : current));
+          setLinkedCustomerSummary(null);
+          showErrorModal({
+            type: "info",
+            title: "고객 연결 해제",
+            headline: "연결된 고객 정보를 찾을 수 없습니다.",
+            description: "작성한 분석 정보는 그대로 유지됩니다.",
+            hideCancel: true,
+          });
+        }
+        return null;
+      }
+    },
+    [projectId, isEdit, restoredAnalysisDraft]
+  );
+
+  useEffect(() => {
+    if (
+      !isEdit &&
+      analysisDraftReady &&
+      !restoredAnalysisDraft &&
+      initialLinkedCustomerId
+    ) {
+      setSelectedCustomerId(initialLinkedCustomerId);
+    }
+  }, [isEdit, analysisDraftReady, restoredAnalysisDraft, initialLinkedCustomerId]);
+
+  useEffect(() => {
+    if (!analysisDraftReady) return;
+    const linkedCustomerId = isEdit ? existingCustomerId : selectedCustomerId;
+    if (!linkedCustomerId) {
+      setLinkedCustomerSummary(null);
+      return;
+    }
+    if (linkedCustomerSummary?.id === linkedCustomerId) return;
+    void loadLinkedCustomerSummary(linkedCustomerId);
+  }, [analysisDraftReady, isEdit, existingCustomerId, selectedCustomerId, linkedCustomerSummary?.id, loadLinkedCustomerSummary]);
+
+  const applySelectedCustomer = useCallback(
+    async (customerId: number, fallbackName?: string) => {
+      setSelectedCustomerId(customerId);
+      if (fallbackName) {
+        setForm((prev) => ({ ...prev, customerName: fallbackName }));
+      }
+      const customer = await loadLinkedCustomerSummary(customerId);
+      if (customer) {
+        setForm((prev) => ({
+          ...prev,
+          customerName: customer.name || prev.customerName,
+          gender:
+            customer.gender === "male" || customer.gender === "female"
+              ? customer.gender
+              : prev.gender,
+        }));
+      }
+    },
+    [loadLinkedCustomerSummary, setForm]
+  );
+
+  const replaceAnalysisCustomer = useCallback(
+    async (customerId: number) => {
+      if (!isEdit || !diagnosisId || !projectId) return;
+      const previousCustomerId = existingCustomerId;
+
+      if (previousCustomerId === customerId) {
+        await loadLinkedCustomerSummary(customerId);
+        return;
+      }
+
+      if (previousCustomerId !== null) {
+        await AnalysisService.unmatchCustomer(Number(diagnosisId), projectId);
+      }
+
+      try {
+        await AnalysisService.matchCustomer(Number(diagnosisId), { projectId, customerId });
+      } catch (error) {
+        if (previousCustomerId !== null) {
+          try {
+            await AnalysisService.matchCustomer(Number(diagnosisId), {
+              projectId,
+              customerId: previousCustomerId,
+            });
+          } catch (rollbackError) {
+            console.error("Failed to restore previous customer match:", rollbackError);
+            setExistingCustomerId(null);
+            setLinkedCustomerSummary(null);
+          }
+        }
+        throw error;
+      }
+
+      setExistingCustomerId(customerId);
+      await loadLinkedCustomerSummary(customerId);
+    },
+    [isEdit, diagnosisId, projectId, existingCustomerId, loadLinkedCustomerSummary]
+  );
+
+  const handleExistingCustomerSelected = useCallback(
+    async (customer: ConnectableCustomer) => {
+      if (isEdit) {
+        await replaceAnalysisCustomer(customer.id);
+      } else {
+        setLinkedCustomerSummary({ id: customer.id, name: customer.name, contact: customer.contact1 });
+        await applySelectedCustomer(customer.id, customer.name);
+      }
+      setCustomerLinkStep(null);
+    },
+    [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
+  );
+
+  const handleCustomerCreated = useCallback(
+    async (customerId: number | null) => {
+      if (!customerId) {
+        showErrorModal({
+          headline: "고객은 등록되었지만 연결 정보를 확인하지 못했습니다.",
+          description: "기존 고객 연동에서 등록된 고객을 선택해주세요.",
+        });
+        return;
+      }
+      if (isEdit) {
+        try {
+          await replaceAnalysisCustomer(customerId);
+        } catch (error) {
+          console.error("Failed to link created customer to analysis:", error);
+          showErrorModal({
+            headline: "고객은 등록되었지만 연결에 실패했습니다.",
+            description: "기존 고객 연동에서 등록된 고객을 다시 선택해주세요.",
+          });
+          return;
+        }
+      } else {
+        await applySelectedCustomer(customerId);
+      }
+      setCustomerLinkStep(null);
+    },
+    [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
+  );
+
+  const handleCustomerUnlink = useCallback(() => {
+    if (!isCustomerConnected) return;
+
+    showConfirmModal({
+      headline: "고객 연결을 해제할까요?",
+      message: "연결을 해제해도 입력한 분석 정보는 유지됩니다.",
+      type: "warning",
+      confirmText: "해제",
+      onConfirm: async () => {
+        try {
+          if (isEdit) {
+            if (!diagnosisId || !projectId) return;
+            await AnalysisService.unmatchCustomer(Number(diagnosisId), projectId);
+            setExistingCustomerId(null);
+          } else {
+            setSelectedCustomerId(undefined);
+          }
+          setLinkedCustomerSummary(null);
+        } catch (error) {
+          console.error("Failed to unlink customer from analysis:", error);
+          showErrorModal({
+            headline: "연결 해제에 실패했습니다.",
+            description: "잠시 후 다시 시도해주세요.",
+          });
+        }
+      },
+    });
+  }, [isCustomerConnected, isEdit, diagnosisId, projectId]);
+
+  // 진입 시 1회, 고객명 입력값이 비어있을 때만 쿼리스트링의 고객명으로 채운다.
+  useEffect(() => {
+    if (isEdit || !analysisDraftReady || restoredAnalysisDraft || !customerNameParam) return;
+    setForm((prev) => (prev.customerName ? prev : { ...prev, customerName: customerNameParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, analysisDraftReady, restoredAnalysisDraft, customerNameParam]);
+
+  // 고객 상세 「추가하기」 진입 시 성별만 프리필한다. ageGroup/employmentType은 고객 쪽 값이
+  // 자유 텍스트(ageRange)·추정(job)이라 잘못 매핑되면 분석 결과를 조용히 틀리게 만들 수 있어
+  // 제외 — gender는 enum(male/female)-to-enum으로 무손실 매핑되는 유일한 필드.
+  useEffect(() => {
+    if (isEdit || !analysisDraftReady || restoredAnalysisDraft) return;
+    if (genderParam !== "male" && genderParam !== "female") return;
+    setForm((prev) => (prev.gender ? prev : { ...prev, gender: genderParam }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, analysisDraftReady, restoredAnalysisDraft, genderParam]);
 
   const goToStep = useCallback(
     (index: number) => {
@@ -131,6 +365,32 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     },
     [router, pathname, searchParams]
   );
+
+  const handleRestoreAnalysisDraft = useCallback(() => {
+    const draft = restoreDraft();
+    if (!draft) return;
+
+    setForm(draft.form);
+    setSelectedCustomerId(draft.selectedCustomerId ?? undefined);
+    setLinkedCustomerSummary(null);
+    setCustomerLinkStep(null);
+
+    // 저장된 초안이 진입 URL의 다른 고객 프리필에 다시 덮이지 않게 관련 파라미터를 제거한다.
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("customerId");
+    params.delete("customerName");
+    params.delete("gender");
+    params.set("step", String(draft.step));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [restoreDraft, setForm, searchParams, router, pathname]);
+
+  const handleStartFreshAnalysis = useCallback(() => {
+    setForm(createEmptyDiagnosisForm());
+    setSelectedCustomerId(undefined);
+    setLinkedCustomerSummary(null);
+    setCustomerLinkStep(null);
+    startFresh();
+  }, [setForm, startFresh]);
 
   // 편집 모드: 기존 진단의 원본 입력값을 불러와 폼을 채운다.
   // 정보수정(재분석)은 상담중/반려된 건만 가능 — ResultHeader.handleEdit이 진입 버튼 클릭 시
@@ -144,7 +404,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     let redirecting = false;
     setLoadingForm(true);
     DebtReliefService.getDiagnosisForm(projectId, diagnosisId)
-      .then(({ form: data, customerId, status, isReceivedShare }) => {
+      .then(({ form: data, customerId, status, isReceivedShare, deliveryStatus }) => {
         if (cancelled) return;
         // 공유(납품)받은 건은 자체 소유 데이터가 아니므로 편집(재분석) 불가 — 반려 상태로 status 게이트를
         // 통과하더라도 여기서 막는다(원본 영업 데이터를 변호사 프로젝트가 되돌려 재분석하면 안 된다).
@@ -161,7 +421,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         }
         // 편집 가능 상태 판정은 canEditDiagnosisInfo로 통일(버튼 게이트와 동일). 영업점은 상담중/반려,
         // 변호사 자체 생성건은 계약대기중까지 허용. status만 검사하던 URL 우회 구멍을 막는다.
-        if (!canEditDiagnosisInfo({ status, isReceivedShare, isAnalysisProject: isAnalysis })) {
+        if (!canEditDiagnosisInfo({ status, isReceivedShare, deliveryStatus })) {
           redirecting = true;
           showErrorModal({
             type: "info",
@@ -200,6 +460,13 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     return true;
   }, [form, isEdit, baselineForm]);
 
+  const incompleteSteps = useMemo(() => FORM_STEPS.flatMap((formStep, index) => {
+    const missingFields = getMissingRequiredFieldLabelsForStep(form, formStep.key);
+    if (formStep.key === "debts") missingFields.push(...getMissingDebtItemFieldLabels(form));
+    const uniqueMissingFields = [...new Set(missingFields)];
+    return uniqueMissingFields.length > 0 ? [{ index, label: formStep.label, missingFields: uniqueMissingFields }] : [];
+  }), [form]);
+
   const step = FORM_STEPS[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === FORM_STEPS.length - 1;
@@ -226,14 +493,24 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   };
 
   const handleAnalyze = async () => {
-    if (analyzing || !canAnalyze) return;
+    if (analyzing) return;
+    if (!canAnalyze || incompleteSteps.length > 0) {
+      setRequiredFieldsModalOpen(true);
+      return;
+    }
 
     if (!Number.isFinite(derived.totalDebtManwon) || derived.totalDebtManwon <= 0) {
+      // 현재 잔액은 원 단위로 입력받지만 총 채무는 만원 단위로 반올림(wonToManwon)해서 계산한다
+      // — 5,000원 미만만 입력한 경우 totalDebtManwon이 0이 돼 이 분기에 걸리는데, 사용자는
+      // 분명히 금액을 입력했으므로 "채무를 아예 안 입력함"과는 다른 원인을 알려줘야 한다.
+      const hasNonZeroDebtInput = form.debts.some((debt) => (debt.currentBalanceWon || 0) > 0);
       showErrorModal({
         type: "info",
         title: "알림",
-        headline: "채무 현황을 파악해주세요.",
-        description: "분석을 진행하려면 채무 종류와 금액을 입력해주세요.",
+        headline: hasNonZeroDebtInput ? "채무 금액이 너무 작습니다." : "채무 현황을 파악해주세요.",
+        description: hasNonZeroDebtInput
+          ? "채무 금액은 만원 단위로 반올림되어 계산됩니다. 5,000원 미만의 금액은 0만원으로 처리되니 정확한 금액을 다시 입력해주세요."
+          : "분석을 진행하려면 채무 종류와 금액을 입력해주세요.",
         confirmText: "채무 현황 입력",
         hideCancel: true,
         onConfirm: () => goToStep(2),
@@ -260,7 +537,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         type: "info",
         title: "알림",
         headline: "채무 항목을 확인해주세요.",
-        description: `${missingDebtItemFields.join(", ")}이(가) 비어있는 채무 항목이 있습니다.`,
+        description: `${missingDebtItemFields.join(", ")}이(가) 입력되지 않았거나 올바르지 않은 채무 항목이 있습니다.`,
         confirmText: "채무 현황 입력",
         hideCancel: true,
         onConfirm: () => goToStep(2),
@@ -282,28 +559,50 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       return;
     }
 
+    setDebtSelectionModalOpen(true);
+  };
+
+  const continueAnalyze = async (analysisForm: DiagnosisFormState) => {
     // 재분석(수정 모드)은 성공 시 상태/절차/현재단계가 초기화되고 AI 채팅 이력이 삭제되는
-    // 되돌릴 수 없는 부수효과가 있어 확인을 먼저 받는다. 신규 생성은 잃을 기존 상태가 없어 대상 아님.
+    // 되돌릴 수 없는 부수효과가 있어 채무 선택 후 확인을 한 번 더 받는다.
     if (isEdit) {
       showConfirmModal({
         headline: "다시 분석할까요?",
         message: "다시 분석하면 진행 상태·절차가 1단계로 초기화되고 AI 상담 채팅 이력이 삭제됩니다.",
         type: "warning",
         confirmText: "다시 분석",
-        onConfirm: submitAnalyze,
+        onConfirm: () => submitAnalyze(analysisForm),
       });
       return;
     }
 
-    await submitAnalyze();
+    await submitAnalyze(analysisForm);
   };
 
-  const submitAnalyze = async () => {
+  const handleDebtSelectionConfirm = (selectedDebtIds: string[]) => {
+    const selectedDebtIdSet = new Set(selectedDebtIds);
+    const analysisForm: DiagnosisFormState = {
+      ...form,
+      debts: form.debts.map((debt) => ({
+        ...debt,
+        isExcludedFromAnalysis: !selectedDebtIdSet.has(debt.id),
+      })),
+    };
+
+    setForm(analysisForm);
+    setDebtSelectionModalOpen(false);
+    void continueAnalyze(analysisForm);
+  };
+
+  const submitAnalyze = async (analysisForm: DiagnosisFormState = form) => {
     setAnalyzing(true);
     try {
       const result = isEdit
-        ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, form)
-        : await DebtReliefService.createDiagnosis(projectId ?? "", form, linkedCustomerId);
+        ? await DebtReliefService.updateDiagnosis(projectId ?? "", diagnosisId!, analysisForm)
+        : await DebtReliefService.createDiagnosis(projectId ?? "", analysisForm, selectedCustomerId);
+      // API 성공 직후 저장을 영구 중단하고 초안을 지운다. settle 대기나 라우트 unmount 중
+      // cleanup이 방금 지운 폼을 다시 저장하지 못하도록 finalizeDraft 내부 ref가 함께 잠긴다.
+      if (!isEdit) finalizeDraft();
       // 진행률을 100%까지 채우고 여운을 준 뒤 이동한다. 실패 경로에서는 채우지 않는다.
       await analysisProgressRef.current?.settle();
       router.push(`/debt-relief/${result.id}`);
@@ -318,11 +617,30 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     }
   };
 
-  if (loadingForm) {
+  const initializingAnalysisDraft =
+    !isEdit &&
+    (analysisDraftState.status === "waiting" ||
+      analysisDraftState.status === "checking" ||
+      analysisDraftState.status === "empty" ||
+      analysisDraftState.status === "prompting");
+
+  if (loadingForm || initializingAnalysisDraft) {
     return (
-      <div className="min-h-[400px] grid place-items-center">
-        <LoadingSpinner />
-      </div>
+      <>
+        <div className="min-h-[400px] grid place-items-center">
+          <LoadingSpinner />
+        </div>
+        <AnalysisDraftRestoreModal
+          open={analysisDraftState.status === "prompting"}
+          savedAt={
+            analysisDraftState.status === "prompting"
+              ? analysisDraftState.draft.savedAt
+              : undefined
+          }
+          onRestore={handleRestoreAnalysisDraft}
+          onStartFresh={handleStartFreshAnalysis}
+        />
+      </>
     );
   }
 
@@ -362,8 +680,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onSelectStep={goToStep}
         onAnalyze={handleAnalyze}
         analyzing={analyzing}
-        analyzeDisabled={!canAnalyze}
+        analyzeDisabled={!canAnalyze || incompleteSteps.length > 0}
         isCustomerConnected={isCustomerConnected}
+        linkedCustomerName={linkedCustomerSummary?.name}
+        linkedCustomerContact={linkedCustomerSummary?.contact}
+        onCustomerLink={() => setCustomerLinkStep("mode")}
+        onCustomerUnlink={handleCustomerUnlink}
       />
 
       <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
@@ -374,12 +696,15 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           currentIndex={currentIndex}
           onSelectStep={goToStep}
           isCustomerConnected={isCustomerConnected}
+          linkedCustomerName={linkedCustomerSummary?.name}
+          linkedCustomerContact={linkedCustomerSummary?.contact}
+          onCustomerLink={() => setCustomerLinkStep("mode")}
+          onCustomerUnlink={handleCustomerUnlink}
         />
 
         <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
           {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전).
-              "기타사항" 스텝은 본문이 토글로 바로 시작해 이 절대배치 X가 어색하게 떠 보여서,
-              그 스텝에서는 숨기고 Step5Others가 자체 타이틀 행에 동일 기능의 X를 대신 렌더링한다. */}
+              "기타사항" 스텝은 Step5Others의 첫 실제 섹션인 "새출발기금" 제목 행에 X를 배치한다. */}
           {step.key !== "others" && (
             <button
               type="button"
@@ -441,16 +766,16 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             </div>
             <div className="flex-1 flex justify-end">
               <button
-                type="button"
-                onClick={handleAnalyze}
-                disabled={analyzing || !canAnalyze}
-                aria-label={analyzing ? "분석 중" : "분석하기"}
-                className="analyze-button inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-                  <AnalyzeSparkleIcon />
-                </span>
-                <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
+                  type="button"
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  aria-label={analyzing ? "분석 중" : "분석하기"}
+                  className={`analyze-button ${canAnalyze && incompleteSteps.length === 0 ? "analyze-button-ready" : ""} inline-flex items-center justify-center gap-2.5 w-[96px] h-[34px] px-3 text-[14px] leading-[17px] tracking-[-0.02em] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                    <AnalyzeSparkleIcon />
+                  </span>
+                  <span className="relative z-10">{analyzing ? "분석 중" : "분석하기"}</span>
               </button>
             </div>
           </div>
@@ -463,6 +788,52 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onBack={goBack}
         onNext={goNext}
       />
+
+      <AnalysisRequiredFieldsModal
+        open={requiredFieldsModalOpen}
+        steps={incompleteSteps}
+        unchanged={isEdit && incompleteSteps.length === 0 && !isDiagnosisFormDirty(form, baselineForm)}
+        onClose={() => setRequiredFieldsModalOpen(false)}
+        onSelectStep={(index) => {
+          setRequiredFieldsModalOpen(false);
+          goToStep(index);
+        }}
+      />
+      <AnalysisDebtSelectionModal
+        open={debtSelectionModalOpen}
+        debts={form.debts}
+        onClose={() => setDebtSelectionModalOpen(false)}
+        onConfirm={handleDebtSelectionConfirm}
+      />
+
+      {projectId && (
+        <>
+          <CustomerLinkModeModal
+            open={customerLinkStep === "mode"}
+            onClose={() => setCustomerLinkStep(null)}
+            onSelect={setCustomerLinkStep}
+            existingDescription="이미 등록된 고객을 이번 분석에 연결합니다."
+          />
+          <CustomerMatchModal
+            open={customerLinkStep === "existing"}
+            onClose={() => setCustomerLinkStep(null)}
+            onBack={() => setCustomerLinkStep("mode")}
+            analysisId={isEdit ? diagnosisId : undefined}
+            matchImmediately={!isEdit}
+            projectId={projectId}
+            analysisCustomerName={form.customerName}
+            onSelected={handleExistingCustomerSelected}
+          />
+          <CustomerCreateModal
+            open={customerLinkStep === "create"}
+            onClose={() => setCustomerLinkStep(null)}
+            onBack={() => setCustomerLinkStep("mode")}
+            initialName={form.customerName}
+            projectId={projectId}
+            onCreated={handleCustomerCreated}
+          />
+        </>
+      )}
     </>
   );
 }

@@ -110,6 +110,7 @@ export default function MonthPicker(props: MonthPickerProps) {
 			{open && panelPos && createPortal(
 				<div
 					ref={panelRef}
+					data-anchored-panel
 					className="z-[1000] bg-white dark:bg-neutral-20 rounded-[14px] shadow-[0px_18px_28px_rgba(9,30,66,0.10)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.4)] p-4 border border-transparent dark:border-[#444444]"
 					style={{ position: "fixed", top: panelPos.top, left: panelPos.left, width: PANEL_WIDTH }}
 				>

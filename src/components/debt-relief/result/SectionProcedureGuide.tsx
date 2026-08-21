@@ -296,9 +296,9 @@ function StepItem({
               <div
                 className={`mt-3 inline-flex items-start gap-1.5 max-w-full min-h-7 px-3 py-1.5 rounded-[5px] ${
                   step.noteType === "warning"
-                    ? "bg-warning-10 dark:bg-[rgb(var(--color-amber-600-rgb)/0.3)]"
+                    ? "bg-procedure-warning-note"
                     : step.noteType === "info"
-                    ? "bg-secondary-10 dark:bg-[rgb(var(--color-blue-600-rgb)/0.3)]"
+                    ? "bg-procedure-info-note"
                     : "bg-neutral-10"
                 }`}
               >
@@ -361,6 +361,7 @@ type Props = {
   detail: DiagnosisDetail;
   // 고객 연동 플로우용 — 미연동 상태에서 문자 버튼 클릭 시 연동 모달을 띄운다(SectionSmsSend와 동일).
   projectId: string | null;
+  titleArrivalKey?: number;
   onCustomerMatchChange: () => void;
   // 실 API(PATCH /v1/analysis/{id})에 currentProcedureStep을 저장. reject되면(Promise가 실패하면)
   // 낙관적으로 반영했던 currentStep·이력 표시를 이 컴포넌트가 직접 원복한다 — 호출부는 에러 모달
@@ -383,6 +384,7 @@ type Props = {
 export default function SectionProcedureGuide({
   detail,
   projectId,
+  titleArrivalKey = 0,
   onCustomerMatchChange,
   onSetCurrentStep,
   onChangeTrackingProcedure,
@@ -515,7 +517,12 @@ export default function SectionProcedureGuide({
     <div className="flex flex-col gap-5">
       <div>
         <div className="flex items-center gap-3">
-          <h2 className="text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground">
+          <h2
+            key={titleArrivalKey}
+            className={`text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground ${
+              titleArrivalKey > 0 ? "animate-section-title-arrival" : ""
+            }`}
+          >
             절차안내
           </h2>
           <ProcedureSelect

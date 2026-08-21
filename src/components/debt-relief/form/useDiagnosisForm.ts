@@ -20,18 +20,13 @@ export function useDiagnosisForm() {
   );
 
   const derived: DiagnosisDerivedValues = useMemo(() => {
-    // 총 채무는 입력 모드에 따라 원본이 다르다 — 간편은 종류별 잔액(만원), 상세는 항목별 원금(원).
-    // 사이드바·요약 표기는 두 모드 모두 만원 기준으로 통일한다.
-    let totalDebtManwon = 0;
-    if (form.debtInputMode === "detailed") {
-      totalDebtManwon = wonToManwon(
-        form.debts.reduce((sum, debt) => sum + (debt.principalWon || 0), 0)
-      );
-    } else {
-      for (const type of form.debtTypes) {
-        totalDebtManwon += form.debtAmounts[type] ?? 0;
-      }
-    }
+    // 간편·상세 모드 모두 현재 채무 입력 UI(DebtItemsTable)는 form.debts에만 기록한다.
+    // debtTypes/debtAmounts는 서버에서 기존 분석을 불러올 때만 채워지는 레거시 스냅숏이라
+    // 폼에서 채무를 추가·수정해도 갱신되지 않는다 — 이 값으로 합산하면 간편 모드 신규 진단은
+    // 항상 0원으로 계산돼 "분석하기"가 막힌다. 두 모드 모두 form.debts 기준으로 통일한다.
+    const totalDebtManwon = wonToManwon(
+      form.debts.reduce((sum, debt) => sum + (debt.currentBalanceWon || 0), 0)
+    );
 
     // 법원 인정 기준 월 가용소득 = 월소득 − 가구원수별 법원 인정 최저생계비 − 추가 인정 고정지출
     // (서버 disposableIncome과 동일 공식 — 2026-08-07 스펙). 원 단위로 계산 후 만원으로 환산해

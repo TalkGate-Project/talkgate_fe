@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { createPortal } from "react-dom";
+import BaseModal from "@/components/common/BaseModal";
 
 import {
   DateRange,
@@ -92,15 +92,6 @@ export default function StatsFilterModal({
     setLoaded(INITIAL_LOADING);
   }, [projectId]);
 
-  useEffect(() => {
-    function onEsc(e: KeyboardEvent) {
-      if (!open) return;
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onEsc);
-    return () => window.removeEventListener("keydown", onEsc);
-  }, [open, onClose]);
-
   const fetchOptions = useCallback(
     async (key: CustomerFilterOptionKey) => {
       if (!projectId || loading[key] || loaded[key]) return;
@@ -129,7 +120,7 @@ export default function StatsFilterModal({
     [projectId, loading, loaded]
   );
 
-  if (!open || typeof document === "undefined") return null;
+  if (!open) return null;
 
   const memberOptions = getMemberOptions ? getMemberOptions(form.teamId ?? null) : [];
   const memberDisabled = !form.teamId;
@@ -139,14 +130,16 @@ export default function StatsFilterModal({
     if (onReset) onReset();
   };
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-black/30 dark:bg-[#000000CC]" onClick={onClose} />
-      <div
-        className="absolute inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-[960px] lg:w-[848px] lg:max-w-[848px] md:h-auto md:max-h-[90vh]"
-        style={{ transform: !isMobile ? "translate(-50%, -50%)" : "none" }}
-      >
-        <div className="relative w-full h-full md:h-auto md:max-h-[90vh] bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col overflow-hidden">
+  return (
+    <BaseModal
+      onClose={onClose}
+      overlayClassName="bg-black/30 dark:bg-[#000000CC]"
+      ariaLabel="필터추가"
+      disableAutoContainerSizing
+      positionerClassName="absolute inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-[960px] lg:w-[848px] lg:max-w-[848px] md:h-auto md:max-h-[90vh]"
+      positionerStyle={{ transform: !isMobile ? "translate(-50%, -50%)" : "none" }}
+      containerClassName="relative w-full h-full md:h-auto md:max-h-[90vh] bg-white dark:bg-neutral-10 rounded-t-[14px] md:rounded-[14px] flex flex-col overflow-hidden"
+    >
           {/* Header */}
           <div className="px-4 md:px-7 pt-4 md:pt-7 pb-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
@@ -273,9 +266,6 @@ export default function StatsFilterModal({
               적용완료
             </button>
           </div>
-        </div>
-      </div>
-    </div>,
-    document.body
+    </BaseModal>
   );
 }

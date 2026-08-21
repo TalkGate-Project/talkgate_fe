@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMemberDetail } from "@/hooks/useMemberDetail";
@@ -11,6 +10,7 @@ import { HRService } from "@/services/hr";
 import type { HrNote } from "@/types/members";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import BaseModal from "@/components/common/BaseModal";
 import RoleBadge from "./RoleBadge";
 import OrganizationContent from "./OrganizationContent";
 import ManagerContent from "./ManagerContent";
@@ -293,26 +293,34 @@ export default function TeamMemberInfoModal({
 
   // 로딩 상태
   if (isLoading) {
-    return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
-        <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
+    return (
+      <BaseModal
+        onClose={onClose}
+        overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+        ariaLabel="직원정보"
+        positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
+        disableAutoContainerSizing
+        containerClassName="w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
+      >
           <LoadingSpinner size="2xl" />
           <p className="mt-4 text-[14px] text-neutral-60">
             직원 정보를 불러오는 중...
           </p>
-        </div>
-      </div>,
-      document.body
+      </BaseModal>
     );
   }
 
   // 에러 상태
   if (isError || !member) {
-    return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
-        <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-        <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center">
+    return (
+      <BaseModal
+        onClose={onClose}
+        overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+        ariaLabel="직원정보"
+        positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
+        disableAutoContainerSizing
+        containerClassName="w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:h-[400px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col items-center justify-center"
+      >
           <p className="text-[14px] text-neutral-60">
             직원 정보를 불러오는 중 오류가 발생했습니다.
           </p>
@@ -323,16 +331,19 @@ export default function TeamMemberInfoModal({
           >
             닫기
           </button>
-        </div>
-      </div>,
-      document.body
+      </BaseModal>
     );
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
-      <div className="absolute inset-0 bg-black/50 dark:bg-[#000000CC]" onClick={onClose} />
-      <div className="relative w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:max-h-[600px] lg:max-h-[800px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col">
+  return (
+    <BaseModal
+      onClose={onClose}
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="직원정보"
+      positionerClassName="min-h-full flex items-center justify-center p-0 md:p-4"
+      disableAutoContainerSizing
+      containerClassName="w-full h-full md:w-[calc(100%-2rem)] md:max-w-[904px] md:max-h-[600px] lg:max-h-[800px] lg:w-[904px] lg:min-w-[600px] bg-white dark:bg-neutral-0 md:rounded-[14px] overflow-hidden flex flex-col"
+    >
         <header className="h-[64px] md:h-auto px-4 md:px-6 pt-4 md:pt-4 pb-[10px] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             {/* 모바일 뒤로가기 버튼 */}
@@ -590,8 +601,6 @@ export default function TeamMemberInfoModal({
             )}
           </section>
         </div>
-      </div>
-    </div>,
-    document.body
+    </BaseModal>
   );
 }

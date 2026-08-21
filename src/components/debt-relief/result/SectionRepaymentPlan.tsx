@@ -12,20 +12,21 @@ import DisclaimerInfoTooltip from "./DisclaimerInfoTooltip";
 // - adjustment_summary: 신속채무조정/프리워크아웃 — expectedRepayment가 게이트와 무관하게
 //   항상 null이다(2026-08-07 실 데이터로 확인: expectedRepayment.pre_workout === null).
 //   보여줄 수치 자체가 없어 "예상 조정 요약" 타이틀 아래 안내 문구만 표시한다.
-type RepaymentSectionKind = "full" | "bankruptcy_result" | "adjustment_summary";
+// AnalysisPrintDocument(인쇄 전용 레이아웃)도 이 절차별 분기·고정 문구를 그대로 재사용한다.
+export type RepaymentSectionKind = "full" | "bankruptcy_result" | "adjustment_summary";
 
 const ADJUSTMENT_SUMMARY_PROCEDURES: readonly RecommendedProcedure[] = [
   "speedy_debt_adjustment",
   "pre_workout",
 ];
 
-function resolveSectionKind(procedure: RecommendedProcedure): RepaymentSectionKind {
+export function resolveSectionKind(procedure: RecommendedProcedure): RepaymentSectionKind {
   if (procedure === "bankruptcy") return "bankruptcy_result";
   if (ADJUSTMENT_SUMMARY_PROCEDURES.includes(procedure)) return "adjustment_summary";
   return "full";
 }
 
-const SECTION_TITLE: Record<RepaymentSectionKind, string> = {
+export const SECTION_TITLE: Record<RepaymentSectionKind, string> = {
   full: "예상 변제 계획",
   bankruptcy_result: "예상 면책 결과",
   adjustment_summary: "예상 조정 요약",
@@ -33,20 +34,20 @@ const SECTION_TITLE: Record<RepaymentSectionKind, string> = {
 
 // 예상 잔여 채무 박스의 부제 — 파산만 문구가 다르다("면책 시 갚을 금액"). 나머지(개인회생/
 // 새출발기금/개인워크아웃)는 "절차 진행 시 갚아야 하는 금액"으로 동일(2026-08-08 샘플사이트 확인).
-const REMAINING_DEBT_SUBTITLE: Record<RepaymentSectionKind, string> = {
+export const REMAINING_DEBT_SUBTITLE: Record<RepaymentSectionKind, string> = {
   full: "절차 진행 시 갚아야 하는 금액",
   bankruptcy_result: "면책 시 갚을 금액 (세금 등 제외채무 별도)",
   adjustment_summary: "",
 };
 
-type SummaryRow = { label: string; value: string };
-type BucketSummaryContent = { rows: SummaryRow[]; sentence: string };
+export type SummaryRow = { label: string; value: string };
+export type BucketSummaryContent = { rows: SummaryRow[]; sentence: string };
 
 // ⚠️ 이 표의 라벨·값·문장은 API 응답이 아니라 프론트 하드코딩이다. 파산/신속채무조정/프리워크아웃은
 // expectedRepayment가 없거나(신속·프리는 null) 의미 없는 0값(파산)이라, 절차 자체의 일반적 특성
 // (감면 방식·상환기간 등)을 설명하는 교육용 문구를 대신 보여준다 — 개별 분석 결과에 따라 달라지는
 // 값이 아니라 절차 3종 고정 문구다(2026-08-08 샘플사이트 텍스트 그대로 옮김, 법무 검토 전 워딩).
-const BUCKET_SUMMARY: Partial<Record<RecommendedProcedure, BucketSummaryContent>> = {
+export const BUCKET_SUMMARY: Partial<Record<RecommendedProcedure, BucketSummaryContent>> = {
   bankruptcy: {
     rows: [
       { label: "변제 계획", value: "해당 없음" },
@@ -120,27 +121,27 @@ function CalendarIcon() {
   );
 }
 
-/** consultedAt(ISO) → Date. 파싱 실패 시 null */
-function parseConsultedAt(iso: string): Date | null {
+/** consultedAt(ISO) → Date. 파싱 실패 시 null. AnalysisPrintDocument도 재사용한다. */
+export function parseConsultedAt(iso: string): Date | null {
   const datePart = iso.split("T")[0];
   const [year, month, day] = datePart.split("-").map(Number);
   if (!year || !month) return null;
   return new Date(year, month - 1, day || 1);
 }
 
-function addMonths(date: Date, months: number): Date {
+export function addMonths(date: Date, months: number): Date {
   const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   result.setMonth(result.getMonth() + months);
   return result;
 }
 
-function formatYearMonth(date: Date): string {
+export function formatYearMonth(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${year}.${month}`;
 }
 
-function formatYearsLabel(months: number): string {
+export function formatYearsLabel(months: number): string {
   const years = months / 12;
   if (Number.isInteger(years)) return String(years);
   return (Math.round(years * 10) / 10).toLocaleString("ko-KR");

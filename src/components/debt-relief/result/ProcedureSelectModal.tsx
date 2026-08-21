@@ -12,6 +12,8 @@ type Props = {
   procedureScores: ProcedureScore[];
   defaultProcedure: RecommendedProcedure;
   submitting?: boolean;
+  /** 결제정보 저장 직후 흐름 전용 기본 문구 — 자체진행 등 다른 진입 경로는 맞는 문구를 넘겨야 한다. */
+  description?: string;
 };
 
 function CloseIcon() {
@@ -35,6 +37,7 @@ export default function ProcedureSelectModal({
   procedureScores,
   defaultProcedure,
   submitting = false,
+  description = "결제 정보 적용 후 진행할 절차를 선택해 주세요. 선택한 절차로 진행 단계가 시작됩니다.",
 }: Props) {
   const [selected, setSelected] = useState<RecommendedProcedure>(defaultProcedure);
 
@@ -71,7 +74,7 @@ export default function ProcedureSelectModal({
       <div className="px-7 pt-5 pb-2 flex flex-col gap-4">
         <div className="rounded-[12px] bg-[#F8F8F8] dark:bg-neutral-20 px-4 py-3">
           <p className="text-[13px] font-medium leading-4 text-ink dark:text-neutral-90">
-            결제 정보 적용 후 진행할 절차를 선택해 주세요. 선택한 절차로 진행 단계가 시작됩니다.
+            {description}
           </p>
         </div>
 

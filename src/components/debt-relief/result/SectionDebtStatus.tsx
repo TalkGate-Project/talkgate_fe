@@ -128,7 +128,7 @@ export default function SectionDebtStatus({
                 <span className="w-8 shrink-0 text-[14px] font-medium leading-[17px] text-neutral-60">
                   {item.percent}%
                 </span>
-                <span className="w-[68px] shrink-0 text-right text-[14px] font-medium leading-[17px] text-neutral-60">
+                <span className="min-w-[85px] shrink-0 whitespace-nowrap text-right text-[14px] font-medium leading-[17px] tabular-nums text-neutral-60">
                   {formatManwonComma(item.amountManwon)}
                 </span>
               </div>

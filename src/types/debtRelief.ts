@@ -2,6 +2,9 @@
 
 import type {
   AnalysisBusinessOperationStatus,
+  AnalysisAsset,
+  AnalysisAssetCategory,
+  AnalysisCollateralBreakdown,
   AnalysisDebtInputMode,
   AnalysisDebtItem,
   AnalysisDebtItemType,
@@ -53,13 +56,15 @@ export const DIAGNOSIS_PROCEDURE_STEP_UNLOCKED_STATUSES: readonly AnalysisStatus
 export function canEditDiagnosisInfo(params: {
   status: AnalysisStatus;
   isReceivedShare: boolean;
-  isAnalysisProject: boolean;
+  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
 }): boolean {
   if (params.isReceivedShare) return false;
-  const baseEditable = params.status === "consulting" || params.status === "rejected";
-  if (params.isAnalysisProject) return baseEditable;
-  // 변호사 자체 생성건(공유받지 않은 건) — 계약대기중도 허용
-  return baseEditable || params.status === "contract_pending";
+  if (params.deliveryStatus === "delivered") return false;
+  return (
+    params.status === "consulting" ||
+    params.status === "rejected" ||
+    params.status === "contract_pending"
+  );
 }
 
 // ── 추천 절차 ────────────────────────────────────────────────
@@ -408,21 +413,34 @@ export const DEBT_ITEM_TYPE_OPTIONS: PillOption<AnalysisDebtItemType>[] = [
 /** 상세모드 폼 행 상태. 금액(*Won)은 API와 동일하게 원 단위로 보관한다 */
 export type DebtItemFormState = AnalysisDebtItem;
 
+export type AssetItemFormState = AnalysisAsset;
+
+export const ASSET_CATEGORY_OPTIONS: PillOption<AnalysisAssetCategory>[] = [
+  { value: "house", label: "주택" },
+  { value: "land", label: "토지" },
+  { value: "jeonse_deposit", label: "전세보증금" },
+  { value: "vehicle", label: "자동차" },
+  { value: "financial_asset", label: "금융자산" },
+];
+
+export function createEmptyAssetItem(id: string): AssetItemFormState {
+  return { id, category: "house", marketValue: 0, description: "" };
+}
+
 export function createEmptyDebtItem(id: string): DebtItemFormState {
   return {
     id,
     debtType: "bank_loan",
-    isCollateralLoan: false,
     creditorName: "",
     repaymentMethod: "equal_principal_and_interest",
     overdueMonths: 0,
     loanDate: "",
     maturityDate: "",
-    principalWon: 0,
-    interestRate: 0,
-    termMonths: 0,
+    currentBalanceWon: 0,
+    interestRate: undefined,
+    remainingMonths: 0,
     monthlyPaymentWon: 0,
-    totalInterestWon: 0,
+    remainingInterestWon: 0,
     totalRepaymentWon: 0,
   };
 }
@@ -462,26 +480,6 @@ export const DEBT_CAUSE_OPTIONS: PillOption<DebtCause>[] = [
   { value: "guarantee_damage", label: DEBT_CAUSE_LABELS.guarantee_damage },
   { value: "other", label: DEBT_CAUSE_LABELS.other },
 ];
-
-// 2026-08-07 피드백: 간편모드의 채권자 수를 다시 상담사가 직접 고르는 구간 선택으로 되돌린다 —
-// 채무종류 배지 개수(최대 5개)를 그대로 쓰면 실제 채권사 수와 크게 어긋나는 경우가 많았기 때문.
-// API creditorCount는 여전히 number라 대표값으로 매핑해 보낸다(services/debtRelief.ts의
-// toAnalysisFormInput/creditorCountFromNumber 참고). 상세모드는 채무 항목 테이블 행 개수를
-// 그대로 쓰는 자동 계산을 유지 — 항목별로 실제 입력하니 배지 선택 대비 부정확할 이유가 없다.
-/** 채권자 수 구간(간편모드 전용) — API creditorCount(number)로 대표값 매핑 */
-export type CreditorCountRange = "1_2" | "3_5" | "6_10" | "over_10";
-export const CREDITOR_COUNT_OPTIONS: PillOption<CreditorCountRange>[] = [
-  { value: "1_2", label: "1~2곳" },
-  { value: "3_5", label: "3~5곳" },
-  { value: "6_10", label: "6~10곳" },
-  { value: "over_10", label: "10곳 이상" },
-];
-export const CREDITOR_COUNT_TO_NUMBER: Record<CreditorCountRange, number> = {
-  "1_2": 2,
-  "3_5": 4,
-  "6_10": 8,
-  over_10: 12,
-};
 
 // ── 4. 소득/지출 ─────────────────────────────────────────────
 // 2026-08-07 스펙: 구간 선택형(MonthlyIncomeRange) 폐지, 만원 단위 실수령액 직접 입력으로 변경.
@@ -561,6 +559,7 @@ export type DiagnosisFormState = {
   spouseIncome: boolean | null;
 
   // 2. 자산현황
+  assets: AssetItemFormState[];
   realEstateTypes: RealEstateType[]; // 중복 보유 가능
   /** "없음" 선택도 realEstateTypes=[]로 저장되어 미선택과 구분이 안 되므로, 필수 검증용으로
    * 사용자가 이 필드를 한 번이라도 명시적으로 조작했는지 별도로 추적한다. */
@@ -579,12 +578,11 @@ export type DiagnosisFormState = {
   debtTypes: DebtType[]; // 간편모드 전용
   debtAmounts: Partial<Record<DebtType, number>>; // 간편모드 전용. 만원, 선택된 종류만 (캐피탈·저축은행은 capital 키)
   debts: DebtItemFormState[]; // 상세모드 전용. 금액은 원 단위
+  /** 자산 현황에서 생성된 담보대출 행 ID. API에는 보내지 않는 화면 간 출처 추적 상태다. */
+  assetOriginDebtIds: string[];
   /** 연체 개월 수. 간편모드에서만 입력받고(필수), 상세모드는 서버가 debts에서 자동 계산한다.
    * null은 "미입력"이고 0은 "연체 없음"이라는 유효한 입력이다 — 숫자 falsy로 판정하면 안 된다 */
   overdueMonths: number | null;
-  /** 채권자 수 구간. 간편모드에서만 입력받고(필수) API 대표값(number)으로 매핑해 보낸다.
-   * 상세모드는 채무 항목 테이블 행 개수를 그대로 써서 이 값을 무시한다. */
-  creditorCount: CreditorCountRange | null;
   debtCauses: DebtCause[];
   hasTaxArrears: boolean; // 세금/4대보험 체납 여부
   // 2026-07-24 피드백 추가 항목. API collateralDebt/debtIncurredLast3Months/debtIncurredLast1Year에
@@ -636,6 +634,7 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     spouseIncome: null,
     isOperatingBusiness: false,
     realEstateTypes: [],
+    assets: [],
     realEstateStatusConfirmed: false,
     realEstateAmounts: {},
     financialAssetValue: null,
@@ -645,8 +644,8 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     debtTypes: [],
     debtAmounts: {},
     debts: [],
+    assetOriginDebtIds: [],
     overdueMonths: null,
-    creditorCount: null,
     debtCauses: [],
     hasTaxArrears: false,
     securedDebt: 0,
@@ -783,15 +782,17 @@ export type ProcedureStepHistoryItem = {
   changedAt: string;
 };
 
-/** 분석 상세 전달사항(messages) — 공유/반려/수락/수임료 액션 히스토리 */
+/** 분석 상세 전달사항(messages) — 공유/반려/수락/수임료 액션/절차 변경 히스토리 */
 export type DiagnosisMessageType =
   | "share"
   | "reject"
   | "accept"
+  | "self_proceed"
   | "fee_create"
   | "fee_update"
   | "fee_stop"
-  | "fee_refund";
+  | "fee_refund"
+  | "procedure_change";
 
 export type DiagnosisMessage = {
   type: DiagnosisMessageType;
@@ -848,6 +849,7 @@ export type DiagnosisDetail = {
   // 자격 게이트를 통과하지 못한 절차(예: 사업 미영위 시 새출발기금)는 키가 없다.
   conditionAnalysisByProcedure: Partial<Record<RecommendedProcedure, ConditionItem[]>>;
   debtStatus: DebtStatusSummary;
+  collateralBreakdown?: AnalysisCollateralBreakdown;
   // 개인회생 추적 시에만 노출되는 "개인회생과 개인워크아웃 비교" 문구 (없으면 null — 섹션 자체를 숨김)
   debtAdjustmentComparison: string | null;
   // 절차별 예상 변제 계획 — "절차별 성공 가능성"에서 선택된 절차 기준으로 SectionRepaymentPlan이

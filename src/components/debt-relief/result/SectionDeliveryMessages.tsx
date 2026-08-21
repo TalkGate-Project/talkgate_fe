@@ -4,17 +4,22 @@ import { useMemo, useState } from "react";
 import type { DiagnosisMessage, DiagnosisMessageType } from "@/types/debtRelief";
 import { formatDateTimeDisplay } from "@/components/debt-relief/format";
 
-const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
+// AnalysisPrintDocument(인쇄 전용 레이아웃)의 「전달 이력」도 이 라벨을 그대로 재사용한다.
+export const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
   share: "공유",
   reject: "반려",
   accept: "수락",
+  self_proceed: "자체 진행",
   fee_create: "결제",
   fee_update: "결제",
   fee_stop: "중단",
   fee_refund: "환불",
+  procedure_change: "절차 변경",
 };
 
 // 타임라인 점을 반려와 동일한 빨간색으로 표시하는 타입 — 반려/중단/환불은 모두 "안 좋은 소식" 성격.
+// procedure_change(절차 변경)는 진행 상황을 알리는 중립적 이벤트라 danger에 넣지 않는다 —
+// self_proceed/fee_create 등과 같은 취급(최신이면 파란점, 아니면 회색점)으로 충분하다.
 const DANGER_MESSAGE_TYPES: ReadonlySet<DiagnosisMessageType> = new Set([
   "reject",
   "fee_stop",

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCustomerMeta } from "@/components/debt-relief/format";
+import BaseModal from "@/components/common/BaseModal";
 import type { CustomerGender } from "@/types/debtRelief";
 import { formatPhoneInput } from "@/utils/format";
 
@@ -55,23 +56,19 @@ export default function AnalysisShareConfirmModal({
   const formattedContact = formatPhoneInput(contact);
   const displayName = customerName || "고객";
   const displayPartnerName = partnerName || "프로젝트";
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-[#000000CC] z-[60]"
-        onClick={() => !submitting && onClose()}
-        aria-hidden
-      />
-
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="analysis-share-confirm-title"
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden"
-        style={{ filter: "drop-shadow(0px 8px 12px rgba(9, 30, 66, 0.1))" }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <BaseModal
+      onClose={handleClose}
+      closeOnOverlayClick={!submitting}
+      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
+      ariaLabel="공유결과 확인"
+      disableAutoContainerSizing
+      containerClassName="w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+    >
         <div className="flex items-center justify-between px-7 pt-6 pb-[30px] shrink-0">
           <h2
             id="analysis-share-confirm-title"
@@ -81,7 +78,7 @@ export default function AnalysisShareConfirmModal({
           </h2>
           <button
             type="button"
-            onClick={() => !submitting && onClose()}
+            onClick={handleClose}
             aria-label="닫기"
             className="cursor-pointer w-6 h-6 grid place-items-center text-neutral-50 hover:opacity-70"
           >
@@ -170,7 +167,6 @@ export default function AnalysisShareConfirmModal({
             {submitting ? "공유 중..." : confirmLabel}
           </button>
         </div>
-      </div>
-    </>
+    </BaseModal>
   );
 }
