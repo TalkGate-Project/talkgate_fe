@@ -143,7 +143,11 @@ export default function AnalysisProgressBanner({
   const currentStep = resolveCurrentStep(status);
   const description: Record<AnalysisStatus, string> = {
     consulting: "분석 결과를 공유하여 검토를 요청하거나 자체 진행을 선택할 수 있어요.",
-    reviewing: "분석 내용을 확인하고 수락 또는 거절을 선택해 주세요.",
+    // 수락/거절 액션은 변호사(법무법인) 프로젝트에서만 가능(AnalysisReviewBanner). 영업점
+    // 쪽에는 자기가 할 수 없는 액션을 안내하지 않도록 검토 중이라는 사실만 전달한다.
+    reviewing: isLawyerProject
+      ? "분석 내용을 확인하고 수락 또는 거절을 선택해 주세요."
+      : "분석 내용을 법무법인에서 검토 중입니다.",
     rejected: isLawyerProject
       ? "반려되었습니다."
       : "진행이 반려된 고객입니다. 반려 사유를 확인하고 내용을 보완해주세요.",
