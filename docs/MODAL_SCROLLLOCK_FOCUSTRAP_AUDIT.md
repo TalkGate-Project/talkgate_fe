@@ -300,3 +300,100 @@ Escape에도 안 닫힘, z-index(150/280 실측 확인) 모두 정상.
 + `containerClassName`으로 기존 카드 폭(`w-[440px]` 등)을 유지하면서 스크롤락/포커스트랩/portal만
 얻는 방식이 가장 적은 변경으로 끝날 가능성이 높다. 실제 이관은 이 문서 검토 후 우선순위 1부터
 별도로 착수.
+
+## 6. 브라우저 검증 결과 (2026-08-21)
+
+우선순위 1(전역 4개)은 2026-08-20에 이미 브라우저 검증 완료. 이번 세션은 우선순위 2~5(39개 파일)
+중 트리거 가능한 항목을 Claude in Chrome으로 실사용 검증(데스크톱 1424px 기준). `삼성화재 보험상담`
+프로젝트(dev, 데이터 다수 보유)와 `/test` 컴포넌트 테스트 페이지를 활용.
+
+**검증 방법 caveat**: 스크롤락은 `overflow:hidden` 적용 여부를 JS로 확인하는 방식과 자동화 휠스크롤
+방식 둘 다 시도했으나, 이미 검증 완료된 `ConfirmModal`(우선순위1)에서도 자동화 휠스크롤 시
+`window.scrollY`가 0→81로 이동하는 현상이 재현됨 — `overflow:hidden`은 정상 적용돼 있었음에도
+발생했다. 즉 Claude in Chrome의 합성 휠 이벤트가 실제 사용자 트랙패드/마우스 입력과 다르게
+`overflow:hidden`을 부분적으로 우회하는 것으로 보이는 테스트 환경 아티팩트다. 이번 검증은 이 신호를
+신뢰하지 않고 **시각적 중앙정렬/레이아웃/열기·닫기 동작 확인 위주**로 진행했다.
+
+### 검증 완료 · 이상 없음
+
+**우선순위3 (9/9 전체)**: `FilterModal`(고객목록), `CustomerExcelUploadModal`, `CustomerShareModal`
+(파트너배정 버튼으로 트리거), `InviteMemberModal`, `DeleteMemberModal`, `CustomerLinkCreateModal`,
+`CustomerLinkExistingModal`, `CustomerLinkModeModal`, `ChatFilterModal` — 전부 데스크톱 중앙정렬
+정상, 열기/닫기 정상.
+
+**우선순위4 (14/20)**: `SelfAuthenticationModal`, `PartnerRegisterModal`, `SmsHistoryFilterModal`,
+`ApiKeyCreateModal`, `ApiKeyLinkModal`, `TeamMemberInfoModal`, `ChangePasswordModal`,
+`ChangePaymentMethodModal`, `TwoFactorSetupModal`, `CreateProjectModal`, `SubscribeProjectModal`
+(`/test` 페이지로 트리거), `SubscribeProjectExpiredModal`(실제 만료 프로젝트 클릭 + `/test` 페이지
+둘 다), `ProjectPrivacyConsentModal`(`/test` 페이지 — Escape로 안 닫히는 의도된 동작도 재확인) —
+전부 정상. `CommonSenderNumberModal`/`LineIntegrationModal`/`TelegramIntegrationModal`은 이전
+세션에 커밋 8b36da5로 이미 수정+확인됨(재검증 생략).
+
+**우선순위5 (5/6)**: `StatsFilterModal`, `MemberStatsFilterModal`, `AttendanceFilterModal`,
+`PartnerRequestModal`(`/test` 페이지), `FailureDetailModal`(일괄 등록 이력의 실패 건수 링크) —
+전부 정상.
+
+**우선순위2 (7/7 전체, 2026-08-21 추가 검증)**: 사용자가 채무조정 유형+구독중 테스트 프로젝트
+`test01`을 세팅해준 뒤 재검증. `DiagnosisCustomerInfoModal`(`...` 메뉴 → 고객정보),
+`AnalysisProgressChoiceModal`("진행하기" 버튼, `상담중` 상태 진단에서 트리거), `CustomerMatchModal`
+("고객 연결" → "기존 고객과 연동"), `DebtApplyChoiceModal`(채무 상세 "상세" 탭에서 값 수정 후
+"적용하기"), `FeePlanActionConfirmModal`(결제정보 → "중단"), `AnalysisShareModal`/
+`AnalysisShareConfirmModal`(목록에서 공유 아이콘 → 파트너 선택 → 연락처 입력 → 확인) 전부
+데스크톱 중앙정렬 정상, 배경클릭/의도된 non-closable 동작도 이관 메모와 일치. 단, 아래 1순위
+이슈를 새로 발견함.
+
+### 새로 발견한 이슈
+
+**[1순위 — UI크리티컬, 전역] 중첩된 BaseModal에서 Escape 1회 입력 시 스택 전체가 동시에 닫힘.**
+`FeePaymentInfoModal`(부모) 위에 `FeePlanActionConfirmModal`(자식, "중단 처리")을 띄운 뒤 Escape를
+한 번만 누르면 자식뿐 아니라 부모까지 동시에 닫히며 기본 페이지로 돌아간다(재현 100%, 2회 반복
+확인). `DiagnosisCustomerInfoModal` → `DebtDetailModal` → `DebtApplyChoiceModal`로 3단 중첩시켜도
+동일하게 Escape 1회로 3개 전부 닫혔고, 이 케이스에서는 방금 입력한 "현재 잔액" 수정값이 아무
+경고 없이 그대로 유실됐다(저장 여부를 묻는 `AnalysisShareModal` 쪽의 "공유 취소" 가드와 대비됨 —
+아래 참고). 원인 추정: 각 `BaseModal` 인스턴스가 독립적으로 `document`에 Escape `keydown` 리스너를
+등록하고 있어, 모달 스택 순서와 무관하게 마운트된 모든 인스턴스가 같은 키 입력에 동시 반응하는
+것으로 보임(코드 확인은 하지 않았음 — 발견·기록까지만 이번 범위). 재현 경로: 분석 상세 →
+결제정보 → 중단, 또는 진단 상세 → 채무 상세(상세 탭) → 값 수정 → 적용하기, 둘 다에서 Escape
+1회로 재현.
+- **참고— 가드가 있는 경우는 다르게 동작함**: `AnalysisShareModal`(입력값 있는 상태) 위에
+  `AnalysisShareConfirmModal`을 띄우고 Escape를 누르면, 확인 모달은 조용히 사라지지만
+  `AnalysisShareModal` 쪽은 "공유 취소 — 입력한 정보가 저장되지 않습니다. 정말로 닫으시겠습니까?"
+  경고를 새로 띄운다(전체가 닫히지는 않음). 즉 두 모달의 Escape 핸들러가 같은 키 입력에 동시
+  반응하는 것 자체는 동일하지만, 상위 모달에 dirty-check 가드가 있으면 그 가드가 개입해 사용자가
+  체감하는 피해가 줄어든다 — 가드가 없는 조합(`FeePaymentInfoModal`+`FeePlanActionConfirmModal`,
+  `DiagnosisCustomerInfoModal`+`DebtDetailModal`+`DebtApplyChoiceModal`)에서는 아무 경고 없이
+  전부 닫히고 미저장 입력이 유실된다.
+- 이미 검증 완료로 기록된 다른 중첩 조합(우선순위 1~4의 nested 케이스들)은 이번에 Escape
+  스태킹까지 재확인하지 않았음 — 이 버그가 이 두 조합에 국한된 것인지, `BaseModal`을 쓰는 모든
+  중첩 조합에 해당하는 공통 결함인지는 추가 확인 필요.
+
+### 3순위(미미함) — dead code, 삭제 완료
+
+- `InstagramIntegrationModal.tsx` — 정의부 외 어디서도 import되지 않음(실제 Instagram 연동은
+  `ConsultationChannelSettings.tsx`의 별도 OAuth 팝업 로직 사용, 이 모달은 화면에 뜰 경로가 없었음).
+- `ApiKeyRegenerateModal.tsx` — 마찬가지로 import 0건, 어디서도 렌더링되지 않음.
+
+2026-08-21 사용자 확인 후 두 파일 모두 삭제(`git rm`), `npx tsc --noEmit` 통과 확인.
+
+### 트리거 불가 / 미검증 (사유별 기록)
+
+- **`TeamMoveConfirmModal`**: 팀 조직도에서 드래그앤드롭으로 멤버를 다른 팀으로 옮길 때만 트리거됨
+  — 브라우저 자동화로 드래그앤드롭 재현이 번거로워 생략.
+  `containerClassName`/`positionerClassName` 코드는 다른 확인 모달들과 동일 패턴이라 위험도는
+  낮게 판단.
+  - **`TwoFactorDisableModal`**: 2FA가 이미 활성화된 계정에서만 트리거 가능. 이번 테스트 계정은
+  2FA 미설정 상태라 재현 안 됨.
+- **`WrongAccountModal`**: 초대 링크로 접속했는데 로그인된 계정이 초대 대상과 다를 때만 트리거.
+  실제 초대 링크+계정 불일치 시나리오를 구성하지 못해 생략.
+
+### 결론
+
+39개 대상 중 35개 실사용 검증 완료(우선순위2 전체 7개 포함, 우선순위3 전체, 우선순위4 14/20,
+우선순위5 5/6), 2개는 dead code로 확인돼 삭제, 3개(`TeamMoveConfirmModal`/`TwoFactorDisableModal`/
+`WrongAccountModal`)만 특수 트리거 조건으로 미검증 상태로 남음. **새로운 중앙정렬/레이아웃 회귀는
+없었다**(이전에 발견·수정된 3개 settings 모달 제외)는 점에서는 이관 자체는 안전했다고 볼 수 있으나,
+2026-08-21 우선순위2 검증에서 **중첩 모달 Escape 스태킹 결함(1순위)**을 새로 발견했다 — 이건
+개별 파일의 정렬/스타일 문제가 아니라 `BaseModal`의 Escape 처리 아키텍처 자체에 걸린 문제라
+이관된 46개 중 중첩 조합이 가능한 파일 전체에 영향을 줄 수 있다. 다음 단계로는 이 스태킹 결함의
+원인을 코드에서 확인하고(각 `BaseModal` 인스턴스의 Escape 리스너에 "최상위 모달만 반응" 가드를
+추가하는 방향으로 예상) 수정하는 작업을 권장.
