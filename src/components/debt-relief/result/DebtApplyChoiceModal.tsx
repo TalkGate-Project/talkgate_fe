@@ -6,6 +6,8 @@ type Props = {
   open: boolean;
   /** null이면 대기, 'save'/'reanalyze'면 해당 경로 진행 중 */
   submittingAction?: "save" | "reanalyze" | null;
+  /** false면 진행 단계상 재분석이 막힌 건 — "다시 분석" 버튼만 비활성화하고 값만 저장은 그대로 둔다 */
+  canReanalyze?: boolean;
   onClose: () => void;
   /** 값만 저장 — reanalyze: false */
   onSaveOnly: () => void;
@@ -35,6 +37,7 @@ function CloseIcon() {
 export default function DebtApplyChoiceModal({
   open,
   submittingAction = null,
+  canReanalyze = true,
   onClose,
   onSaveOnly,
   onReanalyze,
@@ -101,7 +104,8 @@ export default function DebtApplyChoiceModal({
           <button
             type="button"
             onClick={onReanalyze}
-            disabled={submitting}
+            disabled={submitting || !canReanalyze}
+            title={!canReanalyze ? "현재 진행 단계에서는 다시 분석할 수 없습니다." : undefined}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold tracking-[-0.02em] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submittingAction === "reanalyze" ? "분석 중..." : "다시 분석"}

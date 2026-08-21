@@ -88,7 +88,8 @@
   --color-surface-10: var(--neutral-10);
   --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
   --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
-  
+  --procedure-tip-note-background: rgb(var(--color-green-100-rgb) / 0.5);
+
   /* Customer link modal gradients (default to light mode) */
   --customer-link-create-gradient: linear-gradient(74.9deg, #E7F8F2 0%, #F4F6F5 102.03%);
   --customer-link-existing-gradient: linear-gradient(74.9deg, #E7F0F8 0%, #F4F6F5 102.03%);
@@ -127,7 +128,8 @@
   --color-surface-10: var(--neutral-light-10);
   --procedure-warning-note-background: rgb(var(--color-amber-100-rgb) / 0.5);
   --procedure-info-note-background: rgb(var(--color-blue-100-rgb) / 0.5);
-  
+  --procedure-tip-note-background: rgb(var(--color-green-100-rgb) / 0.5);
+
   /* Notification unread background (light mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.3);
   --notification-unread-border: var(--primary-60);
@@ -170,7 +172,8 @@
   --color-surface-10: var(--neutral-dark-20);
   --procedure-warning-note-background: rgb(77 41 0 / 0.3);
   --procedure-info-note-background: rgb(0 41 135 / 0.3);
-  
+  --procedure-tip-note-background: rgb(0 72 36 / 0.3);
+
   /* Notification unread background (dark mode) */
   --notification-unread-bg: rgba(214, 250, 232, 0.1);
   --notification-unread-border: var(--primary-40);
@@ -454,6 +457,7 @@ body {
 @utility surface-muted { background-color: var(--color-surface-10); }
 @utility bg-procedure-warning-note { background-color: var(--procedure-warning-note-background); }
 @utility bg-procedure-info-note { background-color: var(--procedure-info-note-background); }
+@utility bg-procedure-tip-note { background-color: var(--procedure-tip-note-background); }
 @utility rounded-card { border-radius: var(--radius-card); }
 
 /* Neutral scale utilities */

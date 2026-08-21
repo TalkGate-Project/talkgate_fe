@@ -18,6 +18,7 @@ import {
   wonToManwon,
 } from "@/services/debtRelief";
 import {
+  canEditDiagnosisDebtFields,
   canEditDiagnosisInfo,
   createEmptyDiagnosisForm,
   type DiagnosisDetail,
@@ -83,7 +84,14 @@ export default function DebtDetailModal({
   // 이 모달 트리 전체를 리렌더하지 않게 한다(AnalysisLoadingOverlayHost 주석 참고).
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
 
-  const canEdit =
+  // 값 저장(적용하기)은 소유권만 있으면 단계와 무관하게 항상 가능. "다시 분석"만 단계 제한을 받는다.
+  const canEditFields =
+    projectTypeReady &&
+    canEditDiagnosisDebtFields({
+      isReceivedShare: detail.isReceivedShare,
+      deliveryStatus: detail.deliveryStatus,
+    });
+  const canReanalyze =
     projectTypeReady &&
     canEditDiagnosisInfo({
       status: detail.status,
@@ -117,7 +125,7 @@ export default function DebtDetailModal({
   };
 
   const handleApplyClick = () => {
-    if (!canEdit || submitting) return;
+    if (!canEditFields || submitting) return;
 
     const missing = [...getMissingDebtFieldLabels(form), ...getMissingDebtItemFieldLabels(form)];
     if (missing.length > 0) {
@@ -212,7 +220,7 @@ export default function DebtDetailModal({
             form={form}
             update={update}
             totalDebtManwon={totalDebtManwon}
-            disabled={!canEdit || submitting}
+            disabled={!canEditFields || submitting}
             areaBackgroundClassName="bg-neutral-10 dark:bg-neutral-0"
             showDebtItemFieldErrors={showDebtItemFieldErrors}
           />
@@ -227,7 +235,7 @@ export default function DebtDetailModal({
           >
             닫기
           </button>
-          {canEdit && (
+          {canEditFields && (
             <button
               type="button"
               onClick={handleApplyClick}
@@ -243,6 +251,7 @@ export default function DebtDetailModal({
       <DebtApplyChoiceModal
         open={choiceOpen}
         submittingAction={submittingAction}
+        canReanalyze={canReanalyze}
         onClose={() => !submitting && setChoiceOpen(false)}
         onSaveOnly={() => submitDebts(false)}
         onReanalyze={() => submitDebts(true)}

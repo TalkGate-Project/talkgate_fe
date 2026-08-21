@@ -48,7 +48,7 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
       <div className="relative px-6 pb-4 pt-6 md:flex md:min-h-[74px] md:items-center md:px-7 md:py-0 md:pr-16">
         <h2 className="shrink-0 text-[16px] font-semibold leading-[19px] text-foreground md:text-[18px] md:leading-[21px]">채무 현황 선택</h2>
         <span className="mx-4 hidden h-4 w-px shrink-0 bg-neutral-60 md:block" aria-hidden />
-        <p className="mt-2 pr-8 text-[13px] font-medium leading-5 text-neutral-60 md:mt-0 md:min-w-0 md:flex-1 md:truncate md:pr-0 md:text-[18px]">체크를 해제하면 채무내역은 남아있지만 분석 대상에서 제외됩니다.</p>
+        <p className="mt-2 pr-8 text-[13px] font-medium leading-5 text-neutral-60 md:mt-0 md:min-w-0 md:flex-1 md:truncate md:pr-0 md:text-[16px]">체크를 해제하면 채무내역은 남아있지만 분석 대상에서 제외됩니다.</p>
         <button type="button" onClick={onClose} aria-label="닫기" className="absolute right-6 top-6 grid h-6 w-6 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70 md:right-7 md:top-1/2 md:-translate-y-1/2"><CloseIcon /></button>
       </div>
 
