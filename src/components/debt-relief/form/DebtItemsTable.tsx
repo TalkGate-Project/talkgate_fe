@@ -323,7 +323,10 @@ export default function DebtItemsTable({
               return <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
                 <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
                 <td className={`${BODY_CELL} px-3 text-[14px] font-medium text-neutral-90/80`}>
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                  {/* 높이 없는 inline-flex는 td의 vertical-align:middle과 어긋나 위로 쏠려 보였다
+                      (img가 섞인 atomic inline box라 베이스라인 기준 정렬됨) — 상세모드의 잠긴 행
+                      배지처럼 h-[34px]로 고정해 다른 셀과 같은 기준으로 중앙정렬되게 함. */}
+                  <span className="flex h-[34px] items-center gap-2 whitespace-nowrap">
                     {locked && collateralAsset && <AssetIcon category={collateralAsset.category} />}
                     {debt.collateralAssetId ? "담보" : "무담보"}
                   </span>
