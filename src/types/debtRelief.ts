@@ -431,6 +431,7 @@ export function createEmptyDebtItem(id: string): DebtItemFormState {
   return {
     id,
     debtType: "bank_loan",
+    isCollateralLoan: false,
     creditorName: "",
     repaymentMethod: "equal_principal_and_interest",
     overdueMonths: 0,
