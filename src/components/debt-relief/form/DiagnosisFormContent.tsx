@@ -500,11 +500,17 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     }
 
     if (!Number.isFinite(derived.totalDebtManwon) || derived.totalDebtManwon <= 0) {
+      // 현재 잔액은 원 단위로 입력받지만 총 채무는 만원 단위로 반올림(wonToManwon)해서 계산한다
+      // — 5,000원 미만만 입력한 경우 totalDebtManwon이 0이 돼 이 분기에 걸리는데, 사용자는
+      // 분명히 금액을 입력했으므로 "채무를 아예 안 입력함"과는 다른 원인을 알려줘야 한다.
+      const hasNonZeroDebtInput = form.debts.some((debt) => (debt.currentBalanceWon || 0) > 0);
       showErrorModal({
         type: "info",
         title: "알림",
-        headline: "채무 현황을 파악해주세요.",
-        description: "분석을 진행하려면 채무 종류와 금액을 입력해주세요.",
+        headline: hasNonZeroDebtInput ? "채무 금액이 너무 작습니다." : "채무 현황을 파악해주세요.",
+        description: hasNonZeroDebtInput
+          ? "채무 금액은 만원 단위로 반올림되어 계산됩니다. 5,000원 미만의 금액은 0만원으로 처리되니 정확한 금액을 다시 입력해주세요."
+          : "분석을 진행하려면 채무 종류와 금액을 입력해주세요.",
         confirmText: "채무 현황 입력",
         hideCancel: true,
         onConfirm: () => goToStep(2),
