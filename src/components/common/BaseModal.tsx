@@ -28,6 +28,18 @@ const getCounter = () => {
   return window.__tgModalCounter as { value: number };
 };
 
+// 중첩된 BaseModal 각각이 독립적으로 window keydown을 구독하면 Escape/Tab 한 번에 스택 전체가
+// 반응한다(모두 같은 window에 붙어있어 이벤트가 버블링을 거치지 않고 전부에게 전달됨) — 마운트
+// 순서를 스택으로 추적해 최상단(가장 나중에 열린) 모달만 반응하도록 제한한다.
+let modalIdSeq = 0;
+const getModalStack = () => {
+  if (typeof window === "undefined") return { ids: [] } as { ids: string[] };
+  // @ts-expect-error - Attaching modal stack to window object for global state
+  window.__tgModalStack = window.__tgModalStack || { ids: [] };
+  // @ts-expect-error - Accessing modal stack from window object
+  return window.__tgModalStack as { ids: string[] };
+};
+
 function lockBodyScroll() {
   const counter = getCounter();
   counter.value += 1;
@@ -61,12 +73,22 @@ export default function BaseModal({
   disableScrollLock = false,
 }: BaseModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const modalIdRef = useRef<string>("");
+  if (!modalIdRef.current) {
+    modalIdRef.current = `modal-${++modalIdSeq}`;
+  }
 
   useEffect(() => {
     if (!disableScrollLock) {
       lockBodyScroll();
     }
+    const stack = getModalStack();
+    stack.ids.push(modalIdRef.current);
+
+    const isTopmost = () => stack.ids[stack.ids.length - 1] === modalIdRef.current;
+
     const handleKey = (e: KeyboardEvent) => {
+      if (!isTopmost()) return;
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
         // very small focus trap
@@ -95,6 +117,8 @@ export default function BaseModal({
     window.addEventListener("keydown", handleKey);
     return () => {
       window.removeEventListener("keydown", handleKey);
+      const idx = stack.ids.lastIndexOf(modalIdRef.current);
+      if (idx !== -1) stack.ids.splice(idx, 1);
       if (!disableScrollLock) {
         unlockBodyScroll();
       }

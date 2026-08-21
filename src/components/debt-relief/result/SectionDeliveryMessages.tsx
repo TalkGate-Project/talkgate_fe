@@ -14,9 +14,12 @@ export const TYPE_LABEL: Record<DiagnosisMessageType, string> = {
   fee_update: "결제",
   fee_stop: "중단",
   fee_refund: "환불",
+  procedure_change: "절차 변경",
 };
 
 // 타임라인 점을 반려와 동일한 빨간색으로 표시하는 타입 — 반려/중단/환불은 모두 "안 좋은 소식" 성격.
+// procedure_change(절차 변경)는 진행 상황을 알리는 중립적 이벤트라 danger에 넣지 않는다 —
+// self_proceed/fee_create 등과 같은 취급(최신이면 파란점, 아니면 회색점)으로 충분하다.
 const DANGER_MESSAGE_TYPES: ReadonlySet<DiagnosisMessageType> = new Set([
   "reject",
   "fee_stop",

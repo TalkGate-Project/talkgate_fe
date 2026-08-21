@@ -25,6 +25,7 @@ import { notificationSocket } from "./notificationSocket";
 import { resetAuthSession, setLoggingOut } from "./authSession";
 import type { QueryClient } from "@tanstack/react-query";
 import { resolveLogoutRedirect } from "./postAuthRedirect";
+import { clearAllAnalysisDrafts } from "./analysisDraft";
 
 export interface LogoutOptions {
   redirectUrl?: string;
@@ -103,6 +104,12 @@ export function performLogout(options: LogoutOptions = {}): void {
     clearProjectType();
   } catch {
     // 프로젝트 타입 설정 삭제 실패 시 무시
+  }
+
+  try {
+    clearAllAnalysisDrafts();
+  } catch {
+    // 민감한 분석 초안 정리 실패가 로그아웃 자체를 막지 않게 한다.
   }
 
   // 3. React Query 캐시 정리 (제공된 경우)

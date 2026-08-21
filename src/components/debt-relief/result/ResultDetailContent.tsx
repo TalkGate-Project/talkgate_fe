@@ -22,6 +22,7 @@ import AnalysisProgressBanner from "./AnalysisProgressBanner";
 import AnalysisProgressChoiceModal from "./AnalysisProgressChoiceModal";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
+import ProcedureSelectModal from "./ProcedureSelectModal";
 import ResultHeader from "./ResultHeader";
 import SectionCard from "./SectionCard";
 import SectionAiRecommendation from "./SectionAiRecommendation";
@@ -59,6 +60,10 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
   const [progressShareOpen, setProgressShareOpen] = useState(false);
   const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
+  // 자체진행 선택 직후 띄우는 절차 선택 모달 — FeePaymentInfoModal/AnalysisReviewBanner의
+  // 수락 흐름과 동일한 패턴이지만 결제정보가 아직 없는 시점(consulting/rejected)에서 트리거된다.
+  const [selfProceedProcedureOpen, setSelfProceedProcedureOpen] = useState(false);
+  const [selfProceedProcedureSubmitting, setSelfProceedProcedureSubmitting] = useState(false);
   const [guideTitleArrivalKey, setGuideTitleArrivalKey] = useState(0);
   // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
   // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
@@ -199,13 +204,26 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     detail.status === "reviewing" &&
     detail.deliveryStatus === "delivered";
 
+  // AnalysisReviewBanner의 수락 흐름과 동일한 파생값 — 추천 점수가 없으면(procedureScores 없음)
+  // 절차 선택 모달 자체를 건너뛴다.
+  const defaultProcedure =
+    detail.procedureScores.find((score) => score.recommended)?.procedure ??
+    detail.procedureScores[0]?.procedure;
+
   const handleSelfProceed = async () => {
     if (!projectId || statusSubmitting) return;
     setStatusSubmitting(true);
     try {
       await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId);
       setProgressChoiceOpen(false);
-      refetch();
+      // 자체진행을 선택한 직후 바로 추적할 절차를 고르게 한다 — "진행방법 선택"에서
+      // 자체진행을 고르면 절차 선택까지 이어지는 게 원래 의도한 플로우. refetch는 절차 선택
+      // 모달이 열려있는 동안은 미루고, 모달이 닫힐 때(선택 완료/취소) 호출한다.
+      if (defaultProcedure) {
+        setSelfProceedProcedureOpen(true);
+      } else {
+        refetch();
+      }
     } catch (error) {
       console.error("Failed to self-progress analysis:", error);
       showErrorModal({
@@ -214,6 +232,32 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       });
     } finally {
       setStatusSubmitting(false);
+    }
+  };
+
+  const closeSelfProceedProcedureSelect = () => {
+    if (selfProceedProcedureSubmitting) return;
+    setSelfProceedProcedureOpen(false);
+    refetch();
+  };
+
+  const handleConfirmSelfProceedProcedure = async (procedure: RecommendedProcedure) => {
+    if (!projectId) return;
+    setSelfProceedProcedureSubmitting(true);
+    try {
+      await DebtReliefService.updateProcedureProgress(projectId, diagnosisId, {
+        trackingProcedure: procedure,
+      });
+      setSelfProceedProcedureOpen(false);
+      refetch();
+    } catch (error) {
+      console.error("Failed to set tracking procedure after self-proceed:", error);
+      showErrorModal({
+        headline: "진행 절차를 설정하지 못했습니다.",
+        description: "잠시 후 다시 시도해주세요.",
+      });
+    } finally {
+      setSelfProceedProcedureSubmitting(false);
     }
   };
 
@@ -437,6 +481,17 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         }}
         submitting={statusSubmitting}
       />
+      {defaultProcedure ? (
+        <ProcedureSelectModal
+          open={selfProceedProcedureOpen}
+          onClose={closeSelfProceedProcedureSelect}
+          onConfirm={handleConfirmSelfProceedProcedure}
+          procedureScores={detail.procedureScores}
+          defaultProcedure={defaultProcedure}
+          submitting={selfProceedProcedureSubmitting}
+          description="자체진행할 절차를 선택해 주세요. 선택한 절차로 진행 단계가 시작됩니다."
+        />
+      ) : null}
       {projectId ? (
         <>
           <AnalysisShareModal

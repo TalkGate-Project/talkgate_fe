@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { AnalysisService } from "@/services/analysis";
-import { CustomersService } from "@/services/customers";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import BaseModal from "@/components/common/BaseModal";
@@ -61,7 +60,12 @@ function SearchIcon() {
 }
 
 function getTeamName(customer: ConnectableCustomer): string {
-  return customer.assignedTeamName || customer.assignedMember?.team?.name || "-";
+  return (
+    customer.assignedTeamName ||
+    customer.assignedMember?.teamName ||
+    customer.assignedMember?.team?.name ||
+    "-"
+  );
 }
 
 function getAssigneeName(customer: ConnectableCustomer): string {
@@ -101,21 +105,14 @@ export default function CustomerMatchModal({
     let cancelled = false;
     setLoading(true);
 
-    const request = analysisId
-      ? AnalysisService.connectableCustomers(Number(analysisId), projectId, {
-          search: debouncedKeyword.trim() || undefined,
-          page,
-          limit: PAGE_LIMIT,
-        }).then((response) => response.data.data)
-      : CustomersService.list({
-          projectId,
-          keyword: debouncedKeyword.trim() || undefined,
-          page,
-          limit: PAGE_LIMIT,
-        }).then((response) => ({
-          customers: response.data.data.customers,
-          total: response.data.data.total,
-        }));
+    // analysisId가 있으면(상세/수정) 해당 분석 담당자 기준, 없으면(신규 작성 중) 요청 멤버 기준으로
+    // 서버가 알아서 매칭 가능 고객을 골라준다 — 신규/상세 화면 모두 같은 엔드포인트를 쓴다.
+    const request = AnalysisService.connectableCustomersV2(projectId, {
+      analysisId: analysisId ? Number(analysisId) : undefined,
+      search: debouncedKeyword.trim() || undefined,
+      page,
+      limit: PAGE_LIMIT,
+    }).then((response) => response.data.data);
 
     request
       .then((response) => {

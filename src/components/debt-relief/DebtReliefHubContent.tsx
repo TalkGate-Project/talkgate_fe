@@ -243,8 +243,10 @@ export default function DebtReliefHubContent() {
         </button>
       </div>
 
-      {/* 하단 카드: 검색 + 테이블 + 페이지네이션. 탭이 좌상단에 맞닿으므로 top-left만 각지게 둔다. */}
-      <section className="surface md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+      {/* 하단 카드: 검색 + 테이블 + 페이지네이션. 탭이 좌상단에 맞닿으므로 top-left만 각지게 둔다.
+          shadow가 box 경계 위로도 번져서 탭 바로 아래에 그림자 띠가 겹쳐 보이던 문제 —
+          clip-path로 상단 바깥쪽(그림자 번짐 영역)만 잘라내 탭과 카드가 이어붙은 것처럼 보이게 함. */}
+      <section className="surface md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none [clip-path:inset(0_-100px_-100px_-100px)]">
         {/* 모바일: 상단 요약 카드와 탭 사이 구분선 — 컨테이너 좌우 패딩(px-4) 무시하고 풀폭으로 확장.
             위: 이전 섹션의 pb-3(12px)+이 섹션의 pt-6(24px)=36px, 아래: mb-6(24px)+탭 래퍼 없음 →
             카드 하단~탭 상단 전체 48px 간격의 정중앙(24px/24px)에 오도록 -mt-3로 12px 끌어올림 */}

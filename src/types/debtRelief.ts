@@ -782,7 +782,7 @@ export type ProcedureStepHistoryItem = {
   changedAt: string;
 };
 
-/** 분석 상세 전달사항(messages) — 공유/반려/수락/수임료 액션 히스토리 */
+/** 분석 상세 전달사항(messages) — 공유/반려/수락/수임료 액션/절차 변경 히스토리 */
 export type DiagnosisMessageType =
   | "share"
   | "reject"
@@ -791,7 +791,8 @@ export type DiagnosisMessageType =
   | "fee_create"
   | "fee_update"
   | "fee_stop"
-  | "fee_refund";
+  | "fee_refund"
+  | "procedure_change";
 
 export type DiagnosisMessage = {
   type: DiagnosisMessageType;

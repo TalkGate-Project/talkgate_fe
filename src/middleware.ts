@@ -4,6 +4,7 @@ import { setProjectIdCookie, setAttendanceMenuCookie, setProjectTypeCookie, dele
 import type { Project } from "@/types/projects";
 import type { ApiSuccess } from "@/types/common";
 import { logger } from "@/lib/logger";
+import { isMobileDeviceUserAgent } from "@/lib/device";
 
 // 보호가 필요한 경로에만 미들웨어를 적용
 const MAIN_DOMAINS = ["talkgate.im", "localhost", "127.0.0.1"];
@@ -165,32 +166,6 @@ function matchesPath(pathname: string, paths: string[]): boolean {
   return paths.some(p => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/**
- * User-Agent를 분석하여 모바일 기기인지 확인합니다.
- */
-function isMobileDevice(userAgent: string | null): boolean {
-  if (!userAgent) return false;
-  
-  // 일반적인 모바일 기기 패턴
-  const mobilePatterns = [
-    /Android/i,
-    /webOS/i,
-    /iPhone/i,
-    /iPad/i,
-    /iPod/i,
-    /BlackBerry/i,
-    /Windows Phone/i,
-    /Opera Mini/i,
-    /IEMobile/i,
-    /Mobile/i,
-    /mobile/i,
-    /Tablet/i,
-    /SamsungBrowser/i,  // 삼성 인터넷 브라우저 (데스크톱 모드에서도 감지)
-  ];
-  
-  return mobilePatterns.some(pattern => pattern.test(userAgent));
-}
-
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host") || "";
@@ -205,7 +180,7 @@ export async function middleware(req: NextRequest) {
   let uiZoomMode = "normal";
   
   // 1. 모바일 기기는 무조건 normal (1.0) - 서버사이드에서 User-Agent로 감지
-  const isMobile = isMobileDevice(userAgent);
+  const isMobile = isMobileDeviceUserAgent(userAgent);
   if (isMobile) {
     uiZoomMode = "normal";
   }

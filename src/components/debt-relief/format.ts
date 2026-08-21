@@ -33,14 +33,14 @@ export function formatConsultedDate(iso: string): string {
   return `${parts[1]}/${parts[2]}`;
 }
 
-// "YYYY-MM-DDTHH:mm" → "YYYY.MM.DD HH:mm"
+// API가 내려주는 UTC ISO 문자열(예: "2026-08-21T03:08:00.000Z")을 로컬(브라우저) 타임존
+// 기준으로 "YYYY.MM.DD HH:mm"로 표시한다. 예전엔 문자열을 그대로 잘라 썼는데, 그러면 UTC
+// 시각이 그대로 노출돼 KST(UTC+9)보다 9시간 늦게 보였다(예: 실제 12:08 KST가 03:08로 표시).
 export function formatDateTimeDisplay(iso: string): string {
-  const [datePart, timePart = ""] = iso.split("T");
-  const dateParts = datePart.split("-");
-  if (dateParts.length !== 3) return iso;
-  const time = timePart.slice(0, 5); // HH:mm
-  const date = `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}`;
-  return time ? `${date} ${time}` : date;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 // 만원 → "3억 1천만원" 형태가 아닌 콤마 표기 "31,000만원"

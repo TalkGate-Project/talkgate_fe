@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
@@ -9,6 +8,7 @@ import { SelectField } from "@/components/customers/detail/SelectField";
 import { useHorizontalDragScroll } from "@/hooks/useHorizontalDragScroll";
 import { calculateDebtItemAmortization } from "@/services/debtRelief";
 import {
+  ASSET_CATEGORY_OPTIONS,
   DEBT_ITEM_TYPE_OPTIONS,
   REPAYMENT_METHOD_OPTIONS,
   createEmptyDebtItem,
@@ -17,6 +17,11 @@ import {
 } from "@/types/debtRelief";
 import { getMissingDebtItemFields } from "./validateDiagnosisForm";
 import { PercentInput, TextInput, WonInput } from "./FormControls";
+import { AssetIcon } from "./assetIcons";
+
+function assetCategoryLabel(category: AssetItemFormState["category"]): string {
+  return ASSET_CATEGORY_OPTIONS.find((option) => option.value === category)?.label ?? category;
+}
 
 type Props = {
   debts: DebtItemFormState[];
@@ -312,11 +317,17 @@ export default function DebtItemsTable({
             </tr></thead>
             <tbody>{debts.map((debt) => {
               const locked = lockedDebtIds.includes(debt.id);
+              const collateralAsset = debt.collateralAssetId
+                ? assets.find((asset) => asset.id === debt.collateralAssetId)
+                : undefined;
               return <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
                 <td className={BODY_CELL}><SelectField className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`} value={debt.debtType} onChange={(event) => updateItem(debt.id, { debtType: event.target.value as DebtItemFormState["debtType"] })}>{DEBT_ITEM_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</SelectField></td>
                 <td className={`${BODY_CELL} px-3 text-[14px] font-medium text-neutral-90/80`}>
-                  <span className="inline-flex items-center gap-2 whitespace-nowrap">
-                    {locked && debt.collateralAssetId && <Image src="/images/debt-relief/assets/home-icon@4x.png" alt="" width={80} height={80} unoptimized className="h-5 w-5 object-contain" />}
+                  {/* 높이 없는 inline-flex는 td의 vertical-align:middle과 어긋나 위로 쏠려 보였다
+                      (img가 섞인 atomic inline box라 베이스라인 기준 정렬됨) — 상세모드의 잠긴 행
+                      배지처럼 h-[34px]로 고정해 다른 셀과 같은 기준으로 중앙정렬되게 함. */}
+                  <span className="flex h-[34px] items-center gap-2 whitespace-nowrap">
+                    {locked && collateralAsset && <AssetIcon category={collateralAsset.category} />}
                     {debt.collateralAssetId ? "담보" : "무담보"}
                   </span>
                 </td>
@@ -394,8 +405,12 @@ export default function DebtItemsTable({
               const missingFields = showFieldErrors ? getMissingDebtItemFields(debt) : [];
               const isFieldInvalid = (field: "loanDate" | "maturityDate" | "currentBalanceWon" | "interestRate") =>
                 missingFields.includes(field);
+              const locked = lockedDebtIds.includes(debt.id);
+              const collateralAsset = debt.collateralAssetId
+                ? assets.find((asset) => asset.id === debt.collateralAssetId)
+                : undefined;
               return (
-              <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${lockedDebtIds.includes(debt.id) ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
+              <tr key={debt.id} className={`border-b-[0.4px] border-neutral-30 last:border-b-0 ${locked ? "bg-neutral-10 [&_input]:!bg-neutral-10 [&_select]:!bg-neutral-10" : ""}`}>
                 <td className={BODY_CELL}>
                   <SelectField
                     className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
@@ -412,15 +427,21 @@ export default function DebtItemsTable({
                   </SelectField>
                 </td>
                 {!hideCollateralAssetColumn && <td className={BODY_CELL}>
-                  <SelectField
-                    className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
-                    value={debt.collateralAssetId ?? ""}
-                    disabled={lockedDebtIds.includes(debt.id)}
-                    onChange={(e) => updateItem(debt.id, { collateralAssetId: e.target.value || undefined })}
-                  >
-                    <option value="">무담보</option>
-                    {assets.filter((asset) => asset.category !== "financial_asset").map((asset) => <option key={asset.id} value={asset.id}>{asset.description || asset.category}</option>)}
-                  </SelectField>
+                  {locked ? (
+                    <span className="inline-flex h-[34px] items-center gap-2 px-3 text-[13px] font-medium text-neutral-90/80 whitespace-nowrap">
+                      {collateralAsset && <AssetIcon category={collateralAsset.category} />}
+                      {debt.collateralAssetId ? "담보" : "무담보"}
+                    </span>
+                  ) : (
+                    <SelectField
+                      className={`h-[34px] text-[13px] ${CELL_INPUT_BORDERLESS}`}
+                      value={debt.collateralAssetId ?? ""}
+                      onChange={(e) => updateItem(debt.id, { collateralAssetId: e.target.value || undefined })}
+                    >
+                      <option value="">무담보</option>
+                      {assets.filter((asset) => asset.category !== "financial_asset").map((asset) => <option key={asset.id} value={asset.id}>{asset.description || assetCategoryLabel(asset.category)}</option>)}
+                    </SelectField>
+                  )}
                 </td>}
                 <td className={BODY_CELL}>
                   <TextInput

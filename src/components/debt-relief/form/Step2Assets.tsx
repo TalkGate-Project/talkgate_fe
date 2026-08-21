@@ -1,22 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { ASSET_CATEGORY_OPTIONS, createEmptyAssetItem, createEmptyDebtItem, type AssetItemFormState, type DebtItemFormState, type DiagnosisFormState } from "@/types/debtRelief";
 import { FormSectionTitle, ManwonInput } from "./FormControls";
 import FormToggle from "./FormToggle";
 import DebtItemsTable from "./DebtItemsTable";
 import { DebtModeToggle } from "./DebtHistoryCard";
+import { AssetIcon } from "./assetIcons";
 
 type Props = { form: DiagnosisFormState; update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void };
-const ASSET_ICON: Record<AssetItemFormState["category"], string> = {
-  house: "/images/debt-relief/assets/home-icon@4x.png", land: "/images/debt-relief/assets/land-icon@4x.png",
-  jeonse_deposit: "/images/debt-relief/assets/home-icon-2@4x.png", vehicle: "/images/debt-relief/assets/car-icon@4x.png",
-  financial_asset: "/images/debt-relief/assets/wallet-icon@4x.png",
-};
 
 function PlusIcon() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3.33v9.34M3.33 8h9.34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
 function RemoveIcon() { return <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
-function AssetIcon({ category }: { category: AssetItemFormState["category"] }) { return <Image src={ASSET_ICON[category]} alt="" width={80} height={80} unoptimized className="h-5 w-5 object-contain" />; }
 
 export default function Step2Assets({ form, update }: Props) {
   const setAssets = (assets: AssetItemFormState[]) => {
