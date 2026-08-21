@@ -37,8 +37,8 @@ const NOTE_STYLE: Record<ProcedureGuideNoteType, { box: string; text: string }> 
     text: "text-secondary-100 dark:text-secondary-20",
   },
   tip: {
-    box: "bg-primary-10/50 dark:bg-[rgb(var(--color-green-100-rgb)/0.18)]",
-    text: "text-primary-80",
+    box: "bg-procedure-tip-note",
+    text: "text-primary-80 dark:text-primary-60",
   },
 };
 

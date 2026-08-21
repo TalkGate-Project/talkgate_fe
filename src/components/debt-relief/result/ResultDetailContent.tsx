@@ -154,9 +154,6 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     return () => observer.disconnect();
   }, [detail, sectionIds]);
 
-  // behavior:"smooth"(scrollIntoView든 scrollTo든 동일)는 body에 zoom:0.8이 걸린 상태(데스크톱
-  // ≥1080px)에서 특정 폭·상태 조합일 때 스크롤이 아예 일어나지 않는 크로미움 버그가
-  // 있어 애니메이션 없는 즉시 이동으로 우회한다(zoom과 무관하게 항상 동작 확인됨).
   const scrollTo = (id: string) => {
     setActiveId(id);
     const element = document.getElementById(id);
@@ -169,7 +166,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       element.getBoundingClientRect().top +
       window.scrollY -
       scrollMarginTop * getBodyZoom();
-    window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 
     if (id === "guide") {
       setGuideTitleArrivalKey((previous) => previous + 1);
@@ -216,10 +213,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     try {
       await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId);
       setProgressChoiceOpen(false);
-      // 자체진행을 선택한 직후 바로 추적할 절차를 고르게 한다 — "진행방법 선택"에서
-      // 자체진행을 고르면 절차 선택까지 이어지는 게 원래 의도한 플로우. refetch는 절차 선택
-      // 모달이 열려있는 동안은 미루고, 모달이 닫힐 때(선택 완료/취소) 호출한다.
-      if (defaultProcedure) {
+      // self-progress는 수임료 계획(feePlan) 유무에 따라 서버가 계약대기중 또는 절차진행중으로
+      // 전환한다(services/analysis.ts selfProgress 주석 참고). feePlan이 있는 건만 절차진행중으로
+      // 바로 넘어가므로 그 순간 추적할 절차를 바로 정하게 한다 — AnalysisReviewBanner의 수락 흐름과
+      // 동일한 이유. feePlan이 없으면 다음은 결제정보 입력(계약대기중) 단계라 절차 선택은 아직
+      // 이르므로 건너뛴다. refetch는 절차 선택 모달이 열려있는 동안은 미루고, 모달이 닫힐 때
+      // (선택 완료/취소) 호출한다.
+      if (detail.feePlan && defaultProcedure) {
         setSelfProceedProcedureOpen(true);
       } else {
         refetch();

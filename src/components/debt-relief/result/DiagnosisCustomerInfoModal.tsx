@@ -720,21 +720,20 @@ export default function DiagnosisCustomerInfoModal({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-[30px] pt-5 min-[1024px]:px-7">
           <div className="grid grid-cols-1 gap-5 min-[1024px]:grid-cols-[314px_minmax(0,672px)]">
-            <InfoSection title="고객 정보" className="min-[1024px]:min-h-[372px]">
+            <InfoSection title="고객 정보">
               <InfoRows rows={viewModel.customerRows} />
             </InfoSection>
 
-            <InfoSection title="자산현황" className="min-[1024px]:min-h-[372px]">
+            <InfoSection title="자산현황">
               <RichInfoRows rows={viewModel.assetRows} />
             </InfoSection>
 
-            <InfoSection title="소득 / 지출" className="min-[1024px]:min-h-[372px]">
+            <InfoSection title="소득 / 지출">
               <InfoRows rows={viewModel.incomeRows} />
             </InfoSection>
 
             <InfoSection
               title="채무현황"
-              className="min-[1024px]:min-h-[372px]"
               titleAction={
                 <button
                   type="button"
