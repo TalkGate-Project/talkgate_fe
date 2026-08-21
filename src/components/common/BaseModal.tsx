@@ -146,6 +146,14 @@ export default function BaseModal({
       aria-modal="true"
       aria-label={ariaLabel}
       onMouseDown={(e) => {
+        // 한 BaseModal이 다른 BaseModal의 children으로 중첩 렌더링되는 경우(예: 결제 정보
+        // 모달 안에 환불/중단 확인 모달), 각 BaseModal은 createPortal로 document.body에
+        // 따로 붙어 실제 DOM에서는 형제 관계지만, React 합성 이벤트는 실제 DOM이 아니라
+        // React 트리를 따라 버블링된다. 그래서 안쪽 모달 안의 아무 클릭이나 바깥쪽 모달의
+        // 이 핸들러까지 버블링되어 target이 바깥쪽 containerRef 밖(별도 포털)으로 판정되고
+        // 바깥쪽 모달까지 함께 닫히는 버그가 있었다 — 여기서 전파를 막아 이 모달 선에서 끊는다.
+        e.stopPropagation();
+
         // 카드(containerRef) 바깥을 클릭했을 때만 닫는다. positioner(중앙 정렬용 flex 래퍼)가
         // 오버레이 전체를 덮고 있어서 e.target은 실제로는 거의 항상 positioner이지 오버레이
         // 자신(e.currentTarget)이 아니다 — 예전의 "e.target === e.currentTarget" 체크는 그래서
