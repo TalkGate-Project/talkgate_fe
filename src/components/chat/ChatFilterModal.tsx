@@ -284,6 +284,7 @@ export default function ChatFilterModal({
               {categoryOpen && dropdownPosition && typeof window !== "undefined" && createPortal(
                 <div
                   ref={dropdownRef}
+                  data-anchored-panel
                   className="fixed z-[200] bg-neutral-0 dark:bg-neutral-10 border border-neutral-30 rounded-[8px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] max-h-[220px] overflow-auto p-3"
                   style={{
                     top: `${dropdownPosition.top}px`,
