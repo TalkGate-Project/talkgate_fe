@@ -15,7 +15,24 @@ export default function AnalysisRequiredFieldsModal({ open, steps, unchanged, on
       <div className="mt-6 flex justify-center text-secondary-80 dark:text-secondary-20"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden><circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="4"/><path d="M20 11v11M20 29h.01" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/></svg></div>
       <p className="mt-5 text-center text-[18px] font-semibold leading-[21px] text-secondary-80 dark:text-secondary-20">{unchanged ? "변경된 내용이 없습니다." : "필수 정보가 입력되지 않았습니다."}</p>
       <p className="mt-3 text-center text-[14px] font-medium leading-[20px] text-neutral-90">{unchanged ? "정보를 수정한 뒤 다시 분석해주세요." : "다음 단계의 필수 정보를 입력해주세요."}</p>
-      {steps.length > 0 && <div className="mt-4 flex flex-wrap justify-center gap-2">{steps.map((step) => <button key={step.index} type="button" onClick={() => onSelectStep(step.index)} title={`${step.missingFields.join(", ")} 입력 필요`} className="inline-flex h-[34px] cursor-pointer items-center rounded-full border border-neutral-30 bg-card px-4 text-[14px] font-medium text-neutral-90 hover:border-secondary-60 hover:text-secondary-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40">{step.label}</button>)}</div>}
+      {steps.length > 0 && (
+        <div className="mt-4 flex flex-col gap-2">
+          {steps.map((step) => (
+            <button
+              key={step.index}
+              type="button"
+              onClick={() => onSelectStep(step.index)}
+              className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-neutral-30 bg-card px-4 py-2.5 text-left hover:border-secondary-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-40"
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-[14px] font-semibold text-neutral-90">{step.label}</span>
+                <span className="truncate text-[12px] text-neutral-60">{step.missingFields.join(", ")}</span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-neutral-50"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
     <div className="h-px bg-neutral-30" />
     <div className="flex justify-end px-7 py-4"><button type="button" onClick={onClose} className="flex h-[34px] min-w-[72px] cursor-pointer items-center justify-center rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold text-neutral-20">확인</button></div>
