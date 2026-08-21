@@ -231,7 +231,9 @@ export const AnalysisService = {
     });
   },
 
-  // 매칭 가능 고객 목록 조회 (자체 생성 분석 건만 가능)
+  // 매칭 가능 고객 목록 조회 (자체 생성 분석 건만 가능) — 구버전, analysisId가 path에 있어야만
+  // 호출 가능해서 신규 화면(아직 분석 ID가 없음)에서는 쓸 수 없었다. 실사용 연동은 아래
+  // connectableCustomersV2로 옮겼고, 롤백 대비로 삭제하지 않고 남겨둠(호출부 없음).
   connectableCustomers(id: number, projectId: string, query?: ConnectableCustomersQuery) {
     return apiClient.get<ConnectableCustomersResponse>(
       `/v1/analysis/${id}/connectable-customers`,
@@ -240,6 +242,15 @@ export const AnalysisService = {
         headers: { "x-project-id": projectId },
       }
     );
+  },
+
+  // 매칭 가능 고객 목록 조회 v2 — analysisId를 path가 아닌 optional 쿼리로 받는다. 있으면 해당
+  // 분석 담당 멤버 기준, 없으면(신규 생성 화면) 요청 멤버 기준으로 매칭 가능 고객을 반환한다.
+  connectableCustomersV2(projectId: string, query?: ConnectableCustomersQuery) {
+    return apiClient.get<ConnectableCustomersResponse>("/v1/analysis/connectable-customers", {
+      query,
+      headers: { "x-project-id": projectId },
+    });
   },
 
   // 분석 건에 고객 매칭

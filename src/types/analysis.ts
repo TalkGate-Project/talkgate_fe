@@ -700,11 +700,16 @@ export type ConnectableCustomer = {
   assignedMember?: {
     id: number;
     name: string;
+    /** GET /v1/analysis/connectable-customers(v2) 응답 — 팀 정보가 중첩 대신 평평하게 옴 */
+    teamId?: number | null;
+    teamName?: string | null;
     team?: { id: number; name: string } | null;
   } | null;
 };
 
 export type ConnectableCustomersQuery = {
+  /** 분석 건 ID. 있으면 담당자 기준, 없으면(신규 화면) 요청 멤버 기준으로 조회됨 — GET /v1/analysis/connectable-customers 전용. */
+  analysisId?: number;
   search?: string;
   page?: number;
   limit?: number;
