@@ -98,6 +98,7 @@ export default function CategoryDropdownPortal({
   return createPortal(
     <div
       ref={dropdownRef}
+      data-anchored-panel
       className="fixed z-[220] rounded-[5px] border border-[#E2E2E2] bg-card p-0 shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:border-neutral-30 dark:bg-neutral-10"
       style={{
         top: position.top,
