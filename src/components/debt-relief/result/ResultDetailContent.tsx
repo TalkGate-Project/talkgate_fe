@@ -317,6 +317,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         <div className="hidden md:block">
           <AnalysisProgressBanner
             status={detail.status}
+            isLawyerProject={isLawyer}
             actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
           />
         </div>
@@ -336,6 +337,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               <div className="mt-3 md:hidden">
                 <AnalysisProgressBanner
                   status={detail.status}
+                  isLawyerProject={isLawyer}
                   actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
                 />
               </div>
@@ -378,6 +380,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               <div className="mt-3 md:hidden">
                 <AnalysisProgressBanner
                   status={detail.status}
+                  isLawyerProject={isLawyer}
                   actions={progressActions.map((action) => ({ ...action, disabled: statusSubmitting }))}
                 />
               </div>
