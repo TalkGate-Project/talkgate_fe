@@ -504,7 +504,7 @@ export type AnalysisDetail = {
   updatedAt: string;
 };
 
-/** 분석 건 액션(공유/반려/수락/수임료 입력·수정·중단·환불) 메시지 히스토리 항목 */
+/** 분석 건 액션(공유/반려/수락/수임료 입력·수정·중단·환불/절차 변경) 메시지 히스토리 항목 */
 export type AnalysisMessageDto = {
   type:
     | "share"
@@ -514,7 +514,8 @@ export type AnalysisMessageDto = {
     | "fee_create"
     | "fee_update"
     | "fee_stop"
-    | "fee_refund";
+    | "fee_refund"
+    | "procedure_change";
   referenceId?: number | null;
   memberName: string;
   projectId: number;
