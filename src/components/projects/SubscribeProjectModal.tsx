@@ -239,7 +239,7 @@ export default function SubscribeProjectModal({
       overlayClassName="bg-black/50 backdrop-blur-sm"
       ariaLabel="구독 안내"
       disableAutoContainerSizing
-      containerClassName="relative w-[440px] h-[526px] md:h-[675px] rounded-[14px] max-md:w-full max-md:max-w-[344px] max-md:h-auto max-md:min-h-[500px] max-md:max-h-[calc(100dvh-32px)] max-md:rounded-[12px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.36)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="relative w-[440px] h-[526px] md:h-[675px] rounded-[14px] max-md:w-full max-md:max-w-[344px] max-md:h-auto max-md:min-h-[500px] max-md:max-h-[calc(100dvh-32px)] max-md:rounded-[12px] bg-white dark:bg-neutral-10 shadow-[0px_13px_61px_rgba(169,169,169,0.36)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* 헤더 이미지 영역 */}
         <div className="relative w-full h-[155px] max-md:h-[136px] rounded-t-[14px] max-md:rounded-t-[12px] overflow-hidden shrink-0">

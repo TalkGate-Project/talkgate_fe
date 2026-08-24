@@ -27,7 +27,7 @@ export default function AnalysisProgressChoiceModal({ open, onClose, onSelfProce
       ariaLabel="진행방법 선택"
       positionerClassName="min-h-full flex items-center justify-center px-4"
       disableAutoContainerSizing
-      containerClassName="relative max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-[14px] bg-card px-4 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.366)] outline-none dark:shadow-[0_13px_61px_rgba(0,0,0,0.55)] md:h-[295px] md:px-7"
+      containerClassName="relative max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-[14px] bg-card px-4 py-6 shadow-[0_13px_61px_rgba(169,169,169,0.366)] outline-none dark:shadow-none md:h-[295px] md:px-7"
     >
         <button
           type="button"

@@ -24,7 +24,7 @@ export default function CategoryHistoryModal({
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/35"
-      containerClassName="w-[calc(100vw-32px)] max-w-[360px] rounded-[16px] bg-card dark:bg-neutral-10 shadow-[0_8px_24px_rgba(9,30,66,0.14)]"
+      containerClassName="w-[calc(100vw-32px)] max-w-[360px] rounded-[16px] bg-card dark:bg-neutral-10 shadow-[0_8px_24px_rgba(9,30,66,0.14)] dark:shadow-none"
       ariaLabel="카테고리 기록"
       disableAutoContainerSizing
     >

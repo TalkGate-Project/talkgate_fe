@@ -21,7 +21,7 @@ export default function ReactivateSubscriptionModal({
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/50 backdrop-blur-sm"
-      containerClassName="w-full max-w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="w-full max-w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none"
       ariaLabel="구독 활성화 확인"
     >
       <div>
