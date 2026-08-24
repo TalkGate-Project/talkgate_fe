@@ -10,6 +10,7 @@ import {
   type VerificationResult,
 } from "@/hooks/usePhoneVerification";
 import { VerificationService } from "@/services/verification";
+import { formatPhoneNumber } from "@/utils/format";
 
 export default function ProfileTab() {
   const { user, refetch } = useMe();
@@ -17,7 +18,7 @@ export default function ProfileTab() {
 
   const [name, setName] = useState(user?.name || "-");
   const [email, setEmail] = useState(user?.email || "");
-  const [contact, setContact] = useState(user?.phone || "");
+  const [contact, setContact] = useState(formatPhoneNumber((user?.phone || "").replace(/\D/g, "")));
 
   // 본인인증 상태 조회
   const {
@@ -99,7 +100,7 @@ export default function ProfileTab() {
     if (user && !isEditing) {
       setName(user.name);
       setEmail(user.email);
-      setContact(user.phone || "");
+      setContact(formatPhoneNumber((user.phone || "").replace(/\D/g, "")));
     }
   }, [user, isEditing]);
 
@@ -107,7 +108,7 @@ export default function ProfileTab() {
   const initialData = {
     name: user?.name || "-",
     email: user?.email || "",
-    contact: user?.phone || ""
+    contact: formatPhoneNumber((user?.phone || "").replace(/\D/g, ""))
   };
 
   // TODO: 프로필 수정 버튼 삭제, 개발 완료 후 삭제 예정
