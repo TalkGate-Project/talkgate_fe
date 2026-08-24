@@ -24,9 +24,10 @@ export type DebtHistoryCardProps = {
   areaBackgroundClassName?: string;
   showDebtItemFieldErrors?: boolean;
   overLimitFields?: OverLimitDebtField[];
+  scrollFadeColorClassName?: string;
 };
 
-export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false }: DebtHistoryCardProps) {
+export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
     update("debtInputMode", mode);
@@ -39,7 +40,7 @@ export default function DebtHistoryCard({ form, update, disabled = false, areaBa
       <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} disabled={disabled} />
     </div>
     <div className={`flex flex-col gap-5 px-5 md:px-6 py-5 ${disabled ? "pointer-events-none opacity-80" : ""}`}>
-      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} />
+      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} />
     </div>
   </div>;
 }
