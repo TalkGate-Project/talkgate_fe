@@ -26,6 +26,7 @@ import {
 } from "@/types/debtRelief";
 import { useProjectType } from "@/hooks/useProjectType";
 import DebtApplyChoiceModal from "./DebtApplyChoiceModal";
+import styles from "./DebtDetailModal.module.css";
 
 type Props = {
   open: boolean;
@@ -37,10 +38,10 @@ type Props = {
 
 function CloseIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="text-neutral-50">
       <path
         d="M6 18L18 6M6 6L18 18"
-        stroke="#B0B0B0"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -197,12 +198,12 @@ export default function DebtDetailModal({
           >
             <ChevronLeftIcon />
           </button>
-          <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">채무 상세</h2>
+          <h2 className="text-[18px] font-semibold text-ink dark:text-[#FDFDFD]">채무 상세</h2>
         </div>
 
         {/* md+: 타이틀 + X 닫기 */}
         <div className="hidden md:flex items-center justify-between px-6 md:px-7 pt-6 pb-4 shrink-0">
-          <h2 className="text-[18px] font-semibold text-ink dark:text-neutral-90">채무 상세</h2>
+          <h2 className="text-[18px] font-semibold text-ink dark:text-[#FDFDFD]">채무 상세</h2>
           <button
             type="button"
             onClick={handleClose}
@@ -216,15 +217,17 @@ export default function DebtDetailModal({
         <div className="border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
 
         <div className="min-w-0 flex-1 overflow-y-auto px-6 md:px-7 py-5">
-          <DebtHistoryCard
-            form={form}
-            update={update}
-            totalDebtManwon={totalDebtManwon}
-            disabled={!canEditFields || submitting}
-            areaBackgroundClassName="bg-neutral-10 dark:bg-neutral-0"
-            showDebtItemFieldErrors={showDebtItemFieldErrors}
-            scrollFadeColorClassName="[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#1E1E1E]"
-          />
+          <div className={styles.darkModeDebtDetails}>
+            <DebtHistoryCard
+              form={form}
+              update={update}
+              totalDebtManwon={totalDebtManwon}
+              disabled={!canEditFields || submitting}
+              areaBackgroundClassName="bg-neutral-10"
+              showDebtItemFieldErrors={showDebtItemFieldErrors}
+              scrollFadeColorClassName="[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]"
+            />
+          </div>
         </div>
 
         <div className="flex gap-3 px-5 md:px-7 py-4 border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0 md:justify-end">
@@ -232,7 +235,7 @@ export default function DebtDetailModal({
             type="button"
             onClick={handleClose}
             disabled={submitting}
-            className="cursor-pointer h-11 md:h-[34px] flex-1 md:flex-none px-4 rounded-[5px] border border-neutral-30 dark:border-[#4D4D4D] bg-white dark:bg-neutral-10 text-[14px] font-semibold text-ink dark:text-neutral-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer inline-flex h-11 flex-1 items-center justify-center rounded-[5px] border border-neutral-30 bg-white px-4 text-[14px] font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#4D4D4D] dark:bg-neutral-10 dark:text-[#FDFDFD] md:h-[34px] md:flex-none"
           >
             닫기
           </button>
@@ -241,7 +244,7 @@ export default function DebtDetailModal({
               type="button"
               onClick={handleApplyClick}
               disabled={submitting}
-              className="cursor-pointer h-11 md:h-[34px] flex-1 md:flex-none px-4 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer inline-flex h-11 flex-1 items-center justify-center rounded-[5px] bg-neutral-90 px-4 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#F5F5F5] dark:text-[#333333] md:h-[34px] md:flex-none"
             >
               적용하기
             </button>

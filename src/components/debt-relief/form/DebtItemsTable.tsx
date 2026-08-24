@@ -247,12 +247,13 @@ function DebtSumCard({
   backgroundClassName?: string;
 }) {
   return (
-    <div className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : backgroundClassName}`}>
+    <div data-debt-summary-card data-highlight={highlight} className={`rounded-xl px-4 py-3.5 flex flex-col gap-2 ${highlight ? "bg-neutral-90" : backgroundClassName}`}>
       <div className="flex items-baseline justify-between gap-2">
-        <span className={`text-[14px] font-medium tracking-[0.2px] ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
+        <span data-summary-title className={`text-[14px] font-medium tracking-[0.2px] ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
           {label}
         </span>
         <span
+          data-summary-amount
           className={`text-[16px] font-bold tracking-[-0.04em] whitespace-nowrap ${
             highlight ? "text-neutral-20" : "text-foreground"
           }`}
@@ -261,14 +262,14 @@ function DebtSumCard({
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">월불입</span>
-        <span className={`text-[14px] font-medium tracking-[0.2px] text-right whitespace-nowrap ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
+        <span data-summary-label className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">월불입</span>
+        <span data-summary-value className={`text-[14px] font-medium tracking-[0.2px] text-right whitespace-nowrap ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
           {formatWon(sums.monthlyPaymentWon)}
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">잔여이자</span>
-        <span className={`text-[14px] font-medium tracking-[0.2px] text-right whitespace-nowrap ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
+        <span data-summary-label className="text-[14px] font-medium tracking-[0.2px] text-neutral-50">잔여이자</span>
+        <span data-summary-value className={`text-[14px] font-medium tracking-[0.2px] text-right whitespace-nowrap ${highlight ? "text-neutral-50" : "text-neutral-60"}`}>
           {formatWon(sums.remainingInterestWon)}
         </span>
       </div>
@@ -401,7 +402,7 @@ export default function DebtItemsTable({
     const assetColumnWidths = [180, 220, 150, 220, 48];
     const assetTableWidth = assetColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+      <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
         <div className="relative">
           <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
             <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
@@ -420,7 +421,7 @@ export default function DebtItemsTable({
               <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
               <td className={`${BODY_CELL} text-center`}><button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button></td>
             </tr>)}</tbody>
-            <tfoot><tr className="border-t border-neutral-30"><td colSpan={5} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
+            <tfoot><tr className="border-t border-neutral-30"><td colSpan={5} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
             </table>
           </div>
           {scrollEdgeControls}
@@ -433,7 +434,7 @@ export default function DebtItemsTable({
     const simpleColumnWidths = [150, 100, 200, 140, 210, 48];
     const simpleTableWidth = simpleColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+      <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
         <div className="relative">
           <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
             <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
@@ -479,7 +480,7 @@ export default function DebtItemsTable({
                 <td className={`${BODY_CELL} text-center`}>{!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button>}</td>
               </tr>;
             })}</tbody>
-            <tfoot><tr className="border-t border-neutral-30"><td colSpan={6} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
+            <tfoot><tr className="border-t border-neutral-30"><td colSpan={6} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
             </table>
           </div>
           {scrollEdgeControls}
@@ -496,7 +497,7 @@ export default function DebtItemsTable({
   const detailedTableWidth = detailedColumnWidths.reduce((sum, width) => sum + width, 0);
 
   return (
-    <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+    <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
       <div className="relative">
         <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
           <table
@@ -678,6 +679,7 @@ export default function DebtItemsTable({
             <tr className="border-t border-neutral-30">
               <td colSpan={hideCollateralAssetColumn ? 13 : 14} className="py-2">
                 <button
+                  data-debt-add-row
                   type="button"
                   onClick={addRow}
                   className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}
