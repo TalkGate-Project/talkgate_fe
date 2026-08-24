@@ -99,7 +99,7 @@ export default function DiagnosisFilterModal({ procedure, status, listTab, onApp
     <div
       role="dialog"
       aria-label="필터 추가"
-      className="absolute left-0 top-full mt-2 z-30 w-[360px] max-w-[92vw] rounded-[14px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] overflow-hidden"
+      className="absolute left-0 top-full mt-2 z-30 w-[360px] max-w-[92vw] rounded-[14px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-none overflow-hidden"
       onClick={(event) => event.stopPropagation()}
     >
       <div className="flex items-center justify-between px-5 pt-5 pb-4">

@@ -30,7 +30,7 @@ export default function AnalysisDraftRestoreModal({
     <BaseModal
       onClose={onStartFresh}
       overlayClassName="bg-black/35 dark:bg-[#000000CC]"
-      containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)]"
+      containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)] dark:shadow-none"
       ariaLabel="작성 중인 분석 복원"
     >
       <div className="px-7 pt-6 pb-[30px]">

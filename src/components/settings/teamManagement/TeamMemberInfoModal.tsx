@@ -15,6 +15,7 @@ import RoleBadge from "./RoleBadge";
 import OrganizationContent from "./OrganizationContent";
 import ManagerContent from "./ManagerContent";
 import { initialFromName, getRoleLabel, transformOrgTree } from "./memberInfoUtils";
+import { formatPhoneNumber } from "@/utils/format";
 
 type Props = {
   open: boolean;
@@ -464,7 +465,7 @@ export default function TeamMemberInfoModal({
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span>{member.phone || "-"}</span>
+                      <span>{member.phone ? formatPhoneNumber(member.phone) : "-"}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">

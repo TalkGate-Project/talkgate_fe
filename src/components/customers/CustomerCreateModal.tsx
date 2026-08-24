@@ -12,6 +12,7 @@ import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
 import GenderToggle from "@/components/customers/GenderToggle";
+import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 
 type Props = {
   open: boolean;
@@ -122,7 +123,29 @@ export default function CustomerCreateModal({
 
   const contactTypes = ["휴대폰", "집", "회사", "기타"];
   const messengerTypes = ["라인", "카카오톡", "텔레그램", "인스타그램", "기타"];
-  const sanitizeContactInput = (value: string) => value.replace(/\D/g, "").slice(0, 11);
+
+  const handleContactChange =
+    (field: "contact1" | "contact2") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target;
+      const cursorPos = input.selectionStart ?? 0;
+      const digitsBeforeCursor = input.value.slice(0, cursorPos).replace(/\D/g, "").length;
+
+      const digits = input.value.replace(/\D/g, "").slice(0, 11);
+      const formatted = formatPhoneNumber(digits);
+
+      if (field === "contact1") {
+        setContact1(formatted);
+        if (!touchedContact1) setTouchedContact1(true);
+      } else {
+        setContact2(formatted);
+      }
+
+      requestAnimationFrame(() => {
+        const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
+        input.setSelectionRange(newPos, newPos);
+      });
+    };
 
   const contact1Digits = contact1.replace(/\D/g, "");
   const nameError = name.trim() ? "" : "이름은 필수 항목입니다.";
@@ -185,13 +208,17 @@ export default function CustomerCreateModal({
           account: acc.account,
         }));
 
+      // 서버는 contact1/2를 숫자 문자열로만 허용(하이픈 불가) — 화면 표시용 하이픈은 여기서 제거 후 전송
+      const contact1Digits = contact1.replace(/\D/g, "");
+      const contact2Digits = contact2.replace(/\D/g, "");
+
       const response = await CustomersService.create({
         projectId: resolvedProjectId,
         name: name.trim(),
-        contact1: contact1.trim(),
+        contact1: contact1Digits,
         contact1Type: contactLabelToType(contact1Type),
-        contact2: contact2.trim() || undefined,
-        contact2Type: contact2.trim() ? contactLabelToType(contact2Type) : undefined,
+        contact2: contact2Digits || undefined,
+        contact2Type: contact2Digits ? contactLabelToType(contact2Type) : undefined,
         // 생년월일을 YYYY-MM-DD 형식으로 전송
         birth: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
         gender: gender || undefined,
@@ -434,10 +461,7 @@ export default function CustomerCreateModal({
                         <input
                           type="text"
                           value={contact1}
-                          onChange={(e) => {
-                            setContact1(sanitizeContactInput(e.target.value));
-                            if (!touchedContact1) setTouchedContact1(true);
-                          }}
+                          onChange={handleContactChange("contact1")}
                           inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                           placeholder="연락처를 입력하세요"
@@ -490,7 +514,7 @@ export default function CustomerCreateModal({
                         <input
                           type="text"
                           value={contact2}
-                          onChange={(e) => setContact2(sanitizeContactInput(e.target.value))}
+                          onChange={handleContactChange("contact2")}
                           inputMode="numeric"
                           className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
                           placeholder="연락처를 입력하세요"

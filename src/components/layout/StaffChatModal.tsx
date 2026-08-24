@@ -650,7 +650,7 @@ export default function StaffChatModal({ isOpen, onClose }: Props) {
   const modalPositionerStyle = isMobileViewport ? undefined : { top: windowPosition.top, left: windowPosition.left };
   const modalContainerClassName = isMobileViewport
     ? "pointer-events-auto flex h-[calc(100dvh-54px)] w-screen flex-col overflow-hidden rounded-none bg-neutral-0 shadow-none"
-    : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-[0px_18px_28px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden";
+    : "pointer-events-auto rounded-[20px] shadow-[0px_18px_28px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden";
   const modalContentStyle = isMobileViewport
     ? { opacity: modalOpacity }
     : { opacity: modalOpacity, width: windowSize.width, height: windowSize.height };

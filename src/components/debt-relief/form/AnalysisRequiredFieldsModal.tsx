@@ -6,7 +6,7 @@ type IncompleteStep = { index: number; label: string; missingFields: string[] };
 
 export default function AnalysisRequiredFieldsModal({ open, steps, unchanged, onClose, onSelectStep }: { open: boolean; steps: IncompleteStep[]; unchanged: boolean; onClose: () => void; onSelectStep: (index: number) => void }) {
   if (!open) return null;
-  return <BaseModal onClose={onClose} overlayClassName="bg-black/35 dark:bg-[#000000CC]" containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)]" ariaLabel="분석하기 필수 정보 안내">
+  return <BaseModal onClose={onClose} overlayClassName="bg-black/35 dark:bg-[#000000CC]" containerClassName="w-[calc(100vw-2rem)] sm:w-[440px] sm:min-w-[440px] max-w-[440px] rounded-[14px] bg-card shadow-[0_18px_50px_rgba(0,0,0,0.22)] dark:shadow-none" ariaLabel="분석하기 필수 정보 안내">
     <div className="relative px-7 pt-6 pb-[30px]">
       <div className="flex items-start justify-between">
         <h2 className="text-[18px] font-semibold text-neutral-90">분석하기</h2>

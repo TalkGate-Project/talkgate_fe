@@ -459,8 +459,8 @@ export default function AnalysisShareModal({
   const stepInitialReferenceNote = currentDraft?.referenceNote ?? "";
   const containerClassName =
     step === "contact"
-      ? "w-full md:w-[480px] min-h-[446px] max-h-[80vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
-      : "w-full md:w-[480px] max-h-[90vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]";
+      ? "w-full md:w-[480px] min-h-[446px] max-h-[80vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
+      : "w-full md:w-[480px] max-h-[90vh] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none";
 
   return (
     <>

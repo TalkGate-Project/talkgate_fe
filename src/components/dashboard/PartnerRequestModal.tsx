@@ -83,7 +83,7 @@ export default function PartnerRequestModal({
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       ariaLabel="프로젝트 요청"
       disableAutoContainerSizing
-      containerClassName="w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="w-[440px] bg-white dark:bg-neutral-10 rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0">

@@ -48,7 +48,7 @@ export default function ApiKeyCreateModal({
       ariaLabel="API 키 생성"
       positionerClassName="w-full h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
       disableAutoContainerSizing
-      containerClassName="w-full h-full md:w-[440px] md:h-[224px] bg-white dark:bg-neutral-10 md:rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="w-full h-full md:w-[440px] md:h-[224px] bg-white dark:bg-neutral-10 md:rounded-[14px] flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* Header */}
         <div className="flex items-center justify-between px-7 pt-6 pb-4 flex-shrink-0 relative">
