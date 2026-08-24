@@ -688,7 +688,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onCustomerUnlink={handleCustomerUnlink}
       />
 
-      <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 pb-[90px] md:pb-12 flex flex-col md:flex-row gap-5 md:gap-[30px] items-start">
+      <div className="mx-auto max-w-[1324px] w-full px-0 lg:pt-9 pb-[90px] lg:pb-12 flex flex-col lg:flex-row gap-5 lg:gap-[30px] items-start">
         <FormSidebar
           form={form}
           derived={derived}
@@ -702,7 +702,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           onCustomerUnlink={handleCustomerUnlink}
         />
 
-        <section className="relative flex-1 w-full min-w-0 surface md:rounded-[14px] shadow-none md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 md:min-h-[780px]">
+        <section className="relative flex-1 w-full min-w-0 surface lg:rounded-[14px] shadow-none lg:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none flex flex-col min-h-0 lg:min-h-[780px]">
           {/* Figma 모바일: X는 폼 카드 우측 상단 — stroke는 foreground 토큰(라이트=#000급 / 다크 반전).
               "기타사항" 스텝은 Step5Others의 첫 실제 섹션인 "새출발기금" 제목 행에 X를 배치한다. */}
           {step.key !== "others" && (
@@ -710,7 +710,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               type="button"
               onClick={handleClose}
               aria-label="닫기"
-              className="md:hidden absolute top-[8px] right-6 z-10 cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70"
+              className="lg:hidden absolute top-[8px] right-6 z-10 cursor-pointer w-6 h-6 grid place-items-center text-foreground hover:opacity-70"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path
@@ -727,7 +727,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           {/* 헤더 — 모바일에서는 MobileFormSummaryDrawer가 대신하므로 숨김 */}
           {/* Figma: title 24/700, desc 18/500, gap 16, 패딩 28, 구분선은 카드 풀폭 */}
           {/* 좌측 이전 화살표는 제거(탭 + 하단 이전/다음 버튼과 중복). X는 생성/수정 모두 동일 기능(handleClose)으로 노출 */}
-          <div className="hidden md:flex items-center justify-between gap-4 px-7 py-[26px]">
+          <div className="hidden lg:flex items-center justify-between gap-4 px-7 py-[26px]">
             <div className="flex items-center gap-4 min-w-0">
               <h2 className="text-[24px] font-bold leading-5 text-neutral-90 shrink-0">{step.title}</h2>
               <span className="w-px h-4 bg-neutral-60 shrink-0" />
@@ -750,15 +750,15 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
               </svg>
             </button>
           </div>
-          <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
+          <div role="separator" className="hidden lg:block h-px bg-neutral-30 opacity-50" />
 
           {/* 본문 — Figma 모바일: 좌우 16, 상단에서 바로 필드 시작 */}
-          <div className="flex-1 min-w-0 px-6 md:px-7 pt-4 md:pt-8 pb-7">{renderStep()}</div>
+          <div className="flex-1 min-w-0 px-6 lg:px-7 pt-4 lg:pt-8 pb-7">{renderStep()}</div>
 
           {/* 푸터 — 데스크톱 전용, 모바일은 FormMobileActionBar(fixed)가 대신함.
               3열 flex: 좌측 스페이서 ↔ 중앙 이전/다음 ↔ 우측 분석하기 (좌우 flex-1로 중앙 정렬 유지) */}
-          <div role="separator" className="hidden md:block h-px bg-neutral-30 opacity-50" />
-          <div className="hidden md:flex items-center px-7 pt-[13px] pb-3">
+          <div role="separator" className="hidden lg:block h-px bg-neutral-30 opacity-50" />
+          <div className="hidden lg:flex items-center px-7 pt-[13px] pb-3">
             <div className="flex-1" aria-hidden />
             <div className="flex items-center gap-2">
               <FormStepNavButton direction="prev" disabled={isFirst} onClick={goBack} />

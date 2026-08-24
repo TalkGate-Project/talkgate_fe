@@ -96,7 +96,7 @@ export default function MobileFormSummaryDrawer({
 
   return (
     <div
-      className={`md:hidden sticky top-[54px] z-30 surface flex flex-col ${
+      className={`lg:hidden sticky top-[54px] z-30 surface flex flex-col ${
         expanded ? DRAWER_MAX_H : ""
       }`}
     >

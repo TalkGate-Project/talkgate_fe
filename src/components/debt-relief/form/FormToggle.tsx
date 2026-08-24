@@ -39,8 +39,8 @@ export function FormToggleRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between gap-5 min-h-[34px] w-full md:justify-start ${
-        wideGap ? "md:gap-[150px]" : ""
+      className={`flex items-center justify-between gap-5 min-h-[34px] w-full lg:justify-start ${
+        wideGap ? "lg:gap-[150px]" : ""
       }`}
     >
       <span className="min-w-0 text-[14px] font-medium leading-[17px] text-foreground">{label}</span>

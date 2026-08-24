@@ -30,14 +30,14 @@ const TEXTAREA_CLASS =
   "w-full h-[84px] px-3 py-2 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-medium tracking-[-0.02em] text-foreground placeholder:text-neutral-60 focus:outline-none focus:border-neutral-50 resize-none";
 
 // FormSectionTitle(FormControls.tsx)은 "데스크톱만, 모바일은 상단 드로어 스텝명이 대신함"
-// 전제로 hidden md:block이다 — 이 스텝에 섹션이 "소송 및 채무조정 이력" 하나뿐일 때는 맞는
+// 전제로 hidden lg:block이다 — 이 스텝에 섹션이 "소송 및 채무조정 이력" 하나뿐일 때는 맞는
 // 전제였지만, 새출발기금 섹션이 추가되며 모바일에서 두 섹션의 경계가 안 보이게 됐다(바로
 // 다음 항목인 "이전 신청 이력 있음"↔"이전 개인회생/파산 신청 이력 있음"이 라벨까지 비슷해
 // 헷갈리기 쉬움). FormSectionTitle 자체(다른 스텝도 공유)는 그대로 두고, 이 스텝에서만
 // 모바일 전용 제목을 나란히 둔다.
 function MobileSectionTitle({ children, onClose }: { children: string; onClose?: () => void }) {
   return (
-    <div className="md:hidden flex items-center justify-between gap-3 border-b border-neutral-30 pb-3">
+    <div className="lg:hidden flex items-center justify-between gap-3 border-b border-neutral-30 pb-3">
       <h3 className="text-[16px] font-semibold tracking-[0.2px] text-foreground">
         {children}
       </h3>
@@ -107,7 +107,7 @@ export default function Step5Others({ form, update, onClose }: Props) {
           카드 우상단에 따로 떠 있던 닫기 버튼은 첫 섹션 제목 행에 배치한다. */}
       <MobileSectionTitle onClose={onClose}>새출발기금</MobileSectionTitle>
       <FormSectionTitle>새출발기금</FormSectionTitle>
-      <div className="mt-3 md:mt-6 flex flex-col gap-5">
+      <div className="mt-3 lg:mt-6 flex flex-col gap-5">
         <div className="flex flex-col gap-3">
           <p className="text-[14px] font-medium leading-[17px] text-neutral-60">
             &apos;20.4월 ~ &apos;25.6월 중 개인사업자·소상공인으로 사업 영위한 적 있음
@@ -182,7 +182,7 @@ export default function Step5Others({ form, update, onClose }: Props) {
         <FormSectionTitle>소송 및 채무조정 이력</FormSectionTitle>
       </div>
 
-      <div className="mt-3 md:mt-6 flex flex-col gap-6">
+      <div className="mt-3 lg:mt-6 flex flex-col gap-6">
         <ToggleDetailRow
           label="이전 개인회생 / 파산 신청 이력 있음"
           checked={form.hasPreviousApplication}

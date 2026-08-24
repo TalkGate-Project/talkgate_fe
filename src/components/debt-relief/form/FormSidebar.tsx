@@ -41,7 +41,7 @@ export default function FormSidebar({
   onCustomerUnlink,
 }: Props) {
   return (
-    <aside className="hidden md:flex md:w-[286px] shrink-0 flex-col surface md:rounded-[14px] pt-4 pb-8 px-[28px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+    <aside className="hidden lg:flex lg:w-[286px] shrink-0 flex-col surface lg:rounded-[14px] pt-4 pb-8 px-[28px] shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
       <FormCustomerSummary
         form={form}
         isCustomerConnected={isCustomerConnected}
