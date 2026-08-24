@@ -11,6 +11,7 @@ import AsyncButton from "@/components/common/AsyncButton";
 import TeamNameBadge from "@/components/common/TeamNameBadge";
 import TeamMemberInfoModal from "@/components/settings/teamManagement/TeamMemberInfoModal";
 import { getIndent } from "@/components/settings/teamManagement/tokens";
+import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 
 export default function ProfileSettings() {
   const [projectId] = useSelectedProjectId();
@@ -62,8 +63,9 @@ export default function ProfileSettings() {
     setName(member.name || "");
     setOriginalName(member.name || "");
     setEmail(member.email || "");
-    setPhone(member.phone || "");
-    setOriginalPhone(member.phone || "");
+    const formattedPhone = formatPhoneNumber((member.phone || "").replace(/\D/g, ""));
+    setPhone(formattedPhone);
+    setOriginalPhone(formattedPhone);
     setProfileImageUrl(member.profileImageUrl || null);
     setOriginalProfileImageUrl(member.profileImageUrl || null);
 
@@ -150,9 +152,11 @@ export default function ProfileSettings() {
       const payload: UpdateProfilePayload = {
         name,
       };
-      // 연락처: 값이 있으면 전달, 기존에 값이 있었다가 삭제한 경우 null로 전달해 서버에서 삭제 반영
-      if (phone.trim()) {
-        payload.phone = phone.trim();
+      // 연락처: 서버는 숫자 문자열만 허용(하이픈 불가) — 화면 표시용 하이픈은 제거 후 전송
+      // 값이 있으면 전달, 기존에 값이 있었다가 삭제한 경우 null로 전달해 서버에서 삭제 반영
+      const phoneDigits = phone.replace(/\D/g, "");
+      if (phoneDigits) {
+        payload.phone = phoneDigits;
       } else if (originalPhone !== "") {
         payload.phone = null;
       }
@@ -192,6 +196,21 @@ export default function ProfileSettings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const cursorPos = input.selectionStart ?? 0;
+    const digitsBeforeCursor = input.value.slice(0, cursorPos).replace(/\D/g, "").length;
+
+    const digits = input.value.replace(/\D/g, "").slice(0, 11);
+    const formatted = formatPhoneNumber(digits);
+    setPhone(formatted);
+
+    requestAnimationFrame(() => {
+      const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
+      input.setSelectionRange(newPos, newPos);
+    });
   };
 
   // 수정 취소
@@ -513,7 +532,8 @@ export default function ProfileSettings() {
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
+              inputMode="numeric"
               disabled={!isEditMode || isSaving}
               className="w-full h-[34px] px-3 border border-neutral-30 rounded-[5px] text-[14px] text-foreground bg-card focus:outline-none focus:border-foreground disabled:opacity-60 disabled:cursor-not-allowed"
             />

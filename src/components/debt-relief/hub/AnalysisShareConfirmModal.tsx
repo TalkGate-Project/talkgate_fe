@@ -67,7 +67,7 @@ export default function AnalysisShareConfirmModal({
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       ariaLabel="공유결과 확인"
       disableAutoContainerSizing
-      containerClassName="w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="w-[calc(100%-2rem)] max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] flex flex-col overflow-hidden drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         <div className="flex items-center justify-between px-7 pt-6 pb-[30px] shrink-0">
           <h2

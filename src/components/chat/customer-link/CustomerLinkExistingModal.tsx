@@ -5,6 +5,7 @@ import { ConversationsService } from "@/services/conversations";
 import Pagination from "@/components/common/Pagination";
 import BaseModal from "@/components/common/BaseModal";
 import type { UnconnectedCustomer } from "@/types/conversations";
+import { formatContactForDisplay } from "@/utils/format";
 
 type Props = {
   open: boolean;
@@ -274,7 +275,7 @@ export default function CustomerLinkExistingModal({
                       </td>
                       <td className="px-4 h-[56px] align-middle">
                         <span className="font-semibold">
-                          {c.contact1 || "-"}
+                          {formatContactForDisplay(c.contact1 || "") || "-"}
                         </span>
                       </td>
                       <td className="px-4 h-[56px] align-middle text-neutral-60">
@@ -331,7 +332,7 @@ export default function CustomerLinkExistingModal({
                       </div>
                       <div className="text-[14px] text-neutral-60">
                         {c.ageRange && <span className="mr-3">연령: {c.ageRange}</span>}
-                        <span className="font-semibold">{c.contact1 || "-"}</span>
+                        <span className="font-semibold">{formatContactForDisplay(c.contact1 || "") || "-"}</span>
                       </div>
                     </div>
                     <button

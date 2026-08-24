@@ -12,6 +12,7 @@ import type { SmsModalProps } from "./types";
 import { AssetsService } from "@/services/assets";
 import { ProjectsService } from "@/services/projects";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
+import { formatPhoneNumber } from "@/utils/format";
 
 export default function SmsModal({ open, onClose, customers, onSuccess, selectionMode, appliedFilters, totalCount, projectId }: SmsModalProps) {
   const {
@@ -212,7 +213,7 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                   const key = `${num.source}-${num.id}`;
                   return (
                     <option key={key} value={key}>
-                      {num.phoneNumber} ({num.source === "project" ? "공통" : "개인"})
+                      {formatPhoneNumber(num.phoneNumber)} ({num.source === "project" ? "공통" : "개인"})
                     </option>
                   );
                 })}
@@ -248,12 +249,12 @@ export default function SmsModal({ open, onClose, customers, onSuccess, selectio
                 <span
                   key={customer.id}
                   className="inline-flex items-center gap-1 h-[28px] px-3 max-w-full bg-neutral-20 dark:bg-neutral-25 rounded-[30px] text-[13px] text-neutral-70 dark:text-neutral-70"
-                  title={`${customer.name} ${customer.contact1}`}
+                  title={`${customer.name} ${formatPhoneNumber(customer.contact1)}`}
                 >
                   <span className="truncate max-w-[130px]">
                     {customer.name}
                   </span>
-                  <span className="shrink-0">{customer.contact1}</span>
+                  <span className="shrink-0">{formatPhoneNumber(customer.contact1)}</span>
                 </span>
               ))}
               {displayRecipients.remaining > 0 && (

@@ -71,7 +71,7 @@ export default function TwoFactorSetupModal({
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       ariaLabel="2단계 인증 (2FA)"
       disableAutoContainerSizing
-      containerClassName="relative bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] w-full h-full md:h-auto md:max-w-[848px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="relative bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] w-full h-full md:h-auto md:max-w-[848px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* Header */}
         <div className="flex items-center justify-between px-4 md:px-7 py-4 md:py-6">

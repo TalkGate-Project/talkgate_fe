@@ -679,7 +679,7 @@ export default function DiagnosisCustomerInfoModal({
         containerClassName={[
           "flex h-[1342px] max-h-[90vh] w-full flex-col overflow-hidden",
           "bg-card dark:bg-neutral-10 rounded-[14px]",
-          "drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]",
+          "drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none",
           "min-[709px]:max-w-[1062px]",
         ].join(" ")}
       >

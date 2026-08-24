@@ -5,6 +5,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { BillingService } from "@/services/billing";
 import BaseModal from "@/components/common/BaseModal";
 import type { BillingTermsType } from "@/types/billing";
+import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 
 interface ChangePaymentMethodModalProps {
   isOpen: boolean;
@@ -350,15 +351,18 @@ export default function ChangePaymentMethodModal({
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 11);
-    setFormData({ ...formData, buyerTel: value });
-  };
+    const input = e.target;
+    const cursorPos = input.selectionStart ?? 0;
+    const digitsBeforeCursor = input.value.slice(0, cursorPos).replace(/\D/g, "").length;
 
-  const formatPhone = (value: string) => {
-    if (!value) return "";
-    if (value.length <= 3) return value;
-    if (value.length <= 7) return `${value.slice(0, 3)}-${value.slice(3)}`;
-    return `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7)}`;
+    const digits = input.value.replace(/\D/g, "").slice(0, 11);
+    setFormData({ ...formData, buyerTel: digits });
+
+    requestAnimationFrame(() => {
+      const formatted = formatPhoneNumber(digits);
+      const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
+      input.setSelectionRange(newPos, newPos);
+    });
   };
 
   if (!isOpen) return null;
@@ -370,7 +374,7 @@ export default function ChangePaymentMethodModal({
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       ariaLabel={isRegisterMode ? "결제수단 등록" : "결제수단 변경"}
       disableAutoContainerSizing
-      containerClassName="w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="w-full h-full md:h-auto md:w-[524px] bg-card dark:bg-neutral-10 rounded-none md:rounded-[14px] md:max-h-[90vh] overflow-y-auto flex flex-col drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 md:px-7 pt-4 md:pt-7 pb-4 md:pb-6">
@@ -555,7 +559,7 @@ export default function ChangePaymentMethodModal({
               <label className="block text-[13px] text-neutral-60">연락처</label>
               <input
                 type="tel"
-                value={formatPhone(formData.buyerTel)}
+                value={formatPhoneNumber(formData.buyerTel)}
                 onChange={handlePhoneChange}
                 className="w-full h-[40px] px-3 py-2 bg-card dark:bg-neutral-20 border border-neutral-30 rounded-[6px] text-[14px] text-foreground focus:outline-none focus:border-foreground"
                 placeholder="010-0000-0000"
@@ -705,4 +709,3 @@ export default function ChangePaymentMethodModal({
     </BaseModal>
   );
 }
-

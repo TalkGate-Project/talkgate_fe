@@ -93,7 +93,7 @@ export default function ChangePasswordModal({
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       ariaLabel="비밀번호 변경"
       disableAutoContainerSizing
-      containerClassName="relative w-full max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4 md:mx-0 drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="relative w-full max-w-[440px] bg-card dark:bg-neutral-10 rounded-[14px] mx-4 md:mx-0 drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* Close Button */}
         <button

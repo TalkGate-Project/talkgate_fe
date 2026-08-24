@@ -41,7 +41,7 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
     <BaseModal
       onClose={onClose}
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(169,169,169,0.366)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)] lg:w-[776px] lg:max-w-[776px]"
+      containerClassName="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(169,169,169,0.366)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none dark:drop-shadow-none lg:w-[776px] lg:max-w-[776px]"
       ariaLabel="채무 현황 선택"
       disableAutoContainerSizing
     >
@@ -73,7 +73,7 @@ export default function AnalysisDebtSelectionModal({ open, debts, onClose, onCon
 
       <div className="flex h-[60px] items-center justify-end gap-3 border-t border-neutral-30 px-6 lg:h-[58px] lg:px-7">
         <button type="button" onClick={onClose} className="h-[34px] cursor-pointer rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10">닫기</button>
-        <button type="button" disabled={selectedDebtIds.length === 0} onClick={() => onConfirm(selectedDebtIds)} className="inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-[5px] border border-primary-60 bg-card px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground drop-shadow-[2px_2px_5px_#D6FAE8] hover:bg-primary-10 disabled:cursor-not-allowed disabled:opacity-40"><AnalyzeSparkleIcon />분석하기</button>
+        <button type="button" disabled={selectedDebtIds.length === 0} onClick={() => onConfirm(selectedDebtIds)} className="inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-[5px] border border-primary-60 bg-card px-3 text-[14px] font-semibold tracking-[-0.02em] text-foreground drop-shadow-[2px_2px_5px_#D6FAE8] hover:bg-primary-10 dark:drop-shadow-none dark:hover:bg-[rgba(214,250,232,0.1)] disabled:cursor-not-allowed disabled:opacity-40"><AnalyzeSparkleIcon />분석하기</button>
       </div>
     </BaseModal>
   );

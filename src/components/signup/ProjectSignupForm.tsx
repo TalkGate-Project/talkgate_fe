@@ -12,9 +12,27 @@ import { performLogout } from "@/lib/logout";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
 import { useMe } from "@/hooks/useMe";
+import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
 
 // 지연 함수
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const handlePhoneInputChange =
+  (setPhone: (value: string) => void) =>
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const cursorPos = input.selectionStart ?? 0;
+    const digitsBeforeCursor = input.value.slice(0, cursorPos).replace(/\D/g, "").length;
+
+    const digits = input.value.replace(/\D/g, "").slice(0, 11);
+    const formatted = formatPhoneNumber(digits);
+    setPhone(formatted);
+
+    requestAnimationFrame(() => {
+      const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
+      input.setSelectionRange(newPos, newPos);
+    });
+  };
 
 export function ProjectSignupForm() {
   const router = useRouter();
@@ -109,7 +127,7 @@ export function ProjectSignupForm() {
         setName((prev) => (prev.trim() ? prev : meName));
       }
       if (mePhone) {
-        setPhone((prev) => (prev.trim() ? prev : mePhone));
+        setPhone((prev) => (prev.trim() ? prev : formatPhoneNumber(mePhone.replace(/\D/g, ""))));
       }
       setHasInitializedDefaults(true);
 
@@ -213,7 +231,7 @@ export function ProjectSignupForm() {
     
     // 핸드폰 번호가 있으면 기본값으로 설정
     if (user.phone) {
-      setPhone(user.phone);
+      setPhone(formatPhoneNumber(user.phone.replace(/\D/g, "")));
     }
     
     // 기본값 설정 완료 표시
@@ -285,10 +303,12 @@ export function ProjectSignupForm() {
           payload.name = name.trim();
         }
         
-        if (phone.trim()) {
-          payload.phone = phone.trim();
+        // 서버는 phone을 숫자 문자열로만 허용(하이픈 불가) — 화면 표시용 하이픈은 제거 후 전송
+        const phoneDigits = phone.replace(/\D/g, "");
+        if (phoneDigits) {
+          payload.phone = phoneDigits;
         }
-        
+
         await MembersService.updateSelf(
           payload,
           Object.keys(headers).length > 0 ? headers : undefined
@@ -392,7 +412,8 @@ export function ProjectSignupForm() {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={handlePhoneInputChange(setPhone)}
+                inputMode="numeric"
                 placeholder="핸드폰 번호를 입력하세요"
                 className="w-full h-[40px] rounded-[5px] border border-[#555555] bg-transparent px-3 text-white placeholder-[#808080] focus:outline-none focus:border-[#00E272]"
                 autoComplete="tel"

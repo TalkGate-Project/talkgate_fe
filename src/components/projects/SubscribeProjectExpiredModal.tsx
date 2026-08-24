@@ -54,7 +54,7 @@ export default function SubscribeProjectExpiredModal({
       overlayClassName="bg-black/50 backdrop-blur-sm"
       ariaLabel="구독 기간이 만료되었어요."
       disableAutoContainerSizing
-      containerClassName="relative w-[440px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white shadow-[0px_8px_12px_rgba(9,30,66,0.1)] flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)]"
+      containerClassName="relative w-[440px] rounded-[14px] max-md:w-full max-md:min-h-[100dvh] max-md:h-[100dvh] max-md:max-h-[100dvh] max-md:rounded-none bg-white shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:shadow-none flex flex-col overflow-hidden max-md:overflow-y-auto drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:drop-shadow-none"
     >
         {/* 헤더 이미지 영역 */}
         <div className="relative w-full h-[155px] rounded-t-[14px] overflow-hidden flex-shrink-0">
