@@ -11,8 +11,8 @@ const SUBTITLE: Record<DebtDisplayMode, string> = {
 };
 
 export function DebtModeToggle({ value, onChange, disabled, compact = false }: { value: DebtDisplayMode; onChange: (mode: DebtDisplayMode) => void; disabled: boolean; compact?: boolean }) {
-  return <div role="tablist" aria-label="채무 입력 방식" className={`flex shrink-0 items-center bg-neutral-20 ${compact ? "h-8 w-[92px] gap-1 rounded-lg p-1" : "h-10 w-[200px] gap-3 rounded-lg px-1.5 py-[4.5px]"}`}>
-    {(["simple", "detailed"] as const).map((mode) => <button key={mode} type="button" role="tab" aria-selected={value === mode} disabled={disabled} onClick={() => onChange(mode)} className={`inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-center disabled:opacity-60 ${compact ? "h-6 w-10 text-[13px] leading-4" : "h-[31px] w-[88px] text-[16px] leading-[19px]"} ${value === mode ? "bg-card font-bold text-neutral-90" : "font-medium text-neutral-60"}`}>{mode === "simple" ? "간편" : "상세"}</button>)}
+  return <div data-debt-mode-toggle role="tablist" aria-label="채무 입력 방식" className={`flex shrink-0 items-center bg-neutral-20 ${compact ? "h-8 w-[92px] gap-1 rounded-lg p-1" : "h-10 w-[200px] gap-3 rounded-lg px-1.5 py-[4.5px]"}`}>
+    {(["simple", "detailed"] as const).map((mode) => <button key={mode} data-active={value === mode} type="button" role="tab" aria-selected={value === mode} disabled={disabled} onClick={() => onChange(mode)} className={`inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-[5px] text-center disabled:opacity-60 ${compact ? "h-6 w-10 text-[13px] leading-4" : "h-[31px] w-[88px] text-[16px] leading-[19px]"} ${value === mode ? "bg-card font-bold text-neutral-90" : "font-medium text-neutral-60"}`}>{mode === "simple" ? "간편" : "상세"}</button>)}
   </div>;
 }
 
@@ -34,8 +34,8 @@ export default function DebtHistoryCard({ form, update, disabled = false, areaBa
     if (form.debts.length === 0) update("debts", [createEmptyDebtItem(crypto.randomUUID())]);
   };
 
-  return <div className="min-w-0 overflow-hidden rounded-[14px] border border-neutral-30">
-    <div className="flex flex-col md:flex-row md:h-[70px] items-stretch md:items-center justify-between gap-3 bg-neutral-10 px-5 py-4 md:px-6">
+  return <div data-debt-history-card className="min-w-0 overflow-hidden rounded-[14px] border border-neutral-30">
+    <div data-debt-history-header className="flex flex-col md:flex-row md:h-[70px] items-stretch md:items-center justify-between gap-3 bg-neutral-10 px-5 py-4 md:px-6">
       <div><h3 className="text-[16px] font-bold text-foreground">채무내역</h3><p className="mt-1.5 text-[13px] text-neutral-60">{SUBTITLE[form.debtInputMode]}</p></div>
       <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} disabled={disabled} />
     </div>
