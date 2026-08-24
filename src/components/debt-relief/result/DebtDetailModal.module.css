@@ -1,0 +1,108 @@
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-history-card] {
+  background-color: #111111;
+  border-color: #4d4d4d;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-history-header] {
+  background-color: #111111;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-history-header] h3 {
+  color: #fdfdfd;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-mode-toggle] {
+  background-color: #333333;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-mode-toggle] button[data-active="true"] {
+  background-color: #111111;
+  color: #f5f5f5;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-mode-toggle] button[data-active="false"] {
+  color: #b9b9b9;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] {
+  border-color: #4d4d4d;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] thead th {
+  background-color: #333333;
+  color: #b9b9b9;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tbody tr,
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tfoot tr {
+  border-color: #4d4d4d;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tbody input,
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tbody select {
+  background-color: #111111 !important;
+  color: rgb(245 245 245 / 80%) !important;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tbody select + svg {
+  color: #fdfdfd;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] tbody svg path[stroke="#B0B0B0"] {
+  stroke: #959595;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-add-row] {
+  background-color: #1e1e1e;
+  color: #959595;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-add-row] svg path {
+  stroke: #959595;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="false"] {
+  background-color: #1e1e1e;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="false"] [data-summary-title] {
+  color: #b9b9b9;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="false"] [data-summary-amount] {
+  color: #fdfdfd;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="false"] [data-summary-label] {
+  color: #959595;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="false"] [data-summary-value] {
+  color: #b9b9b9;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="true"] {
+  background-color: #fdfdfd;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="true"] [data-summary-title],
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="true"] [data-summary-label],
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="true"] [data-summary-value] {
+  color: #959595;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-summary-card][data-highlight="true"] [data-summary-amount] {
+  color: #1e1e1e;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] :global(.table-horizontal-scroll) {
+  scrollbar-color: #777777 #111111;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] :global(.table-horizontal-scroll)::-webkit-scrollbar-track {
+  background-color: #111111;
+}
+
+:global([data-theme="dark"]) .darkModeDebtDetails [data-debt-items-table] :global(.table-horizontal-scroll)::-webkit-scrollbar-thumb {
+  background-color: #777777;
+}
