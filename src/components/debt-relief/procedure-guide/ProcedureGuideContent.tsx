@@ -103,7 +103,7 @@ export default function ProcedureGuideContent() {
           activeTab === "all" ? "md:min-h-[835px]" : ""
         }`}
       >
-        <header className="flex h-[55px] items-center gap-2 border-b-0 border-neutral-30 px-[clamp(16px,6.4vw,24px)] py-0 md:h-auto md:min-h-[76px] md:gap-4 md:border-b md:px-7 md:py-4">
+        <header className="flex h-[55px] items-center gap-2 border-b-0 border-neutral-30 px-[clamp(16px,6.4vw,24px)] py-0 dark:border-[#4D4D4D] md:h-auto md:min-h-[76px] md:gap-4 md:border-b md:px-7 md:py-4">
           <button
             type="button"
             onClick={() => router.push("/debt-relief")}
@@ -113,7 +113,7 @@ export default function ProcedureGuideContent() {
             <BackIcon />
           </button>
           <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-center md:gap-3">
-            <h1 className="shrink-0 text-[18px] font-semibold leading-[21px] text-foreground md:text-[24px] md:font-bold md:leading-[29px] md:tracking-[-0.02em]">
+            <h1 className="shrink-0 text-[18px] font-semibold leading-[21px] text-foreground dark:text-[#F5F5F5] md:text-[24px] md:font-bold md:leading-[29px] md:tracking-[-0.02em]">
               채무조정 제도 안내
             </h1>
             <span className="hidden h-4 w-px bg-neutral-40 md:block" aria-hidden />
@@ -126,7 +126,7 @@ export default function ProcedureGuideContent() {
         <div
           role="tablist"
           aria-label="채무조정 제도"
-          className="scrollbar-hide flex h-[34px] items-stretch gap-6 overflow-x-auto border-b border-neutral-30 px-[clamp(16px,6.4vw,24px)] shadow-none md:h-12 md:gap-0 md:border-b-0 md:px-0 md:shadow-[0_8px_12px_rgba(9,30,66,0.08)]"
+          className="scrollbar-hide flex h-[34px] items-stretch gap-6 overflow-x-auto border-b border-neutral-30 px-[clamp(16px,6.4vw,24px)] shadow-none dark:border-[#4D4D4D] md:h-12 md:gap-0 md:border-b-0 md:px-0 md:shadow-[0_8px_12px_rgba(9,30,66,0.08)] dark:md:shadow-[0_8px_12px_rgba(0,0,0,0.2)]"
         >
           <button
             type="button"

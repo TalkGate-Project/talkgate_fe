@@ -223,6 +223,7 @@ export default function DebtDetailModal({
             disabled={!canEditFields || submitting}
             areaBackgroundClassName="bg-neutral-10 dark:bg-neutral-0"
             showDebtItemFieldErrors={showDebtItemFieldErrors}
+            scrollFadeColorClassName="[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#1E1E1E]"
           />
         </div>
 
