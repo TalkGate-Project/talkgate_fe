@@ -25,22 +25,29 @@ export type DebtHistoryCardProps = {
   showDebtItemFieldErrors?: boolean;
   overLimitFields?: OverLimitDebtField[];
   scrollFadeColorClassName?: string;
+  /** 데스크톱형 카드 레이아웃 전환 기준. 신규/수정 폼은 desktop, 기존 재사용 화면은 tablet. */
+  desktopLayoutBreakpoint?: "tablet" | "desktop";
 };
 
-export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName }: DebtHistoryCardProps) {
+export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName, desktopLayoutBreakpoint = "tablet" }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
     update("debtInputMode", mode);
     if (form.debts.length === 0) update("debts", [createEmptyDebtItem(crypto.randomUUID())]);
   };
 
+  const desktopHeaderClassName = desktopLayoutBreakpoint === "desktop"
+    ? "lg:flex-row lg:h-[70px] lg:items-center lg:px-6"
+    : "md:flex-row md:h-[70px] md:items-center md:px-6";
+  const desktopBodyPaddingClassName = desktopLayoutBreakpoint === "desktop" ? "lg:px-6" : "md:px-6";
+
   return <div data-debt-history-card className="min-w-0 overflow-hidden rounded-[14px] border border-neutral-30">
-    <div data-debt-history-header className="flex flex-col md:flex-row md:h-[70px] items-stretch md:items-center justify-between gap-3 bg-neutral-10 px-5 py-4 md:px-6">
+    <div data-debt-history-header className={`flex flex-col items-stretch justify-between gap-3 bg-neutral-10 px-5 py-4 ${desktopHeaderClassName}`}>
       <div><h3 className="text-[16px] font-bold text-foreground">채무내역</h3><p className="mt-1.5 text-[13px] text-neutral-60">{SUBTITLE[form.debtInputMode]}</p></div>
       <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} disabled={disabled} />
     </div>
-    <div className={`flex flex-col gap-5 px-5 md:px-6 py-5 ${disabled ? "pointer-events-none opacity-80" : ""}`}>
-      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} />
+    <div className={`flex flex-col gap-5 px-5 py-5 ${desktopBodyPaddingClassName} ${disabled ? "pointer-events-none opacity-80" : ""}`}>
+      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} desktopLayoutBreakpoint={desktopLayoutBreakpoint} />
     </div>
   </div>;
 }

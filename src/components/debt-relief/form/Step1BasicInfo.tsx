@@ -24,13 +24,13 @@ export default function Step1BasicInfo({ form, update }: Props) {
       <FormSectionTitle>고객 정보</FormSectionTitle>
 
       {/* Figma: 섹션 구분선 → 첫 필드 13px, 필드 간 20px */}
-      <div className="mt-0 md:mt-3 flex flex-col gap-5">
-        <div className="flex flex-col md:flex-row md:items-start gap-5 md:gap-7">
+      <div className="mt-0 lg:mt-3 flex flex-col gap-5">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-5 lg:gap-7">
           <FormField
             label="고객명"
             required
             filled={Boolean(form.customerName.trim())}
-            className="flex-1 min-w-0 md:max-w-[230px]"
+            className="flex-1 min-w-0 lg:max-w-[230px]"
           >
             <TextInput
               value={form.customerName}

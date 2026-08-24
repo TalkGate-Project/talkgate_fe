@@ -29,7 +29,7 @@ export default function Step4IncomeExpense({ form, update, derived }: Props) {
     <div>
       <FormSectionTitle>고객 소득/지출</FormSectionTitle>
 
-      <div className="mt-0 md:mt-3 flex flex-col gap-5">
+      <div className="mt-0 lg:mt-3 flex flex-col gap-5">
         {/* 2026-07-24 피드백: 기본정보(Step1)에서 이 스텝으로 이동 */}
         <FormField label="고용 형태" required filled={form.employmentType !== null}>
           <PillSelect

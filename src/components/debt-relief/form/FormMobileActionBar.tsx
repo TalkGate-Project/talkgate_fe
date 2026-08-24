@@ -15,7 +15,7 @@ export default function FormMobileActionBar({
   onNext,
 }: Props) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 surface border-t border-neutral-20 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center justify-center gap-2">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 surface border-t border-neutral-20 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center justify-center gap-2">
       <FormStepNavButton direction="prev" disabled={isFirst} onClick={onBack} />
       <FormStepNavButton direction="next" disabled={isLast} onClick={onNext} />
     </div>
