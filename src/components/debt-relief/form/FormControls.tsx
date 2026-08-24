@@ -4,7 +4,7 @@ import { PillButton } from "./PillSelect";
 /** 스텝 본문 섹션 제목 — 데스크톱만. 모바일은 상단 드로어 스텝명이 대신함 */
 export function FormSectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h3 className="hidden md:block text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
+    <h3 className="hidden lg:block text-[16px] font-semibold tracking-[0.2px] text-foreground pb-3 border-b border-neutral-30">
       {children}
     </h3>
   );
@@ -170,7 +170,7 @@ export function ManwonQuickInput({
             onChange(digits ? parseInt(digits, 10) : null);
           }}
           placeholder={placeholder}
-          className={`${QUICK_INPUT_CLASS} w-[148px] md:w-[180px] text-right`}
+          className={`${QUICK_INPUT_CLASS} w-[148px] lg:w-[180px] text-right`}
           aria-label="금액(만원)"
         />
         <span className="shrink-0 text-[14px] font-medium tracking-[-0.02em] text-neutral-60">

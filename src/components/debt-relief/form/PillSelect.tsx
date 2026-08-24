@@ -18,10 +18,10 @@ export function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className={`cursor-pointer inline-flex items-center justify-center box-border h-[31px] md:h-[34px] px-3 md:px-5 py-0 rounded-full text-[14px] font-medium leading-none transition-colors ${
+      className={`cursor-pointer inline-flex items-center justify-center box-border h-[31px] lg:h-[34px] px-3 lg:px-5 py-0 rounded-full text-[14px] font-medium leading-none transition-colors ${
         selected
           ? "border border-transparent bg-neutral-100 text-neutral-0"
-          : "border border-neutral-30 text-foreground/80 tracking-[-0.04em] md:tracking-normal hover:border-neutral-50"
+          : "border border-neutral-30 text-foreground/80 tracking-[-0.04em] lg:tracking-normal hover:border-neutral-50"
       }`}
     >
       {label}

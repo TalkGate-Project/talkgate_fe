@@ -41,13 +41,14 @@ export default function Step3Debts({
     // absolute로 떠 있는 X 버튼(top-[8px] h-6, 하단 32px)과 카드 상단 테두리가 겹쳐 보였다.
     // 다른 스텝은 첫 요소가 일반 텍스트/타이틀이라 겹치지 않아 문제없었음 — 전체 상단 여백을
     // 늘리는 대신 이 스텝에서만 살짝 밀어내 Figma의 "다른 스텝은 상단에서 바로 시작" 의도를 유지.
-    <div className="mt-6 flex flex-col gap-5 md:mt-0">
+    <div className="mt-6 flex flex-col gap-5 lg:mt-0">
       <DebtHistoryCard
         form={form}
         update={update}
         totalDebtManwon={derived.totalDebtManwon}
         showDebtItemFieldErrors={debtItemFieldsMissingChecked}
         overLimitFields={overLimitFields}
+        desktopLayoutBreakpoint="desktop"
       />
 
       {/* 카드 바깥 공통 영역 — 채무 종류별 잔액과 무관하게 입력 방식 상관없이 항상 필요한 항목.

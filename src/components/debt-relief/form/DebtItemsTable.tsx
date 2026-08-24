@@ -41,6 +41,8 @@ type Props = {
   lockedDebtIds?: readonly string[];
   /** 넘김 버튼 뒤 그라데이션이 맞닿는 컨테이너 색. 호출 화면의 실제 배경색에 맞춰 오버라이드한다. */
   scrollFadeColorClassName?: string;
+  /** 합계 카드가 3열로 전환되는 기준. 결과 상세 모달은 기존 tablet, 신규/수정 폼은 desktop을 사용한다. */
+  desktopLayoutBreakpoint?: "tablet" | "desktop";
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -289,6 +291,7 @@ export default function DebtItemsTable({
   assetCollateralOnly = false,
   lockedDebtIds = [],
   scrollFadeColorClassName = "[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]",
+  desktopLayoutBreakpoint = "tablet",
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
   const [horizontalScrollState, setHorizontalScrollState] = useState({
@@ -339,7 +342,7 @@ export default function DebtItemsTable({
     <>
       <div
         aria-hidden
-        className={`pointer-events-none absolute top-1/2 z-10 h-[146px] w-[90px] -translate-y-1/2 ${
+        className={`pointer-events-none absolute inset-y-0 z-10 w-[90px] ${
           horizontalScrollState.atEnd
             ? "left-0 bg-[linear-gradient(270deg,transparent_0%,var(--debt-scroll-fade)_80%)]"
             : "right-0 bg-[linear-gradient(90deg,transparent_0%,var(--debt-scroll-fade)_80%)]"
@@ -390,8 +393,10 @@ export default function DebtItemsTable({
   const totals = sumDebtItems(debts);
   const collateralTotals = sumDebtItems(debts.filter(isDebtCollateralLoan));
   const unsecuredTotals = sumDebtItems(debts.filter((debt) => !isDebtCollateralLoan(debt)));
+  const summaryGridColumnsClassName =
+    desktopLayoutBreakpoint === "desktop" ? "lg:grid-cols-3" : "md:grid-cols-3";
   const summaryCards = showSummaryCards ? (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border-t border-neutral-30">
+    <div className={`grid grid-cols-1 ${summaryGridColumnsClassName} gap-3 p-3 border-t border-neutral-30`}>
       <DebtSumCard label="담보대출 합산" sums={collateralTotals} backgroundClassName={sumCardBackgroundClassName} />
       <DebtSumCard label="무담보대출 합산" sums={unsecuredTotals} backgroundClassName={sumCardBackgroundClassName} />
       <DebtSumCard label="총 합산" sums={totals} highlight />
@@ -402,7 +407,7 @@ export default function DebtItemsTable({
     const assetColumnWidths = [180, 220, 150, 220, 48];
     const assetTableWidth = assetColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+      <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
         <div className="relative">
           <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
             <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
@@ -434,7 +439,7 @@ export default function DebtItemsTable({
     const simpleColumnWidths = [150, 100, 200, 140, 210, 48];
     const simpleTableWidth = simpleColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
-      <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+      <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
         <div className="relative">
           <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
             <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
@@ -497,7 +502,7 @@ export default function DebtItemsTable({
   const detailedTableWidth = detailedColumnWidths.reduce((sum, width) => sum + width, 0);
 
   return (
-    <div data-debt-items-table className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
+    <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
       <div className="relative">
         <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
           <table

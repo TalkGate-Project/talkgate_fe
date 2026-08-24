@@ -40,7 +40,7 @@ export default function Step2Assets({ form, update }: Props) {
 
   return <div>
     <FormSectionTitle>고객 자산 현황</FormSectionTitle>
-    <div className="mt-4 md:mt-5 flex flex-wrap gap-2" role="list" aria-label="자산 종류 추가">
+    <div className="mt-4 lg:mt-5 flex flex-wrap gap-2" role="list" aria-label="자산 종류 추가">
       {ASSET_CATEGORY_OPTIONS.map((option) => {
         const hasAsset = form.assets.some((asset) => asset.category === option.value);
         return <button key={option.value} type="button" onClick={() => toggleAsset(option.value)} aria-pressed={hasAsset} aria-label={`${option.label} 자산 ${hasAsset ? "제거" : "추가"}`} className={`inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-full border px-4 text-[14px] font-medium transition-colors ${hasAsset ? "border-neutral-90 bg-neutral-90 text-neutral-0" : "border-neutral-30 bg-card text-foreground hover:border-neutral-50"}`}><AssetIcon category={option.value} />{option.label}</button>;
@@ -64,20 +64,20 @@ export default function Step2Assets({ form, update }: Props) {
           update("assetOriginDebtIds", form.assetOriginDebtIds.filter((id) => !collateralDebts.some((debt) => debt.id === id)));
         };
         return <section key={asset.id} className="overflow-hidden rounded-[14px] border border-neutral-30 bg-card">
-          <div className="flex min-h-14 flex-wrap items-center gap-3 bg-neutral-10 px-5 py-2.5 md:px-6">
+          <div className="flex min-h-14 flex-wrap items-center gap-3 bg-neutral-10 px-5 py-2.5 lg:px-6">
             <div className="flex min-w-[130px] flex-1 items-center gap-2"><AssetIcon category={asset.category} /><strong className="text-[16px] font-semibold text-foreground">{category?.label}</strong></div>
             <div className="w-[152px] shrink-0"><ManwonInput value={asset.marketValue} onChange={(marketValue) => updateAsset(asset.id, { marketValue })} /></div>
             <button type="button" onClick={() => setAssets(form.assets.filter((item) => item.id !== asset.id))} aria-label={`${category?.label} 삭제`} className="grid h-8 w-8 cursor-pointer place-items-center text-neutral-50 hover:text-neutral-70"><RemoveIcon /></button>
           </div>
           <>
-            <div className="flex min-h-12 items-center justify-between gap-3 border-t border-neutral-30 px-5 md:px-6">
+            <div className="flex min-h-12 items-center justify-between gap-3 border-t border-neutral-30 px-5 lg:px-6">
               <span className="text-[14px] font-semibold text-neutral-90">담보대출</span>
               <div className="flex shrink-0 items-center gap-4">
                 {collateralDebts.length > 0 && <DebtModeToggle compact value={form.debtInputMode} onChange={(mode) => update("debtInputMode", mode)} disabled={false} />}
                 <FormToggle checked={collateralDebts.length > 0} onChange={setCollateralEnabled} ariaLabel={`${category?.label} 담보대출 여부`} />
               </div>
             </div>
-            {collateralDebts.length > 0 && <div className="border-t border-neutral-30 px-5 py-4 md:px-6">
+            {collateralDebts.length > 0 && <div className="border-t border-neutral-30 px-5 py-4 lg:px-6">
               <DebtItemsTable
                 debts={collateralDebts}
                 assets={[asset]}
@@ -86,14 +86,15 @@ export default function Step2Assets({ form, update }: Props) {
                 defaultCollateralAssetId={asset.id}
                 showSummaryCards={false}
                 assetCollateralOnly
+                desktopLayoutBreakpoint="desktop"
               />
             </div>}
           </>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-30 bg-neutral-10 px-5 py-3 text-[14px] md:px-6"><span className="font-medium text-neutral-60">시가 {asset.marketValue.toLocaleString("ko-KR")} - 담보 {Math.round(collateralValueWon / 10_000).toLocaleString("ko-KR")}</span><strong className="text-[16px] text-foreground">순 자산 {(asset.marketValue - Math.round(collateralValueWon / 10_000)).toLocaleString("ko-KR")}만원</strong></div>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-30 bg-neutral-10 px-5 py-3 text-[14px] lg:px-6"><span className="font-medium text-neutral-60">시가 {asset.marketValue.toLocaleString("ko-KR")} - 담보 {Math.round(collateralValueWon / 10_000).toLocaleString("ko-KR")}</span><strong className="text-[16px] text-foreground">순 자산 {(asset.marketValue - Math.round(collateralValueWon / 10_000)).toLocaleString("ko-KR")}만원</strong></div>
         </section>;
       })}
-      <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-10 px-5 py-4 md:px-6"><span className="text-[14px] font-medium text-neutral-60">등록된 자산 {form.assets.length}건</span><div className="flex items-baseline gap-1"><strong className="text-[20px] font-bold tracking-[-0.03em] text-foreground">{totalAssetValue.toLocaleString("ko-KR")}</strong><span className="text-[13px] font-semibold text-neutral-60">만원</span></div></div>
-      <div className="flex items-center justify-between gap-3 rounded-[14px] border border-neutral-30 px-5 py-4 md:px-6"><span className="text-[14px] font-semibold text-neutral-90">최근 2년 내 재산 처분 이력</span><FormToggle checked={form.hasRecentAssetDisposal} onChange={(checked) => update("hasRecentAssetDisposal", checked)} ariaLabel="최근 2년 내 재산 처분 이력 있음" /></div>
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-10 px-5 py-4 lg:px-6"><span className="text-[14px] font-medium text-neutral-60">등록된 자산 {form.assets.length}건</span><div className="flex items-baseline gap-1"><strong className="text-[20px] font-bold tracking-[-0.03em] text-foreground">{totalAssetValue.toLocaleString("ko-KR")}</strong><span className="text-[13px] font-semibold text-neutral-60">만원</span></div></div>
+      <div className="flex items-center justify-between gap-3 rounded-[14px] border border-neutral-30 px-5 py-4 lg:px-6"><span className="text-[14px] font-semibold text-neutral-90">최근 2년 내 재산 처분 이력</span><FormToggle checked={form.hasRecentAssetDisposal} onChange={(checked) => update("hasRecentAssetDisposal", checked)} ariaLabel="최근 2년 내 재산 처분 이력 있음" /></div>
     </div>
   </div>;
 }
