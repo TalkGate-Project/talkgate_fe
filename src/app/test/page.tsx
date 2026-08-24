@@ -16,6 +16,8 @@ import ReactivateSubscriptionModal from "@/components/my-settings/ReactivateSubs
 import PartnerRequestModal from "@/components/dashboard/PartnerRequestModal";
 import type { ProjectPartnerRequest } from "@/types/projectPartners";
 import AnalysisProgressPlayground from "./AnalysisProgressPlayground";
+import TwoFactorDisableModal from "@/components/my-settings/TwoFactorDisableModal";
+import { WrongAccountModal } from "@/components/invite/WrongAccountModal";
 
 const THEME_STORAGE_KEY = "talkgate-theme";
 
@@ -37,6 +39,8 @@ const SECTIONS = [
   { id: "구독유도모달테스트", label: "구독 유도 모달 테스트" },
   { id: "개인정보처리위탁계약동의모달테스트", label: "개인정보 처리 위탁 계약 동의 모달 테스트" },
   { id: "구독만료모달테스트", label: "구독 만료 모달 테스트" },
+  { id: "2FA해제모달테스트", label: "2FA 해제 모달 테스트" },
+  { id: "잘못된계정모달테스트", label: "잘못된 계정 모달 테스트" },
 ] as const;
 
 export default function TestPage() {
@@ -60,6 +64,8 @@ export default function TestPage() {
   const [showPartnerRequestModal, setShowPartnerRequestModal] = useState(false);
   const [showSubscribeProjectModal, setShowSubscribeProjectModal] = useState(false);
   const [showPrivacyConsentModal, setShowPrivacyConsentModal] = useState(false);
+  const [showTwoFactorDisableModal, setShowTwoFactorDisableModal] = useState(false);
+  const [showWrongAccountModal, setShowWrongAccountModal] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -1433,6 +1439,56 @@ export default function TestPage() {
             </div>
           </div>
         </section>
+
+        {/* TwoFactorDisableModal 테스트 — 2FA 활성화 계정에서만 실제 트리거되어 /test로 상시 확인 */}
+        <section
+          id="2FA해제모달테스트"
+          ref={(el) => { sectionRefs.current["2FA해제모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">2FA 해제 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/my-settings/TwoFactorDisableModal</code>
+            </p>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 실제로는 2FA가 활성화된 계정에서만 열림. 여기서는 BaseModal 이관(스크롤락/포커스트랩/Escape/portal) 확인용 더미 마운트.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <button
+              onClick={() => setShowTwoFactorDisableModal(true)}
+              className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+            >
+              2FA 해제 모달 열기
+            </button>
+          </div>
+        </section>
+
+        {/* WrongAccountModal 테스트 — 초대 이메일과 로그인 계정 불일치 시에만 실제 트리거되어 /test로 상시 확인 */}
+        <section
+          id="잘못된계정모달테스트"
+          ref={(el) => { sectionRefs.current["잘못된계정모달테스트"] = el; }}
+          className="mb-12 scroll-mt-6"
+        >
+          <h2 className="text-2xl font-semibold text-neutral-90 mb-4">잘못된 계정 모달 테스트</h2>
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-neutral-70 dark:text-neutral-50">
+              <span className="font-semibold">컴포넌트:</span> <code className="bg-white dark:bg-neutral-20 px-1 rounded">@/components/invite/WrongAccountModal</code>
+            </p>
+            <p className="text-xs text-neutral-60 dark:text-neutral-50 mt-2 italic">
+              💡 실제로는 초대 이메일과 로그인 계정이 다를 때만 열림. 여기서는 BaseModal 이관(스크롤락/포커스트랩/Escape/portal) 확인용 더미 마운트.
+            </p>
+          </div>
+          <div className="bg-white dark:bg-neutral-10 rounded-lg border border-neutral-60 p-6">
+            <button
+              onClick={() => setShowWrongAccountModal(true)}
+              className="px-4 py-2 bg-primary-60 text-white rounded hover:bg-primary-70 transition-colors"
+            >
+              잘못된 계정 모달 열기
+            </button>
+          </div>
+        </section>
       </div>
 
       {/* SubscribeProjectModal */}
@@ -1507,6 +1563,34 @@ export default function TestPage() {
           onConfirmed={() => {
             console.log("개인정보 처리 위탁 계약 동의 완료");
             setShowPrivacyConsentModal(false);
+          }}
+        />
+      )}
+
+      {/* TwoFactorDisableModal */}
+      <TwoFactorDisableModal
+        isOpen={showTwoFactorDisableModal}
+        onClose={() => setShowTwoFactorDisableModal(false)}
+        email="test@example.com"
+        onSendCode={async () => {
+          console.log("이메일 인증코드 발송");
+        }}
+        onDisable={async (emailCode, totpCode) => {
+          console.log("2FA 해제:", emailCode, totpCode);
+          setShowTwoFactorDisableModal(false);
+        }}
+      />
+
+      {/* WrongAccountModal */}
+      {showWrongAccountModal && (
+        <WrongAccountModal
+          loggedInEmail="logged-in@example.com"
+          inviteEmail="invited@example.com"
+          socialProvider={null}
+          onCancel={() => setShowWrongAccountModal(false)}
+          onLogout={() => {
+            console.log("로그아웃");
+            setShowWrongAccountModal(false);
           }}
         />
       )}
