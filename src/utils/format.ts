@@ -274,6 +274,8 @@ export function getPhoneFormatCursorPosition(
   formatted: string,
   digitsBeforeCursor: number
 ): number {
+  if (digitsBeforeCursor <= 0) return 0;
+
   let digits = 0;
   for (let i = 0; i < formatted.length; i++) {
     if (/\d/.test(formatted[i])) {
