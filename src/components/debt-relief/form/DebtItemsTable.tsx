@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
@@ -158,62 +158,28 @@ function RemoveRowIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function ScrollEdgeIcon({ pointsToStart }: { pointsToStart: boolean }) {
-  const filterId = useId();
-
+// Figma: 24x24 rounded-full 배경(neutral-80) 위에 8x13 화살표(neutral-20)를 중앙 배치.
+// 꺾쇠 모양 자체는 뾰족한 끝(점 하나)과 벌어진 끝(선 두 개)의 잉크량이 달라 stroke 좌우
+// 여백이 수학적으로 대칭이어도 시각적으로는 벌어진 쪽이 더 무거워 보인다 — 뾰족한 방향으로
+// 1px씩 광학 보정한다.
+function ScrollEdgeArrowIcon({ pointsToStart }: { pointsToStart: boolean }) {
   return (
     <svg
-      width="40"
-      height="40"
-      viewBox="0 0 32 32"
+      width="8"
+      height="13"
+      viewBox="0 0 8 13"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
+      className={pointsToStart ? "-translate-x-px" : "translate-x-px"}
     >
-      <g filter={`url(#${filterId})`}>
-        <rect
-          width="24"
-          height="24"
-          rx="12"
-          transform="matrix(-1 0 0 1 27 2)"
-          fill="var(--neutral-80)"
-        />
-        <path
-          d={pointsToStart ? "M18.334 8.66699L12.334 14.0003L18.334 19.3337" : "M12.334 8.66699L18.334 14.0003L12.334 19.3337"}
-          stroke="var(--neutral-20)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-      <defs>
-        <filter
-          id={filterId}
-          x="0"
-          y="0"
-          width="32"
-          height="32"
-          filterUnits="userSpaceOnUse"
-          colorInterpolationFilters="sRGB"
-        >
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feColorMatrix
-            in="SourceAlpha"
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
-            result="hardAlpha"
-          />
-          <feOffset dx="1" dy="2" />
-          <feGaussianBlur stdDeviation="2" />
-          <feComposite in2="hardAlpha" operator="out" />
-          <feColorMatrix
-            type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"
-          />
-          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-        </filter>
-      </defs>
+      <path
+        d={pointsToStart ? "M7 1L1 6.33333L7 11.6667" : "M1 1L7 6.33333L1 11.6667"}
+        stroke="var(--neutral-20)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -356,7 +322,9 @@ export default function DebtItemsTable({
           horizontalScrollState.atEnd ? "left-0" : "right-0"
         }`}
       >
-        <ScrollEdgeIcon pointsToStart={horizontalScrollState.atEnd} />
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-neutral-80 shadow-[1px_2px_4px_rgba(0,0,0,0.2)]">
+          <ScrollEdgeArrowIcon pointsToStart={horizontalScrollState.atEnd} />
+        </span>
       </button>
     </>
   ) : null;
