@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect, useId, useState } from "react";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
@@ -38,6 +39,8 @@ type Props = {
   assetCollateralOnly?: boolean;
   /** 채무 현황에서 삭제할 수 없고 회색 배경으로 구분할 행 ID. */
   lockedDebtIds?: readonly string[];
+  /** 넘김 버튼 뒤 그라데이션이 맞닿는 컨테이너 색. 호출 화면의 실제 배경색에 맞춰 오버라이드한다. */
+  scrollFadeColorClassName?: string;
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -153,6 +156,66 @@ function RemoveRowIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function ScrollEdgeIcon({ pointsToStart }: { pointsToStart: boolean }) {
+  const filterId = useId();
+
+  return (
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <g filter={`url(#${filterId})`}>
+        <rect
+          width="24"
+          height="24"
+          rx="12"
+          transform="matrix(-1 0 0 1 27 2)"
+          fill="var(--neutral-80)"
+        />
+        <path
+          d={pointsToStart ? "M18.334 8.66699L12.334 14.0003L18.334 19.3337" : "M12.334 8.66699L18.334 14.0003L12.334 19.3337"}
+          stroke="var(--neutral-20)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+      <defs>
+        <filter
+          id={filterId}
+          x="0"
+          y="0"
+          width="32"
+          height="32"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="1" dy="2" />
+          <feGaussianBlur stdDeviation="2" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.2 0"
+          />
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
 type DebtSums = {
   currentBalanceWon: number;
   monthlyPaymentWon: number;
@@ -224,8 +287,75 @@ export default function DebtItemsTable({
   showSummaryCards = true,
   assetCollateralOnly = false,
   lockedDebtIds = [],
+  scrollFadeColorClassName = "[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]",
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
+  const [horizontalScrollState, setHorizontalScrollState] = useState({
+    hasOverflow: false,
+    atEnd: false,
+  });
+
+  const updateHorizontalScrollState = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+    const nextState = {
+      hasOverflow: maxScrollLeft > 1,
+      atEnd: maxScrollLeft > 0 && container.scrollLeft >= maxScrollLeft - 1,
+    };
+
+    setHorizontalScrollState((previousState) =>
+      previousState.hasOverflow === nextState.hasOverflow && previousState.atEnd === nextState.atEnd
+        ? previousState
+        : nextState
+    );
+  }, [containerRef]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    updateHorizontalScrollState();
+    const resizeObserver = new ResizeObserver(updateHorizontalScrollState);
+    resizeObserver.observe(container);
+    if (container.firstElementChild) resizeObserver.observe(container.firstElementChild);
+
+    return () => resizeObserver.disconnect();
+  }, [assetCollateralOnly, containerRef, mode, updateHorizontalScrollState]);
+
+  const scrollToOppositeEdge = () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      left: horizontalScrollState.atEnd ? 0 : container.scrollWidth - container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const scrollEdgeControls = horizontalScrollState.hasOverflow ? (
+    <>
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute top-1/2 z-10 h-[146px] w-[90px] -translate-y-1/2 ${
+          horizontalScrollState.atEnd
+            ? "left-0 bg-[linear-gradient(270deg,transparent_0%,var(--debt-scroll-fade)_80%)]"
+            : "right-0 bg-[linear-gradient(90deg,transparent_0%,var(--debt-scroll-fade)_80%)]"
+        } ${scrollFadeColorClassName}`}
+      />
+      <button
+        type="button"
+        onClick={scrollToOppositeEdge}
+        aria-label={horizontalScrollState.atEnd ? "채무내역 처음으로 이동" : "채무내역 끝으로 이동"}
+        className={`absolute top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-40 ${
+          horizontalScrollState.atEnd ? "left-0" : "right-0"
+        }`}
+      >
+        <ScrollEdgeIcon pointsToStart={horizontalScrollState.atEnd} />
+      </button>
+    </>
+  ) : null;
 
   // DatePicker의 연도 선택 목록 기본 범위는 현재+10년까지라 장기 대출(20~30년 이상 만기)이
   // 캘린더로 선택되지 않는다. 만기일은 현재+50년까지 넉넉히 열어준다.
@@ -272,8 +402,9 @@ export default function DebtItemsTable({
     const assetTableWidth = assetColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
       <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
-        <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
-          <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
+        <div className="relative">
+          <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+            <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
             <colgroup>{assetColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
             <thead><tr>
               <th className={HEADER_CELL}>채무종류</th>
@@ -290,7 +421,9 @@ export default function DebtItemsTable({
               <td className={`${BODY_CELL} text-center`}><button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button></td>
             </tr>)}</tbody>
             <tfoot><tr className="border-t border-neutral-30"><td colSpan={5} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
-          </table>
+            </table>
+          </div>
+          {scrollEdgeControls}
         </div>
       </div>
     );
@@ -301,8 +434,9 @@ export default function DebtItemsTable({
     const simpleTableWidth = simpleColumnWidths.reduce((sum, width) => sum + width, 0);
     return (
       <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
-        <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
-          <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
+        <div className="relative">
+          <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+            <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
             <colgroup>{simpleColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
             <thead><tr>
               <th className={HEADER_CELL}>채무종류</th>
@@ -346,7 +480,9 @@ export default function DebtItemsTable({
               </tr>;
             })}</tbody>
             <tfoot><tr className="border-t border-neutral-30"><td colSpan={6} className="py-2"><button type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
-          </table>
+            </table>
+          </div>
+          {scrollEdgeControls}
         </div>
         {summaryCards}
       </div>
@@ -361,12 +497,13 @@ export default function DebtItemsTable({
 
   return (
     <div className="rounded-t-[10px] border-t border-neutral-30 overflow-hidden">
-      <div className="overflow-x-auto" ref={containerRef} {...dragScrollHandlers}>
-        <table
-          className="border-collapse table-fixed"
-          style={{ width: detailedTableWidth, minWidth: detailedTableWidth }}
-          aria-label="채무 상세 내역"
-        >
+      <div className="relative">
+        <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+          <table
+            className="border-collapse table-fixed"
+            style={{ width: detailedTableWidth, minWidth: detailedTableWidth }}
+            aria-label="채무 상세 내역"
+          >
           <colgroup>
             {detailedColumnWidths.map((width, index) => (
               <col key={index} style={{ width }} />
@@ -551,7 +688,9 @@ export default function DebtItemsTable({
               </td>
             </tr>
           </tfoot>
-        </table>
+          </table>
+        </div>
+        {scrollEdgeControls}
       </div>
 
       {summaryCards}
