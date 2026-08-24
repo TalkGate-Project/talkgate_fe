@@ -1,14 +1,29 @@
 "use client";
 
-import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
 import type { ProcedureGuideDetail, ProcedureGuideNoteType } from "@/services/procedureGuide";
 
-function WarningIcon({ size = 16 }: { size?: number }) {
+function WarningIcon() {
   return (
-    <svg className="shrink-0" width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M8 1.75 14.5 13H1.5L8 1.75Z" fill="#EFB008" />
-      <path d="M8 5.75v3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="8" cy="11.2" r="0.75" fill="white" />
+    <svg className="shrink-0" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M8.25706 3.09956C9.02167 1.74025 10.9788 1.74025 11.7434 3.09956L17.3237 13.0201C18.0736 14.3533 17.1102 16.0006 15.5805 16.0006H4.4199C2.89025 16.0006 1.92682 14.3533 2.67675 13.0201L8.25706 3.09956ZM11.0001 13.0007C11.0001 13.553 10.5524 14.0007 10.0001 14.0007C9.44784 14.0007 9.00012 13.553 9.00012 13.0007C9.00012 12.4484 9.44784 12.0007 10.0001 12.0007C10.5524 12.0007 11.0001 12.4484 11.0001 13.0007ZM10.0001 5.00073C9.44784 5.00073 9.00012 5.44845 9.00012 6.00073V9.00073C9.00012 9.55302 9.44784 10.0007 10.0001 10.0007C10.5524 10.0007 11.0001 9.55302 11.0001 9.00073V6.00073C11.0001 5.44845 10.5524 5.00073 10.0001 5.00073Z"
+        fill="#EFB008"
+      />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg className="shrink-0" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10ZM11 14C11 14.5523 10.5523 15 10 15C9.44772 15 9 14.5523 9 14C9 13.4477 9.44772 13 10 13C10.5523 13 11 13.4477 11 14ZM10 5C9.44772 5 9 5.44772 9 6V10C9 10.5523 9.44772 11 10 11C10.5523 11 11 10.5523 11 10V6C11 5.44772 10.5523 5 10 5Z"
+        fill="#4D82F3"
+      />
     </svg>
   );
 }
@@ -45,10 +60,10 @@ const NOTE_STYLE: Record<ProcedureGuideNoteType, { box: string; text: string }> 
 function NoteBadge({ type, text }: { type: ProcedureGuideNoteType; text: string }) {
   const style = NOTE_STYLE[type];
   return (
-    <div className={`inline-flex min-h-7 max-w-full items-center gap-2 rounded-[5px] px-3 py-1 ${style.box}`}>
-      <span className={`shrink-0 ${style.text}`}>
+    <div className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-[5px] px-3 py-1 ${style.box}`}>
+      <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center ${style.text}`}>
         {type === "warning" && <WarningIcon />}
-        {type === "info" && <InfoCircleIcon size={16} />}
+        {type === "info" && <InfoIcon />}
         {type === "tip" && <TipIcon />}
       </span>
       <span className={`text-[13px] font-medium leading-5 tracking-[-0.02em] opacity-80 ${style.text}`}>
@@ -194,7 +209,7 @@ function WarningsSection({ detail }: { detail: ProcedureGuideDetail }) {
       <SectionHeading>주의사항</SectionHeading>
       <ul className="mt-4 flex flex-col gap-3">
         {detail.warnings.map((warning) => (
-          <li key={warning} className="flex min-h-12 items-center gap-3 rounded-[12px] bg-procedure-warning-note px-5 py-3 text-warning-100 dark:text-warning-40">
+          <li key={warning} className="flex min-h-12 items-center gap-2 rounded-[12px] bg-procedure-warning-note px-5 py-3 text-warning-100 dark:text-warning-40">
             <WarningIcon />
             <span className="text-[14px] font-medium leading-5 tracking-[-0.02em] opacity-80">{warning}</span>
           </li>

@@ -33,10 +33,10 @@ const TABLE_HEADERS = ["이름", "연령", "전화번호", "담당팀", "담당�
 
 function CloseIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="text-neutral-50">
       <path
         d="M6 18L18 6M6 6L18 18"
-        stroke="#B0B0B0"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -47,10 +47,10 @@ function CloseIcon() {
 
 function SearchIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="text-neutral-50">
       <path
         d="M17.5 17.5L12.5 12.5M14.1667 8.33333C14.1667 11.555 11.555 14.1667 8.33333 14.1667C5.11167 14.1667 2.5 11.555 2.5 8.33333C2.5 5.11167 5.11167 2.5 8.33333 2.5C11.555 2.5 14.1667 5.11167 14.1667 8.33333Z"
-        stroke="#B0B0B0"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -223,7 +223,7 @@ export default function CustomerMatchModal({
             <div className="min-w-0">
               <h2
                 id="customer-match-modal-title"
-                className="text-[18px] font-semibold leading-[21px] text-foreground"
+                className="text-[18px] font-semibold leading-[21px] text-foreground dark:text-[#FDFDFD]"
               >
                 고객연동
               </h2>
@@ -244,7 +244,7 @@ export default function CustomerMatchModal({
             </button>
           </div>
 
-          <div className="mx-4 md:mx-7 mt-4 border-b border-neutral-30 shrink-0" />
+          <div className="mx-4 md:mx-7 mt-4 border-b border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
 
           <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-7 pt-3 pb-4 flex flex-col">
             <div className="relative w-full md:w-[200px] shrink-0">
@@ -253,7 +253,7 @@ export default function CustomerMatchModal({
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="이름 연락처로 검색..."
                 disabled={Boolean(matchingId)}
-                className="w-full h-[34px] px-3 pr-10 rounded-[5px] border border-neutral-30 bg-card text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-foreground placeholder:text-neutral-60 focus:outline-none focus:border-neutral-50 disabled:opacity-60"
+                className="w-full h-[34px] px-3 pr-10 rounded-[5px] border border-neutral-30 bg-card text-[12px] font-medium leading-[14px] tracking-[-0.02em] text-foreground placeholder:text-neutral-60 focus:outline-none focus:border-neutral-50 disabled:opacity-60 dark:border-[#4D4D4D] dark:bg-[#1E1E1E] dark:text-[#FDFDFD]"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
                 <SearchIcon />
@@ -263,7 +263,7 @@ export default function CustomerMatchModal({
             <div className="hidden md:block mt-3 overflow-hidden rounded-[8px] flex-1 min-h-0">
               <table className="w-full text-left border-collapse table-fixed">
                 <thead>
-                  <tr className="bg-neutral-20 text-neutral-60">
+                  <tr className="bg-neutral-20 text-neutral-60 dark:bg-[#333333]">
                     {TABLE_HEADERS.map((header, index) => (
                       <th
                         key={header}
@@ -283,7 +283,7 @@ export default function CustomerMatchModal({
                 <tbody>
                   {loading &&
                     Array.from({ length: PAGE_LIMIT }).map((_, rowIndex) => (
-                      <tr key={`skeleton-${rowIndex}`} className="border-b border-neutral-30 animate-pulse">
+                      <tr key={`skeleton-${rowIndex}`} className="border-b border-neutral-30 dark:border-[#4D4D4D] animate-pulse">
                         {Array.from({ length: 7 }).map((__, cellIndex) => (
                           <td key={cellIndex} className="h-[59px] px-3 align-middle">
                             <div
@@ -307,7 +307,7 @@ export default function CustomerMatchModal({
 
                   {!loading &&
                     customers.map((customer) => (
-                      <tr key={customer.id} className="border-b border-neutral-30">
+                      <tr key={customer.id} className="border-b border-neutral-30 dark:border-[#4D4D4D]">
                         <td className="h-[59px] px-3 align-middle text-[14px] font-medium text-neutral-90 opacity-80 truncate">
                           {customer.name || "-"}
                         </td>
@@ -331,13 +331,15 @@ export default function CustomerMatchModal({
                             type="button"
                             disabled={matchingId === customer.id || customer.isAnalysisConnected}
                             onClick={() => handleMatch(customer.id)}
-                            className="cursor-pointer inline-flex items-center justify-center h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="cursor-pointer inline-flex h-[34px] min-w-[48px] items-center justify-center rounded-[5px] bg-neutral-90 px-3 py-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#333333]"
                           >
-                            {matchingId === customer.id
-                              ? "..."
-                              : customer.isAnalysisConnected
-                                ? "연동됨"
-                                : "연동"}
+                            <span className="-translate-y-px">
+                              {matchingId === customer.id
+                                ? "..."
+                                : customer.isAnalysisConnected
+                                  ? "연동됨"
+                                  : "연동"}
+                            </span>
                           </button>
                         </td>
                       </tr>
@@ -351,7 +353,7 @@ export default function CustomerMatchModal({
                 Array.from({ length: PAGE_LIMIT }).map((_, index) => (
                   <div
                     key={`mobile-skeleton-${index}`}
-                    className="rounded-[12px] border border-neutral-30 p-4 animate-pulse"
+                    className="rounded-[12px] border border-neutral-30 p-4 animate-pulse dark:border-[#4D4D4D]"
                   >
                     <div className="h-4 w-1/3 bg-neutral-20 rounded mb-2" />
                     <div className="h-3 w-1/2 bg-neutral-20 rounded" />
@@ -368,7 +370,7 @@ export default function CustomerMatchModal({
                 customers.map((customer) => (
                   <div
                     key={customer.id}
-                    className="rounded-[12px] border border-neutral-30 bg-card p-4"
+                    className="rounded-[12px] border border-neutral-30 bg-card p-4 dark:border-[#4D4D4D] dark:bg-[#1E1E1E]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -386,16 +388,18 @@ export default function CustomerMatchModal({
                         type="button"
                         disabled={matchingId === customer.id || customer.isAnalysisConnected}
                         onClick={() => handleMatch(customer.id)}
-                        className="cursor-pointer shrink-0 h-[34px] min-w-[48px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="cursor-pointer inline-flex h-[34px] min-w-[48px] shrink-0 items-center justify-center rounded-[5px] bg-neutral-90 px-3 py-0 text-[14px] font-semibold leading-[17px] text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#333333]"
                       >
-                        {matchingId === customer.id
-                          ? "..."
-                          : customer.isAnalysisConnected
-                            ? "연동됨"
-                            : "연동"}
+                        <span className="-translate-y-px">
+                          {matchingId === customer.id
+                            ? "..."
+                            : customer.isAnalysisConnected
+                              ? "연동됨"
+                              : "연동"}
+                        </span>
                       </button>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-neutral-30 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-neutral-60">
+                    <div className="mt-3 pt-3 border-t border-neutral-30 dark:border-[#4D4D4D] flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-neutral-60">
                       <span>담당팀: {getTeamName(customer)}</span>
                       <span>담당자: {getAssigneeName(customer)}</span>
                       <span>시간: {formatDateTime(customer.applicationDate)}</span>
@@ -420,16 +424,16 @@ export default function CustomerMatchModal({
             </div>
           </div>
 
-          <div className="mx-4 md:mx-7 border-t border-neutral-30 shrink-0" />
+          <div className="mx-4 md:mx-7 border-t border-neutral-30 dark:border-[#4D4D4D] shrink-0" />
 
           <div className="flex justify-end px-4 md:px-7 py-4 shrink-0">
             <button
               type="button"
               onClick={handleCancel}
               disabled={Boolean(matchingId)}
-              className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer inline-flex h-[34px] items-center justify-center rounded-[5px] border border-neutral-30 bg-card px-3 py-0 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#4D4D4D] dark:bg-[#1E1E1E] dark:text-[#FDFDFD] dark:hover:bg-[#222222]"
             >
-              취소
+              <span className="-translate-y-px">취소</span>
             </button>
           </div>
     </BaseModal>
