@@ -1023,8 +1023,8 @@ export const DebtReliefService = {
     return { id: String(response.data.data.id) };
   },
 
-  // 결과 화면에서 채무 정보만 수정 (PATCH /v1/analysis/{id}/debts). 허용 상태는 재진단과 동일해
-  // canEditDiagnosisInfo를 그대로 재사용하면 된다.
+  // 결과 화면에서 채무 정보만 수정 (PATCH /v1/analysis/{id}/debts).
+  // reanalyze=false는 자체 소유 건이면 상태·공유 여부와 무관하게 가능하고, true는 재분석 권한을 따른다.
   // ⚠️ reanalyze=true는 되돌릴 수 없다 — 상태 초기화 + AI 채팅 이력 삭제 + 절차 추적 초기화.
   // 호출부에서 반드시 확인 모달을 거칠 것.
   async updateDiagnosisDebts(
