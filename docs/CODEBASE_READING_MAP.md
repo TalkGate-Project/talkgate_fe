@@ -108,8 +108,8 @@
 
 이해가 끝난 뒤에만 개선안을 적습니다. 먼저 불변식과 실패 시나리오를 문장으로 남깁니다.
 
-- [ ] `FRONTEND_SECURITY_AUDIT_REPORT.md`
-- [ ] `TESTING_GUIDE.md`
+- [ ] `docs/FRONTEND_SECURITY_AUDIT_REPORT.md`
+- [ ] `docs/TESTING_GUIDE.md`
 - [ ] `docs/ZOOM_SUBPIXEL_PLAYBOOK.md` §4-4
 - [ ] `docs/unused-code-verification.md` (37줄, 최신 상태로 재검증)
 - [ ] `docs/MODAL_SCROLLLOCK_FOCUSTRAP_AUDIT.md` — 미검증 3개 특수조건 확인
