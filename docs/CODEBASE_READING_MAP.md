@@ -168,3 +168,36 @@
    `/login` 자체는 리다이렉트되지 않는 것(과차단 아님)까지 확인함.
    - 참고: `/notice`(단수) 목록 페이지와 `/notices`(복수)는 렌더링 내용이 완전히 동일한 중복 라우트다.
      헤더·드로어 링크는 전부 `/notices`를, 상세/작성 링크는 전부 `/notice/...`를 가리킨다. 정리 후보.
+
+## 가설 (코드 추론만 — 재현 안 됨, 확정 문제 아님)
+
+1. **알림 딥링크를 메인 도메인에서 클릭하면 강제 로그아웃될 수 있음**
+
+   `navigateByNotificationProject`(`src/components/layout/NotificationBell.tsx:202`,
+   `src/components/notifications/NotificationsPageContent.tsx:132`)는 알림의 프로젝트 서브도메인이
+   없으면 현재 도메인에서 그대로 이동한다:
+
+   ```ts
+   const targetSubdomain = notification.project?.subDomain?.trim();
+   if (!targetSubdomain) {
+     router.push(path);   // 서브도메인 없이 현재 도메인에서 이동
+     return;
+   }
+   ```
+
+   `/notifications`는 `AUTHENTICATED_OPTIONAL_SUBDOMAIN_PATHS`라 메인 도메인에서도 열린다. 이 상태에서
+   `project.subDomain`이 빈 알림을 클릭해 서브도메인 필수 경로(`/customers`, `/debt-relief`, `/dashboard`,
+   그리고 2026-08-25부터 `/notice`)로 이동하면, 미들웨어 3번 섹션의 `if (!subdomain)` 분기가
+   `deleteAuthCookies()`로 토큰까지 지우고 로그인으로 보낸다(`src/middleware.ts:379-384`). 즉 단순 리다이렉트가
+   아니라 **강제 로그아웃**이다.
+
+   - **미확정인 이유**: `notification.project.subDomain`이 실제로 비는 경우가 있는지 확인하지 못했다.
+     백엔드가 항상 채워 보내면 이 경로는 영영 실행되지 않는다. 코드가 명시적으로 폴백을 두고 있다는 점만이
+     "빌 수 있다"는 근거다.
+   - **확인 방법**: 알림 목록 API 응답에서 `project.subDomain`이 비어 오는 케이스가 있는지 확인하거나,
+     메인 도메인 `/notifications`에서 해당 알림을 실제로 클릭해 본다.
+   - **범위 주의**: 이건 `/notice` 가드 추가로 새로 생긴 함정이 아니다. `/customers`·`/debt-relief`·`/dashboard`는
+     이전부터 서브도메인 필수라 같은 폴백을 타면 지금도 동일하게 로그아웃된다. `/notice` 추가는 기존 동작에
+     경로 하나를 맞춘 것이고, 실패 양상이 "깨진 화면"에서 "로그아웃"으로 바뀐 것은 사실이다.
+   - **손댄다면**: 폴백에서 서브도메인을 못 구했을 때 `router.push` 대신 `/projects`로 유도하거나, 미들웨어의
+     "서브도메인 없음 → 토큰 삭제" 정책이 과한지 재검토하는 두 방향이 있다. 정책 변경이라 별도 판단 필요.
