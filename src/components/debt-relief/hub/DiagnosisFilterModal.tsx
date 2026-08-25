@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import type { AnalysisStatus } from "@/types/analysis";
 import {
   DIAGNOSIS_STATUS_LABEL,
@@ -20,6 +20,8 @@ const STATUS_ORDER: AnalysisStatus[] = [
 ];
 
 type Props = {
+  position: { top: number; left: number };
+  width: number;
   procedure: RecommendedProcedure | undefined;
   status: AnalysisStatus | undefined;
   /** 반려 탭에서는 상태값이 rejected로 고정되므로 상태 필터 섹션 자체를 숨긴다. */
@@ -69,7 +71,10 @@ function CloseIcon() {
 
 // "필터추가" 팝오버 패널 — 절차/상태 각각 카테고리당 단일선택. draft 상태로만 들고 있다가
 // "적용완료"를 눌러야 실제 목록 쿼리(useDebtReliefList)에 반영된다.
-export default function DiagnosisFilterModal({ procedure, status, listTab, onApply, onClose }: Props) {
+const DiagnosisFilterModal = forwardRef<HTMLDivElement, Props>(function DiagnosisFilterModal(
+  { position, width, procedure, status, listTab, onApply, onClose },
+  ref
+) {
   const [draftProcedure, setDraftProcedure] = useState(procedure);
   const [draftStatus, setDraftStatus] = useState(status);
 
@@ -97,9 +102,11 @@ export default function DiagnosisFilterModal({ procedure, status, listTab, onApp
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-label="필터 추가"
-      className="absolute left-0 top-full mt-2 z-30 w-[360px] max-w-[92vw] rounded-[14px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-none overflow-hidden"
+      className="fixed z-[200] max-w-[calc(100vw-32px)] rounded-[14px] bg-card border border-border shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-none overflow-hidden"
+      style={{ top: position.top, left: position.left, width }}
       onClick={(event) => event.stopPropagation()}
     >
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
@@ -162,4 +169,6 @@ export default function DiagnosisFilterModal({ procedure, status, listTab, onApp
       </div>
     </div>
   );
-}
+});
+
+export default DiagnosisFilterModal;

@@ -27,6 +27,8 @@ const AUTHENTICATED_PROJECT_PATHS = [
   "/debt-relief",
   "/attendance",
   "/notices",
+  // 공지 상세(/notice/{id})·작성(/notice/write). 목록 /notices와 별개 라우트라 둘 다 필요
+  "/notice",
   "/settings",
 ];
 
@@ -257,6 +259,7 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
+  // 개발환경 분기 끝
 
   // ============================================
   // 배포 환경 (Vercel) - 루트 경로 처리
@@ -534,6 +537,7 @@ export const config = {
     '/stats/:path*',
     '/debt-relief/:path*',
     '/notices/:path*',
+    '/notice/:path*',
     '/attendance/:path*',
     '/settings/:path*',
     '/notifications/:path*',
