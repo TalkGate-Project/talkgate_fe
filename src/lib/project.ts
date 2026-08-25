@@ -130,23 +130,23 @@ export function setUseAttendanceMenu(useAttendance: boolean) {
 export function getUseAttendanceMenu(): boolean {
   if (!isBrowser()) return false;
   try {
-    const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-    if (stored === "true" || stored === "false") return stored === "true";
-
-    // localStorage에 값이 없으면(다른 origin 최초 진입 등) 쿠키 값을 사용
+    // 쿠키가 원본 — 미들웨어가 매 요청마다 서버 값으로 갱신하므로 localStorage보다 우선한다.
+    // (localStorage를 우선하면 다른 기기에서 바꾼 설정이 영원히 반영되지 않음)
     const cookieValue = getCookieValue(ATTENDANCE_COOKIE_KEY);
-    const fromCookie = cookieValue === "true";
-
-    // 다음 호출부터는 localStorage에서도 바로 읽을 수 있게 동기화
     if (cookieValue === "true" || cookieValue === "false") {
       try {
         localStorage.setItem(ATTENDANCE_STORAGE_KEY, cookieValue);
       } catch {
         // localStorage 접근 불가 환경(Private Browsing 등)에서는 무시
       }
+      return cookieValue === "true";
     }
 
-    return fromCookie;
+    // 쿠키가 없는 경우(미들웨어 미적용 경로 등)에만 로컬 캐시로 폴백
+    const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
+    if (stored === "true" || stored === "false") return stored === "true";
+
+    return false;
   } catch (e) {
     console.error("Failed to get attendance menu state:", e);
     return false;
@@ -195,9 +195,7 @@ export function setProjectType(projectType: ProjectType) {
 export function getProjectType(): ProjectType | null {
   if (!isBrowser()) return null;
   try {
-    const stored = localStorage.getItem(PROJECT_TYPE_STORAGE_KEY);
-    if (isProjectType(stored)) return stored;
-
+    // 쿠키 우선 — 근거는 getUseAttendanceMenu 주석 참고
     const cookieValue = getCookieValue(PROJECT_TYPE_COOKIE_KEY);
     if (isProjectType(cookieValue)) {
       try {
@@ -207,6 +205,9 @@ export function getProjectType(): ProjectType | null {
       }
       return cookieValue;
     }
+
+    const stored = localStorage.getItem(PROJECT_TYPE_STORAGE_KEY);
+    if (isProjectType(stored)) return stored;
 
     return null;
   } catch (e) {
