@@ -170,6 +170,7 @@ export function deleteAuthCookies(
     REMEMBER_POLICY_COOKIE,
     'tg_selected_project_id',
     'tg_use_attendance_menu',
+    'tg_project_type',
   ];
 
   // 정확한 쿠키 옵션으로 삭제 (설정할 때와 동일한 옵션 사용)

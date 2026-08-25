@@ -81,4 +81,4 @@ export default function CreateButton() {
 }
 ```
 
-자세한 컨벤션과 UI 토큰 규칙은 `CONVENTION.md`를 확인하세요.
+자세한 컨벤션과 UI 토큰 규칙은 `docs/CONVENTION.md`를 확인하세요.

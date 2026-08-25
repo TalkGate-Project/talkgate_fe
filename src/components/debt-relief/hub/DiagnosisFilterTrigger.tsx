@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { AnalysisStatus } from "@/types/analysis";
 import type { RecommendedProcedure } from "@/types/debtRelief";
 import type { DiagnosisListTab } from "@/hooks/useDebtReliefHub";
+import { useAnchoredPanel } from "@/hooks/useAnchoredPanel";
 import DiagnosisFilterModal from "./DiagnosisFilterModal";
+
+const FILTER_PANEL_WIDTH = 360;
 
 type Props = {
   procedure: RecommendedProcedure | undefined;
@@ -38,20 +42,17 @@ export default function DiagnosisFilterTrigger({
   onChangeStatus,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!triggerRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [open]);
+  const { rootRef, anchorRef, panelRef, panelPos } = useAnchoredPanel<HTMLButtonElement>({
+    open,
+    onClose: () => setOpen(false),
+    panelWidth: FILTER_PANEL_WIDTH,
+    estimatedPanelHeight: listTab === "rejected" ? 270 : 390,
+  });
 
   return (
-    <div className="relative shrink-0" ref={triggerRef}>
+    <div className="relative shrink-0" ref={rootRef}>
       <button
+        ref={anchorRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="dialog"
@@ -62,18 +63,23 @@ export default function DiagnosisFilterTrigger({
       >
         <FilterIcon />
       </button>
-      {open && (
-        <DiagnosisFilterModal
-          procedure={procedure}
-          status={status}
-          listTab={listTab}
-          onApply={({ procedure: nextProcedure, status: nextStatus }) => {
-            onChangeProcedure(nextProcedure);
-            onChangeStatus(nextStatus);
-          }}
-          onClose={() => setOpen(false)}
-        />
-      )}
+      {open && panelPos &&
+        createPortal(
+          <DiagnosisFilterModal
+            ref={panelRef}
+            position={panelPos}
+            width={FILTER_PANEL_WIDTH}
+            procedure={procedure}
+            status={status}
+            listTab={listTab}
+            onApply={({ procedure: nextProcedure, status: nextStatus }) => {
+              onChangeProcedure(nextProcedure);
+              onChangeStatus(nextStatus);
+            }}
+            onClose={() => setOpen(false)}
+          />,
+          document.body
+        )}
     </div>
   );
 }
