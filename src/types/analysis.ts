@@ -276,7 +276,7 @@ export type ReanalyzeAnalysisInput = AnalysisFormInput & {
 };
 
 // PATCH /v1/analysis/{id}/debts — 결과 화면에서 채무 정보만 수정.
-// 허용 상태는 재진단(PATCH /{id}/input)과 동일(상담중/반려됨, 변호사 프로젝트는 계약대기중 포함).
+// reanalyze=false는 자체 소유 건이면 상태·공유 여부와 무관하게 가능하고, true는 재분석 권한을 따른다.
 // debtInputMode만 바꿔 보내면 간편↔상세 모드 전환도 된다.
 export type UpdateAnalysisDebtsInput = {
   projectId: string;

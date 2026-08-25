@@ -18,8 +18,8 @@ import {
   wonToManwon,
 } from "@/services/debtRelief";
 import {
-  canEditDiagnosisDebtFields,
   canEditDiagnosisInfo,
+  canSaveDiagnosisDebts,
   createEmptyDiagnosisForm,
   type DiagnosisDetail,
   type DiagnosisFormState,
@@ -85,12 +85,11 @@ export default function DebtDetailModal({
   // 이 모달 트리 전체를 리렌더하지 않게 한다(AnalysisLoadingOverlayHost 주석 참고).
   const analysisProgressRef = useRef<AnalysisProgressHandle | null>(null);
 
-  // 값 저장(적용하기)은 소유권만 있으면 단계와 무관하게 항상 가능. "다시 분석"만 단계 제한을 받는다.
-  const canEditFields =
+  // 값만 저장은 자체 소유 건이면 상태·공유 여부와 무관하게 가능하다. 재분석만 상태·공유 조건을 받는다.
+  const canSaveDebts =
     projectTypeReady &&
-    canEditDiagnosisDebtFields({
+    canSaveDiagnosisDebts({
       isReceivedShare: detail.isReceivedShare,
-      deliveryStatus: detail.deliveryStatus,
     });
   const canReanalyze =
     projectTypeReady &&
@@ -126,7 +125,7 @@ export default function DebtDetailModal({
   };
 
   const handleApplyClick = () => {
-    if (!canEditFields || submitting) return;
+    if (!canSaveDebts || submitting) return;
 
     const missing = [...getMissingDebtFieldLabels(form), ...getMissingDebtItemFieldLabels(form)];
     if (missing.length > 0) {
@@ -143,6 +142,9 @@ export default function DebtDetailModal({
   };
 
   const submitDebts = async (reanalyze: boolean) => {
+    const hasPermission = reanalyze ? canReanalyze : canSaveDebts;
+    if (!hasPermission || submitting) return;
+
     setSubmittingAction(reanalyze ? "reanalyze" : "save");
     // 다시 분석은 전체 화면 로딩으로 넘어가므로 뒤에 겹쳐 있는 선택 모달은 먼저 닫는다.
     if (reanalyze) setChoiceOpen(false);
@@ -222,7 +224,7 @@ export default function DebtDetailModal({
               form={form}
               update={update}
               totalDebtManwon={totalDebtManwon}
-              disabled={!canEditFields || submitting}
+              disabled={submitting}
               areaBackgroundClassName="bg-neutral-10"
               showDebtItemFieldErrors={showDebtItemFieldErrors}
               scrollFadeColorClassName="[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]"
@@ -239,22 +241,21 @@ export default function DebtDetailModal({
           >
             닫기
           </button>
-          {canEditFields && (
-            <button
-              type="button"
-              onClick={handleApplyClick}
-              disabled={submitting}
-              className="cursor-pointer inline-flex h-11 flex-1 items-center justify-center rounded-[5px] bg-neutral-90 px-4 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#F5F5F5] dark:text-[#333333] md:h-[34px] md:flex-none"
-            >
-              적용하기
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleApplyClick}
+            disabled={!canSaveDebts || submitting}
+            className="cursor-pointer inline-flex h-11 flex-1 items-center justify-center rounded-[5px] bg-neutral-90 px-4 text-[14px] font-semibold text-neutral-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#F5F5F5] dark:text-[#333333] md:h-[34px] md:flex-none"
+          >
+            적용하기
+          </button>
         </div>
       </BaseModal>
 
       <DebtApplyChoiceModal
         open={choiceOpen}
         submittingAction={submittingAction}
+        canSaveOnly={canSaveDebts}
         canReanalyze={canReanalyze}
         onClose={() => !submitting && setChoiceOpen(false)}
         onSaveOnly={() => submitDebts(false)}

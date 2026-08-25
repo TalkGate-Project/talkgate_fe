@@ -6,6 +6,8 @@ type Props = {
   open: boolean;
   /** null이면 대기, 'save'/'reanalyze'면 해당 경로 진행 중 */
   submittingAction?: "save" | "reanalyze" | null;
+  /** 자체 소유 건이면 상태·공유 여부와 무관하게 값만 저장할 수 있다. */
+  canSaveOnly?: boolean;
   /** false면 진행 단계상 재분석이 막힌 건 — "다시 분석" 버튼만 비활성화하고 값만 저장은 그대로 둔다 */
   canReanalyze?: boolean;
   onClose: () => void;
@@ -37,6 +39,7 @@ function CloseIcon() {
 export default function DebtApplyChoiceModal({
   open,
   submittingAction = null,
+  canSaveOnly = true,
   canReanalyze = true,
   onClose,
   onSaveOnly,
@@ -96,7 +99,7 @@ export default function DebtApplyChoiceModal({
           <button
             type="button"
             onClick={onSaveOnly}
-            disabled={submitting}
+            disabled={submitting || !canSaveOnly}
             className="cursor-pointer h-[34px] px-3 rounded-[5px] border border-neutral-30 text-[14px] font-semibold tracking-[-0.02em] text-foreground hover:bg-neutral-10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submittingAction === "save" ? "저장 중..." : "값만 저장"}

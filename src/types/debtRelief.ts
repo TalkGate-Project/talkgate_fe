@@ -67,17 +67,12 @@ export function canEditDiagnosisInfo(params: {
   );
 }
 
-// 채무 상세 모달(DebtDetailModal)의 필드 편집·저장(값만 저장) 가능 여부 — 위 canEditDiagnosisInfo와
-// 달리 진행 단계(status)는 보지 않는다. 단계 제한은 "다시 분석"에만 적용되고(canEditDiagnosisInfo를
-// 그대로 재사용), 값 저장은 원본 소유(공유/납품받지 않음)이기만 하면 단계와 무관하게 항상 가능해야
-// 한다는 정책이다.
-export function canEditDiagnosisDebtFields(params: {
+// 채무 현황만 저장(reanalyze:false) 가능 여부. 자체 소유 건이면 진행 상태와 공유 여부에 관계없이
+// 저장할 수 있고, 다른 프로젝트에서 공유받은 건만 저장할 수 없다.
+export function canSaveDiagnosisDebts(params: {
   isReceivedShare: boolean;
-  deliveryStatus?: "delivered" | "revoked" | "rejected" | null;
 }): boolean {
-  if (params.isReceivedShare) return false;
-  if (params.deliveryStatus === "delivered") return false;
-  return true;
+  return !params.isReceivedShare;
 }
 
 // ── 추천 절차 ────────────────────────────────────────────────

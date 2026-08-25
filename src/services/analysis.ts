@@ -126,8 +126,8 @@ export const AnalysisService = {
     });
   },
 
-  // 채무 정보만 수정 (자체 생성 분석 건만). 허용 상태는 reanalyze와 동일.
-  // reanalyze=true면 AI 재진단까지 수행하므로 create/reanalyze와 동일하게 타임아웃을 연장한다.
+  // 채무 정보만 수정 (자체 생성 분석 건만). reanalyze=false는 상태·공유 여부와 무관하게 가능하고,
+  // true는 재분석 권한을 따른다. AI 재진단 가능성이 있어 타임아웃을 넉넉히 연장한다.
   updateDebts(id: number, input: UpdateAnalysisDebtsInput) {
     const { projectId, ...body } = input;
     return apiClient.patch<UpdateAnalysisDebtsResponse>(`/v1/analysis/${id}/debts`, body, {
