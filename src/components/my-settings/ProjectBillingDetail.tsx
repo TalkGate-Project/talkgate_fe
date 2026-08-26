@@ -15,6 +15,7 @@ import ProjectBillingHeader from "./billing/ProjectBillingHeader";
 import PaymentInfoSection from "./billing/PaymentInfoSection";
 import PaymentHistorySection from "./billing/PaymentHistorySection";
 import { useProjectBilling } from "@/hooks/useProjectBilling";
+import DiscountCouponApplyModal from "./billing/DiscountCouponApplyModal";
 
 interface ProjectBillingDetailProps {
   projectId: string | number;
@@ -29,6 +30,7 @@ export default function ProjectBillingDetail({
 }: ProjectBillingDetailProps) {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
+  const [isDiscountCouponModalOpen, setIsDiscountCouponModalOpen] = useState(false);
 
   // 프로젝트 선택 (구독 정보를 가져오기 위해)
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function ProjectBillingDetail({
         subscriptionLoading={subscriptionLoading}
         billingLoading={billingLoading}
         discountCouponLoading={discountCouponLoading}
+        onApplyDiscountCoupon={() => setIsDiscountCouponModalOpen(true)}
       />
 
       <PaymentHistorySection
@@ -134,6 +137,14 @@ export default function ProjectBillingDetail({
         }}
         isLoading={isReactivating}
       />
+
+      {isDiscountCouponModalOpen && subscription && (
+        <DiscountCouponApplyModal
+          projectId={projectId}
+          subscription={subscription}
+          onClose={() => setIsDiscountCouponModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

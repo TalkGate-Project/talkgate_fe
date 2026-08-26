@@ -192,7 +192,7 @@ export type ChargeResponse = {
   data: Payment;
 };
 
-// POST /v1/subscriptions/discount-coupon/info - 할인 쿠폰 정보 조회
+// POST /v1/subscriptions/discount-coupon/info - 할인쿠폰 정보 조회
 export type DiscountCouponInfoInput = {
   code: string;
   planId: number;
@@ -222,6 +222,15 @@ export type DiscountCouponInfo = {
 };
 
 export type DiscountCouponInfoResponse = ApiSuccess<DiscountCouponInfo>;
+
+// POST /v1/subscriptions/discount-coupon/apply - 기존 구독에 할인쿠폰 적용
+export type ApplyDiscountCouponInput = {
+  code: string;
+};
+
+export type ApplyDiscountCouponResponse = ApiSuccess<{
+  subscription: Subscription;
+}>;
 
 // DELETE /v1/subscriptions, POST /v1/subscriptions/reactivate - 구독 취소/재활성화 응답
 export type SubscriptionActionResponse = {
