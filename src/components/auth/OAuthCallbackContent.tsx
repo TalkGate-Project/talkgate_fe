@@ -203,7 +203,9 @@ function OAuthCallbackContentInner({ provider }: OAuthCallbackContentInnerProps)
             const twoFactorUrl = redirectUrl
               ? `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&${rememberMeParam}&redirectUrl=${encodeURIComponent(redirectUrl)}`
               : `/login/two-factor?token=${encodeURIComponent(result.twoFactorToken)}&${rememberMeParam}`;
-            router.push(twoFactorUrl);
+            // 인가 코드는 일회용이라 뒤로가기로 이 콜백 URL에 재진입하면 교환이 실패한다.
+            // replace로 콜백 엔트리를 덮어 히스토리에서 제거한다.
+            router.replace(twoFactorUrl);
           }
           return;
         }
