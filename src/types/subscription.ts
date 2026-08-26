@@ -50,6 +50,8 @@ export type Subscription = {
   endDate: string;
   nextBillingDate?: string;
   pendingPlanId?: number | null;
+  // 예약된 플랜 변경이 실제로 적용되는 시점. 변경 예약이 없으면 내려오지 않는다.
+  pendingPlanAppliesAt?: string | null;
   pendingBillingCycle?: BillingCycle | null;
   cancelledAt: string | null;
   terminatedAt: string | null;
