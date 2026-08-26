@@ -271,7 +271,7 @@ export default function PaymentInfoSection({
                       <button
                         type="button"
                         onClick={onApplyDiscountCoupon}
-                        className="ml-[10px] inline-flex h-[34px] min-w-[104px] cursor-pointer items-center justify-center gap-[10px] whitespace-nowrap rounded-[5px] border border-[#E2E2E2] bg-white px-3 py-1.5 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black transition-colors hover:bg-neutral-10"
+                        className="ml-[10px] inline-flex h-[34px] min-w-[104px] cursor-pointer items-center justify-center gap-[10px] whitespace-nowrap rounded-[5px] border border-[#E2E2E2] bg-white px-3 py-1.5 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black transition-colors hover:bg-neutral-10 dark:border-neutral-30 dark:bg-neutral-10 dark:text-white dark:hover:bg-neutral-20"
                       >
                         할인쿠폰 적용
                       </button>
