@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-[400px] grid place-items-center">
+    <div className="min-h-[calc(100vh-54px)] bg-card lg:bg-background grid place-items-center">
       <LoadingSpinner />
     </div>
   );
