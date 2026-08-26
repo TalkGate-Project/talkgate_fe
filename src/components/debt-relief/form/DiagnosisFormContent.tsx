@@ -627,7 +627,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   if (loadingForm || initializingAnalysisDraft) {
     return (
       <>
-        <div className="min-h-[400px] grid place-items-center">
+        <div className="min-h-[calc(100vh-54px)] bg-card lg:bg-background grid place-items-center">
           <LoadingSpinner />
         </div>
         <AnalysisDraftRestoreModal
@@ -668,7 +668,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   };
 
   return (
-    <>
+    <div className="min-h-[calc(100vh-54px)] bg-card lg:bg-background">
       {/* ref가 항상 살아 있어야 하므로 조건부 렌더하지 않는다(active로만 제어). */}
       <AnalysisLoadingOverlayHost active={analyzing} ref={analysisProgressRef} />
 
@@ -834,6 +834,6 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           />
         </>
       )}
-    </>
+    </div>
   );
 }
