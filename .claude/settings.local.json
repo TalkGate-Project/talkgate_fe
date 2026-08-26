@@ -34,9 +34,7 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:vercel.com)",
       "WebFetch(domain:medium.com)",
-      "Bash(read h *)",
-      "Read(//c/2026/ggosoonbox/.claude/**)",
-      "Read(//c/2026/**)"
+      "Bash(read h *)"
     ]
   }
 }
