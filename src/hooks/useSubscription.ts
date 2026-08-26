@@ -13,6 +13,27 @@ import {
 } from "@/mocks/billingMockData";
 import type { DiscountCouponInfo } from "@/types/subscription";
 
+export const subscriptionQueryKeys = {
+  detail: (projectId: string | null, isDemoMode: boolean) =>
+    ["subscription", "detail", projectId, isDemoMode] as const,
+  discountCouponInfo: (
+    projectId: string | null,
+    couponCode: string | undefined,
+    planId: number | undefined,
+    billingCycle: Subscription["billingCycle"] | undefined,
+    isDemoMode: boolean
+  ) =>
+    [
+      "subscription",
+      "discount-coupon-info",
+      projectId,
+      couponCode,
+      planId,
+      billingCycle,
+      isDemoMode,
+    ] as const,
+};
+
 /**
  * 프로젝트 구독 정보 조회 hook
  */
@@ -21,7 +42,7 @@ export function useSubscription() {
   const { isDemoMode } = useDemoMode();
 
   const query = useQuery({
-    queryKey: ["subscription", "detail", projectId, isDemoMode],
+    queryKey: subscriptionQueryKeys.detail(projectId, isDemoMode),
     queryFn: async () => {
       // 더미 모드일 때 목 데이터 반환
       if (isDemoMode) {
@@ -108,15 +129,13 @@ export function useSubscriptionDiscountCouponInfo(subscription: Subscription | n
   const discountCoupon = subscription?.discountCoupon;
 
   const query = useQuery<DiscountCouponInfo | null>({
-    queryKey: [
-      "subscription",
-      "discount-coupon-info",
+    queryKey: subscriptionQueryKeys.discountCouponInfo(
       projectId,
       discountCoupon?.code,
       subscription?.plan?.id,
       subscription?.billingCycle,
-      isDemoMode,
-    ],
+      isDemoMode
+    ),
     queryFn: async () => {
       if (!subscription?.plan?.id || !discountCoupon?.code) return null;
 

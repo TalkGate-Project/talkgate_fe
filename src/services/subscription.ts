@@ -15,6 +15,8 @@ import type {
   SubscriptionActionResponse,
   DiscountCouponInfoInput,
   DiscountCouponInfoResponse,
+  ApplyDiscountCouponInput,
+  ApplyDiscountCouponResponse,
   CouponApplyInput,
   CouponApplyResponse,
   CouponInfoInput,
@@ -138,7 +140,7 @@ export const SubscriptionService = {
   },
 
   /**
-   * 할인 쿠폰 정보 조회 (구독 시작 전 미리보기)
+   * 할인쿠폰 정보 조회 (구독 시작 전 미리보기)
    */
   getDiscountCouponInfo(
     input: DiscountCouponInfoInput,
@@ -146,6 +148,21 @@ export const SubscriptionService = {
   ) {
     return apiClient.post<DiscountCouponInfoResponse>(
       "/v1/subscriptions/discount-coupon/info",
+      input,
+      headers ? { headers } : undefined
+    );
+  },
+
+  /**
+   * 기존 활성 구독에 할인쿠폰 예약 (Admin만 가능)
+   * 현재 결제 기간이 아닌 다음 자동 갱신부터 적용됩니다.
+   */
+  applyDiscountCoupon(
+    input: ApplyDiscountCouponInput,
+    headers?: Record<string, string>
+  ) {
+    return apiClient.post<ApplyDiscountCouponResponse>(
+      "/v1/subscriptions/discount-coupon/apply",
       input,
       headers ? { headers } : undefined
     );
@@ -207,6 +224,8 @@ export type {
   DiscountCouponInfo,
   DiscountCouponInfoInput,
   DiscountCouponInfoResponse,
+  ApplyDiscountCouponInput,
+  ApplyDiscountCouponResponse,
   CouponApplyInput,
   CouponApplyResponse,
   CouponInfoInput,
