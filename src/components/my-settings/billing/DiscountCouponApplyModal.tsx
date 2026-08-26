@@ -194,12 +194,14 @@ export default function DiscountCouponApplyModal({
                 유효한 할인쿠폰입니다.
               </p>
               <dl className="grid grid-cols-[92px_1fr] gap-y-2">
-                <dt className="text-neutral-60">할인율</dt>
-                <dd className="font-semibold text-[#3F7FFF]">
-                  {couponInfo.discountType === "percentage"
-                    ? `${couponInfo.discountValue}%`
-                    : formatAmountKR(couponInfo.discountValue)}
-                </dd>
+                {couponInfo.discountType === "percentage" && (
+                  <>
+                    <dt className="text-neutral-60">할인율</dt>
+                    <dd className="font-semibold text-[#3F7FFF]">
+                      {couponInfo.discountValue}%
+                    </dd>
+                  </>
+                )}
                 <dt className="text-neutral-60">할인금액</dt>
                 <dd className="font-semibold text-[#3F7FFF]">
                   {formatAmountKR(couponInfo.pricing.discountAmount)}
