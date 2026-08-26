@@ -12,6 +12,7 @@ interface PaymentInfoSectionProps {
   subscriptionLoading: boolean;
   billingLoading: boolean;
   discountCouponLoading: boolean;
+  onApplyDiscountCoupon: () => void;
 }
 
 function getPlanPrice(subscription: Subscription): number {
@@ -140,6 +141,7 @@ export default function PaymentInfoSection({
   subscriptionLoading,
   billingLoading,
   discountCouponLoading,
+  onApplyDiscountCoupon,
 }: PaymentInfoSectionProps) {
   const paymentAmountDisplay =
     subscription?.plan && subscription.autoRenewal !== false
@@ -264,6 +266,15 @@ export default function PaymentInfoSection({
                           discountAmount={paymentAmountDisplay.discountAmount}
                         />
                       </span>
+                    )}
+                    {!subscription.discountCoupon && subscription.isActive && (
+                      <button
+                        type="button"
+                        onClick={onApplyDiscountCoupon}
+                        className="ml-[10px] inline-flex h-[34px] min-w-[104px] cursor-pointer items-center justify-center gap-[10px] whitespace-nowrap rounded-[5px] border border-[#E2E2E2] bg-white px-3 py-1.5 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-black transition-colors hover:bg-neutral-10"
+                      >
+                        할인쿠폰 적용
+                      </button>
                     )}
                   </>
                 ) : (
