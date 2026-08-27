@@ -27,9 +27,11 @@ export type DebtHistoryCardProps = {
   scrollFadeColorClassName?: string;
   /** 데스크톱형 카드 레이아웃 전환 기준. 신규/수정 폼은 desktop, 기존 재사용 화면은 tablet. */
   desktopLayoutBreakpoint?: "tablet" | "desktop";
+  /** 신규/수정 화면 상세 모드에서 전용 가로 스크롤바를 표시한다. */
+  useDetailedCustomScrollbar?: boolean;
 };
 
-export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName, desktopLayoutBreakpoint = "tablet" }: DebtHistoryCardProps) {
+export default function DebtHistoryCard({ form, update, disabled = false, areaBackgroundClassName = "bg-neutral-10", showDebtItemFieldErrors = false, scrollFadeColorClassName, desktopLayoutBreakpoint = "tablet", useDetailedCustomScrollbar = false }: DebtHistoryCardProps) {
   const handleModeChange = (mode: DebtDisplayMode) => {
     if (disabled) return;
     update("debtInputMode", mode);
@@ -47,7 +49,7 @@ export default function DebtHistoryCard({ form, update, disabled = false, areaBa
       <DebtModeToggle value={form.debtInputMode} onChange={handleModeChange} disabled={disabled} />
     </div>
     <div className={`flex flex-col gap-5 px-5 py-5 ${desktopBodyPaddingClassName} ${disabled ? "pointer-events-none opacity-80" : ""}`}>
-      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} desktopLayoutBreakpoint={desktopLayoutBreakpoint} />
+      <DebtItemsTable debts={form.debts} assets={form.assets} mode={form.debtInputMode} onChange={(debts) => update("debts", debts)} sumCardBackgroundClassName={areaBackgroundClassName} showFieldErrors={showDebtItemFieldErrors} lockedDebtIds={form.assetOriginDebtIds} scrollFadeColorClassName={scrollFadeColorClassName} desktopLayoutBreakpoint={desktopLayoutBreakpoint} useDetailedCustomScrollbar={useDetailedCustomScrollbar} />
     </div>
   </div>;
 }

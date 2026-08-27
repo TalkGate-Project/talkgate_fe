@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import DatePicker from "@/components/common/DatePicker";
 import CalendarInlineIcon from "@/components/common/icons/CalendarInlineIcon";
 import InfoCircleIcon from "@/components/common/icons/InfoCircleIcon";
@@ -43,6 +51,8 @@ type Props = {
   scrollFadeColorClassName?: string;
   /** 합계 카드가 3열로 전환되는 기준. 결과 상세 모달은 기존 tablet, 신규/수정 폼은 desktop을 사용한다. */
   desktopLayoutBreakpoint?: "tablet" | "desktop";
+  /** 신규/수정 화면의 상세 채무내역에서 Figma 규격의 전용 가로 스크롤바를 사용한다. */
+  useDetailedCustomScrollbar?: boolean;
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -184,6 +194,27 @@ function ScrollEdgeArrowIcon({ pointsToStart }: { pointsToStart: boolean }) {
   );
 }
 
+function DetailedScrollbarArrowIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      className="rounded-full drop-shadow-[1px_2px_4px_rgba(0,0,0,0.2)]"
+      aria-hidden
+    >
+      <path
+        d={direction === "left" ? "M10 4L6 8L10 11.1111" : "M6.2222 4.4444L10.2222 8L6.2222 11.5556"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 type DebtSums = {
   currentBalanceWon: number;
   monthlyPaymentWon: number;
@@ -258,11 +289,23 @@ export default function DebtItemsTable({
   lockedDebtIds = [],
   scrollFadeColorClassName = "[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]",
   desktopLayoutBreakpoint = "tablet",
+  useDetailedCustomScrollbar = false,
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
+  const detailedCustomScrollbarEnabled = useDetailedCustomScrollbar && mode === "detailed";
+  const detailedScrollContainerId = useId();
+  const customScrollbarTrackRef = useRef<HTMLDivElement>(null);
+  const customScrollbarThumbRef = useRef<HTMLDivElement>(null);
+  const thumbDragStateRef = useRef<{
+    pointerId: number;
+    startClientX: number;
+    startScrollLeft: number;
+  } | null>(null);
   const [horizontalScrollState, setHorizontalScrollState] = useState({
     hasOverflow: false,
+    atStart: true,
     atEnd: false,
+    progress: 0,
   });
 
   const updateHorizontalScrollState = useCallback(() => {
@@ -270,17 +313,23 @@ export default function DebtItemsTable({
     if (!container) return;
 
     const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+    const scrollLeft = Math.min(maxScrollLeft, Math.max(0, container.scrollLeft));
     const nextState = {
       hasOverflow: maxScrollLeft > 1,
-      atEnd: maxScrollLeft > 0 && container.scrollLeft >= maxScrollLeft - 1,
+      atStart: scrollLeft <= 1,
+      atEnd: maxScrollLeft > 0 && scrollLeft >= maxScrollLeft - 1,
+      progress: detailedCustomScrollbarEnabled && maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0,
     };
 
     setHorizontalScrollState((previousState) =>
-      previousState.hasOverflow === nextState.hasOverflow && previousState.atEnd === nextState.atEnd
+      previousState.hasOverflow === nextState.hasOverflow &&
+      previousState.atStart === nextState.atStart &&
+      previousState.atEnd === nextState.atEnd &&
+      Math.abs(previousState.progress - nextState.progress) < 0.0001
         ? previousState
         : nextState
     );
-  }, [containerRef]);
+  }, [containerRef, detailedCustomScrollbarEnabled]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -302,6 +351,103 @@ export default function DebtItemsTable({
       left: horizontalScrollState.atEnd ? 0 : container.scrollWidth - container.clientWidth,
       behavior: "smooth",
     });
+  };
+
+  const scrollToDetailedTableEdge = (edge: "start" | "end") => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      left: edge === "start" ? 0 : container.scrollWidth - container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const setDetailedTableScrollProgress = (progress: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+    container.scrollLeft = clampedProgress * Math.max(0, container.scrollWidth - container.clientWidth);
+  };
+
+  const handleCustomTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.target === customScrollbarThumbRef.current) return;
+
+    const track = customScrollbarTrackRef.current;
+    const thumb = customScrollbarThumbRef.current;
+    if (!track || !thumb) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+    const travelWidth = trackRect.width - thumbRect.width;
+    if (travelWidth <= 0) return;
+
+    setDetailedTableScrollProgress((event.clientX - trackRect.left - thumbRect.width / 2) / travelWidth);
+  };
+
+  const handleCustomThumbPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    thumbDragStateRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startScrollLeft: container.scrollLeft,
+    };
+  };
+
+  const handleCustomThumbPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = thumbDragStateRef.current;
+    const container = containerRef.current;
+    const track = customScrollbarTrackRef.current;
+    const thumb = customScrollbarThumbRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId || !container || !track || !thumb) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+    const travelWidth = trackRect.width - thumbRect.width;
+    const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+    if (travelWidth <= 0 || maxScrollLeft <= 0) return;
+
+    container.scrollLeft = dragState.startScrollLeft + ((event.clientX - dragState.startClientX) / travelWidth) * maxScrollLeft;
+  };
+
+  const endCustomThumbDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (thumbDragStateRef.current?.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    thumbDragStateRef.current = null;
+  };
+
+  const handleCustomThumbKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+    const keyboardStep = Math.max(40, container.clientWidth * 0.1);
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      scrollToDetailedTableEdge("start");
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      scrollToDetailedTableEdge("end");
+      return;
+    }
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+    event.preventDefault();
+    container.scrollLeft = Math.min(
+      maxScrollLeft,
+      Math.max(0, container.scrollLeft + (event.key === "ArrowLeft" ? -keyboardStep : keyboardStep))
+    );
   };
 
   const scrollEdgeControls = horizontalScrollState.hasOverflow ? (
@@ -327,6 +473,56 @@ export default function DebtItemsTable({
         </span>
       </button>
     </>
+  ) : null;
+
+  const detailedCustomScrollbar = horizontalScrollState.hasOverflow ? (
+    <div className="mt-3 flex h-4 w-full items-center gap-1" data-debt-detailed-scrollbar>
+      <button
+        type="button"
+        onClick={() => scrollToDetailedTableEdge("start")}
+        disabled={horizontalScrollState.atStart}
+        aria-label="채무내역 처음으로 이동"
+        className="inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center text-[#808080] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-40 disabled:cursor-default disabled:text-[#E2E2E2]"
+      >
+        <DetailedScrollbarArrowIcon direction="left" />
+      </button>
+      <div
+        ref={customScrollbarTrackRef}
+        className="relative h-2 min-w-0 flex-1 touch-none rounded-[6px] bg-[#EDEDED]"
+        onPointerDown={handleCustomTrackPointerDown}
+      >
+        <div
+          ref={customScrollbarThumbRef}
+          role="scrollbar"
+          tabIndex={0}
+          aria-label="채무 상세 내역 가로 스크롤"
+          aria-controls={detailedScrollContainerId}
+          aria-orientation="horizontal"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(horizontalScrollState.progress * 100)}
+          className="absolute top-0 h-2 w-[min(151px,100%)] touch-none cursor-grab rounded-[6px] bg-[#B0B0B0] transition-colors hover:bg-[#D0D0D0] active:cursor-grabbing"
+          style={{
+            left: `${horizontalScrollState.progress * 100}%`,
+            transform: `translateX(-${horizontalScrollState.progress * 100}%)`,
+          }}
+          onPointerDown={handleCustomThumbPointerDown}
+          onPointerMove={handleCustomThumbPointerMove}
+          onPointerUp={endCustomThumbDrag}
+          onPointerCancel={endCustomThumbDrag}
+          onKeyDown={handleCustomThumbKeyDown}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => scrollToDetailedTableEdge("end")}
+        disabled={horizontalScrollState.atEnd}
+        aria-label="채무내역 끝으로 이동"
+        className="inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center text-[#808080] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-40 disabled:cursor-default disabled:text-[#E2E2E2]"
+      >
+        <DetailedScrollbarArrowIcon direction="right" />
+      </button>
+    </div>
   ) : null;
 
   // DatePicker의 연도 선택 목록 기본 범위는 현재+10년까지라 장기 대출(20~30년 이상 만기)이
@@ -472,7 +668,14 @@ export default function DebtItemsTable({
   return (
     <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
       <div className="relative">
-        <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+        <div
+          id={detailedScrollContainerId}
+          className={`table-horizontal-scroll overflow-x-auto ${detailedCustomScrollbarEnabled ? "scrollbar-hide" : ""}`}
+          style={{ scrollbarWidth: detailedCustomScrollbarEnabled ? "none" : undefined }}
+          ref={containerRef}
+          {...dragScrollHandlers}
+          onScroll={updateHorizontalScrollState}
+        >
           <table
             className="border-collapse table-fixed"
             style={{ width: detailedTableWidth, minWidth: detailedTableWidth }}
@@ -665,8 +868,10 @@ export default function DebtItemsTable({
           </tfoot>
           </table>
         </div>
-        {scrollEdgeControls}
+        {!detailedCustomScrollbarEnabled && scrollEdgeControls}
       </div>
+
+      {detailedCustomScrollbarEnabled && detailedCustomScrollbar}
 
       {summaryCards}
     </div>
