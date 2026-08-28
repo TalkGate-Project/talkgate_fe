@@ -22,6 +22,8 @@ const MIN_WIDTH = 360;
 const MIN_HEIGHT = 520;
 const EDGE_GAP = 24;
 const HEADER_HEIGHT = 54;
+// 좌우로는 창을 화면 밖으로 거의 다 밀어낼 수 있게 하되, 다시 끌어올 손잡이로 이만큼은 남긴다.
+const MIN_VISIBLE_WIDTH_RATIO = 0.1;
 
 /**
  * 창의 left/top/width/height는 zoom이 걸린 body 안의 **레이아웃 px**이다. `window.innerWidth`는
@@ -54,10 +56,13 @@ function clampBounds(bounds: Bounds): Bounds {
   const viewport = getViewportInLayoutPx();
   const width = Math.min(Math.max(bounds.width, Math.min(MIN_WIDTH, viewport.width)), viewport.width);
   const height = Math.min(Math.max(bounds.height, Math.min(MIN_HEIGHT, viewport.height)), viewport.height);
+  // 가로는 창의 10%만 화면 안에 있으면 된다(오른쪽으로 밀면 왼쪽 10%가, 왼쪽으로 밀면
+  // 오른쪽 10%가 남는다). 세로는 헤더가 드래그 손잡이라 화면 안에 그대로 묶어둔다.
+  const visibleWidth = width * MIN_VISIBLE_WIDTH_RATIO;
   return {
     width,
     height,
-    left: Math.min(Math.max(bounds.left, 0), Math.max(0, viewport.width - width)),
+    left: Math.min(Math.max(bounds.left, visibleWidth - width), viewport.width - visibleWidth),
     top: Math.min(Math.max(bounds.top, 0), Math.max(0, viewport.height - height)),
   };
 }

@@ -39,6 +39,9 @@ export type CustomerDetailModalProps = {
     resizeHandles?: ReactNode;
   };
 };
+// 플로팅 창은 화면 밖으로 밀어낼 수 있다. 넘친 부분이 스크롤을 만들지 않도록 오버레이에서 잘라낸다.
+const FLOATING_OVERLAY_CLASS = "pointer-events-none overflow-hidden";
+
 export default function CustomerDetailModalMobile({
   open,
   onClose,
@@ -205,7 +208,7 @@ export default function CustomerDetailModalMobile({
   return (
     <BaseModal
       onClose={handleClose}
-      overlayClassName={floatingPresentation ? "pointer-events-none" : "bg-black/50 dark:bg-[#000000CC]"}
+      overlayClassName={floatingPresentation ? FLOATING_OVERLAY_CLASS : "bg-black/50 dark:bg-[#000000CC]"}
       positionerClassName={floatingPresentation?.positionerClassName}
       positionerStyle={floatingPresentation?.positionerStyle}
       disableAutoContainerSizing={Boolean(floatingPresentation)}
