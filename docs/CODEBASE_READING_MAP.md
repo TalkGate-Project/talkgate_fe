@@ -35,7 +35,7 @@
 목적: URL 하나가 어떤 정책을 통과하고 어떤 Provider 아래 렌더링되는지 파악.
 
 - [v] `src/app/layout.tsx` — 루트 레이아웃, Provider 순서
-- [ ] `src/middleware.ts` — 경로별 접근 정책 (CLAUDE.md 표와 대조)
+- [v] `src/middleware.ts` — 경로별 접근 정책 (CLAUDE.md 표와 대조)
 - [ ] `src/components/common/ConditionalHeader.tsx` — 공통 셸
 
 질문:
