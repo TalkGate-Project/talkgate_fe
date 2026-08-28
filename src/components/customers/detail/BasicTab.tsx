@@ -72,7 +72,13 @@ export default function BasicTab({
       const digits = input.value.replace(/\D/g, "").slice(0, 11);
       const formatted = formatPhoneNumber(digits);
 
-      setForm((prev) => ({ ...prev, [field]: formatted }));
+      setForm((prev) => {
+        const next = { ...prev, [field]: formatted };
+        // 번호를 다 지우면 타입만 남아 "번호 없는 집 연락처" 같은 고아값이 서버에 남는다.
+        // 연락처2는 선택 항목이라 통째로 비울 수 있으므로 타입도 같이 지운다(연락처1은 필수라 해당 없음).
+        if (field === "contact2" && !digits) next.contact2Type = null;
+        return next;
+      });
 
       requestAnimationFrame(() => {
         const newPos = getPhoneFormatCursorPosition(formatted, digitsBeforeCursor);
