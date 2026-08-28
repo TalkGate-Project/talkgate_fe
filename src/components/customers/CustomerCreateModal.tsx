@@ -849,7 +849,7 @@ export default function CustomerCreateModal({
             {submitting ? (
               <LoadingSpinner size="sm" variant="white" aria-label="등록 중" />
             ) : (
-              "적용완료"
+              "등록하기"
             )}
           </button>
         </div>
