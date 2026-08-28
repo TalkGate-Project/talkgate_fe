@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import {
-  COUNSEL_MENT_TABS,
   CONDITION_STATUS_LABEL,
   DIAGNOSIS_STATUS_LABEL,
   PROCEDURE_GRADE_LABEL,
   RECOMMENDED_PROCEDURE_LABEL,
   RECOMMENDED_PROCEDURE_ORDER,
   type ConditionStatus,
-  type CounselMentCategory,
   type DiagnosisDetail,
   type ProcedureStep,
   type RecommendedProcedure,
@@ -47,8 +45,6 @@ const CONDITION_TEXT_CLASS: Record<ConditionStatus, string> = {
   caution: "print-condition-caution",
   risk: "print-condition-risk",
 };
-
-const COUNSEL_CATEGORY_ORDER: CounselMentCategory[] = ["core", "concern", "next"];
 
 function PrintSection({
   number,
@@ -226,7 +222,6 @@ export default function AnalysisPrintDocument({
     pending: "예정",
   };
 
-  const counselMents = detail.counselMents ?? [];
   const messages = detail.messages ?? [];
 
   // JSX는 소스 순서대로(위→아래) 평가되므로, 조건부 섹션이 렌더되지 않을 때만 자연히
@@ -482,25 +477,6 @@ export default function AnalysisPrintDocument({
             </InfoBlock>
           )}
         </PrintSection>
-
-        {counselMents.length > 0 && (
-          <PrintSection number={sectionNumber++} title="상담 포인트">
-            {COUNSEL_CATEGORY_ORDER.map((category) => {
-              const items = counselMents.filter((ment) => ment.category === category);
-              if (items.length === 0) return null;
-              const label = COUNSEL_MENT_TABS.find((tab) => tab.key === category)?.label ?? category;
-              return (
-                <InfoBlock key={category} title={label}>
-                  <ul className="print-list">
-                    {items.map((ment, index) => (
-                      <li key={index}>{ment.text}</li>
-                    ))}
-                  </ul>
-                </InfoBlock>
-              );
-            })}
-          </PrintSection>
-        )}
 
         <PrintSection number={sectionNumber++} title={`${guide.procedureLabel || RECOMMENDED_PROCEDURE_LABEL[selectedProcedure]} 진행 안내`}>
           <InfoTable
