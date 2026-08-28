@@ -22,6 +22,7 @@ type Props = {
   customerGender?: string | null;
   hasAssignedMember: boolean;
   linkedAnalysis?: CustomerLinkedAnalysis | null;
+  layout?: "responsive" | "mobile";
 };
 
 function formatBasicInfoMeta(
@@ -280,6 +281,7 @@ export default function CustomerLinkedAnalysisSection({
   customerGender,
   hasAssignedMember,
   linkedAnalysis,
+  layout = "responsive",
 }: Props) {
   const router = useRouter();
   const [showDebtReliefMenu, debtReliefReady] = useDebtReliefMenu();
@@ -293,7 +295,7 @@ export default function CustomerLinkedAnalysisSection({
   };
 
   return (
-    <div className="lg:col-span-2">
+    <div className={layout === "mobile" ? "" : "lg:col-span-2"}>
       <div className="text-[16px] font-semibold text-neutral-90 mb-3">채무조정 진단 정보</div>
       <div className="border-b border-[#E2E2E2] dark:border-[#e2e2e266] mb-3" />
 
@@ -305,7 +307,7 @@ export default function CustomerLinkedAnalysisSection({
       */}
       {!linkedAnalysis ? (
         <>
-          <div className="lg:hidden">
+          <div className={layout === "mobile" ? "" : "lg:hidden"}>
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
@@ -314,7 +316,7 @@ export default function CustomerLinkedAnalysisSection({
               variant="mobile"
             />
           </div>
-          <div className="hidden lg:block">
+          <div className={layout === "mobile" ? "hidden" : "hidden lg:block"}>
             <EmptyLinkedAnalysis
               customerId={customerId}
               customerName={customerName}
@@ -326,14 +328,14 @@ export default function CustomerLinkedAnalysisSection({
         </>
       ) : (
         <>
-          <div className="lg:hidden">
+          <div className={layout === "mobile" ? "" : "lg:hidden"}>
             <MobileLinkedAnalysisCard
               customerName={customerName}
               linkedAnalysis={linkedAnalysis}
               onOpenResult={openResult}
             />
           </div>
-          <div className="hidden lg:block">
+          <div className={layout === "mobile" ? "hidden" : "hidden lg:block"}>
             <DesktopLinkedAnalysisCard
               customerName={customerName}
               linkedAnalysis={linkedAnalysis}

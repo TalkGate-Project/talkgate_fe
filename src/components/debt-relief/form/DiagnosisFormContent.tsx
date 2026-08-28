@@ -44,8 +44,10 @@ import AnalysisDraftRestoreModal from "./AnalysisDraftRestoreModal";
 import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
 import CustomerMatchModal from "@/components/debt-relief/result/CustomerMatchModal";
 import CustomerCreateModal from "@/components/customers/CustomerCreateModal";
+import AssignCustomersModal from "@/components/customers/AssignCustomersModal";
 import { CustomersService } from "@/services/customers";
 import type { ConnectableCustomer } from "@/types/analysis";
+import FloatingCustomerDetailModal from "@/components/customers/FloatingCustomerDetailModal";
 
 function AnalyzeSparkleIcon() {
   return (
@@ -77,7 +79,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [projectId, ready] = useSelectedProjectId();
-  const { member, loading: memberLoading } = useMyMember(projectId);
+  const { member, loading: memberLoading, isAdminOrSubAdmin } = useMyMember(projectId);
   const { isAnalysis, ready: projectTypeReady } = useProjectType();
   const { form, setForm, update, derived } = useDiagnosisForm();
   const [analyzing, setAnalyzing] = useState(false);
@@ -107,6 +109,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     name: string;
     contact: string;
   } | null>(null);
+  const [customerDetailOpen, setCustomerDetailOpen] = useState(false);
+  const [createdCustomerToAssignId, setCreatedCustomerToAssignId] = useState<number | null>(null);
+  const createdCustomerAssignedRef = useRef(false);
 
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
@@ -124,6 +129,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     null | "mode" | "existing" | "create"
   >(null);
   const isCustomerConnected = isEdit ? existingCustomerId !== null : Boolean(selectedCustomerId);
+  const linkedCustomerId = isEdit ? existingCustomerId : selectedCustomerId ?? null;
 
   // 현재 단계는 ?step= 쿼리스트링을 단일 진실 공급원으로 삼는다(1-indexed).
   // 브라우저 뒤로/앞으로 가기로 쿼리가 바뀌면 currentIndex도 함께 갱신된다.
@@ -291,6 +297,12 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         });
         return;
       }
+      // 관리자·부관리자는 본인이 담당자가 아니므로 배정을 먼저 받고 연동한다.
+      if (isAdminOrSubAdmin) {
+        createdCustomerAssignedRef.current = false;
+        setCreatedCustomerToAssignId(customerId);
+        return;
+      }
       if (isEdit) {
         try {
           await replaceAnalysisCustomer(customerId);
@@ -307,8 +319,42 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
       }
       setCustomerLinkStep(null);
     },
-    [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
+    [isEdit, isAdminOrSubAdmin, replaceAnalysisCustomer, applySelectedCustomer]
   );
+
+  const handleCreatedCustomerAssign = useCallback(
+    async (targetMemberId: number) => {
+      if (!projectId || createdCustomerToAssignId == null) return;
+
+      await CustomersService.assign({
+        assignmentType: "ids",
+        memberId: targetMemberId,
+        customerIds: [createdCustomerToAssignId],
+        projectId,
+      });
+      if (isEdit) {
+        await replaceAnalysisCustomer(createdCustomerToAssignId);
+      } else {
+        await applySelectedCustomer(createdCustomerToAssignId);
+      }
+      createdCustomerAssignedRef.current = true;
+    },
+    [projectId, createdCustomerToAssignId, isEdit, replaceAnalysisCustomer, applySelectedCustomer]
+  );
+
+  // 배정 모달은 성공·취소 모두 onClose로 닫힌다. 취소로 닫힌 경우에만 안내해야 해서
+  // 성공 여부를 ref로 구분한다(닫히는 시점엔 이미 id가 비워질 수 있어 state로는 늦다).
+  const handleCreatedCustomerAssignClose = useCallback(() => {
+    setCreatedCustomerToAssignId(null);
+    if (createdCustomerAssignedRef.current) return;
+
+    showErrorModal({
+      type: "info",
+      headline: "배정이 취소되었습니다.",
+      description: "고객은 생성되었지만 이번 진단에는 연동되지 않았습니다.",
+      hideCancel: true,
+    });
+  }, []);
 
   const handleCustomerUnlink = useCallback(() => {
     if (!isCustomerConnected) return;
@@ -685,6 +731,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         linkedCustomerName={linkedCustomerSummary?.name}
         linkedCustomerContact={linkedCustomerSummary?.contact}
         onCustomerLink={() => setCustomerLinkStep("mode")}
+        onCustomerInfo={() => setCustomerDetailOpen(true)}
         onCustomerUnlink={handleCustomerUnlink}
       />
 
@@ -699,6 +746,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
           linkedCustomerName={linkedCustomerSummary?.name}
           linkedCustomerContact={linkedCustomerSummary?.contact}
           onCustomerLink={() => setCustomerLinkStep("mode")}
+          onCustomerInfo={() => setCustomerDetailOpen(true)}
           onCustomerUnlink={handleCustomerUnlink}
         />
 
@@ -805,6 +853,14 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         onClose={() => setDebtSelectionModalOpen(false)}
         onConfirm={handleDebtSelectionConfirm}
       />
+      <FloatingCustomerDetailModal
+        open={customerDetailOpen}
+        customerId={linkedCustomerId}
+        onClose={() => setCustomerDetailOpen(false)}
+        onCustomerUpdated={() => {
+          if (linkedCustomerId) void loadLinkedCustomerSummary(linkedCustomerId);
+        }}
+      />
 
       {projectId && (
         <>
@@ -832,6 +888,17 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
             projectId={projectId}
             onCreated={handleCustomerCreated}
           />
+          {createdCustomerToAssignId != null && (
+            <AssignCustomersModal
+              open
+              onClose={handleCreatedCustomerAssignClose}
+              selectedCustomerIds={[createdCustomerToAssignId]}
+              selectionMode={null}
+              totalCount={1}
+              onAssign={handleCreatedCustomerAssign}
+              projectId={projectId}
+            />
+          )}
         </>
       )}
     </div>

@@ -1,3 +1,6 @@
+import { formatPhoneNumber } from "@/utils/format";
+import type { CustomerDetail } from "@/types/customers";
+
 export function formatDetailDate(dt: string) {
   try {
     const d = new Date(dt);
@@ -37,5 +40,18 @@ export function formatConsultationNoteDateTime(dt: string) {
   }
 }
 
-
-
+/**
+ * 헤더에 노출할 고객 요약 — 이름은 타이틀, 연락처는 보조 텍스트로 분리해 돌려준다.
+ *
+ * `showIdentity: false`면 이름·연락처를 빼고 "고객정보"만 남긴다. 모바일 폭(<780px)에서는
+ * 헤더에 넣을 자리가 없어 제외하기로 한 결정이라, 태블릿·PC에서만 true로 넘긴다.
+ */
+export function buildHeaderIdentity(
+  detail: CustomerDetail | null | undefined,
+  { showIdentity = true }: { showIdentity?: boolean } = {}
+) {
+  const name = showIdentity ? detail?.name?.trim() : undefined;
+  const title = name ? `${name}님 고객정보` : "고객정보";
+  const contact = showIdentity && detail?.contact1 ? formatPhoneNumber(detail.contact1) : "";
+  return { title, contact, ariaLabel: [title, contact].filter(Boolean).join(" ") };
+}
