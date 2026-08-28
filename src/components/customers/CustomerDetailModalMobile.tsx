@@ -79,7 +79,7 @@ export default function CustomerDetailModalMobile({
 
   // 이 컴포넌트는 실제 모바일과 데스크톱 플로팅 창 양쪽에서 쓰인다. 이름·연락처는
   // 자리가 있는 태블릿·PC 폭에서만 노출한다.
-  const headerIdentity = buildHeaderIdentity(detail, { showIdentity: !isMobileViewport });
+  const headerIdentity = buildHeaderIdentity(detail, { showIdentity: !isMobileViewport, customerId });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();

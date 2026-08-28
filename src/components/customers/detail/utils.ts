@@ -45,13 +45,22 @@ export function formatConsultationNoteDateTime(dt: string) {
  *
  * `showIdentity: false`면 이름·연락처를 빼고 "고객정보"만 남긴다. 모바일 폭(<780px)에서는
  * 헤더에 넣을 자리가 없어 제외하기로 한 결정이라, 태블릿·PC에서만 true로 넘긴다.
+ *
+ * `customerId`는 지금 열려 있는 고객의 id다. 다른 고객으로 모달을 다시 열면 새 응답이
+ * 도착할 때까지 `detail`에 직전 고객이 남아 있어서, 넘기지 않으면 헤더에 남의 이름이
+ * 잠깐 스친다. id가 맞을 때만 이름·연락처를 쓰고 그전에는 "고객정보"로 버틴다.
  */
 export function buildHeaderIdentity(
   detail: CustomerDetail | null | undefined,
-  { showIdentity = true }: { showIdentity?: boolean } = {}
+  {
+    showIdentity = true,
+    customerId,
+  }: { showIdentity?: boolean; customerId?: number | null } = {}
 ) {
-  const name = showIdentity ? detail?.name?.trim() : undefined;
+  const isDetailForRequestedCustomer = customerId == null || detail?.id === customerId;
+  const canShowIdentity = showIdentity && isDetailForRequestedCustomer;
+  const name = canShowIdentity ? detail?.name?.trim() : undefined;
   const title = name ? `${name}님 고객정보` : "고객정보";
-  const contact = showIdentity && detail?.contact1 ? formatPhoneNumber(detail.contact1) : "";
+  const contact = canShowIdentity && detail?.contact1 ? formatPhoneNumber(detail.contact1) : "";
   return { title, contact, ariaLabel: [title, contact].filter(Boolean).join(" ") };
 }

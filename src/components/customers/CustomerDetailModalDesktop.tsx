@@ -76,7 +76,7 @@ export default function CustomerDetailModalDesktop({
     onFetchErrorClose: onClose,
   });
 
-  const headerIdentity = buildHeaderIdentity(detail);
+  const headerIdentity = buildHeaderIdentity(detail, { customerId });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();
