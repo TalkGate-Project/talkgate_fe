@@ -106,7 +106,7 @@ export default function DiscountCouponApplyModal({
       showErrorModal({
         type: "success",
         headline: "할인쿠폰이 적용되었습니다.",
-        description: "다음 자동 갱신 결제부터 할인이 적용됩니다.",
+        description: "할인은 다음 결제부터 적용됩니다.",
         hideCancel: true,
       });
     } catch (error) {
@@ -143,7 +143,7 @@ export default function DiscountCouponApplyModal({
       closeOnOverlayClick={!isBusy}
       overlayClassName="bg-black/30"
       ariaLabel="할인쿠폰 적용"
-      containerClassName="w-full max-w-[440px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(0,0,0,0.18)]"
+      containerClassName="w-[440px] max-w-[calc(100vw-32px)] min-h-[234px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(0,0,0,0.18)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)]"
     >
       <div className="flex items-center justify-between px-6 py-5">
         <h2 className="text-[18px] font-bold text-foreground">할인쿠폰 적용하기</h2>
@@ -178,7 +178,7 @@ export default function DiscountCouponApplyModal({
               type="button"
               onClick={handleCheck}
               disabled={!normalizedCode || isBusy}
-              className="h-10 shrink-0 cursor-pointer rounded-[5px] border border-border bg-card px-4 text-[13px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-neutral-30"
+              className="h-10 shrink-0 cursor-pointer whitespace-nowrap rounded-[5px] border border-border bg-card px-4 text-[13px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-neutral-30"
             >
               {isChecking ? "조회 중" : "할인쿠폰 조회"}
             </button>
@@ -219,7 +219,7 @@ export default function DiscountCouponApplyModal({
           )}
         </div>
         <p className="mt-3 text-[12px] text-neutral-60">
-          할인은 현재 기간이 아닌 다음 자동 갱신 결제부터 적용됩니다.
+          할인은 다음 결제부터 적용됩니다.
         </p>
       </div>
 

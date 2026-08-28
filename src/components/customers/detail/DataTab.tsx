@@ -30,7 +30,7 @@ export default function DataTab({
           }
           readOnly={!canEditProviderFields}
           className={canEditProviderFields ? editableInputClass : readonlyInputClass}
-          placeholder="신청경로를 입력하세요."
+          placeholder={canEditProviderFields ? "신청경로를 입력하세요." : undefined}
         />
       </label>
       <label className="block">
@@ -40,7 +40,7 @@ export default function DataTab({
           onChange={(e) => setForm((prev) => ({ ...prev, site: e.target.value }))}
           readOnly={!canEditProviderFields}
           className={canEditProviderFields ? editableInputClass : readonlyInputClass}
-          placeholder="사이트를 입력하세요."
+          placeholder={canEditProviderFields ? "사이트를 입력하세요." : undefined}
         />
       </label>
 
@@ -54,7 +54,7 @@ export default function DataTab({
           }
           readOnly={!canEditProviderFields}
           className={canEditProviderFields ? editableInputClass : readonlyInputClass}
-          placeholder="매체사를 입력하세요."
+          placeholder={canEditProviderFields ? "매체사를 입력하세요." : undefined}
         />
       </label>
       <label className="block">
@@ -66,7 +66,7 @@ export default function DataTab({
           }
           readOnly={!canEditProviderFields}
           className={canEditProviderFields ? editableInputClass : readonlyInputClass}
-          placeholder="키워드를 입력하세요."
+          placeholder={canEditProviderFields ? "키워드를 입력하세요." : undefined}
         />
       </label>
 
@@ -80,7 +80,7 @@ export default function DataTab({
           }
           readOnly={!canEditProviderFields}
           className={canEditProviderFields ? editableInputClass : readonlyInputClass}
-          placeholder="IP 주소를 입력하세요."
+          placeholder={canEditProviderFields ? "IP 주소를 입력하세요." : undefined}
         />
       </label>
       <label className="block">
