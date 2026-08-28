@@ -216,7 +216,7 @@ function ContentRows({ rows }: { rows: ContentRow[] }) {
           key={row.key}
           className="grid min-w-0 grid-cols-[96px_minmax(0,1fr)] items-start gap-6"
         >
-          <dt className="text-[14px] font-medium leading-[17px] tracking-[0.2px] text-neutral-60">
+          <dt className="text-[14px] font-medium leading-5 tracking-[0.2px] text-neutral-60">
             {row.label}
           </dt>
           <dd className="min-w-0 break-words text-[14px] font-medium leading-5 tracking-[-0.02em] text-foreground">
@@ -357,7 +357,8 @@ export function buildSections(input: AnalysisInputData) {
   const assetRows: DisplayRow[] = [
     { label: "보유 자산", value: assets.length ? assets.map((asset) => `${optionLabel(ASSET_CATEGORY_OPTIONS, asset.category)} ${formatManwon(asset.marketValue)}`).join(", ") : "없음" },
     { label: "자산 시가 합계", value: formatManwon(assets.reduce((sum, asset) => sum + asset.marketValue, 0)) },
-    { label: "재산처분이력", value: yesNo(input.hasRecentAssetDisposal) },
+    { label: "배우자 재산", value: formatManwon(input.spouseHousingAssetValue) },
+    { label: "2년 내 재산처분", value: yesNo(input.hasRecentAssetDisposal) },
   ];
 
   const debtLeftRows: DisplayRow[] = [
@@ -518,6 +519,19 @@ export function buildCustomerInfoViewModel(
         };
       })
     : [{ key: "no-assets", label: "보유 자산", title: "없음" }];
+
+  assetRows.push(
+    {
+      key: "spouse-property",
+      label: "배우자 재산",
+      title: formatManwon(input.spouseHousingAssetValue),
+    },
+    {
+      key: "recent-asset-disposal",
+      label: "2년 내 재산처분",
+      title: yesNo(input.hasRecentAssetDisposal),
+    }
+  );
 
   let debtRows: RichDisplayRow[];
   if (debts.length > 0) {

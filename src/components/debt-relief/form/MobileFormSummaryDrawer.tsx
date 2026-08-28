@@ -63,6 +63,7 @@ type Props = {
   linkedCustomerName?: string;
   linkedCustomerContact?: string;
   onCustomerLink?: () => void;
+  onCustomerInfo?: () => void;
   onCustomerUnlink?: () => void;
 };
 
@@ -84,6 +85,7 @@ export default function MobileFormSummaryDrawer({
   linkedCustomerName,
   linkedCustomerContact,
   onCustomerLink,
+  onCustomerInfo,
   onCustomerUnlink,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
@@ -146,6 +148,7 @@ export default function MobileFormSummaryDrawer({
             linkedCustomerName={linkedCustomerName}
             linkedCustomerContact={linkedCustomerContact}
             onCustomerLink={onCustomerLink}
+            onCustomerInfo={onCustomerInfo}
             onCustomerUnlink={onCustomerUnlink}
           />
           <FormFinancialSummary derived={derived} className="bg-card" />

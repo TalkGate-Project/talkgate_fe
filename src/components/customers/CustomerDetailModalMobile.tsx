@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, type CSSProperties, type PointerEventHandler, type ReactNode } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import { useCustomerDetail } from "./detail/useCustomerDetail";
 import BasicTab from "./detail/BasicTab";
@@ -16,6 +16,9 @@ import { CustomersService } from "@/services/customers";
 import { getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
+import { buildHeaderIdentity } from "./detail/utils";
+import CustomerHeaderIdentity from "./detail/CustomerHeaderIdentity";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export type CustomerDetailModalProps = {
   open: boolean;
@@ -27,7 +30,18 @@ export type CustomerDetailModalProps = {
   onRefetch?: () => void;
   /** 상세 모달에서 직원배정 클릭 시 (고객 1명 배정용) */
   onAssignClick?: () => void;
+  /** 채무 분석 등에서 모바일형 상세 내용을 독립 플로팅 창으로 표시할 때만 사용합니다. */
+  floatingPresentation?: {
+    positionerClassName: string;
+    positionerStyle?: CSSProperties;
+    containerClassName: string;
+    contentStyle?: CSSProperties;
+    onHeaderPointerDown?: PointerEventHandler<HTMLDivElement>;
+    resizeHandles?: ReactNode;
+  };
 };
+// 플로팅 창은 화면 밖으로 밀어낼 수 있다. 넘친 부분이 스크롤을 만들지 않도록 오버레이에서 잘라낸다.
+const FLOATING_OVERLAY_CLASS = "pointer-events-none overflow-hidden";
 
 export default function CustomerDetailModalMobile({
   open,
@@ -37,6 +51,7 @@ export default function CustomerDetailModalMobile({
   onCustomerDeleted,
   onRefetch,
   onAssignClick,
+  floatingPresentation,
 }: CustomerDetailModalProps) {
   const [tab, setTab] = useState<"basic" | "data" | "sales" | "assignment" | "consultation">("basic");
   const hasPendingListRefreshRef = useRef(false);
@@ -60,6 +75,12 @@ export default function CustomerDetailModalMobile({
   } = useCustomerDetail(customerId, open, {
     onFetchErrorClose: onClose,
   });
+
+  const isMobileViewport = useIsMobile();
+
+  // 이 컴포넌트는 실제 모바일과 데스크톱 플로팅 창 양쪽에서 쓰인다. 이름·연락처는
+  // 자리가 있는 태블릿·PC 폭에서만 노출한다.
+  const headerIdentity = buildHeaderIdentity(detail, { showIdentity: !isMobileViewport, customerId });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();
@@ -188,15 +209,24 @@ export default function CustomerDetailModalMobile({
   return (
     <BaseModal
       onClose={handleClose}
-      overlayClassName="bg-black/50 dark:bg-[#000000CC]"
-      containerClassName="relative w-full h-full rounded-0 bg-card dark:bg-neutral-10 flex flex-col overflow-hidden"
-      ariaLabel="고객정보"
-      fullScreenOnMobile={true}
+      overlayClassName={floatingPresentation ? FLOATING_OVERLAY_CLASS : "bg-black/50 dark:bg-[#000000CC]"}
+      positionerClassName={floatingPresentation?.positionerClassName}
+      positionerStyle={floatingPresentation?.positionerStyle}
+      disableAutoContainerSizing={Boolean(floatingPresentation)}
+      disableScrollLock={Boolean(floatingPresentation)}
+      closeOnOverlayClick={!floatingPresentation}
+      containerClassName={floatingPresentation?.containerClassName ?? "relative w-full h-full rounded-0 bg-card dark:bg-neutral-10 flex flex-col overflow-hidden"}
+      ariaLabel={headerIdentity.ariaLabel}
+      fullScreenOnMobile={!floatingPresentation}
     >
+      <div className="relative flex h-full min-h-0 flex-col" style={floatingPresentation?.contentStyle}>
       {/* Header */}
-      <div className="flex items-center justify-between flex-none px-4 py-3 border-b border-neutral-30 dark:border-neutral-30">
+      <div
+        className={`flex items-center justify-between flex-none px-4 py-3 border-b border-neutral-30 dark:border-neutral-30 ${floatingPresentation?.onHeaderPointerDown ? "cursor-move select-none touch-none" : ""}`}
+        onPointerDown={floatingPresentation?.onHeaderPointerDown}
+      >
         <div className="flex items-center gap-2">
-          <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90">고객정보</h2>
+          <CustomerHeaderIdentity identity={headerIdentity} />
           {(() => {
             // 확인 완료된 경우: 녹색 체크
             if (detail?.status === "confirmed") {
@@ -377,6 +407,7 @@ export default function CustomerDetailModalMobile({
                 validation={validation}
                 showValidation={showValidation}
                 linkedAnalysis={detail.linkedAnalysis}
+                layout="mobile"
               />
             )}
 
@@ -523,6 +554,8 @@ export default function CustomerDetailModalMobile({
             </div>
           </>
         )}
+      </div>
+      {floatingPresentation?.resizeHandles}
       </div>
     </BaseModal>
   );

@@ -70,7 +70,7 @@ export function getMissingDebtItemFieldLabels(form: DiagnosisFormState): string[
 }
 
 // 실 API(POST /v1/analysis)가 필수로 요구하는 항목. 폼에서 null/빈 값일 수 있는 것만 검사한다.
-// 토글(boolean)과 부동산 "없음"(빈 배열)은 기본값 자체가 유효한 상태라 여기서 검사하지 않는다.
+// 부동산 "없음"(빈 배열)은 명시 선택 여부를 realEstateStatusConfirmed로 따로 검사한다.
 export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[] {
   const missing: string[] = [];
   if (!form.customerName.trim()) missing.push("고객명");
@@ -82,6 +82,11 @@ export function getMissingRequiredFieldLabels(form: DiagnosisFormState): string[
   if (form.dependents === null) missing.push("부양가족");
   if (form.spouseIncome === null) missing.push("배우자 소득");
   if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
+  if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
+  if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
+    missing.push("배우자 명의 주택 또는 전세보증금 가액");
+  }
+  if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
   missing.push(...getMissingDebtFieldLabels(form));
   if (form.debtCauses.length === 0) missing.push("채무발생 원인");
   return missing;
@@ -104,6 +109,11 @@ export function getMissingRequiredFieldLabelsForStep(
     case "assets": {
       const missing: string[] = [];
       if (!form.realEstateStatusConfirmed) missing.push("부동산 보유 여부");
+      if (form.hasSpouseHousingAsset === null) missing.push("배우자 명의 주택 또는 전세보증금 보유 여부");
+      if (form.hasSpouseHousingAsset && form.spouseHousingAssetValue <= 0) {
+        missing.push("배우자 명의 주택 또는 전세보증금 가액");
+      }
+      if (form.hasRecentAssetDisposal === null) missing.push("최근 2년 내 재산 처분 이력");
       // 금융 자산/차량 가액은 null(미선택)·0(미보유 명시)을 구분해 null만 미입력으로 판정한다.
       return missing;
     }

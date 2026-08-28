@@ -15,6 +15,8 @@ import { CustomersService } from "@/services/customers";
 import { getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
+import { buildHeaderIdentity } from "./detail/utils";
+import CustomerHeaderIdentity from "./detail/CustomerHeaderIdentity";
 
 export type CustomerDetailModalProps = {
   open: boolean;
@@ -27,7 +29,6 @@ export type CustomerDetailModalProps = {
   /** 상세 모달에서 직원배정 클릭 시 (고객 1명 배정용) */
   onAssignClick?: () => void;
 };
-
 export default function CustomerDetailModalDesktop({
   open,
   onClose,
@@ -75,6 +76,8 @@ export default function CustomerDetailModalDesktop({
   } = useCustomerDetail(customerId, open, {
     onFetchErrorClose: onClose,
   });
+
+  const headerIdentity = buildHeaderIdentity(detail, { customerId });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();
@@ -206,12 +209,12 @@ export default function CustomerDetailModalDesktop({
       overlayClassName="bg-black/50 dark:bg-[#000000CC]"
       positionerClassName="min-h-full flex items-center justify-center p-2"
       containerClassName="relative w-[calc(100%-16px)] max-w-[904px] min-w-[600px] rounded-[14px] bg-card dark:bg-neutral-10 px-7 pt-6 pb-4 flex flex-col h-[670px] md:!h-[640px] lg:!h-[760px] md:!w-[calc(100%-16px)] md:!max-w-[904px] md:!min-w-[600px] lg:!w-[calc(100%-32px)] lg:!max-w-[1284px] overflow-hidden"
-      ariaLabel="고객정보"
+      ariaLabel={headerIdentity.ariaLabel}
     >
       {/* Header */}
       <div className="flex items-center justify-between flex-none">
         <div className="flex items-center gap-2">
-          <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90">고객정보</h2>
+          <CustomerHeaderIdentity identity={headerIdentity} />
           {(() => {
             // 확인 완료된 경우: 녹색 체크
             if (detail?.status === "confirmed") {

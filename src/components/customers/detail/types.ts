@@ -23,11 +23,7 @@ export type CustomerFormState = {
   assignedAt: string;
   assignedMemberName: string;
   assignedTeamName: string;
-  specialNotes: string;
-  summary: string;
-  assetStatus: string;
-  tendency: string;
-  rejectionReason: string;
+  salesMemo: string;
 };
 
 export type CustomerValidation = {
@@ -55,11 +51,7 @@ export const INITIAL_FORM_STATE: CustomerFormState = {
   assignedAt: "",
   assignedMemberName: "",
   assignedTeamName: "",
-  specialNotes: "",
-  summary: "",
-  assetStatus: "",
-  tendency: "",
-  rejectionReason: "",
+  salesMemo: "",
 };
 
 // ============================================================================
@@ -89,11 +81,7 @@ export const FORM_TO_API_FIELD_MAP: Record<
   assignedAt: null, // 읽기 전용 필드
   assignedMemberName: null, // 읽기 전용 필드
   assignedTeamName: null, // 읽기 전용 필드
-  specialNotes: "specialNotes",
-  summary: "summary",
-  assetStatus: "assetStatus",
-  tendency: "tendency",
-  rejectionReason: "rejectionReason",
+  salesMemo: "salesMemo",
 };
 
 /** 빈 값일 때 "-"로 표시할 필드 목록 (데이터 정보 탭 관련 필드) */
@@ -107,7 +95,6 @@ export const EMPTY_DISPLAY_DASH_FIELDS: Array<keyof CustomerFormState> = [
   "assignedAt",
   "assignedMemberName",
   "assignedTeamName",
-  "specialNotes",
 ];
 
 // ============================================================================

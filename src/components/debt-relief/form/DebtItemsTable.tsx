@@ -868,7 +868,7 @@ export default function DebtItemsTable({
           </tfoot>
           </table>
         </div>
-        {!detailedCustomScrollbarEnabled && scrollEdgeControls}
+        {scrollEdgeControls}
       </div>
 
       {detailedCustomScrollbarEnabled && detailedCustomScrollbar}

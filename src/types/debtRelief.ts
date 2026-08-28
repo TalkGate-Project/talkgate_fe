@@ -578,8 +578,12 @@ export type DiagnosisFormState = {
   financialAssetValue: number | null;
   /** 만원 단위. null=미선택, 0=미보유(명시) */
   vehicleValue: number | null;
-  /** 최근 2년 내 부동산·차량 등 재산 처분 이력 — API `hasRecentAssetDisposal` */
-  hasRecentAssetDisposal: boolean;
+  /** 배우자 명의 주택 또는 전세보증금 보유 여부. null은 아직 선택하지 않은 상태. */
+  hasSpouseHousingAsset: boolean | null;
+  /** 배우자 명의 주택 또는 전세보증금 가액 — API `spouseHousingAssetValue`, 만원 단위 */
+  spouseHousingAssetValue: number;
+  /** 최근 2년 내 부동산·차량 등 재산 처분 이력 — null은 아직 선택하지 않은 상태. */
+  hasRecentAssetDisposal: boolean | null;
 
   // 3. 채무현황
   /** 간편(simple) / 상세(detailed) 입력 모드. 두 모드는 서로 다른 필드 집합을 쓴다 */
@@ -648,7 +652,9 @@ export function createEmptyDiagnosisForm(): DiagnosisFormState {
     realEstateAmounts: {},
     financialAssetValue: null,
     vehicleValue: null,
-    hasRecentAssetDisposal: false,
+    hasSpouseHousingAsset: null,
+    spouseHousingAssetValue: 0,
+    hasRecentAssetDisposal: null,
     debtInputMode: "simple",
     debtTypes: [],
     debtAmounts: {},

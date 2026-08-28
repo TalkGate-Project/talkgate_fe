@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MessengerBadge from "@/components/common/MessengerBadge";
-import DatePicker from "@/components/common/DatePicker";
 import { useSelectedProjectId } from "@/hooks/useSelectedProjectId";
 import { CustomersService } from "@/services/customers";
 import { ContactType, type CreateCustomerMessengerInfo } from "@/types/customers";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { format } from "date-fns";
-import GenderToggle from "@/components/customers/GenderToggle";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
+import { SALES_MEMO_MAX_LENGTH, resizeSalesMemoTextarea } from "@/lib/salesMemo";
 
 type Props = {
   open: boolean;
@@ -31,6 +29,8 @@ type MessengerAccount = {
   messenger: string;
   account: string;
 };
+
+type CustomerCreateSection = "basic" | "sales" | "messenger" | "data";
 
 const contactLabelToType = (label: string): ContactType => {
   switch (label) {
@@ -69,7 +69,6 @@ export default function CustomerCreateModal({
   projectId: projectIdOverride,
   onBack,
 }: Props) {
-  const birthDateInputId = useId();
   const [selectedProjectId] = useSelectedProjectId();
   const projectId = projectIdOverride ?? selectedProjectId;
   const [submitting, setSubmitting] = useState(false);
@@ -83,10 +82,13 @@ export default function CustomerCreateModal({
   const [contact1, setContact1] = useState("");
   const [contact2Type, setContact2Type] = useState("집");
   const [contact2, setContact2] = useState("");
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [gender, setGender] = useState<"male" | "female" | "">("");
+  const [residentId, setResidentId] = useState("");
   const [ageRange, setAgeRange] = useState("");
   const [job, setJob] = useState("");
+  const [salesMemo, setSalesMemo] = useState("");
+  const [openSections, setOpenSections] = useState<Set<CustomerCreateSection>>(
+    () => new Set(["basic", "sales"])
+  );
 
   // 메신저 계정
   const [messengerAccounts, setMessengerAccounts] = useState<
@@ -101,7 +103,6 @@ export default function CustomerCreateModal({
   const [mediaCompany, setMediaCompany] = useState("");
   const [keyword, setKeyword] = useState("");
   const [ipAddress, setIpAddress] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
 
   // 닫힌 상태에서 열릴 때만 초기 이름을 주입한다(입력 중인 값을 덮어쓰지 않도록).
   const wasOpenRef = useRef(false);
@@ -148,9 +149,9 @@ export default function CustomerCreateModal({
     };
 
   const contact1Digits = contact1.replace(/\D/g, "");
-  const nameError = name.trim() ? "" : "이름은 필수 항목입니다.";
+  const nameError = name.trim() ? "" : "이름을 입력해주세요.";
   const contact1Error = !contact1Digits
-    ? "연락처는 필수 항목입니다."
+    ? "연락처를 입력해주세요."
     : contact1Digits.length < 9
       ? "연락처는 9자 이상 입력해 주세요."
       : "";
@@ -180,10 +181,11 @@ export default function CustomerCreateModal({
     setContact1("");
     setContact2Type("집");
     setContact2("");
-    setBirthDate(null);
-    setGender("");
+    setResidentId("");
     setAgeRange("");
     setJob("");
+    setSalesMemo("");
+    setOpenSections(new Set(["basic", "sales"]));
     setMessengerAccounts([]);
     setCurrentMessengerType("기타");
     setCurrentMessengerAccount("");
@@ -192,7 +194,6 @@ export default function CustomerCreateModal({
     setMediaCompany("");
     setKeyword("");
     setIpAddress("");
-    setSpecialNotes("");
     setAttemptedSubmit(false);
     setTouchedName(false);
     setTouchedContact1(false);
@@ -219,9 +220,7 @@ export default function CustomerCreateModal({
         contact1Type: contactLabelToType(contact1Type),
         contact2: contact2Digits || undefined,
         contact2Type: contact2Digits ? contactLabelToType(contact2Type) : undefined,
-        // 생년월일을 YYYY-MM-DD 형식으로 전송
-        birth: birthDate ? format(birthDate, "yyyy-MM-dd") : undefined,
-        gender: gender || undefined,
+        residentId: residentId || undefined,
         ageRange: ageRange || undefined,
         job: job || undefined,
         messengerInfo: messengerInfo.length > 0 ? messengerInfo : undefined,
@@ -230,7 +229,7 @@ export default function CustomerCreateModal({
         mediaCompany: mediaCompany || undefined,
         keyword: keyword || undefined,
         ipAddress: ipAddress || undefined,
-        specialNotes: specialNotes || undefined,
+        salesMemo: salesMemo || undefined,
       });
       createdCustomerId = response.data?.data?.id ?? null;
     } catch (error) {
@@ -310,6 +309,42 @@ export default function CustomerCreateModal({
     await submitCreate(projectId);
   };
 
+  const toggleSection = (section: CustomerCreateSection) => {
+    setOpenSections((previousSections) => {
+      const nextSections = new Set(previousSections);
+      if (nextSections.has(section)) {
+        nextSections.delete(section);
+      } else {
+        nextSections.add(section);
+      }
+      return nextSections;
+    });
+  };
+
+  const renderSectionHeader = (label: string, section: CustomerCreateSection) => {
+    const isOpen = openSections.has(section);
+    return (
+      <button
+        type="button"
+        onClick={() => toggleSection(section)}
+        className="flex h-[33px] w-full cursor-pointer items-start justify-between border-b border-neutral-30 text-left dark:border-neutral-30"
+        aria-expanded={isOpen}
+      >
+        <span className="text-[16px] font-semibold leading-[19px] text-ink">{label}</span>
+        <svg
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M4.166 7.5L10 13.333L15.833 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    );
+  };
+
   const shouldIgnoreEnterSubmit = (target: EventTarget | null) => {
     if (!target || !(target instanceof HTMLElement)) return false;
 
@@ -334,7 +369,7 @@ export default function CustomerCreateModal({
       onClose={() => (!submitting ? onClose() : undefined)}
       overlayClassName="bg-black/30 dark:bg-[#000000CC]"
       positionerClassName="h-full p-0 md:h-auto md:min-h-full md:flex md:items-center md:justify-center md:p-4"
-      containerClassName="relative w-full h-full md:w-[calc(100%-1rem)] md:max-w-[920px] md:h-auto md:max-h-[90vh] lg:w-[848px] !lg:h-[523px] !lg:max-h-[523px] rounded-t-[14px] md:rounded-[14px] bg-card dark:bg-neutral-10 flex flex-col overflow-hidden md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none"
+      containerClassName="relative flex h-full w-full flex-col overflow-hidden rounded-t-[14px] bg-card dark:bg-neutral-10 md:h-[min(781px,calc(100vh-32px))] md:w-[848px] md:max-w-[calc(100vw-32px)] md:rounded-[14px] md:shadow-[0px_13px_61px_rgba(169,169,169,0.366013)] md:drop-shadow-[0px_8px_12px_rgba(9,30,66,0.1)] dark:md:shadow-none dark:md:drop-shadow-none"
       ariaLabel="고객 등록"
       fullScreenOnMobile={true}
     >
@@ -391,20 +426,18 @@ export default function CustomerCreateModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-7 pb-6 pt-[14px]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-[14px] md:px-7 md:pt-4">
           {/* 기본 정보 */}
-          <div className="mb-[30px]">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
-              기본 정보
-            </h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
+          <div className="order-1 mb-[30px]">
+            {renderSectionHeader("기본 정보", "basic")}
+            <div className={`${openSections.has("basic") ? "" : "hidden"} pt-3`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-4">
                 {/* 이름 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
                     이름<span className="text-[#FF0000]">*</span>
                   </label>
-                  <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                  <div className={`flex h-[33px] flex-col items-center justify-center gap-[10px] rounded-[5px] border bg-card px-3 py-2 dark:bg-neutral-10 ${showNameValidation && nameError ? "border-danger-40 dark:border-danger-40" : "border-neutral-30 dark:border-neutral-30"}`}>
                     <input
                       type="text"
                       value={name}
@@ -417,7 +450,7 @@ export default function CustomerCreateModal({
                     />
                   </div>
                   {showNameValidation && nameError && (
-                    <p className="mt-1 text-[12px] text-danger-40">{nameError}</p>
+                    <p className="mt-2 text-[14px] leading-[17px] text-danger-40">{nameError}</p>
                   )}
                 </div>
 
@@ -428,7 +461,7 @@ export default function CustomerCreateModal({
                   </label>
                   <div className="flex gap-3">
                     <div className="w-[106px]">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] relative bg-card dark:bg-neutral-10">
+                      <div className={`relative flex h-[33px] flex-col items-center justify-center gap-[10px] rounded-[5px] border bg-card px-3 py-2 dark:bg-neutral-10 ${showContact1Validation && contact1Error ? "border-danger-40 dark:border-danger-40" : "border-neutral-30 dark:border-neutral-30"}`}>
                         <select
                           value={contact1Type}
                           onChange={(e) => setContact1Type(e.target.value)}
@@ -457,7 +490,7 @@ export default function CustomerCreateModal({
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
+                      <div className={`flex h-[33px] flex-col items-center justify-center gap-[10px] rounded-[5px] border bg-card px-3 py-2 dark:bg-neutral-10 ${showContact1Validation && contact1Error ? "border-danger-40 dark:border-danger-40" : "border-neutral-30 dark:border-neutral-30"}`}>
                         <input
                           type="text"
                           value={contact1}
@@ -470,7 +503,7 @@ export default function CustomerCreateModal({
                     </div>
                   </div>
                   {showContact1Validation && contact1Error && (
-                    <p className="mt-1 text-[12px] text-danger-40">{contact1Error}</p>
+                    <p className="mt-2 text-[14px] leading-[17px] text-danger-40">{contact1Error}</p>
                   )}
                 </div>
 
@@ -524,35 +557,42 @@ export default function CustomerCreateModal({
                   </div>
                 </div>
 
-                {/* 생년월일 */}
+                {/* 주민등록번호 */}
                 <div>
-                  <label htmlFor={birthDateInputId} className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
-                    생년월일
+                  <label className="mb-2 block text-[14px] leading-[17px] text-neutral-60">
+                    주민등록번호
                   </label>
-                  <DatePicker
-                    id={birthDateInputId}
-                    value={birthDate}
-                    onChange={setBirthDate}
-                    placeholder="생년월일을 입력하세요"
-                    dateFormat="yyyy-MM-dd"
-                    maxDate={new Date()}
-                    allowTextInput
-                    className="!h-[33px] !rounded-[5px] border-neutral-30 dark:border-neutral-30 bg-card dark:bg-neutral-10 text-ink dark:text-ink"
-                  />
+                  <div className="grid grid-cols-[minmax(0,1fr)_10px_minmax(0,1fr)] items-center gap-3">
+                    <input
+                      value={residentId.slice(0, 6)}
+                      onChange={(event) => {
+                        const firstPart = event.target.value.replace(/\D/g, "").slice(0, 6);
+                        setResidentId(firstPart + residentId.slice(6));
+                      }}
+                      inputMode="numeric"
+                      maxLength={6}
+                      className="h-[33px] min-w-0 rounded-[5px] border border-neutral-30 bg-card px-3 text-[14px] text-ink outline-none placeholder:text-neutral-60 dark:border-neutral-30 dark:bg-neutral-10"
+                      placeholder="123456"
+                    />
+                    <span className="text-center text-[14px] text-neutral-60">-</span>
+                    <input
+                      value={residentId.slice(6)}
+                      onChange={(event) => {
+                        const secondPart = event.target.value.replace(/\D/g, "").slice(0, 7);
+                        setResidentId(residentId.slice(0, 6) + secondPart);
+                      }}
+                      inputMode="numeric"
+                      maxLength={7}
+                      className="h-[33px] min-w-0 rounded-[5px] border border-neutral-30 bg-card px-3 text-[14px] text-ink outline-none placeholder:text-neutral-60 dark:border-neutral-30 dark:bg-neutral-10"
+                      placeholder="567890"
+                    />
+                  </div>
                 </div>
 
-                {/* 성별 */}
+                {/* 연령대 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
-                    성별
-                  </label>
-                  <GenderToggle value={gender} onChange={setGender} />
-                </div>
-
-                {/* 연령 */}
-                <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
-                    연령
+                    연령대
                   </label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
@@ -560,7 +600,7 @@ export default function CustomerCreateModal({
                       value={ageRange}
                       onChange={(e) => setAgeRange(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink"
-                      placeholder="연령을 입력하세요"
+                      placeholder="연령대를 입력하세요"
                     />
                   </div>
                 </div>
@@ -585,11 +625,9 @@ export default function CustomerCreateModal({
           </div>
 
           {/* 메신저 계정 */}
-          <div className="mb-[30px]">
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
-              메신저 계정
-            </h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
+          <div className="order-3 mb-[30px]">
+            {renderSectionHeader("메신저 계정", "messenger")}
+            <div className={`${openSections.has("messenger") ? "" : "hidden"} pt-3`}>
               <div className="flex gap-2 mb-3">
                 <div className="w-[106px]">
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[34px] relative bg-card dark:bg-neutral-10">
@@ -678,12 +716,34 @@ export default function CustomerCreateModal({
             </div>
           </div>
 
+          {/* 영업 정보 */}
+          <div className="order-2 mb-[30px]">
+            {renderSectionHeader("영업정보", "sales")}
+            <div className={`${openSections.has("sales") ? "" : "hidden"} pt-3`}>
+              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
+                영업메모
+              </label>
+              <div className="flex min-h-[101px] flex-col items-start justify-start rounded-[5px] border border-neutral-30 bg-card px-3 py-2 dark:border-neutral-30 dark:bg-neutral-10">
+                <textarea
+                  value={salesMemo}
+                  onChange={(event) => {
+                    setSalesMemo(event.target.value);
+                    resizeSalesMemoTextarea(event.currentTarget, 85);
+                  }}
+                  onFocus={(event) => resizeSalesMemoTextarea(event.currentTarget, 85)}
+                  maxLength={SALES_MEMO_MAX_LENGTH}
+                  rows={5}
+                  className="min-h-[85px] w-full resize-none overflow-hidden border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-ink outline-none placeholder:text-neutral-60"
+                  placeholder="특이사항을 입력하세요"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* 데이터 정보 */}
-          <div>
-            <h3 className="text-[16px] font-semibold leading-[19px] text-ink mb-4">
-              데이터 정보
-            </h3>
-            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-4">
+          <div className="order-4">
+            {renderSectionHeader("데이터 정보", "data")}
+            <div className={`${openSections.has("data") ? "" : "hidden"} pt-3`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* 신청 경로 */}
                 <div>
@@ -766,21 +826,6 @@ export default function CustomerCreateModal({
                 </div>
               </div>
 
-              {/* 특이사항 */}
-              <div>
-                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">
-                  특이사항
-                </label>
-                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] min-h-[66px] bg-card dark:bg-neutral-10">
-                  <textarea
-                    value={specialNotes}
-                    onChange={(e) => setSpecialNotes(e.target.value)}
-                    className="w-full min-h-[51px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-ink resize-none"
-                    placeholder="특이사항을 입력하세요"
-                    rows={3}
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -798,13 +843,13 @@ export default function CustomerCreateModal({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitting || !projectId || !isValid}
+            disabled={submitting || !projectId}
             className="cursor-pointer h-[40px] md:h-[34px] px-4 md:px-3 rounded-[8px] md:rounded-[5px] bg-neutral-90 dark:bg-neutral-80 text-[14px] font-semibold tracking-[-0.02em] text-neutral-0 dark:text-neutral-0 disabled:opacity-60 inline-flex items-center justify-center"
           >
             {submitting ? (
               <LoadingSpinner size="sm" variant="white" aria-label="등록 중" />
             ) : (
-              "등록"
+              "등록하기"
             )}
           </button>
         </div>

@@ -189,8 +189,7 @@ export default function FilterChips({
     Boolean(filters.assignedAtFrom || filters.assignedAtTo) ||
     Boolean(filters.keyword) ||
     Boolean(filters.ipAddress) ||
-    Boolean(filters.notablePoints) ||
-    Boolean(filters.summaryInfo);
+    Boolean(filters.salesMemo);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -292,16 +291,10 @@ export default function FilterChips({
       {filters.ipAddress && (
         <Chip label={`IP 주소: ${filters.ipAddress}`} onRemove={() => onRemove("ipAddress")} />
       )}
-      {filters.notablePoints && (
+      {filters.salesMemo && (
         <Chip
-          label={`특이사항: ${filters.notablePoints.length > 20 ? filters.notablePoints.slice(0, 20) + "..." : filters.notablePoints}`}
-          onRemove={() => onRemove("notablePoints")}
-        />
-      )}
-      {filters.summaryInfo && (
-        <Chip
-          label={`요약정보: ${filters.summaryInfo.length > 20 ? filters.summaryInfo.slice(0, 20) + "..." : filters.summaryInfo}`}
-          onRemove={() => onRemove("summaryInfo")}
+          label={`영업메모: ${filters.salesMemo.length > 20 ? filters.salesMemo.slice(0, 20) + "..." : filters.salesMemo}`}
+          onRemove={() => onRemove("salesMemo")}
         />
       )}
     </div>

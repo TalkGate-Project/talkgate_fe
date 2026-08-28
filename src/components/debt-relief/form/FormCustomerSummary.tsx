@@ -26,6 +26,15 @@ export function buildCustomerMeta(form: DiagnosisFormState): string {
   return parts.join(" · ");
 }
 
+function CustomerInfoIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M13.3332 5.83333C13.3332 7.67428 11.8408 9.16667 9.99984 9.16667C8.15889 9.16667 6.6665 7.67428 6.6665 5.83333C6.6665 3.99238 8.15889 2.5 9.99984 2.5C11.8408 2.5 13.3332 3.99238 13.3332 5.83333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.99984 11.6667C6.77818 11.6667 4.1665 14.2783 4.1665 17.5H15.8332C15.8332 14.2783 13.2215 11.6667 9.99984 11.6667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function UnlinkIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
@@ -41,6 +50,7 @@ export default function FormCustomerSummary({
   linkedCustomerName,
   linkedCustomerContact,
   onCustomerLink,
+  onCustomerInfo,
   onCustomerUnlink,
 }: {
   form: DiagnosisFormState;
@@ -48,6 +58,7 @@ export default function FormCustomerSummary({
   linkedCustomerName?: string;
   linkedCustomerContact?: string;
   onCustomerLink?: () => void;
+  onCustomerInfo?: () => void;
   onCustomerUnlink?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -130,12 +141,12 @@ export default function FormCustomerSummary({
                 role="menuitem"
                 onClick={() => {
                   setMenuOpen(false);
-                  onCustomerLink();
+                  onCustomerInfo?.();
                 }}
                 className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-left text-[14px] font-medium text-foreground transition-colors hover:bg-neutral-10"
               >
-                <LinkIcon size={18} />
-                연동 변경
+                <CustomerInfoIcon />
+                고객 정보
               </button>
               {onCustomerUnlink && (
                 <button
