@@ -17,6 +17,7 @@ import { getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
 import { buildHeaderIdentity } from "./detail/utils";
+import CustomerHeaderIdentity from "./detail/CustomerHeaderIdentity";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 export type CustomerDetailModalProps = {
@@ -225,14 +226,7 @@ export default function CustomerDetailModalMobile({
         onPointerDown={floatingPresentation?.onHeaderPointerDown}
       >
         <div className="flex items-center gap-2">
-          <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90 whitespace-nowrap">
-            {headerIdentity.title}
-          </h2>
-          {headerIdentity.contact && (
-            <span className="text-[14px] font-medium text-neutral-60 whitespace-nowrap">
-              {headerIdentity.contact}
-            </span>
-          )}
+          <CustomerHeaderIdentity identity={headerIdentity} />
           {(() => {
             // 확인 완료된 경우: 녹색 체크
             if (detail?.status === "confirmed") {

@@ -48,7 +48,10 @@ export function formatConsultationNoteDateTime(dt: string) {
  *
  * `customerId`는 지금 열려 있는 고객의 id다. 다른 고객으로 모달을 다시 열면 새 응답이
  * 도착할 때까지 `detail`에 직전 고객이 남아 있어서, 넘기지 않으면 헤더에 남의 이름이
- * 잠깐 스친다. id가 맞을 때만 이름·연락처를 쓰고 그전에는 "고객정보"로 버틴다.
+ * 잠깐 스친다. id가 맞을 때만 이름·연락처를 쓴다.
+ *
+ * 아직 도착하지 않았으면 `isIdentityPending`이 true다 — 이름 자리에 스켈레톤을 깔라는 뜻이다
+ * (`CustomerHeaderIdentity`). 이름을 아예 안 쓰는 모바일 폭에서는 기다릴 것이 없어 false다.
  */
 export function buildHeaderIdentity(
   detail: CustomerDetail | null | undefined,
@@ -62,5 +65,12 @@ export function buildHeaderIdentity(
   const name = canShowIdentity ? detail?.name?.trim() : undefined;
   const title = name ? `${name}님 고객정보` : "고객정보";
   const contact = canShowIdentity && detail?.contact1 ? formatPhoneNumber(detail.contact1) : "";
-  return { title, contact, ariaLabel: [title, contact].filter(Boolean).join(" ") };
+  return {
+    title,
+    contact,
+    isIdentityPending: showIdentity && !isDetailForRequestedCustomer,
+    ariaLabel: [title, contact].filter(Boolean).join(" "),
+  };
 }
+
+export type CustomerHeaderIdentityValue = ReturnType<typeof buildHeaderIdentity>;
