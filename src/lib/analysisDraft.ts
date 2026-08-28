@@ -53,10 +53,19 @@ function normalizeForm(value: unknown): DiagnosisFormState | null {
   if (!isRecord(value.realEstateAmounts) || !isRecord(value.debtAmounts)) return null;
 
   // 새 필드가 추가된 뒤에도 같은 버전의 초안을 안전하게 열 수 있도록 기본값을 먼저 깐다.
-  return {
+  const normalized = {
     ...createEmptyDiagnosisForm(),
     ...value,
   } as DiagnosisFormState;
+
+  // 배우자 자산 필드 추가 전에는 재산 처분 토글의 기본값이 false였다. 해당 필드가 없는 구형
+  // 초안의 false는 사용자가 "없음"을 선택한 값이 아니라 초기값이므로 새 폼의 미선택 상태로
+  // 되돌린다. 그렇지 않으면 탭만 이동한 과거 빈 초안이 작성된 초안으로 오인된다.
+  if (!("hasSpouseHousingAsset" in value) && value.hasRecentAssetDisposal === false) {
+    normalized.hasRecentAssetDisposal = null;
+  }
+
+  return normalized;
 }
 
 function normalizeDraft(value: unknown, scope?: AnalysisDraftScope): AnalysisDraft | null {
@@ -88,6 +97,10 @@ function normalizeDraft(value: unknown, scope?: AnalysisDraftScope): AnalysisDra
   if (typeof step !== "number" || !Number.isInteger(step) || step < 1 || step > 5) {
     return null;
   }
+
+  // 탭 이동만 기록된 빈 초안은 복원 대상이 아니다. 저장 시뿐 아니라 읽기·정리 시점에도
+  // 검사해야 과거 버전에서 남은 빈 초안이 복원 모달을 다시 띄우지 않는다.
+  if (!hasMeaningfulAnalysisDraftData(form, selectedCustomerId)) return null;
 
   return {
     version: ANALYSIS_DRAFT_VERSION,

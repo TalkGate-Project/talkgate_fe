@@ -357,7 +357,10 @@ function toAnalysisFormInput(form: DiagnosisFormState): AnalysisFormInput {
     hasActiveLawsuit: form.hasOngoingLitigation,
     lawsuitNote: form.litigationDetail || undefined,
     hasTaxArrears: form.hasTaxArrears,
-    hasRecentAssetDisposal: form.hasRecentAssetDisposal,
+    hasRecentAssetDisposal: Boolean(form.hasRecentAssetDisposal),
+    spouseHousingAssetValue: form.hasSpouseHousingAsset
+      ? form.spouseHousingAssetValue
+      : 0,
     isOperatingBusiness: form.isOperatingBusiness,
     // 새출발기금 상세 4종은 사업 영위 이력이 없으면 의미가 없어 아예 보내지 않는다(값은
     // 폼 상태에 남겨둬 토글을 다시 켰을 때 입력값이 사라지지 않게 한다).
@@ -433,7 +436,10 @@ export function fromAnalysisFormInput(input: AnalysisInputData): DiagnosisFormSt
     realEstateAmounts,
     financialAssetValue: input.financialAssetValue ?? 0,
     vehicleValue: input.vehicleValue ?? 0,
-    hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? false,
+    hasSpouseHousingAsset:
+      input.spouseHousingAssetValue == null ? null : input.spouseHousingAssetValue > 0,
+    spouseHousingAssetValue: input.spouseHousingAssetValue ?? 0,
+    hasRecentAssetDisposal: input.hasRecentAssetDisposal ?? null,
     isOperatingBusiness: input.isOperatingBusiness ?? false,
     debtInputMode,
     debtTypes,
