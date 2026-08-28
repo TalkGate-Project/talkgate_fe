@@ -1,16 +1,22 @@
 "use client";
 
 import { ASSET_CATEGORY_OPTIONS, createEmptyAssetItem, createEmptyDebtItem, type AssetItemFormState, type DebtItemFormState, type DiagnosisFormState } from "@/types/debtRelief";
-import { FormSectionTitle, ManwonInput } from "./FormControls";
+import { FormField, FormSectionTitle, ManwonInput } from "./FormControls";
 import FormToggle from "./FormToggle";
 import DebtItemsTable from "./DebtItemsTable";
 import { DebtModeToggle } from "./DebtHistoryCard";
 import { AssetIcon } from "./assetIcons";
+import { PillSelect } from "./PillSelect";
 
 type Props = { form: DiagnosisFormState; update: <K extends keyof DiagnosisFormState>(key: K, value: DiagnosisFormState[K]) => void };
 
 function PlusIcon() { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3.33v9.34M3.33 8h9.34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
 function RemoveIcon() { return <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>; }
+
+const EXISTENCE_OPTIONS: { value: "yes" | "none"; label: string }[] = [
+  { value: "yes", label: "있음" },
+  { value: "none", label: "없음" },
+];
 
 export default function Step2Assets({ form, update }: Props) {
   const setAssets = (assets: AssetItemFormState[]) => {
@@ -94,7 +100,58 @@ export default function Step2Assets({ form, update }: Props) {
         </section>;
       })}
       <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-10 px-5 py-4 lg:px-6"><span className="text-[14px] font-medium text-neutral-60">등록된 자산 {form.assets.length}건</span><div className="flex items-baseline gap-1"><strong className="text-[20px] font-bold tracking-[-0.03em] text-foreground">{totalAssetValue.toLocaleString("ko-KR")}</strong><span className="text-[13px] font-semibold text-neutral-60">만원</span></div></div>
-      <div className="flex items-center justify-between gap-3 rounded-[14px] border border-neutral-30 px-5 py-4 lg:px-6"><span className="text-[14px] font-semibold text-neutral-90">최근 2년 내 재산 처분 이력</span><FormToggle checked={form.hasRecentAssetDisposal} onChange={(checked) => update("hasRecentAssetDisposal", checked)} ariaLabel="최근 2년 내 재산 처분 이력 있음" /></div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
+        <FormField
+          label="배우자 명의 주택 또는 전세보증금 있음"
+          required
+          filled={form.hasSpouseHousingAsset !== null}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <PillSelect
+              options={EXISTENCE_OPTIONS}
+              value={
+                form.hasSpouseHousingAsset === null
+                  ? null
+                  : form.hasSpouseHousingAsset
+                    ? "yes"
+                    : "none"
+              }
+              onChange={(value) => {
+                update("hasSpouseHousingAsset", value === null ? null : value === "yes");
+                if (value === "none") update("spouseHousingAssetValue", 0);
+              }}
+            />
+            {form.hasSpouseHousingAsset && (
+              <div className="w-[164px]">
+                <ManwonInput
+                  value={form.spouseHousingAssetValue}
+                  onChange={(value) => update("spouseHousingAssetValue", value)}
+                />
+              </div>
+            )}
+          </div>
+        </FormField>
+
+        <FormField
+          label="최근 2년 내 재산 처분 이력"
+          required
+          filled={form.hasRecentAssetDisposal !== null}
+        >
+          <PillSelect
+            options={EXISTENCE_OPTIONS}
+            value={
+              form.hasRecentAssetDisposal === null
+                ? null
+                : form.hasRecentAssetDisposal
+                  ? "yes"
+                  : "none"
+            }
+            onChange={(value) =>
+              update("hasRecentAssetDisposal", value === null ? null : value === "yes")
+            }
+          />
+        </FormField>
+      </div>
     </div>
   </div>;
 }

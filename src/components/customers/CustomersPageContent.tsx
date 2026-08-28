@@ -82,12 +82,8 @@ function buildAssignmentFilterConditions(
     ipAddress:
       typeof appliedFilters.ipAddress === "string" ? appliedFilters.ipAddress : undefined,
     keyword: typeof appliedFilters.keyword === "string" ? appliedFilters.keyword : undefined,
-    summary:
-      typeof appliedFilters.summaryInfo === "string" ? appliedFilters.summaryInfo : undefined,
-    specialNotes:
-      typeof appliedFilters.notablePoints === "string"
-        ? appliedFilters.notablePoints
-        : undefined,
+    salesMemo:
+      typeof appliedFilters.salesMemo === "string" ? appliedFilters.salesMemo : undefined,
   };
 }
 

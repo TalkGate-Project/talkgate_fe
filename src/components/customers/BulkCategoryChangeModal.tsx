@@ -55,8 +55,7 @@ function buildFilterConditions(
   if (typeof f.projectPartnerId === "number") conditions.projectPartnerId = f.projectPartnerId;
   if (typeof f.ipAddress === "string") conditions.ipAddress = f.ipAddress;
   if (typeof f.keyword === "string") conditions.keyword = f.keyword;
-  if (typeof f.summaryInfo === "string") conditions.summary = f.summaryInfo;
-  if (typeof f.notablePoints === "string") conditions.specialNotes = f.notablePoints;
+  if (typeof f.salesMemo === "string") conditions.salesMemo = f.salesMemo;
 
   return conditions;
 }

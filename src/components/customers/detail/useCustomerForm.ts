@@ -62,11 +62,7 @@ export function useCustomerForm(): UseCustomerFormReturn {
       assignedMemberName: detail.assignedMemberName ?? detail.assignedMember?.name ?? "",
       assignedTeamName:
         detail.assignedTeamName ?? detail.assignedMember?.teamName ?? "",
-      specialNotes: detail.specialNotes ?? "",
-      summary: detail.summary ?? "",
-      assetStatus: detail.assetStatus ?? "",
-      tendency: detail.tendency ?? "",
-      rejectionReason: detail.rejectionReason ?? "",
+      salesMemo: detail.salesMemo ?? "",
     };
 
     setForm(initialFormState);
@@ -105,9 +101,9 @@ export function useCustomerForm(): UseCustomerFormReturn {
             (changedFields as any)[apiField] = form[key];
           } else if (key === "contact1" || key === "contact2") {
             const digits = (form[key] as string).replace(/\D/g, "");
-            (changedFields as any)[apiField] = digits || undefined;
+            (changedFields as any)[apiField] = digits || null;
           } else {
-            (changedFields as any)[apiField] = form[key] || undefined;
+            (changedFields as any)[apiField] = form[key] || null;
           }
         }
       }

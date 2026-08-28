@@ -24,8 +24,7 @@ const PERSISTABLE_FILTER_KEYS: (keyof CustomerFilters)[] = [
   "assignedAtTo",
   "keyword",
   "ipAddress",
-  "notablePoints",
-  "summaryInfo",
+  "salesMemo",
 ];
 
 export type CustomerFilters = {
@@ -48,8 +47,7 @@ export type CustomerFilters = {
   assignedAtTo?: string;
   keyword?: string;
   ipAddress?: string;
-  notablePoints?: string;
-  summaryInfo?: string;
+  salesMemo?: string;
 };
 export type CustomerSortType = "applicationDate" | "assignedMember" | "lastNoteDate";
 export type CustomerSortOrder = "ASC" | "DESC";
@@ -193,8 +191,7 @@ export function useCustomersFilters(projectId: string | null) {
     obj.assignedAtTo = g("assignedAtTo");
     obj.keyword = g("keyword");
     obj.ipAddress = g("ipAddress");
-    obj.notablePoints = g("notablePoints");
-    obj.summaryInfo = g("summaryInfo");
+    obj.salesMemo = g("salesMemo");
     const rawSortType = g("sortType");
     const rawSortOrder = g("sortOrder");
     obj.sortType =
@@ -246,8 +243,7 @@ export function useCustomersFilters(projectId: string | null) {
     setIf("assignedAtTo", filterValues.assignedAtTo);
     setIf("keyword", filterValues.keyword);
     setIf("ipAddress", filterValues.ipAddress);
-    setIf("notablePoints", filterValues.notablePoints);
-    setIf("summaryInfo", filterValues.summaryInfo);
+    setIf("salesMemo", filterValues.salesMemo);
     return params;
   }, [limit]);
 
@@ -308,8 +304,7 @@ export function useCustomersFilters(projectId: string | null) {
         assignedAtTo: applied.assignedAtTo,
         keyword: applied.keyword,
         ipAddress: applied.ipAddress,
-        notablePoints: applied.notablePoints,
-        summaryInfo: applied.summaryInfo,
+        salesMemo: applied.salesMemo,
       } as CustomerFilters;
       const prevStr = JSON.stringify(prev);
       const nextStr = JSON.stringify(next);
@@ -364,8 +359,7 @@ export function useCustomersFilters(projectId: string | null) {
             assignedAtTo: applied.assignedAtTo,
             keyword: applied.keyword,
             ipAddress: applied.ipAddress,
-            specialNotes: applied.notablePoints,
-            summary: applied.summaryInfo,
+            salesMemo: applied.salesMemo,
             sortType: applied.sortType,
             sortOrder: applied.sortOrder,
           }

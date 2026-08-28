@@ -52,10 +52,8 @@ export type FilterValues = {
     keyword?: string;
     /** IP 주소 */
     ipAddress?: string;
-    /** 특이사항 */
-    notablePoints?: string;
-    /** 요약정보 */
-    summaryInfo?: string;
+    /** 영업메모 (구 요약정보·자산현황·고객성향·거절사유·특이사항 통합 필드) */
+    salesMemo?: string;
 };
 
 type FilterModalProps = {
@@ -611,7 +609,7 @@ export default function FilterModal({
                                 emptyText="매체사가 없습니다."
                             />
 
-                            {/* 사이트 / 특이사항 */}
+                            {/* 사이트 / 영업메모 */}
                             <SearchableLabeledCombobox
                                 label="사이트"
                                 options={mergedSiteOptions}
@@ -627,11 +625,11 @@ export default function FilterModal({
                                 emptyText="사이트가 없습니다."
                             />
                             <LabeledSelect
-                                label="특이사항"
+                                label="영업메모"
                                 options={[]}
-                                placeholder="특이사항을 입력해주세요"
-                                value={form.notablePoints || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, notablePoints: v || undefined }))}
+                                placeholder="영업메모를 입력해주세요"
+                                value={form.salesMemo || ""}
+                                onChange={(v) => setForm((f) => ({ ...f, salesMemo: v || undefined }))}
                                 freeText
                             />
 
@@ -653,18 +651,10 @@ export default function FilterModal({
                                 freeText
                             />
 
-                            {/* 카테고리 / 요약정보 */}
+                            {/* 카테고리 */}
                             <CategorySelector
                                 defaultIds={form.categoryIds}
                                 onChangeIds={handleCategoryIds}
-                            />
-                            <LabeledSelect
-                                label="요약정보"
-                                options={[]}
-                                placeholder="요약정보를 입력해주세요"
-                                value={form.summaryInfo || ""}
-                                onChange={(v) => setForm((f) => ({ ...f, summaryInfo: v || undefined }))}
-                                freeText
                             />
 
                             {/* 상담 내용 (한 줄 전체) */}

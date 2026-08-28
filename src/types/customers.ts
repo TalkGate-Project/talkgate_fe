@@ -11,17 +11,6 @@ export enum ContactType {
   Other = 'other', // 기타
 }
 
-// 고객 성향
-export enum CustomerTendency {
-  ImmediateDecision = 'immediateDecision', // 즉시 결정형
-  ComparativeReview = 'comparativeReview', // 비교 검토형
-  InformationCollection = 'informationCollection', // 정보 수집형
-  PriceSensitive = 'priceSensitive', // 가격 민감형
-  Aggressive = 'aggressive', // 공격적
-  Friendly = 'friendly', // 친화적
-  RejectionDefensive = 'rejectionDefensive', // 거절 방어적
-}
-
 export type RecentNote = {
   id: number;
   memberId?: number | null;
@@ -116,8 +105,7 @@ export type CustomersListQuery = {
   assignedAtTo?: string;        // YYYY-MM-DD
   keyword?: string;
   ipAddress?: string;
-  specialNotes?: string;
-  summary?: string;
+  salesMemo?: string;
   sortType?: "applicationDate" | "assignedMember" | "lastNoteDate";
   sortOrder?: "ASC" | "DESC";
   page: number;                 // required
@@ -157,12 +145,8 @@ export type CreateCustomerInput = {
   mediaCompany?: string;
   ipAddress?: string;
   keyword?: string;
-  specialNotes?: string;
   teamId?: number;
-  summary?: string;
-  assetStatus?: string;
-  tendency?: string;
-  rejectionReason?: string;
+  salesMemo?: string;
   projectId: string; // header: x-project-id
 };
 
@@ -252,11 +236,7 @@ export type CustomerDetail = {
   assignedAt?: string | null;
   status?: string; // e.g., "pending", "unconfirmed", "confirmed"
   categoryId?: number | null;
-  specialNotes?: string;
-  summary?: string;
-  assetStatus?: string;
-  tendency?: string;
-  rejectionReason?: string;
+  salesMemo?: string | null;
   conversation?: {
     id: number;
     platform: string;
@@ -285,24 +265,20 @@ export type CustomerDetailResponse = {
 export type UpdateCustomerInput = {
   name?: string;
   contact1?: string;
-  contact2?: string;
+  contact2?: string | null;
   contact1Type?: ContactType | null;
   contact2Type?: ContactType | null;
-  birth?: string;
-  ageRange?: string;
-  gender?: string;
-  job?: string;
-  applicationRoute?: string;
-  site?: string;
-  mediaCompany?: string;
-  keyword?: string;
-  ipAddress?: string;
-  specialNotes?: string;
-  summary?: string;
-  assetStatus?: string;
-  tendency?: string;
-  rejectionReason?: string;
-  applicationDate?: string; // ISO
+  birth?: string | null;
+  ageRange?: string | null;
+  gender?: string | null;
+  job?: string | null;
+  applicationRoute?: string | null;
+  site?: string | null;
+  mediaCompany?: string | null;
+  keyword?: string | null;
+  ipAddress?: string | null;
+  salesMemo?: string | null;
+  applicationDate?: string | null; // ISO
   projectId: string; // header: x-project-id
 };
 
@@ -361,8 +337,7 @@ export type AssignCustomersFilterConditions = {
   assignedAtTo?: string;
   ipAddress?: string;
   keyword?: string;
-  summary?: string;
-  specialNotes?: string;
+  salesMemo?: string;
 };
 
 export type AssignCustomersInput = {
@@ -554,8 +529,7 @@ export type BulkCreateSchedulesFilterConditions = {
   apiKeyId?: number;
   ipAddress?: string;
   keyword?: string;
-  summary?: string;
-  specialNotes?: string;
+  salesMemo?: string;
 };
 
 export type BulkCreateSchedulesInput = {

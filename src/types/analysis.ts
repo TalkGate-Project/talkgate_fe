@@ -240,6 +240,8 @@ export type AnalysisFormInput = {
   lawsuitNote?: string;
   hasTaxArrears?: boolean;
   hasRecentAssetDisposal?: boolean;
+  /** 배우자 명의 주택 또는 전세보증금 가액(만원). 미보유는 0. */
+  spouseHousingAssetValue?: number;
   /** 사업 영위 여부(현재 또는 과거). 새출발기금 후보 게이트 — 필수값이라 누락 시 400 */
   isOperatingBusiness: boolean;
   /** isOperatingBusiness가 true일 때만 의미있는 optional 필드 4종 */

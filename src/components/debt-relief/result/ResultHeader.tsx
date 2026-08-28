@@ -11,7 +11,6 @@ import { formatContactForDisplay } from "@/utils/format";
 import { AnalysisService } from "@/services/analysis";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { showConfirmModal } from "@/providers/ConfirmModalProvider";
-import { useCustomerModal } from "@/providers/CustomerModalProvider";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import CustomerLinkModeModal from "@/components/chat/customer-link/CustomerLinkModeModal";
 import { useProjectType } from "@/hooks/useProjectType";
@@ -21,6 +20,7 @@ import DiagnosisCustomerInfoModal from "./DiagnosisCustomerInfoModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
 import LinkIcon from "@/components/icons/LinkIcon";
 import { isMobileDeviceNavigator } from "@/lib/device";
+import FloatingCustomerDetailModal from "@/components/customers/FloatingCustomerDetailModal";
 
 function EditIcon() {
   const maskId = useId();
@@ -485,13 +485,13 @@ export default function ResultHeader({
   onToggleMessages,
 }: Props) {
   const router = useRouter();
-  const { openCustomerModal } = useCustomerModal();
   const { isAnalysis, isLawyer, ready: projectTypeReady } = useProjectType();
   const [linkStep, setLinkStep] = useState<null | "mode" | "existing" | "create">(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [paymentInfoOpen, setPaymentInfoOpen] = useState(false);
   const [paymentNudgeDismissed, setPaymentNudgeDismissed] = useState(false);
   const [customerInfoOpen, setCustomerInfoOpen] = useState(false);
+  const [customerDetailOpen, setCustomerDetailOpen] = useState(false);
   const [linkedMenuOpen, setLinkedMenuOpen] = useState(false);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const mobileLinkedMenuRef = useRef<HTMLDivElement>(null);
@@ -636,7 +636,7 @@ export default function ResultHeader({
     if (detail.customerId == null) return;
     setLinkedMenuOpen(false);
     setActionsMenuOpen(false);
-    openCustomerModal(detail.customerId);
+    setCustomerDetailOpen(true);
   };
 
   const handleUnlink = () => {
@@ -1017,6 +1017,12 @@ export default function ResultHeader({
           />
         </>
       )}
+      <FloatingCustomerDetailModal
+        open={customerDetailOpen}
+        customerId={detail.customerId ?? null}
+        onClose={() => setCustomerDetailOpen(false)}
+        onCustomerUpdated={onCustomerMatchChange}
+      />
       <DiagnosisCustomerInfoModal
         open={customerInfoOpen}
         onClose={() => setCustomerInfoOpen(false)}

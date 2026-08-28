@@ -263,3 +263,38 @@ QA 가이드(`TESTING_GUIDE.md`)에 아래 시나리오를 추가 권장:
   - `src/components/common/DatePicker.tsx`, `MonthPicker.tsx`, `TimePicker.tsx` — 앵커 패널 3종. 계산 방식이 셋 다 복붙이라 한 곳만 고쳐지고 갈라진 전례가 있다(2026-07-28). 공통 훅으로 추출 예정
   - `src/components/chat/ChatFilterModal.tsx` — 단순 앵커링만 하는 최소 예시
   - `src/hooks/useEmojiPicker.ts` — 모바일 분기에 레이아웃 px 혼용이 있으나 zoom 1.0이라 무증상
+
+---
+
+## 9. 알려진 미수정 건 (백로그)
+
+### 9-1. 플로팅 창 드래그·리사이즈의 zoom 미보정
+
+> 2026-08-28 브라우저 실측으로 확인 · **수정하지 않기로 결정**(기존 사용자들도 인지하고 있는 동작)
+
+대상 — 공용 훅과 이를 쓰는 화면 전부:
+
+- `src/hooks/useDraggableFloatingWindow.ts`
+- `src/hooks/useResizableFloatingWindow.ts`
+- `src/components/layout/StaffChatModal.tsx` (직원채팅 — 원본)
+- `src/components/customers/FloatingCustomerDetailModal.tsx` (고객 상세 플로팅 창 — 위 패턴을 복제)
+
+4-4가 금지하는 혼용이 그대로 있다. 포인터 좌표(`e.clientX/clientY`)와 뷰포트 크기(`window.innerWidth/innerHeight`)는
+**화면 px**인데, 그 값으로 계산한 결과를 `style`의 `left`/`top`/`width`/`height`에 **레이아웃 px로 그대로** 넣는다.
+중간에 `getBodyZoom()` 변환이 없다.
+
+`zoom: 0.8`(데스크톱 ≥1080px)에서의 실측:
+
+```
+positioner inline style : left 698px, top 78px   ← 레이아웃 px (코드가 넣은 값)
+실제 화면 위치          : x 558,     y 62        ← 698 × 0.8
+```
+
+증상 두 가지:
+
+1. **드래그가 커서를 따라가지 못한다** — 커서를 400px 옮기면 창은 320px만 이동(0.8배). 길게 끌수록 커서와 창이 벌어진다.
+2. **창이 화면 좌상단에 갇힌다** — `clampBounds`가 창 크기를 레이아웃 px(height 694)로 보는데 실제 렌더는 555px이다.
+   그래서 아래 155px·오른쪽 658px 여백이 남아 있는데도 더 옮길 수 없다.
+
+수정한다면 4-4 규칙 그대로 두 훅에서 `getBodyZoom()`으로 변환하면 되고, 두 화면이 함께 정상화된다.
+다만 직원채팅은 이미 운영 중이고 현재 동작에 사용자들이 익숙해져 있어 이번에는 손대지 않는다.
