@@ -143,6 +143,7 @@ export default function DiscountCouponApplyModal({
       closeOnOverlayClick={!isBusy}
       overlayClassName="bg-black/30"
       ariaLabel="할인쿠폰 적용"
+      disableAutoContainerSizing
       containerClassName="w-[440px] max-w-[calc(100vw-32px)] min-h-[234px] overflow-hidden rounded-[14px] bg-card shadow-[0_13px_61px_rgba(0,0,0,0.18)] drop-shadow-[0_8px_12px_rgba(9,30,66,0.1)]"
     >
       <div className="flex items-center justify-between px-6 py-5">
@@ -180,7 +181,7 @@ export default function DiscountCouponApplyModal({
               disabled={!normalizedCode || isBusy}
               className="h-10 shrink-0 cursor-pointer whitespace-nowrap rounded-[5px] border border-border bg-card px-4 text-[13px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-neutral-30"
             >
-              {isChecking ? "조회 중" : "할인쿠폰 조회"}
+              {isChecking ? "조회 중" : "쿠폰조회"}
             </button>
           </div>
 

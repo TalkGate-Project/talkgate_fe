@@ -17,6 +17,7 @@ import { getSelectedProjectId } from "@/lib/project";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal as showErrorModalEvent } from "@/lib/errorModalEvents";
 import { buildHeaderIdentity } from "./detail/utils";
+import CustomerHeaderIdentity from "./detail/CustomerHeaderIdentity";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 export type CustomerDetailModalProps = {
@@ -39,6 +40,9 @@ export type CustomerDetailModalProps = {
     resizeHandles?: ReactNode;
   };
 };
+// 플로팅 창은 화면 밖으로 밀어낼 수 있다. 넘친 부분이 스크롤을 만들지 않도록 오버레이에서 잘라낸다.
+const FLOATING_OVERLAY_CLASS = "pointer-events-none overflow-hidden";
+
 export default function CustomerDetailModalMobile({
   open,
   onClose,
@@ -76,7 +80,7 @@ export default function CustomerDetailModalMobile({
 
   // 이 컴포넌트는 실제 모바일과 데스크톱 플로팅 창 양쪽에서 쓰인다. 이름·연락처는
   // 자리가 있는 태블릿·PC 폭에서만 노출한다.
-  const headerIdentity = buildHeaderIdentity(detail, { showIdentity: !isMobileViewport });
+  const headerIdentity = buildHeaderIdentity(detail, { showIdentity: !isMobileViewport, customerId });
 
   // 현재 사용자의 멤버 정보 가져오기 (admin/subAdmin/leader만 직원배정 버튼 표시)
   const projectId = getSelectedProjectId();
@@ -205,7 +209,7 @@ export default function CustomerDetailModalMobile({
   return (
     <BaseModal
       onClose={handleClose}
-      overlayClassName={floatingPresentation ? "pointer-events-none" : "bg-black/50 dark:bg-[#000000CC]"}
+      overlayClassName={floatingPresentation ? FLOATING_OVERLAY_CLASS : "bg-black/50 dark:bg-[#000000CC]"}
       positionerClassName={floatingPresentation?.positionerClassName}
       positionerStyle={floatingPresentation?.positionerStyle}
       disableAutoContainerSizing={Boolean(floatingPresentation)}
@@ -222,14 +226,7 @@ export default function CustomerDetailModalMobile({
         onPointerDown={floatingPresentation?.onHeaderPointerDown}
       >
         <div className="flex items-center gap-2">
-          <h2 className="text-[18px] font-semibold text-neutral-90 dark:text-neutral-90 whitespace-nowrap">
-            {headerIdentity.title}
-          </h2>
-          {headerIdentity.contact && (
-            <span className="text-[14px] font-medium text-neutral-60 whitespace-nowrap">
-              {headerIdentity.contact}
-            </span>
-          )}
+          <CustomerHeaderIdentity identity={headerIdentity} />
           {(() => {
             // 확인 완료된 경우: 녹색 체크
             if (detail?.status === "confirmed") {
