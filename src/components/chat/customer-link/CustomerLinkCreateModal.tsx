@@ -9,6 +9,7 @@ import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
 import { format } from "date-fns";
 import BaseModal from "@/components/common/BaseModal";
 import { formatPhoneNumber, getPhoneFormatCursorPosition } from "@/utils/format";
+import { SALES_MEMO_MAX_LENGTH, resizeSalesMemoTextarea } from "@/lib/salesMemo";
 
 type Props = {
   open: boolean;
@@ -69,7 +70,9 @@ export default function CustomerLinkCreateModal({
   const [applicationRoute, setApplicationRoute] = useState("");
   const [site, setSite] = useState("");
   const [mediaCompany, setMediaCompany] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
+
+  // 영업 정보
+  const [salesMemo, setSalesMemo] = useState("");
 
   const contactTypes = ["휴대폰", "집", "회사", "기타"];
   const messengerTypes = ["라인", "카카오톡", "텔레그램", "인스타그램", "기타"];
@@ -111,7 +114,7 @@ export default function CustomerLinkCreateModal({
     setApplicationRoute("");
     setSite("");
     setMediaCompany("");
-    setSpecialNotes("");
+    setSalesMemo("");
   };
 
   useEffect(() => {
@@ -162,7 +165,7 @@ export default function CustomerLinkCreateModal({
         applicationRoute: applicationRoute || undefined,
         site: site || undefined,
         mediaCompany: mediaCompany || undefined,
-        specialNotes: specialNotes || undefined,
+        salesMemo: salesMemo || undefined,
       });
 
       const newCustomerId = response.data?.data?.id;
@@ -377,16 +380,16 @@ export default function CustomerLinkCreateModal({
                   />
                 </div>
 
-                {/* 연령 */}
+                {/* 연령대 */}
                 <div>
-                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연령</label>
+                  <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">연령대</label>
                   <div className="flex flex-col justify-center items-center px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] h-[33px] bg-card dark:bg-neutral-10">
                     <input
                       type="text"
                       value={ageRange}
                       onChange={(e) => setAgeRange(e.target.value)}
                       className="w-full h-[17px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90"
-                      placeholder="연령"
+                      placeholder="연령대"
                     />
                   </div>
                 </div>
@@ -500,7 +503,7 @@ export default function CustomerLinkCreateModal({
           <div>
             <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 md:mb-4">데이터 정보</h3>
             <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 md:pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 신청 경로 */}
                 <div>
                   <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">신청 경로</label>
@@ -543,19 +546,30 @@ export default function CustomerLinkCreateModal({
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* 특이사항 */}
-              <div>
-                <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">특이사항</label>
-                <div className="flex flex-col justify-start items-start px-3 py-2 gap-[10px] border border-neutral-30 dark:border-neutral-30 rounded-[5px] min-h-[66px] bg-card dark:bg-neutral-10">
-                  <textarea
-                    value={specialNotes}
-                    onChange={(e) => setSpecialNotes(e.target.value)}
-                    className="w-full min-h-[51px] outline-none border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] placeholder:text-neutral-60 text-neutral-90 resize-none"
-                    placeholder="특이사항을 입력하세요"
-                    rows={3}
-                  />
-                </div>
+          {/* 영업 정보 */}
+          <div className="mt-6">
+            <h3 className="text-[16px] font-semibold leading-[19px] text-neutral-90 mb-3 md:mb-4">영업 정보</h3>
+            <div className="border-t border-neutral-30 dark:border-neutral-30 pt-3 md:pt-4">
+              <label className="block text-[14px] leading-[17px] text-neutral-60 mb-2">영업메모</label>
+              <div className="flex min-h-[118px] flex-col items-start justify-start rounded-[5px] border border-neutral-30 bg-card px-3 py-2 dark:border-neutral-30 dark:bg-neutral-10">
+                <textarea
+                  value={salesMemo}
+                  onChange={(e) => {
+                    setSalesMemo(e.target.value);
+                    resizeSalesMemoTextarea(e.currentTarget);
+                  }}
+                  onFocus={(e) => resizeSalesMemoTextarea(e.currentTarget)}
+                  maxLength={SALES_MEMO_MAX_LENGTH}
+                  rows={5}
+                  className="min-h-[102px] w-full resize-none overflow-hidden border-none bg-transparent text-[14px] leading-[20px] tracking-[-0.02em] text-neutral-90 outline-none placeholder:text-neutral-60"
+                  placeholder="영업메모를 입력하세요"
+                />
+              </div>
+              <div className="mt-1 text-right text-[12px] text-neutral-60">
+                {salesMemo.length.toLocaleString()}/{SALES_MEMO_MAX_LENGTH.toLocaleString()}
               </div>
             </div>
           </div>

@@ -1,14 +1,15 @@
-import React, { useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { SelectField } from "./SelectField";
 import { formatDetailDate } from "./utils";
 import { CustomerFormState } from "./useCustomerDetail";
-import { CustomerDetail, CustomerTendency } from "@/types/customers";
+import { CustomerDetail } from "@/types/customers";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
 import { showConfirmModal } from "@/lib/confirmModalEvents";
 import { showErrorModal } from "@/lib/errorModalEvents";
+import { SALES_MEMO_MAX_LENGTH, resizeSalesMemoTextarea } from "@/lib/salesMemo";
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: "creditCard", label: "신용카드" },
@@ -41,16 +42,6 @@ const SCHEDULE_TIME_PRESETS = [
   { label: "24시간 후", minutes: 24 * 60 },
 ] as const;
 
-const CUSTOMER_TENDENCY_OPTIONS: { value: CustomerTendency; label: string }[] = [
-  { value: CustomerTendency.ImmediateDecision, label: "즉시 결정형" },
-  { value: CustomerTendency.ComparativeReview, label: "비교 검토형" },
-  { value: CustomerTendency.InformationCollection, label: "정보 수집형" },
-  { value: CustomerTendency.PriceSensitive, label: "가격 민감형" },
-  { value: CustomerTendency.Aggressive, label: "공격적" },
-  { value: CustomerTendency.Friendly, label: "친화적" },
-  { value: CustomerTendency.RejectionDefensive, label: "거절 방어적" },
-];
-
 type Props = {
   form: CustomerFormState;
   setForm: React.Dispatch<React.SetStateAction<CustomerFormState>>;
@@ -82,6 +73,7 @@ export default function SalesTab({
   onRemoveSchedule,
 }: Props) {
   const scheduleDateInputId = useId();
+  const salesMemoRef = useRef<HTMLTextAreaElement>(null);
   // Payment Inputs
   const [paymentDate, setPaymentDate] = useState<Date | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -210,91 +202,28 @@ export default function SalesTab({
     }
   };
 
+  useEffect(() => {
+    if (salesMemoRef.current) {
+      resizeSalesMemoTextarea(salesMemoRef.current);
+    }
+  }, [form.salesMemo]);
+
   return (
     <div className="mt-3 space-y-[30px]">
-      {/* Investment Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
-        <label className="block">
-          <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            요약정보
-          </span>
-          <input
-            value={form.summary}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, summary: e.target.value }))
-            }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="요약정보를 입력하세요."
-          />
-        </label>
-        <label className="block">
-          <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            자산현황
-          </span>
-          <input
-            value={form.assetStatus}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                assetStatus: e.target.value,
-              }))
-            }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="자산현황을 입력하세요."
-          />
-        </label>
-        <label className="block">
-          <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            고객성향
-          </span>
-          <SelectField
-            value={form.tendency}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                tendency: e.target.value,
-              }))
-            }
-            className="h-[34px] w-full font-medium text-[14px]"
-          >
-            <option value="">선택</option>
-            {CUSTOMER_TENDENCY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </SelectField>
-        </label>
-        <label className="block">
-          <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-            거절사유
-          </span>
-          <input
-            value={form.rejectionReason}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                rejectionReason: e.target.value,
-              }))
-            }
-            className="w-full h-[34px] rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-            placeholder="거절사유를 입력하세요."
-          />
-        </label>
-      </div>
-
       <div className="w-full">
         <span className="block text-[14px] text-[#6B7280] dark:text-neutral-60 mb-1 font-medium">
-          특이사항
+          영업메모
         </span>
         <textarea
-          value={form.specialNotes}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, specialNotes: e.target.value }))
-          }
-          rows={3}
-          className="w-full rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
-          placeholder="특이사항을 입력하세요."
+          ref={salesMemoRef}
+          value={form.salesMemo}
+          onChange={(e) => {
+            setForm((prev) => ({ ...prev, salesMemo: e.target.value }));
+          }}
+          maxLength={SALES_MEMO_MAX_LENGTH}
+          rows={5}
+          className="w-full min-h-[102px] resize-none overflow-hidden rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+          placeholder="영업메모를 입력하세요."
         />
       </div>
 
