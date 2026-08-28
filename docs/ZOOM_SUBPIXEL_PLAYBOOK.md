@@ -270,14 +270,20 @@ QA 가이드(`TESTING_GUIDE.md`)에 아래 시나리오를 추가 권장:
 
 ### 9-1. 플로팅 창 드래그·리사이즈의 zoom 미보정
 
-> 2026-08-28 브라우저 실측으로 확인 · **수정하지 않기로 결정**(기존 사용자들도 인지하고 있는 동작)
+> 2026-08-28 브라우저 실측으로 확인 · **고객 상세 창은 수정 완료, 직원채팅은 미수정 유지**
 
-대상 — 공용 훅과 이를 쓰는 화면 전부:
+두 훅에 `getPointerScale` 옵션을 추가했다. 넘기면 포인터 이동량(화면 px)을 그 값으로 나눠
+`bounds`의 좌표계(레이아웃 px)로 바꾸고, 넘기지 않으면 예전 그대로 동작한다.
 
-- `src/hooks/useDraggableFloatingWindow.ts`
-- `src/hooks/useResizableFloatingWindow.ts`
-- `src/components/layout/StaffChatModal.tsx` (직원채팅 — 원본)
-- `src/components/customers/FloatingCustomerDetailModal.tsx` (고객 상세 플로팅 창 — 위 패턴을 복제)
+- `src/hooks/useDraggableFloatingWindow.ts` — `getPointerScale` 지원
+- `src/hooks/useResizableFloatingWindow.ts` — `getPointerScale` 지원
+- `src/components/customers/FloatingCustomerDetailModal.tsx` — **수정 완료**.
+  `getPointerScale: getBodyZoom`을 넘기고, 클램핑 기준도 `innerWidth/innerHeight`가 아니라
+  `getViewportInLayoutPx()`(= 화면 px ÷ zoom)를 쓴다
+- `src/components/layout/StaffChatModal.tsx` (직원채팅 — 원본) — **그대로 둔다**.
+  운영 중이고 사용자들이 현재 동작에 익숙하다. 고칠 때는 위 두 줄만 따라 하면 된다
+
+아래는 수정 전 증상 기록이다(직원채팅에는 아직 그대로 남아 있다).
 
 4-4가 금지하는 혼용이 그대로 있다. 포인터 좌표(`e.clientX/clientY`)와 뷰포트 크기(`window.innerWidth/innerHeight`)는
 **화면 px**인데, 그 값으로 계산한 결과를 `style`의 `left`/`top`/`width`/`height`에 **레이아웃 px로 그대로** 넣는다.
@@ -296,5 +302,6 @@ positioner inline style : left 698px, top 78px   ← 레이아웃 px (코드가 
 2. **창이 화면 좌상단에 갇힌다** — `clampBounds`가 창 크기를 레이아웃 px(height 694)로 보는데 실제 렌더는 555px이다.
    그래서 아래 155px·오른쪽 658px 여백이 남아 있는데도 더 옮길 수 없다.
 
-수정한다면 4-4 규칙 그대로 두 훅에서 `getBodyZoom()`으로 변환하면 되고, 두 화면이 함께 정상화된다.
-다만 직원채팅은 이미 운영 중이고 현재 동작에 사용자들이 익숙해져 있어 이번에는 손대지 않는다.
+고객 상세 창에서는 2번 증상 때문에 창이 화면 폭의 정확히 zoom배(0.8) 지점에 보이지 않는 벽이
+생겨 오른쪽 여백으로 더 못 나갔다(실측: 창 폭 1915px에서 오른쪽 한계 1532px = 1915 × 0.8).
+같은 수정을 직원채팅에 적용할 때도 이 두 곳(포인터 변환 + 클램핑 기준)을 함께 바꿔야 한다.
