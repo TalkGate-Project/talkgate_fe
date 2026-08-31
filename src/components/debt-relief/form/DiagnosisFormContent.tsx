@@ -558,6 +558,18 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   const handleAnalyze = async () => {
     if (analyzing) return;
+    if (!isEdit && isAdminOrSubAdmin && !isCustomerConnected) {
+      showErrorModal({
+        type: "info",
+        title: "고객 연동 필요",
+        headline: "고객 정보를 먼저 연동해주세요.",
+        description: "관리자와 부관리자는 고객을 연동한 뒤 분석을 진행할 수 있습니다.",
+        confirmText: "고객 연동",
+        hideCancel: true,
+        onConfirm: () => setCustomerLinkStep("mode"),
+      });
+      return;
+    }
     if (!canAnalyze || incompleteSteps.length > 0) {
       setRequiredFieldsModalOpen(true);
       return;
