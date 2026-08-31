@@ -558,7 +558,9 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   const handleAnalyze = async () => {
     if (analyzing) return;
-    if (!isEdit && isAdminOrSubAdmin && !isCustomerConnected) {
+    // 수정 모드도 포함한다. 이미 저장된 미연동 건을 소급해서 손대지는 않지만, 수정해서 다시
+    // 제출하는 시점에는 신규와 같은 기준을 적용한다.
+    if (isAdminOrSubAdmin && !isCustomerConnected) {
       showErrorModal({
         type: "info",
         title: "고객 연동 필요",
