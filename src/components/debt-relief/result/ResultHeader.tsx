@@ -564,32 +564,10 @@ export default function ResultHeader({
       return;
     }
 
-    if (typeof window.navigator.share !== "function") {
-      // Web Share API를 제공하지 않는 모바일 브라우저에서는 기존 인쇄 기능을 fallback으로 유지한다.
-      window.print();
-      return;
-    }
-
-    try {
-      await window.navigator.share({
-        title: `${detail.customerName} 고객 채무조정 진단 결과`,
-        text: "톡게이트 채무조정 진단 결과를 공유합니다.",
-        url: window.location.href,
-      });
-    } catch (error) {
-      const errorName =
-        error && typeof error === "object" && "name" in error
-          ? String((error as { name?: unknown }).name)
-          : "";
-      // 사용자가 네이티브 공유 UI를 닫은 것은 정상적인 취소이므로 오류로 안내하지 않는다.
-      if (errorName === "AbortError") return;
-
-      console.error("Failed to share analysis result:", error);
-      showErrorModal({
-        headline: "분석 결과를 공유하지 못했습니다.",
-        description: "잠시 후 다시 시도해주세요.",
-      });
-    }
+    // 임시: 모바일 다운로드 방식이 기획에서 확정될 때까지 데스크톱과 동일하게 인쇄로 되돌린다.
+    // 네이티브 공유(navigator.share로 현재 URL 전달)는 링크를 받은 사람이 로그인·권한 없이는
+    // 열 수 없어 보류. 곧 재작업할 자리라 기기 분기 자체는 남겨둔다 — 이전 구현은 7915359 참고.
+    window.print();
   };
 
   const handleDismissPaymentNudge = () => {
