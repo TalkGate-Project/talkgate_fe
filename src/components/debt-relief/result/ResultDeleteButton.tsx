@@ -119,13 +119,13 @@ export default function ResultDeleteButton({ diagnosisId, projectId, isShared }:
   };
 
   return (
-    <div className="flex justify-end px-4 md:px-0 mt-9 md:mt-0">
+    <div className="mx-6 flex justify-end border-t border-neutral-30 pt-3 md:mx-0 md:border-t-0 md:pt-0">
       <button
         type="button"
         onClick={() => void handleDelete()}
         disabled={checking}
         aria-label="진단 삭제"
-        className="cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 py-1.5 rounded-[5px] border border-neutral-30 bg-white dark:bg-card text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-danger-40 hover:bg-neutral-10 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+        className="cursor-pointer inline-flex items-center justify-center gap-2.5 h-[34px] px-3 py-1.5 rounded-[5px] border border-neutral-30 bg-card text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-danger-40 hover:bg-neutral-10 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <TrashOutlineIcon />
         삭제

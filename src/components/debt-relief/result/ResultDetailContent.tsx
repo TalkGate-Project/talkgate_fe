@@ -40,6 +40,7 @@ import ResultDeleteButton from "./ResultDeleteButton";
 import AnalysisPrintDocument from "./AnalysisPrintDocument";
 import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
 import { getBodyZoom } from "@/utils/zoom";
+import { formatContactForDisplay } from "@/utils/format";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
@@ -457,7 +458,20 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
           />
         </SectionCard>
 
-        <SectionCard id="sms" title="고객 문자 전송" compactTop>
+        <SectionCard
+          id="sms"
+          title="고객 문자 전송"
+          compactTop
+          compactMobileTitle
+          action={
+            detail.phone ? (
+              <span className="min-w-0 truncate text-right text-[14px] font-semibold leading-[17px] text-neutral-100 md:hidden">
+                {detail.customerName} {formatContactForDisplay(detail.phone)}
+              </span>
+            ) : undefined
+          }
+          className="max-md:!pb-0"
+        >
           <SectionSmsSend detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
         </SectionCard>
 
