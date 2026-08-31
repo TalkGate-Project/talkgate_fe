@@ -22,6 +22,8 @@ type Props = {
   showValidation: boolean;
   linkedAnalysis?: CustomerLinkedAnalysis | null;
   layout?: "responsive" | "mobile";
+  /** 채무조정 진단 화면 안에서 열리는 경우처럼 진단 정보가 이미 맥락에 있을 때 숨긴다. */
+  showLinkedAnalysis?: boolean;
 };
 
 export default function BasicTab({
@@ -35,6 +37,7 @@ export default function BasicTab({
   showValidation,
   linkedAnalysis,
   layout = "responsive",
+  showLinkedAnalysis = true,
 }: Props) {
   const birthDateInputId = useId();
   const [newMessengerType, setNewMessengerType] = useState("kakaotalk");
@@ -363,14 +366,16 @@ export default function BasicTab({
       </div>
 
       {/* 회생·파산 진단 정보 */}
-      <CustomerLinkedAnalysisSection
-        customerId={customerId}
-        customerName={form.name}
-        customerGender={form.gender}
-        hasAssignedMember={Boolean(form.assignedMemberName?.trim())}
-        linkedAnalysis={linkedAnalysis}
-        layout={layout}
-      />
+      {showLinkedAnalysis && (
+        <CustomerLinkedAnalysisSection
+          customerId={customerId}
+          customerName={form.name}
+          customerGender={form.gender}
+          hasAssignedMember={Boolean(form.assignedMemberName?.trim())}
+          linkedAnalysis={linkedAnalysis}
+          layout={layout}
+        />
+      )}
 
       {/* 메신저 삭제 확인 모달 */}
       <ConfirmModal

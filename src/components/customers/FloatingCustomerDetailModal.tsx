@@ -143,6 +143,8 @@ export default function FloatingCustomerDetailModal({
       customerId={customerId}
       onClose={onClose}
       onCustomerUpdated={onCustomerUpdated}
+      // 이 창은 채무조정 진단 화면 위에서만 열리므로 진단 정보 섹션은 중복이다.
+      hideLinkedAnalysis
       floatingPresentation={{
         positionerClassName: isMobileViewport ? "absolute inset-0" : "absolute",
         positionerStyle: isMobileViewport ? undefined : { left: bounds.left, top: bounds.top },

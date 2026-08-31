@@ -30,6 +30,8 @@ export type CustomerDetailModalProps = {
   onRefetch?: () => void;
   /** 상세 모달에서 직원배정 클릭 시 (고객 1명 배정용) */
   onAssignClick?: () => void;
+  /** 채무조정 진단 화면 안에서 열릴 때처럼 진단 정보 섹션이 필요 없는 경우 숨긴다. */
+  hideLinkedAnalysis?: boolean;
   /** 채무 분석 등에서 모바일형 상세 내용을 독립 플로팅 창으로 표시할 때만 사용합니다. */
   floatingPresentation?: {
     positionerClassName: string;
@@ -51,6 +53,7 @@ export default function CustomerDetailModalMobile({
   onCustomerDeleted,
   onRefetch,
   onAssignClick,
+  hideLinkedAnalysis = false,
   floatingPresentation,
 }: CustomerDetailModalProps) {
   const [tab, setTab] = useState<"basic" | "data" | "sales" | "assignment" | "consultation">("basic");
@@ -318,8 +321,8 @@ export default function CustomerDetailModalMobile({
         </button>
       </div>
 
-      {/* Conversation Card - 최상단에 항상 표시 */}
-      {!loading && detail && (
+      {/* Conversation Card - 연동된 대화가 있을 때만 최상단에 표시 */}
+      {!loading && detail && detail.conversation && (
         <div className="flex-none px-4 pt-4">
           <ConversationCard
             customerId={detail.id}
@@ -389,7 +392,7 @@ export default function CustomerDetailModalMobile({
       )}
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4">
+      <div className={`flex-1 overflow-y-auto min-h-0 px-4 pb-4 ${floatingPresentation ? "pt-3" : "pt-4"}`}>
         {loading && (
           <div className="py-16 text-center text-neutral-60 dark:text-neutral-60">불러오는 중...</div>
         )}
@@ -408,6 +411,7 @@ export default function CustomerDetailModalMobile({
                 showValidation={showValidation}
                 linkedAnalysis={detail.linkedAnalysis}
                 layout="mobile"
+                showLinkedAnalysis={!hideLinkedAnalysis}
               />
             )}
 

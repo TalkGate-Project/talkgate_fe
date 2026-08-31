@@ -498,6 +498,26 @@ export default function ResultHeader({
   const mobileActionsMenuRef = useRef<HTMLDivElement>(null);
   const desktopLinkedMenuRef = useRef<HTMLDivElement>(null);
   const isMatched = detail.customerId != null;
+
+  // 고객 모달의 「결과보기」에서 넘어온 경우 결과 화면 위에 같은 고객 모달을 바로 복원한다.
+  // 쿼리 플래그는 소비 즉시 제거해 사용자가 닫은 뒤 새로고침했을 때 다시 열리지 않게 한다.
+  useEffect(() => {
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.get("openCustomer") !== "true") return;
+
+    // 플래그 소비와 모달 오픈은 분리한다. 연동 고객이 없다는 이유로 플래그까지 남겨두면
+    // 그 URL로 재진입한 뒤 고객을 연동하는 순간 뒤늦게 모달이 열린다.
+    currentUrl.searchParams.delete("openCustomer");
+    const queryString = currentUrl.searchParams.toString();
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${currentUrl.pathname}${queryString ? `?${queryString}` : ""}${currentUrl.hash}`
+    );
+
+    if (detail.customerId == null) return;
+    setCustomerDetailOpen(true);
+  }, [detail.customerId]);
   // 소유자 액션(고객연동·정보수정·결제정보) 노출 조건: 영업점은 항상, 변호사는 자체 등록(공유받지 않은)
   // 건일 때만. 변호사가 영업점에서 공유받은 건은 원본 데이터라 소유자 액션 대상이 아니다.
   const showOwnerActions =
