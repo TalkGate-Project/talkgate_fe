@@ -194,11 +194,11 @@ export default function DebtReliefHubContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1324px] w-full px-0 md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0">
+    <div className="mx-auto max-w-[1324px] w-full bg-card px-0 md:bg-transparent md:px-6 lg:px-0 md:pt-9 md:pb-12 flex flex-col gap-0">
       {/* 상단 카드: 제목 + 요약 카드 */}
-      <section className="surface md:rounded-[14px] px-6 md:px-7 py-3 md:py-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
-        {/* 모바일: 1행 제목 / 2행 관련뉴스(구분선 위). 데스크톱: 한 줄. */}
-        <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between md:gap-4">
+      <section className="surface px-6 pt-3 pb-0 md:rounded-[14px] md:px-7 md:py-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none">
+        {/* 모바일·데스크톱 모두 제목과 안내 액션을 한 줄에 배치한다. */}
+        <div className="mb-3 flex items-center justify-between gap-3 md:mb-6 md:gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-4">
             <h1 className="truncate text-[18px] font-bold leading-[22px] text-foreground md:text-[24px] md:leading-7">
               채무조정 진단 목록
@@ -214,7 +214,7 @@ export default function DebtReliefHubContent() {
             )}
           </div>
 
-          <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
+          <div className="flex shrink-0 items-center gap-3 md:w-auto md:gap-2">
             <ProcedureGuideButton onClick={() => router.push("/debt-relief/procedure-guide")} />
             <RelatedNewsButton onClick={() => setIsNewsDrawerOpen(true)} />
           </div>
@@ -223,14 +223,15 @@ export default function DebtReliefHubContent() {
         <div className="-mx-6 mb-6 border-t border-neutral-30 md:-mx-7" />
 
         <SummaryCards summary={summary} loading={summaryLoading} />
+        <div className="-mx-6 mt-5 border-t border-neutral-30 md:hidden" />
       </section>
 
       {/* 새 진단 시작 버튼 + 전체/반려 탭(데스크톱): 상단 카드와 하단 카드(검색+테이블) 사이에 배치.
           탭이 하단 카드 좌상단에 여백 없이 딱 붙어야 해서 이 행은 왼쪽 패딩이 없다(오른쪽만 pr-4/md:pr-7).
-          모바일은 48px 높이 안에서 34px 버튼을 세로 중앙 정렬해 위·아래 여백을 균등하게 둔다.
+          모바일은 피그마 구분선~탭 사이 58px 높이 안에서 34px 버튼을 세로 중앙 정렬한다.
           데스크톱은 이 행 자체를 53px(13px 여백 + 탭 40px)로 고정하고 탭만 self-end로 하단에 붙여,
           margin이 아니라 박스 자체 높이 안에서 정렬되도록 해서 버튼이 그 53px 안에서 진짜 세로 중앙에 오게 한다. */}
-      <div className="flex h-12 items-center justify-end md:h-[53px] md:justify-between pr-4 md:pr-7">
+      <div className="flex h-[58px] items-center justify-end pr-6 md:h-[53px] md:justify-between md:pr-7">
         <div className="hidden md:flex md:self-end">
           <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="card" />
         </div>
@@ -246,12 +247,7 @@ export default function DebtReliefHubContent() {
       {/* 하단 카드: 검색 + 테이블 + 페이지네이션. 탭이 좌상단에 맞닿으므로 top-left만 각지게 둔다.
           shadow가 box 경계 위로도 번져서 탭 바로 아래에 그림자 띠가 겹쳐 보이던 문제 —
           clip-path로 상단 바깥쪽(그림자 번짐 영역)만 잘라내 탭과 카드가 이어붙은 것처럼 보이게 함. */}
-      <section className="surface md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] px-4 md:px-7 pt-6 pb-6 shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none [clip-path:inset(0_-100px_-100px_-100px)]">
-        {/* 모바일: 상단 요약 카드와 탭 사이 구분선 — 컨테이너 좌우 패딩(px-4) 무시하고 풀폭으로 확장.
-            위: 이전 섹션의 pb-3(12px)+이 섹션의 pt-6(24px)=36px, 아래: mb-6(24px)+탭 래퍼 없음 →
-            카드 하단~탭 상단 전체 48px 간격의 정중앙(24px/24px)에 오도록 -mt-3로 12px 끌어올림 */}
-        <div className="-mx-4 md:hidden border-t border-neutral-30 -mt-3 mb-6" />
-
+      <section className="surface px-6 pt-0 pb-6 md:rounded-tr-[14px] md:rounded-br-[14px] md:rounded-bl-[14px] md:px-7 md:pt-6 md:shadow-[0_13px_61px_rgba(169,169,169,0.12)] dark:shadow-none md:[clip-path:inset(0_-100px_-100px_-100px)]">
         {/* 모바일: 전체/반려 탭 — 검색·필터 행 위 풀폭 2등분 브라우저탭 스타일 */}
         <div className="mb-4 md:hidden">
           <DiagnosisListTabs value={listTab} onChange={selectListTab} variant="pill" />

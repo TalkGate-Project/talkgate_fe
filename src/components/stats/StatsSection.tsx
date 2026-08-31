@@ -24,6 +24,8 @@ import type { CustomerPaymentWeeklyResponse } from "@/types/statistics";
 import { formatCurrencyKR } from "@/utils/format";
 
 const WEEKS = 6;
+const MOBILE_CHART_HORIZONTAL_MARGIN = 36;
+const MOBILE_LABEL_EDGE_GAP = 4;
 
 // 날짜로부터 "N월 N째주" 형식의 레이블을 생성하는 함수
 function getWeekLabel(dateString: string): string {
@@ -84,7 +86,26 @@ function getWeekLabelMobile(dateString: string): string {
   }
 
   const weekNumber = Math.floor((dayOfMonth - firstOccurrence) / 7) + 1;
-  return `${month}월 ${weekNumber}주`;
+  return `${month}월${weekNumber}주`;
+}
+
+function getMobileEdgeAdjustedCenter(
+  pointX: number,
+  labelWidth: number,
+  index: number,
+  dataLength: number,
+): number {
+  if (dataLength <= 1) return pointX;
+
+  const requiredMargin = labelWidth / 2 + MOBILE_LABEL_EDGE_GAP;
+  const adjustment = Math.max(
+    0,
+    requiredMargin - MOBILE_CHART_HORIZONTAL_MARGIN,
+  );
+
+  if (index === 0) return pointX + adjustment;
+  if (index === dataLength - 1) return pointX - adjustment;
+  return pointX;
 }
 
 export default function StatsSection() {
@@ -136,9 +157,9 @@ export default function StatsSection() {
   }, [data, isMobile]);
 
   // Compute dynamic domain and max value for labeling/highlighting
-  const { domainMin, domainMax, maxAmount, maxIndex } = useMemo(() => {
+  const { domainMin, domainMax, maxIndex } = useMemo(() => {
     if (!chartData || chartData.length === 0) {
-      return { domainMin: 0, domainMax: 0, maxAmount: 0, maxIndex: -1 };
+      return { domainMin: 0, domainMax: 0, maxIndex: -1 };
     }
     const values = chartData.map((d) => d.amount);
     const min = Math.min(...values);
@@ -149,7 +170,7 @@ export default function StatsSection() {
     const domainMin = Math.max(0, min - padding);
     const domainMax = max + padding;
     const maxIndex = values.findIndex((v) => v === max);
-    return { domainMin, domainMax, maxAmount: max, maxIndex };
+    return { domainMin, domainMax, maxIndex };
   }, [chartData]);
 
   const loading = isLoading && !data;
@@ -280,7 +301,12 @@ export default function StatsSection() {
           <ResponsiveContainer width="100%" height="100%" minHeight={320} minWidth={0}>
             <AreaChart
               data={chartData}
-              margin={{ left: isMobile ? 12 : 46, right: isMobile ? 28 : 60, top: 42, bottom: 12 }}
+              margin={{
+                left: isMobile ? MOBILE_CHART_HORIZONTAL_MARGIN : 46,
+                right: isMobile ? MOBILE_CHART_HORIZONTAL_MARGIN : 60,
+                top: 42,
+                bottom: 12,
+              }}
               onMouseMove={(state) => {
                 if (state && state.isTooltipActive) {
                   const idx = state.activeTooltipIndex;
@@ -314,6 +340,7 @@ export default function StatsSection() {
               <CartesianGrid stroke="var(--neutral-20)" vertical={false} />
               <XAxis
                 dataKey="label"
+                interval={isMobile ? 0 : undefined}
                 tickMargin={8}
                 stroke="var(--neutral-50)"
                 tick={{ fill: "var(--neutral-60)", fontSize: 12 }}
@@ -395,7 +422,15 @@ export default function StatsSection() {
                     const textY = y - 12; // place above the point
                     // Price bubble (always gray)
                     const rectWidth = Math.max(34, label.length * 8);
-                    const rectX = x - rectWidth / 2;
+                    const priceCenterX = isMobile
+                      ? getMobileEdgeAdjustedCenter(
+                          x,
+                          rectWidth,
+                          index,
+                          chartData.length,
+                        )
+                      : x;
+                    const rectX = priceCenterX - rectWidth / 2;
                     const rectY = textY - 18;
                     return (
                       <g>
@@ -411,7 +446,7 @@ export default function StatsSection() {
                           stroke={"var(--neutral-20)"}
                         />
                         <text
-                          x={x}
+                          x={priceCenterX}
                           y={rectY + 15}
                           textAnchor={"middle"}
                           fill={"var(--foreground)"}
@@ -427,7 +462,15 @@ export default function StatsSection() {
                             {(() => {
                               const badgeWidth = 64; // fixed width for 4 chars comfortably
                               const badgeHeight = 22;
-                              const badgeX = x - badgeWidth / 2;
+                              const badgeCenterX = isMobile
+                                ? getMobileEdgeAdjustedCenter(
+                                    x,
+                                    badgeWidth,
+                                    index,
+                                    chartData.length,
+                                  )
+                                : x;
+                              const badgeX = badgeCenterX - badgeWidth / 2;
                               const badgeY = rectY - 28; // above price bubble
                               const cx = x;
                               return (
@@ -451,7 +494,7 @@ export default function StatsSection() {
                                     fill={"var(--foreground)"}
                                   />
                                   <text
-                                    x={x}
+                                    x={badgeCenterX}
                                     y={badgeY + 15}
                                     textAnchor="middle"
                                     fill={"var(--card)"}

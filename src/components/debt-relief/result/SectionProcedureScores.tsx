@@ -145,7 +145,11 @@ export function ScoreRow({
     >
       <div
         className={`shrink-0 flex items-center gap-1.5 ${
-          compact ? "w-[88px] md:w-[104px]" : "w-[88px] md:w-[120px]"
+          score.recommended
+            ? "w-[100px] md:w-[120px]"
+            : compact
+              ? "w-[88px] md:w-[104px]"
+              : "w-[88px] md:w-[120px]"
         }`}
       >
         <span
@@ -240,7 +244,11 @@ function GroupScoreHeader({
         <path d="M5 8L0 0H10L5 8Z" fill="currentColor" />
       </svg>
 
-      <div className="w-[72px] md:w-[104px] shrink-0 flex items-center gap-1.5">
+      <div
+        className={`shrink-0 flex items-center gap-1.5 ${
+          recommended ? "w-[88px] md:w-[104px]" : "w-[72px] md:w-[104px]"
+        }`}
+      >
         <span
           className={`text-[13px] leading-4 tracking-[-0.02em] text-neutral-100 truncate ${
             highlighted || inPanel ? "font-semibold" : "font-medium"
