@@ -193,6 +193,11 @@ export function isDiagnosisFormComplete(form: DiagnosisFormState): boolean {
 // 공유하는 함수라 상세모드 채무 항목 필드(대출일·만기일·금리)를 일부러 검사하지 않는데(48-53줄 주석 참고),
 // 체크리스트는 실제 완료 여부를 보여줘야 하므로 debts 스텝에서만 그 필드들도 함께 확인한다.
 export function isDiagnosisStepComplete(form: DiagnosisFormState, stepKey: FormStepKey): boolean {
+  // 자산 현황의 사이드바 체크는 하단의 두 필수 질문에 답했는지만 보여준다.
+  // 보유 자산 입력 여부와 배우자 자산 가액은 다음 단계/최종 제출 검증에서 별도로 확인한다.
+  if (stepKey === "assets") {
+    return form.hasSpouseHousingAsset !== null && form.hasRecentAssetDisposal !== null;
+  }
   if (getMissingRequiredFieldLabelsForStep(form, stepKey).length > 0) return false;
   if (stepKey === "debts") return getMissingDebtItemFieldLabels(form).length === 0;
   return true;

@@ -118,7 +118,12 @@ export function hasMeaningfulAnalysisDraftData(
   selectedCustomerId: number | null
 ): boolean {
   if (selectedCustomerId !== null) return true;
-  return JSON.stringify(form) !== JSON.stringify(createEmptyDiagnosisForm());
+
+  // 자산 칩을 추가하면 realEstateStatusConfirmed가 true가 되고, 마지막 칩을 다시 제거해도
+  // 그 조작 흔적은 남는다. 실제 입력값이 모두 빈 상태라면 이 내부 검증 플래그 하나만으로
+  // 초안을 만들거나 복원 대상으로 취급하지 않는다.
+  const comparableForm = { ...form, realEstateStatusConfirmed: false };
+  return JSON.stringify(comparableForm) !== JSON.stringify(createEmptyDiagnosisForm());
 }
 
 export function readAnalysisDraft(scope: AnalysisDraftScope): AnalysisDraft | null {
