@@ -821,6 +821,8 @@ export type DiagnosisMessage = {
 export type DiagnosisDetail = {
   id: string;
   customerName: string;
+  /** 실제 연동된 고객 레코드의 이름. 분석 입력 당시 고객명과 다를 수 있다. */
+  linkedCustomerName: string | null;
   // 실 API에는 정확한 나이(숫자)가 없고 연령대만 있어 라벨(예: "40대")로 표시한다.
   ageGroupLabel: string;
   gender: CustomerGender;

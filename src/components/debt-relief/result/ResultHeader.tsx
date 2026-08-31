@@ -577,10 +577,11 @@ export default function ResultHeader({
   };
 
   const phonePreview = detail.phone ? formatContactForDisplay(detail.phone) : "";
+  const linkedCustomerName = detail.linkedCustomerName || detail.customerName;
   const linkedLabel =
     phonePreview.length > 0
-      ? `${detail.customerName} · ${phonePreview}`
-      : detail.customerName;
+      ? `${linkedCustomerName} · ${phonePreview}`
+      : linkedCustomerName;
 
   useEffect(() => {
     if (!linkedMenuOpen && !actionsMenuOpen) return;
@@ -771,7 +772,7 @@ export default function ResultHeader({
                   isShared={detail.isShared}
                   canShare={canShare}
                   isMatched={isMatched}
-                  customerName={detail.customerName}
+                  customerName={linkedCustomerName}
                   phonePreview={phonePreview}
                   onCustomerLink={handleMobileCustomerLink}
                   onEdit={handleEdit}
@@ -916,7 +917,7 @@ export default function ResultHeader({
                 >
                   <LinkedCustomerIcon className="text-secondary-60 dark:text-blue-300 shrink-0" />
                   <span className="min-w-0 truncate text-[14px] font-medium leading-5 whitespace-nowrap">
-                    {detail.customerName}
+                    {linkedCustomerName}
                     {phonePreview ? ` · ${phonePreview}` : null}
                   </span>
                 </button>
