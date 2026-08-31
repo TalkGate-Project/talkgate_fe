@@ -564,7 +564,7 @@ export default function CustomerLinkCreateModal({
                   onFocus={(e) => resizeSalesMemoTextarea(e.currentTarget)}
                   maxLength={SALES_MEMO_MAX_LENGTH}
                   rows={5}
-                  className="min-h-[102px] w-full resize-none overflow-hidden border-none bg-transparent text-[14px] leading-[20px] tracking-[-0.02em] text-neutral-90 outline-none placeholder:text-neutral-60"
+                  className="min-h-[102px] w-full resize-y overflow-auto border-none bg-transparent text-[14px] leading-[20px] tracking-[-0.02em] text-neutral-90 outline-none placeholder:text-neutral-60"
                   placeholder="영업메모를 입력하세요"
                 />
               </div>

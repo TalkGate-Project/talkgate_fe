@@ -733,8 +733,8 @@ export default function CustomerCreateModal({
                   onFocus={(event) => resizeSalesMemoTextarea(event.currentTarget, 85)}
                   maxLength={SALES_MEMO_MAX_LENGTH}
                   rows={5}
-                  className="min-h-[85px] w-full resize-none overflow-hidden border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-ink outline-none placeholder:text-neutral-60"
-                  placeholder="특이사항을 입력하세요"
+                  className="min-h-[85px] w-full resize-y overflow-auto border-none bg-transparent text-[14px] leading-[17px] tracking-[-0.02em] text-ink outline-none placeholder:text-neutral-60"
+                  placeholder="영업메모를 입력하세요"
                 />
               </div>
             </div>
