@@ -492,7 +492,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       />
       <SelfProgressMessageModal
         open={selfProgressMessageOpen}
+        customerName={detail.linkedCustomerName || detail.customerName}
         submitting={statusSubmitting}
+        onBack={() => {
+          setSelfProgressMessageOpen(false);
+          setProgressChoiceOpen(true);
+        }}
         onClose={() => setSelfProgressMessageOpen(false)}
         onSubmit={handleSelfProceed}
       />
