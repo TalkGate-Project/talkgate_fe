@@ -51,8 +51,8 @@ type Props = {
   scrollFadeColorClassName?: string;
   /** 합계 카드가 3열로 전환되는 기준. 결과 상세 모달은 기존 tablet, 신규/수정 폼은 desktop을 사용한다. */
   desktopLayoutBreakpoint?: "tablet" | "desktop";
-  /** 신규/수정 화면의 상세 채무내역에서 Figma 규격의 전용 가로 스크롤바를 사용한다. */
-  useDetailedCustomScrollbar?: boolean;
+  /** Figma 규격의 전용 가로 스크롤바를 상세 모드에만 또는 모든 모드에 사용한다. */
+  customScrollbarMode?: "detailed" | "all";
 };
 
 // "YYYY-MM-DD" ↔ 로컬 Date. new Date(isoString)은 UTC로 해석돼 시간대에 따라 하루 밀릴 수
@@ -289,11 +289,13 @@ export default function DebtItemsTable({
   lockedDebtIds = [],
   scrollFadeColorClassName = "[--debt-scroll-fade:#FFFFFF] dark:[--debt-scroll-fade:#111111]",
   desktopLayoutBreakpoint = "tablet",
-  useDetailedCustomScrollbar = false,
+  customScrollbarMode,
 }: Props) {
   const { containerRef, dragScrollHandlers } = useHorizontalDragScroll<HTMLDivElement>();
-  const detailedCustomScrollbarEnabled = useDetailedCustomScrollbar && mode === "detailed";
-  const detailedScrollContainerId = useId();
+  const customScrollbarEnabled =
+    customScrollbarMode === "all" ||
+    (customScrollbarMode === "detailed" && mode === "detailed");
+  const scrollContainerId = useId();
   const customScrollbarTrackRef = useRef<HTMLDivElement>(null);
   const customScrollbarThumbRef = useRef<HTMLDivElement>(null);
   const thumbDragStateRef = useRef<{
@@ -318,7 +320,7 @@ export default function DebtItemsTable({
       hasOverflow: maxScrollLeft > 1,
       atStart: scrollLeft <= 1,
       atEnd: maxScrollLeft > 0 && scrollLeft >= maxScrollLeft - 1,
-      progress: detailedCustomScrollbarEnabled && maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0,
+      progress: customScrollbarEnabled && maxScrollLeft > 0 ? scrollLeft / maxScrollLeft : 0,
     };
 
     setHorizontalScrollState((previousState) =>
@@ -329,7 +331,7 @@ export default function DebtItemsTable({
         ? previousState
         : nextState
     );
-  }, [containerRef, detailedCustomScrollbarEnabled]);
+  }, [containerRef, customScrollbarEnabled]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -353,7 +355,7 @@ export default function DebtItemsTable({
     });
   };
 
-  const scrollToDetailedTableEdge = (edge: "start" | "end") => {
+  const scrollToTableEdge = (edge: "start" | "end") => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -363,7 +365,7 @@ export default function DebtItemsTable({
     });
   };
 
-  const setDetailedTableScrollProgress = (progress: number) => {
+  const setTableScrollProgress = (progress: number) => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -383,7 +385,7 @@ export default function DebtItemsTable({
     const travelWidth = trackRect.width - thumbRect.width;
     if (travelWidth <= 0) return;
 
-    setDetailedTableScrollProgress((event.clientX - trackRect.left - thumbRect.width / 2) / travelWidth);
+    setTableScrollProgress((event.clientX - trackRect.left - thumbRect.width / 2) / travelWidth);
   };
 
   const handleCustomThumbPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -433,12 +435,12 @@ export default function DebtItemsTable({
 
     if (event.key === "Home") {
       event.preventDefault();
-      scrollToDetailedTableEdge("start");
+      scrollToTableEdge("start");
       return;
     }
     if (event.key === "End") {
       event.preventDefault();
-      scrollToDetailedTableEdge("end");
+      scrollToTableEdge("end");
       return;
     }
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -475,11 +477,11 @@ export default function DebtItemsTable({
     </>
   ) : null;
 
-  const detailedCustomScrollbar = horizontalScrollState.hasOverflow ? (
+  const customScrollbar = horizontalScrollState.hasOverflow ? (
     <div className="mt-3 flex h-4 w-full items-center gap-1" data-debt-detailed-scrollbar>
       <button
         type="button"
-        onClick={() => scrollToDetailedTableEdge("start")}
+        onClick={() => scrollToTableEdge("start")}
         disabled={horizontalScrollState.atStart}
         aria-label="채무내역 처음으로 이동"
         className="inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center text-[#808080] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-40 disabled:cursor-default disabled:text-[#E2E2E2]"
@@ -496,7 +498,7 @@ export default function DebtItemsTable({
           role="scrollbar"
           tabIndex={0}
           aria-label="채무 상세 내역 가로 스크롤"
-          aria-controls={detailedScrollContainerId}
+          aria-controls={scrollContainerId}
           aria-orientation="horizontal"
           aria-valuemin={0}
           aria-valuemax={100}
@@ -515,7 +517,7 @@ export default function DebtItemsTable({
       </div>
       <button
         type="button"
-        onClick={() => scrollToDetailedTableEdge("end")}
+        onClick={() => scrollToTableEdge("end")}
         disabled={horizontalScrollState.atEnd}
         aria-label="채무내역 끝으로 이동"
         className="inline-flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center text-[#808080] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-40 disabled:cursor-default disabled:text-[#E2E2E2]"
@@ -557,6 +559,7 @@ export default function DebtItemsTable({
   const totals = sumDebtItems(debts);
   const collateralTotals = sumDebtItems(debts.filter(isDebtCollateralLoan));
   const unsecuredTotals = sumDebtItems(debts.filter((debt) => !isDebtCollateralLoan(debt)));
+  const addRowDividerClassName = debts.length > 0 ? "border-t border-neutral-30" : "";
   const summaryGridColumnsClassName =
     desktopLayoutBreakpoint === "desktop" ? "lg:grid-cols-3" : "md:grid-cols-3";
   const summaryCards = showSummaryCards ? (
@@ -573,7 +576,14 @@ export default function DebtItemsTable({
     return (
       <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
         <div className="relative">
-          <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+          <div
+            id={scrollContainerId}
+            className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
+            style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
+            ref={containerRef}
+            {...dragScrollHandlers}
+            onScroll={updateHorizontalScrollState}
+          >
             <table className="border-collapse table-fixed" style={{ width: assetTableWidth, minWidth: "100%" }} aria-label="자산 담보대출 내역">
             <colgroup>{assetColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
             <thead><tr>
@@ -590,11 +600,12 @@ export default function DebtItemsTable({
               <td className={BODY_CELL}><WonInput value={debt.currentBalanceWon} onChange={(currentBalanceWon) => updateItem(debt.id, { currentBalanceWon })} className={CELL_INPUT_BORDERLESS} /></td>
               <td className={`${BODY_CELL} text-center`}><button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button></td>
             </tr>)}</tbody>
-            <tfoot><tr className="border-t border-neutral-30"><td colSpan={5} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
+            <tfoot><tr className={addRowDividerClassName}><td colSpan={5} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />담보 대출 추가</button></td></tr></tfoot>
             </table>
           </div>
           {scrollEdgeControls}
         </div>
+        {customScrollbarEnabled && customScrollbar}
       </div>
     );
   }
@@ -605,7 +616,14 @@ export default function DebtItemsTable({
     return (
       <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
         <div className="relative">
-          <div className="table-horizontal-scroll overflow-x-auto" ref={containerRef} {...dragScrollHandlers} onScroll={updateHorizontalScrollState}>
+          <div
+            id={scrollContainerId}
+            className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
+            style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
+            ref={containerRef}
+            {...dragScrollHandlers}
+            onScroll={updateHorizontalScrollState}
+          >
             <table className="border-collapse table-fixed" style={{ width: simpleTableWidth, minWidth: "100%" }} aria-label="채무 간편 내역">
             <colgroup>{simpleColumnWidths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>
             <thead><tr>
@@ -649,11 +667,12 @@ export default function DebtItemsTable({
                 <td className={`${BODY_CELL} text-center`}>{!locked && <button type="button" onClick={() => removeRow(debt.id)} aria-label="행 삭제" className="cursor-pointer inline-flex h-6 w-6 items-center justify-center hover:opacity-70"><RemoveRowIcon /></button>}</td>
               </tr>;
             })}</tbody>
-            <tfoot><tr className="border-t border-neutral-30"><td colSpan={6} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
+            <tfoot><tr className={addRowDividerClassName}><td colSpan={6} className="py-2"><button data-debt-add-row type="button" onClick={addRow} className={`cursor-pointer w-full h-10 rounded-lg inline-flex items-center gap-1.5 px-3 text-[14px] font-medium text-neutral-50 hover:text-neutral-60 ${sumCardBackgroundClassName}`}><PlusIcon />행 추가</button></td></tr></tfoot>
             </table>
           </div>
           {scrollEdgeControls}
         </div>
+        {customScrollbarEnabled && customScrollbar}
         {summaryCards}
       </div>
     );
@@ -669,9 +688,9 @@ export default function DebtItemsTable({
     <div data-debt-items-table className="rounded-t-[10px] overflow-hidden">
       <div className="relative">
         <div
-          id={detailedScrollContainerId}
-          className={`table-horizontal-scroll overflow-x-auto ${detailedCustomScrollbarEnabled ? "scrollbar-hide" : ""}`}
-          style={{ scrollbarWidth: detailedCustomScrollbarEnabled ? "none" : undefined }}
+          id={scrollContainerId}
+          className={`table-horizontal-scroll overflow-x-auto ${customScrollbarEnabled ? "scrollbar-hide" : ""}`}
+          style={{ scrollbarWidth: customScrollbarEnabled ? "none" : undefined }}
           ref={containerRef}
           {...dragScrollHandlers}
           onScroll={updateHorizontalScrollState}
@@ -852,7 +871,7 @@ export default function DebtItemsTable({
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t border-neutral-30">
+            <tr className={addRowDividerClassName}>
               <td colSpan={hideCollateralAssetColumn ? 13 : 14} className="py-2">
                 <button
                   data-debt-add-row
@@ -871,7 +890,7 @@ export default function DebtItemsTable({
         {scrollEdgeControls}
       </div>
 
-      {detailedCustomScrollbarEnabled && detailedCustomScrollbar}
+      {customScrollbarEnabled && customScrollbar}
 
       {summaryCards}
     </div>
