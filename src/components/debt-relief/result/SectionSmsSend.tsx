@@ -109,38 +109,73 @@ export default function SectionSmsSend({ detail, projectId, onCustomerMatchChang
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {ACTION_BUILDERS.map(({ label, icon: Icon, build }) => (
-        <button
-          key={label}
-          type="button"
-          onClick={() => handleTemplateClick(build)}
-          className="inline-flex items-center justify-center gap-1 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] cursor-pointer hover:opacity-90"
-        >
-          <Icon />
-          <span className="leading-none">{label}</span>
-        </button>
-      ))}
+    <>
+      {/* 375px에서는 피그마처럼 2×2, 폭이 충분한 모바일·태블릿에서는 한 줄로 배치한다. */}
+      <div className="pb-3 md:hidden">
+        <div className="flex w-full flex-wrap gap-x-3 gap-y-3">
+          {ACTION_BUILDERS.map(({ label, icon: Icon, build }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => handleTemplateClick(build)}
+              className="inline-flex h-[34px] items-center justify-center gap-1 rounded-[5px] bg-neutral-90 px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-neutral-20 cursor-pointer hover:opacity-90"
+            >
+              <Icon />
+              <span className="leading-none">{label}</span>
+            </button>
+          ))}
+        </div>
 
-      {canSendSms ? (
-        <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
-          {`${detail.customerName} ${formatContactForDisplay(detail.phone)}`}
-        </span>
-      ) : (
-        <>
-          {/* 문구 양옆(왼쪽 버튼 영역·오른쪽 연동하기)만 24px. 부모 gap-2(8px)에 좌우 mx-4(16px)를 더해 8+16=24px. */}
-          <span className="mx-4 text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
-            고객정보가 없습니다. 고객 정보를 추가해주세요.
-          </span>
+        {!canSendSms && (
+          <div className="mt-3 flex min-h-10 items-start justify-between gap-4">
+            <p className="max-w-[130px] text-[13px] font-medium leading-5 tracking-[-0.02em] text-neutral-60">
+              고객정보가 없습니다.<br />
+              고객 정보를 추가해주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setLinkStep("mode")}
+              className="mt-[3px] inline-flex h-[34px] shrink-0 items-center justify-center rounded-[5px] border border-neutral-30 px-3 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink cursor-pointer hover:bg-neutral-10 dark:text-foreground dark:hover:bg-neutral-20"
+            >
+              연동하기
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 데스크톱은 기존 인라인 배치를 유지한다. */}
+      <div className="hidden items-center gap-2 flex-wrap md:flex">
+        {ACTION_BUILDERS.map(({ label, icon: Icon, build }) => (
           <button
+            key={label}
             type="button"
-            onClick={() => setLinkStep("mode")}
-            className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 cursor-pointer"
+            onClick={() => handleTemplateClick(build)}
+            className="inline-flex items-center justify-center gap-1 h-[34px] px-3 rounded-[5px] bg-neutral-90 text-neutral-20 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] cursor-pointer hover:opacity-90"
           >
-            연동하기
+            <Icon />
+            <span className="leading-none">{label}</span>
           </button>
-        </>
-      )}
+        ))}
+
+        {canSendSms ? (
+          <span className="text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
+            {`${detail.customerName} ${formatContactForDisplay(detail.phone)}`}
+          </span>
+        ) : (
+          <>
+            <span className="mx-4 text-[14px] leading-[100%] tracking-[0px] font-semibold text-neutral-60">
+              고객정보가 없습니다. 고객 정보를 추가해주세요.
+            </span>
+            <button
+              type="button"
+              onClick={() => setLinkStep("mode")}
+              className="inline-flex items-center justify-center h-[34px] px-3 rounded-[5px] border border-neutral-30 dark:border-neutral-30 text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-ink dark:text-foreground hover:bg-neutral-10 dark:hover:bg-neutral-20 cursor-pointer"
+            >
+              연동하기
+            </button>
+          </>
+        )}
+      </div>
 
       {smsTemplate && (
         <DebtReliefSmsModal
@@ -181,6 +216,6 @@ export default function SectionSmsSend({ detail, projectId, onCustomerMatchChang
           />
         </>
       )}
-    </div>
+    </>
   );
 }

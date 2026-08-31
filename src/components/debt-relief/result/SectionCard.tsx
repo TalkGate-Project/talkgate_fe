@@ -12,6 +12,7 @@ export default function SectionCard({
   className = "",
   compactTop = false,
   mobileCompactBottom = false,
+  compactMobileTitle = false,
   topDivider = false,
   joined,
   joinBottomDivider = false,
@@ -27,6 +28,8 @@ export default function SectionCard({
   // (예: AI 분석 추천 → 절차별 성공 가능성). md+는 기존 md:py-7 또는 className 오버라이드를 유지한다.
   // joined 카드에는 적용하지 않는다(변호사 공유 건의 overview·scores 결합 레이아웃과 분리).
   mobileCompactBottom?: boolean;
+  // 모바일 피그마의 16px/19px semibold 섹션 타이틀과 16px 하단 간격을 사용한다.
+  compactMobileTitle?: boolean;
   // 모바일에서 카드 간 배경이 이어져 붙어도(gap-0) 영역 구분이 되도록 상단에 풀폭 구분선을 그린다.
   // border는 padding 바깥(패딩 박스 경계)에 그려지므로 좌우 패딩과 무관하게 항상 전체 폭으로 표시된다.
   // 데스크톱은 카드 간 gap·shadow로 이미 구분되므로 적용하지 않는다.
@@ -79,8 +82,20 @@ export default function SectionCard({
       className={`scroll-mt-[102px] md:scroll-mt-[138px] surface ${radiusClass} px-6 md:px-8 ${paddingClass} ${shadowClass} ${joinBorderClass} ${className}`}
     >
       {title && (
-        <div className="flex items-center justify-between pb-3 mb-6 border-b border-neutral-30">
-          <h2 className="text-[18px] font-bold text-foreground">{title}</h2>
+        <div
+          className={`flex items-center justify-between border-b border-neutral-30 pb-3 ${
+            compactMobileTitle ? "mb-4 md:mb-6" : "mb-6"
+          }`}
+        >
+          <h2
+            className={
+              compactMobileTitle
+                ? "text-[16px] font-semibold leading-[19px] tracking-[0.2px] text-foreground md:text-[18px] md:font-bold md:leading-normal md:tracking-normal"
+                : "text-[18px] font-bold text-foreground"
+            }
+          >
+            {title}
+          </h2>
           {action}
         </div>
       )}

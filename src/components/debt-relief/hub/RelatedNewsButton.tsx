@@ -59,10 +59,10 @@ function NewsTicker({ articles }: { articles: NewsArticle[] }) {
   const dateLabel = article ? formatNewsDate(article.pubDate) : "";
 
   return (
-    // 로딩 전·뉴스 없음에도 슬롯을 유지해 아이콘·「관련뉴스」 라벨이 밀리지 않게 한다.
-    // 모바일: flex-1로 남은 폭 사용 / 데스크톱: 스펙 폭(날짜+gap+제목 ≈ 256px) 고정
+    // 로딩 전·뉴스 없음에도 데스크톱 슬롯을 유지해 아이콘·「관련뉴스」 라벨이 밀리지 않게 한다.
+    // 모바일은 피그마처럼 아이콘 버튼만 보여주므로 티커를 숨긴다.
     <div
-      className="relative h-5 min-w-0 flex-1 overflow-hidden md:w-[256px] md:flex-none"
+      className="relative hidden h-5 min-w-0 overflow-hidden md:block md:w-[256px] md:flex-none"
       aria-live="polite"
       aria-atomic="true"
       aria-hidden={!article}
@@ -117,10 +117,10 @@ export default function RelatedNewsButton({ onClick }: RelatedNewsButtonProps) {
       type="button"
       aria-label="관련뉴스"
       onClick={onClick}
-      className="cursor-pointer flex h-[34px] min-w-0 flex-1 items-center justify-center gap-2.5 rounded-[5px] border border-neutral-30 px-3 text-foreground transition-colors hover:bg-neutral-10 md:w-[368px] md:flex-none md:shrink-0"
+      className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] border border-neutral-30 px-0 text-foreground transition-colors hover:bg-neutral-10 md:w-[368px] md:gap-2.5 md:px-3"
     >
       <NewspaperIcon />
-      <span className="inline-flex h-5 shrink-0 items-center text-[14px] font-semibold leading-none tracking-[-0.02em] text-foreground">
+      <span className="hidden h-5 shrink-0 items-center text-[14px] font-semibold leading-none tracking-[-0.02em] text-foreground md:inline-flex">
         관련뉴스
       </span>
       <NewsTicker articles={articles} />

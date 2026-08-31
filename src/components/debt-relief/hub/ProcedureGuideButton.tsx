@@ -32,10 +32,10 @@ export default function ProcedureGuideButton({ onClick }: ProcedureGuideButtonPr
       type="button"
       aria-label="제도안내"
       onClick={onClick}
-      className="flex h-[34px] w-[102px] shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-[5px] border border-neutral-30 px-3 text-foreground transition-colors hover:bg-neutral-10"
+      className="flex h-[34px] w-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[5px] border border-neutral-30 px-0 text-foreground transition-colors hover:bg-neutral-10 md:w-[102px] md:gap-2.5 md:px-3"
     >
       <BookOpenIcon />
-      <span className="whitespace-nowrap text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground">
+      <span className="hidden whitespace-nowrap text-[14px] font-semibold leading-[17px] tracking-[-0.02em] text-foreground md:inline">
         제도안내
       </span>
     </button>
