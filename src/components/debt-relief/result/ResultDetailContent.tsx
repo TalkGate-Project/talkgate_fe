@@ -20,6 +20,7 @@ import ResultAnchorNav, { type AnchorSection } from "./ResultAnchorNav";
 import AnalysisReviewBanner from "./AnalysisReviewBanner";
 import AnalysisProgressBanner from "./AnalysisProgressBanner";
 import AnalysisProgressChoiceModal from "./AnalysisProgressChoiceModal";
+import SelfProgressMessageModal from "./SelfProgressMessageModal";
 import AnalysisShareModal from "@/components/debt-relief/hub/AnalysisShareModal";
 import FeePaymentInfoModal from "./FeePaymentInfoModal";
 import ProcedureSelectModal from "./ProcedureSelectModal";
@@ -58,6 +59,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [selectedProcedure, setSelectedProcedure] = useState<RecommendedProcedure | null>(null);
   const [statusSubmitting, setStatusSubmitting] = useState(false);
   const [progressChoiceOpen, setProgressChoiceOpen] = useState(false);
+  const [selfProgressMessageOpen, setSelfProgressMessageOpen] = useState(false);
   const [progressShareOpen, setProgressShareOpen] = useState(false);
   const [progressPaymentOpen, setProgressPaymentOpen] = useState(false);
   // 자체진행 선택 직후 띄우는 절차 선택 모달 — FeePaymentInfoModal/AnalysisReviewBanner의
@@ -207,12 +209,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
     detail.procedureScores.find((score) => score.recommended)?.procedure ??
     detail.procedureScores[0]?.procedure;
 
-  const handleSelfProceed = async () => {
+  const handleSelfProceed = async (message: string) => {
     if (!projectId || statusSubmitting) return;
     setStatusSubmitting(true);
     try {
-      await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId);
+      await DebtReliefService.selfProgressAnalysis(projectId, diagnosisId, message);
       setProgressChoiceOpen(false);
+      setSelfProgressMessageOpen(false);
       // self-progress는 수임료 계획(feePlan) 유무에 따라 서버가 계약대기중 또는 절차진행중으로
       // 전환한다(services/analysis.ts selfProgress 주석 참고). feePlan이 있는 건만 절차진행중으로
       // 바로 넘어가므로 그 순간 추적할 절차를 바로 정하게 한다 — AnalysisReviewBanner의 수락 흐름과
@@ -477,12 +480,26 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
       <AnalysisProgressChoiceModal
         open={progressChoiceOpen}
         onClose={() => setProgressChoiceOpen(false)}
-        onSelfProceed={handleSelfProceed}
+        onSelfProceed={() => {
+          setProgressChoiceOpen(false);
+          setSelfProgressMessageOpen(true);
+        }}
         onShare={() => {
           setProgressChoiceOpen(false);
           setProgressShareOpen(true);
         }}
         submitting={statusSubmitting}
+      />
+      <SelfProgressMessageModal
+        open={selfProgressMessageOpen}
+        customerName={detail.linkedCustomerName || detail.customerName}
+        submitting={statusSubmitting}
+        onBack={() => {
+          setSelfProgressMessageOpen(false);
+          setProgressChoiceOpen(true);
+        }}
+        onClose={() => setSelfProgressMessageOpen(false)}
+        onSubmit={handleSelfProceed}
       />
       {defaultProcedure ? (
         <ProcedureSelectModal

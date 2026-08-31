@@ -811,18 +811,22 @@ export const DebtReliefService = {
       analysis.trackingProcedure ?? recommendedProcedure
     );
 
-    // 공유(납품) contact를 우선 사용. 없으면 매칭된 고객 연락처를 조회한다.
+    // 공유(납품) contact를 우선 사용. 실제 고객이 매칭된 경우에는 연락처와 함께 현재 고객명을
+    // 조회한다. 분석 입력 당시 이름(inputData.customerName)과 고객 레코드 이름은 서로 다를 수 있다.
     // 변호사 프로젝트에서는 원본 고객 도메인에 없을 수 있어 실패해도 무시한다.
     // isShared여도 영업점(원본)은 고객 연락처에 접근 가능하므로 공유 여부와 무관하게 조회한다.
     let phone = analysis.contact?.trim() ? analysis.contact : "";
-    if (!phone && analysis.customerId != null) {
+    let linkedCustomerName: string | null = null;
+    if (analysis.customerId != null) {
       try {
         const customerRes = await CustomersService.detail(String(analysis.customerId)).withProject(
           projectId
         );
-        phone = customerRes.data?.data?.contact1 ?? "";
+        const linkedCustomer = customerRes.data?.data;
+        linkedCustomerName = linkedCustomer?.name?.trim() || null;
+        if (!phone) phone = linkedCustomer?.contact1 ?? "";
       } catch (error) {
-        console.error("Failed to load matched customer contact:", error);
+        console.error("Failed to load matched customer info:", error);
       }
     }
 
@@ -861,6 +865,7 @@ export const DebtReliefService = {
     return {
       id: String(analysis.id),
       customerName: inputData.customerName,
+      linkedCustomerName,
       ageGroupLabel: inputData.ageGroup,
       gender: inputData.gender,
       occupation: inputData.employmentType,

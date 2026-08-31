@@ -222,7 +222,7 @@ export default function SalesTab({
           }}
           maxLength={SALES_MEMO_MAX_LENGTH}
           rows={5}
-          className="w-full min-h-[102px] resize-none overflow-hidden rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
+          className="w-full min-h-[102px] resize-y overflow-auto rounded-[5px] border border-[#E5E7EB] dark:border-[#444444] px-3 py-2 font-medium text-[14px] text-ink dark:text-neutral-80 bg-card dark:bg-neutral-10"
           placeholder="영업메모를 입력하세요."
         />
       </div>
