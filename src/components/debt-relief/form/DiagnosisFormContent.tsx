@@ -112,6 +112,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
   const [customerDetailOpen, setCustomerDetailOpen] = useState(false);
   const [createdCustomerToAssignId, setCreatedCustomerToAssignId] = useState<number | null>(null);
   const createdCustomerAssignedRef = useRef(false);
+  const initialCustomerDetailOpenedRef = useRef(false);
 
   // 고객 상세 「추가하기」에서 진입한 경우: customerId를 분석 생성 시 함께 보내 자동 연결한다.
   // 수정 모드에는 적용하지 않는다(고객 매칭은 별도 UI로 이미 처리된 상태).
@@ -216,6 +217,20 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
     void loadLinkedCustomerSummary(linkedCustomerId);
   }, [analysisDraftReady, isEdit, existingCustomerId, selectedCustomerId, linkedCustomerSummary?.id, loadLinkedCustomerSummary]);
 
+  // 고객 상세의 「추가하기」에서 진입한 경우에는 분석 폼 위에 해당 고객 정보를 곧바로 띄운다.
+  // ref로 최초 1회만 열어 사용자가 직접 닫은 뒤 데이터 재조회로 다시 열리지 않게 한다.
+  useEffect(() => {
+    if (
+      initialCustomerDetailOpenedRef.current ||
+      !initialLinkedCustomerId ||
+      linkedCustomerSummary?.id !== initialLinkedCustomerId
+    ) {
+      return;
+    }
+    initialCustomerDetailOpenedRef.current = true;
+    setCustomerDetailOpen(true);
+  }, [initialLinkedCustomerId, linkedCustomerSummary?.id]);
+
   const applySelectedCustomer = useCallback(
     async (customerId: number, fallbackName?: string) => {
       setSelectedCustomerId(customerId);
@@ -284,6 +299,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         await applySelectedCustomer(customer.id, customer.name);
       }
       setCustomerLinkStep(null);
+      if (!isEdit) setCustomerDetailOpen(true);
     },
     [isEdit, replaceAnalysisCustomer, applySelectedCustomer]
   );
@@ -318,6 +334,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         await applySelectedCustomer(customerId);
       }
       setCustomerLinkStep(null);
+      if (!isEdit) setCustomerDetailOpen(true);
     },
     [isEdit, isAdminOrSubAdmin, replaceAnalysisCustomer, applySelectedCustomer]
   );
@@ -338,6 +355,7 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
         await applySelectedCustomer(createdCustomerToAssignId);
       }
       createdCustomerAssignedRef.current = true;
+      if (!isEdit) setCustomerDetailOpen(true);
     },
     [projectId, createdCustomerToAssignId, isEdit, replaceAnalysisCustomer, applySelectedCustomer]
   );
@@ -540,6 +558,18 @@ export default function DiagnosisFormContent({ diagnosisId }: { diagnosisId?: st
 
   const handleAnalyze = async () => {
     if (analyzing) return;
+    if (!isEdit && isAdminOrSubAdmin && !isCustomerConnected) {
+      showErrorModal({
+        type: "info",
+        title: "고객 연동 필요",
+        headline: "고객 정보를 먼저 연동해주세요.",
+        description: "관리자와 부관리자는 고객을 연동한 뒤 분석을 진행할 수 있습니다.",
+        confirmText: "고객 연동",
+        hideCancel: true,
+        onConfirm: () => setCustomerLinkStep("mode"),
+      });
+      return;
+    }
     if (!canAnalyze || incompleteSteps.length > 0) {
       setRequiredFieldsModalOpen(true);
       return;

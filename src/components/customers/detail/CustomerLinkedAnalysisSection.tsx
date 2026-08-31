@@ -291,7 +291,7 @@ export default function CustomerLinkedAnalysisSection({
 
   const openResult = () => {
     if (!linkedAnalysis) return;
-    router.push(`/debt-relief/${linkedAnalysis.id}`);
+    router.push(`/debt-relief/${linkedAnalysis.id}?openCustomer=true`);
   };
 
   return (
