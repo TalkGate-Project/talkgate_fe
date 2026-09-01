@@ -48,7 +48,6 @@ const colors = {
   muted: "#6b7280",
   line: "#d9dbe0",
   lineSoft: "#e9eaee",
-  surface: "#f7f8fa",
   accent: "#1d4ed8",
   met: "#1d4ed8",
   caution: "#b45309",
@@ -68,20 +67,20 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingBottom: 12,
-    borderBottomWidth: 1.5,
+    borderBottomWidth: 2,
     borderBottomColor: colors.ink,
   },
-  eyebrow: { color: colors.muted, fontSize: 8, marginBottom: 3 },
-  title: { fontSize: 18, fontWeight: 600, lineHeight: 1.25 },
-  subtitle: { color: colors.muted, fontSize: 9, fontWeight: 600, marginTop: 5 },
-  metaGrid: { flexDirection: "row", gap: 6, marginTop: 11 },
+  eyebrow: { color: colors.muted, fontSize: 8.5, marginBottom: 3 },
+  title: { fontSize: 19, fontWeight: 600, lineHeight: 1.25 },
+  subtitle: { color: colors.muted, fontSize: 10, fontWeight: 600, marginTop: 5 },
+  metaGrid: { flexDirection: "row", gap: 8, marginTop: 11 },
   metaCell: {
     flex: 1,
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: colors.lineSoft,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   metaLabel: { color: colors.muted, fontSize: 7, marginBottom: 2 },
   metaValue: { fontSize: 8, fontWeight: 600 },
@@ -91,6 +90,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 7,
     marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.ink,
   },
   // PC 인쇄본(AnalysisPrintDocument)의 .print-section-number와 동일하게 — 검정 사각
   // 배지(파란 원이 아님). 절차 조건의 "충족"·강조 값 등 다른 곳의 파란색(accent)은 인쇄본과
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingTop: 2.5,
   },
-  sectionTitle: { fontSize: 12, fontWeight: 600 },
+  sectionTitle: { fontSize: 12.5, fontWeight: 600 },
   block: { marginTop: 10 },
   blockTitle: { fontSize: 9.5, fontWeight: 600, marginBottom: 5 },
   paragraph: { marginBottom: 7, lineHeight: 1.6 },
@@ -118,45 +120,62 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.lineSoft,
   },
   infoLabel: {
-    width: "34%",
+    width: "32%",
     paddingVertical: 5,
     paddingHorizontal: 7,
     color: colors.muted,
-    backgroundColor: colors.surface,
     fontSize: 7.5,
   },
-  infoValue: { flex: 1, paddingVertical: 5, paddingHorizontal: 7, fontSize: 8 },
+  // 고객 정보 카드 안 라벨은 인쇄본(.print-customer-info-rows dt)처럼 고정 폭(78px ≈ 58.5pt,
+  // 96dpi→72pt 환산)을 쓴다 — 카드 폭이 인쇄본과 달라 %로는 라벨 폭이 벌어져 보인다.
+  customerInfoLabelWidth: { width: 58.5 },
+  infoValue: {
+    flex: 1,
+    paddingVertical: 5,
+    paddingHorizontal: 7,
+    fontSize: 8,
+    fontWeight: 600,
+  },
   emphasized: { color: colors.accent, fontWeight: 600 },
-  table: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: colors.line },
+  // 인쇄본(.print-data-table)은 line-soft 테두리·#f3f4f6 헤더 배경을 쓴다 — line(더 진한 색)을
+  // 쓰면 표가 인쇄본보다 눈에 띄게 진해 보인다.
+  table: { borderTopWidth: 1, borderLeftWidth: 1, borderColor: colors.lineSoft },
   tableRow: { flexDirection: "row" },
-  tableHeader: { backgroundColor: colors.surface },
+  tableHeader: { backgroundColor: "#f3f4f6" },
   tableCell: {
     flex: 1,
     paddingVertical: 5,
     paddingHorizontal: 6,
     borderRightWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.line,
+    borderColor: colors.lineSoft,
     fontSize: 7.4,
   },
   tableHeaderText: { fontWeight: 600, color: colors.muted },
   twoColumn: { flexDirection: "row", gap: 8 },
-  half: { flex: 1 },
-  card: { borderWidth: 1, borderColor: colors.lineSoft, borderRadius: 5, padding: 8 },
+  // 인쇄본(.print-customer-info-pair)의 314:672 비율 그대로 — react-pdf도 숫자 flex는
+  // CSS와 같은 flex-grow 비율로 동작해 50:50이 아니라 이 비율로 카드 폭이 나뉜다.
+  customerInfoColumnLeft: { flex: 314 },
+  customerInfoColumnRight: { flex: 672 },
+  // 인쇄본(.print-customer-info-card)과 동일하게 옅은 회색 채움 배경을 준다 — 기존엔 배경
+  // 없이 테두리만 있어서 카드가 더 밋밋하고 얇아 보였다.
+  card: { borderWidth: 1, borderColor: "#e2e2e2", borderRadius: 8, backgroundColor: "#f8f8f8", padding: 8 },
   cardTitle: { fontSize: 9, fontWeight: 600, marginBottom: 5 },
   richRow: { marginBottom: 5 },
   richLabel: { color: colors.muted, fontSize: 7, marginBottom: 1 },
   richTitle: { fontSize: 8.2, fontWeight: 600 },
   richDescription: { color: colors.muted, fontSize: 7.2, marginTop: 1 },
   summaryLine: { marginBottom: 3 },
+  // 인쇄본(.print-procedure-condition)은 선택 안 된 카드는 테두리가 투명(안 보임)이고,
+  // 선택된 카드만 ink(검정) 테두리가 보인다 — 파란 테두리를 항상 그리는 건 인쇄본과 다르다.
   conditionCard: {
-    borderWidth: 1,
-    borderColor: colors.lineSoft,
+    borderWidth: 1.5,
+    borderColor: "transparent",
     borderRadius: 5,
     padding: 8,
     marginTop: 7,
   },
-  conditionSelected: { borderColor: colors.accent },
+  conditionSelected: { borderColor: colors.ink },
   conditionTitle: { fontSize: 9, fontWeight: 600, marginBottom: 4 },
   conditionLine: { flexDirection: "row", gap: 5, marginTop: 3 },
   conditionTag: { width: 31, fontSize: 7, fontWeight: 600 },
@@ -170,15 +189,18 @@ const styles = StyleSheet.create({
     paddingLeft: 9,
     paddingBottom: 10,
   },
-  stepCurrent: { borderLeftColor: colors.accent },
+  // 인쇄본(.print-step-current)은 진행중 단계 강조색도 ink — stepStatus 문구도
+  // (.print-step-status) 항상 muted 회색이라 파란색을 안 쓴다.
+  stepCurrent: { borderLeftColor: colors.ink },
   stepHeading: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3 },
   stepTitle: { flex: 1, fontSize: 9, fontWeight: 600 },
-  stepStatus: { color: colors.accent, fontSize: 7, fontWeight: 600 },
+  stepStatus: { color: colors.muted, fontSize: 7, fontWeight: 600 },
   stepPeriod: { color: colors.muted, fontSize: 7 },
   stepBody: { color: colors.muted, fontSize: 7.5, marginBottom: 2 },
   history: { color: colors.muted, fontSize: 6.8, marginTop: 3 },
   chatItem: { borderBottomWidth: 1, borderBottomColor: colors.lineSoft, paddingVertical: 6 },
-  chatRole: { color: colors.accent, fontSize: 7, fontWeight: 600, marginBottom: 2 },
+  // 인쇄본(.print-chat-role)도 muted 회색 — 파란색이 아니다.
+  chatRole: { color: colors.muted, fontSize: 7, fontWeight: 600, marginBottom: 2 },
   disclaimer: {
     marginTop: 18,
     paddingTop: 8,
@@ -225,12 +247,14 @@ function PdfSection({
   );
 }
 
-function InfoRows({ rows }: { rows: DisplayRow[] }) {
+function InfoRows({ rows, fixedLabelWidth }: { rows: DisplayRow[]; fixedLabelWidth?: boolean }) {
   return (
     <View style={styles.infoTable}>
       {rows.map((row, index) => (
         <View key={`${row.label}-${index}`} style={styles.infoRow} wrap={false}>
-          <Text style={styles.infoLabel}>{row.label}</Text>
+          <Text style={[styles.infoLabel, fixedLabelWidth ? styles.customerInfoLabelWidth : undefined]}>
+            {row.label}
+          </Text>
           <Text style={[styles.infoValue, row.emphasize ? styles.emphasized : undefined]}>
             {row.value || "-"}
           </Text>
@@ -384,24 +408,24 @@ export default function AnalysisPdfDocument({
 
         <PdfSection number={sectionNumber++} title="고객 정보">
           <View style={styles.twoColumn}>
-            <View style={[styles.card, styles.half]}>
+            <View style={[styles.card, styles.customerInfoColumnLeft]}>
               <Text style={styles.cardTitle}>고객 정보</Text>
-              <InfoRows rows={customerInfo.customerRows} />
+              <InfoRows rows={customerInfo.customerRows} fixedLabelWidth />
             </View>
-            <View style={[styles.card, styles.half]}>
+            <View style={[styles.card, styles.customerInfoColumnRight]}>
               <Text style={styles.cardTitle}>자산현황</Text>
               <RichRows rows={customerInfo.assetRows} />
             </View>
           </View>
           <View style={[styles.twoColumn, { marginTop: 8 }]}>
-            <View style={[styles.card, styles.half]}>
+            <View style={[styles.card, styles.customerInfoColumnLeft]}>
               <Text style={styles.cardTitle}>소득 / 지출</Text>
-              <InfoRows rows={customerInfo.incomeRows} />
+              <InfoRows rows={customerInfo.incomeRows} fixedLabelWidth />
             </View>
-            <View style={[styles.card, styles.half]}>
+            <View style={[styles.card, styles.customerInfoColumnRight]}>
               <Text style={styles.cardTitle}>채무현황</Text>
               <RichRows rows={customerInfo.debtRows} />
-              <InfoRows rows={customerInfo.debtTotalRows} />
+              <InfoRows rows={customerInfo.debtTotalRows} fixedLabelWidth />
             </View>
           </View>
           <View style={[styles.card, { marginTop: 8 }]}>
