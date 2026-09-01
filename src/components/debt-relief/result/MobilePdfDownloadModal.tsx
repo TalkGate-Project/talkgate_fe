@@ -237,6 +237,10 @@ export default function MobilePdfDownloadModal({
         <p className="mt-3 text-center text-[13px] text-danger-50">
           공유하지 못했습니다. 잠시 후 다시 시도하거나 기기에 저장해주세요.
         </p>
+      ) : file && !canShareFile ? (
+        <p className="mt-3 text-center text-[13px] text-muted-foreground">
+          이 브라우저에서는 공유하기를 지원하지 않아요. 저장하기를 이용해주세요.
+        </p>
       ) : null}
 
       <div className="mt-5 flex flex-col gap-2">
