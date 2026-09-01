@@ -45,13 +45,14 @@ export default function ProjectAccessRestrictionGuard() {
         showErrorModal({
           type: "error",
           title: "접근 제한",
-          headline: "이 프로젝트에 접속할 수 없습니다.",
+          headline: "접근할 수 없습니다.",
           description:
-            "현재 접속 중인 IP는 이 프로젝트의 허용 목록에 포함되어 있지 않습니다.\n접속 가능한 프로젝트를 다시 선택해주세요.",
+            "허용되지 않은 IP입니다.\n프로젝트 관리자에게 문의하세요.",
           confirmText: "프로젝트 선택",
           hideCancel: true,
           persistent: true,
           hideCloseButton: true,
+          projectAccessRestriction: true,
           onConfirm: () => {
             clearProjectContext();
             resetProjectAccessRestriction();

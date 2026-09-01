@@ -1,3 +1,5 @@
+import { isProjectAccessRestrictionActive } from "./projectAccessRestriction";
+
 export type FeedbackModalType = "error" | "success" | "info";
 
 export type ErrorModalCallbacks = {
@@ -10,6 +12,8 @@ export type ErrorModalCallbacks = {
   hideCancel?: boolean;
   persistent?: boolean; // true일 경우 overlay 클릭 시에도 onConfirm 실행 (닫기 불가능)
   hideCloseButton?: boolean; // true일 경우 우상단 닫기 버튼 숨김
+  /** 프로젝트 IP 접근 제한 처리 중에도 표시해야 하는 전역 접근 제한 모달인지 여부 */
+  projectAccessRestriction?: boolean;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void | Promise<void>;
 };
@@ -49,6 +53,13 @@ export function showErrorModal(
   } else {
     // 객체인 경우 그대로 사용
     payload = payloadOrMessage;
+  }
+
+  if (
+    isProjectAccessRestrictionActive() &&
+    !payload?.projectAccessRestriction
+  ) {
+    return;
   }
   
   const event: ErrorModalEvent = { type: "show", payload };
