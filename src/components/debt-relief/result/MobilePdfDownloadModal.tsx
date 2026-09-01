@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
+import AsyncButton from "@/components/common/AsyncButton";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { DiagnosisDetail, RecommendedProcedure } from "@/types/debtRelief";
 import type { DebtReliefChatUiMessage } from "./useDebtReliefAiChat";
 
@@ -45,15 +47,6 @@ function saveFile(file: File) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-}
-
-function LoadingIndicator() {
-  return (
-    <span
-      aria-hidden
-      className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-neutral-30 border-t-primary-50"
-    />
-  );
 }
 
 export default function MobilePdfDownloadModal({
@@ -165,18 +158,6 @@ export default function MobilePdfDownloadModal({
     }
   };
 
-  // disabled:hover:* 조합에 기대는 대신 활성/비활성 클래스를 아예 분리해서 계산한다 —
-  // 비활성 문자열에는 hover: 유틸리티가 아예 없어 hover 시 색이 활성 상태로 새는(2026-09-01
-  // 실기기 QA에서 발견) 문제 자체가 발생할 수 없다.
-  const shareEnabled = !!file && canShareFile && !sharing;
-  const saveEnabled = !!file;
-  const shareButtonClassName = shareEnabled
-    ? "h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60"
-    : "h-12 w-full cursor-not-allowed rounded-[10px] bg-neutral-30 text-[15px] font-semibold text-neutral-60";
-  const saveButtonClassName = saveEnabled
-    ? "h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10"
-    : "h-12 w-full cursor-not-allowed rounded-[10px] bg-neutral-10 text-[15px] font-semibold text-neutral-60";
-
   return (
     <BaseModal
       onClose={onClose}
@@ -223,9 +204,9 @@ export default function MobilePdfDownloadModal({
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[8px] bg-card text-primary-50 dark:bg-neutral-10">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[8px] bg-card text-primary-60 dark:bg-neutral-10">
               {generating ? (
-                <LoadingIndicator />
+                <LoadingSpinner size="lg" variant="primary" />
               ) : (
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
                   <path d="M6 2.75h6.5L17 7.25v12H6v-16.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
@@ -246,7 +227,7 @@ export default function MobilePdfDownloadModal({
       </div>
 
       {shareFailed ? (
-        <p className="mt-3 text-center text-[13px] text-danger-50">
+        <p className="mt-3 text-center text-[13px] text-danger-40">
           공유하지 못했습니다. 잠시 후 다시 시도하거나 기기에 저장해주세요.
         </p>
       ) : file && !canShareFile ? (
@@ -256,19 +237,22 @@ export default function MobilePdfDownloadModal({
       ) : null}
 
       <div className="mt-5 flex flex-col gap-2">
-        <button
-          type="button"
+        <AsyncButton
+          variant="primary"
+          size="lg"
+          fullWidth
+          loading={sharing}
+          loadingText="공유 중..."
+          disabled={!file || !canShareFile}
           onClick={handleShare}
-          disabled={!shareEnabled}
-          className={shareButtonClassName}
         >
-          {sharing ? "공유 중..." : "공유하기"}
-        </button>
+          공유하기
+        </AsyncButton>
         <button
           type="button"
           onClick={handleSave}
-          disabled={!saveEnabled}
-          className={saveButtonClassName}
+          disabled={!file}
+          className="h-12 w-full cursor-pointer rounded-[5px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-neutral-30"
         >
           저장하기
         </button>
