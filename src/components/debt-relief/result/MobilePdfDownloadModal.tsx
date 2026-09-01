@@ -165,6 +165,18 @@ export default function MobilePdfDownloadModal({
     }
   };
 
+  // disabled:hover:* 조합에 기대는 대신 활성/비활성 클래스를 아예 분리해서 계산한다 —
+  // 비활성 문자열에는 hover: 유틸리티가 아예 없어 hover 시 색이 활성 상태로 새는(2026-09-01
+  // 실기기 QA에서 발견) 문제 자체가 발생할 수 없다.
+  const shareEnabled = !!file && canShareFile && !sharing;
+  const saveEnabled = !!file;
+  const shareButtonClassName = shareEnabled
+    ? "h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60"
+    : "h-12 w-full cursor-not-allowed rounded-[10px] bg-neutral-30 text-[15px] font-semibold text-neutral-60";
+  const saveButtonClassName = saveEnabled
+    ? "h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10"
+    : "h-12 w-full cursor-not-allowed rounded-[10px] bg-neutral-10 text-[15px] font-semibold text-neutral-60";
+
   return (
     <BaseModal
       onClose={onClose}
@@ -247,16 +259,16 @@ export default function MobilePdfDownloadModal({
         <button
           type="button"
           onClick={handleShare}
-          disabled={!file || !canShareFile || sharing}
-          className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-neutral-30 disabled:text-neutral-60"
+          disabled={!shareEnabled}
+          className={shareButtonClassName}
         >
           {sharing ? "공유 중..." : "공유하기"}
         </button>
         <button
           type="button"
           onClick={handleSave}
-          disabled={!file}
-          className="h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10 disabled:pointer-events-none disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-10 disabled:text-neutral-60"
+          disabled={!saveEnabled}
+          className={saveButtonClassName}
         >
           저장하기
         </button>
