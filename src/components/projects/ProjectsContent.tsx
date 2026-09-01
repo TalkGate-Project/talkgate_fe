@@ -13,7 +13,14 @@ import ProjectPrivacyConsentModal from "@/components/projects/ProjectPrivacyCons
 import ServiceDeleteModal from "@/components/common/ServiceDeleteModal";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { showErrorModal } from "@/providers/ErrorFeedbackModalProvider";
-import { setSelectedProjectId, setUseAttendanceMenu, setProjectType } from "@/lib/project";
+import {
+  clearProjectType,
+  clearSelectedProjectId,
+  clearUseAttendanceMenu,
+  setProjectType,
+  setSelectedProjectId,
+  setUseAttendanceMenu,
+} from "@/lib/project";
 import { getProjectSubdomainUrl, isDevelopment } from "@/lib/subdomain";
 import {
   getAllowedPostAuthRedirect,
@@ -59,11 +66,27 @@ export default function ProjectsContent() {
     // 서브도메인 에러 확인
     const error = searchParams.get("error");
     const subdomain = searchParams.get("subdomain");
+    if (error === "ip_not_allowed") {
+      clearSelectedProjectId();
+      clearUseAttendanceMenu();
+      clearProjectType();
+      sessionStorage.removeItem(POST_AUTH_REDIRECT_STORAGE_KEY);
+      showErrorModal({
+        type: "error",
+        title: "접근 제한",
+        headline: "이 프로젝트에 접속할 수 없습니다.",
+        description:
+          "현재 접속 중인 IP는 이 프로젝트의 허용 목록에 포함되어 있지 않습니다.\n접속 가능한 프로젝트를 다시 선택해주세요.",
+        hideCancel: true,
+        confirmText: "확인",
+      });
+    }
     if (error === "invalid_subdomain" && subdomain) {
       setSubdomainError(
         `'${subdomain}' 서브도메인에 해당하는 프로젝트를 찾을 수 없습니다.`
       );
-      // URL에서 에러 파라미터 제거 (히스토리 정리)
+    }
+    if (error) {
       const url = new URL(window.location.href);
       url.searchParams.delete("error");
       url.searchParams.delete("subdomain");

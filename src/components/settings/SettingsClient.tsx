@@ -20,9 +20,11 @@ import CustomerApiSettings from "./customer-api/CustomerApiSettings";
 import SenderNumberSettings from "./SenderNumberSettings";
 import SmsHistorySettings from "./SmsHistorySettings";
 import PartnerRegistrationSettings from "./PartnerRegistrationSettings";
+import SecuritySettings from "./SecuritySettings";
 
 type SettingsTab =
   | "general"
+  | "security"
   | "profile"
   | "consultation-channel"
   | "sender-numbers"
@@ -36,6 +38,7 @@ type SettingsTab =
 
 const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
   general: GeneralSettings,
+  security: SecuritySettings,
   profile: ProfileSettings,
   "consultation-channel": ConsultationChannelSettings,
   member: MemberSettings,
@@ -51,6 +54,7 @@ const TAB_COMPONENTS: Record<SettingsTab, React.ComponentType> = {
 // 권한이 필요한 탭 목록 (admin/subAdmin만 접근 가능)
 const ADMIN_ONLY_TABS: SettingsTab[] = [
   "general",
+  "security",
   "customer-api",
   "partner-registration",
 ];
