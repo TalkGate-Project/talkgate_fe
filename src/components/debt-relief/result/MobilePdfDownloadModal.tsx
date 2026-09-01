@@ -138,14 +138,18 @@ export default function MobilePdfDownloadModal({
     setSharing(true);
     setShareFailed(false);
 
+    // 삼성인터넷 등 일부 브라우저는 canShare가 true를 줘도 실제 공유 시트가 뜨지 않고
+    // share()가 resolve도 reject도 안 하는 경우가 있다(2026-09-01 실기기 확인). 그런 경우
+    // 버튼이 "공유 중..."에 영원히 멈추지 않도록 일정 시간 뒤 조용히 원상태로 되돌린다 —
+    // 진짜 실패로 단정하지는 않는다(사용자가 아직 공유 시트에서 고르는 중일 수도 있어서).
+    const silentTimeout = window.setTimeout(() => setSharing(false), 15_000);
+
     try {
-      await window.navigator.share({
-        files: [file],
-        title: `${detail.customerName} 고객 채무조정 진단 결과`,
-        text: "톡게이트 채무조정 진단 결과 PDF입니다.",
-      });
+      await window.navigator.share({ files: [file] });
+      window.clearTimeout(silentTimeout);
       window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
     } catch (error) {
+      window.clearTimeout(silentTimeout);
       const errorName =
         error && typeof error === "object" && "name" in error
           ? String((error as { name?: unknown }).name)
