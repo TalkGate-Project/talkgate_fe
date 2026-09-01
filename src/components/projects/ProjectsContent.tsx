@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProjectsService } from "@/services/projects";
+import { AuthService } from "@/services/auth";
 import { ProjectPrivacyConsentService } from "@/services/projectPrivacyConsent";
 import type { Project, ProjectSummary } from "@/types/projects";
 import { ProjectSubscriptionStatus } from "@/types/projects";
@@ -30,6 +31,8 @@ import {
   notifyProjectAccessRestricted,
   resetProjectAccessRestriction,
 } from "@/lib/projectAccessRestriction";
+import { env } from "@/lib/env";
+import { getAccessToken } from "@/lib/token";
 import Image from "next/image";
 import projectAssignedCustomerImg from "@/assets/images/projects/project-assigned-customer.webp";
 import projectReservedItemImg from "@/assets/images/projects/project-reserved-item.webp";
@@ -41,6 +44,40 @@ function getApiErrorCode(error: unknown): string | undefined {
   const data = error.data;
   if (!data || typeof data !== "object" || !("code" in data)) return undefined;
   return typeof data.code === "string" ? data.code : undefined;
+}
+
+async function verifyProjectAccessDirect(projectId: number): Promise<void> {
+  const requestProject = () => {
+    const accessToken = getAccessToken();
+
+    return fetch(`${env.NEXT_PUBLIC_API_BASE_URL}/v1/projects/by-id`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "x-project-id": String(projectId),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      credentials: "include",
+      cache: "no-store",
+    });
+  };
+
+  let response = await requestProject();
+
+  if (response.status === 401) {
+    const refreshed = await AuthService.refresh().catch(() => null);
+    if (refreshed?.ok) {
+      response = await requestProject();
+    }
+  }
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw Object.assign(new Error(`Project access verification failed: ${response.status}`), {
+      status: response.status,
+      data,
+    });
+  }
 }
 
 function showProjectAccessRestrictedModal() {
@@ -226,9 +263,7 @@ export default function ProjectsContent() {
     try {
       // 1단계: 클릭한 프로젝트 ID로 접근 가능 여부를 먼저 확인한다.
       try {
-        await ProjectsService.detailById({
-          "x-project-id": String(p.id),
-        });
+        await verifyProjectAccessDirect(p.id);
       } catch (error: unknown) {
         if (getApiErrorCode(error) === "IP_NOT_ALLOWED") {
           notifyProjectAccessRestricted(String(p.id));
