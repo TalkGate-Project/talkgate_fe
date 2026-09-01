@@ -33,6 +33,7 @@ import {
 } from "@/types/debtRelief";
 import { AnalysisService } from "@/services/analysis";
 import { CustomersService } from "@/services/customers";
+import { wonToManwon, manwonToWon } from "@/components/debt-relief/format";
 import type {
   AnalysisDebtBreakdown,
   AnalysisDebtCause,
@@ -175,15 +176,10 @@ const DEBT_ITEM_TYPE_TO_BREAKDOWN_KEY: Record<
   personal_borrowing: "personalBorrowing",
 };
 
-const WON_PER_MANWON = 10000;
-
-export function wonToManwon(won: number): number {
-  return Math.round(won / WON_PER_MANWON);
-}
-
-export function manwonToWon(manwon: number): number {
-  return manwon * WON_PER_MANWON;
-}
+// wonToManwon/manwonToWon 구현은 순수 포맷 유틸(@/components/debt-relief/format)에 있다 —
+// AnalysisPdfDocument가 Worker에서 이 서비스 파일 대신 그쪽만 import해 apiClient 등 무거운
+// 의존성 없이 변환식만 재사용한다.
+export { wonToManwon, manwonToWon };
 
 /** 상세모드 채무 항목들을 간편모드의 종류별 잔액(만원)으로 집계 — 모드 전환/합계 표시용 */
 export function aggregateDebtsToBreakdown(debts: AnalysisDebtItem[]): AnalysisDebtBreakdown {

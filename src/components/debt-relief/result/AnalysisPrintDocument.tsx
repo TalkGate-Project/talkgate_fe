@@ -19,7 +19,7 @@ import {
   type DisplayRow,
   type RichDisplayRow,
   type SummaryLine,
-} from "./DiagnosisCustomerInfoModal";
+} from "./customerInfoViewModel";
 import {
   BUCKET_SUMMARY,
   REMAINING_DEBT_SUBTITLE,
