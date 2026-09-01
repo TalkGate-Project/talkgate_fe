@@ -38,9 +38,11 @@ import SectionProcedureGuide from "./SectionProcedureGuide";
 import SectionSmsSend from "./SectionSmsSend";
 import ResultDeleteButton from "./ResultDeleteButton";
 import AnalysisPrintDocument from "./AnalysisPrintDocument";
+import MobilePdfDownloadModal from "./MobilePdfDownloadModal";
 import { useDebtReliefChatHistory } from "./useDebtReliefAiChat";
 import { getBodyZoom } from "@/utils/zoom";
 import { formatContactForDisplay } from "@/utils/format";
+import { isMobileDeviceNavigator } from "@/lib/device";
 
 const ALL_SECTION_IDS = ["overview", "scores", "debt", "repayment", "ments", "guide", "sms"];
 
@@ -68,6 +70,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
   const [selfProceedProcedureOpen, setSelfProceedProcedureOpen] = useState(false);
   const [selfProceedProcedureSubmitting, setSelfProceedProcedureSubmitting] = useState(false);
   const [guideTitleArrivalKey, setGuideTitleArrivalKey] = useState(0);
+  const [mobilePdfOpen, setMobilePdfOpen] = useState(false);
   // 상담 포인트(SectionCounselMents)와 인쇄용 숨김 문서(AnalysisPrintDocument)가 둘 다 AI 채팅
   // 히스토리를 필요로 해서, 각자 조회하면 GET /v1/analysis/{id}/chat이 중복 호출된다. 여기서 한 번만
   // 조회해 두 곳에 내려준다.
@@ -194,6 +197,15 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
 
   // 사용자가 아직 카드를 클릭하지 않았으면 추적 중인 절차를 기본값으로 보여준다.
   const activeProcedure = selectedProcedure ?? detail.trackingProcedure;
+
+  const handleDownload = () => {
+    if (!isMobileDeviceNavigator(window.navigator)) {
+      window.print();
+      return;
+    }
+
+    setMobilePdfOpen(true);
+  };
 
   // 영업점이 전달한 검토중 건을 변호사 프로젝트가 열었을 때만 수락/반려 배너 노출.
   // 배너는 lawyerReceivedReadOnly(읽기전용/AI추천 숨김)와는 별개 조건 — 검토중일 때만이다.
@@ -337,7 +349,12 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
               joinBottomDivider={detail.messages.length === 0}
               className="max-md:!pt-0"
             >
-              <ResultHeader detail={detail} projectId={projectId} onCustomerMatchChange={refetch} />
+              <ResultHeader
+                detail={detail}
+                projectId={projectId}
+                onCustomerMatchChange={refetch}
+                onDownload={handleDownload}
+              />
               <div className="mt-3 md:hidden">
                 <AnalysisProgressBanner
                   status={detail.status}
@@ -377,6 +394,7 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
                 detail={detail}
                 projectId={projectId}
                 onCustomerMatchChange={refetch}
+                onDownload={handleDownload}
                 showMessagesToggle={detail.messages.length > 0}
                 messagesOpen={mobileMessagesOpen}
                 onToggleMessages={() => setMobileMessagesOpen((previous) => !previous)}
@@ -487,6 +505,13 @@ export default function ResultDetailContent({ diagnosisId }: { diagnosisId: stri
         <AnalysisReviewBanner detail={detail} projectId={projectId} onDecided={refetch} hidePrompt />
       ) : null}
       <AnalysisPrintDocument
+        detail={detail}
+        selectedProcedure={activeProcedure}
+        chatMessages={chatHistory.messages}
+      />
+      <MobilePdfDownloadModal
+        open={mobilePdfOpen}
+        onClose={() => setMobilePdfOpen(false)}
         detail={detail}
         selectedProcedure={activeProcedure}
         chatMessages={chatHistory.messages}

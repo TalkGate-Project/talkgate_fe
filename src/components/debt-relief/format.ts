@@ -1,6 +1,16 @@
 import type { CustomerGender } from "@/types/debtRelief";
 import type { FeePlanSummary } from "@/types/analysisFeePlan";
 
+const WON_PER_MANWON = 10000;
+
+export function wonToManwon(won: number): number {
+  return Math.round(won / WON_PER_MANWON);
+}
+
+export function manwonToWon(manwon: number): number {
+  return manwon * WON_PER_MANWON;
+}
+
 // 총 채무 (만원) → "3.1억원" / "5,000만원"
 export function formatDebtManwon(manwon: number): string {
   if (manwon >= 10000) {
