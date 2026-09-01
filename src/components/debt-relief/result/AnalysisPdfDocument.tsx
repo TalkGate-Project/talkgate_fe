@@ -92,12 +92,15 @@ const styles = StyleSheet.create({
     gap: 7,
     marginBottom: 8,
   },
+  // PC 인쇄본(AnalysisPrintDocument)의 .print-section-number와 동일하게 — 검정 사각
+  // 배지(파란 원이 아님). 절차 조건의 "충족"·강조 값 등 다른 곳의 파란색(accent)은 인쇄본과
+  // 이미 일치하므로 건드리지 않는다, 이 번호 배지만 원래 인쇄본과 다르게 파랗게 들어가 있었다.
   sectionNumber: {
     width: 17,
     height: 17,
-    borderRadius: 8.5,
+    borderRadius: 3,
     color: "#ffffff",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.ink,
     fontSize: 8,
     fontWeight: 600,
     textAlign: "center",
