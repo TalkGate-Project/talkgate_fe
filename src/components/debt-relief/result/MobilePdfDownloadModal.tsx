@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BaseModal from "@/components/common/BaseModal";
 import type { DiagnosisDetail, RecommendedProcedure } from "@/types/debtRelief";
 import type { DebtReliefChatUiMessage } from "./useDebtReliefAiChat";
@@ -13,8 +13,9 @@ type Props = {
   chatMessages: DebtReliefChatUiMessage[];
 };
 
-// 생성 완료 후 자동으로 모달을 닫기 전, 사용자가 "저장됐다"는 걸 눈으로 확인할 시간.
-const AUTO_CLOSE_DELAY_MS = 1200;
+// 저장/공유 성공 후 모달을 닫기 전, 사용자가 결과를 눈으로 확인할 시간. 실제 사용자 클릭
+// 안에서 호출되는 동작 뒤에만 쓰므로(자동 트리거 아님) 팝업 차단 등과는 무관하다.
+const AUTO_CLOSE_DELAY_MS = 900;
 
 function isIosDevice(): boolean {
   const userAgent = window.navigator.userAgent || "";
@@ -25,17 +26,17 @@ function isIosDevice(): boolean {
   );
 }
 
-// iOS Safari는 <a download>를 신뢰할 수 없어 새 탭에 열어 자체 PDF 뷰어(공유·저장 버튼 포함)를
-// 쓰게 한다. window.open은 진짜 사용자 클릭 없이 호출되면(예: 비동기 생성 완료 뒤 자동 호출)
-// 팝업 차단으로 막힐 수 있어, 반환값으로 성공 여부를 판단해 실패 시 수동 버튼으로 폴백한다.
-// (noopener를 안 쓰는 이유: noopener를 쓰면 성공해도 항상 null이 반환돼 차단 여부를 구분 못 한다.
-// 여는 대상이 우리가 방금 만든 blob이라 noopener가 막으려는 reverse-tabnabbing 위험이 없다.)
-function trySaveFile(file: File): boolean {
+// iOS Safari/Chrome는 <a download>를 신뢰할 수 없어 새 탭에 열어 자체 PDF 뷰어(저장·공유
+// 아이콘 포함)를 쓰게 한다. 반드시 버튼 클릭 핸들러 안에서 동기적으로 호출해야 한다 — 비동기
+// 완료 뒤 자동으로 부르면 팝업 차단(iOS)이나 자동 다운로드 차단(Android 크롬 계열)에 막힌다
+// (2026-09-01 실기기 확인: 삼성인터넷만 자동 저장 성공, iOS 사파리/크롬은 모두 실패).
+function saveFile(file: File) {
   const url = URL.createObjectURL(file);
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
   if (isIosDevice()) {
-    return !!window.open(url, "_blank");
+    window.open(url, "_blank");
+    return;
   }
 
   const anchor = document.createElement("a");
@@ -44,7 +45,6 @@ function trySaveFile(file: File): boolean {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  return true;
 }
 
 function LoadingIndicator() {
@@ -55,8 +55,6 @@ function LoadingIndicator() {
     />
   );
 }
-
-type AutoSaveState = "idle" | "done" | "blocked";
 
 export default function MobilePdfDownloadModal({
   open,
@@ -69,8 +67,21 @@ export default function MobilePdfDownloadModal({
   const [generating, setGenerating] = useState(false);
   const [generationFailed, setGenerationFailed] = useState(false);
   const [generationAttempt, setGenerationAttempt] = useState(0);
-  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>("idle");
+  const [sharing, setSharing] = useState(false);
+  const [shareFailed, setShareFailed] = useState(false);
   const generationPromiseRef = useRef<Promise<File> | null>(null);
+
+  const canShareFile = useMemo(() => {
+    if (!file) return false;
+    if (typeof window.navigator.share !== "function") return false;
+    if (typeof window.navigator.canShare !== "function") return false;
+
+    try {
+      return window.navigator.canShare({ files: [file] });
+    } catch {
+      return false;
+    }
+  }, [file]);
 
   useEffect(() => {
     if (open) return;
@@ -78,7 +89,8 @@ export default function MobilePdfDownloadModal({
     setFile(null);
     setGenerating(false);
     setGenerationFailed(false);
-    setAutoSaveState("idle");
+    setSharing(false);
+    setShareFailed(false);
   }, [open]);
 
   useEffect(() => {
@@ -113,18 +125,6 @@ export default function MobilePdfDownloadModal({
     };
   }, [open, detail, selectedProcedure, chatMessages, generationAttempt]);
 
-  // 파일이 준비되면 사용자가 더 누를 것 없이 곧바로 저장(또는 iOS는 뷰어 열기)을 시도한다.
-  useEffect(() => {
-    if (!file) return;
-    setAutoSaveState(trySaveFile(file) ? "done" : "blocked");
-  }, [file]);
-
-  useEffect(() => {
-    if (autoSaveState !== "done") return;
-    const timer = window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [autoSaveState, onClose]);
-
   if (!open) return null;
 
   const retryGeneration = () => {
@@ -134,9 +134,35 @@ export default function MobilePdfDownloadModal({
     setGenerationAttempt((previous) => previous + 1);
   };
 
-  const retrySave = () => {
+  const handleSave = () => {
     if (!file) return;
-    setAutoSaveState(trySaveFile(file) ? "done" : "blocked");
+    saveFile(file);
+    window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
+  };
+
+  const handleShare = async () => {
+    if (!file) return;
+    setSharing(true);
+    setShareFailed(false);
+
+    try {
+      await window.navigator.share({
+        files: [file],
+        title: `${detail.customerName} 고객 채무조정 진단 결과`,
+        text: "톡게이트 채무조정 진단 결과 PDF입니다.",
+      });
+      window.setTimeout(onClose, AUTO_CLOSE_DELAY_MS);
+    } catch (error) {
+      const errorName =
+        error && typeof error === "object" && "name" in error
+          ? String((error as { name?: unknown }).name)
+          : "";
+      setSharing(false);
+      if (errorName === "AbortError") return;
+
+      console.error("Failed to share debt relief PDF:", error);
+      setShareFailed(true);
+    }
   };
 
   return (
@@ -155,7 +181,7 @@ export default function MobilePdfDownloadModal({
             진단서 PDF
           </h2>
           <p className="mt-1 text-[14px] leading-[20px] text-muted-foreground">
-            생성이 끝나면 자동으로 기기에 저장돼요.
+            PDF 파일을 공유하거나 기기에 저장할 수 있어요.
           </p>
         </div>
         <button
@@ -171,13 +197,7 @@ export default function MobilePdfDownloadModal({
       </div>
 
       <div className="mt-6 rounded-[12px] bg-neutral-10 px-4 py-5 dark:bg-neutral-20">
-        {generating ? (
-          <div className="flex flex-col items-center py-3 text-center" role="status">
-            <LoadingIndicator />
-            <p className="mt-3 text-[15px] font-semibold text-foreground">PDF를 만들고 있어요</p>
-            <p className="mt-1 text-[13px] text-muted-foreground">잠시만 기다려주세요.</p>
-          </div>
-        ) : generationFailed ? (
+        {generationFailed ? (
           <div className="text-center">
             <p className="text-[15px] font-semibold text-foreground">PDF를 만들지 못했어요.</p>
             <p className="mt-1 text-[13px] text-muted-foreground">잠시 후 다시 시도해주세요.</p>
@@ -189,47 +209,54 @@ export default function MobilePdfDownloadModal({
               다시 시도
             </button>
           </div>
-        ) : file ? (
+        ) : (
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[8px] bg-card text-primary-50 dark:bg-neutral-10">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-                <path d="M6 2.75h6.5L17 7.25v12H6v-16.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-                <path d="M12.5 2.75v4.5H17M8.5 12h5M8.5 15h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
+              {generating ? (
+                <LoadingIndicator />
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+                  <path d="M6 2.75h6.5L17 7.25v12H6v-16.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                  <path d="M12.5 2.75v4.5H17M8.5 12h5M8.5 15h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              )}
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] font-semibold text-foreground">{file.name}</p>
+            <div className="min-w-0">
+              <p className="truncate text-[14px] font-semibold text-foreground">
+                {file ? file.name : "PDF를 만들고 있어요"}
+              </p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
-                {(file.size / 1024 / 1024).toFixed(1)} MB · PDF
+                {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB · PDF` : "잠시만 기다려주세요."}
               </p>
             </div>
-            {autoSaveState === "done" ? (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="shrink-0 text-primary-50">
-                <path d="M4 10.5 8 14.5 16 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : null}
           </div>
-        ) : null}
+        )}
       </div>
 
-      {autoSaveState === "done" ? (
-        <p className="mt-3 text-center text-[13px] text-muted-foreground">
-          {isIosDevice() ? "PDF를 열었어요." : "기기에 저장했어요."}
+      {shareFailed ? (
+        <p className="mt-3 text-center text-[13px] text-danger-50">
+          공유하지 못했습니다. 잠시 후 다시 시도하거나 기기에 저장해주세요.
         </p>
-      ) : autoSaveState === "blocked" ? (
-        <div className="mt-5 flex flex-col gap-2">
-          <p className="text-center text-[13px] text-muted-foreground">
-            자동으로 열리지 않았어요. 아래 버튼을 눌러주세요.
-          </p>
-          <button
-            type="button"
-            onClick={retrySave}
-            className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60"
-          >
-            PDF 열기
-          </button>
-        </div>
       ) : null}
+
+      <div className="mt-5 flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleShare}
+          disabled={!file || !canShareFile || sharing}
+          className="h-12 w-full cursor-pointer rounded-[10px] bg-primary-50 text-[15px] font-semibold text-white hover:bg-primary-60 disabled:cursor-not-allowed disabled:bg-neutral-30 disabled:text-neutral-60 disabled:hover:bg-neutral-30"
+        >
+          {sharing ? "공유 중..." : "공유하기"}
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!file}
+          className="h-12 w-full cursor-pointer rounded-[10px] border border-border bg-card text-[15px] font-semibold text-foreground hover:bg-neutral-10 disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-10 disabled:text-neutral-60 disabled:hover:bg-neutral-10"
+        >
+          저장하기
+        </button>
+      </div>
     </BaseModal>
   );
 }
